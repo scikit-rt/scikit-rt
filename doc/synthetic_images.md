@@ -2,7 +2,7 @@
 
 The `SyntheticImage` class enables the creation of images containing simple geometric shapes.
 
-<img src="images/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
+<img src="../images/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
 
 ## Creating a synthetic image
 
