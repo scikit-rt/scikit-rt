@@ -1,0 +1,8 @@
+name: skrt
+dependencies:
+  - ipython
+  - jupyter
+  - pip
+  - python >=3.8.0,<3.9
+  - pip:
+    - -e .
