@@ -22,7 +22,8 @@ setuptools.setup(
                       'numpy',
                       'pandas',
                       'pydicom>=2.1.2',
-                      'python-gdcm',
+                       'python-gdcm',
+                       'pytest',
                       'scikit-image',
                       'shapely'
                      ],

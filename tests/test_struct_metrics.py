@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from quickviewer.prototype.simulation import SyntheticImage
+from skrt.simulation import SyntheticImage
 
 
 # Create fake image

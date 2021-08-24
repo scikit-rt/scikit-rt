@@ -9,8 +9,8 @@ import nibabel
 import shutil
 from scipy import ndimage
 
-from quickviewer.prototype import Image, RtStruct, ROI
-from quickviewer.prototype import to_three, is_list, _axes
+from skrt import Image, RtStruct, ROI
+from skrt import to_three, is_list, _axes
 
 
 class SyntheticImage(Image):
@@ -79,21 +79,21 @@ class SyntheticImage(Image):
             self.filename = os.path.expanduser(filename)
             self.write()
 
-    def view(self, **kwargs):
-        '''View with QuickViewer.'''
+    #  def view(self, **kwargs):
+        #  '''View with QuickViewer.'''
 
-        from quickviewer import QuickViewer
+        #  from quickviewer import QuickViewer
 
-        qv_kwargs = {
-            'hu': [self.min_hu, self.max_hu],
-            'title': '',
-            'origin': self.origin,
-            'voxel_size': self.voxel_size,
-            'mpl_kwargs': {'interpolation': 'none'},
-        }
-        qv_kwargs.update(kwargs)
-        structs = self.get_struct_data()
-        QuickViewer(self.get_data(), structs=structs, **qv_kwargs)
+        #  qv_kwargs = {
+            #  'hu': [self.min_hu, self.max_hu],
+            #  'title': '',
+            #  'origin': self.origin,
+            #  'voxel_size': self.voxel_size,
+            #  'mpl_kwargs': {'interpolation': 'none'},
+        #  }
+        #  qv_kwargs.update(kwargs)
+        #  structs = self.get_struct_data()
+        #  QuickViewer(self.get_data(), structs=structs, **qv_kwargs)
 
     def get_data(self):
         '''Get data with noise overlaid.'''

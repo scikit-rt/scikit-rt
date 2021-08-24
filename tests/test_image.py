@@ -4,7 +4,7 @@ import os
 import numpy as np
 import shutil
 
-from quickviewer.prototype import Image
+from skrt import Image
 
 
 # Create fake data

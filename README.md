@@ -99,7 +99,7 @@ A structure/region of interest (ROI) can be represented by either a set of conto
 
 An `ROI` object, which contains a single structure, can be created via:
 ```
-from quickviewer.prototype import ROI
+from skrt import ROI
 roi = ROI(source)
 ```
 
@@ -197,7 +197,7 @@ A structure set is an object that contains multiple ROIs. This is done via the `
 
 A structure set is created via
 ```
-from quickviewer.prototype import RtStruct
+from skrt import RtStruct
 rtstruct = RtStruct(source)
 ```
 
@@ -296,7 +296,7 @@ where `outdir` is the output directory and `ext` is either `.nii`, `.nii.gz` or 
 
 Just as ROIs and structure sets can be associated with an image, the `Image` object can be associated with one or more `RtStruct` objects. This is done via:
 ```
-from quickviewer.prototype import Image, RtStruct
+from skrt import Image, RtStruct
 
 image = Image("some_image.nii")
 rtstruct = RtStruct("roi_directory")
@@ -383,7 +383,7 @@ For example, if a study containined both CT and MR images, as well as two struct
 
 A `Patient` object is created by providing the path to the top-level patient directory:
 ```
-from quickviewer.prototype import Patient
+from skrt import Patient
 p = Patient('mypatient1')
 ```
 
