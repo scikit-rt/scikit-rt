@@ -1136,6 +1136,7 @@ class Image(ArchiveObject):
         save_as=None,
         zoom=None,
         zoom_centre=None,
+        hu=None,
         mpl_kwargs=None,
         show=True,
         colorbar=False,
@@ -1209,6 +1210,10 @@ class Image(ArchiveObject):
 
         colorbar_label : str, default='HU'
             Label for the colorbar, if drawn.
+
+        hu : list, default=None
+            Two-item list containing min and max HU for plotting. Supercedes
+            'vmin' and 'vmax' in <mpl_kwargs>.
 
         mpl_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.imshow().
@@ -1305,6 +1310,13 @@ class Image(ArchiveObject):
         idx = self.get_idx(view, sl, idx, pos)
         image_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos, 
                                      flatten=flatten)
+
+        # Apply HU window if given
+        if mpl_kwargs is None:
+            mpl_kwargs = {}
+        if hu is not None:
+            mpl_kwargs['vmin'] = hu[0]
+            mpl_kwargs['vmax'] = hu[1]
 
         # Plot the slice
         mesh = self.ax.imshow(
