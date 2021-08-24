@@ -451,7 +451,7 @@ The `SyntheticImage` class enables the creation of images containing simple geom
 To create an empty image, load the `SyntheticImage` class and specify the desired image shape in order (x, y, z), e.g.
 
 ```
-from quickviewer.prototype.simulation import SyntheticImage
+from skrt.simulation import SyntheticImage
 
 sim = SyntheticImage((250, 250, 50))
 ```
