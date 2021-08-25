@@ -6,8 +6,9 @@ import nibabel
 import shutil
 from scipy import ndimage
 
-from skrt import Image, RtStruct, ROI
-from skrt import to_three, is_list, _axes
+from skrt.image import Image, _axes
+from skrt.structures import RtStruct, ROI
+import skrt.core
 
 
 class SyntheticImage(Image):
@@ -52,9 +53,9 @@ class SyntheticImage(Image):
         '''
 
         # Create image properties
-        shape = to_three(shape)
+        shape = skrt.core.to_three(shape)
         self.shape = [shape[1], shape[0], shape[2]]
-        voxel_size = [abs(v) for v in to_three(voxel_size)]
+        voxel_size = [abs(v) for v in skrt.core.to_three(voxel_size)]
         self.max_hu = 0 if noise_std is None else noise_std * 3
         self.min_hu = -self.max_hu if self.max_hu != 0 else -20
         self.noise_std = noise_std
@@ -76,21 +77,21 @@ class SyntheticImage(Image):
             self.filename = os.path.expanduser(filename)
             self.write()
 
-    #  def view(self, **kwargs):
-        #  '''View with QuickViewer.'''
+    def view(self, **kwargs):
+        '''View with QuickViewer.'''
 
-        #  from quickviewer import QuickViewer
+        from skrt import QuickViewer
 
-        #  qv_kwargs = {
-            #  'hu': [self.min_hu, self.max_hu],
-            #  'title': '',
-            #  'origin': self.origin,
-            #  'voxel_size': self.voxel_size,
-            #  'mpl_kwargs': {'interpolation': 'none'},
-        #  }
-        #  qv_kwargs.update(kwargs)
-        #  structs = self.get_struct_data()
-        #  QuickViewer(self.get_data(), structs=structs, **qv_kwargs)
+        qv_kwargs = {
+            'hu': [self.min_hu, self.max_hu],
+            'title': '',
+            'origin': self.origin,
+            'voxel_size': self.voxel_size,
+            'mpl_kwargs': {'interpolation': 'none'},
+        }
+        qv_kwargs.update(kwargs)
+        structs = self.get_struct_data()
+        QuickViewer(self.get_data(), structs=structs, **qv_kwargs)
 
     def get_data(self):
         '''Get data with noise overlaid.'''
@@ -279,7 +280,7 @@ class SyntheticImage(Image):
 
         if centre is None:
             centre = self.get_image_centre()
-        side_length = to_three(side_length)
+        side_length = skrt.core.to_three(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
         self.add_shape(cuboid, 'cuboid', is_struct, above, group)
@@ -405,7 +406,7 @@ class Cuboid():
     def __init__(self, shape, side_length, centre, intensity, name=None):
 
         self.name = name
-        self.side_length = to_three(side_length)
+        self.side_length = skrt.core.to_three(side_length)
         self.centre = centre
         self.intensity = intensity
 
@@ -460,8 +461,8 @@ class Grid():
     def __init__(self, shape, spacing, thickness, intensity, axis=None, name=None):
 
         self.name = name
-        self.spacing = to_three(spacing)
-        self.thickness = to_three(thickness)
+        self.spacing = skrt.core.to_three(spacing)
+        self.thickness = skrt.core.to_three(thickness)
         self.intensity = intensity
         self.axis = axis
         self.shape = shape

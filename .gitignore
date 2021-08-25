@@ -1,4 +1,3 @@
-tests/data
 .*
 !.gitignore
 __pycache__
@@ -8,4 +7,4 @@ build
 *.nii*
 *.dcm
 tests/tmp
-tests/prototype/tmp
+tests/tmp

@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 
-from skrt import Image, ImageComparison
+from skrt.image import Image, ImageComparison
 
 
 class Registration:
@@ -198,7 +198,7 @@ class Registration:
     def view_comparison(self, **kwargs):
         '''View comparison of fixed image and final transformed moving image.'''
 
-        from quickviewer import QuickViewer
+        from skrt.viewer import QuickViewer
         self.get_final_image()
         if 'comparison' not in kwargs:
             kwargs['comparison'] = True
@@ -215,7 +215,7 @@ class Registration:
     def view_init(self, **kwargs):
         '''View comparison of initial fixed and moving images.'''
 
-        from quickviewer import QuickViewer
+        from skrt.viewer import QuickViewer
         if 'hu' not in kwargs:
             self.fixed = ensure_image(self.fixed)
             kwargs['hu'] = self.fixed.default_window
