@@ -27,7 +27,7 @@ import tempfile
 import time
 import uuid
 
-from skrt.core import Archive
+import skrt.core
 
 
 _axes = ['x', 'y', 'z']
@@ -45,7 +45,7 @@ _default_figsize = 6
 _default_stations = {'0210167': 'LA3', '0210292': 'LA4'}
 
 
-class Image(Archive):
+class Image(skrt.core.Archive):
     '''Loads and stores a medical image and its geometrical properties, either 
     from a dicom/nifti file or a numpy array.'''
 
@@ -117,7 +117,7 @@ class Image(Archive):
         self.structs = []
 
         path = self.source if isinstance(self.source, str) else ''
-        Archive.__init__(self, path)
+        skrt.core.Archive.__init__(self, path)
 
         if load:
             self.load_data()
@@ -602,7 +602,7 @@ class Image(Archive):
         else:
             if figsize is None:
                 figsize = _default_figsize
-            if is_list(figsize):
+            if skrt.core.is_list(figsize):
                 fig_tuple = figsize
             else:
                 figsize = to_inches(figsize)
@@ -831,7 +831,7 @@ class Image(Archive):
                          )
             elif structure_set == 'all':
                 to_plot = self.structs
-            elif is_list(structure_set):
+            elif skrt.core.is_list(structure_set):
                 to_plot = [self.structs[i] for i in structure_set]
             else:
                 print(f'Warning: structure set option {structure_set} not '
@@ -1130,7 +1130,7 @@ class Image(Archive):
         values.'''
 
         # Get downsampling in each direction
-        if is_list(downsampling):
+        if skrt.core.is_list(downsampling):
             if len(downsampling) != 3:
                 raise TypeError('<downsample> must contain 3 elements!')
             dx, dy, dz = downsampling

@@ -28,7 +28,7 @@ import time
 import uuid
 
 import skrt.core
-from skrt.image import Image, _default_figsize
+import skrt.image
 
 
 class StructDefaults:
@@ -90,7 +90,7 @@ class StructDefaults:
 StructDefaults()
 
 
-class ROI(Image):
+class ROI(skrt.image.Image):
     '''Single structure.'''
 
     def __init__(
@@ -159,8 +159,8 @@ class ROI(Image):
         self.custom_color = color is not None
         self.set_color(color)
         self.image = image
-        if image and not isinstance(image, Image):
-            self.image = Image(image)
+        if image and not isinstance(image, skrt.image.Image):
+            self.image = skrt.image.Image(image)
         self.shape = shape
         self.mask_level = mask_level
         self.kwargs = kwargs
@@ -230,7 +230,7 @@ class ROI(Image):
 
         # Load structure mask
         if not len(structs) and self.source is not None:
-            Image.__init__(self, self.source, **self.kwargs)
+            skrt.image.Image.__init__(self, self.source, **self.kwargs)
             self.loaded = True
             self.create_mask()
 
@@ -242,7 +242,8 @@ class ROI(Image):
                 self.kwargs['voxel_size'] = self.image.voxel_size
                 self.kwargs['origin'] = self.image.origin
                 self.shape = self.image.data.shape
-                Image.__init__(self, np.zeros(self.shape), **self.kwargs)
+                skrt.image.Image.__init__(self, np.zeros(self.shape), 
+                                          **self.kwargs)
 
             # Set x-y contours with z indices as keys
             self.contours = {'x-y': {}}
@@ -267,7 +268,7 @@ class ROI(Image):
         if not flatten:
             return self.data
         return np.sum(self.get_standardised_data(), 
-                      axis=_slice_axes[view]).astype(bool)
+                      axis=skrt.image._slice_axes[view]).astype(bool)
 
     def create_contours(self):
         '''Create contours in all orientations.'''
@@ -282,7 +283,7 @@ class ROI(Image):
         self.create_mask()
 
         # Create contours in every orientation
-        for view, z_ax in _slice_axes.items():
+        for view, z_ax in skrt.image._slice_axes.items():
             if view in self.contours:
                 continue
 
@@ -308,7 +309,7 @@ class ROI(Image):
             mask, 0.5, 'low', 'low')
 
         # Convert indices to positions in mm
-        x_ax, y_ax = _plot_axes[view]
+        x_ax, y_ax = skrt.image._plot_axes[view]
         points = []
         for contour in contours:
             contour_points = []
@@ -338,7 +339,8 @@ class ROI(Image):
                 raise RuntimeError('Must set structure.image or structure.shape'
                                    ' before creating mask!')
             if self.image is None:
-                Image.__init__(self, np.zeros(self.shape), **self.kwargs)
+                skrt.image.Image.__init__(self, np.zeros(self.shape), 
+                                          **self.kwargs)
 
             # Create mask on each z layer
             for z, contours in self.input_contours.items():
@@ -357,7 +359,7 @@ class ROI(Image):
                                                           return_int=False)
 
                     # Create polygon
-                    polygon = geometry.Polygon(np.unique(points_idx, axis=0))
+                    polygon = geometry.Polygon(points_idx)
 
                     # Get polygon's bounding box
                     ix1, iy1, ix2, iy2 = [int(xy) for xy in polygon.bounds]
@@ -396,19 +398,19 @@ class ROI(Image):
 
     def resample(self, *args, **kwargs):
         self.create_mask()
-        Image.resample(self, *args, **kwargs)
+        skrt.image.Image.resample(self, *args, **kwargs)
 
     def match_voxel_size(self, other, *args, **kwargs):
         
         if isinstance(other, ROI):
             other.create_mask()
         self.create_mask()
-        Image.match_voxel_size(self, other, *args, **kwargs)
+        skrt.image.Image.match_voxel_size(self, other, *args, **kwargs)
 
     def get_slice(self, *args, **kwargs):
 
         self.create_mask()
-        return Image.get_slice(self, *args, **kwargs).astype(bool)
+        return skrt.image.Image.get_slice(self, *args, **kwargs).astype(bool)
 
     def get_indices(self, view='x-y', slice_num=False):
         '''Get list of slice indices on which this structure exists. If 
@@ -419,7 +421,7 @@ class ROI(Image):
             self.create_contours()
         indices = list(self.contours[view].keys())
         if slice_num:
-            z_ax = _slice_axes[view]
+            z_ax = skrt.image._slice_axes[view]
             return [self.idx_to_slice(i, z_ax) for i in indices]
         else:
             return indices
@@ -452,7 +454,7 @@ class ROI(Image):
             if not self.on_slice(view, sl, idx, pos):
                 return [None, None]
             data = self.get_slice(view, sl, idx, pos)
-            axes = _plot_axes[view]
+            axes = skrt.image._plot_axes[view]
         else:
             if flatten:
                 if view is None:
@@ -461,7 +463,7 @@ class ROI(Image):
             else:
                 self.create_mask()
                 data = self.get_data(standardise)
-            axes = _axes
+            axes = skrt.image._axes
 
         # Compute centroid
         non_zero = np.argwhere(data)
@@ -487,12 +489,12 @@ class ROI(Image):
         # Get 2D or 3D data for which to calculate centre
         if view is None:
             data = self.get_data(standardise)
-            axes = _axes
+            axes = skrt.image._axes
         else:
             if sl is None and idx is None and pos is None:
                 idx = self.get_mid_idx(view)
             data = self.get_slice(view, sl, idx, pos)
-            axes = _plot_axes[view]
+            axes = skrt.image._plot_axes[view]
 
         # Calculate mean of min and max positions
         non_zero = np.argwhere(data)
@@ -530,7 +532,7 @@ class ROI(Image):
         im_slice = self.get_slice(view, sl, idx, pos, flatten=flatten)
         area = im_slice.astype(bool).sum()
         if units == 'mm':
-            x_ax, y_ax = _plot_axes[view]
+            x_ax, y_ax = skrt.image._plot_axes[view]
             area *= abs(self.voxel_size[x_ax] * self.voxel_size[y_ax])
         return area
 
@@ -546,11 +548,11 @@ class ROI(Image):
         self.length[ax] = {}
 
         nonzero = np.argwhere(self.data)
-        vals = nonzero[:, _axes.index(ax)]
+        vals = nonzero[:, skrt.image._axes.index(ax)]
         if len(vals):
             self.length[ax]['voxels'] = max(vals) + 1 - min(vals)
             self.length[ax]['mm'] = self.length[ax]['voxels'] \
-                    * abs(self.voxel_size[_axes.index(ax)])
+                    * abs(self.voxel_size[skrt.image._axes.index(ax)])
         else:
             self.length[ax] = {'voxels': 0, 'mm': 0}
 
@@ -599,7 +601,7 @@ class ROI(Image):
             'volume': f'Volume ({vol_units_name})',
             'area': f'Area ({area_units_name})',
         }
-        for ax in _axes:
+        for ax in skrt.image._axes:
             names[f'{ax}_length'] = f'{ax} length ({length_units})'
             names[f'centroid_{ax}'] = f'Centroid {ax} ({centroid_units})'
             names[f'centroid_global_{ax}'] = f'Global centroid {ax} ({centroid_units})'
@@ -621,7 +623,7 @@ class ROI(Image):
                 self.get_centroid, {'units': centroid_units}
             )
         }
-        for ax in _axes:
+        for ax in skrt.image._axes:
             funcs[f'{ax}_length'] = (
                 self.get_length, {'ax': ax, 'units': length_units}
             )
@@ -636,9 +638,9 @@ class ROI(Image):
             if cname in geom:
                 centroid_vals = geom.pop(cname)
                 axes = [0, 1, 2] if len(centroid_vals) == 3 \
-                    else _plot_axes[view]
+                    else skrt.image._plot_axes[view]
                 for i, i_ax in enumerate(axes):
-                    ax = _axes[i_ax]
+                    ax = skrt.image._axes[i_ax]
                     geom[f'{cname}_{ax}'] = centroid_vals[i]
 
         geom_named = {names[m]: g for m, g in geom.items()}
@@ -738,7 +740,8 @@ class ROI(Image):
         if flatten and view is None:
             view = 'x-y'
         if view or sl or idx or pos:
-            voxel_size = [self.voxel_size[i] for i in _plot_axes[view]]
+            voxel_size = [self.voxel_size[i] for i in 
+                          skrt.image._plot_axes[view]]
             if not flatten:
                 mask1 = self.get_slice(view, sl=sl, idx=idx, pos=pos)
                 mask2 = roi.get_slice(view, sl=sl, idx=idx, pos=pos)
@@ -909,7 +912,7 @@ class ROI(Image):
             'hausdorff_distance': f'Hausdorff distance (mm)',
             'hausdorff_distance_flat': f'Flattened Hausdorff distance (mm)',
         }
-        for ax in _axes:
+        for ax in skrt.image._axes:
             names[f'centroid_{ax}'] = f'Centroid {ax} distance ({centroid_units})'
             names[f'centroid_global_{ax}'] \
                     = f'Global centroid {ax} distance ({centroid_units})'
@@ -1017,9 +1020,9 @@ class ROI(Image):
                 if view is None:
                     view = 'x-y'
                 axes = [0, 1, 2] if len(centroid_vals) == 3 \
-                    else _plot_axes[view]
+                    else skrt.image._plot_axes[view]
                 for i, i_ax in enumerate(axes):
-                    ax = _axes[i_ax]
+                    ax = skrt.image._axes[i_ax]
                     comp[f'{cname}_{ax}'] = centroid_vals[i]
 
         if fancy_names:
@@ -1111,7 +1114,7 @@ class ROI(Image):
         opacity=None,
         ax=None,
         gs=None,
-        figsize=_default_figsize,
+        figsize=skrt.image._default_figsize,
         include_image=False,
         zoom=None,
         zoom_centre=None,
@@ -1186,9 +1189,10 @@ class ROI(Image):
         if not self.on_slice(view, idx=idx):
             return
         if figsize is None:
-            x_ax, y_ax = _plot_axes[view]
-            aspect = self.get_length(ax=_axes[x_ax]) / self.get_length(ax=_axes[y_ax])
-            figsize = (aspect * _default_figsize, _default_figsize)
+            x_ax, y_ax = skrt.image._plot_axes[view]
+            aspect = self.get_length(ax=skrt.image._axes[x_ax]) \
+                    / self.get_length(ax=skrt.image._axes[y_ax])
+            figsize = (aspect * skrt.image._default_figsize, skrt.image._default_figsize)
         self.set_ax(view, ax, gs, figsize)
 
         contour_kwargs = {} if contour_kwargs is None else contour_kwargs
@@ -1272,7 +1276,7 @@ class ROI(Image):
         '''Get coordinates to zoom in on this structure.'''
 
         zoom_centre = [None, None, None]
-        x_ax, y_ax = _plot_axes[view]
+        x_ax, y_ax = skrt.image._plot_axes[view]
         x, y = self.get_centre(view)
         zoom_centre[x_ax] = x
         zoom_centre[y_ax] = y
@@ -1328,7 +1332,7 @@ class ROI(Image):
         # Write array to nifti or npy
         elif ext != '.dcm':
             self.create_mask()
-            Image.write(self, outname, **kwargs)
+            skrt.image.Image.write(self, outname, **kwargs)
         else:
             print('Warning: dicom structure writing not currently available!')
 
@@ -1435,8 +1439,8 @@ class RtStruct(skrt.core.Archive):
     def set_image(self, image):
         '''Set image for self and all structures.'''
 
-        if image and not isinstance(image, Image):
-            image = Image(image)
+        if image and not isinstance(image, skrt.image.Image):
+            image = skrt.image.Image(image)
 
         self.image = image
         for s in self.structs:

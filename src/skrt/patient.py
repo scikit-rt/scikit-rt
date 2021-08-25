@@ -595,7 +595,7 @@ class Patient(skrt.core.PathData):
                         ss_to_write = []
                     elif isinstance(structure_set, int):
                         ss_to_write = [im.structs[structure_set]]
-                    elif is_list(structure_set):
+                    elif skrt.core.is_list(structure_set):
                         ss_to_write = [im.structs[i] for i in structure_set]
                     else:
                         raise TypeError('Unrecognised structure_set option '

@@ -4,7 +4,7 @@ import os
 import numpy as np
 import shutil
 
-from skrt import Image
+from skrt.image import Image
 
 
 # Create fake data
