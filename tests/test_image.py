@@ -228,3 +228,5 @@ def test_resampling():
     im2.resample(init_voxel_size)
     assert [abs(int(i)) for i in im2.voxel_size] == init_voxel_size
     assert list(im2.get_data().shape) == init_shape
+
+shutil.rmtree('tmp')

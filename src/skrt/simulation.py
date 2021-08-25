@@ -1,6 +1,3 @@
-# File: voxtox/test/__init__.py
-# -*- coding: future_fstrings -*-
-
 '''Classes for creating synthetic images with simple geometries.'''
 
 import os

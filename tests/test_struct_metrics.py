@@ -109,4 +109,3 @@ def test_hausdorff_distance():
 
 def test_hausdorff_distance_flattened():
     assert cube1.get_hausdorff_distance(cube2, flatten=True) == 2
-

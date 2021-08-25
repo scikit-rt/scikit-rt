@@ -133,7 +133,7 @@ roi.plot()
 ```
 This will plot a contour in the x-y plane, e.g.:
 
-<img src="images/struct_contour.png" alt="ROI contour plot" height="500"/>
+<img src="doc/images/struct_contour.png" alt="ROI contour plot" height="500"/>
 
 Additional options are:
 - `include_image`: boolean, set to `True` to plot the associated image (if one is assigned) in the background; 
@@ -150,11 +150,11 @@ The following plot types are available, set via the `plot_type` argument:
 
 Example contour plot with `include_image=True`:
 
-<img src="images/struct_contour_with_image.png" alt="ROI contour plot with image" height="500"/>
+<img src="doc/images/struct_contour_with_image.png" alt="ROI contour plot with image" height="500"/>
 
 Example mask plot:
 
-<img src="images/struct_mask.png" alt="ROI binary mask plot" height="500"/>
+<img src="doc/images/struct_mask.png" alt="ROI binary mask plot" height="500"/>
 
 
 #### Writing out an ROI
@@ -444,7 +444,7 @@ The `RtStruct` object also has an associated `image` property (`structure_set.im
 
 The `SyntheticImage` class enables the creation of images containing simple geometric shapes.
 
-<img src="images/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
+<img src="doc/images/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
 
 ### Creating a synthetic image
 

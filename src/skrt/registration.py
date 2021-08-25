@@ -168,6 +168,33 @@ class Registration:
                 **kwargs
             )
 
+    def adjust_pfile(self, params, idx=-1, make_copy=True):
+        '''Adjust the parameters in a parameter file.
+
+        Parameters:
+        -----------
+        params : dict
+            Dictionary of parameter names and new parameter values.
+        idx : int, default=-1
+            Index of the parameter file to adjust (by default, this will be the
+            last parameter file.
+        make_copy : bool, default=True
+            If True, a new parameter file will be created in self.outdir rather 
+            than overwriting the original parameter file.
+        '''
+
+        # Find name of output parameter file
+        if make_copy:
+            basename = os.path.basename(self.pfiles[idx]).replace('.txt', '')
+            outfile = os.path.join(self.outdir, basename + '_copy.txt')
+        else:
+            outfile = None
+
+        # Update parameters
+        set_parameters(self.pfiles[idx], params, outfile)
+        if outfile is not None:
+            self.pfiles[idx] = outfile
+
     def view_comparison(self, **kwargs):
         '''View comparison of fixed image and final transformed moving image.'''
 
