@@ -8,3 +8,4 @@ build
 *.dcm
 tests/tmp
 tests/tmp
+makefile
