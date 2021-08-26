@@ -1,31 +1,9 @@
 '''Classes related to Patients and Studies.'''
 
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator, FormatStrFormatter
-from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
-from scipy.ndimage import morphology
-from scipy import interpolate
-from shapely import geometry
-import copy
-import datetime
-import fnmatch
-import functools
-import glob
-import matplotlib as mpl
-import matplotlib.cm
-import matplotlib.colors
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
-import nibabel
-import numpy as np
 import os
-import pandas as pd
 import pydicom
-import re
 import shutil
-import skimage.measure
-import tempfile
 import time
-import uuid
 
 import skrt.core
 from skrt.image import Image
@@ -33,7 +11,6 @@ from skrt.structures import RtStruct
 
 
 class Study(skrt.core.Archive):
-
     def __init__(self, path=''):
 
         skrt.core.Archive.__init__(self, path, allow_dirs=True)
@@ -50,10 +27,9 @@ class Study(skrt.core.Archive):
             # Get images
             im_name = f'{subdir.lower()}_scans'
             setattr(
-                self, 
+                self,
                 im_name,
-                self.get_dated_objects(dtype=Image, subdir=subdir, 
-                                       load=False)
+                self.get_dated_objects(dtype=Image, subdir=subdir, load=False),
             )
 
             # Get associated structs
@@ -62,22 +38,23 @@ class Study(skrt.core.Archive):
                 setattr(
                     self,
                     f'{subdir.lower()}_structs',
-                    self.get_structs(subdir=struct_subdir, 
-                                     images=getattr(self, im_name))
+                    self.get_structs(
+                        subdir=struct_subdir, images=getattr(self, im_name)
+                    ),
                 )
 
         # Plans, dose etc: leave commented for now
         #  self.plans = self.get_plan_data(dtype='RtPlan', subdir='RTPLAN')
         #  self.doses = self.get_plan_data(
-            #  dtype='RtDose',
-            #  subdir='RTDOSE',
-            #  exclude=['MVCT', 'CT'],
-            #  images=self.ct_scans
+        #  dtype='RtDose',
+        #  subdir='RTDOSE',
+        #  exclude=['MVCT', 'CT'],
+        #  images=self.ct_scans
         #  )
 
         # Load CT-specific RT doses
         #  self.ct_doses = self.get_plan_data(
-            #  dtype='RtDose', subdir='RTDOSE/CT', images=self.ct_scans
+        #  dtype='RtDose', subdir='RTDOSE/CT', images=self.ct_scans
         #  )
         #  self.ct_doses = self.correct_dose_scan_position(self.ct_doses)
 
@@ -114,15 +91,15 @@ class Study(skrt.core.Archive):
         return sublist
 
     def get_mvct_selection(self, mvct_dict={}, min_delta_hours=0.0):
-        '''Get a selection of MVCT scans which were taken at least 
-        <min_delta_hours> apart. <mvct_dict> is a dict where the keys are 
+        '''Get a selection of MVCT scans which were taken at least
+        <min_delta_hours> apart. <mvct_dict> is a dict where the keys are
         patient IDs, and the paths are directory paths from which to load scans
         for that patient.'''
 
         # Find scans meeting the time separation requirement
         if min_delta_hours > 0:
-            mvct_scans = get_time_separated_objects(
-                self.mvct_scans, min_delta_hours)
+            mvct_scans = get_time_separated_objects(self.mvct_scans,
+                                                    min_delta_hours)
         else:
             mvct_scans = self.mvct_scans
 
@@ -132,12 +109,13 @@ class Study(skrt.core.Archive):
         if patient_id in mvct_dict:
 
             # Get all valid directories for this patient
-            valid_dirs = [fullpath(path) for path in mvct_dict[patient_id]]
+            valid_dirs = [skrt.core.fullpath(path) for path in
+                          mvct_dict[patient_id]]
 
             # Check for scans matching that directory requirement
             for mvct in mvct_scans:
                 mvct_dir = os.path.dirname(mvct.files[-1].path)
-                if fullpath(mvct_dir) in valid_dirs:
+                if skrt.core.fullpath(mvct_dir) in valid_dirs:
                     selected.append(mvct)
 
         # Otherwise, just return all scans for this patient
@@ -150,17 +128,16 @@ class Study(skrt.core.Archive):
         patient_id = os.path.basename(os.path.dirname(self.path))
         return patient_id
 
-    def get_plan_data(
-        self, dtype='RtPlan', subdir='RTPLAN', exclude=[], images=[]
-    ):
-        '''Get list of RT dose or plan objects specified by dtype='RtDose' or 
-        'RtPlan' <dtype>, respectively) by searching within a given directory, 
-        <subdir> (or within the top level directory of this Study, if 
+    def get_plan_data(self, dtype='RtPlan', subdir='RTPLAN', exclude=[],
+                      images=[]):
+        '''Get list of RT dose or plan objects specified by dtype='RtDose' or
+        'RtPlan' <dtype>, respectively) by searching within a given directory,
+        <subdir> (or within the top level directory of this Study, if
         <subdir> is not provided).
 
         Subdirectories with names in <exclude> will be ignored.
 
-        Each dose-like object will be matched by timestamp to one of the scans 
+        Each dose-like object will be matched by timestamp to one of the scans
         in <scans> (which should be a list of DatedStores), if provided.'''
 
         doses = []
@@ -194,8 +171,8 @@ class Study(skrt.core.Archive):
                         if os.path.isdir(path3):
                             n_sub_subdirs += 1
                             if subdir:
-                                subdirs.append(os.path.join(
-                                    subdir, item1, item2))
+                                subdirs.append(os.path.join(subdir, item1,
+                                                            item2))
                             else:
                                 subdirs.append(item1, item2)
 
@@ -207,9 +184,7 @@ class Study(skrt.core.Archive):
 
                 for subdir_item in subdirs:
                     doses.extend(
-                        self.get_dated_objects(
-                            dtype=dtype, subdir=subdir_item
-                        )
+                        self.get_dated_objects(dtype=dtype, subdir=subdir_item)
                     )
 
         # Assign dose-specific properties
@@ -219,21 +194,21 @@ class Study(skrt.core.Archive):
 
                 # Search for scans with matching timestamp
                 timestamp = os.path.basename(os.path.dirname(dose.path))
-                if scans:
+                if images:
                     try:
                         dose.date, dose.time = timestamp.split('_')
-                        scan = get_dated_obj(scans, dose)
+                        scan = get_dated_obj(images, dose)
                         dose.machine = scan.machine
                     except BaseException:
-                        scan = scans[-1]
-                        dose.date = scan.date
-                        dose.time = scan.time
+                        image = images[-1]
+                        dose.date = image.date
+                        dose.time = image.time
 
                     dose.timestamp = f'{dose.date}_{dose.time}'
-                    dose.scan = scan
+                    dose.image = image
 
-                dose.couch_translation, dose.couch_rotation \
-                        = get_couch_shift(dose.path)
+                dose.couch_translation, dose.couch_rotation = \
+                    get_couch_shift(dose.path)
                 # WARNING!
                 #     Couch translation third component (y) inverted with
                 #     respect to CT scan
@@ -263,7 +238,7 @@ class Study(skrt.core.Archive):
             plan_dose.imageStack = plan_dose.getImageStack()
 
         else:
-            
+
             # Get fraction froup and beam sequence
             if self.plans:
                 n_frac_group = self.plans[-1].nFractionGroup
@@ -275,10 +250,10 @@ class Study(skrt.core.Archive):
             # Sum over fractions
             if 'FRACTION' in dose_dict:
                 if len(dose_dict['FRACTION']) == n_frac_group:
-                    
+
                     # Single fraction
                     if n_frac_group == 1:
-                        plan_dose = doseDict['FRACTION'][0]
+                        plan_dose = dose_dict['FRACTION'][0]
 
                     # Sum fractions
                     else:
@@ -390,8 +365,6 @@ class Patient(skrt.core.PathData):
 
     def __init__(self, path=None, exclude=['logfiles']):
 
-        start = time.time()
-
         # Set path and patient ID
         if path is None:
             path = os.getcwd()
@@ -407,13 +380,12 @@ class Patient(skrt.core.PathData):
                     for subdir in subdirs:
                         if subdir not in exclude:
                             self.studies.extend(
-                                self.get_dated_objects(
-                                    dtype=Study, subdir=subdir
-                                )
+                                self.get_dated_objects(dtype=Study,
+                                                       subdir=subdir)
                             )
 
     def combined_files(self, attr, min_date=None, max_date=None):
-        '''Get list of all files of a given data type <attr> associated with 
+        '''Get list of all files of a given data type <attr> associated with
         this patient, within a given date range if specified.'''
 
         files = []
@@ -427,8 +399,8 @@ class Patient(skrt.core.PathData):
         return files
 
     def combined_files_by_dir(self, attr, min_date=None, max_date=None):
-        '''Get dict of all files of a given data type <attr> associated with 
-        this patient, within a given date range if specified. The dict keys 
+        '''Get dict of all files of a given data type <attr> associated with
+        this patient, within a given date range if specified. The dict keys
         will be the directories that the files are in.'''
 
         files = {}
@@ -437,7 +409,7 @@ class Patient(skrt.core.PathData):
             for object in objs:
                 for file in object.files:
                     if file.in_date_interval(min_date, max_date):
-                        folder = os.path.dirname(fullpath(file.path))
+                        folder = os.path.dirname(skrt.core.fullpath(file.path))
                         if folder not in files:
                             files[folder] = []
                         files[folder].append(file)
@@ -467,8 +439,9 @@ class Patient(skrt.core.PathData):
         # Find an object from which to extract the info
         obj = None
         if self.studies:
-            obj = getattr(self.studies[0], 
-                          f'{self.studies[0].im_types[0].lower()}_scans')[-1]
+            obj = getattr(
+                self.studies[0], f'{self.studies[0].im_types[0].lower()}_scans'
+            )[-1]
 
         # Read demographic info from the object
         if obj and obj.files:
@@ -530,10 +503,10 @@ class Patient(skrt.core.PathData):
         return last
 
     def write(
-        self, 
-        outdir='.', 
-        ext='.nii.gz', 
-        to_ignore=None, 
+        self,
+        outdir='.',
+        ext='.nii.gz',
+        to_ignore=None,
         overwrite=True,
         structure_set=None,
     ):
@@ -556,7 +529,8 @@ class Patient(skrt.core.PathData):
 
             # Make study directory
             study_dir = os.path.join(
-                patient_dir, os.path.relpath(study.path, self.path))
+                patient_dir, os.path.relpath(study.path, self.path)
+            )
             if not os.path.exists(study_dir):
                 os.makedirs(study_dir)
 
@@ -575,8 +549,7 @@ class Patient(skrt.core.PathData):
 
                     # Make directory for this scan
                     im_dir = os.path.join(
-                        study_dir,
-                        os.path.relpath(im.path, study.path)
+                        study_dir, os.path.relpath(im.path, study.path)
                     )
 
                     # Write image data to nifti
@@ -598,17 +571,18 @@ class Patient(skrt.core.PathData):
                     elif skrt.core.is_list(structure_set):
                         ss_to_write = [im.structs[i] for i in structure_set]
                     else:
-                        raise TypeError('Unrecognised structure_set option '
-                                        f'{structure_set}')
+                        raise TypeError(
+                            'Unrecognised structure_set option '
+                            f'{structure_set}'
+                        )
 
                     # Write structure sets for this image
                     for ss in ss_to_write:
 
                         # Find path to output structure directory
                         ss_path = os.path.join(
-                            study_dir,
-                            os.path.relpath(ss.path, study.path)
-                        ) 
+                            study_dir, os.path.relpath(ss.path, study.path)
+                        )
                         if ext == '.dcm':
                             ss_dir = os.path.dirname(ss_path)
                         else:

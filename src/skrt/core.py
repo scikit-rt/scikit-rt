@@ -1,33 +1,8 @@
 '''Core data classes.'''
 
-import os
-
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator, FormatStrFormatter
-from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
-from scipy.ndimage import morphology
-from scipy import interpolate
-from shapely import geometry
-import copy
-import datetime
-import fnmatch
-import functools
-import glob
-import matplotlib as mpl
-import matplotlib.cm
-import matplotlib.colors
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
-import nibabel
 import numpy as np
 import os
-import pandas as pd
-import pydicom
-import re
-import shutil
-import skimage.measure
-import tempfile
-import time
-import uuid
+import functools
 
 
 class Defaults:
@@ -112,7 +87,7 @@ class Data:
 
     def __init__(self, opts={}, **kwargs):
         '''
-        Constructor of Data class, allowing initialisation of an 
+        Constructor of Data class, allowing initialisation of an
         arbitrary set of attributes.
 
         Parameters
@@ -252,7 +227,7 @@ class Data:
 
 
 class PathData(Data):
-    '''Data with and associated directory; has the ability to 
+    '''Data with and associated directory; has the ability to
     extract a list of dated objects from within this directory.'''
 
     def __init__(self, path=''):
@@ -260,7 +235,7 @@ class PathData(Data):
         self.subdir = ''
 
     def get_dated_objects(self, dtype, subdir='', **kwargs):
-        '''Create list of objects of a given type, <dtype>, inside own 
+        '''Create list of objects of a given type, <dtype>, inside own
         directory, or inside own directory + <subdir> if given.'''
 
         # Create object for each file in the subdir
@@ -287,7 +262,7 @@ class PathData(Data):
 
 @functools.total_ordering
 class Dated(PathData):
-    '''PathData with an associated date and time, which can be used for 
+    '''PathData with an associated date and time, which can be used for
     sorting multiple Dateds.'''
 
     def __init__(self, path=''):
@@ -374,7 +349,7 @@ class Archive(Dated):
 
 
 class File(Dated):
-    '''File with an associated date. Files can be sorted based on their 
+    '''File with an associated date. Files can be sorted based on their
     filenames.'''
 
     def __init__(self, path=''):
@@ -438,7 +413,7 @@ def alphanumeric(in_str=''):
 
 
 def fullpath(path=''):
-    '''Evaluate full path, expanding '~', environment variables, and 
+    '''Evaluate full path, expanding '~', environment variables, and
     symbolic links.'''
 
     expanded = ''
@@ -464,7 +439,7 @@ def get_time_and_date(timestamp=''):
         i1 = timestamp.find('_')
         i2 = timestamp.rfind('.')
         if (-1 != i1) and (-1 != i2):
-            bitstamp = timestamp[i1 + 1 : i2]
+            bitstamp = timestamp[i1 + 1: i2]
             if is_timestamp(bitstamp):
                 time_date = tuple(bitstamp.split('_'))
 
@@ -478,8 +453,7 @@ def is_timestamp(string=''):
     items = os.path.splitext(string)[0].split('_')
     items = [item.strip() for item in items]
     if len(items) > 2:
-        if items[0].isalpha() and items[1].isdigit() \
-           and items[2].isdigit():
+        if items[0].isalpha() and items[1].isdigit() and items[2].isdigit():
             items = items[1:3]
         elif items[0].isdigit() and items[1].isdigit():
             items = items[:2]
@@ -516,4 +490,3 @@ def to_three(val):
         return val
     elif not is_list(val):
         return [val, val, val]
-

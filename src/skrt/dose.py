@@ -1,40 +1,16 @@
-'''Classes related to doses and plans.'''
+"""Classes related to doses and plans."""
 
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator, FormatStrFormatter
-from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
-from scipy.ndimage import morphology
-from scipy import interpolate
-from shapely import geometry
-import copy
-import datetime
-import fnmatch
-import functools
-import glob
-import matplotlib as mpl
-import matplotlib.cm
-import matplotlib.colors
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
-import nibabel
 import numpy as np
 import os
-import pandas as pd
 import pydicom
-import re
-import shutil
-import skimage.measure
-import tempfile
-import time
-import uuid
 
 from skrt.core import MachineData
 
 
-class RtDose(MachineObject):
+class RtDose(MachineData):
+    def __init__(self, path=""):
 
-    def __init__(self, path=''):
-
-        MachineObject.__init__(self, path)
+        MachineData.__init__(self, path)
 
         if not os.path.exists(path):
             return
@@ -59,14 +35,16 @@ class RtDose(MachineObject):
             self.scan_position = (
                 float(ds.ImagePositionPatient[0]),
                 float(ds.ImagePositionPatient[1]),
-                float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[0]),
+                float(ds.ImagePositionPatient[2]
+                      + ds.GridFrameOffsetVector[0]),
             )
         else:
             self.reverse = True
             self.scan_position = (
                 float(ds.ImagePositionPatient[0]),
                 float(ds.ImagePositionPatient[1]),
-                float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[-1]),
+                float(ds.ImagePositionPatient[2]
+                      + ds.GridFrameOffsetVector[-1]),
             )
         self.voxel_size = (
             float(ds.PixelSpacing[0]),
@@ -91,8 +69,8 @@ class RtDose(MachineObject):
                 rescale_intercept = ds.RescaleIntercept
             except AttributeError:
                 rescale_intercept = 0
-            self.image_stack = self.image_stack * float(ds.DoseGridScaling) \
-                    + float(rescale_intercept)
+                self.image_stack = self.image_stack \
+                    * float(ds.DoseGridScaling) + float(rescale_intercept)
 
         if self.reverse:
             self.image_stack[:, :, :] = self.image_stack[:, :, ::-1]
@@ -100,11 +78,10 @@ class RtDose(MachineObject):
         return self.image_stack
 
 
-class RtPlan(MachineObject):
+class RtPlan(MachineData):
+    def __init__(self, path=""):
 
-    def __init__(self, path=''):
-
-        MachineObject.__init__(self, path)
+        MachineData.__init__(self, path)
 
         ds = pydicom.read_file(path, force=True)
 
@@ -129,7 +106,7 @@ class RtPlan(MachineObject):
             self.n_fraction = 0
             for fraction in ds.FractionGroupSequence:
                 self.n_fraction += fraction.NumberOfFractionsPlanned
-                if hasattr(fraction, 'ReferencedDoseReferenceSequence'):
+                if hasattr(fraction, "ReferencedDoseReferenceSequence"):
                     if self.target_dose is None:
                         self.target_dose = 0.0
                     for dose in fraction.ReferencedDoseReferenceSequence:
