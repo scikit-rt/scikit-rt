@@ -7,6 +7,14 @@ import subprocess
 from skrt.image import Image, ImageComparison
 
 
+_elastix_dir = None
+
+
+def set_elastix_dir(path):
+    global _elastix_dir
+    _elastix_dir = path
+
+
 class Registration:
     def __init__(
         self,
@@ -84,8 +92,10 @@ class Registration:
         '''Create elastix command.'''
 
         # Create elastix command
+        elastix = 'elastix' if _elastix_dir is None \
+                else f'{_elastix_dir}/bin/elastix'
         self.cmd = (
-            f'elastix -f {self.fixed_path} -m {self.moving_path} '
+            f'{elastix} -f {self.fixed_path} -m {self.moving_path} '
             f'-p {pfile} -out {outdir}'
         )
         if tfile is not None:
@@ -134,11 +144,13 @@ class Registration:
 
         # Ensure output format is nifti
         set_parameters(
-            self.tfile, {'ResultImageFormat': ''nii'', 
-                         'CompressResultImage': ''false''}
+            self.tfile, {'ResultImageFormat': '"nii"', 
+                         'CompressResultImage': '"false"'}
         )
 
-        cmd = f'transformix -in {im_path} -out {outdir} -tp {self.tfile}'
+        transformix = 'transformix' if _elastix_dir is None \
+                else f'{_elastix_dir}/bin/transformix'
+        cmd = f'{transformix} -in {im_path} -out {outdir} -tp {self.tfile}'
         print('Running command:', cmd)
         subprocess.call(cmd.split())
         return out_path
