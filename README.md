@@ -24,7 +24,7 @@ or NumPy format. These images can be plotted and compared.
 
 To load the Image class:
 ```
-from skrt import Image
+from skrt.image import Image
 ```
 
 Images will be processed into a consistent format:
@@ -106,7 +106,7 @@ A structure/region of interest (ROI) can be represented by either a set of conto
 
 An `ROI` object, which contains a single structure, can be created via:
 ```
-from skrt import ROI
+from skrt.structures import ROI
 roi = ROI(source)
 ```
 
@@ -204,7 +204,7 @@ A structure set is an object that contains multiple ROIs. This is done via the `
 
 A structure set is created via
 ```
-from skrt import RtStruct
+from skrt.structures import RtStruct
 rtstruct = RtStruct(source)
 ```
 
@@ -390,7 +390,7 @@ For example, if a study containined both CT and MR images, as well as two struct
 
 A `Patient` object is created by providing the path to the top-level patient directory:
 ```
-from skrt import Patient
+from skrt.patient import Patient
 p = Patient('mypatient1')
 ```
 
