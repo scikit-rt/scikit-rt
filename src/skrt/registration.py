@@ -1,4 +1,4 @@
-'''Tools for performing image registration.'''
+"""Tools for performing image registration."""
 
 import os
 import re
@@ -16,16 +16,8 @@ def set_elastix_dir(path):
 
 
 class Registration:
-    def __init__(
-        self,
-        fixed,
-        moving,
-        pfile,
-        outdir='.',
-        auto_reg=True,
-        force=False
-    ):
-        '''Register moving image to fixed image with a given elastix parameter
+    def __init__(self, fixed, moving, pfile, outdir=".", auto_reg=True, force=False):
+        """Register moving image to fixed image with a given elastix parameter
         file.
         Parameters:
         -----------
@@ -41,7 +33,7 @@ class Registration:
             Path to output directory.
         auto_reg : bool, default=True
             If True, registration will be performed immediately.
-        '''
+        """
 
         # Set up fixed and moving images
         self.fixed = fixed
@@ -57,7 +49,7 @@ class Registration:
         if isinstance(pfile, str):
             self.pfiles = [pfile]
         self.outdirs = [
-            os.path.join(self.outdir, os.path.basename(p).replace('.txt', ''))
+            os.path.join(self.outdir, os.path.basename(p).replace(".txt", ""))
             for p in self.pfiles
         ]
         for d in self.outdirs:
@@ -66,40 +58,39 @@ class Registration:
 
         # Expected locations of outputs
         self.tfiles = [
-            os.path.join(d, 'TransformParameters.0.txt') for d in self.outdirs
+            os.path.join(d, "TransformParameters.0.txt") for d in self.outdirs
         ]
         self.tfile = self.tfiles[-1]
-        self.out_path = os.path.join(self.outdirs[-1], 'result.0.nii')
+        self.out_path = os.path.join(self.outdirs[-1], "result.0.nii")
 
         # Perform registration
         if auto_reg:
             self.register(force)
 
     def get_nifti_inputs(self, force=False):
-        '''Ensure nifti versions of fixed and moving images exist.'''
+        """Ensure nifti versions of fixed and moving images exist."""
 
-        for im in ['fixed', 'moving']:
-            if not hasattr(self, f'{im}_path') or force:
+        for im in ["fixed", "moving"]:
+            if not hasattr(self, f"{im}_path") or force:
 
-                path = os.path.join(self.outdir, f'{im}.nii.gz')
+                path = os.path.join(self.outdir, f"{im}.nii.gz")
                 if not os.path.exists(path):
                     setattr(self, im, ensure_image(getattr(self, im)))
                     path = get_nifti_path(getattr(self, im), path, force)
 
-                setattr(self, f'{im}_path', path)
+                setattr(self, f"{im}_path", path)
 
     def create_elastix_command(self, pfile, outdir, tfile=None, force=False):
-        '''Create elastix command.'''
+        """Create elastix command."""
 
         # Create elastix command
-        elastix = 'elastix' if _elastix_dir is None \
-                else f'{_elastix_dir}/bin/elastix'
+        elastix = "elastix" if _elastix_dir is None else f"{_elastix_dir}/bin/elastix"
         self.cmd = (
-            f'{elastix} -f {self.fixed_path} -m {self.moving_path} '
-            f'-p {pfile} -out {outdir}'
+            f"{elastix} -f {self.fixed_path} -m {self.moving_path} "
+            f"-p {pfile} -out {outdir}"
         )
         if tfile is not None:
-            self.cmd += f' -t0 {tfile}'
+            self.cmd += f" -t0 {tfile}"
 
     def register(self, force=False, apply=False):
 
@@ -109,19 +100,18 @@ class Registration:
 
                 # Check if this step has already been done
                 if os.path.exists(self.tfiles[i]) and not force:
-                    print(f'Transform {self.tfiles[i]} already exists')
+                    print(f"Transform {self.tfiles[i]} already exists")
                     continue
 
                 # Create elastix command
                 force_nii_creation = force and i == 0
                 tfile = None if i == 0 else self.tfiles[i - 1]
                 self.create_elastix_command(
-                    pfile, self.outdirs[i], tfile=tfile, 
-                    force=force_nii_creation
+                    pfile, self.outdirs[i], tfile=tfile, force=force_nii_creation
                 )
 
                 # Run elastix
-                print('Running command:', self.cmd)
+                print("Running command:", self.cmd)
                 subprocess.call(self.cmd.split())
 
         self.registered = True
@@ -131,9 +121,9 @@ class Registration:
             self.get_final_image()
 
     def transform_image(self, im_path, outdir=None, force=False):
-        '''Transform an image at a given path using own final transform.'''
+        """Transform an image at a given path using own final transform."""
 
-        out_path = os.path.join(self.outdirs[-1], 'result.nii')
+        out_path = os.path.join(self.outdirs[-1], "result.nii")
         if os.path.exists(out_path) and not force:
             return out_path
 
@@ -144,23 +134,23 @@ class Registration:
 
         # Ensure output format is nifti
         set_parameters(
-            self.tfile, {'ResultImageFormat': '"nii"', 
-                         'CompressResultImage': '"false"'}
+            self.tfile, {"ResultImageFormat": '"nii"', "CompressResultImage": '"false"'}
         )
 
-        transformix = 'transformix' if _elastix_dir is None \
-                else f'{_elastix_dir}/bin/transformix'
-        cmd = f'{transformix} -in {im_path} -out {outdir} -tp {self.tfile}'
-        print('Running command:', cmd)
+        transformix = (
+            "transformix" if _elastix_dir is None else f"{_elastix_dir}/bin/transformix"
+        )
+        cmd = f"{transformix} -in {im_path} -out {outdir} -tp {self.tfile}"
+        print("Running command:", cmd)
         subprocess.call(cmd.split())
         return out_path
 
     def get_final_image(self, force=False):
-        '''Get transformed moving image.'''
+        """Get transformed moving image."""
 
         if not self.registered:
             self.register()
-        if hasattr(self, 'final') and not force:
+        if hasattr(self, "final") and not force:
             return self.final
 
         if not os.path.exists(self.out_path) or force:
@@ -181,14 +171,13 @@ class Registration:
             outdir = self.outdir
 
         self.get_comparison()
-        for view in ['x-y', 'y-z', 'x-z']:
+        for view in ["x-y", "y-z", "x-z"]:
             self.comparison.plot_overlay(
-                view, save_as=os.path.join(outdir, f'overlay_{view}.pdf'), 
-                **kwargs
+                view, save_as=os.path.join(outdir, f"overlay_{view}.pdf"), **kwargs
             )
 
     def adjust_pfile(self, params, idx=-1, make_copy=True):
-        '''Adjust the parameters in a parameter file.
+        """Adjust the parameters in a parameter file.
 
         Parameters:
         -----------
@@ -200,12 +189,12 @@ class Registration:
         make_copy : bool, default=True
             If True, a new parameter file will be created in self.outdir rather
             than overwriting the original parameter file.
-        '''
+        """
 
         # Find name of output parameter file
         if make_copy:
-            basename = os.path.basename(self.pfiles[idx]).replace('.txt', '')
-            outfile = os.path.join(self.outdir, basename + '_copy.txt')
+            basename = os.path.basename(self.pfiles[idx]).replace(".txt", "")
+            outfile = os.path.join(self.outdir, basename + "_copy.txt")
         else:
             outfile = None
 
@@ -215,33 +204,33 @@ class Registration:
             self.pfiles[idx] = outfile
 
     def view_comparison(self, **kwargs):
-        '''View comparison of fixed image and final transformed moving 
-        image.'''
+        """View comparison of fixed image and final transformed moving 
+        image."""
 
         from skrt.viewer import QuickViewer
 
         self.get_final_image()
-        if 'comparison' not in kwargs:
-            kwargs['comparison'] = True
-        if 'hu' not in kwargs:
+        if "comparison" not in kwargs:
+            kwargs["comparison"] = True
+        if "hu" not in kwargs:
             self.fixed = ensure_image(self.fixed)
-            kwargs['hu'] = self.fixed.default_window
-        if 'title' not in kwargs:
-            kwargs['title'] = ['Fixed', 'Transformed moving']
+            kwargs["hu"] = self.fixed.default_window
+        if "title" not in kwargs:
+            kwargs["title"] = ["Fixed", "Transformed moving"]
         QuickViewer([self.fixed_path, self.out_path], **kwargs)
 
     def view_init(self, **kwargs):
-        '''View comparison of initial fixed and moving images.'''
+        """View comparison of initial fixed and moving images."""
 
         from skrt.viewer import QuickViewer
 
-        if 'hu' not in kwargs:
+        if "hu" not in kwargs:
             self.fixed = ensure_image(self.fixed)
-            kwargs['hu'] = self.fixed.default_window
-        if 'match_axes' not in kwargs:
-            kwargs['match_axes'] = 'y'
-        if 'title' not in kwargs:
-            kwargs['title'] = ['Fixed', 'Moving']
+            kwargs["hu"] = self.fixed.default_window
+        if "match_axes" not in kwargs:
+            kwargs["match_axes"] = "y"
+        if "title" not in kwargs:
+            kwargs["title"] = ["Fixed", "Moving"]
         QuickViewer([self.fixed_path, self.moving_path], **kwargs)
 
 
@@ -252,23 +241,23 @@ def ensure_image(im):
 
 
 def get_nifti_path(im_source, outname, force=False):
-    '''Get path to nifti version of a given image.'''
+    """Get path to nifti version of a given image."""
 
     if os.path.exists(outname) and not force:
         return outname
 
     if im_source is not None:
         im = ensure_image(im_source)
-        if im.source_type == 'nifti':
+        if im.source_type == "nifti":
             return im.path
         im.write(outname)
         return outname
     else:
-        raise TypeError('Must give a valid input image!')
+        raise TypeError("Must give a valid input image!")
 
 
 def set_parameters(tfile, params, output_tfile=None):
-    '''Replace value(s) of parameter(s) in an elastix transform file.'''
+    """Replace value(s) of parameter(s) in an elastix transform file."""
 
     # Overwrite input file if no output given
     if output_tfile is None:
@@ -276,12 +265,12 @@ def set_parameters(tfile, params, output_tfile=None):
 
     # Read input
     with open(tfile) as file:
-        lines = ''.join(file.readlines())
+        lines = "".join(file.readlines())
 
     # Modify
     for name, value in params.items():
-        lines = re.sub(f'\({name}.*\)', f'({name} {value})', lines)
+        lines = re.sub(f"\({name}.*\)", f"({name} {value})", lines)
 
     # Write to output
-    with open(output_tfile, 'w') as file:
+    with open(output_tfile, "w") as file:
         file.write(lines)

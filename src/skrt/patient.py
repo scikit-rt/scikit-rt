@@ -1,4 +1,4 @@
-'''Classes related to Patients and Studies.'''
+"""Classes related to Patients and Studies."""
 
 import os
 import pydicom
@@ -11,11 +11,11 @@ from skrt.structures import RtStruct
 
 
 class Study(skrt.core.Archive):
-    def __init__(self, path=''):
+    def __init__(self, path=""):
 
         skrt.core.Archive.__init__(self, path, allow_dirs=True)
 
-        special_dirs = ['RTPLAN', 'RTSTRUCT', 'RTDOSE']
+        special_dirs = ["RTPLAN", "RTSTRUCT", "RTDOSE"]
         self.im_types = []
         for file in self.files:
 
@@ -25,7 +25,7 @@ class Study(skrt.core.Archive):
             self.im_types.append(subdir)
 
             # Get images
-            im_name = f'{subdir.lower()}_scans'
+            im_name = f"{subdir.lower()}_scans"
             setattr(
                 self,
                 im_name,
@@ -33,11 +33,11 @@ class Study(skrt.core.Archive):
             )
 
             # Get associated structs
-            struct_subdir = f'RTSTRUCT/{subdir}'
+            struct_subdir = f"RTSTRUCT/{subdir}"
             if os.path.exists(os.path.join(self.path, struct_subdir)):
                 setattr(
                     self,
-                    f'{subdir.lower()}_structs',
+                    f"{subdir.lower()}_structs",
                     self.get_structs(
                         subdir=struct_subdir, images=getattr(self, im_name)
                     ),
@@ -59,8 +59,8 @@ class Study(skrt.core.Archive):
         #  self.ct_doses = self.correct_dose_scan_position(self.ct_doses)
 
     def correct_dose_scan_position(self, doses=[]):
-        '''Correct for scan positions from CheckTomo being offset by one slice
-        relative to scan positions.'''
+        """Correct for scan positions from CheckTomo being offset by one slice
+        relative to scan positions."""
 
         for dose in doses:
             dx, dy, dz = dose.voxel_size
@@ -68,14 +68,14 @@ class Study(skrt.core.Archive):
             dose.scan_position = (x0, y0, z0 + dz)
         return doses
 
-    def get_machine_sublist(self, dtype='', machine='', ignore_case=True):
-        '''Get list of doses or treatment plans corresponding to a specific
-        machine.'''
+    def get_machine_sublist(self, dtype="", machine="", ignore_case=True):
+        """Get list of doses or treatment plans corresponding to a specific
+        machine."""
 
         sublist = []
-        if dtype.lower() in ['plan', 'rtplan']:
+        if dtype.lower() in ["plan", "rtplan"]:
             objs = self.plans
-        elif dtype.lower() in ['dose', 'rtdose']:
+        elif dtype.lower() in ["dose", "rtdose"]:
             objs = self.doses
         else:
             objs = []
@@ -91,15 +91,14 @@ class Study(skrt.core.Archive):
         return sublist
 
     def get_mvct_selection(self, mvct_dict={}, min_delta_hours=0.0):
-        '''Get a selection of MVCT scans which were taken at least
+        """Get a selection of MVCT scans which were taken at least
         <min_delta_hours> apart. <mvct_dict> is a dict where the keys are
         patient IDs, and the paths are directory paths from which to load scans
-        for that patient.'''
+        for that patient."""
 
         # Find scans meeting the time separation requirement
         if min_delta_hours > 0:
-            mvct_scans = get_time_separated_objects(self.mvct_scans,
-                                                    min_delta_hours)
+            mvct_scans = get_time_separated_objects(self.mvct_scans, min_delta_hours)
         else:
             mvct_scans = self.mvct_scans
 
@@ -109,8 +108,7 @@ class Study(skrt.core.Archive):
         if patient_id in mvct_dict:
 
             # Get all valid directories for this patient
-            valid_dirs = [skrt.core.fullpath(path) for path in
-                          mvct_dict[patient_id]]
+            valid_dirs = [skrt.core.fullpath(path) for path in mvct_dict[patient_id]]
 
             # Check for scans matching that directory requirement
             for mvct in mvct_scans:
@@ -128,9 +126,8 @@ class Study(skrt.core.Archive):
         patient_id = os.path.basename(os.path.dirname(self.path))
         return patient_id
 
-    def get_plan_data(self, dtype='RtPlan', subdir='RTPLAN', exclude=[],
-                      images=[]):
-        '''Get list of RT dose or plan objects specified by dtype='RtDose' or
+    def get_plan_data(self, dtype="RtPlan", subdir="RTPLAN", exclude=[], images=[]):
+        """Get list of RT dose or plan objects specified by dtype='RtDose' or
         'RtPlan' <dtype>, respectively) by searching within a given directory,
         <subdir> (or within the top level directory of this Study, if
         <subdir> is not provided).
@@ -138,7 +135,7 @@ class Study(skrt.core.Archive):
         Subdirectories with names in <exclude> will be ignored.
 
         Each dose-like object will be matched by timestamp to one of the scans
-        in <scans> (which should be a list of DatedStores), if provided.'''
+        in <scans> (which should be a list of DatedStores), if provided."""
 
         doses = []
 
@@ -171,8 +168,7 @@ class Study(skrt.core.Archive):
                         if os.path.isdir(path3):
                             n_sub_subdirs += 1
                             if subdir:
-                                subdirs.append(os.path.join(subdir, item1,
-                                                            item2))
+                                subdirs.append(os.path.join(subdir, item1, item2))
                             else:
                                 subdirs.append(item1, item2)
 
@@ -188,7 +184,7 @@ class Study(skrt.core.Archive):
                     )
 
         # Assign dose-specific properties
-        if dtype == 'RtDose':
+        if dtype == "RtDose":
             new_doses = []
             for dose in doses:
 
@@ -196,7 +192,7 @@ class Study(skrt.core.Archive):
                 timestamp = os.path.basename(os.path.dirname(dose.path))
                 if images:
                     try:
-                        dose.date, dose.time = timestamp.split('_')
+                        dose.date, dose.time = timestamp.split("_")
                         scan = get_dated_obj(images, dose)
                         dose.machine = scan.machine
                     except BaseException:
@@ -204,11 +200,10 @@ class Study(skrt.core.Archive):
                         dose.date = image.date
                         dose.time = image.time
 
-                    dose.timestamp = f'{dose.date}_{dose.time}'
+                    dose.timestamp = f"{dose.date}_{dose.time}"
                     dose.image = image
 
-                dose.couch_translation, dose.couch_rotation = \
-                    get_couch_shift(dose.path)
+                dose.couch_translation, dose.couch_rotation = get_couch_shift(dose.path)
                 # WARNING!
                 #     Couch translation third component (y) inverted with
                 #     respect to CT scan
@@ -233,8 +228,8 @@ class Study(skrt.core.Archive):
             dose_dict[st].sort()
 
         # 'PLAN' summation type: just take the newest entry
-        if 'PLAN' in dose_dict:
-            plan_dose = dose_dict['PLAN'][-1]
+        if "PLAN" in dose_dict:
+            plan_dose = dose_dict["PLAN"][-1]
             plan_dose.imageStack = plan_dose.getImageStack()
 
         else:
@@ -248,34 +243,34 @@ class Study(skrt.core.Archive):
                 n_beam_seq = None
 
             # Sum over fractions
-            if 'FRACTION' in dose_dict:
-                if len(dose_dict['FRACTION']) == n_frac_group:
+            if "FRACTION" in dose_dict:
+                if len(dose_dict["FRACTION"]) == n_frac_group:
 
                     # Single fraction
                     if n_frac_group == 1:
-                        plan_dose = dose_dict['FRACTION'][0]
+                        plan_dose = dose_dict["FRACTION"][0]
 
                     # Sum fractions
                     else:
-                        plan_dose = self.sum_dose_plans(dose_dict, 'FRACTION')
+                        plan_dose = self.sum_dose_plans(dose_dict, "FRACTION")
 
             # Sum over beams
-            elif 'BEAM' in sum_type:
-                if len(dose_dict['BEAM']) == n_beam_seq:
+            elif "BEAM" in sum_type:
+                if len(dose_dict["BEAM"]) == n_beam_seq:
 
                     # Single fraction
                     if n_frac_group == 1:
-                        plan_dose = dose_dict['BEAM'][0]
+                        plan_dose = dose_dict["BEAM"][0]
 
                     # Sum beams
                     else:
-                        plan_dose = self.sum_dose_plans(dose_dict, 'BEAM')
+                        plan_dose = self.sum_dose_plans(dose_dict, "BEAM")
 
         return plan_dose
 
-    def get_structs(self, subdir='', images=[]):
-        '''Make list of RtStruct objects found within a given subdir, and
-        set their associated scan objects.'''
+    def get_structs(self, subdir="", images=[]):
+        """Make list of RtStruct objects found within a given subdir, and
+        set their associated scan objects."""
 
         # Find RtStruct directories associated with each scan
         groups = self.get_dated_objects(dtype=skrt.core.Archive, subdir=subdir)
@@ -318,24 +313,24 @@ class Study(skrt.core.Archive):
         return structs
 
     def get_description(self):
-        '''Load a study description.'''
+        """Load a study description."""
 
         # Find an object from which to extract description
         obj = None
         if self.studies:
-            obj = getattr(self, f'{self.im_types[0].lower()}_scans')[-1]
-        description = ''
+            obj = getattr(self, f"{self.im_types[0].lower()}_scans")[-1]
+        description = ""
         if obj:
             if obj.files:
                 scan_path = obj.files[-1].path
                 ds = pydicom.read_file(fp=scan_path, force=True)
-                if hasattr(ds, 'StudyDescription'):
+                if hasattr(ds, "StudyDescription"):
                     description = ds.StudyDescription
 
         return description
 
-    def sum_dose_plans(self, dose_dict={}, sum_type=''):
-        '''Sum over doses using a given summation type.'''
+    def sum_dose_plans(self, dose_dict={}, sum_type=""):
+        """Sum over doses using a given summation type."""
 
         plan_dose = None
         if sum_type in dose_dict:
@@ -347,7 +342,7 @@ class Study(skrt.core.Archive):
             plan_dose.date = dose.date
             plan_dose.time = dose.time
             plan_dose.timestamp = dose.timestamp
-            plan_dose.summationType = 'PLAN'
+            plan_dose.summationType = "PLAN"
             plan_dose.scanPosition = dose.scanPosition
             plan_dose.reverse = dose.reverse
             plan_dose.voxelSize = dose.voxelSize
@@ -360,10 +355,10 @@ class Study(skrt.core.Archive):
 
 
 class Patient(skrt.core.PathData):
-    '''Object associated with a top-level directory whose name corresponds to
-    a patient ID, and whose subdirectories contain studies.'''
+    """Object associated with a top-level directory whose name corresponds to
+    a patient ID, and whose subdirectories contain studies."""
 
-    def __init__(self, path=None, exclude=['logfiles']):
+    def __init__(self, path=None, exclude=["logfiles"]):
 
         # Set path and patient ID
         if path is None:
@@ -380,13 +375,12 @@ class Patient(skrt.core.PathData):
                     for subdir in subdirs:
                         if subdir not in exclude:
                             self.studies.extend(
-                                self.get_dated_objects(dtype=Study,
-                                                       subdir=subdir)
+                                self.get_dated_objects(dtype=Study, subdir=subdir)
                             )
 
     def combined_files(self, attr, min_date=None, max_date=None):
-        '''Get list of all files of a given data type <attr> associated with
-        this patient, within a given date range if specified.'''
+        """Get list of all files of a given data type <attr> associated with
+        this patient, within a given date range if specified."""
 
         files = []
         for study in self.studies:
@@ -399,9 +393,9 @@ class Patient(skrt.core.PathData):
         return files
 
     def combined_files_by_dir(self, attr, min_date=None, max_date=None):
-        '''Get dict of all files of a given data type <attr> associated with
+        """Get dict of all files of a given data type <attr> associated with
         this patient, within a given date range if specified. The dict keys
-        will be the directories that the files are in.'''
+        will be the directories that the files are in."""
 
         files = {}
         for study in self.studies:
@@ -420,8 +414,8 @@ class Patient(skrt.core.PathData):
         return files
 
     def combined_objs(self, attr):
-        '''Get list of all objects of a given attribute <attr> associated
-        with this patient.'''
+        """Get list of all objects of a given attribute <attr> associated
+        with this patient."""
 
         all_objs = []
         for study in self.studies:
@@ -432,35 +426,35 @@ class Patient(skrt.core.PathData):
         return all_objs
 
     def load_demographics(self):
-        '''Load a patient's birth date, age, and sex.'''
+        """Load a patient's birth date, age, and sex."""
 
-        info = {'BirthDate': None, 'Age': None, 'Sex': None}
+        info = {"BirthDate": None, "Age": None, "Sex": None}
 
         # Find an object from which to extract the info
         obj = None
         if self.studies:
             obj = getattr(
-                self.studies[0], f'{self.studies[0].im_types[0].lower()}_scans'
+                self.studies[0], f"{self.studies[0].im_types[0].lower()}_scans"
             )[-1]
 
         # Read demographic info from the object
         if obj and obj.files:
             ds = pydicom.read_file(fp=obj.files[-1].path, force=True)
             for key in info:
-                for prefix in ['Patient', 'Patients']:
-                    attr = f'{prefix}{key[0].upper()}{key[1:]}'
+                for prefix in ["Patient", "Patients"]:
+                    attr = f"{prefix}{key[0].upper()}{key[1:]}"
                     if hasattr(ds, attr):
                         info[key] = getattr(ds, attr)
                         break
 
         # Ensure sex is uppercase and single character
-        if info['Sex']:
-            info['Sex'] = info['Sex'][0].upper()
+        if info["Sex"]:
+            info["Sex"] = info["Sex"][0].upper()
 
         # Store data
-        self.age = info['Age']
-        self.sex = info['Sex']
-        self.birth_date = info['BirthDate']
+        self.age = info["Age"]
+        self.sex = info["Sex"]
+        self.birth_date = info["BirthDate"]
 
     def get_age(self):
 
@@ -477,8 +471,8 @@ class Patient(skrt.core.PathData):
         self.load_demographics()
         return self.birth_date
 
-    def get_subdir_studies(self, subdir=''):
-        '''Get list of studies within a given subdirectory.'''
+    def get_subdir_studies(self, subdir=""):
+        """Get list of studies within a given subdirectory."""
 
         subdir_studies = []
         for study in self.studies:
@@ -490,8 +484,8 @@ class Patient(skrt.core.PathData):
         return subdir_studies
 
     def last_in_interval(self, attr=None, min_date=None, max_date=None):
-        '''Get the last object of a given attribute <attr> in a given
-        date interval.'''
+        """Get the last object of a given attribute <attr> in a given
+        date interval."""
 
         files = self.combined_files(attr)
         last = None
@@ -504,16 +498,16 @@ class Patient(skrt.core.PathData):
 
     def write(
         self,
-        outdir='.',
-        ext='.nii.gz',
+        outdir=".",
+        ext=".nii.gz",
         to_ignore=None,
         overwrite=True,
         structure_set=None,
     ):
-        '''Write files tree.'''
+        """Write files tree."""
 
-        if not ext.startswith('.'):
-            ext = f'.{ext}'
+        if not ext.startswith("."):
+            ext = f".{ext}"
 
         patient_dir = os.path.join(os.path.expanduser(outdir), self.id)
         if not os.path.exists(patient_dir):
@@ -545,7 +539,7 @@ class Patient(skrt.core.PathData):
                     os.mkdir(im_type_dir)
 
                 # Write all scans of this image type
-                for im in getattr(study, f'{im_type.lower()}_scans'):
+                for im in getattr(study, f"{im_type.lower()}_scans"):
 
                     # Make directory for this scan
                     im_dir = os.path.join(
@@ -553,16 +547,16 @@ class Patient(skrt.core.PathData):
                     )
 
                     # Write image data to nifti
-                    if ext == '.dcm':
+                    if ext == ".dcm":
                         outname = im_dir
                     else:
-                        outname = f'{im_dir}{ext}'
+                        outname = f"{im_dir}{ext}"
                     if os.path.exists(outname) and not overwrite:
                         continue
                     im.write(outname)
 
                     # Find structure sets to write
-                    if structure_set == 'all':
+                    if structure_set == "all":
                         ss_to_write = im.structs
                     elif structure_set is None:
                         ss_to_write = []
@@ -572,8 +566,7 @@ class Patient(skrt.core.PathData):
                         ss_to_write = [im.structs[i] for i in structure_set]
                     else:
                         raise TypeError(
-                            'Unrecognised structure_set option '
-                            f'{structure_set}'
+                            "Unrecognised structure_set option " f"{structure_set}"
                         )
 
                     # Write structure sets for this image
@@ -583,17 +576,17 @@ class Patient(skrt.core.PathData):
                         ss_path = os.path.join(
                             study_dir, os.path.relpath(ss.path, study.path)
                         )
-                        if ext == '.dcm':
+                        if ext == ".dcm":
                             ss_dir = os.path.dirname(ss_path)
                         else:
-                            ss_dir = ss_path.replace('.dcm', '')
+                            ss_dir = ss_path.replace(".dcm", "")
 
                         # Ensure it exists
                         if not os.path.exists(ss_path):
                             os.makedirs(ss_path)
 
                         # Write dicom structure set
-                        if ext == '.dcm':
+                        if ext == ".dcm":
                             if os.path.exists(ss_path) and not overwrite:
                                 continue
                             ss.write(ss_path)

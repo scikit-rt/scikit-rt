@@ -1,10 +1,11 @@
-'''Classes for loading and comparing medical images.'''
+"""Classes for loading and comparing medical images."""
 
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
 from scipy import interpolate
 import datetime
 import glob
+import functools
 import matplotlib as mpl
 import matplotlib.cm
 import matplotlib.colors
@@ -21,16 +22,16 @@ import uuid
 import skrt.core
 
 
-_axes = ['x', 'y', 'z']
-_slice_axes = {'x-y': 2, 'y-z': 0, 'x-z': 1}
-_plot_axes = {'x-y': [0, 1], 'y-z': [2, 1], 'x-z': [2, 0]}
+_axes = ["x", "y", "z"]
+_slice_axes = {"x-y": 2, "y-z": 0, "x-z": 1}
+_plot_axes = {"x-y": [0, 1], "y-z": [2, 1], "x-z": [2, 0]}
 _default_figsize = 6
-_default_stations = {'0210167': 'LA3', '0210292': 'LA4'}
+_default_stations = {"0210167": "LA3", "0210292": "LA4"}
 
 
 class Image(skrt.core.Archive):
-    '''Loads and stores a medical image and its geometrical properties, either
-    from a dicom/nifti file or a numpy array.'''
+    """Loads and stores a medical image and its geometrical properties, either
+    from a dicom/nifti file or a numpy array."""
 
     def __init__(
         self,
@@ -43,7 +44,7 @@ class Image(skrt.core.Archive):
         nifti_array=False,
         downsample=None,
     ):
-        '''
+        """
         Initialise from a medical image source.
 
         Parameters
@@ -86,7 +87,7 @@ class Image(skrt.core.Archive):
             Amount by which to downsample the image. Can be a single value for
             all axes, or a list containing downsampling amounts in order
             (x, y, z).
-        '''
+        """
 
         self.data = None
         self.title = title
@@ -99,7 +100,7 @@ class Image(skrt.core.Archive):
         self.nifti_array = nifti_array
         self.structs = []
 
-        path = self.source if isinstance(self.source, str) else ''
+        path = self.source if isinstance(self.source, str) else ""
         skrt.core.Archive.__init__(self, path)
 
         if load:
@@ -108,33 +109,33 @@ class Image(skrt.core.Archive):
     def __repr__(self):
 
         self.load_data()
-        out_str = 'Image\n{'
+        out_str = "Image\n{"
         attrs_to_print = sorted(
             [
-                'date',
-                'path',
-                'subdir',
-                'source_type',
-                'affine',
-                'timestamp',
-                'title',
-                'downsampling',
+                "date",
+                "path",
+                "subdir",
+                "source_type",
+                "affine",
+                "timestamp",
+                "title",
+                "downsampling",
             ]
         )
         for attr in attrs_to_print:
-            out_str += f'\n  {attr} : {getattr(self, attr)}'
+            out_str += f"\n  {attr} : {getattr(self, attr)}"
         if len(self.structs):
             out_str += (
-                f'\n  structs: [{len(self.structs)} '
-                f'* {type(self.structs[0])}]'
+                f"\n  structs: [{len(self.structs)} "
+                f"* {type(self.structs[0])}]"
             )
         else:
-            out_str += '  structs: []'
-        out_str += '\n}'
+            out_str += "  structs: []"
+        out_str += "\n}"
         return out_str
 
     def get_data(self, standardise=False):
-        '''Return image array.'''
+        """Return image array."""
 
         if self.data is None:
             self.load_data()
@@ -143,31 +144,31 @@ class Image(skrt.core.Archive):
         return self.data
 
     def get_voxel_size(self):
-        '''Return voxel sizes in mm in order (x, y, z).'''
+        """Return voxel sizes in mm in order (x, y, z)."""
 
         self.load_data()
         return self.voxel_size
 
     def get_origin(self):
-        '''Return origin position in mm in order (x, y, z).'''
+        """Return origin position in mm in order (x, y, z)."""
 
         self.load_data()
         return self.origin
 
     def get_n_voxels(self):
-        '''Return number of voxels in order (x, y, z).'''
+        """Return number of voxels in order (x, y, z)."""
 
         self.load_data()
         return self.n_voxels
 
     def get_affine(self):
-        '''Return affine matrix.'''
+        """Return affine matrix."""
 
         self.load_data()
         return self.affine
 
     def load_data(self, force=False):
-        '''Load pixel array from image source.'''
+        """Load pixel array from image source."""
 
         if self.data is not None and not force:
             return
@@ -179,16 +180,16 @@ class Image(skrt.core.Archive):
         # Numpy array
         if isinstance(self.source, np.ndarray):
             self.data = self.source
-            self.source_type = 'nifti array' if self.nifti_array else 'array'
+            self.source_type = "nifti array" if self.nifti_array else "array"
 
         # Try loading from nifti file
         else:
             if not os.path.exists(self.source):
                 raise RuntimeError(
-                    f'Image input {self.source} does not exist!')
+                    f"Image input {self.source} does not exist!")
             if os.path.isfile(self.source):
                 self.data, affine = load_nifti(self.source)
-                self.source_type = 'nifti'
+                self.source_type = "nifti"
             if self.data is not None:
                 self.affine = affine
 
@@ -196,18 +197,18 @@ class Image(skrt.core.Archive):
         if self.data is None:
             self.data, affine, window_centre, window_width = load_dicom(
                 self.source)
-            self.source_type = 'dicom'
+            self.source_type = "dicom"
             if self.data is not None:
                 self.affine = affine
 
         # Try loading from numpy file
         if self.data is None:
             self.data = load_npy(self.source)
-            self.source_type = 'nifti array' if self.nifti_array else 'array'
+            self.source_type = "nifti array" if self.nifti_array else "array"
 
         # If still None, raise exception
         if self.data is None:
-            raise RuntimeError(f'{self.source} not a valid image source!')
+            raise RuntimeError(f"{self.source} not a valid image source!")
 
         # Ensure array is 3D
         if self.data.ndim == 2:
@@ -234,23 +235,23 @@ class Image(skrt.core.Archive):
                 self.title = os.path.basename(self.source)
 
     def get_standardised_data(self):
-        '''Return standardised image array.'''
+        """Return standardised image array."""
 
         self.standardise_data()
         return self.sdata
 
     def standardise_data(self, force=False):
-        '''Manipulate data array and affine matrix into a standard
-        configuration.'''
+        """Manipulate data array and affine matrix into a standard
+        configuration."""
 
-        if hasattr(self, 'sdata') and not force:
+        if hasattr(self, "sdata") and not force:
             return
 
         data = self.data
         affine = self.affine
 
         # Adjust dicom
-        if self.source_type == 'dicom':
+        if self.source_type == "dicom":
 
             # Transform array to be in order (row, col, slice) = (x, y, z)
             orient = np.array(self.get_orientation_vector()).reshape(2, 3)
@@ -278,7 +279,7 @@ class Image(skrt.core.Archive):
                     affine[i, 3] = affine[i, 3] - (n_voxels - 1) * affine[i, i]
 
         # Adjust nifti
-        elif 'nifti' in self.source_type:
+        elif "nifti" in self.source_type:
 
             init_dtype = self.get_data().dtype
             nii = nibabel.as_closest_canonical(
@@ -301,7 +302,7 @@ class Image(skrt.core.Archive):
         self.sorigin = list(self.saffine[:-1, -1])
 
     def resample(self, voxel_size):
-        '''Resample image to have particular voxel sizes.'''
+        """Resample image to have particular voxel sizes."""
 
         # Parse input voxel sizes
         self.load_data()
@@ -330,9 +331,9 @@ class Image(skrt.core.Archive):
         interpolant = interpolate.RegularGridInterpolator(
             old_coords,
             self.get_data(),
-            method='linear',
+            method="linear",
             bounds_error=False,
-            fill_value=self.get_min(),
+            fill_value=self.min
         )
 
         # Calculate new number of voxels
@@ -358,7 +359,7 @@ class Image(skrt.core.Archive):
             )
             for i in range(3)
         ]
-        stack = np.vstack(np.meshgrid(*new_coords, indexing='ij'))
+        stack = np.vstack(np.meshgrid(*new_coords, indexing="ij"))
         points = stack.reshape(3, -1).T.reshape(*shape, 3)
         self.data = interpolant(points)[::-1, :, :]
 
@@ -372,8 +373,8 @@ class Image(skrt.core.Archive):
         self.affine = None
         self.set_geometry(force=True)
 
-    def match_voxel_size(self, image, method='self'):
-        '''Resample to match z-axis voxel size with that of another Image
+    def match_voxel_size(self, image, method="self"):
+        """Resample to match z-axis voxel size with that of another Image
         object.
 
         Available methods:
@@ -382,26 +383,26 @@ class Image(skrt.core.Archive):
             that of the image with larger z voxels.
             - fine: resample the image with the larger z voxels to match
             that of the image with smaller z voxels.
-        '''
+        """
 
         # Determine which image should be resampled
-        if method == 'self':
+        if method == "self":
             to_resample = self
             match_to = image
         else:
             own_vz = self.get_voxel_size()[2]
             other_vz = image.get_voxel_size()[2]
             if own_vz == other_vz:
-                print('Voxel sizes already match! No resampling applied.')
+                print("Voxel sizes already match! No resampling applied.")
                 return
-            if method == 'coarse':
+            if method == "coarse":
                 to_resample = self if own_vz < other_vz else image
                 match_to = self if own_vz > other_vz else image
-            elif method == 'fine':
+            elif method == "fine":
                 to_resample = self if own_vz > other_vz else image
                 match_to = self if own_vz < other_vz else image
             else:
-                raise RuntimeError(f'Unrecognised resampling option: {method}')
+                raise RuntimeError(f"Unrecognised resampling option: {method}")
 
         # Perform resampling
         voxel_size = [None, None, match_to.get_voxel_size()[2]]
@@ -409,21 +410,27 @@ class Image(skrt.core.Archive):
         init_nz = int(to_resample.n_voxels[2])
         to_resample.resample(voxel_size)
         print(
-            f'Resampled z axis from {init_nz} x {init_vz:.3f} mm -> '
-            f'{int(to_resample.n_voxels[2])} x {to_resample.voxel_size[2]:.3f}'
-            'mm'
+            f"Resampled z axis from {init_nz} x {init_vz:.3f} mm -> "
+            f"{int(to_resample.n_voxels[2])} x {to_resample.voxel_size[2]:.3f}"
+            "mm"
         )
 
-    def get_min(self):
-        '''Get minimum value of data array.'''
+    @functools.cached_property
+    def min(self):
+        """Get minimum value of data array."""
 
-        if not hasattr(self, 'min_val'):
-            self.load_data()
-            self.min_val = self.data.min()
-        return self.min_val
+        self.load_data()
+        return self.data.min()
+
+    @functools.cached_property
+    def max(self):
+        """Get maximum value of data array."""
+
+        self.load_data()
+        return self.data.max()
 
     def get_orientation_codes(self, affine=None, source_type=None):
-        '''Get image orientation codes in order (row, column, slice) for
+        """Get image orientation codes in order (row, column, slice) for
         dicom or (column, row, slice) for nifti.
 
         L = Left (x axis)
@@ -432,7 +439,7 @@ class Image(skrt.core.Archive):
         A = Anterior (y axis)
         I = Inferior (z axis)
         S = Superior (z axis)
-        '''
+        """
 
         if affine is None:
             self.load_data()
@@ -443,8 +450,8 @@ class Image(skrt.core.Archive):
             source_type = self.source_type
 
         # Reverse codes for row and column of a dicom
-        pairs = [('L', 'R'), ('P', 'A'), ('I', 'S')]
-        if 'nifti' not in source_type:
+        pairs = [("L", "R"), ("P", "A"), ("I", "S")]
+        if "nifti" not in source_type:
             for i in range(2):
                 switched = False
                 for p in pairs:
@@ -456,7 +463,7 @@ class Image(skrt.core.Archive):
         return codes
 
     def get_orientation_vector(self, affine=None, source_type=None):
-        '''Get image orientation as a row and column vector.'''
+        """Get image orientation as a row and column vector."""
 
         if source_type is None:
             source_type = self.source_type
@@ -464,26 +471,26 @@ class Image(skrt.core.Archive):
             affine = self.affine
 
         codes = self.get_orientation_codes(affine, source_type)
-        if 'nifti' in source_type:
+        if "nifti" in source_type:
             codes = [codes[1], codes[0], codes[2]]
         vecs = {
-            'L': [1, 0, 0],
-            'R': [-1, 0, 0],
-            'P': [0, 1, 0],
-            'A': [0, -1, 0],
-            'S': [0, 0, 1],
-            'I': [0, 0, -1],
+            "L": [1, 0, 0],
+            "R": [-1, 0, 0],
+            "P": [0, 1, 0],
+            "A": [0, -1, 0],
+            "S": [0, 0, 1],
+            "I": [0, 0, -1],
         }
         return vecs[codes[0]] + vecs[codes[1]]
 
     def get_axes(self, col_first=False):
-        '''Return list of axis numbers in order (column, row, slice) if
+        """Return list of axis numbers in order (column, row, slice) if
         col_first is True, otherwise in order (row, column, slice). The axis
-        numbers 0, 1, and 2 correspond to x, y, and z, respectively.'''
+        numbers 0, 1, and 2 correspond to x, y, and z, respectively."""
 
         orient = np.array(self.get_orientation_vector()).reshape(2, 3)
-        axes = [sum([abs(int(orient[i, j] * j)) for j in range(3)])
-                for i in range(2)]
+        axes = [sum([abs(int(orient[i, j] * j)) for j in range(3)]) for i in
+                range(2)]
         axes.append(3 - sum(axes))
         if not col_first:
             return axes
@@ -504,7 +511,7 @@ class Image(skrt.core.Archive):
         return machine
 
     def set_geometry(self, force=False):
-        '''Set geometric properties.'''
+        """Set geometric properties."""
 
         # Set affine matrix, voxel sizes, and origin
         if self.affine is None:
@@ -516,11 +523,11 @@ class Image(skrt.core.Archive):
                     [0, 0, 0, 1],
                 ]
             )
-            if 'nifti' in self.source_type:
+            if "nifti" in self.source_type:
                 self.affine[0, :] = -self.affine[0, :]
                 self.affine[1, 3] = -(
-                    self.affine[1, 3] + (self.data.shape[1] - 1)
-                    * self.voxel_size[1]
+                    self.affine[1, 3] + (self.data.shape[1] - 1) *
+                    self.voxel_size[1]
                 )
         else:
             self.voxel_size = list(np.diag(self.affine))[:-1]
@@ -552,8 +559,8 @@ class Image(skrt.core.Archive):
         }
 
     def get_idx(self, view, sl=None, idx=None, pos=None):
-        '''Get an array index from either a slice number, index, or
-        position.'''
+        """Get an array index from either a slice number, index, or
+        position."""
 
         if sl is not None:
             idx = self.slice_to_idx(sl, _slice_axes[view])
@@ -566,13 +573,13 @@ class Image(skrt.core.Archive):
         return idx
 
     def get_slice(
-        self, view='x-y', sl=None, idx=None, pos=None, flatten=False, **kwargs
+        self, view="x-y", sl=None, idx=None, pos=None, flatten=False, **kwargs
     ):
-        '''Get a slice of the data in the correct orientation for plotting.'''
+        """Get a slice of the data in the correct orientation for plotting."""
 
         # Get image slice
         idx = self.get_idx(view, sl, idx, pos)
-        transposes = {'x-y': (0, 1, 2), 'y-z': (0, 2, 1), 'x-z': (1, 2, 0)}
+        transposes = {"x-y": (0, 1, 2), "y-z": (0, 2, 1), "x-z": (1, 2, 0)}
         transpose = transposes[view]
         list(_plot_axes[view]) + [_slice_axes[view]]
         data = np.transpose(self.get_standardised_data(), transpose)
@@ -591,8 +598,8 @@ class Image(skrt.core.Archive):
         colorbar=False,
         **kwargs,
     ):
-        '''Set up axes for plotting this image, either from a given exes or
-        gridspec, or by creating new axes.'''
+        """Set up axes for plotting this image, either from a given exes or
+        gridspec, or by creating new axes."""
 
         # Set up figure/axes
         if ax is None and gs is not None:
@@ -614,33 +621,33 @@ class Image(skrt.core.Archive):
             self.ax = self.fig.add_subplot()
 
     def add_structs(self, structure_set):
-        '''Add a structure set.'''
+        """Add a structure set."""
 
         self.structs.append(structure_set)
 
     def clear_structs(self):
-        '''Clear all structures.'''
+        """Clear all structures."""
 
         self.structs = []
 
     def get_mpl_kwargs(self, view, mpl_kwargs=None, scale_in_mm=True):
-        '''Get matplotlib kwargs dict including defaults.'''
+        """Get matplotlib kwargs dict including defaults."""
 
         if mpl_kwargs is None:
             mpl_kwargs = {}
 
         # Set colormap
-        if 'cmap' not in mpl_kwargs:
-            mpl_kwargs['cmap'] = 'gray'
+        if "cmap" not in mpl_kwargs:
+            mpl_kwargs["cmap"] = "gray"
 
         # Set colour range
-        for i, name in enumerate(['vmin', 'vmax']):
+        for i, name in enumerate(["vmin", "vmax"]):
             if name not in mpl_kwargs:
                 mpl_kwargs[name] = self.default_window[i]
 
         # Set image extent and aspect ratio
         extent = self.plot_extent[view]
-        mpl_kwargs['aspect'] = 1
+        mpl_kwargs["aspect"] = 1
         x_ax, y_ax = _plot_axes[view]
         if not scale_in_mm:
             extent = [
@@ -649,14 +656,14 @@ class Image(skrt.core.Archive):
                 self.pos_to_slice(extent[2], y_ax, False),
                 self.pos_to_slice(extent[3], y_ax, False),
             ]
-            mpl_kwargs['aspect'] = abs(self.voxel_size[y_ax]
+            mpl_kwargs["aspect"] = abs(self.voxel_size[y_ax]
                                        / self.voxel_size[x_ax])
-        mpl_kwargs['extent'] = extent
+        mpl_kwargs["extent"] = extent
 
         return mpl_kwargs
 
     def view(self, **kwargs):
-        '''View self with QuickViewer.'''
+        """View self with QuickViewer."""
 
         from skrt.viewer import QuickViewer
 
@@ -664,7 +671,7 @@ class Image(skrt.core.Archive):
 
     def plot(
         self,
-        view='x-y',
+        view="x-y",
         sl=None,
         idx=None,
         pos=None,
@@ -679,7 +686,7 @@ class Image(skrt.core.Archive):
         mpl_kwargs=None,
         show=True,
         colorbar=False,
-        colorbar_label='HU',
+        colorbar_label="HU",
         no_title=False,
         no_ylabel=False,
         annotate_slice=False,
@@ -687,14 +694,14 @@ class Image(skrt.core.Archive):
         minor_ticks=None,
         ticks_all_sides=False,
         structure_set=None,
-        struct_plot_type='contour',
+        struct_plot_type="contour",
         struct_legend=False,
         struct_kwargs={},
         centre_on_struct=None,
-        legend_loc='lower left',
+        legend_loc="lower left",
         flatten=False,
     ):
-        '''Plot a 2D slice of the image.
+        """Plot a 2D slice of the image.
 
         Parameters
         ----------
@@ -809,7 +816,7 @@ class Image(skrt.core.Archive):
 
         legend_loc : str, default='lower left'
             Legend location for structure legend.
-        '''
+        """
 
         self.load_data()
 
@@ -828,16 +835,16 @@ class Image(skrt.core.Archive):
                     to_plot = [self.structs[structure_set]]
                 except IndexError:
                     print(
-                        f'Warning: structure set {structure_set} not found! '
-                        f'Image only has {len(self.structs)} structure sets.'
+                        f"Warning: structure set {structure_set} not found! "
+                        f"Image only has {len(self.structs)} structure sets."
                     )
-            elif structure_set == 'all':
+            elif structure_set == "all":
                 to_plot = self.structs
             elif skrt.core.is_list(structure_set):
                 to_plot = [self.structs[i] for i in structure_set]
             else:
                 print(
-                    f'Warning: structure set option {structure_set} not '
+                    f"Warning: structure set option {structure_set} not "
                     'recognised! Must be an int, None, or "all".'
                 )
 
@@ -857,8 +864,8 @@ class Image(skrt.core.Archive):
         if mpl_kwargs is None:
             mpl_kwargs = {}
         if hu is not None:
-            mpl_kwargs['vmin'] = hu[0]
-            mpl_kwargs['vmax'] = hu[1]
+            mpl_kwargs["vmin"] = hu[0]
+            mpl_kwargs["vmax"] = hu[1]
 
         # Plot the slice
         mesh = self.ax.imshow(
@@ -872,7 +879,7 @@ class Image(skrt.core.Archive):
                 for s in ss.get_structs():
                     name = s.name
                     if len(to_plot) > 1:
-                        name += f' ({ss.name})'
+                        name += f" ({ss.name})"
                     s.plot(
                         view,
                         idx=idx,
@@ -888,7 +895,7 @@ class Image(skrt.core.Archive):
             # Draw structure legend
             if struct_legend and len(handles):
                 self.ax.legend(
-                    handles=handles, loc=legend_loc, facecolor='white',
+                    handles=handles, loc=legend_loc, facecolor="white",
                     framealpha=1
                 )
 
@@ -907,9 +914,9 @@ class Image(skrt.core.Archive):
         self.zoom_ax(view, zoom, zoom_centre)
 
         # Add colorbar
-        if colorbar and mpl_kwargs.get('alpha', 1) > 0:
+        if colorbar and mpl_kwargs.get("alpha", 1) > 0:
             clb = self.fig.colorbar(mesh, ax=self.ax, label=colorbar_label)
-            clb.solids.set_edgecolor('face')
+            clb.solids.set_edgecolor("face")
 
         # Display image
         if show:
@@ -942,7 +949,7 @@ class Image(skrt.core.Archive):
             self.ax.set_title(self.title, pad=8)
 
         # Set axis labels
-        units = ' (mm)' if scale_in_mm else ''
+        units = " (mm)" if scale_in_mm else ""
         self.ax.set_xlabel(_axes[x_ax] + units, labelpad=0)
         if not no_ylabel:
             self.ax.set_ylabel(_axes[y_ax] + units)
@@ -953,20 +960,20 @@ class Image(skrt.core.Archive):
         if annotate_slice:
             z_ax = _axes[_slice_axes[view]]
             if scale_in_mm:
-                z_str = '{} = {:.1f} mm'.format(
-                    z_ax, self.idx_to_pos(idx, z_ax))
+                z_str = "{} = {:.1f} mm".format(z_ax, self.idx_to_pos(idx,
+                                                                      z_ax))
             else:
-                z_str = '{} = {}'.format(z_ax, self.idx_to_slice(idx, z_ax))
+                z_str = "{} = {}".format(z_ax, self.idx_to_slice(idx, z_ax))
             if matplotlib.colors.is_color_like(annotate_slice):
                 color = annotate_slice
             else:
-                color = 'white'
+                color = "white"
             self.ax.annotate(
                 z_str,
                 xy=(0.05, 0.93),
-                xycoords='axes fraction',
+                xycoords="axes fraction",
                 color=color,
-                fontsize='large',
+                fontsize="large",
             )
 
         # Adjust tick marks
@@ -980,11 +987,11 @@ class Image(skrt.core.Archive):
             self.ax.tick_params(bottom=True, top=True, left=True, right=True)
             if minor_ticks:
                 self.ax.tick_params(
-                    which='minor', bottom=True, top=True, left=True, right=True
+                    which="minor", bottom=True, top=True, left=True, right=True
                 )
 
     def zoom_ax(self, view, zoom=None, zoom_centre=None):
-        '''Zoom in on axes if needed.'''
+        """Zoom in on axes if needed."""
 
         if not zoom or isinstance(zoom, str):
             return
@@ -1014,7 +1021,7 @@ class Image(skrt.core.Archive):
         self.ax.set_ylim(ylim)
 
     def idx_to_pos(self, idx, ax, standardise=True):
-        '''Convert an array index to a position in mm along a given axis.'''
+        """Convert an array index to a position in mm along a given axis."""
 
         self.load_data()
         i_ax = _axes.index(ax) if ax in _axes else ax
@@ -1027,7 +1034,7 @@ class Image(skrt.core.Archive):
         return origin[i_ax] + idx * voxel_size[i_ax]
 
     def pos_to_idx(self, pos, ax, return_int=True, standardise=True):
-        '''Convert a position in mm to an array index along a given axis.'''
+        """Convert a position in mm to an array index along a given axis."""
 
         self.load_data()
         i_ax = _axes.index(ax) if ax in _axes else ax
@@ -1044,7 +1051,7 @@ class Image(skrt.core.Archive):
             return idx
 
     def idx_to_slice(self, idx, ax):
-        '''Convert an array index to a slice number along a given axis.'''
+        """Convert an array index to a slice number along a given axis."""
 
         self.load_data()
         i_ax = _axes.index(ax) if ax in _axes else ax
@@ -1054,7 +1061,7 @@ class Image(skrt.core.Archive):
             return idx + 1
 
     def slice_to_idx(self, sl, ax):
-        '''Convert a slice number to an array index along a given axis.'''
+        """Convert a slice number to an array index along a given axis."""
 
         self.load_data()
         i_ax = _axes.index(ax) if ax in _axes else ax
@@ -1064,49 +1071,49 @@ class Image(skrt.core.Archive):
             return sl - 1
 
     def pos_to_slice(self, pos, ax, return_int=True, standardise=True):
-        '''Convert a position in mm to a slice number along a given axis.'''
+        """Convert a position in mm to a slice number along a given axis."""
 
-        sl = self.idx_to_slice(
-            self.pos_to_idx(pos, ax, return_int, standardise), ax)
+        sl = self.idx_to_slice(self.pos_to_idx(pos, ax, return_int,
+                                               standardise), ax)
         if return_int:
             return round(sl)
         else:
             return sl
 
     def slice_to_pos(self, sl, ax, standardise=True):
-        '''Convert a slice number to a position in mm along a given axis.'''
+        """Convert a slice number to a position in mm along a given axis."""
 
         return self.idx_to_pos(self.slice_to_idx(sl, ax), ax, standardise)
 
     def get_image_centre(self):
-        '''Get position in mm of the centre of the image.'''
+        """Get position in mm of the centre of the image."""
 
         self.load_data()
         return [np.mean(self.lims[i]) for i in range(3)]
 
-    def get_range(self, ax='z'):
-        '''Get range of the scan in mm along a given axis.'''
+    def get_range(self, ax="z"):
+        """Get range of the scan in mm along a given axis."""
 
         i_ax = _axes.index(ax) if ax in _axes else ax
         origin = self.get_origin()[i_ax]
         return [origin, origin + (self.n_voxels[i_ax] - 1)
                 * self.voxel_size[i_ax]]
 
-    def get_image_length(self, ax='z'):
-        '''Get total length of image.'''
+    def get_image_length(self, ax="z"):
+        """Get total length of image."""
 
         i_ax = _axes.index(ax) if ax in _axes else ax
         return abs(self.n_voxels[i_ax] * self.voxel_size[i_ax])
 
     def get_voxel_coords(self):
-        '''Get arrays of voxel coordinates in each direction.'''
+        """Get arrays of voxel coordinates in each direction."""
 
         return
 
     def get_plot_aspect_ratio(
         self, view, zoom=None, n_colorbars=0, figsize=_default_figsize
     ):
-        '''Estimate the ideal width/height ratio for a plot of this image
+        """Estimate the ideal width/height ratio for a plot of this image
         in a given orientation.
 
         view : str
@@ -1118,7 +1125,7 @@ class Image(skrt.core.Archive):
 
         n_colorbars : int, default=0
             Number of colorbars to make space for.
-        '''
+        """
 
         # Get length of the image in the plot axis directions
         x_ax, y_ax = _plot_axes[view]
@@ -1126,7 +1133,7 @@ class Image(skrt.core.Archive):
         y_len = abs(self.lims[y_ax][1] - self.lims[y_ax][0])
 
         # Add padding for axis labels and title
-        font = mpl.rcParams['font.size'] / 72
+        font = mpl.rcParams["font.size"] / 72
         y_pad = 2 * font
         if self.title:
             y_pad += 1.5 * font
@@ -1151,14 +1158,14 @@ class Image(skrt.core.Archive):
         return total_x / total_y
 
     def downsample(self, downsampling):
-        '''Apply downsampling to the image array. Can be either a single
+        """Apply downsampling to the image array. Can be either a single
         value (to downsampling equally in all directions) or a list of 3
-        values.'''
+        values."""
 
         # Get downsampling in each direction
         if skrt.core.is_list(downsampling):
             if len(downsampling) != 3:
-                raise TypeError('<downsample> must contain 3 elements!')
+                raise TypeError("<downsample> must contain 3 elements!")
             dx, dy, dz = downsampling
         else:
             dx = dy = dz = downsampling
@@ -1175,11 +1182,11 @@ class Image(skrt.core.Archive):
         self.set_geometry()
 
     def get_nifti_array_and_affine(self, standardise=False):
-        '''Get image array and affine matrix in canonical nifti
-        configuration.'''
+        """Get image array and affine matrix in canonical nifti
+        configuration."""
 
         # Convert dicom-style array to nifti
-        if 'nifti' not in self.source_type:
+        if "nifti" not in self.source_type:
             data = self.get_data().transpose(1, 0, 2)[:, ::-1, :]
             affine = self.affine.copy()
             affine[0, :] = -affine[0, :]
@@ -1193,21 +1200,21 @@ class Image(skrt.core.Archive):
 
         # Convert to canonical if requested
         if standardise:
-            nii = nibabel.as_closest_canonical(
-                nibabel.Nifti1Image(data, affine))
+            nii = nibabel.as_closest_canonical(nibabel.Nifti1Image(data,
+                                                                   affine))
             return nii.get_fdata(), nii.affine
         else:
             return data, affine
 
     def get_dicom_array_and_affine(self, standardise=False):
-        '''Get image array and affine matrix in dicom configuration.'''
+        """Get image array and affine matrix in dicom configuration."""
 
         # Return standardised dicom array
         if standardise:
             return self.get_standardised_data(), self.saffine
 
         # Convert nifti-style array to dicom
-        if 'nifti' in self.source_type:
+        if "nifti" in self.source_type:
             data = self.get_data().transpose(1, 0, 2)[::-1, :, :]
             affine = self.affine.copy()
             affine[0, :] = -affine[0, :]
@@ -1234,7 +1241,7 @@ class Image(skrt.core.Archive):
         modality=None,
         root_uid=None,
     ):
-        '''Write image data to a file. The filetype will automatically be
+        """Write image data to a file. The filetype will automatically be
         set based on the extension of <outname>:
 
             (a) *.nii or *.nii.gz: Will write to a nifti file with
@@ -1262,21 +1269,21 @@ class Image(skrt.core.Archive):
             - Otherwise, if the input source was a dicom or directory
             containing dicoms, the header information will be taken from the
             input dicom file.
-        '''
+        """
 
         outname = os.path.expanduser(outname)
         self.load_data()
 
         # Write to nifti file
-        if outname.endswith('.nii') or outname.endswith('.nii.gz'):
+        if outname.endswith(".nii") or outname.endswith(".nii.gz"):
             data, affine = self.get_nifti_array_and_affine(standardise)
-            if data.dtype == 'bool':
+            if data.dtype == "bool":
                 data = data.copy().astype(int)
             write_nifti(outname, data, affine)
-            print('Wrote to NIfTI file:', outname)
+            print("Wrote to NIfTI file:", outname)
 
         # Write to numpy file
-        elif outname.endswith('.npy'):
+        elif outname.endswith(".npy"):
             if nifti_array:
                 data, affine = self.get_nifti_array_and_affine(standardise)
             else:
@@ -1284,22 +1291,22 @@ class Image(skrt.core.Archive):
             if not write_geometry:
                 affine = None
             write_npy(outname, data, affine)
-            print('Wrote to numpy file:', outname)
+            print("Wrote to numpy file:", outname)
 
         # Write to dicom
         else:
 
             # Get name of dicom directory
-            if outname.endswith('.dcm'):
+            if outname.endswith(".dcm"):
                 outdir = os.path.dirname(outname)
             else:
                 outdir = outname
 
             # Get header source
-            if header_source is None and self.source_type == 'dicom':
+            if header_source is None and self.source_type == "dicom":
                 header_source = self.source
             data, affine = self.get_dicom_array_and_affine(standardise)
-            orientation = self.get_orientation_vector(affine, 'dicom')
+            orientation = self.get_orientation_vector(affine, "dicom")
             write_dicom(
                 outdir,
                 data,
@@ -1310,33 +1317,26 @@ class Image(skrt.core.Archive):
                 modality,
                 root_uid,
             )
-            print('Wrote dicom file(s) to directory:', outdir)
+            print("Wrote dicom file(s) to directory:", outdir)
 
-    def get_coords(self):
-        '''Get grids of x, y, and z coordinates for each voxel in the image.'''
+    @functools.cached_property
+    def coords(self):
+        """Get grids of x, y, and z coordinates for each voxel in the image."""
 
-        if not hasattr(self, 'coords'):
-
-            # Make coordinates
-            coords_1d = [
-                np.arange(
-                    self.origin[i],
-                    self.origin[i] + self.n_voxels[i] * self.voxel_size[i],
-                    self.voxel_size[i],
-                )
-                for i in range(3)
-            ]
-            X, Y, Z = np.meshgrid(*coords_1d)
-
-            # Set coords
-            self.coords = (X, Y, Z)
-
-        # Apply transformations
-        return self.coords
+        # Make coordinates
+        coords_1d = [
+            np.arange(
+                self.origin[i],
+                self.origin[i] + self.n_voxels[i] * self.voxel_size[i],
+                self.voxel_size[i],
+            )
+            for i in range(3)
+        ]
+        return np.meshgrid(*coords_1d)
 
 
 class ImageComparison:
-    '''Plot comparisons of two images and calculate comparison metrics.'''
+    """Plot comparisons of two images and calculate comparison metrics."""
 
     def __init__(self, im1, im2, **kwargs):
 
@@ -1350,7 +1350,7 @@ class ImageComparison:
 
     def plot_chequerboard(
         self,
-        view='x-y',
+        view="x-y",
         invert=False,
         n_splits=2,
         mpl_kwargs=None,
@@ -1388,7 +1388,7 @@ class ImageComparison:
 
     def plot_overlay(
         self,
-        view='x-y',
+        view="x-y",
         invert=False,
         opacity=0.5,
         mpl_kwargs=None,
@@ -1399,20 +1399,20 @@ class ImageComparison:
 
         i1 = int(invert)
         i2 = 1 - i1
-        cmaps = ['Reds', 'Blues']
+        cmaps = ["Reds", "Blues"]
         alphas = [1, opacity]
 
         # Set axes
         self.ims[0].set_ax(view=view, **kwargs)
         ax = self.ims[0].ax
-        ax.set_facecolor('w')
+        ax.set_facecolor("w")
 
         # Plot images
         for n, i in enumerate([i1, i2]):
             im_slice = self.ims[i].get_slice(view=view, **kwargs)
             mpl_kwargs = self.ims[i].get_mpl_kwargs(view, mpl_kwargs)
-            mpl_kwargs['cmap'] = cmaps[n]
-            mpl_kwargs['alpha'] = alphas[n]
+            mpl_kwargs["cmap"] = cmaps[n]
+            mpl_kwargs["alpha"] = alphas[n]
             ax.imshow(im_slice, **mpl_kwargs)
 
         if save_as:
@@ -1421,7 +1421,7 @@ class ImageComparison:
 
 
 def load_nifti(path):
-    '''Load an image from a nifti file.'''
+    """Load an image from a nifti file."""
 
     try:
         nii = nibabel.load(path)
@@ -1430,7 +1430,7 @@ def load_nifti(path):
         return data, affine
 
     except FileNotFoundError:
-        print(f'Warning: file {path} not found! Could not load nifti.')
+        print(f"Warning: file {path} not found! Could not load nifti.")
         return None, None
 
     except nibabel.filebasedimages.ImageFileError:
@@ -1438,7 +1438,7 @@ def load_nifti(path):
 
 
 def load_dicom(path):
-    '''Load a dicom image from one or more dicom files.'''
+    """Load a dicom image from one or more dicom files."""
 
     # Try loading single dicom file
     paths = []
@@ -1446,14 +1446,14 @@ def load_dicom(path):
         ds = pydicom.read_file(path, force=True)
 
         # Discard if not a valid dicom file
-        if not hasattr(ds, 'SOPClassUID'):
+        if not hasattr(ds, "SOPClassUID"):
             return None, None, None, None
 
         # Assign TransferSyntaxUID if missing
-        if not hasattr(ds, 'TransferSyntaxUID'):
+        if not hasattr(ds, "TransferSyntaxUID"):
             ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
-        if ds.get('ImagesInAcquisition', None) == 1:
+        if ds.get("ImagesInAcquisition", None) == 1:
             paths = [path]
 
     # Case where there are multiple dicom files for this image
@@ -1507,38 +1507,38 @@ def load_dicom(path):
                 or ds.ImageOrientationPatient != orientation
             ):
                 continue
-            if not hasattr(ds, 'TransferSyntaxUID'):
+            if not hasattr(ds, "TransferSyntaxUID"):
                 ds.file_meta.TransferSyntaxUID = \
-                        pydicom.uid.ImplicitVRLittleEndian
+                    pydicom.uid.ImplicitVRLittleEndian
 
             # Get data
-            pos = getattr(ds, 'ImagePositionPatient', [0, 0, 0])
+            pos = getattr(ds, "ImagePositionPatient", [0, 0, 0])
             z = pos[axes[2]]
             data_slices[z] = ds.pixel_array
             image_position[z] = pos
 
             # Get voxel spacings
             if pixel_size is None:
-                for attr in ['PixelSpacing', 'ImagerPixelSpacing']:
+                for attr in ["PixelSpacing", "ImagerPixelSpacing"]:
                     pixel_size = getattr(ds, attr, None)
                     if pixel_size:
                         break
             if slice_thickness is None:
-                slice_thickness = getattr(ds, 'SliceThickness', None)
+                slice_thickness = getattr(ds, "SliceThickness", None)
 
             # Get rescale settings
             if rescale_slope is None:
-                rescale_slope = getattr(ds, 'RescaleSlope', None)
+                rescale_slope = getattr(ds, "RescaleSlope", None)
             if rescale_intercept is None:
-                rescale_intercept = getattr(ds, 'RescaleIntercept', None)
+                rescale_intercept = getattr(ds, "RescaleIntercept", None)
 
             # Get HU window defaults
             if window_centre is None:
-                window_centre = getattr(ds, 'WindowCenter', None)
+                window_centre = getattr(ds, "WindowCenter", None)
                 if isinstance(window_centre, pydicom.multival.MultiValue):
                     window_centre = window_centre[0]
             if window_width is None:
-                window_width = getattr(ds, 'WindowWidth', None)
+                window_width = getattr(ds, "WindowWidth", None)
                 if isinstance(window_width, pydicom.multival.MultiValue):
                     window_width = window_width[0]
 
@@ -1548,7 +1548,7 @@ def load_dicom(path):
 
     # Case where no data was found
     if not data_slices:
-        print(f'Warning: no valid dicom files found in {path}')
+        print(f"Warning: no valid dicom files found in {path}")
         return None, None, None, None
 
     # Case with single image array
@@ -1606,7 +1606,7 @@ def load_dicom(path):
 
 
 def load_npy(path):
-    '''Load a numpy array from a .npy file.'''
+    """Load a numpy array from a .npy file."""
 
     try:
         data = np.load(path)
@@ -1617,7 +1617,7 @@ def load_npy(path):
 
 
 def downsample(data, dx=None, dy=None, dz=None):
-    '''Downsample an array by the factors specified in <dx>, <dy>, and <dz>.'''
+    """Downsample an array by the factors specified in <dx>, <dy>, and <dz>."""
 
     if dx is None:
         dx = 1
@@ -1630,14 +1630,14 @@ def downsample(data, dx=None, dy=None, dz=None):
 
 
 def to_inches(size):
-    '''Convert a size string to a size in inches. If a float is given, it will
+    """Convert a size string to a size in inches. If a float is given, it will
     be returned. If a string is given, the last two characters will be used to
     determine the units:
         - 'in': inches
         - 'cm': cm
         - 'mm': mm
         - 'px': pixels
-    '''
+    """
 
     if not isinstance(size, str):
         return size
@@ -1645,40 +1645,40 @@ def to_inches(size):
     val = float(size[:-2])
     units = size[-2:]
     inches_per_cm = 0.394
-    if units == 'in':
+    if units == "in":
         return val
-    elif units == 'cm':
+    elif units == "cm":
         return inches_per_cm * val
-    elif units == 'mm':
+    elif units == "mm":
         return inches_per_cm * val / 10
-    elif units == 'px':
-        return val / mpl.rcParams['figure.dpi']
+    elif units == "px":
+        return val / mpl.rcParams["figure.dpi"]
 
 
 def write_nifti(outname, data, affine):
-    '''Create a nifti file at <outname> containing <data> and <affine>.'''
+    """Create a nifti file at <outname> containing <data> and <affine>."""
 
     nii = nibabel.Nifti1Image(data, affine)
     nii.to_filename(outname)
 
 
 def write_npy(outname, data, affine=None):
-    '''Create numpy file containing data. If <affine> is not None, voxel
-    sizes and origin will be written to a text file.'''
+    """Create numpy file containing data. If <affine> is not None, voxel
+    sizes and origin will be written to a text file."""
 
     np.save(outname, data)
     if affine is not None:
         voxel_size = np.diag(affine)[:-1]
         origin = affine[:-1, -1]
-        geom_file = outname.replace('.npy', '.txt')
-        with open(geom_file, 'w') as f:
-            f.write('voxel_size')
+        geom_file = outname.replace(".npy", ".txt")
+        with open(geom_file, "w") as f:
+            f.write("voxel_size")
             for vx in voxel_size:
-                f.write(' ' + str(vx))
-            f.write('\norigin')
+                f.write(" " + str(vx))
+            f.write("\norigin")
             for p in origin:
-                f.write(' ' + str(p))
-            f.write('\n')
+                f.write(" " + str(p))
+            f.write("\n")
 
 
 def write_dicom(
@@ -1691,7 +1691,7 @@ def write_dicom(
     modality=None,
     root_uid=None,
 ):
-    '''Write image data to dicom file(s) inside <outdir>. <header_source> can
+    """Write image data to dicom file(s) inside <outdir>. <header_source> can
     be:
         (a) A path to a dicom file, which will be used as the header;
         (b) A path to a directory containing dicom files; the first file
@@ -1699,14 +1699,14 @@ def write_dicom(
         (c) A pydicom FileDataset object;
         (d) None, in which case a brand new dicom file with new UIDs will be
         created.
-    '''
+    """
 
     # Create directory if it doesn't exist
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     else:
         # Clear out any dicoms in the directory
-        dcms = glob.glob(f'{outdir}/*.dcm')
+        dcms = glob.glob(f"{outdir}/*.dcm")
         for dcm in dcms:
             os.remove(dcm)
 
@@ -1720,7 +1720,7 @@ def write_dicom(
             if os.path.isfile(header_source):
                 dcm_path = header_source
             elif os.path.isdir(header_source):
-                dcms = glob.glob(f'{header_source}/*.dcm')
+                dcms = glob.glob(f"{header_source}/*.dcm")
                 if dcms:
                     dcm_path = dcms[0]
             if dcm_path:
@@ -1746,8 +1746,8 @@ def write_dicom(
     ds.Rows = data.shape[0]
 
     # Rescale data
-    slope = getattr(ds, 'RescaleSlope', 1)
-    intercept = getattr(ds, 'RescaleIntercept', 0)
+    slope = getattr(ds, "RescaleSlope", 1)
+    intercept = getattr(ds, "RescaleIntercept", 0)
     if fresh_header:
         intercept = np.min(data)
         ds.RescaleIntercept = intercept
@@ -1762,47 +1762,43 @@ def write_dicom(
         ds.PixelData = xy_slice.tobytes()
         ds.SliceLocation = pos
         ds.ImagePositionPatient[2] = pos
-        outname = f'{outdir}/{sl}.dcm'
+        outname = f"{outdir}/{sl}.dcm"
         ds.save_as(outname)
 
 
-def create_dicom(
-    orientation=None,
-    patient_id=None,
-    modality=None,
-    root_uid=None
-):
-    '''Create a fresh dicom dataset. Taken from https://pydicom.github.io/pydicom/dev/auto_examples/input_output/plot_write_dicom.html#sphx-glr-auto-examples-input-output-plot-write-dicom-py.'''
+def create_dicom(orientation=None, patient_id=None, modality=None,
+                 root_uid=None):
+    """Create a fresh dicom dataset. Taken from https://pydicom.github.io/pydicom/dev/auto_examples/input_output/plot_write_dicom.html#sphx-glr-auto-examples-input-output-plot-write-dicom-py."""
 
     # Create some temporary filenames
-    suffix = '.dcm'
+    suffix = ".dcm"
     filename = tempfile.NamedTemporaryFile(suffix=suffix).name
 
     # Populate required values for file meta information
     file_meta = FileMetaDataset()
-    file_meta.MediaStorageSOPClassUID = '1.2.840.10008.5.1.4.1.1.2'
-    file_meta.MediaStorageSOPInstanceUID = '1.2.3'
-    file_meta.ImplementationClassUID = '1.2.3.4'
+    file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.2"
+    file_meta.MediaStorageSOPInstanceUID = "1.2.3"
+    file_meta.ImplementationClassUID = "1.2.3.4"
     file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
 
     # Create the FileDataset instance
-    ds = FileDataset(filename, {}, file_meta=file_meta, preamble=b'\x00' * 128)
+    ds = FileDataset(filename, {}, file_meta=file_meta, preamble=b"\x00" * 128)
 
     # Add data elements
-    ds.PatientID = patient_id if patient_id is not None else '123456'
+    ds.PatientID = patient_id if patient_id is not None else "123456"
     ds.PatientName = ds.PatientID
-    ds.Modality = modality if modality is not None else 'CT'
+    ds.Modality = modality if modality is not None else "CT"
     ds.SeriesInstanceUID = get_new_uid(root_uid)
     ds.StudyInstanceUID = get_new_uid(root_uid)
-    ds.SeriesNumber = '123456'
+    ds.SeriesNumber = "123456"
     ds.SamplesPerPixel = 1
-    ds.PhotometricInterpretation = 'MONOCHROME2'
+    ds.PhotometricInterpretation = "MONOCHROME2"
     ds.PixelRepresentation = 0
 
     # Set creation date/time
     dt = datetime.datetime.now()
-    ds.ContentDate = dt.strftime('%Y%m%d')
-    timeStr = dt.strftime('%H%M%S.%f')  # long format with micro seconds
+    ds.ContentDate = dt.strftime("%Y%m%d")
+    timeStr = dt.strftime("%H%M%S.%f")  # long format with micro seconds
     ds.ContentTime = timeStr
 
     # Data storage
@@ -1816,29 +1812,29 @@ def create_dicom(
 
 
 def get_new_uid(root=None):
-    '''Generate a globally unique identifier (GUID). Credit: Karl Harrison.
+    """Generate a globally unique identifier (GUID). Credit: Karl Harrison.
 
     <root> should uniquely identify the group generating the GUID. A unique
     root identifier can be obtained free of charge from Medical Connections:
         https://www.medicalconnections.co.uk/FreeUID/
-    '''
+    """
 
     if root is None:
         print(
-            'Warning: using generic root UID 1.2.3.4. You should use a root '
-            'UID unique to your institution. A unique root ID can be '
-            'obtained free of charge from: '
-            'https://www.medicalconnections.co.uk/FreeUID/'
+            "Warning: using generic root UID 1.2.3.4. You should use a root "
+            "UID unique to your institution. A unique root ID can be "
+            "obtained free of charge from: "
+            "https://www.medicalconnections.co.uk/FreeUID/"
         )
-        root = '1.2.3.4'
+        root = "1.2.3.4"
 
     id1 = uuid.uuid1()
     id2 = uuid.uuid4().int & (1 << 24) - 1
-    date = time.strftime('%Y%m%d')
-    new_id = f'{root}.{date}.{id1.time_low}.{id2}'
+    date = time.strftime("%Y%m%d")
+    new_id = f"{root}.{date}.{id1.time_low}.{id2}"
 
     if not len(new_id) % 2:
-        new_id = '.'.join([new_id, str(np.random.randint(1, 9))])
+        new_id = ".".join([new_id, str(np.random.randint(1, 9))])
     else:
-        new_id = '.'.join([new_id, str(np.random.randint(10, 99))])
+        new_id = ".".join([new_id, str(np.random.randint(10, 99))])
     return new_id

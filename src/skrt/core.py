@@ -1,4 +1,4 @@
-'''Core data classes.'''
+"""Core data classes."""
 
 import numpy as np
 import os
@@ -6,14 +6,14 @@ import functools
 
 
 class Defaults:
-    '''
+    """
     Singleton class for storing default values of parameters
     that may be used in object initialisation.
 
     Implementation of the singleton design pattern is based on:
     https://python-3-patterns-idioms-test.readthedocs.io
            /en/latest/Singleton.html
-    '''
+    """
 
     # Define the single instance as a class attribute
     instance = None
@@ -30,12 +30,12 @@ class Defaults:
         def __repr__(self):
             out_list = []
             for key, value in sorted(self.__dict__.items()):
-                out_list.append(f'{key}: {value}')
-            out_string = '\n'.join(out_list)
+                out_list.append(f"{key}: {value}")
+            out_string = "\n".join(out_list)
             return out_string
 
     def __init__(self, opts={}, reset=False):
-        '''
+        """
         Constructor of Defaults singleton class.
 
         Parameters
@@ -48,7 +48,7 @@ class Defaults:
             adding attributes and values from opts dictionary.
             If False, don't delete pre-existing instance attributes,
             but add to them, or modify values, from opts dictionary.
-        '''
+        """
 
         if not Defaults.instance:
             Defaults.instance = Defaults.__Defaults(opts)
@@ -71,11 +71,11 @@ class Defaults:
         return self.instance.__repr__()
 
 
-Defaults({'print_depth': 0})
+Defaults({"print_depth": 0})
 
 
 class Data:
-    '''
+    """
     Base class for objects serving as data containers.
     An object has user-defined data attributes, which may include
     other Data objects and lists of Data objects.
@@ -83,10 +83,10 @@ class Data:
     The class provides for printing attribute values recursively, to
     a chosen depth, and for obtaining nested dictionaries of
     attributes and values.
-    '''
+    """
 
     def __init__(self, opts={}, **kwargs):
-        '''
+        """
         Constructor of Data class, allowing initialisation of an
         arbitrary set of attributes.
 
@@ -99,7 +99,7 @@ class Data:
         **kwargs
             Keyword-value pairs to be used in setting instance attributes
             and their initial values.
-        '''
+        """
 
         for key, value in opts.items():
             setattr(self, key, value)
@@ -108,7 +108,7 @@ class Data:
         return None
 
     def __repr__(self, depth=None):
-        '''
+        """
         Create string recursively listing attributes and values.
 
         Parameters
@@ -119,12 +119,12 @@ class Data:
             If the value is None, depth is set to the value
             of the object's print_depth property, if defined,
             or otherwise to the value of Defaults().print_depth.
-        '''
+        """
 
         if depth is None:
             depth = self.get_print_depth()
 
-        out_list = [f'\n{self.__class__.__name__}', '{']
+        out_list = [f"\n{self.__class__.__name__}", "{"]
 
         # Loop over attributes, with different treatment
         # depending on whether attribute value is a list.
@@ -140,35 +140,34 @@ class Data:
                 n = len(items)
                 if n:
                     if depth > 0:
-                        value_string = '['
+                        value_string = "["
                         for i, item in enumerate(items):
                             item_string = item.__repr__(depth=(depth - 1))
-                            comma = ',' if (i + 1 < n) else ''
-                            value_string = \
-                                f'{value_string} {item_string}{comma}'
-                        value_string = f'{value_string}]'
+                            comma = "," if (i + 1 < n) else ""
+                            value_string = f"{value_string} {item_string}{comma}"
+                        value_string = f"{value_string}]"
                     else:
-                        value_string = f'[{n} * {item[0].__class__}]'
+                        value_string = f"[{n} * {item[0].__class__}]"
                 else:
-                    value_string = '[]'
+                    value_string = "[]"
             else:
                 if issubclass(item.__class__, Data):
                     if depth > 0:
                         value_string = item.__repr__(depth=(depth - 1))
                     else:
-                        value_string = f'{item.__class__}'
+                        value_string = f"{item.__class__}"
                 else:
                     value_string = item.__repr__()
-            out_list.append(f'  {key} : {value_string} ')
-        out_list.append('}')
-        out_string = '\n'.join(out_list)
+            out_list.append(f"  {key} : {value_string} ")
+        out_list.append("}")
+        out_string = "\n".join(out_list)
         return out_string
 
     def get_dict(self):
-        '''
+        """
         Return a nested dictionary of object attributes (dictionary keys)
         and their values.
-        '''
+        """
 
         objects = {}
         for key in self.__dict__:
@@ -180,17 +179,17 @@ class Data:
         return objects
 
     def get_print_depth(self):
-        '''
+        """
         Retrieve the value of the object's print depth,
         setting an initial value if not previously defined.
-        '''
+        """
 
-        if not hasattr(self, 'print_depth'):
+        if not hasattr(self, "print_depth"):
             self.set_print_depth()
         return self.print_depth
 
     def print(self, depth=None):
-        '''
+        """
         Convenience method for recursively printing
         object attributes and values, with recursion
         to a specified depth.
@@ -202,13 +201,13 @@ class Data:
             Depth to which recursion is performed.
             If the value is None, depth is set in the
             __repr__() method.
-        '''
+        """
 
         print(self.__repr__(depth))
         return None
 
     def set_print_depth(self, depth=None):
-        '''
+        """
         Set the object's print depth.
 
         Parameters
@@ -218,7 +217,7 @@ class Data:
             Depth to which recursion is performed.
             If the value is None, the object's print depth is
             set to the value of Defaults().print_depth.
-        '''
+        """
 
         if depth is None:
             depth = Defaults().print_depth
@@ -227,16 +226,16 @@ class Data:
 
 
 class PathData(Data):
-    '''Data with and associated directory; has the ability to
-    extract a list of dated objects from within this directory.'''
+    """Data with and associated directory; has the ability to
+    extract a list of dated objects from within this directory."""
 
-    def __init__(self, path=''):
+    def __init__(self, path=""):
         self.path = fullpath(path)
-        self.subdir = ''
+        self.subdir = ""
 
-    def get_dated_objects(self, dtype, subdir='', **kwargs):
-        '''Create list of objects of a given type, <dtype>, inside own
-        directory, or inside own directory + <subdir> if given.'''
+    def get_dated_objects(self, dtype, subdir="", **kwargs):
+        """Create list of objects of a given type, <dtype>, inside own
+        directory, or inside own directory + <subdir> if given."""
 
         # Create object for each file in the subdir
         objs = []
@@ -262,10 +261,10 @@ class PathData(Data):
 
 @functools.total_ordering
 class Dated(PathData):
-    '''PathData with an associated date and time, which can be used for
-    sorting multiple Dateds.'''
+    """PathData with an associated date and time, which can be used for
+    sorting multiple Dateds."""
 
-    def __init__(self, path=''):
+    def __init__(self, path=""):
 
         PathData.__init__(self, path)
 
@@ -278,14 +277,14 @@ class Dated(PathData):
         if (self.date is None) and (self.time is None):
             timestamp = os.path.basename(self.path)
             try:
-                self.date, self.time = timestamp.split('_')
+                self.date, self.time = timestamp.split("_")
             except ValueError:
                 self.date, self.time = (None, None)
 
-        self.timestamp = f'{self.date}_{self.time}'
+        self.timestamp = f"{self.date}_{self.time}"
 
     def in_date_interval(self, min_date=None, max_date=None):
-        '''Check whether own date falls within an interval.'''
+        """Check whether own date falls within an interval."""
 
         if min_date:
             if self.date < min_date:
@@ -319,17 +318,17 @@ class Dated(PathData):
 
 
 class MachineData(Dated):
-    '''Dated object with an associated machine name.'''
+    """Dated object with an associated machine name."""
 
-    def __init__(self, path=''):
+    def __init__(self, path=""):
         Dated.__init__(self, path)
         self.machine = os.path.basename(os.path.dirname(path))
 
 
 class Archive(Dated):
-    '''Dated object associated with multiple files.'''
+    """Dated object associated with multiple files."""
 
-    def __init__(self, path='', allow_dirs=False):
+    def __init__(self, path="", allow_dirs=False):
 
         Dated.__init__(self, path)
         self.files = []
@@ -340,7 +339,7 @@ class Archive(Dated):
         for filename in filenames:
 
             # Disregard hidden files
-            if not filename.startswith('.'):
+            if not filename.startswith("."):
                 filepath = os.path.join(self.path, filename)
                 if not os.path.isdir(filepath) or allow_dirs:
                     self.files.append(File(path=filepath))
@@ -349,10 +348,10 @@ class Archive(Dated):
 
 
 class File(Dated):
-    '''File with an associated date. Files can be sorted based on their
-    filenames.'''
+    """File with an associated date. Files can be sorted based on their
+    filenames."""
 
-    def __init__(self, path=''):
+    def __init__(self, path=""):
         Dated.__init__(self, path)
 
     def __cmp__(self, other):
@@ -396,14 +395,14 @@ class File(Dated):
         return result
 
 
-def alphanumeric(in_str=''):
-    '''Function that can be passed as value for list sort() method
-    to have alphanumeric (natural) sorting'''
+def alphanumeric(in_str=""):
+    """Function that can be passed as value for list sort() method
+    to have alphanumeric (natural) sorting"""
 
     import re
 
     elements = []
-    for substr in re.split('(-*[0-9]+)', in_str):
+    for substr in re.split("(-*[0-9]+)", in_str):
         try:
             element = int(substr)
         except BaseException:
@@ -412,11 +411,11 @@ def alphanumeric(in_str=''):
     return elements
 
 
-def fullpath(path=''):
-    '''Evaluate full path, expanding '~', environment variables, and
-    symbolic links.'''
+def fullpath(path=""):
+    """Evaluate full path, expanding '~', environment variables, and
+    symbolic links."""
 
-    expanded = ''
+    expanded = ""
     if path:
         tmp = os.path.expandvars(path.strip())
         tmp = os.path.abspath(os.path.expanduser(tmp))
@@ -424,33 +423,33 @@ def fullpath(path=''):
     return expanded
 
 
-def get_time_and_date(timestamp=''):
-    '''Extract time and date separately from timestamp.'''
+def get_time_and_date(timestamp=""):
+    """Extract time and date separately from timestamp."""
 
     time_date = (None, None)
     if is_timestamp(timestamp):
-        items = os.path.splitext(timestamp)[0].split('_')
+        items = os.path.splitext(timestamp)[0].split("_")
         items = [item.strip() for item in items]
         if items[0].isalpha():
             time_date = tuple(items[1:3])
         else:
             time_date = tuple(items[0:2])
     else:
-        i1 = timestamp.find('_')
-        i2 = timestamp.rfind('.')
+        i1 = timestamp.find("_")
+        i2 = timestamp.rfind(".")
         if (-1 != i1) and (-1 != i2):
-            bitstamp = timestamp[i1 + 1: i2]
+            bitstamp = timestamp[i1 + 1 : i2]
             if is_timestamp(bitstamp):
-                time_date = tuple(bitstamp.split('_'))
+                time_date = tuple(bitstamp.split("_"))
 
     return time_date
 
 
-def is_timestamp(string=''):
-    '''Check whether a string is a valid timestamp.'''
+def is_timestamp(string=""):
+    """Check whether a string is a valid timestamp."""
 
     valid = True
-    items = os.path.splitext(string)[0].split('_')
+    items = os.path.splitext(string)[0].split("_")
     items = [item.strip() for item in items]
     if len(items) > 2:
         if items[0].isalpha() and items[1].isdigit() and items[2].isdigit():
@@ -470,7 +469,7 @@ def is_timestamp(string=''):
 
 
 def is_list(var):
-    '''Check whether a variable is a list, tuple, or array.'''
+    """Check whether a variable is a list, tuple, or array."""
 
     is_a_list = False
     for t in [list, tuple, np.ndarray]:
@@ -480,13 +479,13 @@ def is_list(var):
 
 
 def to_three(val):
-    '''Ensure that a value is a list of three items.'''
+    """Ensure that a value is a list of three items."""
 
     if val is None:
         return None
     if is_list(val):
         if not len(val) == 3:
-            print(f'Warning: {val} should be a list containing 3 items!')
+            print(f"Warning: {val} should be a list containing 3 items!")
         return val
     elif not is_list(val):
         return [val, val, val]

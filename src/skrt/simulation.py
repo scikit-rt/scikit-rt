@@ -284,13 +284,7 @@ class SyntheticImage(Image):
         self.add_shape(cuboid, "cuboid", is_struct, above, group)
 
     def add_grid(
-        self,
-        spacing,
-        thickness=1,
-        intensity=0,
-        axis=None,
-        name=None,
-        above=True,
+        self, spacing, thickness=1, intensity=0, axis=None, name=None, above=True,
     ):
 
         grid = Grid(self.shape, spacing, thickness, intensity, axis, name)

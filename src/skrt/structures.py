@@ -1,21 +1,12 @@
 """Classes related to ROIs and structure sets."""
 
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator, FormatStrFormatter
-from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
 from scipy.ndimage import morphology
-from scipy import interpolate
 from shapely import geometry
-import copy
-import datetime
 import fnmatch
-import functools
-import glob
-import matplotlib as mpl
 import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-import nibabel
 import numpy as np
 import os
 import pandas as pd
@@ -23,9 +14,6 @@ import pydicom
 import re
 import shutil
 import skimage.measure
-import tempfile
-import time
-import uuid
 
 import skrt.core
 import skrt.image
@@ -900,7 +888,7 @@ class ROI(skrt.image.Image):
 
         # Make dict of property names
         names = {
-            "dice": f"Dice score",
+            "dice": "Dice score",
             "dice_global": "Global Dice score",
             "dice_flat": "Flattened Dice score",
             "abs_centroid": f"Centroid distance ({centroid_units})",
@@ -911,16 +899,16 @@ class ROI(skrt.image.Image):
             "area_diff_flat": f"Flattened area difference ({area_units_name})",
             "rel_area_diff": f"Relative area difference ({area_units_name})",
             "rel_area_diff_flat": f"Flattened relative area difference ({area_units_name})",
-            "volume_ratio": f"Volume ratio",
-            "area_ratio": f"Area ratio",
-            "area_ratio_flat": f"Flattened area ratio",
-            "mean_surface_distance": f"Mean surface distance (mm)",
-            "mean_surface_distance_flat": f"Flattened mean surface distance (mm)",
-            "mean_surface_distance_signed_flat": f"Flattened mean signed surface distance (mm)",
-            "rms_surface_distance": f"RMS surface distance (mm)",
-            "rms_surface_distance_flat": f"Flattened RMS surface distance (mm)",
-            "hausdorff_distance": f"Hausdorff distance (mm)",
-            "hausdorff_distance_flat": f"Flattened Hausdorff distance (mm)",
+            "volume_ratio": "Volume ratio",
+            "area_ratio": "Area ratio",
+            "area_ratio_flat": "Flattened area ratio",
+            "mean_surface_distance": "Mean surface distance (mm)",
+            "mean_surface_distance_flat": "Flattened mean surface distance (mm)",
+            "mean_surface_distance_signed_flat": "Flattened mean signed surface distance (mm)",
+            "rms_surface_distance": "RMS surface distance (mm)",
+            "rms_surface_distance_flat": "Flattened RMS surface distance (mm)",
+            "hausdorff_distance": "Hausdorff distance (mm)",
+            "hausdorff_distance_flat": "Flattened Hausdorff distance (mm)",
         }
         for ax in skrt.image._axes:
             names[f"centroid_{ax}"] = f"Centroid {ax} distance ({centroid_units})"
@@ -1008,10 +996,7 @@ class ROI(skrt.image.Image):
                 {"roi": roi, "view": view, "sl": sl, "pos": pos, "idx": idx},
             ),
             "area_diff_flat": (self.get_area_diff, {"roi": roi, "flatten": True}),
-            "mean_surface_distance": (
-                self.get_mean_surface_distance,
-                {"roi": roi},
-            ),
+            "mean_surface_distance": (self.get_mean_surface_distance, {"roi": roi},),
             "mean_surface_distance_flat": (
                 self.get_mean_surface_distance,
                 {"roi": roi, "flatten": True},
@@ -1020,18 +1005,12 @@ class ROI(skrt.image.Image):
                 self.get_mean_surface_distance,
                 {"roi": roi, "flatten": True, "signed": True},
             ),
-            "rms_surface_distance": (
-                self.get_rms_surface_distance,
-                {"roi": roi},
-            ),
+            "rms_surface_distance": (self.get_rms_surface_distance, {"roi": roi},),
             "rms_surface_distance_flat": (
                 self.get_rms_surface_distance,
                 {"roi": roi, "flatten": True},
             ),
-            "hausdorff_distance": (
-                self.get_hausdorff_distance,
-                {"roi": roi},
-            ),
+            "hausdorff_distance": (self.get_hausdorff_distance, {"roi": roi},),
             "hausdorff_distance_flat": (
                 self.get_hausdorff_distance,
                 {"roi": roi, "flatten": True},
@@ -1378,7 +1357,7 @@ class ROI(skrt.image.Image):
         if ext == ".txt":
 
             self.load()
-            if not "x-y" in self.contours:
+            if "x-y" not in self.contours:
                 self.create_contours()
 
             with open(outname, "w") as file:
@@ -1860,7 +1839,6 @@ def load_structs_dicom(path, names=None):
         # Get contours
         contour_seq = get_dicom_sequence(roi, "Contour")
         if contour_seq:
-            contour_data = {}
             for c in contour_seq:
                 plane_data = [
                     [float(p) for p in c.ContourData[i * 3 : i * 3 + 3]]

@@ -35,16 +35,14 @@ class RtDose(MachineData):
             self.scan_position = (
                 float(ds.ImagePositionPatient[0]),
                 float(ds.ImagePositionPatient[1]),
-                float(ds.ImagePositionPatient[2]
-                      + ds.GridFrameOffsetVector[0]),
+                float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[0]),
             )
         else:
             self.reverse = True
             self.scan_position = (
                 float(ds.ImagePositionPatient[0]),
                 float(ds.ImagePositionPatient[1]),
-                float(ds.ImagePositionPatient[2]
-                      + ds.GridFrameOffsetVector[-1]),
+                float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[-1]),
             )
         self.voxel_size = (
             float(ds.PixelSpacing[0]),
@@ -69,8 +67,9 @@ class RtDose(MachineData):
                 rescale_intercept = ds.RescaleIntercept
             except AttributeError:
                 rescale_intercept = 0
-                self.image_stack = self.image_stack \
-                    * float(ds.DoseGridScaling) + float(rescale_intercept)
+                self.image_stack = self.image_stack * float(ds.DoseGridScaling) + float(
+                    rescale_intercept
+                )
 
         if self.reverse:
             self.image_stack[:, :, :] = self.image_stack[:, :, ::-1]
