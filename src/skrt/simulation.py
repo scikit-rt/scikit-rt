@@ -294,7 +294,7 @@ class SyntheticImage(Image):
         """Get grids of x, y, and z coordinates in mm for this image."""
 
         if (
-            not hasattr(self, "coords")
+            not hasattr(self, "current_coords")
             or self.prev_translation != self.translation
             or self.prev_rotation != self.rotation
         ):
@@ -346,10 +346,10 @@ class SyntheticImage(Image):
                 X, Y, Z = Xt, Yt, Zt
 
             # Set coords
-            self.coords = (Y, X, Z)
+            self.current_coords = (Y, X, Z)
 
         # Apply transformations
-        return self.coords
+        return self.current_coords
 
     def reset_transforms(self):
         """Remove any rotations or translations."""
