@@ -8,11 +8,26 @@ from skrt.image import Image, ImageComparison
 
 
 _elastix_dir = None
+_elastix_path = "elastix"
+_transformix = "transformix"
 
 
 def set_elastix_dir(path):
+
+    # Set directory
     global _elastix_dir
     _elastix_dir = path
+
+    # Find elastix exectuable
+    global _elastix_path
+    if os.path.exists(os.path.join(_elastix_dir, "bin/elastix")):
+        _elastix_path = os.path.join(_elastix_dir, "bin/elastix")
+        _transformix = os.path.join(_elastix_dir, "bin/transformix")
+    elif os.path.exists(os.path.join(_elastix_dir, "elastix.exe")):
+        _elastix_path = os.path.join(_elastix_dir, "elastix.exe")
+        _transformix = os.path.join(_elastix_dir, "transformix.exe")
+    else:
+        raise RuntimeError(f"No elastix executable found in {_elastix_dir}!")
 
 
 class Registration:
@@ -84,13 +99,15 @@ class Registration:
         """Create elastix command."""
 
         # Create elastix command
-        elastix = "elastix" if _elastix_dir is None else f"{_elastix_dir}/bin/elastix"
         self.cmd = (
-            f"{elastix} -f {self.fixed_path} -m {self.moving_path} "
+            f"{_elastix_path} -f {self.fixed_path} -m {self.moving_path} "
             f"-p {pfile} -out {outdir}"
         )
         if tfile is not None:
             self.cmd += f" -t0 {tfile}"
+
+        # Replace all backslashes
+        self.cmd = self.cmd.replace("\\", "/")
 
     def register(self, force=False, apply=False):
 
@@ -134,13 +151,13 @@ class Registration:
 
         # Ensure output format is nifti
         set_parameters(
-            self.tfile, {"ResultImageFormat": '"nii"', "CompressResultImage": '"false"'}
+            self.tfile, {"ResultImageFormat": '"nii"', 
+                         "CompressResultImage": '"false"'}
         )
 
-        transformix = (
-            "transformix" if _elastix_dir is None else f"{_elastix_dir}/bin/transformix"
-        )
-        cmd = f"{transformix} -in {im_path} -out {outdir} -tp {self.tfile}"
+        # Create command
+        cmd = f"{_transformix} -in {im_path} -out {outdir} -tp {self.tfile}"
+        cmd = cmd.replace("\\", "/")
         print("Running command:", cmd)
         subprocess.call(cmd.split())
         return out_path

@@ -79,7 +79,7 @@ class SyntheticImage(Image):
     def view(self, **kwargs):
         """View with QuickViewer."""
 
-        from skrt import QuickViewer
+        from skrt.viewer import QuickViewer
 
         qv_kwargs = {
             "hu": [self.min_hu, self.max_hu],
