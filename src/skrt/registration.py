@@ -249,6 +249,8 @@ class Registration:
             kwargs["match_axes"] = "y"
         if "title" not in kwargs:
             kwargs["title"] = ["Fixed", "Moving"]
+        if "comparison" not in kwargs:
+            kwargs["comparison"] = True
         QuickViewer([self.fixed_path, self.moving_path], **kwargs)
 
 

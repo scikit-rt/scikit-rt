@@ -1009,13 +1009,16 @@ class QuickViewer:
 
         # Multicomparison dropdown
         comp_opts = [
-            'chequerboard',
             'overlay',
-            'difference',
-            'absolute difference',
-            'distance to agreement',
-            'gamma index',
+            'chequerboard',
         ]
+        if all([v.im.same_frame(self.viewer[0].im) for v in self.viewer]):
+            comp_opts.extend([
+                'difference',
+                'absolute difference',
+                'distance to agreement',
+                'gamma index',
+            ])
         if self.comparison_only:
             comp_opts.extend(['image 1', 'image 2'])
         self.ui_multicomp = ipyw.Dropdown(options=comp_opts, description='Comparison')
