@@ -8,7 +8,7 @@ from skrt.image import Image, ImageComparison
 
 
 _elastix_dir = None
-_elastix_path = "elastix"
+_elastix = "elastix"
 _transformix = "transformix"
 
 
@@ -19,12 +19,13 @@ def set_elastix_dir(path):
     _elastix_dir = path
 
     # Find elastix exectuable
-    global _elastix_path
+    global _elastix
+    global _transformix
     if os.path.exists(os.path.join(_elastix_dir, "bin/elastix")):
-        _elastix_path = os.path.join(_elastix_dir, "bin/elastix")
+        _elastix = os.path.join(_elastix_dir, "bin/elastix")
         _transformix = os.path.join(_elastix_dir, "bin/transformix")
     elif os.path.exists(os.path.join(_elastix_dir, "elastix.exe")):
-        _elastix_path = os.path.join(_elastix_dir, "elastix.exe")
+        _elastix = os.path.join(_elastix_dir, "elastix.exe")
         _transformix = os.path.join(_elastix_dir, "transformix.exe")
     else:
         raise RuntimeError(f"No elastix executable found in {_elastix_dir}!")
@@ -100,7 +101,7 @@ class Registration:
 
         # Create elastix command
         self.cmd = (
-            f"{_elastix_path} -f {self.fixed_path} -m {self.moving_path} "
+            f"{_elastix} -f {self.fixed_path} -m {self.moving_path} "
             f"-p {pfile} -out {outdir}"
         )
         if tfile is not None:
