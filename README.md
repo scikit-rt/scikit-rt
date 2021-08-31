@@ -6,9 +6,15 @@ This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
 ## Installation
 
-Install with pip:
+Ensure you have either [pip](https://pypi.org/project/pip/) or [anaconda](https://docs.anaconda.com/anaconda/install/index.html)/[miniconda](https://docs.conda.io/en/latest/miniconda.html).
+Inside a terminal, run:
 ```
 pip install scikit-rt
+```
+
+On windows (if using conda), you will also need to run:
+```
+conda install conda-forge shapely
 ```
 
 ## Table of contents
@@ -16,6 +22,7 @@ pip install scikit-rt
 2) [Structures and structure sets](#2-structures-and-structure-sets)
 3) [Patients and studies](#3-patients)
 4) [Synthetic images](#4-synthetic-images)
+5) [Image registration](doc/image_registration.md)
 
 ## 1. Images
 
