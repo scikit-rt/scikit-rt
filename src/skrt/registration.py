@@ -57,7 +57,7 @@ class Registration:
         self.outdir = outdir
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
-        self.get_nifti_inputs()
+        self.get_nifti_inputs(force)
         self.registered = False
 
         # Parameter file(s) and output location(s)
@@ -90,7 +90,7 @@ class Registration:
             if not hasattr(self, f"{im}_path") or force:
 
                 path = os.path.join(self.outdir, f"{im}.nii.gz")
-                if not os.path.exists(path):
+                if not os.path.exists(path) or force:
                     setattr(self, im, ensure_image(getattr(self, im)))
                     path = get_nifti_path(getattr(self, im), path, force)
 
