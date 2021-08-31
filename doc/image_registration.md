@@ -1,6 +1,6 @@
 # Image registration with scikit-rt and elastix
 
-## I. Setup
+## Setup
 
 ### 1. Installing scikit-rt
 1. Ensure you have either [pip](https://pypi.org/project/pip/) or [anaconda](https://docs.anaconda.com/anaconda/install/index.html)/[miniconda](https://docs.conda.io/en/latest/miniconda.html) (on Windows I would recommend Anaconda) installed on your machine.
@@ -29,7 +29,7 @@ A collection of example elastix parameter files is available at the [elastix par
 - The subdirectories `Par0001` etc refer to the parameter sets listed on the model zoo webpage (https://elastix.lumc.nl/modelzoo/).
 
 
-## II. How to use
+## Usage
 
 This code is best used inside a Jupyter notebook, but can also be implemented via a python script.
 
