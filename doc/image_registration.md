@@ -18,7 +18,7 @@ If you create a new Jupyter notebook, you should be able to import scikit-rt by 
 ### 2. Installing elastix
 
 1. Download the elastix binaries corresponding to your operating system from here: https://github.com/SuperElastix/elastix/releases/tag/5.0.1
-2. Extract the folder and either make a note of where you saved it or add to your `$PATH` environment variable (if using mac/linux).
+2. Extract the folder and either make a note of where you saved it, or add the `bin` folder to your `$PATH` environment variable and `lib` folder to your `$DYLDLIBRARYPATH` variable (if using mac/linux).
 
 
 ### 3. Downloading example elastix parameter files
