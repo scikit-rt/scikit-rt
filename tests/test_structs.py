@@ -112,7 +112,7 @@ def test_plot_comparisons():
     plot_dir = 'tmp/struct_plots'
     if os.path.exists(plot_dir):
         shutil.rmdir(plot_dir)
-    structs.plot_comparisons(outdir=plot_dir)
+    structs.plot_comparisons(outdir=plot_dir, show=False)
     assert len(os.listdir(plot_dir)) == 2
     
 def test_write_dicom():

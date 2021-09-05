@@ -1286,7 +1286,8 @@ class ROI(skrt.image.Image):
         if show:
             plt.show()
 
-    def plot_comparison(self, other, legend=True, save_as=None, names=None, **kwargs):
+    def plot_comparison(self, other, legend=True, save_as=None, names=None, 
+                        show=True, **kwargs):
         """Plot comparison with another ROI."""
 
         if self.color == other.color:
@@ -1294,7 +1295,7 @@ class ROI(skrt.image.Image):
         else:
             roi2_color = other.color
 
-        self.plot(**kwargs)
+        self.plot(show=False, **kwargs)
         if kwargs is None:
             kwargs = {}
         else:
@@ -1302,7 +1303,7 @@ class ROI(skrt.image.Image):
         kwargs["ax"] = self.ax
         kwargs["color"] = roi2_color
         kwargs["include_image"] = False
-        other.plot(**kwargs)
+        other.plot(show=show, **kwargs)
         self.ax.set_title(self.get_comparison_name(other))
 
         if legend:
