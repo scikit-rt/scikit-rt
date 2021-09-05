@@ -156,7 +156,8 @@ class ROI(skrt.image.Image):
             if isinstance(self.source, str):
                 basename = os.path.basename(self.source).split(".")[0]
                 name = re.sub(r"RTSTRUCT_[MVCT]+_\d+_\d+_\d+", "", basename)
-                self.name = name[0].upper() + name[1:]
+                #  self.name = name[0].upper() + name[1:]
+                self.name = name
             else:
                 self.name = StructDefaults().get_default_struct_name()
 
@@ -1444,10 +1445,11 @@ class RtStruct(skrt.core.Archive):
                 self.structs.append(source)
                 continue
 
-            if os.path.basename(source).startswith(".") or source.endswith(".txt"):
-                continue
-            if os.path.isdir(source):
-                continue
+            if isinstance(source, str):
+                if os.path.basename(source).startswith(".") or source.endswith(".txt"):
+                    continue
+                if os.path.isdir(source):
+                    continue
 
             # Attempt to load from dicom
             structs = load_structs_dicom(source)
@@ -1586,8 +1588,8 @@ class RtStruct(skrt.core.Archive):
 
     def copy(
         self,
-        name=None,
         names=None,
+        name=None,
         to_keep=None,
         to_remove=None,
         keep_renamed_only=False,
