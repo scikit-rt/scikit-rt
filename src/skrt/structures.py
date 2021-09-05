@@ -421,9 +421,12 @@ class ROI(skrt.image.Image):
     def on_slice(self, view, sl=None, idx=None, pos=None):
         """Check whether this structure exists on a given slice."""
 
-        self.create_mask()
         idx = self.get_idx(view, sl, idx, pos)
-        return idx in self.get_indices(view)
+        if hasattr(self, 'contours') and view in self.contours:
+            return idx in self.contours[view]
+        else:
+            self.create_mask()
+            return idx in self.get_indices(view)
 
     def get_centroid(
         self,
@@ -1157,6 +1160,7 @@ class ROI(skrt.image.Image):
         zoom_centre=None,
         color=None,
         flatten=False,
+        show=True,
         **kwargs,
     ):
         """Plot the structure as a mask."""
@@ -1192,6 +1196,8 @@ class ROI(skrt.image.Image):
         # Adjust axes
         self.label_ax(view, idx, **kwargs)
         self.zoom_ax(view, zoom, zoom_centre)
+        if show:
+            plt.show()
 
     def plot_contour(
         self,
@@ -1202,7 +1208,6 @@ class ROI(skrt.image.Image):
         contour_kwargs=None,
         linewidth=None,
         centroid=False,
-        show=True,
         ax=None,
         gs=None,
         figsize=None,
@@ -1211,6 +1216,7 @@ class ROI(skrt.image.Image):
         zoom_centre=None,
         color=None,
         flatten=False,
+        show=True,
         **kwargs,
     ):
         """Plot the structure as a contour."""
@@ -1277,6 +1283,8 @@ class ROI(skrt.image.Image):
         self.ax.set_aspect("equal")
         self.label_ax(view, idx, **kwargs)
         self.zoom_ax(view, zoom, zoom_centre)
+        if show:
+            plt.show()
 
     def plot_comparison(self, other, legend=True, save_as=None, names=None, **kwargs):
         """Plot comparison with another ROI."""
