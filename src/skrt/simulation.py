@@ -55,7 +55,8 @@ class SyntheticImage(Image):
         # Create image properties
         shape = skrt.core.to_three(shape)
         self.shape = [shape[1], shape[0], shape[2]]
-        voxel_size = [abs(v) for v in skrt.core.to_three(voxel_size)]
+        self.input_voxel_size = [abs(v) for v in skrt.core.to_three(voxel_size)]
+        self.input_origin = origin
         self.max_hu = 0 if noise_std is None else noise_std * 3
         self.min_hu = -self.max_hu if self.max_hu != 0 else -20
         self.noise_std = noise_std
@@ -69,7 +70,9 @@ class SyntheticImage(Image):
         self.rotation = None
 
         # Initialise as Image
-        Image.__init__(self, self.background, voxel_size=voxel_size, origin=origin)
+        Image.__init__(self, self.background, 
+                       voxel_size=self.input_voxel_size, 
+                       origin=self.input_origin)
 
         # Write to file if a filename is given
         if filename is not None:
@@ -112,6 +115,14 @@ class SyntheticImage(Image):
         self.sdata = self.get_data()
         self.structs = [self.get_rtstruct()]
         Image.plot(self, structure_set=0, *args, **kwargs)
+
+    def get_image(self):
+        '''Get base Image object with corresponding structs.'''
+
+        im = Image(self.background, voxel_size=self.input_voxel_size, 
+                   origin=self.input_origin)
+        im.structs = [self.get_rtstruct()]
+        return im
 
     def get_struct_data(self):
         """Get dict of structures and names, with any transformations applied."""

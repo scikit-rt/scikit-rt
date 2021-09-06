@@ -3,6 +3,7 @@
 import numpy as np
 import os
 import functools
+import datetime
 
 
 class Defaults:
@@ -489,3 +490,8 @@ def to_three(val):
         return val
     elif not is_list(val):
         return [val, val, val]
+
+
+def generate_timestamp():
+    '''Make timestamp from the current time.'''
+    return datetime.datetime.now().strftime('%Y%m%d_%H%M%S')

@@ -16,13 +16,13 @@ class Study(skrt.core.Archive):
         skrt.core.Archive.__init__(self, path, allow_dirs=True)
 
         special_dirs = ["RTPLAN", "RTSTRUCT", "RTDOSE"]
-        self.im_types = []
+        self.scan_types = []
         for file in self.files:
 
             subdir = os.path.basename(file.path)
             if subdir in special_dirs:
                 continue
-            self.im_types.append(subdir)
+            self.scan_types.append(subdir)
 
             # Get images
             im_name = f"{subdir.lower()}_scans"
@@ -31,6 +31,10 @@ class Study(skrt.core.Archive):
                 im_name,
                 self.get_dated_objects(dtype=Image, subdir=subdir, load=False),
             )
+
+            # Assign the original subdir name to the images
+            for im in getattr(self, im_name):
+                im.scan_type = subdir
 
             # Get associated structs
             struct_subdir = f"RTSTRUCT/{subdir}"
@@ -57,6 +61,41 @@ class Study(skrt.core.Archive):
         #  dtype='RtDose', subdir='RTDOSE/CT', images=self.ct_scans
         #  )
         #  self.ct_doses = self.correct_dose_scan_position(self.ct_doses)
+
+    def add_scan(self, im, scan_type="CT"):
+        '''Add a new image of a given scan type.'''
+
+        # Ensure we have a list of this type of scan
+        im_name = f"{scan_type.lower()}_scans"
+        if not hasattr(self, im_name):
+            setattr(self, im_name, [])
+        if scan_type not in self.scan_types:
+            self.scan_types.append(scan_type)
+
+        # Add image to the list
+        scans = getattr(self, im_name)
+        if isinstance(im, Image):
+            im_to_add = im
+        else:
+            im_to_add = Image(im)
+        scans.append(im)
+
+        # Ensure image has a timestamp
+        if im.timestamp == "None_None":
+            im.timestamp = skrt.core.generate_timestamp()
+
+        # Ensure corresponding structure list exists
+        struct_subdir = f"RTSTRUCT/{scan_type}"
+        struct_name = f"{scan_type.lower()}_structs"
+        if not hasattr(self, struct_name):
+            setattr(self, struct_name, [])
+
+        # Add the image's structures to structure list
+        structs = getattr(self, struct_name)
+        for rtstruct in im.structs:
+            structs.append(rtstruct)
+            if rtstruct.timestamp == "None_None":
+                rtstruct.timestamp = skrt.core.generate_timestamp()
 
     def correct_dose_scan_position(self, doses=[]):
         """Correct for scan positions from CheckTomo being offset by one slice
@@ -318,7 +357,7 @@ class Study(skrt.core.Archive):
         # Find an object from which to extract description
         obj = None
         if self.studies:
-            obj = getattr(self, f"{self.im_types[0].lower()}_scans")[-1]
+            obj = getattr(self, f"{self.scan_types[0].lower()}_scans")[-1]
         description = ""
         if obj:
             if obj.files:
@@ -378,6 +417,23 @@ class Patient(skrt.core.PathData):
                                 self.get_dated_objects(dtype=Study, subdir=subdir)
                             )
 
+    def add_study(self, subdir='', timestamp=None, images=None, 
+                  scan_type="CT"):
+        '''Add a new study.'''
+    
+        # Create empty Study object
+        s = Study("")
+        s.subdir = subdir
+        s.timestamp = timestamp if timestamp else skrt.core.generate_timestamp()
+
+        # Add images
+        if images:
+            for im in images:
+                s.add_scan(im, scan_type)
+
+        # Add to studies list
+        self.studies.append(s)
+
     def combined_files(self, attr, min_date=None, max_date=None):
         """Get list of all files of a given data type <attr> associated with
         this patient, within a given date range if specified."""
@@ -434,7 +490,7 @@ class Patient(skrt.core.PathData):
         obj = None
         if self.studies:
             obj = getattr(
-                self.studies[0], f"{self.studies[0].im_types[0].lower()}_scans"
+                self.studies[0], f"{self.studies[0].scan_types[0].lower()}_scans"
             )[-1]
 
         # Read demographic info from the object
@@ -499,7 +555,7 @@ class Patient(skrt.core.PathData):
     def write(
         self,
         outdir=".",
-        ext=".nii.gz",
+        ext=".dcm",
         to_ignore=None,
         overwrite=True,
         structure_set=None,
@@ -523,28 +579,30 @@ class Patient(skrt.core.PathData):
 
             # Make study directory
             study_dir = os.path.join(
-                patient_dir, os.path.relpath(study.path, self.path)
+                patient_dir, study.subdir, study.timestamp
             )
             if not os.path.exists(study_dir):
                 os.makedirs(study_dir)
 
             # Loop through image types
-            for im_type in study.im_types:
+            for scan_type in study.scan_types:
 
-                if im_type in to_ignore:
+                if scan_type in to_ignore:
                     continue
 
-                im_type_dir = os.path.join(study_dir, im_type)
-                if not os.path.exists(im_type_dir):
-                    os.mkdir(im_type_dir)
+                scan_type_dir = os.path.join(study_dir, scan_type)
+                if not os.path.exists(scan_type_dir):
+                    os.mkdir(scan_type_dir)
 
                 # Write all scans of this image type
-                for im in getattr(study, f"{im_type.lower()}_scans"):
+                for im in getattr(study, f"{scan_type.lower()}_scans"):
 
                     # Make directory for this scan
-                    im_dir = os.path.join(
-                        study_dir, os.path.relpath(im.path, study.path)
-                    )
+                    if im.path:
+                        im_timestamp = os.path.basename(im.path)
+                    else:
+                        im_timestamp = im.timestamp
+                    im_dir = os.path.join(scan_type_dir, im_timestamp)
 
                     # Write image data to nifti
                     if ext == ".dcm":
@@ -574,12 +632,13 @@ class Patient(skrt.core.PathData):
 
                         # Find path to output structure directory
                         ss_path = os.path.join(
-                            study_dir, os.path.relpath(ss.path, study.path)
+                            study_dir, 'RTSTRUCT', scan_type, im_timestamp
                         )
+                        filename = f'RTSTRUCT_{ss.timestamp}'
                         if ext == ".dcm":
-                            ss_dir = os.path.dirname(ss_path)
+                            ss_dir = ss_path
                         else:
-                            ss_dir = ss_path.replace(".dcm", "")
+                            ss_dir = os.path.join(ss_path, filename)
 
                         # Ensure it exists
                         if not os.path.exists(ss_path):
@@ -589,8 +648,9 @@ class Patient(skrt.core.PathData):
                         if ext == ".dcm":
                             if os.path.exists(ss_path) and not overwrite:
                                 continue
-                            ss.write(ss_path)
+                            ss.write(outname=f'{filename}.dcm', outdir=ss_path)
 
                         # Write structs to individual files
                         else:
                             ss.write(outdir=ss_dir, ext=ext)
+
