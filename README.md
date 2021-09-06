@@ -21,7 +21,7 @@ conda install conda-forge shapely
 1) [Images](#1-images)
 2) [Structures and structure sets](#2-structures-and-structure-sets)
 3) [Patients and studies](#3-patients)
-4) [Synthetic images](#4-synthetic-images)
+4) [Synthetic data](#4-synthetic-data)
 5) [Image registration](doc/image_registration.md)
 
 ## 1. Images
@@ -454,13 +454,15 @@ structure_set = s.ct_structs[0]
 
 The `RtStruct` object also has an associated `image` property (`structure_set.image`), which can be used to find out which `Image` is associated with that structure set.
 
-## 4. Synthetic images
+## 4. Synthetic data
+
+### 4.1 Synthetic images
 
 The `SyntheticImage` class enables the creation of images containing simple geometric shapes.
 
 <img src="doc/images/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
 
-### Creating a synthetic image
+#### Creating a synthetic image
 
 To create an empty image, load the `SyntheticImage` class and specify the desired image shape in order (x, y, z), e.g.
 
@@ -476,7 +478,7 @@ The following arguments can be used to adjust the image's properties:
 - `intensity`: value of the background voxels of the image.
 - `noise_std`: standard deviation of Gaussian noise to apply to the image. This noise will also be added on top of any shapes. (Can be changed later by altering the `sim.noise_std` property).
 
-#### Adding shapes
+##### Adding shapes
 
 The `SyntheticImage` object has various methods for adding geometric shapes. Each shape has the following arguments:
 - `intensity`: intensity value with which to fill the voxels of this shape.
@@ -506,7 +508,7 @@ To remove all shapes from the image, run
 sim.reset()
 ```
 
-#### Plotting
+##### Plotting
 
 The `SyntheticImage` class inherits from the `Image` class, and can thus be plotted in the same way by calling
 
@@ -516,7 +518,7 @@ sim.plot()
 
 along with any of the arguments available to the `Image` plotting method.
 
-#### Rotations and translations
+##### Rotations and translations
 
 Rotations and translations can be applied to the image using:
 
@@ -534,7 +536,7 @@ Rotations and translations can be removed by running
 sim.reset_transforms()
 ```
 
-#### Getting the image array
+##### Getting the image array
 
 To obtain a NumPy array containing the image data, run
 ```
@@ -543,7 +545,7 @@ array = sim.get_data()
 
 This array will contain all of the added shapes, as well as having any rotations, translations, and noise applied.
 
-#### Saving
+##### Saving
 
 The synthetic image can be written to an image file by running
 ```
@@ -558,14 +560,14 @@ The output name `outname` can be:
 The `write` function can also take any of the arguments of the `Image.write()` function.
 
 
-### Adding structures
+#### Adding structures
 
 When shapes are added to the image, they can also be set as structures. This allows you to:
 - Plot them as contours or masks on top of the image;
 - Access an `RtStruct` object containing the structures;
 - Write structures out separately as masks or as a dicom RtStruct file.
 
-#### Single structures
+##### Single structures
 
 To assign a shape as a structure, you can either give it a name upon creation, e.g.:
 
@@ -583,7 +585,7 @@ When `sim.plot()` is called, its structures will automatically be plotted as con
 - `centre_on_struct`: name of structure on which the plotted image should be centred.
 - `struct_legend`: set to `True` to draw a legend containing the strutcure names.
 
-#### Grouped structures
+##### Grouped structures
 
 Multiple shapes can be combined to create a single structure. To do this, set the `group` argument to some string when creating structures. Any shapes created with the same `group` name will be added to this group.
 
@@ -593,7 +595,7 @@ sim.add_cube(10, centre=(5, 5, 5), group='two_cubes')
 sim.add_cube(10, centre=(7, 7, 5)), group='two_cubes')
 ```
 
-#### Getting structures
+##### Getting structures
 
 To get an `RtStruct` object containing all of the structures belonging to the image, run:
 ```
@@ -605,6 +607,6 @@ You can also access a single structure as an `ROI` object by running:
 roi = sim.get_struct(struct_name)
 ```
 
-#### Saving structures
+##### Saving structures
 
 When the `SyntheticImage.write()` function is called, the structures belonging to that image will also be written. If the provided `outname` is that of a nifti or NumPy file, the structures will be written to nifti or Numpy files, respectively, inside a directory with the same name as `outname` but with the extension removed.
