@@ -610,3 +610,37 @@ roi = sim.get_struct(struct_name)
 ##### Saving structures
 
 When the `SyntheticImage.write()` function is called, the structures belonging to that image will also be written. If the provided `outname` is that of a nifti or NumPy file, the structures will be written to nifti or Numpy files, respectively, inside a directory with the same name as `outname` but with the extension removed.
+
+### 4.2 Synthetic Patient objects
+
+The Patient class can be used to create a custom patient object from scratch, rather than loading a prexisting patient.
+
+To do this, first create a blank Patient object with your chosen ID:
+```
+from skrt.patient import Patient
+
+p = Patient("my_id")
+```
+
+Studies can then be added to this object. Optional arguments for adding a study are:
+- `subdir`: a custom subdirectory in which the study will be nested when the Patient tree is written;
+- `timestamp`: a custom timestamp (if not set, this will be automatically generated)
+- `images`: a list of Image objects to associate with this study (note, Images can also be added to the Study later)
+- `scan_type`: the type of scan correspoding to the Images in `images`, if used (e.g. `CT`); this will determine the name of the directory in which the images are saved when the Patient tree is written.
+
+E.g. to add one study containing a single synthetic image with one structure:
+```
+from skrt.simulation import SyntheticImage
+
+im = SyntheticImage((100, 100, 30))
+im.add_sphere(radius=10, name="my_sphere")
+
+p.add_study("my_study", images=[im], scan_type="MR")
+```
+
+The patient tree can then be written out:
+```
+p.write(outdir="some_dir")
+```
+
+This will create a patient directory `somedir/my_id` containing the added study and its corresponding image and structure set.
