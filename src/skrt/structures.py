@@ -187,10 +187,20 @@ class ROI(skrt.image.Image):
         if self.image:
             self.image.load_data()
 
-        # Try loading from dicom structure set
         structs = []
-        self.source_type = None
-        if isinstance(self.source, str):
+
+        # Load from an existing Image
+        if issubclass(type(self.source), skrt.image.Image):
+            if not self.image:
+                self.image = self.source
+            skrt.image.Image.__init__(self, 
+                                      self.source.get_data() > self.mask_level,
+                                      affine=self.source.get_affine())
+            self.loaded = True
+            self.create_mask()
+
+        # Try loading from dicom structure set
+        elif isinstance(self.source, str):
 
             structs = load_structs_dicom(self.source, names=self.name)
             if len(structs):
@@ -212,7 +222,8 @@ class ROI(skrt.image.Image):
                 self.source_type = "dicom"
 
         # Load structure mask
-        if not len(structs) and self.source is not None:
+        if not self.loaded and not len(structs) and self.source is not None:
+            self.source_type = "mask"
             skrt.image.Image.__init__(self, self.source, **self.kwargs)
             self.loaded = True
             self.create_mask()
@@ -375,7 +386,7 @@ class ROI(skrt.image.Image):
         # Convert to boolean mask
         if hasattr(self, "data"):
             if not self.data.dtype == "bool":
-                self.data = self.data > 0.5
+                self.data = self.data > self.mask_level
             if not hasattr(self, "empty"):
                 self.empty = not np.any(self.data)
             self.loaded_mask = True
@@ -1334,6 +1345,33 @@ class ROI(skrt.image.Image):
         zoom_centre[x_ax] = x
         zoom_centre[y_ax] = y
         return zoom_centre
+
+    def view(self, **kwargs):
+
+        from skrt.viewer import QuickViewer
+
+        self.load()
+
+        # Create image to view
+        if self.image:
+            im_source = '.tmp_image.nii.gz'
+            self.image.write(im_source)
+        else:
+            im_source = np.zeros(self.get_mask().shape)
+
+        # Save to temp file
+        if isinstance(self.source, str):
+            struct_source = self.source
+        else:
+            struct_source = ".tmp_structs.nii.gz"
+            self.write(struct_source)
+
+        QuickViewer(im_source, affine=self.get_affine(), title=self.name, 
+                    structs=struct_source,
+                    struct_names={self.name: "*"}, **kwargs)
+
+        os.remove(im_source)
+        os.remove(struct_source)
 
     def write(self, outname=None, outdir=".", ext=None, **kwargs):
 

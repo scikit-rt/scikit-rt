@@ -15,8 +15,8 @@ os.mkdir('tmp')
 
 # Create synthetic structure set
 sim = SyntheticImage((100, 100, 40))
-sim.add_cube(side_length=40, name='cube')
-sim.add_sphere(radius=20, name='sphere')
+sim.add_cube(side_length=40, name='cube', intensity=1)
+sim.add_sphere(radius=20, name='sphere', intensity=10)
 structs = sim.get_rtstruct()
 
 
@@ -117,3 +117,7 @@ def test_plot_comparisons():
     
 def test_write_dicom():
     pass
+
+def test_roi_from_image_threshold():
+    roi = ROI(sim, mask_level=5)  
+    assert roi.get_area() == sim.get_struct("sphere").get_area()

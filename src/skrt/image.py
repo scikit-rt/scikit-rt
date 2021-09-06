@@ -186,7 +186,7 @@ class Image(skrt.core.Archive):
             self.source_type = "nifti array" if self.nifti_array else "array"
 
         # Try loading from nifti file
-        else:
+        elif isinstance(self.source, str):
             if not os.path.exists(self.source):
                 raise RuntimeError(
                     f"Image input {self.source} does not exist!")
@@ -195,6 +195,9 @@ class Image(skrt.core.Archive):
                 self.source_type = "nifti"
             if self.data is not None:
                 self.affine = affine
+
+        else:
+            raise TypeError("Unrecognised image source type:", self.source)
 
         # Try loading from dicom file
         if self.data is None:
