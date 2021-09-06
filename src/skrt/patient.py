@@ -92,7 +92,7 @@ class Study(skrt.core.Archive):
 
         # Add the image's structures to structure list
         structs = getattr(self, struct_name)
-        for rtstruct in im.structs:
+        for rtstruct in im.get_structs():
             structs.append(rtstruct)
             if rtstruct.timestamp == "None_None":
                 rtstruct.timestamp = skrt.core.generate_timestamp()
@@ -558,7 +558,7 @@ class Patient(skrt.core.PathData):
         ext=".dcm",
         to_ignore=None,
         overwrite=True,
-        structure_set=None,
+        structure_set="all",
     ):
         """Write files tree."""
 
@@ -611,17 +611,17 @@ class Patient(skrt.core.PathData):
                         outname = f"{im_dir}{ext}"
                     if os.path.exists(outname) and not overwrite:
                         continue
-                    im.write(outname)
+                    Image.write(im, outname)
 
                     # Find structure sets to write
                     if structure_set == "all":
-                        ss_to_write = im.structs
+                        ss_to_write = im.get_structs()
                     elif structure_set is None:
                         ss_to_write = []
                     elif isinstance(structure_set, int):
-                        ss_to_write = [im.structs[structure_set]]
+                        ss_to_write = [im.get_structs()[structure_set]]
                     elif skrt.core.is_list(structure_set):
-                        ss_to_write = [im.structs[i] for i in structure_set]
+                        ss_to_write = [im.get_structs()[i] for i in structure_set]
                     else:
                         raise TypeError(
                             "Unrecognised structure_set option " f"{structure_set}"

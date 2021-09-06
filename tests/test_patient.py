@@ -16,7 +16,6 @@ p = Patient(pid)
 sim = SyntheticImage((100, 100, 40))
 sim.add_cube(50, name='cube')
 sim.add_sphere(25, name='sphere')
-im = sim.get_image()
 
 def test_write_blank():
     assert p.id == pid
@@ -63,43 +62,43 @@ def test_load_studies():
 
 def test_study_with_scans():
     p.studies = []
-    p.add_study(images=[im], scan_type="MR")
+    p.add_study(images=[sim], scan_type="MR")
     s = p.studies[0]
     assert len(s.mr_scans) == 1
     assert s.mr_scans[0].get_voxel_size() == sim.get_voxel_size()
     assert len(s.mr_structs) == 1
     assert len(s.mr_structs[0].get_structs()) == 2
-    s.add_scan(im, scan_type="CT")
+    s.add_scan(sim, scan_type="CT")
     assert len(s.ct_scans) == 1
     assert len(s.ct_structs) == 1
-    p.write("tmp")
+    p.write("tmp", structure_set=None)
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert os.path.exists(f"{sdir}/MR")
     assert os.path.exists(f"{sdir}/CT")
     assert not os.path.exists(f"{sdir}/RTSTRUCT")
     assert len(os.listdir(f"{sdir}/CT")) == 1
-    assert im.timestamp in os.listdir(f"{sdir}/CT")
-    assert im.timestamp in os.listdir(f"{sdir}/MR")
-    assert len(os.listdir(f"{sdir}/CT/{im.timestamp}")) == im.n_voxels[2]
+    assert sim.timestamp in os.listdir(f"{sdir}/CT")
+    assert sim.timestamp in os.listdir(f"{sdir}/MR")
+    assert len(os.listdir(f"{sdir}/CT/{sim.timestamp}")) == sim.n_voxels[2]
 
 def test_load_images():
     p2 = Patient(pdir)
     s = p2.studies[0]
     assert len(s.ct_scans) == 1
     assert len(s.mr_scans) == 1
-    assert np.all(s.ct_scans[0].get_affine() == im.get_affine())
+    assert np.all(s.ct_scans[0].get_affine() == sim.get_affine())
 
 def test_write_structs_nifti():
     p.studies = []
-    p.add_study(images=[im])
+    p.add_study(images=[sim])
     if os.path.exists(pdir):
         shutil.rmtree(pdir)
     p.write("tmp", ext=".nii", structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert os.path.exists(f"{sdir}/CT")
     assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
-    nifti_structs = os.listdir(f"{sdir}/RTSTRUCT/CT/{im.timestamp}/"
-                               f"RTSTRUCT_{im.structs[0].timestamp}")
+    nifti_structs = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}/"
+                               f"RTSTRUCT_{sim.get_structs()[0].timestamp}")
     assert "cube.nii" in nifti_structs
     assert "sphere.nii" in nifti_structs
 

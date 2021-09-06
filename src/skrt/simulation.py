@@ -116,14 +116,6 @@ class SyntheticImage(Image):
         self.structs = [self.get_rtstruct()]
         Image.plot(self, structure_set=0, *args, **kwargs)
 
-    def get_image(self):
-        '''Get base Image object with corresponding structs.'''
-
-        im = Image(self.background, voxel_size=self.input_voxel_size, 
-                   origin=self.input_origin)
-        im.structs = [self.get_rtstruct()]
-        return im
-
     def get_struct_data(self):
         """Get dict of structures and names, with any transformations applied."""
 
@@ -142,6 +134,9 @@ class SyntheticImage(Image):
                 shape.get_data(self.get_coords()), name=shape.name, affine=self.affine
             )
         return rtstruct
+
+    def get_structs(self):
+        return [self.get_rtstruct()]
 
     def get_struct(self, name):
         """Get a named structure as a Structure object."""

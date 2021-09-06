@@ -124,10 +124,10 @@ class Image(skrt.core.Archive):
         )
         for attr in attrs_to_print:
             out_str += f"\n  {attr} : {getattr(self, attr)}"
-        if len(self.structs):
+        if len(self.get_structs()):
             out_str += (
-                f"\n  structs: [{len(self.structs)} "
-                f"* {type(self.structs[0])}]"
+                f"\n  structs: [{len(self.get_structs())} "
+                f"* {type(self.get_structs()[0])}]"
             )
         else:
             out_str += "  structs: []"
@@ -166,6 +166,9 @@ class Image(skrt.core.Archive):
 
         self.load_data()
         return self.affine
+
+    def get_structs(self):
+        return self.structs
 
     def load_data(self, force=False):
         """Load pixel array from image source."""
@@ -832,16 +835,16 @@ class Image(skrt.core.Archive):
             # Get list of structure sets to plot
             if isinstance(structure_set, int):
                 try:
-                    to_plot = [self.structs[structure_set]]
+                    to_plot = [self.get_structs()[structure_set]]
                 except IndexError:
                     print(
                         f"Warning: structure set {structure_set} not found! "
-                        f"Image only has {len(self.structs)} structure sets."
+                        f"Image only has {len(self.get_structs())} structure sets."
                     )
             elif structure_set == "all":
-                to_plot = self.structs
+                to_plot = self.get_structs()
             elif skrt.core.is_list(structure_set):
-                to_plot = [self.structs[i] for i in structure_set]
+                to_plot = [self.get_structs()[i] for i in structure_set]
             else:
                 print(
                     f"Warning: structure set option {structure_set} not "
