@@ -319,7 +319,7 @@ class Study(skrt.core.Archive):
         for group in groups:
 
             # Find the matching Image for this group
-            image = Image(None, load=False)
+            image = None
             image_dir = os.path.basename(group.path)
             image_found = False
 
@@ -344,7 +344,8 @@ class Study(skrt.core.Archive):
                 rt_struct = RtStruct(file.path, image=image)
 
                 # Add to Image
-                image.add_structs(rt_struct)
+                if image is not None:
+                    image.add_structs(rt_struct)
 
                 # Add to list of all structure sets
                 structs.append(rt_struct)
@@ -559,6 +560,7 @@ class Patient(skrt.core.PathData):
         to_ignore=None,
         overwrite=True,
         structure_set="all",
+        root_uid=None
     ):
         """Write files tree."""
 
@@ -611,7 +613,8 @@ class Patient(skrt.core.PathData):
                         outname = f"{im_dir}{ext}"
                     if os.path.exists(outname) and not overwrite:
                         continue
-                    Image.write(im, outname)
+                    Image.write(im, outname, patient_id=self.id,
+                                modality=scan_type, root_uid=root_uid)
 
                     # Find structure sets to write
                     if structure_set == "all":

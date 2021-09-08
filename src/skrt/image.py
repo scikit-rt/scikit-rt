@@ -1313,7 +1313,7 @@ class Image(skrt.core.Archive):
                 header_source = self.source
             data, affine = self.get_dicom_array_and_affine(standardise)
             orientation = self.get_orientation_vector(affine, "dicom")
-            write_dicom(
+            self.dicom_dataset = write_dicom(
                 outdir,
                 data,
                 affine,
@@ -1738,18 +1738,10 @@ def write_dicom(
     # Make fresh header if needed
     fresh_header = ds is None
     if fresh_header:
-        ds = create_dicom(orientation, patient_id, modality, root_uid)
+        ds = create_dicom(patient_id, modality, root_uid)
 
-    # Set voxel sizes etc from affine matrix
-    if orientation is None:
-        ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-    else:
-        ds.ImageOrientationPatient = orientation
-    ds.PixelSpacing = [affine[0, 0], affine[1, 1]]
-    ds.SliceThickness = affine[2, 2]
-    ds.ImagePositionPatient = list(affine[:-1, 3])
-    ds.Columns = data.shape[1]
-    ds.Rows = data.shape[0]
+    # Assign shared geometric properties
+    set_dicom_geometry(ds, affine, data.shape, orientation)
 
     # Rescale data
     slope = getattr(ds, "RescaleSlope", 1)
@@ -1771,9 +1763,24 @@ def write_dicom(
         outname = f"{outdir}/{sl}.dcm"
         ds.save_as(outname)
 
+    return ds
 
-def create_dicom(orientation=None, patient_id=None, modality=None,
-                 root_uid=None):
+
+def set_dicom_geometry(ds, affine, shape, orientation=None):
+
+    # Set voxel sizes etc from affine matrix
+    if orientation is None:
+        ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+    else:
+        ds.ImageOrientationPatient = orientation
+    ds.PixelSpacing = [affine[0, 0], affine[1, 1]]
+    ds.SliceThickness = affine[2, 2]
+    ds.ImagePositionPatient = list(affine[:-1, 3])
+    ds.Columns = shape[1]
+    ds.Rows = shape[0]
+
+
+def create_dicom(patient_id=None, modality=None, root_uid=None):
     """Create a fresh dicom dataset. Taken from https://pydicom.github.io/pydicom/dev/auto_examples/input_output/plot_write_dicom.html#sphx-glr-auto-examples-input-output-plot-write-dicom-py."""
 
     # Create some temporary filenames

@@ -1440,6 +1440,7 @@ class RtStruct(skrt.core.Archive):
         names=None,
         to_keep=None,
         to_remove=None,
+        multi_label=False
     ):
         """Load structures from sources."""
 
@@ -1456,6 +1457,7 @@ class RtStruct(skrt.core.Archive):
         self.to_keep = to_keep
         self.to_remove = to_remove
         self.names = names
+        self.multi_label = False
 
         path = sources if isinstance(sources, str) else ""
         skrt.core.Archive.__init__(self, path)
@@ -1463,6 +1465,12 @@ class RtStruct(skrt.core.Archive):
         self.loaded = False
         if load:
             self.load()
+
+    def __getitem__(self, struct):
+        return self.get_struct_dict()[struct]
+
+    def __iter__(self):
+        return RtStructIterator(self)
 
     def load(self, sources=None, force=False):
         """Load structures from sources. If None, will load from own
@@ -1499,7 +1507,9 @@ class RtStruct(skrt.core.Archive):
                     continue
 
             # Attempt to load from dicom
-            structs = load_structs_dicom(source)
+            structs = []
+            if isinstance(source, str):
+                structs = load_structs_dicom(source)
             if len(structs):
                 for struct in structs.values():
                     self.structs.append(
@@ -1513,10 +1523,25 @@ class RtStruct(skrt.core.Archive):
 
             # Load from struct mask
             else:
-                try:
-                    self.structs.append(ROI(source, image=self.image))
-                except RuntimeError:
-                    continue
+
+                print('loading from array')
+                print(self.multi_label)
+                print(type(source))
+
+                # Multi-labelled array
+                if isinstance(source, np.ndarray) and self.multi_label:
+                    print('loading from multi label')
+                    n = source.max()
+                    print(n)
+                    for i in range(0, n):
+                        self.structs.append(ROI(source == i), image=self.image,
+                                            name=f"ROI {i}")
+
+                else:
+                    try:
+                        self.structs.append(ROI(source, image=self.image))
+                    except RuntimeError:
+                        continue
 
         self.rename_structs()
         self.filter_structs()
@@ -1833,6 +1858,19 @@ class RtStruct(skrt.core.Archive):
             s.write(outdir=outdir, ext=ext, **kwargs)
 
 
+class RtStructIterator:
+
+    def __init__(self, rtstruct):
+        self.idx = -1
+        self.rtstruct = rtstruct
+
+    def __next__(self):
+        self.idx += 1
+        if self.idx < len(self.rtstruct.get_structs()):
+            return self.rtstruct.get_structs()[self.idx]
+        raise StopIteration
+
+
 def load_structs_dicom(path, names=None):
     """Load structure(s) from a dicom structure file. <name> can be a single
     name or list of names of structures to load."""
@@ -1912,3 +1950,53 @@ def get_dicom_sequence(ds=None, basename=""):
             sequence = getattr(ds, attribute)
             break
     return sequence
+
+
+def write_rtstruct_dicom(outname, structs, image=None, affine=None, shape=None,
+                         orientation=None, header_source=None, patient_id=None,
+                         modality=None, root_uid=None):
+
+    # Check we have the relevant info
+    if not image and (not affine or not shape):
+        raise RuntimeError("Must provide either an image or an affine matrix "
+                           "and shape!")
+
+    # Try getting dicom dataset from image
+    ds = None
+    if image:
+        if hasattr(image, "dicom_dataset"):
+            ds = image.dicom_dataset
+        else:
+            ds = skrt.image.create_dicom()
+            ds.set_geometry(
+                image.get_affine(), image.get_data().shape,
+                image.get_orientation_vector(image.get_affine, "dicom")
+            )
+
+    # Otherwise, create fresh dicom dataset
+    else:
+        ds = skrt.image.create_dicom(patient_id, modality, root_uid)
+        ds.set_geometry(affine, shape, orientation)
+
+    # Adjust dataset to be for RtStruct instead of image
+
+
+def dicom_dataset_to_rtstruct(ds):
+    '''Convert an existing image dicom dataset to an RtStruct dataset.'''
+
+    # Adjust class UIDs
+    ds.file_meta.ImplementationClassUID = "9.9.9.100.0.0.1.0.9.6.0.0.1"
+    ds.file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.481.3"
+
+    # Assign empty sequences
+    ds.ReferencedFrameofReferenceSequence = Sequence()
+    ds.StructureSetROISequence = Sequence()
+    ds.RTROIObservationsSequence = Sequence()
+    ds.ROIContourSequence = Sequence()
+
+    # Assign structure set properties
+    ds.StructureSetLabel = ""
+    ds.StructureSetDate = ds.InstanceCreationDate
+    ds.StructureSetTime = ds.InstanceCreationTime
+
+    # Assign frame of reference
