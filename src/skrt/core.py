@@ -1,9 +1,10 @@
-"""Core data classes."""
+"""Core data classes and functions."""
 
+import functools
 import numpy as np
 import os
-import functools
-import datetime
+import time
+from typing import Any, List, Optional, Tuple
 
 
 class Defaults:
@@ -12,8 +13,7 @@ class Defaults:
     that may be used in object initialisation.
 
     Implementation of the singleton design pattern is based on:
-    https://python-3-patterns-idioms-test.readthedocs.io
-           /en/latest/Singleton.html
+    https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html
     """
 
     # Define the single instance as a class attribute
@@ -22,29 +22,31 @@ class Defaults:
     # Create single instance in inner class
     class __Defaults:
 
-        # Define instance attributes based on opts dictionary
-        def __init__(self, opts={}):
-            for key, value in opts.items():
-                setattr(self, key, value)
+        def __init__(self, opts: Optional[dict] = None):
+            """Define instance attributes based on opts dictionary."""
 
-        # Allow for printing instance attributes
+            if opts:
+                for key, value in opts.items():
+                    setattr(self, key, value)
+
         def __repr__(self):
-            out_list = []
+            """Print instance attributes."""
+
+            out = []
             for key, value in sorted(self.__dict__.items()):
                 out_list.append(f"{key}: {value}")
-            out_string = "\n".join(out_list)
-            return out_string
+            return "\n".join(out)
 
-    def __init__(self, opts={}, reset=False):
+    def __init__(self, opts: Optional[dict] = None, reset: bool = False):
         """
         Constructor of Defaults singleton class.
 
         Parameters
         ----------
-        opts : dict, default={}
+        opts: dict, default={}
             Dictionary of attribute-value pairs.
 
-        reset : bool, default=False
+        reset: bool, default=False
             If True, delete all pre-existing instance attributes before
             adding attributes and values from opts dictionary.
             If False, don't delete pre-existing instance attributes,
@@ -56,19 +58,23 @@ class Defaults:
         else:
             if reset:
                 Defaults.instance.__dict__ = {}
-            for key, value in opts.items():
-                setattr(Defaults.instance, key, value)
+            if opts:
+                for key, value in opts.items():
+                    setattr(Defaults.instance, key, value)
 
-    # Allow for getting instance attributes
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
+        """Get instance attributes."""
+
         return getattr(self.instance, name)
 
-    # Allow for setting instance attributes
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any):
+        """Set instance attributes."""
+
         return setattr(self.instance, name, value)
 
-    # Allow for printing instance attributes
     def __repr__(self):
+        """Print instance attributes."""
+
         return self.instance.__repr__()
 
 
@@ -86,14 +92,14 @@ class Data:
     attributes and values.
     """
 
-    def __init__(self, opts={}, **kwargs):
+    def __init__(self, opts: Optional[dict] = None, **kwargs):
         """
         Constructor of Data class, allowing initialisation of an
         arbitrary set of attributes.
 
         Parameters
         ----------
-        opts : dict, default={}
+        opts: dict, default={}
             Dictionary to be used in setting instance attributes
             (dictionary keys) and their initial values.
 
@@ -102,20 +108,20 @@ class Data:
             and their initial values.
         """
 
-        for key, value in opts.items():
-            setattr(self, key, value)
+        if opts:
+            for key, value in opts.items():
+                setattr(self, key, value)
         for key, value in kwargs.items():
             setattr(self, key, value)
-        return None
 
-    def __repr__(self, depth=None):
+    def __repr__(self, depth: Optional[int] = None) -> str:
         """
         Create string recursively listing attributes and values.
 
         Parameters
         ----------
 
-        depth : integer/None, default=None
+        depth: integer/None, default=None
             Depth to which recursion is performed.
             If the value is None, depth is set to the value
             of the object's print_depth property, if defined,
@@ -125,7 +131,7 @@ class Data:
         if depth is None:
             depth = self.get_print_depth()
 
-        out_list = [f"\n{self.__class__.__name__}", "{"]
+        out = [f"\n{self.__class__.__name__}", "{"]
 
         # Loop over attributes, with different treatment
         # depending on whether attribute value is a list.
@@ -135,7 +141,14 @@ class Data:
         # the instance's __repr__() method with depth decreased
         # by 1, or (depth less than 1) is the class representation.
         for key in sorted(self.__dict__):
+
+            # Ignore private attributes 
+            if key.startswith("_"):
+                continue
+
             item = self.__dict__[key]
+
+            # Handle printing of lists
             if isinstance(item, list):
                 items = item
                 n = len(items)
@@ -151,6 +164,8 @@ class Data:
                         value_string = f"[{n} * {item[0].__class__}]"
                 else:
                     value_string = "[]"
+
+            # Handle printing of nested Data objects
             else:
                 if issubclass(item.__class__, Data):
                     if depth > 0:
@@ -159,12 +174,12 @@ class Data:
                         value_string = f"{item.__class__}"
                 else:
                     value_string = item.__repr__()
-            out_list.append(f"  {key} : {value_string} ")
-        out_list.append("}")
-        out_string = "\n".join(out_list)
-        return out_string
+            out.append(f"  {key}: {value_string} ")
 
-    def get_dict(self):
+        out.append("}")
+        return "\n".join(out)
+
+    def get_dict(self) -> dict:
         """
         Return a nested dictionary of object attributes (dictionary keys)
         and their values.
@@ -179,7 +194,7 @@ class Data:
 
         return objects
 
-    def get_print_depth(self):
+    def get_print_depth(self) -> int:
         """
         Retrieve the value of the object's print depth,
         setting an initial value if not previously defined.
@@ -189,7 +204,7 @@ class Data:
             self.set_print_depth()
         return self.print_depth
 
-    def print(self, depth=None):
+    def print(self, depth: Optional[int] = None):
         """
         Convenience method for recursively printing
         object attributes and values, with recursion
@@ -198,23 +213,22 @@ class Data:
         Parameters
         ----------
 
-        depth : integer/None, default=None
+        depth: integer/None, default=None
             Depth to which recursion is performed.
             If the value is None, depth is set in the
             __repr__() method.
         """
 
         print(self.__repr__(depth))
-        return None
 
-    def set_print_depth(self, depth=None):
+    def set_print_depth(self, depth: Optional[int] = None):
         """
         Set the object's print depth.
 
         Parameters
         ----------
 
-        depth : integer/None, default=None
+        depth: integer/None, default=None
             Depth to which recursion is performed.
             If the value is None, the object's print depth is
             set to the value of Defaults().print_depth.
@@ -223,18 +237,20 @@ class Data:
         if depth is None:
             depth = Defaults().print_depth
         self.print_depth = depth
-        return None
 
 
 class PathData(Data):
-    """Data with and associated directory; has the ability to
+    """Data with an associated path or directory; has the ability to
     extract a list of dated objects from within this directory."""
 
     def __init__(self, path=""):
         self.path = fullpath(path)
         self.subdir = ""
 
-    def get_dated_objects(self, dtype, subdir="", **kwargs):
+    def get_dated_objects(self, 
+                          dtype: type, 
+                          subdir: str = "", 
+                          **kwargs) -> List[Any]:
         """Create list of objects of a given type, <dtype>, inside own
         directory, or inside own directory + <subdir> if given."""
 
@@ -242,8 +258,7 @@ class PathData(Data):
         objs = []
         path = os.path.join(self.path, subdir)
         if os.path.isdir(path):
-            filenames = os.listdir(path)
-            for filename in filenames:
+            for filename in os.listdir(path):
                 if is_timestamp(filename):
                     filepath = os.path.join(path, filename)
                     try:
@@ -265,7 +280,12 @@ class Dated(PathData):
     """PathData with an associated date and time, which can be used for
     sorting multiple Dateds."""
 
-    def __init__(self, path=""):
+    def __init__(self, path: str = "", auto_timestamp=False):
+        """
+        Initialise dated object from a path and assign its timestamp. If 
+        no valid timestamp is found within the path string, it will be set 
+        automatically from the current date and time if auto_timestamp is True.
+        """
 
         PathData.__init__(self, path)
 
@@ -282,9 +302,17 @@ class Dated(PathData):
             except ValueError:
                 self.date, self.time = (None, None)
 
+        # Set date and time from current time
+        if not self.date and auto_timestamp:
+            self.date = time.strftime("%Y%m%d")
+            self.time = time.strftime("%H%M%S")
+
+        # Make full timestamp string
         self.timestamp = f"{self.date}_{self.time}"
 
-    def in_date_interval(self, min_date=None, max_date=None):
+    def in_date_interval(self, 
+                         min_date: Optional[str] = None, 
+                         max_date: Optional[str] = None) -> bool:
         """Check whether own date falls within an interval."""
 
         if min_date:
@@ -312,7 +340,6 @@ class Dated(PathData):
         return self.date > other.date
 
     def __le__(self, other):
-        return self
         if self.date == other.date:
             return self.time < other.time
         return self.date < other.date
@@ -321,7 +348,7 @@ class Dated(PathData):
 class MachineData(Dated):
     """Dated object with an associated machine name."""
 
-    def __init__(self, path=""):
+    def __init__(self, path: str = ""):
         Dated.__init__(self, path)
         self.machine = os.path.basename(os.path.dirname(path))
 
@@ -329,19 +356,24 @@ class MachineData(Dated):
 class Archive(Dated):
     """Dated object associated with multiple files."""
 
-    def __init__(self, path="", allow_dirs=False):
+    def __init__(self, path: str = "", allow_dirs: bool = False):
 
         Dated.__init__(self, path)
+
+        # Find names of files within the directory
         self.files = []
         try:
             filenames = os.listdir(self.path)
         except OSError:
             filenames = []
+
         for filename in filenames:
 
             # Disregard hidden files
             if not filename.startswith("."):
                 filepath = os.path.join(self.path, filename)
+
+                # Disregard directories unless allow_dirs is True
                 if not os.path.isdir(filepath) or allow_dirs:
                     self.files.append(File(path=filepath))
 
@@ -352,22 +384,8 @@ class File(Dated):
     """File with an associated date. Files can be sorted based on their
     filenames."""
 
-    def __init__(self, path=""):
+    def __init__(self, path: str = ""):
         Dated.__init__(self, path)
-
-    def __cmp__(self, other):
-
-        result = Dated.__cmp__(self, other)
-        if not result:
-            self_basename = os.path.basename(self.path)
-            other_basename = os.path.basename(other.path)
-            basenames = [self_basename, other_basename]
-            basenames.sort(key=alphanumeric)
-            if basenames[0] == self_basename:
-                result = -1
-            else:
-                result = 1
-        return result
 
     def __eq__(self, other):
         return self.path == other.path
@@ -396,7 +414,7 @@ class File(Dated):
         return result
 
 
-def alphanumeric(in_str=""):
+def alphanumeric(in_str: str = "") -> List[str]:
     """Function that can be passed as value for list sort() method
     to have alphanumeric (natural) sorting"""
 
@@ -412,7 +430,7 @@ def alphanumeric(in_str=""):
     return elements
 
 
-def fullpath(path=""):
+def fullpath(path: str = "") -> str:
     """Evaluate full path, expanding '~', environment variables, and
     symbolic links."""
 
@@ -424,7 +442,7 @@ def fullpath(path=""):
     return expanded
 
 
-def get_time_and_date(timestamp=""):
+def get_time_and_date(timestamp: str = "") -> Tuple[str, str]:
     """Extract time and date separately from timestamp."""
 
     time_date = (None, None)
@@ -439,14 +457,14 @@ def get_time_and_date(timestamp=""):
         i1 = timestamp.find("_")
         i2 = timestamp.rfind(".")
         if (-1 != i1) and (-1 != i2):
-            bitstamp = timestamp[i1 + 1 : i2]
+            bitstamp = timestamp[i1 + 1: i2]
             if is_timestamp(bitstamp):
                 time_date = tuple(bitstamp.split("_"))
 
     return time_date
 
 
-def is_timestamp(string=""):
+def is_timestamp(string: str = "") -> bool:
     """Check whether a string is a valid timestamp."""
 
     valid = True
@@ -469,7 +487,7 @@ def is_timestamp(string=""):
     return valid
 
 
-def is_list(var):
+def is_list(var: Any) -> bool:
     """Check whether a variable is a list, tuple, or array."""
 
     is_a_list = False
@@ -479,7 +497,7 @@ def is_list(var):
     return is_a_list
 
 
-def to_three(val):
+def to_three(val: Any) -> Optional[List]:
     """Ensure that a value is a list of three items."""
 
     if val is None:
@@ -487,11 +505,12 @@ def to_three(val):
     if is_list(val):
         if not len(val) == 3:
             print(f"Warning: {val} should be a list containing 3 items!")
-        return val
+        return list(val)
     elif not is_list(val):
         return [val, val, val]
 
 
-def generate_timestamp():
+def generate_timestamp() -> str:
     '''Make timestamp from the current time.'''
-    return datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+
+    return time.strftime('%Y%m%d_%H%M%S')
