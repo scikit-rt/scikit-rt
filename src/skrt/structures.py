@@ -1457,7 +1457,7 @@ class RtStruct(skrt.core.Archive):
         self.to_keep = to_keep
         self.to_remove = to_remove
         self.names = names
-        self.multi_label = False
+        self.multi_label = multi_label
 
         path = sources if isinstance(sources, str) else ""
         skrt.core.Archive.__init__(self, path)
@@ -1467,7 +1467,10 @@ class RtStruct(skrt.core.Archive):
             self.load()
 
     def __getitem__(self, struct):
-        return self.get_struct_dict()[struct]
+        if isinstance(struct, int):
+            return self.get_structs()[struct]
+        elif isinstance(struct, str):
+            return self.get_struct_dict()[struct]
 
     def __iter__(self):
         return RtStructIterator(self)
@@ -1481,6 +1484,15 @@ class RtStruct(skrt.core.Archive):
 
         if sources is None:
             sources = self.sources
+
+        if self.multi_label and isinstance(sources, np.ndarray):
+
+            n = sources.max()
+            for i in range(0, n):
+                self.structs.append(ROI(sources == i, image=self.image,
+                                    name=f"ROI_{i}", affine=self.image.affine))
+            self.loaded = True
+
         elif not skrt.core.is_list(sources):
             sources = [sources]
 
@@ -1491,7 +1503,7 @@ class RtStruct(skrt.core.Archive):
                 sources_expanded.extend(
                     [os.path.join(source, file) for file in os.listdir(source)]
                 )
-            else:
+            elif not self.loaded:
                 sources_expanded.append(source)
 
         for source in sources_expanded:
@@ -1523,25 +1535,10 @@ class RtStruct(skrt.core.Archive):
 
             # Load from struct mask
             else:
-
-                print('loading from array')
-                print(self.multi_label)
-                print(type(source))
-
-                # Multi-labelled array
-                if isinstance(source, np.ndarray) and self.multi_label:
-                    print('loading from multi label')
-                    n = source.max()
-                    print(n)
-                    for i in range(0, n):
-                        self.structs.append(ROI(source == i), image=self.image,
-                                            name=f"ROI {i}")
-
-                else:
-                    try:
-                        self.structs.append(ROI(source, image=self.image))
-                    except RuntimeError:
-                        continue
+                try:
+                    self.structs.append(ROI(source, image=self.image))
+                except RuntimeError:
+                    continue
 
         self.rename_structs()
         self.filter_structs()
