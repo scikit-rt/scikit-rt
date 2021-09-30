@@ -148,8 +148,12 @@ class Data:
 
             item = self.__dict__[key]
 
+            # Handle printing of numpy arrays
+            if isinstance(item, np.ndarray):
+                value_string = f"{item.shape} array"
+
             # Handle printing of lists
-            if isinstance(item, list):
+            elif isinstance(item, list):
                 items = item
                 n = len(items)
                 if n:

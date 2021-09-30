@@ -106,34 +106,6 @@ class Image(skrt.core.Archive):
         if load:
             self.load_data()
 
-    def __repr__(self):
-
-        self.load_data()
-        out_str = "Image\n{"
-        attrs_to_print = sorted(
-            [
-                "date",
-                "path",
-                "subdir",
-                "source_type",
-                "affine",
-                "timestamp",
-                "title",
-                "downsampling",
-            ]
-        )
-        for attr in attrs_to_print:
-            out_str += f"\n  {attr} : {getattr(self, attr)}"
-        if len(self.get_structs()):
-            out_str += (
-                f"\n  structs: [{len(self.get_structs())} "
-                f"* {type(self.get_structs()[0])}]"
-            )
-        else:
-            out_str += "  structs: []"
-        out_str += "\n}"
-        return out_str
-
     def get_data(self, standardise=False):
         """Return image array."""
 

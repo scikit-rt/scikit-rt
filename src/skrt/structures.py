@@ -168,15 +168,22 @@ class ROI(skrt.image.Image):
         if load:
             self.load()
 
-    def __repr__(self):
+    def copy(self, name=None):
+        """Create copy of structure."""
 
-        out_str = "ROI\n{"
-        attrs_to_print = sorted(["name", "color", "loaded_contours", "loaded_mask"])
-        for attr in attrs_to_print:
-            if hasattr(self, attr):
-                out_str += f"\n {attr}: {getattr(self, attr)}"
-        out_str += "\n}"
-        return out_str
+        # Create blank ROI
+        if name is None:
+            name = self.name + " copy"
+        new_roi = ROI(name=name)
+
+        # Assign properties
+        for key, value in self.__dict__.items():
+            if key in ["color", "name"]:
+                continue
+            setattr(new_roi, key, value)
+
+        # Return copy
+        return new_roi
 
     def load(self):
         """Load structure from file."""
@@ -264,17 +271,17 @@ class ROI(skrt.image.Image):
             self.get_standardised_data(), axis=skrt.image._slice_axes[view]
         ).astype(bool)
 
-    def create_contours(self):
+    def create_contours(self, force=False):
         """Create contours in all orientations."""
 
-        if self.loaded_contours:
+        if self.loaded_contours and not force:
             return
         if not self.loaded:
             self.load()
 
-        if not hasattr(self, "contours"):
-            self.contours = {}
         self.create_mask()
+        if not hasattr(self, "contours") or force:
+            self.contours = {}
 
         # Create contours in every orientation
         for view, z_ax in skrt.image._slice_axes.items():
