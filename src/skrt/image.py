@@ -18,6 +18,7 @@ import pydicom
 import tempfile
 import time
 import uuid
+import skimage.transform
 
 import skrt.core
 
@@ -1311,6 +1312,23 @@ class Image(skrt.core.Archive):
             for i in range(3)
         ]
         return np.meshgrid(*coords_1d)
+
+    def transform(self, scale=None, translation=None, rotation=None):
+        """Apply a similarity transform using scikit-image."""
+
+
+        # Create transformation matrix
+        matrix = skimage.transform.SimilarityTransform(
+            scale=scale, translation=translation, rotation=rotation)
+
+        # Apply
+        self.load_data()
+        for z in range(self.data.shape[2]):
+            self.data[:, :, z] = skimage.transform.warp(
+                self.data[:, :, z], matrix)
+
+        # Remake standardised image
+        self.standardise_data(force=True)
 
 
 class ImageComparison:

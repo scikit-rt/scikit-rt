@@ -1434,6 +1434,17 @@ class ROI(skrt.image.Image):
         else:
             print("Warning: dicom structure writing not currently available!")
 
+    def transform(self, **kwargs):
+        """Transform mask and ensure that contours will be remade."""
+
+        self.create_mask()
+        skrt.image.Image.transform(self, **kwargs)
+
+        if self.loaded_contours:
+            self.loaded_contours = False
+            delattr(self, "contours")
+            self.input_contours = None
+
 
 class RtStruct(skrt.core.Archive):
     """Structure set."""
