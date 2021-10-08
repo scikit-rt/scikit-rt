@@ -865,6 +865,7 @@ class Image(skrt.core.Archive):
                         ax=self.ax,
                         plot_type=struct_plot_type,
                         include_image=False,
+                        show=False,
                         **struct_kwargs,
                     )
                     if s.on_slice(view, idx=idx) and struct_legend:
@@ -1313,13 +1314,29 @@ class Image(skrt.core.Archive):
         ]
         return np.meshgrid(*coords_1d)
 
-    def transform(self, scale=None, translation=None, rotation=None):
+    def transform(self, scale=1, translation=[0, 0], rotation=0, centre=None):
         """Apply a similarity transform using scikit-image."""
+
+        # Rotate about centre
+        if centre is None:
+            x = self.n_voxels[0] / 2
+            y = self.n_voxels[1] / 2
+        else:
+            px, py = centre
+            x = self.pos_to_idx(px, "x")
+            y = self.pos_to_idx(py, "y")
+        translation[0] += x - x * np.cos(rotation) + y * np.sin(rotation)
+        translation[1] += y - x * np.sin(rotation) - y * np.cos(rotation)
+
+        # Scale about centre
+
 
 
         # Create transformation matrix
         matrix = skimage.transform.SimilarityTransform(
             scale=scale, translation=translation, rotation=rotation)
+
+        print(matrix)
 
         # Apply
         self.load_data()

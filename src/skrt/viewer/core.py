@@ -3415,18 +3415,29 @@ class StructComparison:
             self.comp_type = comp_type
 
         structs_to_use = [s for s in self.s2_list if s.visible]
-        data = structs_to_use[0].data.copy()
-        if self.comp_type == "majority vote":
-            data = data.astype(int)
-        for s in structs_to_use[1:]:
-            if self.comp_type == "sum":
-                data += s.data
-            elif self.comp_type == "overlap":
-                data *= s.data
-            elif self.comp_type == "majority vote":
-                data += s.data.astype(int)
-        if self.comp_type == "majority vote":
-            data = data >= len(structs_to_use) / 2
+
+        # Calculate STAPLE
+        if self.comp_type == "staple":
+            import SimpleITK as sitk
+            contours = []
+            for s in structs_to_use:
+                contours.append(sitk.GetImageFromArray(s.data.astype(int)))
+            probs = sitk.GetArrayFromImage(sitk.STAPLE(contours, 1))
+            data = probs > 0.95
+
+        else:
+            data = structs_to_use[0].data.copy()
+            if self.comp_type == "majority vote":
+                data = data.astype(int)
+            for s in structs_to_use[1:]:
+                if self.comp_type == "sum":
+                    data += s.data
+                elif self.comp_type == "overlap":
+                    data *= s.data
+                elif self.comp_type == "majority vote":
+                    data += s.data.astype(int)
+            if self.comp_type == "majority vote":
+                data = data >= len(structs_to_use) / 2
 
         self.s2 = Struct(
             data,

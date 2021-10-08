@@ -1938,7 +1938,7 @@ class SingleViewer:
                 style=_style,
             )
             self.ui_struct_comp_type = ipyw.Dropdown(
-                options=['majority vote', 'sum', 'overlap'],
+                options=['majority vote', 'sum', 'overlap', 'staple'],
                 description='Comparison type',
                 style=_style,
             )

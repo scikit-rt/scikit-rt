@@ -1438,7 +1438,8 @@ class ROI(skrt.image.Image):
         """Transform mask and ensure that contours will be remade."""
 
         self.create_mask()
-        skrt.image.Image.transform(self, **kwargs)
+        cx, cy, _ = self.get_centroid()
+        skrt.image.Image.transform(self, centre=(cx, cy), **kwargs)
 
         if self.loaded_contours:
             self.loaded_contours = False
@@ -1871,6 +1872,31 @@ class RtStruct(skrt.core.Archive):
             os.mkdir(outdir)
         for s in self.get_structs():
             s.write(outdir=outdir, ext=ext, **kwargs)
+
+    def get_staple(self, **kwargs):
+        """Apply STAPLE to all structures in this structure set and return
+        STAPLE contour as an ROI."""
+
+        # Get staple mask
+        import SimpleITK as sitk
+        structs = []
+        for s in self.structs:
+            s.create_mask()
+            structs.append(sitk.GetImageFromArray(s.sdata.astype(int)))
+        probs = sitk.GetArrayFromImage(sitk.STAPLE(structs, 1))
+        mask = probs > 0.95
+
+        # Create staple ROI
+        staple = ROI(
+            mask, 
+            name="staple", 
+            image=self.image,
+            affine=self.structs[0].saffine,
+            **kwargs
+        )
+
+        # Return staple ROI
+        return staple
 
 
 class RtStructIterator:
