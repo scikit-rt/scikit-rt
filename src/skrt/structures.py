@@ -248,7 +248,7 @@ class ROI(skrt.image.Image):
             # Set x-y contours with z indices as keys
             self.contours = {"x-y": {}}
             for z, contours in self.input_contours.items():
-                iz = self.pos_to_idx(z, "z")
+                iz = self.image.pos_to_idx(z, "z")
                 self.contours["x-y"][iz] = [
                     [tuple(p[:2]) for p in points] for points in contours
                 ]

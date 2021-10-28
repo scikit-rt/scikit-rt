@@ -1457,6 +1457,7 @@ class SingleViewer:
         major_ticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
+        no_axis_labels=False,
         **kwargs,
     ):
 
@@ -1534,6 +1535,7 @@ class SingleViewer:
         self.major_ticks = major_ticks
         self.minor_ticks = minor_ticks
         self.ticks_all_sides = ticks_all_sides
+        self.no_axis_labels = no_axis_labels
 
         # Colormap
         if cmap:
@@ -2820,6 +2822,7 @@ class SingleViewer:
             major_ticks=self.major_ticks,
             minor_ticks=self.minor_ticks,
             ticks_all_sides=self.ticks_all_sides,
+            no_axis_labels=self.no_axis_labels,
             n_date=n_date,
             show=False,
         )

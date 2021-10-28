@@ -1544,6 +1544,8 @@ def load_dicom(path):
                 rescale_slope = getattr(ds, "RescaleSlope", None)
             if rescale_intercept is None:
                 rescale_intercept = getattr(ds, "RescaleIntercept", None)
+                if rescale_intercept is None:
+                    rescale_intercept = getattr(ds, "DoseGridScaling", None)
 
             # Get HU window defaults
             if window_centre is None:
@@ -1581,12 +1583,6 @@ def load_dicom(path):
             len(sorted_slices) - 1
         )
 
-    # Apply rescaling
-    if rescale_slope:
-        data = data * rescale_slope
-    if rescale_intercept:
-        data = data + rescale_intercept
-
     # Make affine matrix
     zmin = sorted_slices[0]
     zmax = sorted_slices[-1]
@@ -1614,6 +1610,12 @@ def load_dicom(path):
             [0, 0, 0, 1],
         ]
     )
+
+    # Apply rescaling
+    if rescale_slope:
+        data = data * rescale_slope
+    if rescale_intercept:
+        data = data + rescale_intercept
 
     return data, affine, window_centre, window_width
 
@@ -1752,6 +1754,8 @@ def write_dicom(
 
     # Rescale data
     slope = getattr(ds, "RescaleSlope", 1)
+    if hasattr(ds, "DoseGridScaling"):
+        slope = ds.DoseGridScaling
     intercept = getattr(ds, "RescaleIntercept", 0)
     if fresh_header:
         intercept = np.min(data)

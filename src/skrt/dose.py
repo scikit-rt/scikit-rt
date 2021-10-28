@@ -3,8 +3,51 @@
 import numpy as np
 import os
 import pydicom
+import functools
 
 from skrt.core import MachineData
+from skrt.image import Image
+
+
+class Dose(Image):
+
+    def __init__(self, path, image=None, *args, **kwargs):
+        Image.__init__(self, path, *args, **kwargs)
+        self.image = image
+
+    def plot(self, include_image=False, opacity=None, **kwargs):
+        
+
+        # Plot underlying image
+        if opacity is None:
+            opacity = 1 if not include_image else 0.5
+        if include_image and self.image is not None:
+            self.image.plot(show=False)
+            kwargs["ax"] = self.image.ax
+
+        # Set default plotting kwargs
+        dose_kwargs = {
+            "cmap": "jet",
+            "vmin": 0,
+            "vmax": self.max,
+            "alpha": opacity
+        }
+        mpl_kwargs = kwargs.get("mpl_kwargs", {})
+        mpl_kwargs.update(dose_kwargs)
+        kwargs["mpl_kwargs"] = mpl_kwargs
+
+        # Plot dose field
+        Image.plot(self, **kwargs)
+
+    def plot_DVH(self, roi):
+        pass
+
+    def get_mean_dose(self, roi):
+        pass
+
+    @functools.cached_property
+    def max(self):
+        return self.get_data().max()
 
 
 class RtDose(MachineData):

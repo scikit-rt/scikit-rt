@@ -802,6 +802,7 @@ class Image:
         major_ticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
+        no_axis_labels=False,
     ):
         """Plot a 2D slice of the image.
 
@@ -899,23 +900,28 @@ class Image:
 
         self.label_ax(view, no_ylabel, no_title, annotate_slice)
         self.adjust_ax(view, zoom, zoom_centre)
-        if major_ticks:
-            self.ax.xaxis.set_major_locator(MultipleLocator(major_ticks))
-            self.ax.yaxis.set_major_locator(MultipleLocator(major_ticks))
-        if minor_ticks:
-            self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
-            self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
-        if ticks_all_sides:
-            self.ax.tick_params(bottom=True, top=True, left=True, right=True)
+        if not no_axis_labels:
+            if major_ticks:
+                self.ax.xaxis.set_major_locator(MultipleLocator(major_ticks))
+                self.ax.yaxis.set_major_locator(MultipleLocator(major_ticks))
             if minor_ticks:
-                self.ax.tick_params(
-                    which="minor", bottom=True, top=True, left=True, right=True
-                )
+                self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+                self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+            if ticks_all_sides:
+                self.ax.tick_params(bottom=True, top=True, left=True, right=True)
+                if minor_ticks:
+                    self.ax.tick_params(
+                        which="minor", bottom=True, top=True, left=True, right=True
+                    )
 
         # Draw colorbar
         if colorbar and kwargs.get("alpha", 1) > 0:
             clb = self.fig.colorbar(mesh, ax=self.ax, label=colorbar_label)
             clb.solids.set_edgecolor("face")
+
+        # Remove axis labels
+        if no_axis_labels:
+            plt.axis("off")
 
         # Display image
         if show:
@@ -1815,6 +1821,7 @@ class MultiImage(Image):
         major_ticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
+        no_axis_labels=False,
     ):
         """Plot a 2D slice of this image and all extra features.
 
@@ -1939,6 +1946,7 @@ class MultiImage(Image):
             major_ticks=major_ticks,
             minor_ticks=minor_ticks,
             ticks_all_sides=ticks_all_sides,
+            no_axis_labels=no_axis_labels,
         )
 
         # Plot dose field
@@ -2086,6 +2094,7 @@ class OrthogonalImage(MultiImage):
         major_ticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
+        no_axis_labels=False,
         **kwargs,
     ):
         """Plot MultiImage and orthogonal view of main image and structs."""
@@ -2110,6 +2119,7 @@ class OrthogonalImage(MultiImage):
             major_ticks=major_ticks,
             minor_ticks=minor_ticks,
             ticks_all_sides=ticks_all_sides,
+            no_axis_labels=no_axis_labels,
             **kwargs,
         )
 
@@ -2129,6 +2139,7 @@ class OrthogonalImage(MultiImage):
             major_ticks=major_ticks,
             minor_ticks=minor_ticks,
             ticks_all_sides=ticks_all_sides,
+            no_axis_labels=no_axis_labels,
         )
 
         # Plot structures on orthogonal image
