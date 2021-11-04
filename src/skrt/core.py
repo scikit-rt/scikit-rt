@@ -171,7 +171,10 @@ class Data:
                     if depth > 0:
                         value_string = "["
                         for i, item in enumerate(items):
-                            item_string = item.__repr__(depth=(depth - 1))
+                            try:
+                                item_string = item.__repr__(depth=(depth - 1))
+                            except TypeError:
+                                item_string = item.__repr__()
                             comma = "," if (i + 1 < n) else ""
                             value_string = f"{value_string} {item_string}{comma}"
                         value_string = f"{value_string}]"
