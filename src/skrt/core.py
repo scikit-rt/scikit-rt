@@ -4,6 +4,7 @@ import functools
 import numpy as np
 import os
 import time
+from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 
 
@@ -78,7 +79,17 @@ class Defaults:
         return self.instance.__repr__()
 
 
+# Initialise default parameter values:
+Defaults()
+
+# Depth to which recursion is performed when printing instances
+# of classes that inherit from the Data class.
 Defaults({"print_depth": 0})
+
+# Severity level for event logging.
+# Defined values are: 'NOTSET' (0), 'DEBUG' (10), 'INFO' (20),
+# 'WARNING' (30), 'ERROR' (40), 'CRITICAL' (50)
+Defaults({"log_level": "WARNING"})
 
 
 class Data:
@@ -445,6 +456,26 @@ def fullpath(path: str = "") -> str:
         expanded = os.path.realpath(tmp)
     return expanded
 
+def get_logger(name="", log_level=None):
+    """
+    Retrieve named event logger.
+
+    Parameters
+    ----------
+    name: string, default=""
+        Name of logger (see documentation of logging module)
+    log_level: string/integer/None, default=None
+        Severity level for event logging.  If the value is None,
+        log_level is set to the value of Defaults().log_level.
+    """
+    formatter = Formatter("%(name)s - %(levelname)s - %(message)s")
+    handler = StreamHandler()
+    handler.setFormatter(formatter)
+    logger = getLogger(name)
+    if not logger.handlers:
+        logger.addHandler(handler)
+    logger.setLevel(log_level)
+    return logger
 
 def get_time_and_date(timestamp: str = "") -> Tuple[str, str]:
     """Extract time and date separately from timestamp."""

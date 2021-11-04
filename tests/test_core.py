@@ -67,6 +67,12 @@ def test_archive():
     archive2 = skrt.core.Archive(tdir, allow_dirs=True)
     assert len(archive2.files) == 2
 
-
-
-
+def test_logger(capsys):
+    logger = skrt.core.get_logger("test", "INFO")
+    test_msg = "Test message"
+    logger.info(test_msg)
+    captured = capsys.readouterr()
+    assert test_msg in captured.err
+    logger.debug(test_msg)
+    captured = capsys.readouterr()
+    assert test_msg not in captured.err
