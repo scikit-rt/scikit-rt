@@ -271,6 +271,22 @@ class ROI(skrt.image.Image):
             self.get_standardised_data(), axis=skrt.image._slice_axes[view]
         ).astype(bool)
 
+    def get_polygons(self, view="x-y", sl=None, idx=None, pos=None):
+        """Get shapely polygon objects corresponding to a given slice."""
+
+        if sl is None and idx is None and pos is None:
+            idx = self.get_mid_idx(view)
+        else:
+            idx = self.get_idx(view, sl, idx, pos)
+
+        if not hasattr(self, "contours") or view not in self.contours:
+            self.create_contours()
+        if idx not in self.contours[view]:
+            print("Warning: No contour found at index:", idx)
+            return []
+
+        return [geometry.Polygon(p) for p in self.contours[view][idx]]
+
     def create_contours(self, force=False):
         """Create contours in all orientations."""
 
