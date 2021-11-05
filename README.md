@@ -141,7 +141,7 @@ This image can optionally be plotted in the background when the ROI is plotted.
 
 #### Plotting an ROI
 
-ROIs can be plotted as contours or a mask or both, and with or without an associate image behind them. The simplest plot command is:
+ROIs can be plotted as contours or a mask or both, and with or without an associated image behind them. The simplest plot command is:
 ```
 roi.plot()
 ```
