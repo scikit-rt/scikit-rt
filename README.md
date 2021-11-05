@@ -37,7 +37,7 @@ from skrt.image import Image
 Images will be processed into a consistent format:
 
 - The `Image.data` property contains a numpy array, which stores (y, x, z) in (row, column, slice) respectively. Note that numpy elements are indexed in order (row, column, slice); so if you did `Image.data[i, j, k]`, `i` would correspond to y index, `j` would correspond to x index, `k` would correspond to z index.
-- The `Image.affine` property contains a 4x4 matric that can convert a (row, column, slice) index to an (x, y, z) position. This will always be diagonal, so (0, 0) contains x voxel size etc, (0, 3) contains x origin.
+- The `Image.affine` property contains a 4x4 matrix that can convert a (row, column, slice) index to an (x, y, z) position. This will always be diagonal, so (0, 0) contains x voxel size etc, (0, 3) contains x origin.
 - The `voxel_size` and `origin` properties are the diagonal and third column, respectively; they give voxel sizes and origin position in order (x, y, z).
 - The `n_voxels` property containins the number of voxels in the (x, y, z) directions (same as `Image.data.shape`, but with 0 and 1 swapped).
 
@@ -63,7 +63,7 @@ If the dicom file is part of a series, any other files in that series in the sam
 
 ### Loading from an array
 
-An image can also be loaded from a numpy array. By default, it will be taken to have origin (0, 0, 0) and voxel sizes (1, 1, 1)mm; otherwise, these can be set manually, either via:
+An image can also be loaded from a numpy array. By default, it will be taken to have origin (0, 0, 0) and voxel sizes (1, 1, 1) mm; otherwise, these can be set manually, either via:
 ```
 im = Image(array, voxel_size=(1.5, 1.5, 3), origin=(-100, -100, 40))
 ```
@@ -97,7 +97,7 @@ If `filename` ends in `.dcm` or is a directory (i.e. has no extension), the imag
 The path to a dicom file from which to take the header can be specified via the `header_source` parameter. If no path is given but the input source for the Image was a dicom file, the header will be taken from the source. Otherwise (e.g. if the file was loaded from a nifti and no `header_source` is given), a brand new header with new UIDs will be created. In that case, you can set the following info for that header:
 - `patient_id`
 - `modality`
-- `root_uid` (an ID unique to your institue while will prefix the generated dicom UIDs so that they are globally unique; one can be obtained here: https://www.medicalconnections.co.uk/FreeUID/)
+- `root_uid` (an ID unique to your institue that will prefix the generated dicom UIDs so that they are globally unique; one can be obtained here: https://www.medicalconnections.co.uk/FreeUID/)
 
 #### Writing to nifti
 If `filename` ends in `.nii` or `.nii.gz`, the image will be written to nifti. The nifti will be in canonical format, i.e. in Right, Anterior, Superior configuration. (Note that this means the nifti you write out may not be the same as the one you read in).
