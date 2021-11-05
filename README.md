@@ -226,7 +226,7 @@ rtstruct.add_structs(source)
 ```
 where `source` is any of the above source types.
 
-Alternatively, single ROIs can be added at a time via any of the valid `ROI` sources (see above), and with any of the `ROI` initialisation arguments. An empty can `RtStruct` can be created and then populated, e.g.
+Alternatively, single ROIs can be added at a time via any of the valid `ROI` sources (see above), and with any of the `ROI` initialisation arguments. An empty `RtStruct` can be created and then populated, e.g.
 ```
 rtstruct = RtStruct()
 rtstruct.add_struct('heart.nii', color='red')
