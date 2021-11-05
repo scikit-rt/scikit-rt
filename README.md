@@ -131,7 +131,7 @@ If the input object is a dicom file, the name of the ROI within that file must b
 Additional useful arguments are:
 - `color`: set the colour of this ROI for plotting. If not specified, this will either be read from the dicom file (if given) or the ROI will be assigned a unique colour.
 - `name`: set the name of this ROI. If the input is a dicom RTStruct file, this name will be used to select the correct ROI from the file. If not given, the ROI will be given a unique name ("ROI 1" etc)
-- `load`: if `True` (default), the input ROI will be converted into a mask/contours automatically upon creation. This can be time consuming if you are creating many ROIs, to setting it to `False` can save time and allow ROIs to be processed later on-demand.
+- `load`: if `True` (default), the input ROI will be converted into a mask/contours automatically upon creation. This can be time consuming if you are creating many ROIs, so setting it to `False` can save time and allow ROIs to be processed later on-demand.
 
 An `Image` object associated with this ROI can be set at any time via:
 ```
