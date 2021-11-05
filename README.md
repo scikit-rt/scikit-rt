@@ -258,7 +258,7 @@ for rtstruct in my_rtstructs:
     rtstruct.rename_structs(names_map)
 ```
 
-By default, only one ROI per structure set will be renamed; for example, if a structure set for some reason contained both `right parotid` and `R parotid`, onl the first in the list (`right parotid`) would be renamed. This behaviour can be turned off by setting `first_match_only=False`; beware this could lead to duplicate structure names.
+By default, only one ROI per structure set will be renamed; for example, if a structure set for some reason contained both `right parotid` and `R parotid`, only the first in the list (`right parotid`) would be renamed. This behaviour can be turned off by setting `first_match_only=False`; beware this could lead to duplicate structure names.
 
 You can also choose to discard any structures that aren't in your renaming map by setting `keep_renamed_only=True`.
 
