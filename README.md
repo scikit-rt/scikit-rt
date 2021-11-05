@@ -173,7 +173,7 @@ Example mask plot:
 
 #### Writing out an ROI
 
-An ROI can be written to a nifti or numpy file as a binary mask. This can either be done by specifying a filename with an appropriate extension, e.g.
+An ROI can be written to a nifti or numpy file as a binary mask. This can be done either by specifying a filename with an appropriate extension, e.g.
 ```
 roi.write('my_roi.nii')
 ```
