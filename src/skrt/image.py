@@ -56,7 +56,10 @@ class Image(skrt.core.Archive):
                 (b) A string containing the path to a numpy file containing a
                     2D or 3D array;
                 (c) A 2D or 3D numpy array;
-                (d) A nibabel.nifti1.Nifti1Image object.
+                (d) A nibabel.nifti1.Nifti1Image object;
+                (e) An existing Image object to be cloned; in this case, all 
+                    other input args except <title> will be ignored, as these 
+                    will be taken from the existing Image.
 
         load : bool, default=True
             If True, the image data will be immediately loaded. Otherwise, it
@@ -90,6 +93,16 @@ class Image(skrt.core.Archive):
             (x, y, z).
         """
 
+        # Clone from another Image object
+        if isinstance(path, Image):
+            path.clone_properties(self)
+
+            # Apply any additional properties from input args
+            if title is not None:
+                self.title = title
+            return
+
+        # Otherwise, load from source
         self.data = None
         self.title = title
         self.source = path
@@ -106,6 +119,34 @@ class Image(skrt.core.Archive):
 
         if load:
             self.load_data()
+
+    def clone(self):
+        '''Create a clone of this Image.'''
+
+        im = Image(self.get_data(), load=False)
+        self.clone_properties(im)
+        return im
+
+    def clone_properties(self, im):
+        '''Apply own properties to another Image object.'''
+
+        im.source = self.source
+        im.source_type = self.source_type
+        im.nifti_array = self.nifti_array
+        im.structs = self.structs
+        skrt.core.Archive.__init__(im, self.path)
+        im.affine = self.get_affine()
+        im.voxel_size = self.get_voxel_size()
+        im.origin = self.get_origin()
+        im.data = self.get_data()
+        im.downsampling = self.downsampling
+        im.default_window = self.default_window
+        im.title = self.title
+        if hasattr(self, 'sdata'):
+            im.sdata = self.sdata
+            im.saffine = self.saffine
+            im.svoxel_size = self.svoxel_size
+            im.sorigin = self.sorigin
 
     def get_data(self, standardise=False):
         """Return image array."""

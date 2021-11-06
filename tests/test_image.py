@@ -229,3 +229,20 @@ def test_resampling():
     assert [abs(int(i)) for i in im2.voxel_size] == init_voxel_size
     assert list(im2.get_data().shape) == init_shape
 
+def test_cloning():
+    '''Test cloning an image.'''
+
+    im_cloned = im.clone()
+    assert np.all(im.get_affine() == im_cloned.get_affine())
+    assert np.all(im.get_data() == im_cloned.get_data())
+    assert np.all(im.get_standardised_data() 
+                  == im_cloned.get_standardised_data())
+
+def test_init_from_image():
+    '''Test cloning an image using the Image initialiser.'''
+
+    im_cloned = Image(im)
+    assert np.all(im.get_affine() == im_cloned.get_affine())
+    assert np.all(im.get_data() == im_cloned.get_data())
+    assert np.all(im.get_standardised_data() 
+                  == im_cloned.get_standardised_data())
