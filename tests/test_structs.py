@@ -55,6 +55,7 @@ def test_rename():
         'sphere2': 'spher*'
     }
     structs.rename_structs(new_names)
+    assert structs.get_structs()[0].name != structs.get_structs()[0].original_name
     assert set(structs.get_struct_names()) == set(new_names.keys())
     old_names = {
         'cube': 'cube2',

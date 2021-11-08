@@ -160,6 +160,7 @@ class ROI(skrt.image.Image):
                 self.name = name
             else:
                 self.name = StructDefaults().get_default_struct_name()
+        self.original_name = name
 
         # Load structure data
         self.loaded = False
