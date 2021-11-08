@@ -47,7 +47,7 @@ class Algorithm():
             Severity level for event logging.  If the value is None,
             log_level is set to the value of skrt.core.Defaults().log_level.
         '''
-        class_name = str(type(self)).split('.')[-1].split('\'')[0]
+        class_name = type(self).__name__
         self.name = class_name if name is None else name
         self.log_level = \
                 Defaults().log_level if log_level is None else log_level
@@ -125,7 +125,7 @@ class Application():
             log_level is set to the value of skrt.core.Defaults().log_level.
         '''
         self.algs = algs
-        class_name = str(type(self)).split('.')[-1].split('\'')[0]
+        class_name = type(self).__name__
         self.log_level = \
                 Defaults().log_level if log_level is None else log_level
         self.logger = get_logger(name=class_name, log_level=self.log_level)
