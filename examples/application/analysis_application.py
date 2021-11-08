@@ -88,7 +88,7 @@ class AnalysisAlgorithm(Algorithm):
                 self.logger.info(f'{planning_roi.name}: dice = {dice:.4f}')
                 # If dice score is 1.0, the same ROI may have been picked up
                 # got planning and VoxTox - worth checking.
-                if dice == 1.0:
+                if dice > 0.999:
                     self.logger.warning(
                             f'Dice score of {dice:.4f} is suspicious!')
 
