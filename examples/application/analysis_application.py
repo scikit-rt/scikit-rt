@@ -39,10 +39,6 @@ class AnalysisAlgorithm(Algorithm):
         # Maximum number of patients to be analysed
         self.max_patient = 10000
 
-        # Patient for whom header information should be written
-        # in pandas data frame.
-        opts['header_patient'] = ''
-
         # Call to __init__() method of base class
         # sets values for object properties based on dictionary opts,
         # and creates event logger with speficied name and log_level.
@@ -108,15 +104,10 @@ class AnalysisAlgorithm(Algorithm):
 
         print (f'\nNumber of patients analysed = {self.n_patient}')
 
+        # Create dataframe from data records
+        # and save in csv format
         df = pd.DataFrame(self.roi_records)
-        header = True
-        # Omit header if the header patient is defined
-        # and isn't in the dataframe.
-        if self.header_patient:
-            if self.header_patient not in df['id'].to_list():
-                header = False
-
-        df.to_csv('roi_info.csv', header=header)
+        df.to_csv('roi_info.csv')
 
         return self.status
 
@@ -185,10 +176,6 @@ if '__main__' == __name__:
     # Define list of paths for patient data to be analysed
     paths = []
     #paths = glob.glob('/Users/karl/data/head_and_neck/vspecial/3_patients__multiple_structures__all_mv/VT*')
-
-    # Patient for whom header information should be written
-    # in pandas data frame - needed when datasets are to be split and merged.
-    opts['header_patient'] = os.path.basename(paths[0])
 
     # Severity level for event logging.
     # Defined values are: 'NOTSET' (0), 'DEBUG' (10), 'INFO' (20),
