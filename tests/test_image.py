@@ -238,11 +238,16 @@ def test_cloning():
     assert np.all(im.get_standardised_data() 
                   == im_cloned.get_standardised_data())
 
+    # Check that changing the new array doesn't change the old one
+    im.data[0, 0, 0] = 1
+    im_cloned.data[0, 0, 0] = 2
+    assert im.data[0, 0, 0] != im_cloned.data[0, 0, 0]
+
 def test_init_from_image():
     '''Test cloning an image using the Image initialiser.'''
 
     im_cloned = Image(im)
     assert np.all(im.get_affine() == im_cloned.get_affine())
     assert np.all(im.get_data() == im_cloned.get_data())
-    assert np.all(im.get_standardised_data() 
+    assert np.all(im.get_standardised_data()
                   == im_cloned.get_standardised_data())
