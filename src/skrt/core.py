@@ -1,5 +1,6 @@
 """Core data classes and functions."""
 
+import copy
 import functools
 import numpy as np
 import os
@@ -196,6 +197,40 @@ class Data:
 
         out.append("}")
         return "\n".join(out)
+
+    def clone(self):
+        """
+        Return a clone of the Data object containing copies of any 
+        lists, dicts, or arrays owned by the object.
+        """
+
+        clone = copy.copy(self)
+        self.clone_attrs(clone)
+        return clone
+
+    def clone_attrs(self, obj):
+        """
+        Apply class attributes from self to a new object, making copies 
+        of any lists, dicts, or numpy arrays.
+        """
+
+        for attr in dir(self):
+
+            # Don't copy private variables
+            if attr.startswith("__"):
+                continue
+
+            # Don't copy methods
+            if callable(getattr(self, attr)):
+                continue
+            
+            # Make new copy of lists/dicts/arrays
+            if type(getattr(self, attr)) in [list, dict, np.ndarray]:
+                setattr(obj, attr, copy.copy(getattr(self, attr)))
+
+            # Otherwise, copy reference to attribute
+            else:
+                setattr(obj, attr, getattr(self, attr))
 
     def get_dict(self) -> dict:
         """

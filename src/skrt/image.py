@@ -61,43 +61,41 @@ class Image(skrt.core.Archive):
                     other input args except <title> will be ignored, as these 
                     will be taken from the existing Image.
 
-        load : bool, default=True
-            If True, the image data will be immediately loaded. Otherwise, it
-            can be loaded later with the load() method.
+            load : bool, default=True
+                If True, the image data will be immediately loaded. Otherwise, it
+                can be loaded later with the load() method.
 
-        title : str, default=None
-            Title to use when plotting the image. If None and <source> is a
-            path, a title will be automatically generated from the filename.
+            title : str, default=None
+                Title to use when plotting the image. If None and <source> is a
+                path, a title will be automatically generated from the filename.
 
-        affine : 4x4 array, default=None
-            Array containing the affine matrix to use if <source> is a numpy
-            array or path to a numpy file. If not None, this takes precendence
-            over <voxel_size> and <origin>.
+            affine : 4x4 array, default=None
+                Array containing the affine matrix to use if <source> is a numpy
+                array or path to a numpy file. If not None, this takes precendence
+                over <voxel_size> and <origin>.
 
-        voxel_size : tuple, default=(1, 1, 1)
-            Voxel sizes in mm in order (x, y, z) to use if <source> is a numpy
-            array or path to a numpy file and <affine> is not provided.
+            voxel_size : tuple, default=(1, 1, 1)
+                Voxel sizes in mm in order (x, y, z) to use if <source> is a numpy
+                array or path to a numpy file and <affine> is not provided.
 
-        origin : tuple, default=(0, 0, 0)
-            Origin position in mm in order (x, y, z) to use if <source> is a
-            numpy array or path to a numpy file and <affine> is not provided.
+            origin : tuple, default=(0, 0, 0)
+                Origin position in mm in order (x, y, z) to use if <source> is a
+                numpy array or path to a numpy file and <affine> is not provided.
 
-        nifti_array : bool, default=False
-            If True and <source> is a numpy array or numpy file, the array
-            will be treated as a nifti-style array, i.e. (x, y, z) in
-            (row, column, slice), as opposed to dicom style.
+            nifti_array : bool, default=False
+                If True and <source> is a numpy array or numpy file, the array
+                will be treated as a nifti-style array, i.e. (x, y, z) in
+                (row, column, slice), as opposed to dicom style.
 
-        downsample : int/list, default=None
-            Amount by which to downsample the image. Can be a single value for
-            all axes, or a list containing downsampling amounts in order
-            (x, y, z).
-        """
+            downsample : int/list, default=None
+                Amount by which to downsample the image. Can be a single value for
+                all axes, or a list containing downsampling amounts in order
+                (x, y, z).
+            """
 
         # Clone from another Image object
         if isinstance(path, Image):
-            path.clone_properties(self)
-
-            # Apply any additional properties from input args
+            path.clone_attrs(self)
             if title is not None:
                 self.title = title
             return
@@ -119,34 +117,6 @@ class Image(skrt.core.Archive):
 
         if load:
             self.load_data()
-
-    def clone(self):
-        '''Create a clone of this Image.'''
-
-        im = Image(self.get_data(), load=False)
-        self.clone_properties(im)
-        return im
-
-    def clone_properties(self, im):
-        '''Apply own properties to another Image object.'''
-
-        im.source = self.source
-        im.source_type = self.source_type
-        im.nifti_array = self.nifti_array
-        im.structs = self.structs
-        skrt.core.Archive.__init__(im, self.path)
-        im.affine = self.get_affine()
-        im.voxel_size = self.get_voxel_size()
-        im.origin = self.get_origin()
-        im.data = self.get_data()
-        im.downsampling = self.downsampling
-        im.default_window = self.default_window
-        im.title = self.title
-        if hasattr(self, 'sdata'):
-            im.sdata = self.sdata
-            im.saffine = self.saffine
-            im.svoxel_size = self.svoxel_size
-            im.sorigin = self.sorigin
 
     def get_data(self, standardise=False):
         """Return image array."""
