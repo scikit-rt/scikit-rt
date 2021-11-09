@@ -107,7 +107,7 @@ class AnalysisAlgorithm(Algorithm):
         # Create dataframe from data records
         # and save in csv format
         df = pd.DataFrame(self.roi_records)
-        df.to_csv('roi_info.csv')
+        df.to_csv('roi_info.csv', index=False)
 
         return self.status
 
