@@ -14,8 +14,8 @@ name2 = 'cube2'
 sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
 sim.add_cube(4, centre=centre1, name=name1)
 sim.add_cube(4, centre=centre2, name=name2)
-cube1 = sim.get_struct(name1)
-cube2 = sim.get_struct(name2)
+cube1 = sim.get_roi(name1)
+cube2 = sim.get_roi(name2)
 
 
 def test_mid_idx():

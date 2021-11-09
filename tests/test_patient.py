@@ -66,11 +66,11 @@ def test_study_with_scans():
     s = p.studies[0]
     assert len(s.mr_scans) == 1
     assert s.mr_scans[0].get_voxel_size() == sim.get_voxel_size()
-    assert len(s.mr_structs) == 1
-    assert len(s.mr_structs[0].get_structs()) == 2
+    assert len(s.mr_structure_sets) == 1
+    assert len(s.mr_structure_sets[0].get_rois()) == 2
     s.add_scan(sim, scan_type="CT")
     assert len(s.ct_scans) == 1
-    assert len(s.ct_structs) == 1
+    assert len(s.ct_structure_sets) == 1
     p.write("tmp", structure_set=None)
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert os.path.exists(f"{sdir}/MR")
@@ -88,7 +88,7 @@ def test_load_images():
     assert len(s.mr_scans) == 1
     assert np.all(s.ct_scans[0].get_affine() == sim.get_affine())
 
-def test_write_structs_nifti():
+def test_write_rois_nifti():
     p.studies = []
     p.add_study(images=[sim])
     if os.path.exists(pdir):
@@ -97,12 +97,12 @@ def test_write_structs_nifti():
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert os.path.exists(f"{sdir}/CT")
     assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
-    nifti_structs = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}/"
-                               f"RTSTRUCT_{sim.get_structs()[0].timestamp}")
-    assert "cube.nii" in nifti_structs
-    assert "sphere.nii" in nifti_structs
+    nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}/"
+                               f"RTSTRUCT_{sim.get_structure_sets()[0].timestamp}")
+    assert "cube.nii" in nifti_rois
+    assert "sphere.nii" in nifti_rois
 
-def test_write_structs_dicom():
+def test_write_rois_dicom():
     pass
 
 def test_read_nifti_patient():

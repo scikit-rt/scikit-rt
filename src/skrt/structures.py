@@ -19,17 +19,17 @@ import skrt.core
 import skrt.image
 
 
-class StructDefaults:
-    """Singleton class for assigning default structure names and colours."""
+class ROIDefaults:
+    """Singleton class for assigning default ROI names and colours."""
 
     # Define the single instance as a class attribute
     instance = None
 
     # Create single instance in inner class
-    class __StructDefaults:
+    class __ROIDefaults:
         def __init__(self):
 
-            self.n_structs = 0
+            self.n_rois = 0
             self.n_structure_sets = 0
             self.n_colors_used = 0
 
@@ -43,40 +43,40 @@ class StructDefaults:
                 del self.colors[i]
 
     def __init__(self, reset=False):
-        """Constructor of StructDefaults singleton class."""
+        """Constructor of ROIDefaults singleton class."""
 
-        if not StructDefaults.instance:
-            StructDefaults.instance = StructDefaults.__StructDefaults()
+        if not ROIDefaults.instance:
+            ROIDefaults.instance = ROIDefaults.__ROIDefaults()
         elif reset:
-            StructDefaults.instance.__init__()
+            ROIDefaults.instance.__init__()
 
-    def get_default_struct_name(self):
-        """Get a default name for a structure."""
+    def get_default_roi_name(self):
+        """Get a default name for an ROI."""
 
-        StructDefaults.instance.n_structs += 1
-        return f"ROI {StructDefaults.instance.n_structs}"
+        ROIDefaults.instance.n_rois += 1
+        return f"ROI {ROIDefaults.instance.n_rois}"
 
-    def get_default_struct_color(self):
-        """Get a default structure color."""
+    def get_default_roi_color(self):
+        """Get a default roi color."""
 
-        if StructDefaults.instance.n_colors_used >= len(StructDefaults.instance.colors):
+        if ROIDefaults.instance.n_colors_used >= len(ROIDefaults.instance.colors):
             return np.random.rand(3)
-        color = StructDefaults.instance.colors[StructDefaults.instance.n_colors_used]
-        StructDefaults.instance.n_colors_used += 1
+        color = ROIDefaults.instance.colors[ROIDefaults.instance.n_colors_used]
+        ROIDefaults.instance.n_colors_used += 1
         return color
 
     def get_default_structure_set_name(self):
         """Get a default name for a structure set."""
 
-        StructDefaults.instance.n_structure_sets += 1
-        return f"RtStruct {StructDefaults.instance.n_structure_sets}"
+        ROIDefaults.instance.n_structure_sets += 1
+        return f"StructureSet {ROIDefaults.instance.n_structure_sets}"
 
 
-StructDefaults()
+ROIDefaults()
 
 
 class ROI(skrt.image.Image):
-    """Single structure."""
+    """Single region of interest (ROI)."""
 
     def __init__(
         self,
@@ -90,7 +90,7 @@ class ROI(skrt.image.Image):
         **kwargs,
     ):
 
-        """Load structure from mask or contour.
+        """Load ROI from mask or contour.
 
         Parameters
         ----------
@@ -107,14 +107,14 @@ class ROI(skrt.image.Image):
                 binary mask.
 
             If <source> is not given, <contours> and <shape> must be given in
-            order to load a structure directly from a contour.
+            order to load an ROI directly from a contour.
 
         name : str, default=None
-            Name of the structure. If <source> is a file and no name is given,
+            Name of the ROI. If <source> is a file and no name is given,
             the name will be inferred from the filename.
 
         color : matplotlib color, default=None
-            Color in which this structure will be plotted. If None, a color
+            Color in which this ROI will be plotted. If None, a color
             will be assigned.
 
         load : bool, default=True
@@ -125,7 +125,7 @@ class ROI(skrt.image.Image):
             Associated image from which to extract shape and affine matrix.
 
         shape : list, default=None
-            Number of voxels in the image to which the structure belongs, in
+            Number of voxels in the image to which the ROI belongs, in
             order (x, y, z). Needed if <contours> is used instead of <source>.
 
         kwargs : dict, default=None
@@ -159,35 +159,31 @@ class ROI(skrt.image.Image):
                 #  self.name = name[0].upper() + name[1:]
                 self.name = name
             else:
-                self.name = StructDefaults().get_default_struct_name()
+                self.name = ROIDefaults().get_default_roi_name()
         self.original_name = name
 
-        # Load structure data
+        # Load ROI data
         self.loaded = False
         self.loaded_contours = False
         self.loaded_mask = False
         if load:
             self.load()
 
-    def copy(self, name=None):
-        """Create copy of structure."""
+    def clone(self, name=None):
+        """Create clone of ROI, either with custom name or 'copy' appended to 
+        name."""
 
-        # Create blank ROI
+        # Clone the ROI
+        clone = Data.clone(self)
+
+        # Set name of clone
         if name is None:
             name = self.name + " copy"
-        new_roi = ROI(name=name)
-
-        # Assign properties
-        for key, value in self.__dict__.items():
-            if key in ["color", "name"]:
-                continue
-            setattr(new_roi, key, value)
-
-        # Return copy
-        return new_roi
+        clone.name = name
+        return clone
 
     def load(self):
-        """Load structure from file."""
+        """Load ROI from file."""
 
         if self.loaded:
             return
@@ -195,7 +191,7 @@ class ROI(skrt.image.Image):
         if self.image:
             self.image.load_data()
 
-        structs = []
+        rois = []
 
         # Load from an existing Image
         if issubclass(type(self.source), skrt.image.Image):
@@ -210,27 +206,27 @@ class ROI(skrt.image.Image):
         # Try loading from dicom structure set
         elif isinstance(self.source, str):
 
-            structs = load_structs_dicom(self.source, names=self.name)
-            if len(structs):
+            rois = load_rois_dicom(self.source, names=self.name)
+            if len(rois):
 
                 # Check a shape or image was given
                 if self.shape is None and self.image is None:
                     raise RuntimeError(
                         "Must provide an associated image or "
-                        "image shape if loading a structure "
+                        "image shape if loading an ROI "
                         "from dicom!"
                     )
 
-                # Get structure info
-                struct = structs[list(structs.keys())[0]]
-                self.name = struct["name"]
-                self.input_contours = struct["contours"]
+                # Get ROI info
+                roi = rois[list(rois.keys())[0]]
+                self.name = roi["name"]
+                self.input_contours = roi["contours"]
                 if not self.custom_color:
-                    self.set_color(struct["color"])
+                    self.set_color(roi["color"])
                 self.source_type = "dicom"
 
-        # Load structure mask
-        if not self.loaded and not len(structs) and self.source is not None:
+        # Load ROI mask
+        if not self.loaded and not len(rois) and self.source is not None:
             self.source_type = "mask"
             skrt.image.Image.__init__(self, self.source, **self.kwargs)
             self.loaded = True
@@ -354,7 +350,7 @@ class ROI(skrt.image.Image):
             # Check an image or shape was given
             if self.image is None and self.shape is None:
                 raise RuntimeError(
-                    "Must set structure.image or structure.shape"
+                    "Must set ROI.image or ROI.shape"
                     " before creating mask!"
                 )
             if self.image is None:
@@ -432,7 +428,7 @@ class ROI(skrt.image.Image):
         return skrt.image.Image.get_slice(self, *args, **kwargs).astype(bool)
 
     def get_indices(self, view="x-y", slice_num=False):
-        """Get list of slice indices on which this structure exists. If
+        """Get list of slice indices on which this ROI exists. If
         <slice_num> is True, slice numbers will be returned instead of
         indices."""
 
@@ -446,7 +442,7 @@ class ROI(skrt.image.Image):
             return indices
 
     def get_mid_idx(self, view="x-y", slice_num=False):
-        """Get central slice index of this structure in a given orientation."""
+        """Get central slice index of this ROI in a given orientation."""
 
         indices = self.get_indices(view, slice_num=slice_num)
         if not len(indices):
@@ -454,7 +450,7 @@ class ROI(skrt.image.Image):
         return round(np.mean(indices))
 
     def on_slice(self, view, sl=None, idx=None, pos=None):
-        """Check whether this structure exists on a given slice."""
+        """Check whether this ROI exists on a given slice."""
 
         idx = self.get_idx(view, sl, idx, pos)
         if hasattr(self, 'contours') and view in self.contours:
@@ -538,7 +534,7 @@ class ROI(skrt.image.Image):
         return centre
 
     def get_volume(self, units="mm"):
-        """Get structure volume."""
+        """Get ROI volume."""
 
         if hasattr(self, "volume"):
             return self.volume[units]
@@ -553,7 +549,7 @@ class ROI(skrt.image.Image):
     def get_area(
         self, view="x-y", sl=None, idx=None, pos=None, units="mm", flatten=False
     ):
-        """Get the area of the structure on a given slice."""
+        """Get the area of the ROI on a given slice."""
 
         if view is None:
             view = "x-y"
@@ -567,7 +563,7 @@ class ROI(skrt.image.Image):
         return area
 
     def get_length(self, units="mm", ax="z"):
-        """Get total length of the structure along a given axis."""
+        """Get total length of the ROI along a given axis."""
 
         if hasattr(self, "length") and ax in self.length:
             return self.length[ax][units]
@@ -605,16 +601,16 @@ class ROI(skrt.image.Image):
         <metrics>.
 
         Possible metrics:
-            - 'volume': volume of entire structure.
+            - 'volume': volume of entire ROI.
             - 'area': area either of the central x-y slice, or of a given
             view/slice if either sl/pos/idx are given.
-            - 'centroid': centre-of-mass either of the entire structure, or a
+            - 'centroid': centre-of-mass either of the entire ROI, or a
             given view/slice if either sl/pos/idx are given.
-            - 'centroid_global': centre-of-mass of the entire structure (note
+            - 'centroid_global': centre-of-mass of the entire ROI (note
             that this is the same as 'centroid' if sl/pos/idx are all None)
-            - 'x_length': structure length along the x axis
-            - 'y_length': structure length along the y axis
-            - 'z_length': structure length along the z axis
+            - 'x_length': ROI length along the x axis
+            - 'y_length': ROI length along the y axis
+            - 'z_length': ROI length along the z axis
         """
 
         # Parse volume and area units
@@ -895,7 +891,7 @@ class ROI(skrt.image.Image):
             - 'area_diff_flat': Absolute area difference of projections of
             each ROI.
             - 'rel_area_diff': Relative area difference, either on a specific
-            slice or on the central 'x-y' slice of each structure, if no
+            slice or on the central 'x-y' slice of each ROI, if no
             view and idx/pos/sl are given.
             - 'rel_area_diff_flat': Relative area difference of projections of
             each ROI.
@@ -1099,7 +1095,7 @@ class ROI(skrt.image.Image):
             print(f"Warning: {color} not a valid color!")
             color = None
         if color is None:
-            color = StructDefaults().get_default_struct_color()
+            color = ROIDefaults().get_default_roi_color()
         self.color = matplotlib.colors.to_rgba(color)
 
     def plot(
@@ -1118,7 +1114,7 @@ class ROI(skrt.image.Image):
         color=None,
         **kwargs,
     ):
-        """Plot this structure as either a mask or a contour."""
+        """Plot this ROI as either a mask or a contour."""
 
         show_centroid = "centroid" in plot_type
         if zoom and zoom_centre is None:
@@ -1177,7 +1173,7 @@ class ROI(skrt.image.Image):
             )
 
         else:
-            print("Unrecognised structure plotting option:", plot_type)
+            print("Unrecognised ROI plotting option:", plot_type)
 
     def plot_mask(
         self,
@@ -1198,7 +1194,7 @@ class ROI(skrt.image.Image):
         show=True,
         **kwargs,
     ):
-        """Plot the structure as a mask."""
+        """Plot the ROI as a mask."""
 
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
@@ -1254,7 +1250,7 @@ class ROI(skrt.image.Image):
         show=True,
         **kwargs,
     ):
-        """Plot the structure as a contour."""
+        """Plot the ROI as a contour."""
 
         self.load()
         if not hasattr(self, "contours") or view not in self.contours:
@@ -1326,7 +1322,7 @@ class ROI(skrt.image.Image):
         """Plot comparison with another ROI."""
 
         if self.color == other.color:
-            roi2_color = StructDefaults().get_default_struct_color()
+            roi2_color = ROIDefaults().get_default_roi_color()
         else:
             roi2_color = other.color
 
@@ -1361,7 +1357,7 @@ class ROI(skrt.image.Image):
             self.fig.savefig(save_as)
 
     def get_zoom_centre(self, view):
-        """Get coordinates to zoom in on this structure."""
+        """Get coordinates to zoom in on this ROI."""
 
         zoom_centre = [None, None, None]
         x_ax, y_ax = skrt.image._plot_axes[view]
@@ -1385,17 +1381,17 @@ class ROI(skrt.image.Image):
 
         # Save to temp file
         if isinstance(self.source, str):
-            struct_source = self.source
+            roi_source = self.source
         else:
-            struct_source = ".tmp_structs.nii.gz"
-            self.write(struct_source)
+            roi_source = ".tmp_rois.nii.gz"
+            self.write(roi_source)
 
         QuickViewer(im_source, affine=self.get_affine(), title=self.name, 
-                    structs=struct_source,
-                    struct_names={self.name: "*"}, **kwargs)
+                    structs=roi_source, struct_names={self.name: "*"}, 
+                    **kwargs)
 
         os.remove(im_source)
-        os.remove(struct_source)
+        os.remove(roi_source)
 
     def write(self, outname=None, outdir=".", ext=None, **kwargs):
 
@@ -1449,7 +1445,7 @@ class ROI(skrt.image.Image):
             self.create_mask()
             skrt.image.Image.write(self, outname, **kwargs)
         else:
-            print("Warning: dicom structure writing not currently available!")
+            print("Warning: dicom ROI writing not currently available!")
 
     def transform(self, **kwargs):
         """Transform mask and ensure that contours will be remade."""
@@ -1464,7 +1460,7 @@ class ROI(skrt.image.Image):
             self.input_contours = None
 
 
-class RtStruct(skrt.core.Archive):
+class StructureSet(skrt.core.Archive):
     """Structure set."""
 
     def __init__(
@@ -1478,17 +1474,17 @@ class RtStruct(skrt.core.Archive):
         to_remove=None,
         multi_label=False
     ):
-        """Load structures from sources."""
+        """Load structure set from source(s)."""
 
         self.name = name
         if name is None:
-            self.name = StructDefaults().get_default_structure_set_name()
+            self.name = ROIDefaults().get_default_structure_set_name()
         self.sources = sources
         if self.sources is None:
             self.sources = []
         elif not skrt.core.is_list(sources):
             self.sources = [sources]
-        self.structs = []
+        self.rois = []
         self.set_image(image)
         self.to_keep = to_keep
         self.to_remove = to_remove
@@ -1502,17 +1498,17 @@ class RtStruct(skrt.core.Archive):
         if load:
             self.load()
 
-    def __getitem__(self, struct):
-        if isinstance(struct, int):
-            return self.get_structs()[struct]
-        elif isinstance(struct, str):
-            return self.get_struct_dict()[struct]
+    def __getitem__(self, roi):
+        if isinstance(roi, int):
+            return self.get_rois()[roi]
+        elif isinstance(roi, str):
+            return self.get_roi_dict()[roi]
 
     def __iter__(self):
-        return RtStructIterator(self)
+        return StructureSetIterator(self)
 
     def load(self, sources=None, force=False):
-        """Load structures from sources. If None, will load from own
+        """Load structure set from source(s). If None, will load from own
         self.sources."""
 
         if self.loaded and not force and sources is None:
@@ -1525,7 +1521,7 @@ class RtStruct(skrt.core.Archive):
 
             n = sources.max()
             for i in range(0, n):
-                self.structs.append(ROI(sources == i, image=self.image,
+                self.rois.append(ROI(sources == i, image=self.image,
                                     name=f"ROI_{i}", affine=self.image.affine))
             self.loaded = True
 
@@ -1545,7 +1541,7 @@ class RtStruct(skrt.core.Archive):
         for source in sources_expanded:
 
             if isinstance(source, ROI):
-                self.structs.append(source)
+                self.rois.append(source)
                 continue
 
             if isinstance(source, str):
@@ -1555,53 +1551,53 @@ class RtStruct(skrt.core.Archive):
                     continue
 
             # Attempt to load from dicom
-            structs = []
+            rois = []
             if isinstance(source, str):
-                structs = load_structs_dicom(source)
-            if len(structs):
-                for struct in structs.values():
-                    self.structs.append(
+                rois = load_rois_dicom(source)
+            if len(rois):
+                for roi in rois.values():
+                    self.rois.append(
                         ROI(
-                            struct["contours"],
-                            name=struct["name"],
-                            color=struct["color"],
+                            roi["contours"],
+                            name=roi["name"],
+                            color=roi["color"],
                             image=self.image,
                         )
                     )
 
-            # Load from struct mask
+            # Load from ROI mask
             else:
                 try:
-                    self.structs.append(ROI(source, image=self.image))
+                    self.rois.append(ROI(source, image=self.image))
                 except RuntimeError:
                     continue
 
-        self.rename_structs()
-        self.filter_structs()
+        self.rename_rois()
+        self.filter_rois()
         self.loaded = True
 
     def reset(self):
-        """Reload structures from sources."""
+        """Reload structure set from original source(s)."""
 
-        self.structs = []
+        self.rois = []
         self.loaded = False
         self.load(force=True)
 
     def set_image(self, image):
-        """Set image for self and all structures."""
+        """Set image for self and all ROIs."""
 
         if image and not isinstance(image, skrt.image.Image):
             image = skrt.image.Image(image)
 
         self.image = image
-        for s in self.structs:
+        for s in self.rois:
             s.image = image
 
-    def rename_structs(
+    def rename_rois(
         self, names=None, first_match_only=True, keep_renamed_only=False
     ):
-        """Rename structures if a naming dictionary is given. If
-        <first_match_only> is True, only the first structure matching the
+        """Rename ROIs if a naming dictionary is given. If
+        <first_match_only> is True, only the first ROI matching the
         possible matches will be renamed."""
 
         if names is None:
@@ -1612,6 +1608,7 @@ class RtStruct(skrt.core.Archive):
         # Loop through each new name
         already_renamed = []
         for name, matches in names.items():
+            print("trying to rename to:", name)
 
             if not skrt.core.is_list(matches):
                 matches = [matches]
@@ -1619,33 +1616,35 @@ class RtStruct(skrt.core.Archive):
             # Loop through all possible original names
             name_matched = False
             for m in matches:
+                print("looking for match with:", m)
 
-                # Loop through structures and see if there's a match
-                for i, s in enumerate(self.structs):
+                # Loop through ROIs and see if there's a match
+                for i, s in enumerate(self.rois):
 
-                    # Don't rename a structure more than once
+                    # Don't rename an ROI more than once
                     if i in already_renamed:
                         continue
 
                     if fnmatch.fnmatch(s.name.lower(), m.lower()):
+                        print("it's a match! with", s.name)
                         s.name = name
                         name_matched = True
                         already_renamed.append(i)
                         if first_match_only:
                             break
 
-                # If first_match_only, don't rename more than one structure
+                # If first_match_only, don't rename more than one ROI
                 # with this new name
                 if name_matched and first_match_only:
                     break
 
-        # Keep only the renamed structs
+        # Keep only the renamed ROIs if requested
         if keep_renamed_only:
-            renamed_structs = [self.structs[i] for i in already_renamed]
-            self.structs = renamed_structs
+            renamed_rois = [self.rois[i] for i in already_renamed]
+            self.rois = renamed_rois
 
-    def filter_structs(self, to_keep=None, to_remove=None):
-        """Keep only structs in the to_keep list, and remove any in the
+    def filter_rois(self, to_keep=None, to_remove=None):
+        """Keep only the ROIs in the to_keep list and remove any in the
         to_remove list."""
 
         if to_keep is None:
@@ -1659,37 +1658,37 @@ class RtStruct(skrt.core.Archive):
 
         if to_keep is not None:
             keep = []
-            for s in self.structs:
+            for s in self.rois:
                 if any([fnmatch.fnmatch(s.name.lower(), k.lower()) for k in to_keep]):
                     keep.append(s)
-            self.structs = keep
+            self.rois = keep
 
         if to_remove is not None:
             keep = []
-            for s in self.structs:
+            for s in self.rois:
                 if not any(
                     [fnmatch.fnmatch(s.name.lower(), r.lower()) for r in to_remove]
                 ):
                     keep.append(s)
-            self.structs = keep
+            self.rois = keep
 
-    def add_structs(self, sources):
-        """Add additional structures from sources."""
+    def add_rois(self, sources):
+        """Add additional ROIs from source(s)."""
 
         if not skrt.core.is_list(sources):
             sources = [sources]
         self.sources.extend(sources)
-        self.load_structs(sources)
+        self.load_rois(sources)
 
-    def add_struct(self, source, **kwargs):
-        """Add a single structure with  optional kwargs."""
+    def add_roi(self, source, **kwargs):
+        """Add a single ROI with  optional kwargs."""
 
         self.sources.append(source)
         if isinstance(source, ROI):
             roi = source
         else:
             roi = ROI(source, **kwargs)
-        self.structs.append(roi)
+        self.rois.append(roi)
 
     def copy(
         self,
@@ -1699,7 +1698,7 @@ class RtStruct(skrt.core.Archive):
         to_remove=None,
         keep_renamed_only=False,
     ):
-        """Create a copy of this structure set, with structures optionally
+        """Create a copy of this structure set with ROIs optionally
         renamed or filtered."""
 
         if not hasattr(self, "n_copies"):
@@ -1709,7 +1708,7 @@ class RtStruct(skrt.core.Archive):
         if name is None:
             name = f"{self.name} (copy {self.n_copies})"
 
-        ss = RtStruct(
+        ss = StructureSet(
             self.sources,
             name=name,
             image=self.image,
@@ -1719,76 +1718,82 @@ class RtStruct(skrt.core.Archive):
             to_remove=to_remove,
         )
         if self.loaded:
-            ss.structs = self.structs
+            ss.rois = self.rois
             ss.loaded = True
-            ss.rename_structs(names, keep_renamed_only=keep_renamed_only)
-            ss.filter_structs(to_keep, to_remove)
+            ss.rename_rois(names, keep_renamed_only=keep_renamed_only)
+            ss.filter_rois(to_keep, to_remove)
 
         return ss
 
-    def get_structs(self):
+    def get_rois(self):
         """Get list of ROI objects."""
 
         self.load()
-        return self.structs
+        return self.rois
 
-    def get_struct_names(self):
-        """Get list of names of structures."""
-
-        self.load()
-        return [s.name for s in self.structs]
-
-    def get_struct_dict(self):
-        """Get dict of structure names and ROI objects."""
+    def get_roi_names(self, original=False):
+        """
+        Get list of names of ROIs in this structure set. If <original> is True,
+        get the original names of the ROIs.
+        """
 
         self.load()
-        return {s.name: s for s in self.structs}
+        if not original:
+            return [s.name for s in self.rois]
+        else:
+            return [s.original_name for s in self.rois]
 
-    def get_struct(self, name):
-        """Get a structure with a specific name."""
+    def get_roi_dict(self):
+        """Get dict of ROI names and objects."""
 
-        structs = self.get_struct_dict()
-        if name not in structs:
-            print(f"Structure {name} not found!")
+        self.load()
+        return {s.name: s for s in self.rois}
+
+    def get_roi(self, name):
+        """Get an ROI with a specific name."""
+
+        rois = self.get_roi_dict()
+        if name not in rois:
+            print(f"ROI {name} not found!")
             return
-        return structs[name]
+        return rois[name]
 
-    def print_structs(self):
+    def print_rois(self):
 
         self.load()
-        print("\n".join(self.get_struct_names()))
+        print("\n".join(self.get_roi_names()))
 
     def __repr__(self):
 
         self.load()
-        out_str = "RtStruct\n{"
+        out_str = "StructureSet\n{"
         out_str += "\n  name : " + str(self.name)
-        out_str += "\n  structs :\n    "
-        out_str += "\n    ".join(self.get_struct_names())
+        out_str += "\n  ROIs :\n    "
+        out_str += "\n    ".join(self.get_roi_names())
         out_str += "\n}"
         return out_str
 
     def get_geometry(self, **kwargs):
-        """Get pandas DataFrame of geometric properties for all structures."""
+        """Get pandas DataFrame of geometric properties for all ROIs."""
 
-        return pd.concat([s.get_geometry(**kwargs) for s in self.get_structs()])
+        return pd.concat([s.get_geometry(**kwargs) for s in self.get_rois()])
 
     def get_comparison(self, other=None, method=None, **kwargs):
         """Get pandas DataFrame of comparison metrics vs a single ROI or
-        another RtStruct."""
+        another StructureSet."""
 
         dfs = []
         if isinstance(other, ROI):
-            dfs = [s.get_comparison(other, **kwargs) for s in self.get_structs()]
+            dfs = [s.get_comparison(other, **kwargs) for s in self.get_rois()]
 
-        elif isinstance(other, RtStruct) or other is None:
+        elif isinstance(other, StructureSet) or other is None:
             pairs = self.get_comparison_pairs(other, method)
             dfs = []
             for roi1, roi2 in pairs:
                 dfs.append(roi1.get_comparison(roi2, **kwargs))
 
         else:
-            raise TypeError("<other> must be ROI or RtStruct!")
+            raise TypeError("<other> must be ROI or StructureSet!")
 
         return pd.concat(dfs)
 
@@ -1806,17 +1811,17 @@ class RtStruct(skrt.core.Archive):
         matches = []
         if method in ["auto", "named"]:
             matches = [
-                s for s in self.get_struct_names() if s in other.get_struct_names()
+                s for s in self.get_roi_names() if s in other.get_roi_names()
             ]
             if len(matches) or method == "named":
                 return [
-                    (self.get_struct(name), other.get_struct(name)) for name in matches
+                    (self.get_roi(name), other.get_roi(name)) for name in matches
                 ]
 
-        # Otherwise, pair each structure with every other
+        # Otherwise, pair each ROI with every other
         pairs = []
-        for roi1 in self.get_structs():
-            for roi2 in other.get_structs():
+        for roi1 in self.get_rois():
+            for roi2 in other.get_rois():
                 pairs.append((roi1, roi2))
 
         # Remove matching names if needed
@@ -1865,7 +1870,7 @@ class RtStruct(skrt.core.Archive):
             roi1.plot_surface_distances(roi2, signed=signed, save_as=outname, **kwargs)
 
     def write(self, outname=None, outdir=".", ext=None, overwrite=False, **kwargs):
-        """Write to a dicom RtStruct file or directory of nifti files."""
+        """Write to a dicom StructureSet file or directory of nifti files."""
 
         if ext is not None and not ext.startswith("."):
             ext = f".{ext}"
@@ -1881,26 +1886,26 @@ class RtStruct(skrt.core.Archive):
             print("Warning: dicom writing not yet available!")
             return
 
-        # Otherwise, write to individual structure files
+        # Otherwise, write to individual ROI files
         if not os.path.exists(outdir):
             os.makedirs(outdir)
         elif overwrite:
             shutil.rmtree(outdir)
             os.mkdir(outdir)
-        for s in self.get_structs():
+        for s in self.get_rois():
             s.write(outdir=outdir, ext=ext, **kwargs)
 
     def get_staple(self, **kwargs):
-        """Apply STAPLE to all structures in this structure set and return
+        """Apply STAPLE to all ROIs in this structure set and return
         STAPLE contour as an ROI."""
 
         # Get staple mask
         import SimpleITK as sitk
-        structs = []
-        for s in self.structs:
+        rois = []
+        for s in self.rois:
             s.create_mask()
-            structs.append(sitk.GetImageFromArray(s.sdata.astype(int)))
-        probs = sitk.GetArrayFromImage(sitk.STAPLE(structs, 1))
+            rois.append(sitk.GetImageFromArray(s.sdata.astype(int)))
+        probs = sitk.GetArrayFromImage(sitk.STAPLE(rois, 1))
         mask = probs > 0.95
 
         # Create staple ROI
@@ -1908,7 +1913,7 @@ class RtStruct(skrt.core.Archive):
             mask, 
             name="staple", 
             image=self.image,
-            affine=self.structs[0].saffine,
+            affine=self.rois[0].saffine,
             **kwargs
         )
 
@@ -1916,22 +1921,22 @@ class RtStruct(skrt.core.Archive):
         return staple
 
 
-class RtStructIterator:
+class StructureSetIterator:
 
-    def __init__(self, rtstruct):
+    def __init__(self, structure_set):
         self.idx = -1
-        self.rtstruct = rtstruct
+        self.structure_set = structure_set
 
     def __next__(self):
         self.idx += 1
-        if self.idx < len(self.rtstruct.get_structs()):
-            return self.rtstruct.get_structs()[self.idx]
+        if self.idx < len(self.structure_set.get_rois()):
+            return self.structure_set.get_rois()[self.idx]
         raise StopIteration
 
 
-def load_structs_dicom(path, names=None):
-    """Load structure(s) from a dicom structure file. <name> can be a single
-    name or list of names of structures to load."""
+def load_rois_dicom(path, names=None):
+    """Load ROI(s) from a dicom structure set file. <name> can be a single
+    name or list of names of ROIs to load."""
 
     # Load dicom object
     try:
@@ -1942,40 +1947,40 @@ def load_structs_dicom(path, names=None):
         print(f"Warning: {path} is not a DICOM structure set file!")
         return
 
-    # Get struture names
+    # Get ROI names
     seq = get_dicom_sequence(ds, "StructureSetROI")
-    structs = {}
-    for struct in seq:
-        structs[int(struct.ROINumber)] = {"name": struct.ROIName}
+    rois = {}
+    for roi in seq:
+        rois[int(roi.ROINumber)] = {"name": roi.ROIName}
 
-    # Find structures matching requested names
+    # Find ROIs matching requested names
     names_to_load = None
     if isinstance(names, str):
         names_to_load = [names]
     elif skrt.core.is_list(names):
         names_to_load = names
     if names_to_load:
-        structs = {
+        rois = {
             i: s
-            for i, s in structs.items()
+            for i, s in rois.items()
             if any(
                 [fnmatch.fnmatch(s["name"].lower(), n.lower()) for n in names_to_load]
             )
         }
-        if not len(structs):
-            print(f"Warning: no structures found matching name(s): {names}")
+        if not len(rois):
+            print(f"Warning: no ROIs found matching name(s): {names}")
             return
 
-    # Get structure details
+    # Get ROI details
     roi_seq = get_dicom_sequence(ds, "ROIContour")
     for roi in roi_seq:
 
         number = roi.ReferencedROINumber
-        if number not in structs:
+        if number not in rois:
             continue
         data = {"contours": {}}
 
-        # Get structure colour
+        # Get ROI colour
         if "ROIDisplayColor" in roi:
             data["color"] = [int(c) / 255 for c in list(roi.ROIDisplayColor)]
         else:
@@ -1994,9 +1999,9 @@ def load_structs_dicom(path, names=None):
                     data["contours"][z] = []
                 data["contours"][z].append(np.array(plane_data))
 
-        structs[number].update(data)
+        rois[number].update(data)
 
-    return structs
+    return rois
 
 
 def get_dicom_sequence(ds=None, basename=""):
@@ -2010,9 +2015,18 @@ def get_dicom_sequence(ds=None, basename=""):
     return sequence
 
 
-def write_rtstruct_dicom(outname, structs, image=None, affine=None, shape=None,
-                         orientation=None, header_source=None, patient_id=None,
-                         modality=None, root_uid=None):
+def write_structure_set_dicom(
+    outname, 
+    rois, 
+    image=None, 
+    affine=None, 
+    shape=None,
+    orientation=None, 
+    header_source=None, 
+    patient_id=None,
+    modality=None, 
+    root_uid=None
+):
 
     # Check we have the relevant info
     if not image and (not affine or not shape):
@@ -2036,11 +2050,11 @@ def write_rtstruct_dicom(outname, structs, image=None, affine=None, shape=None,
         ds = skrt.image.create_dicom(patient_id, modality, root_uid)
         ds.set_geometry(affine, shape, orientation)
 
-    # Adjust dataset to be for RtStruct instead of image
+    # Adjust dataset to be for StructureSet instead of image
 
 
-def dicom_dataset_to_rtstruct(ds):
-    '''Convert an existing image dicom dataset to an RtStruct dataset.'''
+def dicom_dataset_to_structure_set(ds):
+    '''Convert an existing image dicom dataset to a StructureSet dataset.'''
 
     # Adjust class UIDs
     ds.file_meta.ImplementationClassUID = "9.9.9.100.0.0.1.0.9.6.0.0.1"

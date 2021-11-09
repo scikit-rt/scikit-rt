@@ -7,7 +7,7 @@ import time
 
 import skrt.core
 from skrt.image import Image
-from skrt.structures import RtStruct
+from skrt.structures import StructureSet
 
 
 class Study(skrt.core.Archive):
@@ -36,13 +36,13 @@ class Study(skrt.core.Archive):
             for im in getattr(self, im_name):
                 im.scan_type = subdir
 
-            # Get associated structs
+            # Get associated structure sets
             struct_subdir = f"RTSTRUCT/{subdir}"
             if os.path.exists(os.path.join(self.path, struct_subdir)):
                 setattr(
                     self,
-                    f"{subdir.lower()}_structs",
-                    self.get_structs(
+                    f"{subdir.lower()}_structure_sets",
+                    self.get_structure_sets(
                         subdir=struct_subdir, images=getattr(self, im_name)
                     ),
                 )
@@ -86,16 +86,16 @@ class Study(skrt.core.Archive):
 
         # Ensure corresponding structure list exists
         struct_subdir = f"RTSTRUCT/{scan_type}"
-        struct_name = f"{scan_type.lower()}_structs"
+        struct_name = f"{scan_type.lower()}_structure_sets"
         if not hasattr(self, struct_name):
             setattr(self, struct_name, [])
 
-        # Add the image's structures to structure list
-        structs = getattr(self, struct_name)
-        for rtstruct in im.get_structs():
-            structs.append(rtstruct)
-            if rtstruct.timestamp == "None_None":
-                rtstruct.timestamp = skrt.core.generate_timestamp()
+        # Add the image's structure sets to structure set list
+        structure_sets = getattr(self, struct_name)
+        for structure_set in im.get_structure_sets():
+            structure_sets.append(structure_set)
+            if structure_set.timestamp == "None_None":
+                structure_set.timestamp = skrt.core.generate_timestamp()
 
     def correct_dose_scan_position(self, doses=[]):
         """Correct for scan positions from CheckTomo being offset by one slice
@@ -307,15 +307,15 @@ class Study(skrt.core.Archive):
 
         return plan_dose
 
-    def get_structs(self, subdir="", images=[]):
-        """Make list of RtStruct objects found within a given subdir, and
+    def get_structure_sets(self, subdir="", images=[]):
+        """Make list of StructureSet objects found within a given subdir and
         set their associated scan objects."""
 
-        # Find RtStruct directories associated with each scan
+        # Find structure set directories associated with each scan
         groups = self.get_dated_objects(dtype=skrt.core.Archive, subdir=subdir)
 
-        # Load RtStruct files for each
-        structs = []
+        # Load structure set files for each
+        structure_sets = []
         for group in groups:
 
             # Find the matching Image for this group
@@ -337,20 +337,20 @@ class Study(skrt.core.Archive):
                         image = im
                         break
 
-            # Find all RtStruct files inside the dir
+            # Find all structure set files inside the dir
             for file in group.files:
 
-                # Create RtStruct
-                rt_struct = RtStruct(file.path, image=image)
+                # Create StructureSet
+                structure_set = StructureSet(file.path, image=image)
 
                 # Add to Image
                 if image is not None:
-                    image.add_structs(rt_struct)
+                    image.add_structure_set(structure_set)
 
                 # Add to list of all structure sets
-                structs.append(rt_struct)
+                structure_sets.append(structure_set)
 
-        return structs
+        return structure_sets
 
     def get_description(self):
         """Load a study description."""
@@ -618,13 +618,13 @@ class Patient(skrt.core.PathData):
 
                     # Find structure sets to write
                     if structure_set == "all":
-                        ss_to_write = im.get_structs()
+                        ss_to_write = im.get_structure_sets()
                     elif structure_set is None:
                         ss_to_write = []
                     elif isinstance(structure_set, int):
-                        ss_to_write = [im.get_structs()[structure_set]]
+                        ss_to_write = [im.get_structure_sets()[structure_set]]
                     elif skrt.core.is_list(structure_set):
-                        ss_to_write = [im.get_structs()[i] for i in structure_set]
+                        ss_to_write = [im.get_structure_sets()[i] for i in structure_set]
                     else:
                         raise TypeError(
                             "Unrecognised structure_set option " f"{structure_set}"
@@ -653,7 +653,7 @@ class Patient(skrt.core.PathData):
                                 continue
                             ss.write(outname=f'{filename}.dcm', outdir=ss_path)
 
-                        # Write structs to individual files
+                        # Write ROIs to individual files
                         else:
                             ss.write(outdir=ss_dir, ext=ext)
 

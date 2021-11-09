@@ -110,7 +110,7 @@ class Image(skrt.core.Archive):
         self.affine = affine
         self.downsampling = downsample
         self.nifti_array = nifti_array
-        self.structs = []
+        self.structure_sets = []
 
         path = self.source if isinstance(self.source, str) else ""
         skrt.core.Archive.__init__(self, path)
@@ -151,8 +151,8 @@ class Image(skrt.core.Archive):
         self.load_data()
         return self.affine
 
-    def get_structs(self):
-        return self.structs
+    def get_structure_sets(self):
+        return self.structure_sets
 
     def load_data(self, force=False):
         """Load pixel array from image source."""
@@ -610,15 +610,15 @@ class Image(skrt.core.Archive):
             self.fig = plt.figure(figsize=fig_tuple)
             self.ax = self.fig.add_subplot()
 
-    def add_structs(self, structure_set):
+    def add_structure_set(self, structure_set):
         """Add a structure set."""
 
-        self.structs.append(structure_set)
+        self.structure_sets.append(structure_set)
 
-    def clear_structs(self):
-        """Clear all structures."""
+    def clear_structure_sets(self):
+        """Clear all structure sets."""
 
-        self.structs = []
+        self.structure_sets = []
 
     def get_mpl_kwargs(self, view, mpl_kwargs=None, scale_in_mm=True):
         """Get matplotlib kwargs dict including defaults."""
@@ -684,10 +684,10 @@ class Image(skrt.core.Archive):
         minor_ticks=None,
         ticks_all_sides=False,
         structure_set=None,
-        struct_plot_type="contour",
-        struct_legend=False,
-        struct_kwargs={},
-        centre_on_struct=None,
+        roi_plot_type="contour",
+        roi_legend=False,
+        roi_kwargs={},
+        centre_on_roi=None,
         legend_loc="lower left",
         flatten=False,
     ):
@@ -785,27 +785,27 @@ class Image(skrt.core.Archive):
         structure_set : int/str, default=None
             Option for which structure set should be plotted (if the Image
             owns any structure sets). Can be:
-                - None: no structures will be plotted.
-                - The index in self.structs of the structure set (e.g. to plot
+                - None: no structure sets will be plotted.
+                - The index in self.structure_sets of the structure set (e.g. to plot
                 the newest structure set, use structure_set=-1)
                 - 'all': all structure sets will be plotted.
 
-        struct_plot_type : str, default='contour'
-            Structure plotting type (see ROI.plot() for options).
+        roi_plot_type : str, default='contour'
+            ROI plotting type (see ROI.plot() for options).
 
-        struct_legend : bool, default=False
-            If True, a legend will be drawn containing structure names.
+        roi_legend : bool, default=False
+            If True, a legend will be drawn containing ROI names.
 
-        struct_kwargs : dict, default=None
-            Extra arguments to provide to structure plotting.
+        roi_kwargs : dict, default=None
+            Extra arguments to provide to ROI plotting via the ROI.plot() method.
 
-        centre_on_struct : str, default=None
-            Name of struct on which to centre, if no idx/sl/pos is given.
+        centre_on_roi : str, default=None
+            Name of ROI on which to centre, if no idx/sl/pos is given.
             If <zoom> is given but no <zoom_centre>, the zoom will also centre
-            on this struct.
+            on this ROI.
 
         legend_loc : str, default='lower left'
-            Legend location for structure legend.
+            Legend location for ROI legend.
         """
 
         self.load_data()
@@ -815,35 +815,35 @@ class Image(skrt.core.Archive):
         self.ax.clear()
         self.load_data()
 
-        # Get list of structures to plot
+        # Get list of ROIs to plot
         to_plot = []
         if structure_set is not None:
 
             # Get list of structure sets to plot
             if isinstance(structure_set, int):
                 try:
-                    to_plot = [self.get_structs()[structure_set]]
+                    to_plot = [self.get_structure_sets()[structure_set]]
                 except IndexError:
                     print(
                         f"Warning: structure set {structure_set} not found! "
-                        f"Image only has {len(self.get_structs())} structure sets."
+                        f"Image only has {len(self.get_structure_sets())} structure sets."
                     )
             elif structure_set == "all":
-                to_plot = self.get_structs()
+                to_plot = self.get_structure_sets()
             elif skrt.core.is_list(structure_set):
-                to_plot = [self.get_structs()[i] for i in structure_set]
+                to_plot = [self.get_structure_sets()[i] for i in structure_set]
             else:
                 print(
                     f"Warning: structure set option {structure_set} not "
                     'recognised! Must be an int, None, or "all".'
                 )
 
-            # If centering on structure, find central slice
-            if all([i is None for i in [idx, pos, sl]]) and centre_on_struct:
-                central_struct = to_plot[0].get_struct(centre_on_struct)
-                idx = central_struct.get_mid_idx(view)
+            # If centering on ROI, find central slice
+            if all([i is None for i in [idx, pos, sl]]) and centre_on_roi:
+                central_roi = to_plot[0].get_roi(centre_on_roi)
+                idx = central_roi.get_mid_idx(view)
                 if zoom and zoom_centre is None:
-                    zoom_centre = central_struct.get_zoom_centre(view)
+                    zoom_centre = central_roi.get_zoom_centre(view)
 
         # Get image slice
         idx = self.get_idx(view, sl, idx, pos)
@@ -866,7 +866,7 @@ class Image(skrt.core.Archive):
         if len(to_plot):
             handles = []
             for ss in to_plot:
-                for s in ss.get_structs():
+                for s in ss.get_rois():
                     name = s.name
                     if len(to_plot) > 1:
                         name += f" ({ss.name})"
@@ -874,17 +874,17 @@ class Image(skrt.core.Archive):
                         view,
                         idx=idx,
                         ax=self.ax,
-                        plot_type=struct_plot_type,
+                        plot_type=roi_plot_type,
                         include_image=False,
                         show=False,
-                        **struct_kwargs,
+                        **roi_kwargs,
                     )
-                    if s.on_slice(view, idx=idx) and struct_legend:
+                    if s.on_slice(view, idx=idx) and roi_legend:
                         handles.append(mpatches.Patch(color=s.color,
                                                       label=name))
 
-            # Draw structure legend
-            if struct_legend and len(handles):
+            # Draw ROI legend
+            if roi_legend and len(handles):
                 self.ax.legend(
                     handles=handles, loc=legend_loc, facecolor="white",
                     framealpha=1

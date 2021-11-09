@@ -7,7 +7,7 @@ import shutil
 from scipy import ndimage
 
 from skrt.image import Image, _axes
-from skrt.structures import RtStruct, ROI
+from skrt.structures import StructureSet, ROI
 import skrt.core
 
 
@@ -63,7 +63,7 @@ class SyntheticImage(Image):
         self.bg_intensity = intensity
         self.background = self.make_background()
         self.shapes = []
-        self.struct_shapes = []
+        self.roi_shapes = []
         self.groups = {}
         self.shape_count = {}
         self.translation = None
@@ -92,8 +92,8 @@ class SyntheticImage(Image):
             "mpl_kwargs": {"interpolation": "none"},
         }
         qv_kwargs.update(kwargs)
-        structs = self.get_struct_data()
-        QuickViewer(self.get_data(), structs=structs, **qv_kwargs)
+        rois = self.get_roi_data()
+        QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
 
     def get_data(self):
         """Get data with noise overlaid."""
@@ -113,43 +113,43 @@ class SyntheticImage(Image):
         """Plot the current image."""
 
         self.sdata = self.get_data()
-        self.structs = [self.get_rtstruct()]
+        self.structure_sets = [self.get_structure_set()]
         Image.plot(self, structure_set=0, *args, **kwargs)
 
-    def get_struct_data(self):
-        """Get dict of structures and names, with any transformations applied."""
+    def get_roi_data(self):
+        """Get dict of ROIs and names, with any transformations applied."""
 
-        struct_data = {}
-        for shape in self.struct_shapes:
+        roi_data = {}
+        for shape in self.roi_shapes:
             data = shape.get_data(self.get_coords())
-            struct_data[shape.name] = data
-        return struct_data
+            roi_data[shape.name] = data
+        return roi_data
 
-    def get_rtstruct(self):
-        """Make RtStruct object of own structures."""
+    def get_structure_set(self):
+        """Make StructureSet object of own structures."""
 
-        rtstruct = RtStruct()
-        for shape in self.struct_shapes:
-            rtstruct.add_struct(
+        structure_set = StructureSet()
+        for shape in self.roi_shapes:
+            structure_set.add_roi(
                 shape.get_data(self.get_coords()), name=shape.name, affine=self.affine
             )
-        return rtstruct
+        return structure_set
 
-    def get_structs(self):
-        return [self.get_rtstruct()]
+    def get_structure_sets(self):
+        return [self.get_structure_set()]
 
-    def get_struct(self, name):
-        """Get a named structure as a Structure object."""
+    def get_roi(self, name):
+        """Get a named ROI as an ROI object."""
 
-        structs_dict = {s.name: s for s in self.struct_shapes}
-        if name not in structs_dict:
-            print("Structure", name, "not found!")
+        roi_dict = {s.name: s for s in self.roi_shapes}
+        if name not in roi_dict:
+            print("ROI", name, "not found!")
             return
 
-        s = structs_dict[name]
+        s = roi_dict[name]
         return ROI(s.get_data(self.get_coords()), name=name, affine=self.affine)
 
-    def write(self, outname=None, overwrite_struct_dir=False):
+    def write(self, outname=None, overwrite_roi_dir=False):
         """Write image data to an output file."""
 
         # Check filename
@@ -164,8 +164,8 @@ class SyntheticImage(Image):
         # Write image data
         Image.write(self, outname)
 
-        # Write structures
-        rtstruct = self.get_rtstruct()
+        # Write ROIs
+        structure_set = self.get_structure_set()
         exts = [".nii", ".nii.gz", ".npy"]
         outdir = outname
         ext_to_use = None
@@ -173,7 +173,8 @@ class SyntheticImage(Image):
             if outname.endswith(ext):
                 ext_to_use = ext
                 outdir = outname.replace(ext, "")
-        rtstruct.write(outdir=outdir, ext=ext_to_use, overwrite=overwrite_struct_dir)
+        structure_set.write(outdir=outdir, ext=ext_to_use, 
+                            overwrite=overwrite_roi_dir)
 
     def make_background(self):
         """Make blank image array or noisy array."""
@@ -184,32 +185,32 @@ class SyntheticImage(Image):
         """Remove all shapes."""
 
         self.shapes = []
-        self.struct_shapes = []
+        self.roi_shapes = []
         self.groups = {}
         self.shape_count = {}
         self.translation = None
         self.rotation = None
 
-    def add_shape(self, shape, shape_type, is_struct, above, group):
+    def add_shape(self, shape, shape_type, is_roi, above, group):
 
         if above:
             self.shapes.append(shape)
         else:
             self.shapes.insert(0, shape)
 
-        # Automatically treat as structure if given a group or name
-        if is_struct is None and (group is not None or shape.name is not None):
-            is_struct = True
+        # Automatically treat as ROI if given a group or name
+        if is_roi is None and (group is not None or shape.name is not None):
+            is_roi = True
 
-        if is_struct:
+        if is_roi:
             if group is not None:
                 if group not in self.groups:
                     self.groups[group] = ShapeGroup([shape], name=group)
-                    self.struct_shapes.append(self.groups[group])
+                    self.roi_shapes.append(self.groups[group])
                 else:
                     self.groups[group].add_shape(shape)
             else:
-                self.struct_shapes.append(shape)
+                self.roi_shapes.append(shape)
 
         if shape_type not in self.shape_count:
             self.shape_count[shape_type] = 1
@@ -227,7 +228,7 @@ class SyntheticImage(Image):
         radius,
         centre=None,
         intensity=0,
-        is_struct=None,
+        is_roi=None,
         name=None,
         above=True,
         group=None,
@@ -236,7 +237,7 @@ class SyntheticImage(Image):
         if centre is None:
             centre = self.get_image_centre()
         sphere = Sphere(self.shape, radius, centre, intensity, name)
-        self.add_shape(sphere, "sphere", is_struct, above, group)
+        self.add_shape(sphere, "sphere", is_roi, above, group)
 
     def add_cylinder(
         self,
@@ -245,7 +246,7 @@ class SyntheticImage(Image):
         axis="z",
         centre=None,
         intensity=0,
-        is_struct=None,
+        is_roi=None,
         name=None,
         above=True,
         group=None,
@@ -254,21 +255,21 @@ class SyntheticImage(Image):
         if centre is None:
             centre = self.get_image_centre()
         cylinder = Cylinder(self.shape, radius, length, axis, centre, intensity, name)
-        self.add_shape(cylinder, "cylinder", is_struct, above, group)
+        self.add_shape(cylinder, "cylinder", is_roi, above, group)
 
     def add_cube(
         self,
         side_length,
         centre=None,
         intensity=0,
-        is_struct=None,
+        is_roi=None,
         name=None,
         above=True,
         group=None,
     ):
 
         self.add_cuboid(
-            side_length, centre, intensity, is_struct, name, above, group=group
+            side_length, centre, intensity, is_roi, name, above, group=group
         )
 
     def add_cuboid(
@@ -276,7 +277,7 @@ class SyntheticImage(Image):
         side_length,
         centre=None,
         intensity=0,
-        is_struct=None,
+        is_roi=None,
         name=None,
         above=True,
         group=None,
@@ -287,7 +288,7 @@ class SyntheticImage(Image):
         side_length = skrt.core.to_three(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
-        self.add_shape(cuboid, "cuboid", is_struct, above, group)
+        self.add_shape(cuboid, "cuboid", is_roi, above, group)
 
     def add_grid(
         self, spacing, thickness=1, intensity=0, axis=None, name=None, above=True,

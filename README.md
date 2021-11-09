@@ -19,7 +19,7 @@ conda install conda-forge shapely
 
 ## Table of contents
 1) [Images](#1-images)
-2) [Structures and structure sets](#2-structures-and-structure-sets)
+2) [Regions of interest (ROIs) and structure sets](#2-rois-and-structure-sets)
 3) [Patients and studies](#3-patients)
 4) [Synthetic data](#4-synthetic-data)
 5) [Image registration](doc/image_registration.md)
@@ -31,7 +31,7 @@ or NumPy format. These images can be plotted and compared.
 
 To load the Image class:
 ```
-from skrt.image import Image
+from skrt import Image
 ```
 
 Images will be processed into a consistent format:
@@ -105,20 +105,20 @@ If `filename` ends in `.nii` or `.nii.gz`, the image will be written to nifti. T
 #### Writing to a numpy array
 If `filename` ends in `.npy`, the image array will be written to a numpy binary file. To write a canonical nifti-style array instead of the dicom-style array, set `nifti_array=True`. If `set_geometry` is `True` (which it is by default), a text file will be written to the same directory as the `.npy` file containing the voxel sizes and origin.
 
-## 2. Structures and structure sets
+## 2. Regions of interest (ROIs) and structure sets
 
-A structure/region of interest (ROI) can be represented by either a set of contour points or a binary mask. The `ROI` class allows a structure to be loaded from either of these sources and converted from one to the other.
+A structure/region of interest (ROI) can be represented by either a set of contour points or a binary mask. The `ROI` class allows an ROI to be loaded from either of these sources and converted from one to the other.
 
 ### The ROI class
 
-An `ROI` object, which contains a single structure, can be created via:
+An `ROI` object, which contains a single ROI, can be created via:
 ```
-from skrt.structures import ROI
+from skrt import ROI
 roi = ROI(source)
 ```
 
 The `source` can be from any of the following:
-- A dicom RTStruct file containing one or more sets of contours;
+- A dicom structure set file containing one or more sets of contours;
 - A dictionary of contours, where the keys are slice positions in mm and the values are lists of lists of contour points for each contour on that slice;
 - A nifti file containing a binary mask;
 - A numpy file containing a binary mask;
@@ -130,7 +130,7 @@ If the input object is a dicom file, the name of the ROI within that file must b
 
 Additional useful arguments are:
 - `color`: set the colour of this ROI for plotting. If not specified, this will either be read from the dicom file (if given) or the ROI will be assigned a unique colour.
-- `name`: set the name of this ROI. If the input is a dicom RTStruct file, this name will be used to select the correct ROI from the file. If not given, the ROI will be given a unique name ("ROI 1" etc)
+- `name`: set the name of this ROI. If the input is a dicom structure set file, this name will be used to select the correct ROI from the file. If not given, the ROI will be given a unique name ("ROI 1" etc)
 - `load`: if `True` (default), the input ROI will be converted into a mask/contours automatically upon creation. This can be time consuming if you are creating many ROIs, so setting it to `False` can save time and allow ROIs to be processed later on-demand.
 
 An `Image` object associated with this ROI can be set at any time via:
@@ -153,7 +153,7 @@ Additional options are:
 - `include_image`: boolean, set to `True` to plot the associated image (if one is assigned) in the background; 
 - `view`: specify the orientation (`x-y`, `y-z`, or `x-z`);
 - `sl`, `pos`, or `idx`: specify the slice number, slice position in mm, or slice index;
-- `zoom`: amount by which to zoom in (will automatically zoom in on the centre of the structure).
+- `zoom`: amount by which to zoom in (will automatically zoom in on the centre of the ROI).
 
 The following plot types are available, set via the `plot_type` argument:
 - `contour`: plot a contour
@@ -199,123 +199,123 @@ The `ROI` class has various methods for obtaining geometric properties of the RO
 
 - **Volume**: `roi.get_volume(units)`, where `units` can either be `mm` or `voxels` (default `mm`).
 
-- **Area**: get the area of a given slice of a structure by running e.g. `roi.get_area(view='x-y', sl=10, units='mm')`. To get the area of the central slice, can simply run `roi.get_area()`.
+- **Area**: get the area of a given slice of an ROI by running e.g. `roi.get_area(view='x-y', sl=10, units='mm')`. To get the area of the central slice, can simply run `roi.get_area()`.
 
-- **Length**: get structure length along a given axis by running `roi.get_length(axis, units)` where `axis` is `x`, `y`, or `z` and `units` is `mm` or `voxels`.
+- **Length**: get ROI length along a given axis by running `roi.get_length(axis, units)` where `axis` is `x`, `y`, or `z` and `units` is `mm` or `voxels`.
 
-### Structure Sets: the RtStruct class
+### Structure Sets: the StructureSet class
 
-A structure set is an object that contains multiple ROIs. This is done via the `RtStruct` class. 
+A structure set is an object that contains multiple ROIs. This is implemented via the `StructureSet` class. 
 
 #### Loading a structure set
 
 A structure set is created via
 ```
-from skrt.structures import RtStruct
-rtstruct = RtStruct(source)
+from skrt import StructureSet
+structure_set = StructureSet(source)
 ```
 
 The source can be:
-- The path to a dicom RtStruct file containing multiple ROIs;
+- The path to a dicom structure set file containing multiple ROIs;
 - The path to a directory containing one or more nifti or numpy files, each containing a binary ROI mask;
 - A list of paths to nifti or numpy ROI mask files.
 
 In addition, more ROIs can be added later via:
 ```
-rtstruct.add_structs(source)
+structure_set.add_rois(source)
 ```
 where `source` is any of the above source types.
 
-Alternatively, single ROIs can be added at a time via any of the valid `ROI` sources (see above), and with any of the `ROI` initialisation arguments. An empty `RtStruct` can be created and then populated, e.g.
+Alternatively, single ROIs can be added at a time via any of the valid `ROI` sources (see above), and with any of the `ROI` initialisation arguments. An empty `StructureSet` can be created and then populated, e.g.
 ```
-rtstruct = RtStruct()
-rtstruct.add_struct('heart.nii', color='red')
-rtstruct.add_struct('some_structs.dcm', name='lung')
+structure_set = StructureSet()
+structure_set.add_roi('heart.nii', color='red')
+structure_set.add_roi('some_structs.dcm', name='lung')
 ```
 
-The `RtStruct` can also be associated with an `Image` object by specifying the `image` argument upon creation, or running `rtstruct.set_image(image)`. This image will be assigned to all ROIs in the structure set.
+The `StructureSet` can also be associated with an `Image` object by specifying the `image` argument upon creation, or running `structure_set.set_image(image)`. This image will be assigned to all ROIs in the structure set.
 
 #### Filtering a structure set
 
-Sometimes you may wish to load many ROIs (e.g. from a dicom RtStruct file) and then filter them by name. This is done via:
+Sometimes you may wish to load many ROIs (e.g. from a dicom structure set file) and then filter them by name. This is done via:
 ```
-rtstruct.filter_structs(to_keep, to_remove)
+structure_set.filter_rois(to_keep, to_remove)
 ```
-where `to_keep` and `to_remove` are optional lists containing structure names, or wildcards with the `*` character. First, all of the ROIs belonging to `rtstruct` are checked and only kept if they match the names or wildcards in `to_keep`. The remaining ROIs are then removed if their names match the names or wildcards in `to_remove`.
+where `to_keep` and `to_remove` are optional lists containing ROI names, or wildcards with the `*` character. First, all of the ROIs belonging to `structure_set` are checked and only kept if they match the names or wildcards in `to_keep`. The remaining ROIs are then removed if their names match the names or wildcards in `to_remove`.
 
-To restore a structure set to its original state (i.e. reload it from its source), run `rtstruct.reset()`.
+To restore a structure set to its original state (i.e. reload it from its source), run `structure_set.reset()`.
 
 #### Renaming ROIs
 
 ROIs can be renamed by mapping from one or more possible original names to a single final name. In this way, multiple structure sets where the same ROI might have different names can be standardised to have the same ROI names.
 
-For example, let's say you wish to rename the right parotid gland to `right_parotid`, but you know that it has a variety of names across different structure sets. You could do this with the following (assuming my_rtstructs is a list of `RtStruct` objects:
+For example, let's say you wish to rename the right parotid gland to `right_parotid`, but you know that it has a variety of names across different structure sets. You could do this with the following (assuming `my_structure_sets` is a list of `StructureSet` objects:
 ```
 names_map = {
     'right_parotid': ['right*parotid', 'parotid*right', 'R parotid', 'parotid_R']
 }
-for rtstruct in my_rtstructs:
-    rtstruct.rename_structs(names_map)
+for structure_set in my_structure_sets:
+    structure_set.rename_rois(names_map)
 ```
 
-By default, only one ROI per structure set will be renamed; for example, if a structure set for some reason contained both `right parotid` and `R parotid`, only the first in the list (`right parotid`) would be renamed. This behaviour can be turned off by setting `first_match_only=False`; beware this could lead to duplicate structure names.
+By default, only one ROI per structure set will be renamed; for example, if a structure set for some reason contained both `right parotid` and `R parotid`, only the first in the list (`right parotid`) would be renamed. This behaviour can be turned off by setting `first_match_only=False`; beware this could lead to duplicate ROI names.
 
-You can also choose to discard any structures that aren't in your renaming map by setting `keep_renamed_only=True`.
+You can also choose to discard any ROIs that aren't in your renaming map by setting `keep_renamed_only=True`.
 
 #### Getting ROIs
 
 Get a list of the `ROI` objects belonging to the structure set:
 ```
-rtstruct.get_structs()
+structure_set.get_rois()
 ```
 
 Get a list of names of the `ROI` objects:
 ```
-rtstruct.get_struct_names()
+structure_set.get_roi_names()
 ```
 
 Get a dictionary of `ROI` objects with their names as keys:
 ```
-rtstruct.get_struct_dict()
+structure_set.get_roi_dict()
 ```
 
 Get an `ROI` object with a specific name:
 ```
-rtstruct.get_struct(name)
+structure_set.get_roi(name)
 ```
 
 Print the `ROI` names:
 ```
-rtstruct.print_structs()
+structure_set.print_rois()
 ```
 
 
 #### Copying a structure set
 
-An `RtStruct` object can be copied to a new `RtStruct`, optionally with some structures filtered/renamed (you might want to do this if you want to preserve the original structure set, while making a filtered version too), via:
+A `StructureSet` object can be copied to a new `StructureSet`, optionally with some ROIs filtered/renamed (you might want to do this if you want to preserve the original structure set, while making a filtered version too), via:
 ```
-rtstruct_filtered = rtstruct.copy(names, to_keep, to_remove, keep_renamed_only)
+filtered = structure_set.copy(names, to_keep, to_remove, keep_renamed_only)
 ```
 
 #### Writing a structure set
 
 The ROIs in a structure set can be written to a directory of nifti or numpy files, via:
 ```
-rtstruct.write(outdir, ext)
+structure_set.write(outdir, ext)
 ```
 where `outdir` is the output directory and `ext` is either `.nii`, `.nii.gz` or `.npy`. Dicom writing will be supported in future.
 
 
-#### Assigning RtStructs to an Image
+#### Assigning StructureSets to an Image
 
-Just as ROIs and structure sets can be associated with an image, the `Image` object can be associated with one or more `RtStruct` objects. This is done via:
+Just as ROIs and structure sets can be associated with an image, the `Image` object can be associated with one or more `StructureSet` objects. This is done via:
 ```
-from skrt import Image, RtStruct
+from skrt import Image, StructureSet
 
 image = Image("some_image.nii")
-rtstruct = RtStruct("roi_directory")
+structure_set = StructureSet("roi_directory")
 
-image.add_structs(rtstruct)
+image.add_structure_set(structure_set)
 ```
 
 Now, when the `Image` is plotted, the ROIs in its structure set(s) can be plotted on top. To plot all structure sets, run:
@@ -329,11 +329,11 @@ To plot just one structure set, you can also provide the index of the structure 
 image.plot(structure_set=-1)
 ```
 
-To add a legend to the plot, set `struct_legend=True`.
+To add a legend to the plot, set `roi_legend=True`.
 
 The image's structure sets can be cleared at any time via
 ```
-image.clear_structs()
+image.clear_structure_sets()
 ```
 
 ## 3. Patients and studies
@@ -397,7 +397,7 @@ For example, if a study containined both CT and MR images, as well as two struct
 
 A `Patient` object is created by providing the path to the top-level patient directory:
 ```
-from skrt.patient import Patient
+from skrt import Patient
 p = Patient('mypatient1')
 ```
 
@@ -440,19 +440,19 @@ For each imaging modalitiy subdirectory inside the study, a new class property w
 
 #### Structure sets
 
-The study's structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the `structs` property of the `Image` itself; this is a list of `RtStruct` objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:
+The study's structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the `structs` property of the `Image` itself; this is a list of `StructureSet` objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:
 ```
 p = Patient('mypatient1')
 s = p.studies[0]
-structure_set = s.ct_scans[0].structs[-1]
+structure_set = s.ct_scans[0].structure_sets[-1]
 ```
 
-In addition, structures associated with each imaginging modality will be stored in a property of the `Study` object called `{modality}_structs`. E.g. to get the oldest CT-related structure set, you could run:
+In addition, structure sets associated with each imaginging modality will be stored in a property of the `Study` object called `{modality}_structure_sets`. E.g. to get the oldest CT-related structure set, you could run:
 ```
-structure_set = s.ct_structs[0]
+structure_set = s.ct_structure_sets[0]
 ```
 
-The `RtStruct` object also has an associated `image` property (`structure_set.image`), which can be used to find out which `Image` is associated with that structure set.
+The `StructureSet` object also has an associated `image` property (`structure_set.image`), which can be used to find out which `Image` is associated with that structure set.
 
 ## 4. Synthetic data
 
@@ -562,54 +562,54 @@ The `write` function can also take any of the arguments of the `Image.write()` f
 
 #### Adding structures
 
-When shapes are added to the image, they can also be set as structures. This allows you to:
+When shapes are added to the image, they can also be set as ROIs. This allows you to:
 - Plot them as contours or masks on top of the image;
-- Access an `RtStruct` object containing the structures;
-- Write structures out separately as masks or as a dicom RtStruct file.
+- Access a `StructureSet` object containing the ROIs;
+- Write ROIs out separately as masks or as a dicom structure set file.
 
-##### Single structures
+##### Single ROIs
 
-To assign a shape as a structure, you can either give it a name upon creation, e.g.:
+To assign a shape as an ROI, you can either give it a name upon creation, e.g.:
 
 ```
 sim.add_sphere(50, name='my_sphere')
 ```
 
-or set the `is_struct` property to `True` (the structure will then be given an automatic named based on its shape type):
+or set the `is_roi` property to `True` (the ROI will then be given an automatic named based on its shape type):
 ```
-sim.add_sphere(50, is_struct=True)
+sim.add_sphere(50, is_roi=True)
 ```
 
-When `sim.plot()` is called, its structures will automatically be plotted as contours. Some useful extra options to the `plot` function are:
-- `struct_plot_type`: set plot type to any of the valid `ROI` plotting types (mask, contour, filled, centroid, filled centroid).
-- `centre_on_struct`: name of structure on which the plotted image should be centred.
-- `struct_legend`: set to `True` to draw a legend containing the strutcure names.
+When `sim.plot()` is called, its ROIs will automatically be plotted as contours. Some useful extra options to the `plot` function are:
+- `roi_plot_type`: set plot type to any of the valid `ROI` plotting types (mask, contour, filled, centroid, filled centroid).
+- `centre_on_roi`: name of ROI on which the plotted image should be centred.
+- `roi_legend`: set to `True` to draw a legend containing the strutcure names.
 
-##### Grouped structures
+##### Grouped shapes
 
-Multiple shapes can be combined to create a single structure. To do this, set the `group` argument to some string when creating structures. Any shapes created with the same `group` name will be added to this group.
+Multiple shapes can be combined to create a single ROI. To do this, set the `group` argument to some string when creating shapes. Any shapes created with the same `group` name will be added to this group.
 
-E.g. to create a single structure called "two_cubes" out of two cubes centred at different positions, run:
+E.g. to create a single ROI called "two_cubes" out of two cubes centred at different positions, run:
 ```
 sim.add_cube(10, centre=(5, 5, 5), group='two_cubes')
 sim.add_cube(10, centre=(7, 7, 5)), group='two_cubes')
 ```
 
-##### Getting structures
+##### Getting ROIs
 
-To get an `RtStruct` object containing all of the structures belonging to the image, run:
+To get a `StructureSet` object containing all of the ROIs belonging to the image, run:
 ```
-rtstruct = sim.get_rtstruct()
-```
-
-You can also access a single structure as an `ROI` object by running:
-```
-roi = sim.get_struct(struct_name)
+structure_set = sim.get_structure_set()
 ```
 
-##### Saving structures
+You can also access a single ROI as an `ROI` object by running:
+```
+roi = sim.get_roi(name)
+```
 
-When the `SyntheticImage.write()` function is called, the structures belonging to that image will also be written. If the provided `outname` is that of a nifti or NumPy file, the structures will be written to nifti or Numpy files, respectively, inside a directory with the same name as `outname` but with the extension removed.
+##### Saving ROIs
+
+When the `SyntheticImage.write()` function is called, the ROIs belonging to that image will also be written. If the provided `outname` is that of a nifti or NumPy file, the ROIs will be written to nifti or Numpy files, respectively, inside a directory with the same name as `outname` but with the extension removed.
 
 ### 4.2 Synthetic Patient objects
 
@@ -617,7 +617,7 @@ The Patient class can be used to create a custom patient object from scratch, ra
 
 To do this, first create a blank Patient object with your chosen ID:
 ```
-from skrt.patient import Patient
+from skrt import Patient
 
 p = Patient("my_id")
 ```
@@ -628,7 +628,7 @@ Studies can then be added to this object. Optional arguments for adding a study 
 - `images`: a list of Image objects to associate with this study (note, Images can also be added to the Study later)
 - `scan_type`: the type of scan correspoding to the Images in `images`, if used (e.g. `CT`); this will determine the name of the directory in which the images are saved when the Patient tree is written.
 
-E.g. to add one study containing a single synthetic image with one structure:
+E.g. to add one study containing a single synthetic image with one ROI:
 ```
 from skrt.simulation import SyntheticImage
 
