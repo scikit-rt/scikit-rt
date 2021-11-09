@@ -1083,7 +1083,7 @@ class Image(skrt.core.Archive):
         return [np.mean(self.lims[i]) for i in range(3)]
 
     def get_range(self, ax="z"):
-        """Get range of the scan in mm along a given axis."""
+        """Get range of the image in mm along a given axis."""
 
         i_ax = _axes.index(ax) if ax in _axes else ax
         origin = self.get_origin()[i_ax]

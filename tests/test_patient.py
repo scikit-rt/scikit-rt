@@ -60,16 +60,16 @@ def test_load_studies():
     assert p2.studies[0].subdir == "study1"
     assert p2.studies[1].subdir == "study2"
 
-def test_study_with_scans():
+def test_study_with_images():
     p.studies = []
-    p.add_study(images=[sim], scan_type="MR")
+    p.add_study(images=[sim], image_type="MR")
     s = p.studies[0]
-    assert len(s.mr_scans) == 1
-    assert s.mr_scans[0].get_voxel_size() == sim.get_voxel_size()
+    assert len(s.mr_images) == 1
+    assert s.mr_images[0].get_voxel_size() == sim.get_voxel_size()
     assert len(s.mr_structure_sets) == 1
     assert len(s.mr_structure_sets[0].get_rois()) == 2
-    s.add_scan(sim, scan_type="CT")
-    assert len(s.ct_scans) == 1
+    s.add_image(sim, image_type="CT")
+    assert len(s.ct_images) == 1
     assert len(s.ct_structure_sets) == 1
     p.write("tmp", structure_set=None)
     sdir = f"{pdir}/{p.studies[0].timestamp}"
@@ -84,9 +84,9 @@ def test_study_with_scans():
 def test_load_images():
     p2 = Patient(pdir)
     s = p2.studies[0]
-    assert len(s.ct_scans) == 1
-    assert len(s.mr_scans) == 1
-    assert np.all(s.ct_scans[0].get_affine() == sim.get_affine())
+    assert len(s.ct_images) == 1
+    assert len(s.mr_images) == 1
+    assert np.all(s.ct_images[0].get_affine() == sim.get_affine())
 
 def test_write_rois_nifti():
     p.studies = []

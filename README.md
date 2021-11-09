@@ -436,7 +436,7 @@ A `Study` object stores images and structure sets. A list of studies can be extr
 
 #### Images
 
-For each imaging modalitiy subdirectory inside the study, a new class property will be created to contain a list of images of that modality, called `{modality}_scans`, where the modality is taken from the subdirectory name (note, this is always converted to lower case). E.g. if there were directories called `CT` and `MR`, the `Study` object would have properties `ct_scans` and `mr_scans` containing lists of `Image` objects.
+For each imaging modalitiy subdirectory inside the study, a new class property will be created to contain a list of images of that modality, called `{modality}_images`, where the modality is taken from the subdirectory name (note, this is always converted to lower case). E.g. if there were directories called `CT` and `MR`, the `Study` object would have properties `ct_images` and `mr_images` containing lists of `Image` objects.
 
 #### Structure sets
 
@@ -444,7 +444,7 @@ The study's structure sets can be accessed in two ways. Firstly, the structure s
 ```
 p = Patient('mypatient1')
 s = p.studies[0]
-structure_set = s.ct_scans[0].structure_sets[-1]
+structure_set = s.ct_images[0].structure_sets[-1]
 ```
 
 In addition, structure sets associated with each imaginging modality will be stored in a property of the `Study` object called `{modality}_structure_sets`. E.g. to get the oldest CT-related structure set, you could run:
@@ -626,7 +626,7 @@ Studies can then be added to this object. Optional arguments for adding a study 
 - `subdir`: a custom subdirectory in which the study will be nested when the Patient tree is written;
 - `timestamp`: a custom timestamp (if not set, this will be automatically generated)
 - `images`: a list of Image objects to associate with this study (note, Images can also be added to the Study later)
-- `scan_type`: the type of scan correspoding to the Images in `images`, if used (e.g. `CT`); this will determine the name of the directory in which the images are saved when the Patient tree is written.
+- `image_type`: the type of image correspoding to the Images in `images`, if used (e.g. `CT`); this will determine the name of the directory in which the images are saved when the Patient tree is written.
 
 E.g. to add one study containing a single synthetic image with one ROI:
 ```
@@ -635,7 +635,7 @@ from skrt.simulation import SyntheticImage
 im = SyntheticImage((100, 100, 30))
 im.add_sphere(radius=10, name="my_sphere")
 
-p.add_study("my_study", images=[im], scan_type="MR")
+p.add_study("my_study", images=[im], image_type="MR")
 ```
 
 The patient tree can then be written out:

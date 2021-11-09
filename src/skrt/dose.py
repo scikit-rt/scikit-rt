@@ -72,17 +72,17 @@ class RtDose(MachineData):
         else:
             slice_thickness = None
 
-        # Get scan position and voxel sizes
+        # Get image position and voxel sizes
         if ds.GridFrameOffsetVector[-1] > ds.GridFrameOffsetVector[0]:
             self.reverse = False
-            self.scan_position = (
+            self.image_position = (
                 float(ds.ImagePositionPatient[0]),
                 float(ds.ImagePositionPatient[1]),
                 float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[0]),
             )
         else:
             self.reverse = True
-            self.scan_position = (
+            self.image_position = (
                 float(ds.ImagePositionPatient[0]),
                 float(ds.ImagePositionPatient[1]),
                 float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[-1]),
