@@ -184,6 +184,27 @@ class Data:
                 else:
                     value_string = "[]"
 
+            # Handle printing of dicts
+            elif isinstance(item, dict):
+                items = item
+                n = len(items)
+                if n:
+                    if depth > 0:
+                        value_string = "{"
+                        for i, (key, value) in enumerate(items.items()):
+                            item_string = "{key}: "
+                            try:
+                                item_string += item.__repr__(depth=(depth - 1))
+                            except TypeError:
+                                item_string += item.__repr__()
+                            comma = "," if (i + 1 < n) else ""
+                            value_string = f"{value_string} {item_string}{comma}"
+                        value_string = f"{{{value_string}}}"
+                    else:
+                        value_string = f"{{{n} * keys of type {list(item.keys())[0].__class__}}}"
+                else:
+                    value_string = "{}"
+
             # Handle printing of nested Data objects
             else:
                 if issubclass(item.__class__, Data):
