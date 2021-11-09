@@ -1608,7 +1608,6 @@ class StructureSet(skrt.core.Archive):
         # Loop through each new name
         already_renamed = []
         for name, matches in names.items():
-            print("trying to rename to:", name)
 
             if not skrt.core.is_list(matches):
                 matches = [matches]
@@ -1616,7 +1615,6 @@ class StructureSet(skrt.core.Archive):
             # Loop through all possible original names
             name_matched = False
             for m in matches:
-                print("looking for match with:", m)
 
                 # Loop through ROIs and see if there's a match
                 for i, s in enumerate(self.rois):
@@ -1626,7 +1624,6 @@ class StructureSet(skrt.core.Archive):
                         continue
 
                     if fnmatch.fnmatch(s.name.lower(), m.lower()):
-                        print("it's a match! with", s.name)
                         s.name = name
                         name_matched = True
                         already_renamed.append(i)

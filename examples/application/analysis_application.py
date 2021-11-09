@@ -65,12 +65,12 @@ class AnalysisAlgorithm(Algorithm):
         # but have more studies in the few cases where treatment is replanned.
         study = patient.studies[0]
 
-        if len(study.ct_structs) >= 2:
+        if len(study.ct_structure_sets) >= 2:
             # Assume that earliest structure set is from clinical planning
-            planning_structs = study.ct_structs[0]\
+            planning_structs = study.ct_structure_sets[0]\
                     .copy(names=self.roi_map, keep_renamed_only=True)
             # Assume that latest structure set is from VoxTox study
-            voxtox_structs = study.ct_structs[-1]\
+            voxtox_structs = study.ct_structure_sets[-1]\
                     .copy(names=self.roi_map, keep_renamed_only=True)
             
             # Calculate dice scores for planning ROIs versus VoxTox ROIs,
@@ -175,7 +175,7 @@ if '__main__' == __name__:
 
     # Define list of paths for patient data to be analysed
     paths = []
-    #paths = glob.glob('/Users/karl/data/head_and_neck/vspecial/3_patients__multiple_structures__all_mv/VT*')
+    paths = glob.glob('/Users/hannahpullen/Work/HeadAndNeck/dicom/VT*')[:3]
 
     # Severity level for event logging.
     # Defined values are: 'NOTSET' (0), 'DEBUG' (10), 'INFO' (20),
