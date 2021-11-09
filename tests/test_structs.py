@@ -1,5 +1,6 @@
 '''Tests for the ROI and StructureSet classes.'''
 
+import fnmatch
 import os
 import shutil
 import pandas as pd
@@ -57,6 +58,20 @@ def test_rename():
     structure_set.rename_rois(new_names)
     assert structure_set.get_rois()[0].name != structure_set.get_rois()[0].original_name
     assert set(structure_set.get_roi_names()) == set(new_names.keys())
+
+    # Check that original names are kept
+    n_match = 0
+    for roi in structure_set:
+        if roi.name in new_names:
+            match = False
+            for old_name in new_names[roi.name]:
+                if fnmatch.fnmatch(roi.original_name.lower(), old_name.lower()):
+                    match = True
+                    n_match += 1
+                    break
+            assert match
+    assert n_match == len(new_names.keys())
+
     old_names = {
         'cube': 'cube2',
         'sphere': 'sphere2'

@@ -4,6 +4,7 @@ import os
 import numpy as np
 import shutil
 
+from skrt.core import File
 from skrt.image import Image
 
 
@@ -11,7 +12,12 @@ from skrt.image import Image
 data = (np.random.rand(40, 50, 20) * 1000).astype(np.uint16)
 voxel_size = (1, 2, 3)
 origin = (-40, -50, 20)
-im = Image(data, voxel_size=voxel_size, origin=origin)
+
+def create_test_image():
+    im = Image(data, voxel_size=voxel_size, origin=origin)
+    return im
+
+im = create_test_image()
 
 # Make temporary test dir
 if os.path.exists('tmp'):
@@ -243,9 +249,30 @@ def test_cloning():
     im_cloned.data[0, 0, 0] = 2
     assert im.data[0, 0, 0] != im_cloned.data[0, 0, 0]
 
+    # Check that changing the new date doesn't change the old one
+    im_cloned.date = 'new_date'
+    assert im.date != im_cloned.date
+
+    # Check that changing the old file list doesn't change the new one
+    im.files.append(File())
+    assert len(im.files) == (len(im_cloned.files) + 1)
+
+    # Check that adding an attribute to the old image doesn't add it to the new
+    im.user_addition = {'uno': 1, 'due': 2, 'tre': 3}
+    assert not hasattr(im_cloned, 'user_addition')
+
+    # Check the recloning includes the added attribute
+    im_cloned = Image(im)
+    assert hasattr(im_cloned, 'user_addition')
+
+    # Check that changing the new dictionary doesn't change the old one
+    im_cloned.user_addition['quattro'] = 4
+    assert 'quattro' not in im.user_addition
+
 def test_init_from_image():
     '''Test cloning an image using the Image initialiser.'''
 
+    im = create_test_image()
     im_cloned = Image(im)
     assert np.all(im.get_affine() == im_cloned.get_affine())
     assert np.all(im.get_data() == im_cloned.get_data())
