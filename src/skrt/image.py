@@ -94,7 +94,7 @@ class Image(skrt.core.Archive):
             """
 
         # Clone from another Image object
-        if isinstance(path, Image):
+        if issubclass(type(path), Image):
             path.clone_attrs(self)
             if title is not None:
                 self.title = title

@@ -1334,7 +1334,7 @@ class ROI(skrt.image.Image):
         kwargs["ax"] = self.ax
         kwargs["color"] = roi2_color
         kwargs["include_image"] = False
-        other.plot(show=show, **kwargs)
+        other.plot(show=False, **kwargs)
         self.ax.set_title(self.get_comparison_name(other))
 
         if legend:
@@ -1349,8 +1349,12 @@ class ROI(skrt.image.Image):
                 mpatches.Patch(color=roi2_color, label=roi2_name),
             ]
             self.ax.legend(
-                handles=handles, framealpha=1, facecolor="white", loc="lower left"
+                handles=handles, framealpha=1, facecolor="white", 
+                loc="lower left"
             )
+
+        if show:
+            plt.show()
 
         if save_as:
             plt.tight_layout()
@@ -1937,12 +1941,14 @@ def load_rois_dicom(path, names=None):
 
     # Load dicom object
     try:
-        ds = pydicom.read_file(path)
+        ds = pydicom.read_file(path, force=True)
     except pydicom.errors.InvalidDicomError:
+        return []
+    if not hasattr(ds, "SOPClassUID"):
         return []
     if not (ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3"):
         print(f"Warning: {path} is not a DICOM structure set file!")
-        return
+        return []
 
     # Get ROI names
     seq = get_dicom_sequence(ds, "StructureSetROI")
