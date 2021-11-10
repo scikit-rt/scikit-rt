@@ -683,9 +683,9 @@ class Image(skrt.core.Archive):
         major_ticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
-        rois=None,
+        structure_set=None,
         roi_plot_type="contour",
-        legend=False,
+        roi_legend=False,
         roi_kwargs={},
         centre_on_roi=None,
         legend_loc="lower left",
@@ -793,7 +793,7 @@ class Image(skrt.core.Archive):
         roi_plot_type : str, default='contour'
             ROI plotting type (see ROI.plot() for options).
 
-        legend : bool, default=False
+        roi_legend : bool, default=False
             If True, a legend will be drawn containing ROI names.
 
         roi_kwargs : dict, default=None
@@ -815,42 +815,35 @@ class Image(skrt.core.Archive):
         self.ax.clear()
         self.load_data()
 
-        # Get list of input ROI sources
-        if rois is None:
-            roi_input = []
-        elif isinstance(rois, str) and rois == "all":
-            roi_input = self.structure_sets
-        elif not skrt.core.is_list(rois):
-            roi_input = [rois]
-        else:
-            roi_input = rois
+        # Get list of ROIs to plot
+        to_plot = []
+        if structure_set is not None:
 
-        # Get list of ROI objects to plot
-        rois_to_plot = []
-        n_structure_sets = 0
-        for roi in roi_input:
-            if type(roi).__name__ == "ROI":
-                rois_to_plot.append(roi)
-            elif type(roi).__name__ == "StructureSet":
-                rois_to_plot.extend(roi.get_rois())
-                n_structure_sets += 1
-            elif isinstance(roi, int):
+            # Get list of structure sets to plot
+            if isinstance(structure_set, int):
                 try:
-                    rois_to_plot.extend(self.structure_sets[roi].get_rois())
-                    n_structure_sets += 1
+                    to_plot = [self.get_structure_sets()[structure_set]]
                 except IndexError:
-                    raise IndexError(f"Index {roi} not found in Image.structure_sets!")
+                    print(
+                        f"Warning: structure set {structure_set} not found! "
+                        f"Image only has {len(self.get_structure_sets())} structure sets."
+                    )
+            elif structure_set == "all":
+                to_plot = self.get_structure_sets()
+            elif skrt.core.is_list(structure_set):
+                to_plot = [self.get_structure_sets()[i] for i in structure_set]
+            else:
+                print(
+                    f"Warning: structure set option {structure_set} not "
+                    'recognised! Must be an int, None, or "all".'
+                )
 
-        # If centering on an ROI, find index of its central slice
-        roi_names = [roi.name for roi in rois_to_plot]
-        if centre_on_roi:
-            try: 
-                central_roi = rois_to_plot[roi_names.index(centre_on_roi)]
+            # If centering on ROI, find central slice
+            if all([i is None for i in [idx, pos, sl]]) and centre_on_roi:
+                central_roi = to_plot[0].get_roi(centre_on_roi)
                 idx = central_roi.get_mid_idx(view)
                 if zoom and zoom_centre is None:
                     zoom_centre = central_roi.get_zoom_centre(view)
-            except ValueError:
-                print("Warning: central ROI {centre_on_roi} not found!")
 
         # Get image slice
         idx = self.get_idx(view, sl, idx, pos)
@@ -869,39 +862,33 @@ class Image(skrt.core.Archive):
             image_slice, **self.get_mpl_kwargs(view, mpl_kwargs, scale_in_mm)
         )
 
-        # Plot ROIs
-        roi_handles = []
-        for roi in rois_to_plot:
-
-            # Plot the ROI on same axes
-            if roi.on_slice(view, idx=idx):
-                roi.plot(
-                    view,
-                    idx=idx,
-                    ax=self.ax,
-                    plot_type=roi_plot_type,
-                    show=False,
-                    include_image=False,
-                    **roi_kwargs
-                )
-
-                # Add patch to list of handles for legend creation
-                if legend:
-
-                    # Get ROI name and append structure set name if multiple
-                    # structure sets are being plotted
-                    name = roi.name
-                    if n_structure_sets > 1 and hasattr(roi, "structure_set"):
-                        name += f" ({roi.structure_set.name})"
-                    roi_handles.append(mpatches.Patch(color=roi.color,
+        # Plot structure sets
+        if len(to_plot):
+            handles = []
+            for ss in to_plot:
+                for s in ss.get_rois():
+                    name = s.name
+                    if len(to_plot) > 1:
+                        name += f" ({ss.name})"
+                    s.plot(
+                        view,
+                        idx=idx,
+                        ax=self.ax,
+                        plot_type=roi_plot_type,
+                        include_image=False,
+                        show=False,
+                        **roi_kwargs,
+                    )
+                    if s.on_slice(view, idx=idx) and roi_legend:
+                        handles.append(mpatches.Patch(color=s.color,
                                                       label=name))
 
-         # Draw ROI legend
-        if legend and len(roi_handles):
-            self.ax.legend(
-                handles=roi_handles, loc=legend_loc, facecolor="white",
-                framealpha=1
-            )
+            # Draw ROI legend
+            if roi_legend and len(handles):
+                self.ax.legend(
+                    handles=handles, loc=legend_loc, facecolor="white",
+                    framealpha=1
+                )
 
         # Label axes
         self.label_ax(
@@ -923,8 +910,8 @@ class Image(skrt.core.Archive):
             clb.solids.set_edgecolor("face")
 
         # Display image
-        plt.tight_layout()
         if show:
+            plt.tight_layout()
             plt.show()
 
         # Save to file
@@ -1886,3 +1873,96 @@ def get_new_uid(root=None):
     else:
         new_id = ".".join([new_id, str(np.random.randint(10, 99))])
     return new_id
+
+
+def plot_image(
+    image, 
+    rois=None
+    view="x-y",
+    sl=None,
+    idx=None,
+    pos=None,
+    scale_in_mm=True,
+    ax=None,
+    gs=None,
+    figsize=_default_figsize,
+    save_as=None,
+    zoom=None,
+    zoom_centre=None,
+    hu=None,
+    mpl_kwargs=None,
+    show=True,
+    colorbar=False,
+    colorbar_label="HU",
+    no_title=False,
+    no_ylabel=False,
+    annotate_slice=False,
+    major_ticks=None,
+    minor_ticks=None,
+    ticks_all_sides=False,
+    structure_set=None,
+    roi_plot_type="contour",
+    roi_legend=False,
+    roi_kwargs={},
+    centre_on_roi=None,
+    legend_loc="lower left",
+    flatten=False,
+):
+    """
+    Plot a 2D slice of an image and optionally overlay structures.
+
+    image : Image 
+        The Image object to be plotted.
+
+    rois : list/StructureSet/ROI/int/str, default=None
+        ROI(s) to be overlaid on the image. Can be any of:
+            (a) None: no ROIs will be plotted;
+            (b) A StructureSet object, from which all ROIs will be plotted;
+            (c) A list of multiple StructureSet objects, from which all ROIs
+                will be plotted;
+            (d) A single ROI object;
+            (e) A list of ROI objects;
+            (f) An integer; if the image has any associated structure sets (stored
+                in Image.structure_sets) the ROIs in the structure set at this 
+                index will be plotted;
+            (g) A list of integers; if the image has any associated structure sets,
+                the ROIs from the structure sets stored at these indices will 
+                be plotted;
+            (f) The string "all", in which case all structure sets stored at
+                Image.structure_sets will be plotted.
+
+    """
+
+    # Ensure image has its data loaded
+    image.load_data()
+
+    # Set up Image's axes
+    image.set_ax(view, ax, gs, figsize, zoom, colorbar)
+    image.ax.clear()
+
+    # Get list of ROIs to plot
+    # If None, don't plot any ROIs
+    if rois is None:
+        roi_input = []
+
+    # If "all", plot all ROIs associated with the image
+    elif rois == "all":
+        roi_input = image.structure_sets
+    
+    # Otherwise, ensure roi input is a list
+    elif not is_list(rois):
+        roi_input = [rois]
+    else:
+        roi_input = rois
+
+    # Ensure inputs are all of the same type
+    if len(set([type(i) for i in roi_input])) > 1:
+        raise TypeError("All ROI inputs must be of the same type!")
+
+
+    rois_to_plot = []
+    elif not is_list(rois):
+        rois = [rois]
+    rois_to_plot = []
+    for roi in rois:
+

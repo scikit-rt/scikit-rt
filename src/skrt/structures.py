@@ -1578,6 +1578,9 @@ class StructureSet(skrt.core.Archive):
 
         self.rename_rois()
         self.filter_rois()
+        for roi in self.rois:
+            roi.structure_set = self
+
         self.loaded = True
 
     def reset(self):
@@ -1679,7 +1682,7 @@ class StructureSet(skrt.core.Archive):
         if not skrt.core.is_list(sources):
             sources = [sources]
         self.sources.extend(sources)
-        self.load_rois(sources)
+        self.load(sources)
 
     def add_roi(self, source, **kwargs):
         """Add a single ROI with  optional kwargs."""
@@ -1689,6 +1692,7 @@ class StructureSet(skrt.core.Archive):
             roi = source
         else:
             roi = ROI(source, **kwargs)
+        roi.structure_set = self
         self.rois.append(roi)
 
     def copy(
