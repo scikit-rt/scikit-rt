@@ -245,6 +245,10 @@ class ROI(skrt.image.Image):
             # Set x-y contours with z indices as keys
             self.contours = {"x-y": {}}
             for z, contours in self.input_contours.items():
+                if not hasattr(self, "image"):
+                    raise RuntimeError("ROI must have an associated Image! "
+                                       "Try setting the .image attribute to an"
+                                       " Image object.")
                 iz = self.image.pos_to_idx(z, "z")
                 self.contours["x-y"][iz] = [
                     [tuple(p[:2]) for p in points] for points in contours
