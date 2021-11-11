@@ -81,18 +81,18 @@ def test_rename():
 
 def test_copy_rename():
     new_names = {'cube3': 'cube'}
-    structure_set2 = structure_set.copy(new_names, name='copy', keep_renamed_only=True)
+    structure_set2 = structure_set.filter(new_names, name='copy', keep_renamed_only=True)
     assert len(structure_set2.get_rois()) == 1
     assert structure_set2.get_roi_names() == ['cube3']
     assert structure_set2.name == 'copy'
     structure_set.rename_rois({'cube': 'cube3'})
 
 def test_copy_remove():
-    structure_set2 = structure_set.copy(to_remove='cube')
+    structure_set2 = structure_set.filter(to_remove='cube')
     assert structure_set2.get_roi_names() == ['sphere']
 
 def test_copy_keep():
-    structure_set2 = structure_set.copy(to_keep='sphere')
+    structure_set2 = structure_set.filter(to_keep='sphere')
     assert structure_set2.get_roi_names() == ['sphere']
 
 def test_read_nii():

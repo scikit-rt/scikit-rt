@@ -1695,7 +1695,7 @@ class StructureSet(skrt.core.Archive):
         roi.structure_set = self
         self.rois.append(roi)
 
-    def copy(
+    def filter(
         self,
         names=None,
         name=None,
@@ -1704,7 +1704,7 @@ class StructureSet(skrt.core.Archive):
         keep_renamed_only=False,
     ):
         """Create a copy of this structure set with ROIs optionally
-        renamed or filtered."""
+        renamed or filtered. Returns a new StructureSet object."""
 
         if not hasattr(self, "n_copies"):
             self.n_copies = 1

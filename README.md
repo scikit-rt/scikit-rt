@@ -235,7 +235,7 @@ structure_set.add_roi('some_structs.dcm', name='lung')
 
 The `StructureSet` can also be associated with an `Image` object by specifying the `image` argument upon creation, or running `structure_set.set_image(image)`. This image will be assigned to all ROIs in the structure set.
 
-#### Filtering a structure set
+#### Creating a filtered copy of a structure set
 
 Sometimes you may wish to load many ROIs (e.g. from a dicom structure set file) and then filter them by name. This is done via:
 ```
@@ -290,11 +290,11 @@ structure_set.print_rois()
 ```
 
 
-#### Copying a structure set
+#### Filtering a structure set
 
 A `StructureSet` object can be copied to a new `StructureSet`, optionally with some ROIs filtered/renamed (you might want to do this if you want to preserve the original structure set, while making a filtered version too), via:
 ```
-filtered = structure_set.copy(names, to_keep, to_remove, keep_renamed_only)
+filtered = structure_set.filter(names, to_keep, to_remove, keep_renamed_only)
 ```
 
 #### Writing a structure set
