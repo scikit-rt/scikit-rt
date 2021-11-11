@@ -1535,7 +1535,7 @@ class StructureSet(skrt.core.Archive):
         # Expand any directories
         sources_expanded = []
         for source in sources:
-            if os.path.isdir(source):
+            if isinstance(source, str) and os.path.isdir(source):
                 sources_expanded.extend(
                     [os.path.join(source, file) for file in os.listdir(source)]
                 )
@@ -1730,11 +1730,29 @@ class StructureSet(skrt.core.Archive):
 
         return ss
 
-    def get_rois(self):
-        """Get list of ROI objects."""
+    def get_rois(self, names=None):
+        """Get list of ROI objects If <names> is given, only the ROIs with
+        those names will be returned."""
 
         self.load()
-        return self.rois
+        if names is None:
+            return self.rois
+
+        rois = []
+        for name in names:
+            roi = self.get_roi(name)
+            if roi is not None:
+                rois.append(roi)
+        return rois
+
+    def get_rois_wildcard(self, wildcard):
+        """Return list of ROIs matching a wildcard expression."""
+
+        rois = []
+        for roi in self.get_rois():
+            if fnmatch.fnmatch(roi.name, wildcard):
+                rois.append(roi)
+        return rois
 
     def get_roi_names(self, original=False):
         """
@@ -1742,17 +1760,15 @@ class StructureSet(skrt.core.Archive):
         get the original names of the ROIs.
         """
 
-        self.load()
         if not original:
-            return [s.name for s in self.rois]
+            return [s.name for s in self.get_rois()]
         else:
-            return [s.original_name for s in self.rois]
+            return [s.original_name for s in self.get_rois()]
 
     def get_roi_dict(self):
         """Get dict of ROI names and objects."""
 
-        self.load()
-        return {s.name: s for s in self.rois}
+        return {s.name: s for s in self.get_rois()}
 
     def get_roi(self, name):
         """Get an ROI with a specific name."""
