@@ -245,7 +245,7 @@ class ROI(skrt.image.Image):
             # Set x-y contours with z indices as keys
             self.contours = {"x-y": {}}
             for z, contours in self.input_contours.items():
-                if not hasattr(self, "image"):
+                if self.image is None:
                     raise RuntimeError("ROI must have an associated Image! "
                                        "Try setting the .image attribute to an"
                                        " Image object.")
