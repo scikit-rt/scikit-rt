@@ -659,11 +659,11 @@ class Image(skrt.core.Archive):
         return mpl_kwargs
 
     def view(self, **kwargs):
-        """View self with QuickViewer."""
+        """View self with BetterViewer."""
 
-        from skrt.viewer import QuickViewer
+        from skrt.better_viewer import BetterViewer
 
-        QuickViewer(self.source, **kwargs)
+        BetterViewer(self, **kwargs)
 
     def plot(
         self,
