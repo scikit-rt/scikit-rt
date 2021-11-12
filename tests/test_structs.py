@@ -80,20 +80,36 @@ def test_rename():
     assert set(structure_set.get_roi_names()) == set(old_names.keys())
 
 def test_copy_rename():
+    """Test copying with ROI renaming."""
+
     new_names = {'cube3': 'cube'}
-    structure_set2 = structure_set.filter(new_names, name='copy', keep_renamed_only=True)
+    structure_set2 = structure_set.filtered_copy(new_names, name='copy', keep_renamed_only=True)
     assert len(structure_set2.get_rois()) == 1
     assert structure_set2.get_roi_names() == ['cube3']
     assert structure_set2.name == 'copy'
     structure_set.rename_rois({'cube': 'cube3'})
 
 def test_copy_remove():
-    structure_set2 = structure_set.filter(to_remove='cube')
+    """Test copying with ROI removal."""
+
+    structure_set2 = structure_set.filtered_copy(to_remove='cube')
     assert structure_set2.get_roi_names() == ['sphere']
 
 def test_copy_keep():
-    structure_set2 = structure_set.filter(to_keep='sphere')
+    """Test copying with keeping only certain ROIs."""
+
+    structure_set2 = structure_set.filtered_copy(to_keep='sphere')
     assert structure_set2.get_roi_names() == ['sphere']
+
+def test_clone():
+    """Test cloning; check that ROIs are fully copied."""
+
+    sphere1 = structure_set.get_roi("sphere")
+    structure_set2 = structure_set.clone()
+    sphere2 = structure_set2.get_roi("sphere")
+    sphere1.set_color("red")
+    sphere2.set_color("blue")
+    assert sphere1.color != sphere2.color
 
 def test_read_nii():
     nii_dir = 'tmp/nii_structs'
