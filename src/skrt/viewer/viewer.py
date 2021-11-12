@@ -2822,7 +2822,6 @@ class SingleViewer:
             major_ticks=self.major_ticks,
             minor_ticks=self.minor_ticks,
             ticks_all_sides=self.ticks_all_sides,
-            no_axis_labels=self.no_axis_labels,
             n_date=n_date,
             show=False,
         )

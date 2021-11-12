@@ -29,6 +29,12 @@ _plot_axes = {"x-y": [0, 1], "y-z": [2, 1], "x-z": [2, 0]}
 _default_figsize = 6
 _default_stations = {"0210167": "LA3", "0210292": "LA4"}
 
+# Matplotlib settings
+mpl.rcParams["figure.figsize"] = (7.4, 4.8)
+mpl.rcParams["font.serif"] = "Times New Roman"
+mpl.rcParams["font.family"] = "serif"
+mpl.rcParams["font.size"] = 14.0
+
 
 class Image(skrt.core.Archive):
     """Loads and stores a medical image and its geometrical properties, either
@@ -677,12 +683,13 @@ class Image(skrt.core.Archive):
         show=True,
         colorbar=False,
         colorbar_label="HU",
-        no_title=False,
+        title=None,
         no_ylabel=False,
         annotate_slice=False,
         major_ticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
+        no_axis_labels=False,
         rois=None,
         roi_plot_type="contour",
         legend=False,
@@ -690,6 +697,9 @@ class Image(skrt.core.Archive):
         centre_on_roi=None,
         legend_loc="lower left",
         flatten=False,
+        xlim=None,
+        ylim=None,
+        zlim=None
     ):
         """Plot a 2D slice of the image.
 
@@ -758,8 +768,9 @@ class Image(skrt.core.Archive):
             If True, the plotted figure will be shown via
             matplotlib.pyplot.show().
 
-        no_title : bool, default=False
-            If True, the plot will not be given a title.
+        title : str, default=None
+            Custom title for the plot. If None, a title inferred from the image
+            filename will be used. If False or '', no title will be added.
 
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
@@ -806,6 +817,9 @@ class Image(skrt.core.Archive):
 
         legend_loc : str, default='lower left'
             Legend location for ROI legend.
+
+        xlim, ylim : tuples, default=None
+            Custom limits on the x and y axes of the plot.
         """
 
         self.load_data()
@@ -908,14 +922,21 @@ class Image(skrt.core.Archive):
             view,
             idx,
             scale_in_mm,
-            no_title,
+            title,
             no_ylabel,
             annotate_slice,
             major_ticks,
             minor_ticks,
             ticks_all_sides,
+            no_axis_labels
         )
         self.zoom_ax(view, zoom, zoom_centre)
+
+        # Set custom x and y limits
+        if xlim is not None:
+            self.ax.set_xlim(xlim)
+        if ylim is not None:
+            self.ax.set_ylim(ylim)
 
         # Add colorbar
         if colorbar and mpl_kwargs.get("alpha", 1) > 0:
@@ -937,20 +958,23 @@ class Image(skrt.core.Archive):
         view,
         idx,
         scale_in_mm=True,
-        no_title=False,
+        title=None,
         no_ylabel=False,
         annotate_slice=False,
         major_ticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
+        no_axis_labels=False,
         **kwargs,
     ):
 
         x_ax, y_ax = _plot_axes[view]
 
         # Set title
-        if self.title and not no_title:
-            self.ax.set_title(self.title, pad=8)
+        if title is None:
+            title = self.title
+        if title:
+            self.ax.set_title(title, pad=8)
 
         # Set axis labels
         units = " (mm)" if scale_in_mm else ""
@@ -981,18 +1005,23 @@ class Image(skrt.core.Archive):
             )
 
         # Adjust tick marks
-        if major_ticks:
-            self.ax.xaxis.set_major_locator(MultipleLocator(major_ticks))
-            self.ax.yaxis.set_major_locator(MultipleLocator(major_ticks))
-        if minor_ticks:
-            self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
-            self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
-        if ticks_all_sides:
-            self.ax.tick_params(bottom=True, top=True, left=True, right=True)
+        if not no_axis_labels:
+            if major_ticks:
+                self.ax.xaxis.set_major_locator(MultipleLocator(major_ticks))
+                self.ax.yaxis.set_major_locator(MultipleLocator(major_ticks))
             if minor_ticks:
-                self.ax.tick_params(
-                    which="minor", bottom=True, top=True, left=True, right=True
-                )
+                self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+                self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+            if ticks_all_sides:
+                self.ax.tick_params(bottom=True, top=True, left=True, right=True)
+                if minor_ticks:
+                    self.ax.tick_params(
+                        which="minor", bottom=True, top=True, left=True, right=True
+                    )
+
+        # Remove axis labels if needed
+        if no_axis_labels:
+            plt.axis("off")
 
     def zoom_ax(self, view, zoom=None, zoom_centre=None):
         """Zoom in on axes if needed."""
@@ -1370,6 +1399,20 @@ class Image(skrt.core.Archive):
 
         # Remake standardised image
         self.standardise_data(force=True)
+
+    def has_same_geometry(self, im):
+        """Check whether this Image has the same geometric properties
+        another Image <im> (i.e. same origin, voxel sizes, and shape)."""
+
+        same = self.get_data().shape == im.get_data().shape
+        origin1 = [f"{x:.2f}" for x in self.origin]
+        origin2 = [f"{x:.2f}" for x in im.origin]
+        same *= origin1 == origin2
+        vx1 = [f"{x:.2f}" for x in self.voxel_size]
+        vx2 = [f"{x:.2f}" for x in im.voxel_size]
+        same *= vx1 == vx2
+        return same
+
 
 
 class ImageComparison:
