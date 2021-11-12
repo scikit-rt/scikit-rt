@@ -142,7 +142,7 @@ class Application():
         '''
         for alg in self.algs:
             self.status = alg.execute(patient=patient)
-            if not self.status.OK():
+            if not self.status.ok():
                 if not self.status.reason:
                     self.status.reason = (
                         f'Problem executing algorithm "{alg.name}" for data '
@@ -157,7 +157,7 @@ class Application():
         '''
         for alg in self.algs:
             self.status = alg.finalise()
-            if not self.status.OK():
+            if not self.status.ok():
                 if not self.status.reason:
                     self.status.reason = \
                         f'Problem finalising algorithm "{alg.name}"'
@@ -171,7 +171,7 @@ class Application():
         '''
 
         for alg in self.algs:
-            if not self.status.OK():
+            if not self.status.ok():
                 if not self.status.reason:
                     self.status.reason = \
                         f'Problem initialising algorithm "{alg.name}"'
@@ -189,16 +189,16 @@ class Application():
             List of paths to folders containing patient data.
         '''
 
-        if self.status.OK():
+        if self.status.ok():
             if not paths:
                 self.logger.warning('List of paths to patient data is empty')
             for dataPath in paths:
                 patient = Patient(path=dataPath)
                 self.status = self.execute(patient=patient)
-                if not self.status.OK():
+                if not self.status.ok():
                     break
 
-        if self.status.OK():
+        if self.status.ok():
             self.status = self.finalise()
 
         return self.status
@@ -235,13 +235,13 @@ class Status():
         self.reason = reason
         return None
 
-    def OK(self):
+    def ok(self):
         '''
         Return boolean indicating whether status is okay (exit code non-zero).
         '''
         if self.code:
-            isOK = False
+            is_ok = False
         else:
-            isOK = True
+            is_ok = True
 
-        return isOK
+        return is_ok
