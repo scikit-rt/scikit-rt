@@ -28,7 +28,7 @@ class BetterViewer:
 
     def __init__(
         self,
-        nii=None,
+        ims=None,
         title=None,
         mask=None,
         dose=None,
@@ -66,13 +66,14 @@ class BetterViewer:
         Parameters
         ----------
 
-        nii : string/nifti/array/list, default=None
-            Source of image data for each plot. If multiple plots are to be
-            shown, this must be a list. Image sources can be any of:
+        ims : string/Image/np.ndarray/list, default=None
+            Source(s) of image data for each plot. If multiple plots are to be
+            shown, this must be a list. Image sources can be Image objects, or 
+            any of the valid sources for creating an Image object, including:
             (a) The path to a NIfTI or DICOM file;
-            (b) A nibabel.nifti1.Nifti1Image object;
-            (c) The path to a file containing a NumPy array;
-            (d) A NumPy array.
+            (b) The path to a file containing a NumPy array;
+            (c) A NumPy array;
+            (d) An Image object.
 
         title : string or list of strings, default=None
             Custom title(s) to use for the image(s) to be displayed. If the
@@ -82,11 +83,11 @@ class BetterViewer:
 
         mask : string/nifti/array/list, default=None
             Source(s) of array(s) to with which to mask each plot (see valid
-            image sources for <nii>).
+            image sources for <ims>).
 
         dose : string/nifti/array/list, default=None
             Source(s) of dose field array(s) to overlay on each plot (see valid
-            image sources for <nii>).
+            image sources for <ims>).
 
         structs : str/list/dict, default=None
             Locations of files from which to load structures masks. This
@@ -168,11 +169,11 @@ class BetterViewer:
 
         jacobian : string/nifti/array/list, default=None
             Source(s) of jacobian determinant array(s) to overlay on each plot
-            (see valid image sources for <nii>).
+            (see valid image sources for <ims>).
 
         df : string/nifti/array/list, default=None
             Source(s) of deformation field(s) to overlay on each plot
-            (see valid image sources for <nii>).
+            (see valid image sources for <ims>).
 
         share_slider : bool, default=True
             If True and all displayed images are in the same frame of
@@ -206,16 +207,16 @@ class BetterViewer:
 
         show_cb : bool, default=False
             If True, a chequerboard image will be displayed. This option will
-            only be applied if the number of images in <nii> is 2.
+            only be applied if the number of images in <ims> is 2.
 
         show_overlay : bool, default=False
             If True, a blue/red transparent overlaid image will be displayed.
             This option will only be applied if the number of images in
-            <nii> is 2.
+            <ims> is 2.
 
         show_diff : bool, default=False
             If True, a the difference between two images will be shown. This
-            option will only be applied if the number of images in <nii>
+            option will only be applied if the number of images in <ims>
             is 2.
 
         comparison : bool/str/list, default=None
@@ -658,11 +659,11 @@ class BetterViewer:
         '''
 
         # Get image file inputs
-        if not isinstance(nii, list) or isinstance(nii, tuple):
-            self.nii = [nii]
+        if not isinstance(ims, list) or isinstance(ims, tuple):
+            self.ims = [ims]
         else:
-            self.nii = nii
-        self.n = len(self.nii)
+            self.ims = ims
+        self.n = len(self.ims)
 
         # Process other inputs
         self.title = self.get_input_list(title)
@@ -680,7 +681,7 @@ class BetterViewer:
         kwargs = {key.replace('colour', 'color'): val for key, val in kwargs.items()}
         for i in range(self.n):
             viewer = viewer_type(
-                self.nii[i],
+                self.ims[i],
                 title=self.title[i],
                 dose=self.dose[i],
                 mask=self.mask[i],
@@ -1448,6 +1449,7 @@ class SingleViewer:
         ticks_all_sides=False,
         no_axis_labels=False,
         scale_in_mm=True,
+        title=None,
         **kwargs,
     ):
 
@@ -1455,6 +1457,7 @@ class SingleViewer:
         self.im = self.make_image(im, **kwargs)
         self.gs = None  # Gridspec in which to place plot axes
         self.scale_in_mm = scale_in_mm
+        self.title = title
 
         # Set initial orientation
         view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
@@ -1825,6 +1828,7 @@ class SingleViewer:
             show=False,
             xlim=self.custom_ax_lims[_plot_axes[self.view][0]],
             ylim=self.custom_ax_lims[_plot_axes[self.view][1]],
+            title=self.title
         )
         self.plotting = False
         self.colorbar_drawn = True
