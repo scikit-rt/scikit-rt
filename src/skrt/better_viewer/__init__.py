@@ -887,7 +887,7 @@ class BetterViewer:
 
         # Make UI for other images
         for v in self.viewers[1:]:
-            v.make_ui(vimage=v0, share_slider=share_slider)
+            v.make_ui(other_viewer=v0, share_slider=share_slider)
             #  v0.structs_for_jump.update(v.structs_for_jump)
         #  v0.ui_struct_jump.options = list(v0.structs_for_jump.keys())
 
@@ -1541,8 +1541,11 @@ class SingleViewer:
         '''Set up image object.'''
 
         if isinstance(im, Image):
-            return im
-        return Image(*args, **kwargs)
+            image = im
+        else:
+            image = Image(*args, **kwargs)
+        image.load_data()
+        return image
 
     def set_slice(self, view, sl):
         """Set the current slice number in a specific orientation."""

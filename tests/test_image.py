@@ -89,7 +89,7 @@ def test_array_to_nifti_npy():
     print(im_npy_nifti.affine)
     assert ndata.shape == im_npy_nifti.data.shape
     assert np.all(ndata == im_npy_nifti.data)
-    assert np.all(im.saffine == im_npy_nifti.saffine)
+    assert np.all(im._saffine == im_npy_nifti._saffine)
     assert np.all(im.get_standardised_data() 
                   == im_npy_nifti.get_standardised_data())
 
@@ -105,8 +105,8 @@ def test_array_to_nifti():
     # Standarised data and affine should be the same for both
     im.standardise_data()
     im_nii.standardise_data()
-    assert np.all(im.sdata == im_nii.sdata)
-    assert np.all(im.saffine == im_nii.saffine)
+    assert np.all(im._sdata == im_nii._sdata)
+    assert np.all(im._saffine == im_nii._saffine)
 
 def test_nifti_to_nifti():
     '''Check a nifti file can be written and read correctly.'''
@@ -137,8 +137,8 @@ def test_nifti_to_npy():
     # Check standardised data matches
     im_nii.standardise_data()
     im_npy.standardise_data()
-    assert np.all(im_nii.saffine == im_npy.saffine)
-    assert np.all(im_nii.sdata == im_npy.sdata)
+    assert np.all(im_nii._saffine == im_npy._saffine)
+    assert np.all(im_nii._sdata == im_npy._sdata)
 
 def test_dcm_to_nifti():
     '''Check that a dicom file is correctly written to nifti.'''
@@ -156,8 +156,8 @@ def test_dcm_to_nifti():
     # Check standardised data is the same
     im_dcm.standardise_data()
     im_dcm2nii.standardise_data()
-    assert np.all(im_dcm.saffine == im_dcm2nii.saffine)
-    assert np.all(im_dcm.sdata == im_dcm2nii.sdata)
+    assert np.all(im_dcm._saffine == im_dcm2nii._saffine)
+    assert np.all(im_dcm._sdata == im_dcm2nii._sdata)
 
 def test_dcm_to_dcm():
     '''Check that a dicom file is correctly written to dicom.'''
@@ -182,8 +182,8 @@ def test_nifti_to_dcm():
     # Check standardised data and affine are the same
     im_nii.standardise_data()
     im_nii2dcm.standardise_data()
-    assert np.all(im_nii.saffine == im_dcm.saffine)
-    assert np.all(im_nii.sdata == im_dcm.sdata)
+    assert np.all(im_nii._saffine == im_dcm._saffine)
+    assert np.all(im_nii._sdata == im_dcm._sdata)
 
     # Check nifti array and affine are the same
     ndata, naffine = im_nii2dcm.get_nifti_array_and_affine()

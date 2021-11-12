@@ -130,7 +130,7 @@ class Image(skrt.core.Archive):
         if self.data is None:
             self.load_data()
         if standardise:
-            return self.get_standardised_data()
+            return self.get_standardised_data(force=True)
         return self.data
 
     def get_voxel_size(self):
@@ -151,11 +151,14 @@ class Image(skrt.core.Archive):
         self.load_data()
         return self.n_voxels
 
-    def get_affine(self):
+    def get_affine(self, standardise=False):
         """Return affine matrix."""
 
         self.load_data()
-        return self.affine
+        if not standardise:
+            return self.affine
+        else:
+            return self.get_standardised_affine(force=True)
 
     def get_structure_sets(self):
         return self.structure_sets
@@ -230,18 +233,25 @@ class Image(skrt.core.Archive):
             if isinstance(self.source, str) and os.path.exists(self.source):
                 self.title = os.path.basename(self.source)
 
-    def get_standardised_data(self):
-        """Return standardised image array."""
+    def get_standardised_data(self, force=True):
+        """Return standardised image array. If <force> is True, the 
+        standardisation will be re-performed."""
 
-        self.standardise_data()
-        return self.sdata
+        if not hasattr(self, "_sdata") or force:
+            self.standardise_data()
+        return self._sdata
 
-    def standardise_data(self, force=False):
+    def get_standardised_affine(self, force=True):
+        """Return standardised affine matrix. If <force> is True, the 
+        standardisation will be re-performed."""
+
+        if not hasattr(self, "_saffine") or force:
+            self.standardise_data()
+        return self._saffine
+
+    def standardise_data(self):
         """Manipulate data array and affine matrix into a standard
         configuration."""
-
-        if hasattr(self, "sdata") and not force:
-            return
 
         data = self.data
         affine = self.affine
@@ -290,12 +300,12 @@ class Image(skrt.core.Archive):
             affine[1, 3] = -(affine[1, 3] + (data.shape[0] - 1) * affine[1, 1])
 
         # Assign standardised image array and affine matrix
-        self.sdata = data
-        self.saffine = affine
+        self._sdata = data
+        self._saffine = affine
 
         # Get standard voxel sizes and origin
-        self.svoxel_size = list(np.diag(self.saffine))[:-1]
-        self.sorigin = list(self.saffine[:-1, -1])
+        self._svoxel_size = list(np.diag(self._saffine))[:-1]
+        self._sorigin = list(self._saffine[:-1, -1])
 
     def resample(self, voxel_size):
         """Resample image to have particular voxel sizes."""
@@ -534,18 +544,18 @@ class Image(skrt.core.Archive):
                          self.data.shape[2]]
 
         # Set axis limits for standardised plotting
-        self.standardise_data(force=force)
+        self.standardise_data()
         self.lims = [
             (
-                self.sorigin[i],
-                self.sorigin[i] + (self.n_voxels[i] - 1) * self.svoxel_size[i],
+                self._sorigin[i],
+                self._sorigin[i] + (self.n_voxels[i] - 1) * self._svoxel_size[i],
             )
             for i in range(3)
         ]
         self.image_extent = [
             (
-                self.lims[i][0] - self.svoxel_size[i] / 2,
-                self.lims[i][1] + self.svoxel_size[i] / 2,
+                self.lims[i][0] - self._svoxel_size[i] / 2,
+                self.lims[i][1] + self._svoxel_size[i] / 2,
             )
             for i in range(3)
         ]
@@ -578,7 +588,7 @@ class Image(skrt.core.Archive):
         transposes = {"x-y": (0, 1, 2), "y-z": (0, 2, 1), "x-z": (1, 2, 0)}
         transpose = transposes[view]
         list(_plot_axes[view]) + [_slice_axes[view]]
-        data = np.transpose(self.get_standardised_data(), transpose)
+        data = np.transpose(self.get_standardised_data(force=True), transpose)
         if flatten:
             return np.sum(data, axis=2)
         else:
@@ -1059,8 +1069,8 @@ class Image(skrt.core.Archive):
         self.load_data()
         i_ax = _axes.index(ax) if ax in _axes else ax
         if standardise:
-            origin = self.sorigin
-            voxel_size = self.svoxel_size
+            origin = self._sorigin
+            voxel_size = self._svoxel_size
         else:
             origin = self.origin
             voxel_size = self.voxel_size
@@ -1072,8 +1082,8 @@ class Image(skrt.core.Archive):
         self.load_data()
         i_ax = _axes.index(ax) if ax in _axes else ax
         if standardise:
-            origin = self.sorigin
-            voxel_size = self.svoxel_size
+            origin = self._sorigin
+            voxel_size = self._svoxel_size
         else:
             origin = self.origin
             voxel_size = self.voxel_size
@@ -1244,7 +1254,8 @@ class Image(skrt.core.Archive):
 
         # Return standardised dicom array
         if standardise:
-            return self.get_standardised_data(), self.saffine
+            self.standardise_data()
+            return self._sdata, self._saffine
 
         # Convert nifti-style array to dicom
         if "nifti" in self.source_type:
