@@ -33,7 +33,7 @@ class Algorithm():
     set_attributes: Set values for algorithm attributes.
     '''
 
-    def __init__(self, opts={}, name=None, log_level=None):
+    def __init__(self, opts={}, name=None, log_level=None, alg_module=''):
         '''
         Create instance of Algorithm class.
 
@@ -46,12 +46,15 @@ class Algorithm():
         log_level: str/int/None, default=None
             Severity level for event logging.  If the value is None,
             log_level is set to the value of skrt.core.Defaults().log_level.
+        alg_module: str, default=None
+            Path to module where algorithm is defined.
         '''
         class_name = type(self).__name__
         self.name = class_name if name is None else name
         self.log_level = \
                 Defaults().log_level if log_level is None else log_level
         self.logger = get_logger(name=class_name, log_level=self.log_level)
+        self.alg_module = alg_module
         self.status = Status(name=self.name)
 
         # Initialise algorithm attributes.
