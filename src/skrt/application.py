@@ -49,6 +49,7 @@ class Algorithm():
         alg_module: str, default=None
             Path to module where algorithm is defined.
         '''
+        self.opts = opts
         class_name = type(self).__name__
         self.name = class_name if name is None else name
         self.log_level = \
