@@ -253,8 +253,8 @@ class Image(skrt.core.Archive):
         """Manipulate data array and affine matrix into a standard
         configuration."""
 
-        data = self.data
-        affine = self.affine
+        data = self.get_data()
+        affine = self.get_affine()
 
         # Adjust dicom
         if self.source_type == "dicom":
@@ -574,7 +574,7 @@ class Image(skrt.core.Archive):
             if pos is not None:
                 idx = self.pos_to_idx(pos, _slice_axes[view])
             else:
-                centre_pos = self.get_image_centre()[_slice_axes[view]]
+                centre_pos = self.get_centre()[_slice_axes[view]]
                 idx = self.pos_to_idx(centre_pos, _slice_axes[view])
         return idx
 
@@ -604,7 +604,7 @@ class Image(skrt.core.Archive):
         colorbar=False,
         **kwargs,
     ):
-        """Set up axes for plotting this image, either from a given exes or
+        """Set up axes for plotting this image, either from a given axes or
         gridspec, or by creating new axes."""
 
         # Set up figure/axes
@@ -927,20 +927,35 @@ class Image(skrt.core.Archive):
                 framealpha=1
             )
 
+        # Create title and annotation text
+        if title is None and self.title is not None:
+            title = self.title
+        annotation = None
+        annotation_color = annotate_slice
+        if annotate_slice:
+            z_ax = _axes[_slice_axes[view]]
+            if scale_in_mm:
+                annotation = "{} = {:.1f} mm".format(z_ax, 
+                                                     self.idx_to_pos(idx, z_ax))
+            else:
+                annotation = "{} = {}".format(z_ax, self.idx_to_slice(idx, z_ax))
+
         # Label axes
-        self.label_ax(
+        label_ax(
+            self.ax,
             view,
             idx,
             scale_in_mm,
             title,
             no_ylabel,
-            annotate_slice,
+            annotation,
+            annotation_color,
             major_ticks,
             minor_ticks,
             ticks_all_sides,
             no_axis_labels
         )
-        self.zoom_ax(view, zoom, zoom_centre)
+        zoom_ax(self.ax, view, zoom, zoom_centre)
 
         # Set custom x and y limits
         if xlim is not None:
@@ -962,106 +977,6 @@ class Image(skrt.core.Archive):
         if save_as:
             self.fig.savefig(save_as)
             plt.close()
-
-    def label_ax(
-        self,
-        view,
-        idx,
-        scale_in_mm=True,
-        title=None,
-        no_ylabel=False,
-        annotate_slice=False,
-        major_ticks=None,
-        minor_ticks=None,
-        ticks_all_sides=False,
-        no_axis_labels=False,
-        **kwargs,
-    ):
-
-        x_ax, y_ax = _plot_axes[view]
-
-        # Set title
-        if title is None:
-            title = self.title
-        if title:
-            self.ax.set_title(title, pad=8)
-
-        # Set axis labels
-        units = " (mm)" if scale_in_mm else ""
-        self.ax.set_xlabel(_axes[x_ax] + units, labelpad=0)
-        if not no_ylabel:
-            self.ax.set_ylabel(_axes[y_ax] + units)
-        else:
-            self.ax.set_yticks([])
-
-        # Annotate with slice position
-        if annotate_slice:
-            z_ax = _axes[_slice_axes[view]]
-            if scale_in_mm:
-                z_str = "{} = {:.1f} mm".format(z_ax, self.idx_to_pos(idx,
-                                                                      z_ax))
-            else:
-                z_str = "{} = {}".format(z_ax, self.idx_to_slice(idx, z_ax))
-            if matplotlib.colors.is_color_like(annotate_slice):
-                color = annotate_slice
-            else:
-                color = "white"
-            self.ax.annotate(
-                z_str,
-                xy=(0.05, 0.93),
-                xycoords="axes fraction",
-                color=color,
-                fontsize="large",
-            )
-
-        # Adjust tick marks
-        if not no_axis_labels:
-            if major_ticks:
-                self.ax.xaxis.set_major_locator(MultipleLocator(major_ticks))
-                self.ax.yaxis.set_major_locator(MultipleLocator(major_ticks))
-            if minor_ticks:
-                self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
-                self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
-            if ticks_all_sides:
-                self.ax.tick_params(bottom=True, top=True, left=True, right=True)
-                if minor_ticks:
-                    self.ax.tick_params(
-                        which="minor", bottom=True, top=True, left=True, right=True
-                    )
-
-        # Remove axis labels if needed
-        if no_axis_labels:
-            plt.axis("off")
-
-    def zoom_ax(self, view, zoom=None, zoom_centre=None):
-        """Zoom in on axes if needed."""
-
-        if not zoom or isinstance(zoom, str):
-            return
-        zoom = skrt.core.to_three(zoom)
-        x_ax, y_ax = _plot_axes[view]
-        if zoom_centre is None:
-            im_centre = self.get_image_centre()
-            mid_x = im_centre[x_ax]
-            mid_y = im_centre[y_ax]
-        else:
-            mid_x, mid_y = zoom_centre[x_ax], zoom_centre[y_ax]
-
-        # Calculate new axis limits
-        init_xlim = self.plot_extent[view][:2]
-        init_ylim = self.plot_extent[view][2:]
-        xlim = [
-            mid_x - (init_xlim[1] - init_xlim[0]) / (2 * zoom[x_ax]),
-            mid_x + (init_xlim[1] - init_xlim[0]) / (2 * zoom[x_ax]),
-        ]
-        ylim = [
-            mid_y - (init_ylim[1] - init_ylim[0]) / (2 * zoom[y_ax]),
-            mid_y + (init_ylim[1] - init_ylim[0]) / (2 * zoom[y_ax]),
-        ]
-
-        # Set axis limits
-        self.ax.set_xlim(xlim)
-        self.ax.set_ylim(ylim)
 
     def idx_to_pos(self, idx, ax, standardise=True):
         """Convert an array index to a position in mm along a given axis."""
@@ -1128,7 +1043,7 @@ class Image(skrt.core.Archive):
 
         return self.idx_to_pos(self.slice_to_idx(sl, ax), ax, standardise)
 
-    def get_image_centre(self):
+    def get_centre(self):
         """Get position in mm of the centre of the image."""
 
         self.load_data()
@@ -1363,8 +1278,7 @@ class Image(skrt.core.Archive):
             )
             print("Wrote dicom file(s) to directory:", outdir)
 
-    @functools.cached_property
-    def coords(self):
+    def get_coords(self):
         """Get grids of x, y, and z coordinates for each voxel in the image."""
 
         # Make coordinates
@@ -1940,3 +1854,99 @@ def get_new_uid(root=None):
     else:
         new_id = ".".join([new_id, str(np.random.randint(10, 99))])
     return new_id
+
+
+def label_ax(
+    ax,
+    view,
+    idx,
+    scale_in_mm=True,
+    title=None,
+    no_ylabel=False,
+    annotation=None,
+    annotation_color="white",
+    major_ticks=None,
+    minor_ticks=None,
+    ticks_all_sides=False,
+    no_axis_labels=False,
+    **kwargs,
+):
+    """Label a set of axes."""
+
+    x_ax, y_ax = _plot_axes[view]
+
+    # Set title
+    if title:
+        ax.set_title(title, pad=8)
+
+    # Set axis labels
+    units = " (mm)" if scale_in_mm else ""
+    ax.set_xlabel(_axes[x_ax] + units, labelpad=0)
+    if not no_ylabel:
+        ax.set_ylabel(_axes[y_ax] + units)
+    else:
+        ax.set_yticks([])
+
+    # Annotate with slice position
+    if annotation is not None:
+        if matplotlib.colors.is_color_like(annotation_color):
+            color = annotation_color
+        else:
+            color = "white"
+        ax.annotate(
+            annotation,
+            xy=(0.05, 0.93),
+            xycoords="axes fraction",
+            color=color,
+            fontsize="large",
+        )
+
+    # Adjust tick marks
+    if not no_axis_labels:
+        if major_ticks:
+            ax.xaxis.set_major_locator(MultipleLocator(major_ticks))
+            ax.yaxis.set_major_locator(MultipleLocator(major_ticks))
+        if minor_ticks:
+            ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+        if ticks_all_sides:
+            ax.tick_params(bottom=True, top=True, left=True, right=True)
+            if minor_ticks:
+                ax.tick_params(
+                    which="minor", bottom=True, top=True, left=True, right=True
+                )
+
+    # Remove axis labels if needed
+    if no_axis_labels:
+        plt.axis("off")
+
+
+def zoom_ax(ax, view, zoom=None, zoom_centre=None):
+    """Zoom in on axes."""
+
+    if not zoom or isinstance(zoom, str):
+        return
+    zoom = skrt.core.to_three(zoom)
+    x_ax, y_ax = _plot_axes[view]
+    if zoom_centre is None:
+        mid_x = np.mean(ax.get_xlim())
+        mid_y = np.mean(ax.get_ylim())
+    else:
+        mid_x, mid_y = zoom_centre[x_ax], zoom_centre[y_ax]
+
+    # Calculate new axis limits
+    init_xlim = ax.get_xlim()
+    init_ylim = ax.get_ylim()
+    xlim = [
+        mid_x - (init_xlim[1] - init_xlim[0]) / (2 * zoom[x_ax]),
+        mid_x + (init_xlim[1] - init_xlim[0]) / (2 * zoom[x_ax]),
+    ]
+    ylim = [
+        mid_y - (init_ylim[1] - init_ylim[0]) / (2 * zoom[y_ax]),
+        mid_y + (init_ylim[1] - init_ylim[0]) / (2 * zoom[y_ax]),
+    ]
+
+    # Set axis limits
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+

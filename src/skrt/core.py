@@ -219,39 +219,84 @@ class Data:
         out.append("}")
         return "\n".join(out)
 
-    def clone(self):
+    def clone(self, data_types_to_copy=None):
         """
-        Return a clone of the Data object containing copies of any 
-        lists, dicts, or arrays owned by the object.
+        Return a clone of the Data object. 
+        Any lists, dicts, and numpy arrays will always be shallow copied, 
+        while all other attributes will be copied by reference, unless 
+        <types_to_copy> is set to a list of types inheriting from the Data 
+        class. Any objects of this type either directly stored as an attribute 
+        or stored in a list or dict attribute will be cloned.
+        (Note that these child Data object will be copied with 
+        data_types_to_copy=None to prevent recursion.)
         """
 
         clone = copy.copy(self)
-        self.clone_attrs(clone)
+        self.clone_attrs(clone, data_types_to_copy)
         return clone
 
-    def clone_attrs(self, obj):
+    def clone_attrs(self, obj, data_types_to_copy=None):
         """
-        Apply class attributes from self to a new object, making copies 
-        of any lists, dicts, or numpy arrays.
+        Apply class attributes (excluding methods) from self to a new object. 
+        Any lists, dicts, and numpy arrays will always be shallow copied, 
+        while all other attributes will be copied by reference, unless 
+        <types_to_copy> is set to a list of types inheriting from the Data 
+        class. Any objects of this type either directly stored as an attribute 
+        or stored in a list or dict attribute will be cloned.
+        (Note that these child Data object will be copied with 
+        data_types_to_copy=None to prevent recursion.)
         """
 
-        for attr in dir(self):
+        # Check the data types to copy are valid
+        dtypes_valid = []
+        if data_types_to_copy is not None:
+            for dtype in data_types_to_copy:
+                if issubclass(dtype, Data):
+                    dtypes_valid.append(dtype)
+                else:
+                    print("Warning: data_types_to_copy must inherit from skrt.Data!",
+                          "Type", dtype, "will be ignored.")
+
+        for attr_name in dir(self):
 
             # Don't copy private variables
-            if attr.startswith("__"):
+            if attr_name.startswith("__"):
                 continue
 
             # Don't copy methods
-            if callable(getattr(self, attr)):
+            attr = getattr(self, attr_name)
+            if callable(attr):
                 continue
             
             # Make new copy of lists/dicts/arrays
-            if type(getattr(self, attr)) in [list, dict, np.ndarray]:
-                setattr(obj, attr, copy.copy(getattr(self, attr)))
+            if type(attr) in [dict, list, np.ndarray]:
+                setattr(obj, attr_name, copy.copy(attr))
+
+                # Also clone given Data types
+                if isinstance(attr, list):
+                    for i, item in enumerate(attr):
+                        for dtype in dtypes_valid:
+                            if isinstance(item, dtype):
+                                getattr(obj, attr_name)[i] = item.clone() 
+                                print(getattr(obj, attr_name))
+                                break
+                elif isinstance(attr, dict):
+                    for key, item in attr.items():
+                        for dtype in dtypes_valid:
+                            if isinstance(item, dtype):
+                                getattr(obj, attr_name)[key] = item.clone() 
+                                break
+
+            # Clone any owned Data objects if cloning children
+            elif issubclass(type(attr), Data):
+                for dtype in dtypes_valid:
+                    if isinstance(attr, dtype):
+                        setattr(obj, attr_name, attr.clone())
+                        break
 
             # Otherwise, copy reference to attribute
             else:
-                setattr(obj, attr, getattr(self, attr))
+                setattr(obj, attr_name, attr)
 
     def get_dict(self) -> dict:
         """

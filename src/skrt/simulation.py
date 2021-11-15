@@ -7,7 +7,7 @@ import shutil
 from scipy import ndimage
 
 from skrt.image import Image, _axes
-from skrt.structures import StructureSet, ROI
+from skrt.structures import StructureSet, ROI, ROIDefaults
 import skrt.core
 
 
@@ -79,21 +79,21 @@ class SyntheticImage(Image):
             self.filename = os.path.expanduser(filename)
             self.write()
 
-    def view(self, **kwargs):
-        """View with QuickViewer."""
+    #  def view(self, **kwargs):
+        #  """View with QuickViewer."""
 
-        from skrt.viewer import QuickViewer
+        #  from skrt.viewer import QuickViewer
 
-        qv_kwargs = {
-            "hu": [self.min_hu, self.max_hu],
-            "title": "",
-            "origin": self.origin,
-            "voxel_size": self.voxel_size,
-            "mpl_kwargs": {"interpolation": "none"},
-        }
-        qv_kwargs.update(kwargs)
-        rois = self.get_roi_data()
-        QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
+        #  qv_kwargs = {
+            #  "hu": [self.min_hu, self.max_hu],
+            #  "title": "",
+            #  "origin": self.origin,
+            #  "voxel_size": self.voxel_size,
+            #  "mpl_kwargs": {"interpolation": "none"},
+        #  }
+        #  qv_kwargs.update(kwargs)
+        #  rois = self.get_roi_data()
+        #  QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
 
     def get_data(self):
         """Get data with noise overlaid."""
@@ -112,9 +112,8 @@ class SyntheticImage(Image):
     def plot(self, *args, **kwargs):
         """Plot the current image."""
 
-        self.sdata = self.get_data()
         self.structure_sets = [self.get_structure_set()]
-        Image.plot(self, structure_set=0, *args, **kwargs)
+        Image.plot(self, rois=0, *args, **kwargs)
 
     def get_roi_data(self):
         """Get dict of ROIs and names, with any transformations applied."""
@@ -147,7 +146,7 @@ class SyntheticImage(Image):
             return
 
         s = roi_dict[name]
-        return ROI(s.get_data(self.get_coords()), name=name, affine=self.affine)
+        return ROI(s.get_data(self.get_coords()), name=name, image=self)
 
     def write(self, outname=None, overwrite_roi_dir=False):
         """Write image data to an output file."""
@@ -235,7 +234,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_image_centre()
+            centre = self.get_centre()
         sphere = Sphere(self.shape, radius, centre, intensity, name)
         self.add_shape(sphere, "sphere", is_roi, above, group)
 
@@ -253,7 +252,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_image_centre()
+            centre = self.get_centre()
         cylinder = Cylinder(self.shape, radius, length, axis, centre, intensity, name)
         self.add_shape(cylinder, "cylinder", is_roi, above, group)
 
@@ -284,7 +283,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_image_centre()
+            centre = self.get_centre()
         side_length = skrt.core.to_three(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
@@ -328,7 +327,7 @@ class SyntheticImage(Image):
                         get_translation_matrix(*[-d for d in self.translation])
                     )
                 if self.rotation:
-                    centre = self.get_image_centre()
+                    centre = self.get_centre()
                     transform = transform.dot(
                         get_rotation_matrix(*[-r for r in self.rotation], centre)
                     )

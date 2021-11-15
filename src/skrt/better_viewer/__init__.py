@@ -1492,7 +1492,7 @@ class SingleViewer:
             #  else:
             self.hu_limits = [-2000, 2000]
         elif hu_limits == "auto":
-            self.hu_limits = (self.im.data.min(), self.im.data.max())
+            self.hu_limits = (self.im.get_data().min(), self.im.data.max())
         if hu_step is None:
             self.hu_step = (
                 1 if abs(self.hu_limits[1] - self.hu_limits[0]) >= 10 else 0.1
@@ -1599,7 +1599,7 @@ class SingleViewer:
 
             # Make HU slider
             if self.hu_limits == 'auto':
-                hu_limits = (self.im.data.min(), self.im.data.max())
+                hu_limits = (self.im.get_data().min(), self.im.data.max())
             else:
                 hu_limits = self.hu_limits
 
