@@ -79,21 +79,21 @@ class SyntheticImage(Image):
             self.filename = os.path.expanduser(filename)
             self.write()
 
-    def view(self, **kwargs):
-        """View with QuickViewer."""
+    #  def view(self, **kwargs):
+        #  """View with QuickViewer."""
 
-        from skrt.viewer import QuickViewer
+        #  from skrt.viewer import QuickViewer
 
-        qv_kwargs = {
-            "hu": [self.min_hu, self.max_hu],
-            "title": "",
-            "origin": self.origin,
-            "voxel_size": self.voxel_size,
-            "mpl_kwargs": {"interpolation": "none"},
-        }
-        qv_kwargs.update(kwargs)
-        rois = self.get_roi_data()
-        QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
+        #  qv_kwargs = {
+            #  "hu": [self.min_hu, self.max_hu],
+            #  "title": "",
+            #  "origin": self.origin,
+            #  "voxel_size": self.voxel_size,
+            #  "mpl_kwargs": {"interpolation": "none"},
+        #  }
+        #  qv_kwargs.update(kwargs)
+        #  rois = self.get_roi_data()
+        #  QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
 
     def get_data(self):
         """Get data with noise overlaid."""
@@ -114,7 +114,7 @@ class SyntheticImage(Image):
 
         self.sdata = self.get_data()
         self.structure_sets = [self.get_structure_set()]
-        Image.plot(self, structure_set=0, *args, **kwargs)
+        Image.plot(self, rois=0, *args, **kwargs)
 
     def get_roi_data(self):
         """Get dict of ROIs and names, with any transformations applied."""

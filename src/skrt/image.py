@@ -339,7 +339,7 @@ class Image(skrt.core.Archive):
             self.get_data(),
             method="linear",
             bounds_error=False,
-            fill_value=self.min
+            fill_value=self.get_min()
         )
 
         # Calculate new number of voxels
@@ -421,15 +421,13 @@ class Image(skrt.core.Archive):
             "mm"
         )
 
-    @functools.cached_property
-    def min(self):
+    def get_min(self):
         """Get minimum value of data array."""
 
         self.load_data()
         return self.data.min()
 
-    @functools.cached_property
-    def max(self):
+    def get_max(self):
         """Get maximum value of data array."""
 
         self.load_data()
@@ -700,6 +698,7 @@ class Image(skrt.core.Archive):
         minor_ticks=None,
         ticks_all_sides=False,
         no_axis_labels=False,
+        structure_set=None,
         rois=None,
         roi_plot_type="contour",
         legend=False,
@@ -803,7 +802,7 @@ class Image(skrt.core.Archive):
             and to the right hand side of the plot as well as below and to the
             left. The top/right ticks will not be labelled.
 
-        structure_set : int/str, default=None
+        rois : int/str, default=None
             Option for which structure set should be plotted (if the Image
             owns any structure sets). Can be:
                 - None: no structure sets will be plotted.
@@ -1363,8 +1362,7 @@ class Image(skrt.core.Archive):
             )
             print("Wrote dicom file(s) to directory:", outdir)
 
-    @functools.cached_property
-    def coords(self):
+    def get_coords(self):
         """Get grids of x, y, and z coordinates for each voxel in the image."""
 
         # Make coordinates

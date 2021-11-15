@@ -169,19 +169,6 @@ class ROI(skrt.image.Image):
         if load:
             self.load()
 
-    def clone(self, name=None):
-        """Create clone of ROI, either with custom name or 'copy' appended to 
-        name."""
-
-        # Clone the ROI
-        clone = Data.clone(self)
-
-        # Set name of clone
-        if name is None:
-            name = self.name + " copy"
-        clone.name = name
-        return clone
-
     def load(self):
         """Load ROI from file."""
 
@@ -517,6 +504,7 @@ class ROI(skrt.image.Image):
 
         # Get 2D or 3D data for which to calculate centre
         if view is None:
+            self.create_mask()
             data = self.get_data(standardise)
             axes = skrt.image._axes
         else:
@@ -1116,6 +1104,7 @@ class ROI(skrt.image.Image):
         zoom=None,
         zoom_centre=None,
         color=None,
+        show=True,
         **kwargs,
     ):
         """Plot this ROI as either a mask or a contour."""
@@ -1136,6 +1125,7 @@ class ROI(skrt.image.Image):
                 mask_kwargs,
                 opacity,
                 zoom_centre=zoom_centre,
+                show=show,
                 **kwargs,
             )
 
@@ -1152,6 +1142,7 @@ class ROI(skrt.image.Image):
                 zoom=zoom,
                 zoom_centre=zoom_centre,
                 color=color,
+                show=show,
                 **kwargs,
             )
 
@@ -1159,7 +1150,8 @@ class ROI(skrt.image.Image):
         elif "filled" in plot_type:
             if opacity is None:
                 opacity = 0.3
-            self.plot_mask(view, sl, idx, pos, mask_kwargs, opacity, **kwargs)
+            self.plot_mask(view, sl, idx, pos, mask_kwargs, opacity, 
+                           show=False, **kwargs)
             kwargs["ax"] = self.ax
             kwargs["include_image"] = False
             self.plot_contour(
@@ -1173,6 +1165,7 @@ class ROI(skrt.image.Image):
                 zoom=zoom,
                 zoom_centre=zoom_centre,
                 color=color,
+                show=show,
                 **kwargs,
             )
 
@@ -1699,7 +1692,14 @@ class StructureSet(skrt.core.Archive):
         roi.structure_set = self
         self.rois.append(roi)
 
-    def filter(
+    def clone(self, data_types_to_copy=[ROI]):
+        """Create a clone; by default, any lists, dicts, np.ndarrays and ROIs
+        will be fully copied, while all other attributes are copied as 
+        references."""
+
+        return skrt.core.Data.clone(self, data_types_to_copy)
+
+    def filtered_copy(
         self,
         names=None,
         name=None,
@@ -1787,16 +1787,6 @@ class StructureSet(skrt.core.Archive):
 
         self.load()
         print("\n".join(self.get_roi_names()))
-
-    def __repr__(self):
-
-        self.load()
-        out_str = "StructureSet\n{"
-        out_str += "\n  name : " + str(self.name)
-        out_str += "\n  ROIs :\n    "
-        out_str += "\n    ".join(self.get_roi_names())
-        out_str += "\n}"
-        return out_str
 
     def get_geometry(self, **kwargs):
         """Get pandas DataFrame of geometric properties for all ROIs."""
