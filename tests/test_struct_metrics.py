@@ -11,7 +11,7 @@ centre2 = np.array([5, 6, 5])
 side_length = 4
 name1 = 'cube1'
 name2 = 'cube2'
-sim = SyntheticImage((10, 10, 10))
+sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
 sim.add_cube(4, centre=centre1, name=name1)
 sim.add_cube(4, centre=centre2, name=name2)
 cube1 = sim.get_roi(name1)
