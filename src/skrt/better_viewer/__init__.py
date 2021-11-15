@@ -32,8 +32,8 @@ class BetterViewer:
         title=None,
         mask=None,
         dose=None,
-        structs=None,
-        multi_structs=None,
+        rois=None,
+        #  multi_rois=None,
         jacobian=None,
         df=None,
         share_slider=True,
@@ -89,82 +89,82 @@ class BetterViewer:
             Source(s) of dose field array(s) to overlay on each plot (see valid
             image sources for <ims>).
 
-        structs : str/list/dict, default=None
-            Locations of files from which to load structures masks. This
+        rois : str/list/dict, default=None
+            Locations of files from which to load ROIs. This
             argument can be any of:
 
             1) String:
-                a) The path to a NIfTI file containing a structure mask;
-                b) The path to a DICOM file containing structure contours;
+                a) The path to a NIfTI file containing an ROI mask;
+                b) The path to a DICOM file containing ROI contours;
                 b) A wildcard matching one or more of the above file types;
                 c) The path to a directory containing NIfTI or DICOM files;
                 d) A wildcard matching one or more directories containing 
                    NIfTI or DICOM files.
 
-                If the string is found to match a directory, the structures 
+                If the string is found to match a directory, the ROIs 
                 from all NIfTI or DICOM files inside that directory will 
                 be loaded.
 
-                Structure names will be inferred from the filenames (NIfTI)
-                or the structure names inside the file (DICOM) unless
-                the user indicates otherwise in the <struct_names> parameter;
-                e.g. a structure taken from a file called
+                ROI names will be inferred from the filenames (NIfTI)
+                or the ROI names inside the file (DICOM) unless
+                the user indicates otherwise in the <roi_names> parameter;
+                e.g. an ROI taken from a file called
                 'right_parotid.nii.gz' would automatically be called
                 'right parotid' in QuickViewer.
 
-                If multiple loaded structures have the same names, QuickViewer
+                If multiple loaded ROIs have the same names, QuickViewer
                 will attempt to label each with a unique name in the UI:
-                    - If two structures named 'heart' are loaded from different
+                    - If two ROIs named 'heart' are loaded from different
                       directories dir1 and dir2, these will be labelled
                       'Heart (dir1)' and 'Heart (dir2) in the UI.
-                    -  If two structures named 'heart' are loaded from
+                    -  If two ROIs named 'heart' are loaded from
                        different files, file1.nii and file2.nii, these will be
                        labelled 'Heart (file1.nii)' and 'Heart (file2.nii)' in
                        the UI.
-                However, if the <struct_legend> option is used, the structures
+                However, if the <roi_legend> option is used, the ROIs
                 will be labelled with the same name in the figure legend. See
-                the labelling option below in part (3) or the <struct_names>
+                the labelling option below in part (3) or the <roi_names>
                 option for more customisation.
 
             2) List:
-                a) A list of any of the strings described above; all structure
+                a) A list of any of the strings described above; all ROI
                    files found will be loaded.
-                b) A list of pairs of paths to files containing structures to
-                   be compared to one another (see the <struct_comparison>
+                b) A list of pairs of paths to files containing ROIs to
+                   be compared to one another (see the <roi_comparison>
                    option).
 
             3) Dict:
-                Structure filepaths can be nested inside a dictionary, where
+                ROI filepaths can be nested inside a dictionary, where
                 the keys are labels which the user wishes to use to refer to
-                structures in those files, and the values are any of the
+                ROIs in those files, and the values are any of the
                 options listed above (except 2b).
 
                 The label will be displayed in parentheses next to the
-                structure names in the QuickViewer UI and structure legend.
+                ROIs names in the QuickViewer UI and ROI legend.
 
-                The <struct_names> and <struct_options> arguments can also
+                The <roi_names> and <roi_options> arguments can also
                 be nested inside a dictionary if the user wants to apply
-                different name and color options to the structures associated
+                different name and color options to the ROIs associated
                 with different labels.
 
             By default, each NIfTI file will be assumed to contain a single 
-            structure. To load multiple label masks from a single NIfTI file,
+            ROI. To load multiple label masks from a single NIfTI file,
             add the string 'multi:' before the filepath, e.g.:
 
-                structs='multi:my_file.nii'
+                rois='multi:my_file.nii'
 
-            or alternatively use the multi_structs parameter.
+            or alternatively use the multi_rois parameter.
 
-        multi_structs : str/list/dict, default=None
+        multi_rois : str/list/dict, default=None
 
-            Path(s) to file(s) from which to load multiple structure label 
+            Path(s) to file(s) from which to load multiple ROI label 
             masks per file. 
 
-            Same as the <structs> argument, except each file specified in the
-            <multi_structs> argument will be checked for different labels 
+            Same as the <rois> argument, except each file specified in the
+            <multi_rois> argument will be checked for different labels 
             instead of being treated as a binary mask.
 
-            This can be used in conjunction with <structs> to load single masks
+            This can be used in conjunction with <rois> to load single masks
             from some files and multiple masks from others.
 
         jacobian : string/nifti/array/list, default=None
@@ -432,167 +432,167 @@ class BetterViewer:
 
             For quiver plotting options, see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.quiver.html.
 
-        struct_plot_type : str, default='contour'
-            Option for initial plot of structures. Can be 'contour', 'mask',
+        roi_plot_type : str, default='contour'
+            Option for initial plot of ROIs. Can be 'contour', 'mask',
             'filled', or 'none'. Can later be changed interactively.
 
-        struct_opacity : float, default=None
-            Initial opacity of structures when plotted as masks or filled
+        roi_opacity : float, default=None
+            Initial opacity of ROIs when plotted as masks or filled
             contours. Can later be changed interactively. Default=1 for masks,
             0.3 for filled contours.
 
-        struct_linewidth : float, default=2
-            Initial linewidth of structures when plotted as contours. Can later
+        roi_linewidth : float, default=2
+            Initial linewidth of ROIs when plotted as contours. Can later
             be changed interactively.
 
-        struct_info : bool, default=False
-            If True, the lengths and volumes of each structure will be
+        roi_info : bool, default=False
+            If True, the lengths and volumes of each ROI will be
             displayed below the plot.
 
-        struct_info_dp : int, default=2
-            Number of decimal places to show for floats in structure info and
+        roi_info_dp : int, default=2
+            Number of decimal places to show for floats in ROI info and
             comparison tables.
 
         length_units : str, default=None
-            Units in which to display the lengths of structures if
-            <struct_info> if True. If None, units will be voxels if
+            Units in which to display the lengths of ROIs if
+            <roi_info> if True. If None, units will be voxels if
             <scale_in_mm> is False, or mm if <scale_in_mm> is True. Options:
                 (a) 'mm'
                 (b) 'voxels'
 
         area_units : str, default=None
-            Units in which to display the areas of structures if
-            <struct_info> if True. If None, units will be voxels if
+            Units in which to display the areas of ROIs if
+            <roi_info> if True. If None, units will be voxels if
             <scale_in_mm> is False, or mm if <scale_in_mm> is True. Options:
                 (a) 'mm'
                 (b) 'voxels'
 
         vol_units : str, default=None
-            Units in which to display the volumes of structures if
-            <struct_info> if True. If None, units will be voxels if
+            Units in which to display the volumes of ROIs if
+            <roi_info> if True. If None, units will be voxels if
             <scale_in_mm> is False, or mm^3 if <scale_in_mm> is True. Options:
                 (a) 'mm' for mm^3
                 (b) 'voxels' for voxels
                 (c) 'ml' for ml
 
-        struct_legend : bool, default=False
-            If True, a legend will be displayed for any plot with structures.
+        roi_legend : bool, default=False
+            If True, a legend will be displayed for any plot with ROIs.
 
-        init_struct : str, default=None
-            If set to a structure name, the first slice to be displayed will
-            be the central slice of that structure. This supercedes <init_pos>
+        init_roi : str, default=None
+            If set to an ROI name, the first slice to be displayed will
+            be the central slice of that ROI. This supercedes <init_pos>
             and <init_sl>.
 
-        struct_names : list/dict, default=None
-            Custom names for structures.
+        roi_names : list/dict, default=None
+            Custom names for ROIs.
 
-            If only one structure is to be loaded per file, this should be a
+            If only one ROI is to be loaded per file, this should be a
             dictionary where the keys are the desired custom names. The values
             of the dictionary can be either:
                 (a) A string containing the path of the file containing the 
-                    structure to be renamed;
-                (b) A string containing the name of the structure to be renamed 
+                    ROI to be renamed;
+                (b) A string containing the name of the ROI to be renamed 
                     within a DICOM file;
                 (c) A string containing the automatically-generated name of the
-                    structure to be renamed (e.g. if the structure came from a 
+                    ROI to be renamed (e.g. if the ROI came from a 
                     file right_parotid.nii, its automatically generated name
                     would be 'right parotid';
                 (d) A wildcard matching any of the above;
                 (e) A list of any of the above.
             The list functionality allows the user to list multiple names
             that should be replaced by a single custom name, e.g. to handle
-            cases where the same structure may have different names in 
+            cases where the same ROI may have different names in 
             different DICOM files.
 
-            If multiple structures are to be loaded from files (i.e. the 
-            <multi_structs> parameter is set, or paths in the <structs> 
-            parameter are prefixed with 'multi:') the <struct_names> parameter
+            If multiple ROIs are to be loaded from files (i.e. the 
+            <multi_rois> parameter is set, or paths in the <rois> 
+            parameter are prefixed with 'multi:') the <roi_names> parameter
             can either be:
                 (a) A list of names, where the Nth name in the list will be
-                   applied to the structure with mask label N in the structure
+                   applied to the ROI with mask label N in the ROI
                    array; or
                 (b) A dictionary where the keys are integers such that the
-                   name associated with key N will be applied to the structure
-                   with mask label N in the structure array.
+                   name associated with key N will be applied to the ROI
+                   with mask label N in the ROI array.
 
             Any of the options described above can also be nested into a
             dictionary where the keys are labels, if a label dictionary was
-            used to load structures in the <structs> parameter. The nested
-            options for each key will only be applied to structures whose
+            used to load ROIs in the <rois> parameter. The nested
+            options for each key will only be applied to ROIs whose
             label is that key.
 
-        struct_colors : dict, default=None
-            A dictionary mapping structure names to colors in which the
-            structure will be displayed.
+        roi_colors : dict, default=None
+            A dictionary mapping ROI names to colors in which the
+            ROI will be displayed.
 
-            The dictionary keys should be either structure names or wildcards
-            matching structure name(s). Note that structure names are inferred
-            from the structure's filename unless otherwise specified in the
-            <struct_names> parameter.
+            The dictionary keys should be either ROI names or wildcards
+            matching ROI name(s). Note that ROI names are inferred
+            from the ROI's filename unless otherwise specified in the
+            <roi_names> parameter.
 
             The values of the dictionary can be any matplotlib colorlike
             object.
 
             The color dictionary can also be nested into a dictionary where the
-            keys are labels, if a label dictionary was used to load structures
-            in the <structs> parameter. The nested options for each key will
-            only be applied to structures whose label is that key.
+            keys are labels, if a label dictionary was used to load ROIs
+            in the <rois> parameter. The nested options for each key will
+            only be applied to ROIs whose label is that key.
 
-        structs_as_mask : bool, default=True
-            If True, any loaded structures will be used to mask the image and
+        rois_as_mask : bool, default=True
+            If True, any loaded ROIs will be used to mask the image and
             dose field.
 
-        compare_structs : bool, default=False
-            If True, slice-by-slice comparison metrics for pairs of structures
-            will be displayed below the plot, and compared structures masks
+        compare_rois : bool, default=False
+            If True, slice-by-slice comparison metrics for pairs of ROIs
+            will be displayed below the plot, and compared ROI masks
             will be plotted with their overlapping region in a different
             colour.
 
-            The structures to compare can be set in three different ways:
+            The ROIs to compare can be set in three different ways:
 
-                a) The user can explicitly indicate which structures should be
-                   compared by giving a list of lists for the <structs>
+                a) The user can explicitly indicate which ROIs should be
+                   compared by giving a list of lists for the <rois>
                    argument, where each sublist contains exactly 2 filepaths
-                   corresponding to a pair of structures to be compared (see
-                   option 2b for <structs>).
+                   corresponding to a pair of ROIs to be compared (see
+                   option 2b for <rois>).
 
-                b) If only two structures are found for the filepaths/wildcards
-                   given in the <structs> option, these two structures will
+                b) If only two ROIs are found for the filepaths/wildcards
+                   given in the <rois> option, these two ROIs will
                    be compared.
 
                 c) Otherwise, QuickViewer will search for pairs of loaded
-                   structures with the same name (either inferred from the
+                   ROIs with the same name (either inferred from the
                    filenames or specified manually by the user in the
-                   <struct_names> option). If no structures with matching names
+                   <roi_names> option). If no ROIs with matching names
                    are found, no comparisons will be performed.
 
-        ignore_empty_structs : bool, default=False
-            If True, any loaded structures array that only contains zeros will
-            be ignored. If False, the names of empty structures will be
+        ignore_empty_rois : bool, default=False
+            If True, any loaded ROIs array that only contains zeros will
+            be ignored. If False, the names of empty ROIs will be
             displayed in the UI with '(empty)' next to them.
 
-        ignore_unpaired_structs : bool, default=False
-            If <structure_comparison> is True and structure pairs are
+        ignore_unpaired_rois : bool, default=False
+            If <roi_comparison> is True and ROI pairs are
             automatically detected based on their names, this parameter
-            determines whether any structures for which a matching name is not
+            determines whether any ROIs for which a matching name is not
             found should be displayed.
 
-            If True, only the pairs of structures with matching names will be
-            shown. If False, all loaded structures will be shown regardless of
+            If True, only the pairs of ROIs with matching names will be
+            shown. If False, all loaded ROIs will be shown regardless of
             whether they have a comparison match.
 
-        structs_to_keep : list, default=True
-            List of structure names or wildcards matching structures that you
-            wish to load. All other structures will be ignored.
+        rois_to_keep : list, default=True
+            List of ROI names or wildcards matching ROIs that you
+            wish to load. All other ROIs will be ignored.
 
-        structs_to_ignore : list, default=True
-            List of structure names or wildcards matching structures that you
+        rois_to_ignore : list, default=True
+            List of ROI names or wildcards matching ROIs that you
             wish to ignore.
 
-        autoload_structs : bool, default=True
-            If True, structures will all be automatically loaded and plotted.
-            If False, all structures will be initially turned off and will 
-            only be loaded if the user turns them on via the structure checkbox
+        autoload_rois : bool, default=True
+            If True, ROIs will all be automatically loaded and plotted.
+            If False, all ROIs will be initially turned off and will 
+            only be loaded if the user turns them on via the ROI checkbox
             UI.
 
         continuous_update : bool, default=False
@@ -621,7 +621,7 @@ class BetterViewer:
 
         zoom_ui : bool, default=None
             If True, a UI for zooming will be displayed. Default is False
-            unless structs are loaded, in which case default is True.
+            unless rois are loaded, in which case default is True.
 
         downsample : int/tuple, default=None
             Factor by which to downsample an image. Can be a single value for
@@ -669,8 +669,8 @@ class BetterViewer:
         self.title = self.get_input_list(title)
         self.dose = self.get_input_list(dose)
         self.mask = self.get_input_list(mask)
-        self.structs = self.get_input_list(structs, allow_sublist=True)
-        self.multi_structs = self.get_input_list(multi_structs, allow_sublist=True)
+        self.rois = self.get_input_list(rois, allow_sublist=True)
+        #  self.multi_rois = self.get_input_list(multi_rois, allow_sublist=True)
         self.jacobian = self.get_input_list(jacobian)
         self.df = self.get_input_list(df)
 
@@ -685,8 +685,8 @@ class BetterViewer:
                 title=self.title[i],
                 dose=self.dose[i],
                 mask=self.mask[i],
-                structs=self.structs[i],
-                multi_structs=self.multi_structs[i],
+                rois=self.rois[i],
+                #  multi_rois=self.multi_rois[i],
                 jacobian=self.jacobian[i],
                 df=self.df[i],
                 standalone=False,
@@ -871,11 +871,11 @@ class BetterViewer:
         # Store needed UIs
         self.ui_view = v0.ui_view
         self.view = self.ui_view.value
-        #  self.ui_struct_plot_type = v0.ui_struct_plot_type
-        #  self.ui_struct_plot_type2 = v0.ui_struct_plot_type2
-        #  self.ui_struct_comp_type = v0.ui_struct_comp_type
-        #  self.struct_plot_type = self.ui_struct_plot_type.value
-        #  self.struct_plot_type2 = self.ui_struct_plot_type2.value
+        #  self.ui_roi_plot_type = v0.ui_roi_plot_type
+        #  self.ui_roi_plot_type2 = v0.ui_roi_plot_type2
+        #  self.ui_roi_comp_type = v0.ui_roi_comp_type
+        #  self.roi_plot_type = self.ui_roi_plot_type.value
+        #  self.roi_plot_type2 = self.ui_roi_plot_type2.value
 
         # Make main upper UI list (= view radio + single HU/slice slider)
         many_sliders = not share_slider and self.n > 1
@@ -889,20 +889,20 @@ class BetterViewer:
         # Make UI for other images
         for v in self.viewers[1:]:
             v.make_ui(other_viewer=v0, share_slider=share_slider)
-            #  v0.structs_for_jump.update(v.structs_for_jump)
-        #  v0.ui_struct_jump.options = list(v0.structs_for_jump.keys())
+            #  v0.rois_for_jump.update(v.rois_for_jump)
+        #  v0.ui_roi_jump.options = list(v0.rois_for_jump.keys())
 
         # Make UI for each image (= unique HU/slice sliders and struct jump)
         self.per_image_ui = []
         if many_sliders:
             for v in self.viewers:
 
-                # Structure jumping
+                # ROI jumping
                 sliders = []
-                #  if v.im.has_structs:
-                    #  sliders.append(v.ui_struct_jump)
+                #  if v.im.has_rois:
+                    #  sliders.append(v.ui_roi_jump)
                 #  else:
-                    #  if self.any_attr('structs'):
+                    #  if self.any_attr('rois'):
                         #  sliders.append(ipyw.Label())
 
                 # HU sliders
@@ -927,15 +927,15 @@ class BetterViewer:
                 #  self.extra_ui.append(getattr(v0, 'ui_' + attr))
         #  if self.any_attr('jacobian'):
             #  self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
-        #  if self.any_attr('structs'):
+        #  if self.any_attr('rois'):
             #  to_add = [
-                #  v0.ui_struct_plot_type,
-                #  v0.ui_struct_linewidth,
-                #  v0.ui_struct_opacity,
+                #  v0.ui_roi_plot_type,
+                #  v0.ui_roi_linewidth,
+                #  v0.ui_roi_opacity,
             #  ]
             #  if any([v.im.comp_type == 'others' for v in self.viewers]):
-                #  to_add.insert(1, v0.ui_struct_plot_type2)
-                #  to_add.insert(2, v0.ui_struct_comp_type)
+                #  to_add.insert(1, v0.ui_roi_plot_type2)
+                #  to_add.insert(2, v0.ui_roi_comp_type)
             #  self.extra_ui.extend(to_add)
 
         # Make extra UI elements
@@ -964,23 +964,23 @@ class BetterViewer:
             + list(itertools.chain.from_iterable(self.per_image_ui))
             #  + self.comp_ui
             #  + self.trans_ui
-            #  + self.ui_struct_checkboxes
+            #  + self.ui_roi_checkboxes
             + [self.trigger]
         )
 
     def make_lower_ui(self):
-        '''Make lower UI for structure checkboxes.'''
+        '''Make lower UI for ROI checkboxes.'''
 
         # Saving UI
         self.lower_ui = []
 
-        # Structure UI
-        many_with_structs = sum([v.im.has_structs for v in self.viewers]) > 1
-        self.ui_struct_checkboxes = []
+        # ROI UI
+        many_with_rois = sum([v.im.has_rois for v in self.viewers]) > 1
+        self.ui_roi_checkboxes = []
         for i, v in enumerate(self.viewers):
 
-            # Add plot title to structure UI
-            if many_with_structs and v.im.has_structs:
+            # Add plot title to ROI UI
+            if many_with_rois and v.im.has_rois:
                 if not hasattr(v.im, 'title') or not v.im.title:
                     title = f'<b>Image {i + 1}</b>'
                 else:
@@ -989,7 +989,7 @@ class BetterViewer:
 
             # Add to overall lower UI
             self.lower_ui.extend(v.lower_ui)
-            self.ui_struct_checkboxes.extend(v.ui_struct_checkboxes)
+            self.ui_roi_checkboxes.extend(v.ui_roi_checkboxes)
 
         self.lower_ui.extend([self.viewers[0].save_name, self.viewers[0].save_button])
 
@@ -1312,14 +1312,14 @@ class BetterViewer:
                 v.on_view_change()
             self.set_slider_widths()
 
-        # Deal with structure plot type change
-        #  if self.struct_plot_type != self.ui_struct_plot_type.value:
-            #  self.struct_plot_type = self.ui_struct_plot_type.value
-            #  self.viewers[0].update_struct_sliders()
+        # Deal with ROI plot type change
+        #  if self.roi_plot_type != self.ui_roi_plot_type.value:
+            #  self.roi_plot_type = self.ui_roi_plot_type.value
+            #  self.viewers[0].update_roi_sliders()
 
-        # Deal with structure jumps
+        # Deal with ROI jumps
         #  for v in self.viewers:
-            #  if v.ui_struct_jump != '':
+            #  if v.ui_roi_jump != '':
                 #  v.jump_to_struct()
 
         # Apply any translations
@@ -1417,26 +1417,31 @@ class SingleViewer:
         colorbar=False,
         colorbar_label=None,
         mpl_kwargs=None,
+        dose=None,
         dose_opacity=0.5,
         dose_kwargs=None,
         dose_range=None,
         dose_cmap=None,
         invert_mask=False,
+        mask=None,
         mask_color="black",
+        jacobian=None,
         jacobian_opacity=0.5,
         jacobian_kwargs=None,
+        df=None,
         df_plot_type="grid",
         df_spacing=30,
         df_kwargs=None,
-        struct_plot_type="contour",
-        struct_opacity=None,
-        struct_linewidth=2,
-        struct_info=False,
-        struct_info_dp=2,
+        rois=None,
+        roi_plot_type="contour",
+        roi_opacity=None,
+        roi_linewidth=2,
+        roi_info=False,
+        roi_info_dp=2,
         length_units=None,
         area_units=None,
         vol_units=None,
-        struct_legend=False,
+        roi_legend=False,
         legend_loc="lower left",
         init_struct=None,
         standalone=True,
@@ -1522,7 +1527,7 @@ class SingleViewer:
         self.zoom_centre = zoom_centre
         self.zoom_ui = zoom_ui
         #  if zoom_ui is None:
-            #  self.zoom_ui = self.im.has_structs
+            #  self.zoom_ui = self.im.has_rois
         self.major_ticks = major_ticks
         self.minor_ticks = minor_ticks
         self.ticks_all_sides = ticks_all_sides
@@ -1546,7 +1551,7 @@ class SingleViewer:
         if isinstance(im, Image):
             image = im
         else:
-            image = Image(*args, **kwargs)
+            image = Image(im, *args, **kwargs)
         image.load_data()
         return image
 
@@ -1748,7 +1753,7 @@ class SingleViewer:
         #  self.lower_ui_box = ipyw.VBox(self.lower_ui)
         self.trigger = ipyw.Checkbox(value=True)
         self.all_ui = (
-            self.main_ui #+ self.extra_ui + self.ui_struct_checkboxes 
+            self.main_ui #+ self.extra_ui + self.ui_roi_checkboxes 
             + [self.trigger]
         )
 
@@ -1889,15 +1894,15 @@ class SingleViewer:
                 self.current_centre[self.view][i] = ui.value
 
     def jump_to_struct(self):
-        '''Jump to the mid slice of a structure.'''
+        '''Jump to the mid slice of an ROI.'''
 
         return
 
-        if self.ui_struct_jump.value == '':
+        if self.ui_roi_jump.value == '':
             return
 
-        self.current_struct = self.ui_struct_jump.value
-        struct = self.structs_for_jump[self.current_struct]
+        self.current_struct = self.ui_roi_jump.value
+        roi = self.rois_for_jump[self.current_struct]
         if not struct.empty:
             if not struct.on_slice(self.view, self.slice[self.view]):
                 mid_slice = int(np.mean(list(struct.contours[self.view].keys())))
@@ -1906,7 +1911,7 @@ class SingleViewer:
                 )
                 self.slice[self.view] = mid_slice
             self.centre_at_struct(struct)
-        self.ui_struct_jump.value = ''
+        self.ui_roi_jump.value = ''
 
 
     def get_hu_range(self):
