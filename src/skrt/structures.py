@@ -148,6 +148,7 @@ class ROI(skrt.image.Image):
             self.image = skrt.image.Image(image)
         self.shape = shape
         self.mask_level = mask_level
+        self.contours = {}
         self.kwargs = kwargs
 
         # Create name
@@ -230,7 +231,7 @@ class ROI(skrt.image.Image):
                 skrt.image.Image.__init__(self, np.zeros(self.shape), **self.kwargs)
 
             # Set x-y contours with z indices as keys
-            self.contours = {"x-y": {}}
+            self.contours["x-y"] = {}
             for z, contours in self.input_contours.items():
                 if self.image is None:
                     raise RuntimeError("ROI must have an associated Image! "
@@ -245,7 +246,8 @@ class ROI(skrt.image.Image):
     def get_contours(self, view="x-y"):
         """Get dict of contours in a given orientation."""
 
-        self.create_contours()
+        if view not in self.contours:
+            self.create_contours()
         return self.contours[view]
 
     def get_mask(self, view="x-y", flatten=False):
@@ -267,13 +269,11 @@ class ROI(skrt.image.Image):
         else:
             idx = self.get_idx(view, sl, idx, pos)
 
-        if not hasattr(self, "contours") or view not in self.contours:
-            self.create_contours()
-        if idx not in self.contours[view]:
+        if idx not in self.get_contours(view):
             print("Warning: No contour found at index:", idx)
             return []
 
-        return [geometry.Polygon(p) for p in self.contours[view][idx]]
+        return [geometry.Polygon(p) for p in self.get_contours(view)[idx]]
 
     def create_contours(self, force=False):
         """Create contours in all orientations."""
@@ -284,7 +284,7 @@ class ROI(skrt.image.Image):
             self.load()
 
         self.create_mask()
-        if not hasattr(self, "contours") or force:
+        if force:
             self.contours = {}
 
         # Create contours in every orientation
@@ -423,9 +423,7 @@ class ROI(skrt.image.Image):
         <slice_num> is True, slice numbers will be returned instead of
         indices."""
 
-        if not hasattr(self, "contours") or view not in self.contours:
-            self.create_contours()
-        indices = list(self.contours[view].keys())
+        indices = list(self.get_contours(view).keys())
         if slice_num:
             z_ax = skrt.image._slice_axes[view]
             return [self.idx_to_slice(i, z_ax) for i in indices]
@@ -1250,9 +1248,6 @@ class ROI(skrt.image.Image):
         """Plot the ROI as a contour."""
 
         self.load()
-        if not hasattr(self, "contours") or view not in self.contours:
-            self.create_contours()
-
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
         else:
@@ -1283,7 +1278,7 @@ class ROI(skrt.image.Image):
             mask = self.get_slice(view, idx=idx, flatten=True)
             contours = self.mask_to_contours(mask, view, invert=True)
         else:
-            contours = self.contours[view][idx]
+            contours = self.get_contours(view)[idx]
 
         # Plot contour
         for points in contours:
