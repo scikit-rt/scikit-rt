@@ -253,8 +253,8 @@ class Image(skrt.core.Archive):
         """Manipulate data array and affine matrix into a standard
         configuration."""
 
-        data = self.data
-        affine = self.affine
+        data = self.get_data()
+        affine = self.get_affine()
 
         # Adjust dicom
         if self.source_type == "dicom":

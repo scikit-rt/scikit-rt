@@ -63,7 +63,8 @@ class SyntheticImage(Image):
         self.bg_intensity = intensity
         self.background = self.make_background()
         self.shapes = []
-        self.roi_shapes = []
+        self.roi_shapes = {}
+        self.rois = {}
         self.groups = {}
         self.shape_count = {}
         self.translation = None
@@ -120,20 +121,30 @@ class SyntheticImage(Image):
         """Get dict of ROIs and names, with any transformations applied."""
 
         roi_data = {}
-        for shape in self.roi_shapes:
+        for name, shape in self.roi_shapes.items():
             data = shape.get_data(self.get_coords())
-            roi_data[shape.name] = data
+            roi_data[name] = data
         return roi_data
 
     def get_structure_set(self):
         """Make StructureSet object of own structures."""
 
-        structure_set = StructureSet()
-        for shape in self.roi_shapes:
-            structure_set.add_roi(
-                shape.get_data(self.get_coords()), name=shape.name, affine=self.affine
-            )
+        structure_set = StructureSet(name="StructureSet")
+        self.update_rois()
+        for roi in self.rois.values():
+            structure_set.add_roi(roi)
         return structure_set
+
+    def update_roi(self, name):
+        """Update an ROI to ensure it has the correct data."""
+        
+        self.rois[name].data = self.roi_shapes[name].get_data(self.get_coords())
+
+    def update_rois(self):
+        """Update all ROIs to have the correct data."""
+
+        for name in self.rois:
+            self.update_roi(name)
 
     def get_structure_sets(self):
         return [self.get_structure_set()]
@@ -141,13 +152,18 @@ class SyntheticImage(Image):
     def get_roi(self, name):
         """Get a named ROI as an ROI object."""
 
-        roi_dict = {s.name: s for s in self.roi_shapes}
-        if name not in roi_dict:
+        if name not in self.rois:
             print("ROI", name, "not found!")
             return
 
-        s = roi_dict[name]
-        return ROI(s.get_data(self.get_coords()), name=name, affine=self.affine)
+        self.update_roi(name)
+        return self.rois[name]
+
+    def get_rois(self):
+        """Get list of all owned ROI objects."""
+
+        self.update_rois()
+        return list(self.rois.values())
 
     def write(self, outname=None, overwrite_roi_dir=False):
         """Write image data to an output file."""
@@ -206,19 +222,27 @@ class SyntheticImage(Image):
             if group is not None:
                 if group not in self.groups:
                     self.groups[group] = ShapeGroup([shape], name=group)
-                    self.roi_shapes.append(self.groups[group])
+                    self.roi_shapes[group] = self.groups[group]
+                    self.rois[group] = ROI(
+                        shape.get_data(self.get_coords()), name=group, affine=self.affine
+                    )
                 else:
                     self.groups[group].add_shape(shape)
             else:
-                self.roi_shapes.append(shape)
 
-        if shape_type not in self.shape_count:
-            self.shape_count[shape_type] = 1
-        else:
-            self.shape_count[shape_type] += 1
+                if shape_type not in self.shape_count:
+                    self.shape_count[shape_type] = 1
+                else:
+                    self.shape_count[shape_type] += 1
 
-        if shape.name is None:
-            shape.name = f"{shape_type}{self.shape_count[shape_type]}"
+                if shape.name is None:
+                    shape.name = f"{shape_type}{self.shape_count[shape_type]}"
+
+                self.roi_shapes[shape.name] = shape
+                self.rois[shape.name] = ROI(
+                    shape.get_data(self.get_coords()), name=shape.name, 
+                    affine=self.affine
+                )
 
         self.min_hu = min([shape.intensity, self.min_hu])
         self.max_hu = max([shape.intensity, self.max_hu])
