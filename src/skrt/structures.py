@@ -150,6 +150,7 @@ class ROI(skrt.image.Image):
         self.mask_level = mask_level
         self.contours = {}
         self.kwargs = kwargs
+        self.roi_source_type = None
 
         # Create name
         self.name = name
@@ -188,6 +189,7 @@ class ROI(skrt.image.Image):
             skrt.image.Image.__init__(self, 
                                       self.source.get_data() > self.mask_level,
                                       affine=self.source.get_affine())
+            self.roi_source_type = "mask"
             self.loaded = True
             self.create_mask()
 
@@ -211,13 +213,12 @@ class ROI(skrt.image.Image):
                 self.input_contours = roi["contours"]
                 if not self.custom_color:
                     self.set_color(roi["color"])
-                self.source_type = "dicom"
 
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
-            self.source_type = "mask"
             skrt.image.Image.__init__(self, self.source, **self.kwargs)
             self.loaded = True
+            self.roi_source_type = "mask"
             self.create_mask()
 
         # Deal with input from dicom
@@ -241,6 +242,7 @@ class ROI(skrt.image.Image):
                 self.contours["x-y"][iz] = [
                     [tuple(p[:2]) for p in points] for points in contours
                 ]
+            self.roi_source_type = "contour"
             self.loaded = True
 
     def get_contours(self, view="x-y"):
@@ -274,6 +276,15 @@ class ROI(skrt.image.Image):
             return []
 
         return [geometry.Polygon(p) for p in self.get_contours(view)[idx]]
+
+    def get_polygon_dict(self, view="x-y"):
+        """Get dict of polygons for every slice, where the dict key is the 
+        slice index and the dict value is a list of polygons on that slice."""
+
+        polygons = {}
+        for idx in self.get_contours(view):
+            polygons[idx] = self.get_polygons(view, idx=idx)
+        return polygons
 
     def create_contours(self, force=False):
         """Create contours in all orientations."""
@@ -457,9 +468,24 @@ class ROI(skrt.image.Image):
         units="mm",
         standardise=True,
         flatten=False,
+        method="mask",
     ):
-        """Get centroid position in 2D or 3D."""
+        """Get centroid position in 2D or 3D. The 'method' can be either:
+            (a) "auto": centroid will be calculated based on input ROI source,
+                i.e. from contours if ROI was loaded as a contour, or from
+                a mask if ROI was loaded from a mask.
+            (b) "contour": centroid will be calculated using Shapely polygons
+                of the contour(s) of this ROI.
+            (c) "mask": centroid will be calculated from the binary mask of
+                this ROI.
+        """
 
+        # Calculate centroid from Shapely polygons
+        self.load()
+        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
+            return
+
+        # Otherwise, calculate centroid from binary mask
         # Get 2D or 3D data from which to calculate centroid
         if view or sl or idx or pos:
             if sl is None and idx is None and pos is None:
@@ -523,12 +549,19 @@ class ROI(skrt.image.Image):
             centre = [self.idx_to_pos(c, axes[i]) for i, c in enumerate(centre)]
         return centre
 
-    def get_volume(self, units="mm"):
+    def get_volume(self, units="mm", method="mask"):
         """Get ROI volume."""
 
-        if hasattr(self, "volume"):
-            return self.volume[units]
+        self.load()
 
+        # Calculate from polygon areas
+        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
+            slice_areas = []
+            for idx in self.get_contours("x-y"):
+                slice_areas.append(self.get_area("x-y", idx=idx))
+            return sum(slice_areas) * abs(self.get_voxel_size()[2])
+
+        # Otherwise, calculate from number of voxels in mask
         self.create_mask()
         self.volume = {}
         self.volume["voxels"] = self.data.astype(bool).sum()
@@ -537,14 +570,29 @@ class ROI(skrt.image.Image):
         return self.volume[units]
 
     def get_area(
-        self, view="x-y", sl=None, idx=None, pos=None, units="mm", flatten=False
+        self, 
+        view="x-y", 
+        sl=None, 
+        idx=None, 
+        pos=None, 
+        units="mm", 
+        flatten=False,
+        method="mask"
     ):
         """Get the area of the ROI on a given slice."""
 
+        # Get default orientation and slice index
         if view is None:
             view = "x-y"
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
+
+        # Calculate from shapely polygon(s)
+        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
+            polygons = self.get_polygons(view, idx=idx)
+            return sum([p.area for p in polygons])
+
+        # Otherwise, calculate from binary mask
         im_slice = self.get_slice(view, sl, idx, pos, flatten=flatten)
         area = im_slice.astype(bool).sum()
         if units == "mm":
@@ -552,28 +600,38 @@ class ROI(skrt.image.Image):
             area *= abs(self.voxel_size[x_ax] * self.voxel_size[y_ax])
         return area
 
-    def get_length(self, units="mm", ax="z"):
+    def get_length(self, units="mm", ax="z", method="mask"):
         """Get total length of the ROI along a given axis."""
 
-        if hasattr(self, "length") and ax in self.length:
-            return self.length[ax][units]
+        # Calculate length from contours
+        self.load()
+        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
 
+            # Calculate z length from contour indices
+            if ax == "z":
+                len_z_idx = max(self.get_contours("x-y").keys()) \
+                        - min(self.get_contours("x-y").keys())
+                return len_z_idx * abs(self.get_voxel_size()[2])
+
+            # Calculate x or y length from min/max contour positions
+            i_ax = skrt.image._axes.index(ax)
+            points = []
+            for i, contours in self.get_contours("x-y").items():
+                for contour in contours:
+                    points.extend([p[i_ax] for p in contour])
+            return abs(max(points) - min(points))
+
+        # Otherwise, calculate from binary mask
         self.create_mask()
-        if not hasattr(self, "length"):
-            self.length = {}
-        self.length[ax] = {}
-
         nonzero = np.argwhere(self.data)
         vals = nonzero[:, skrt.image._axes.index(ax)]
         if len(vals):
-            self.length[ax]["voxels"] = max(vals) + 1 - min(vals)
-            self.length[ax]["mm"] = self.length[ax]["voxels"] * abs(
-                self.voxel_size[skrt.image._axes.index(ax)]
-            )
+            length_voxels = max(vals) + 1 - min(vals)
+            if units == "mm":
+                return length_voxels * abs(self.voxel_size[skrt.image._axes.index(ax)])
+            return length_voxels
         else:
-            self.length[ax] = {"voxels": 0, "mm": 0}
-
-        return self.length[ax][units]
+            return 0
 
     def get_geometry(
         self,
@@ -681,25 +739,68 @@ class ROI(skrt.image.Image):
             return None
         return np.linalg.norm(centroid)
 
-    def get_dice(self, roi, view="x-y", sl=None, idx=None, pos=None, flatten=False):
+    def get_dice(
+        self, 
+        roi, 
+        view="x-y", 
+        sl=None, 
+        idx=None, 
+        pos=None, 
+        flatten=False,
+        method="mask"
+    ):
         """Get Dice score, either global or on a given slice."""
 
         if view is None:
             view = "x-y"
-        if sl is None and idx is None and pos is None:
-            data1 = self.get_mask(view, flatten)
-            data2 = roi.get_mask(view, flatten)
+
+        # Calculate intersections and areas from polygons
+        self.load()
+        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
+
+            # Get indices on which to calculate intersecting area
+            if sl is None and idx is None and pos is None:
+                indices = list(self.get_contours("x-y").keys())
+                area1 = self.get_volume()
+                area2 = roi.get_volume()
+            else:
+                indices = [self.get_idx(view, sl, pos, idx)]
+                area1 = self.get_area(view, sl=sl, pos=pos, idx=idx)
+                area2 = roi.get_volume(view, sl=sl, pos=pos, idx=idx)
+            
+            # Compute intersecting area on one or more slices
+            intersection = 0
+            for i in indices:
+                polygons1 = self.get_polygons(view, idx=i)
+                polygons2 = roi.get_polygons(view, idx=i)
+                for p1 in polygons1:
+                    for p2 in polygons2:
+                        intersection += p1.intersection(p2).area
+
+        # Calculate intersections and areas from binary mask voxel counts
         else:
-            data1 = self.get_slice(view, sl, idx, pos)
-            data2 = roi.get_slice(view, sl, idx, pos)
 
-        return (data1 & data2).sum() / np.mean([data1.sum(), data2.sum()])
+            # No slice/index/position given: use 3D mask
+            if sl is None and idx is None and pos is None:
+                data1 = self.get_mask(view, flatten)
+                data2 = roi.get_mask(view, flatten)
 
-    def get_volume_ratio(self, roi):
+            # Otherwise, use one slice only
+            else:
+                data1 = self.get_slice(view, sl, idx, pos)
+                data2 = roi.get_slice(view, sl, idx, pos)
+
+            intersection = (data1 & data2).sum()
+            area1 = data1.sum()
+            area2 = data2.sum()
+
+        return intersection / np.mean([area1, area2])
+
+    def get_volume_ratio(self, roi, method="mask"):
         """Get ratio of another ROI's volume with respect to own volume."""
 
-        own_volume = roi.get_volume()
-        other_volume = self.get_volume()
+        own_volume = roi.get_volume(method=method)
+        other_volume = self.get_volume(method=method)
         if not other_volume:
             return None
         return own_volume / other_volume
@@ -713,11 +814,11 @@ class ROI(skrt.image.Image):
             return None
         return own_area / other_area
 
-    def get_relative_volume_diff(self, roi, units="mm"):
+    def get_relative_volume_diff(self, roi, method="mask"):
         """Get relative volume of another ROI with respect to own volume."""
 
-        own_volume = self.get_volume(units)
-        other_volume = roi.get_volume(units)
+        own_volume = self.get_volume(method=method)
+        other_volume = roi.get_volume(method=method)
         if not own_volume:
             return None
         return (own_volume - other_volume) / own_volume
@@ -993,13 +1094,12 @@ class ROI(skrt.image.Image):
             ),
             "rel_volume_diff": (
                 self.get_relative_volume_diff,
-                {"roi": roi, "units": vol_units},
+                {"roi": roi},
             ),
             "rel_area_diff": (
                 self.get_relative_area_diff,
                 {
                     "roi": roi,
-                    "units": area_units,
                     "view": view,
                     "sl": sl,
                     "pos": pos,
@@ -1008,7 +1108,7 @@ class ROI(skrt.image.Image):
             ),
             "rel_area_diff_flat": (
                 self.get_relative_area_diff,
-                {"roi": roi, "units": area_units, "flatten": True},
+                {"roi": roi, "flatten": True},
             ),
             "volume_ratio": (self.get_volume_ratio, {"roi": roi}),
             "area_ratio": (
