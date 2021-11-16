@@ -1427,7 +1427,7 @@ class Image(skrt.core.Archive):
 class ImageComparison:
     """Plot comparisons of two images and calculate comparison metrics."""
 
-    def __init__(self, im1, im2, **kwargs):
+    def __init__(self, im1, im2, plot_type="overlay", **kwargs):
 
         # Load images
         self.ims = []
@@ -1437,6 +1437,21 @@ class ImageComparison:
             else:
                 self.ims.append(Image(im, **kwargs))
 
+        if plot_type is not None:
+            self.plot_type = plot_type
+        else:
+            self.plot_type = "overlay"
+
+    def plot(self, plot_type=None, **kwargs):
+
+        if plot_type is None:
+            plot_type = self.plot_type
+
+        if plot_type == "overlay":
+            self.plot_overlay(**kwargs)
+        elif plot_type == "chequerboard":
+            self.plot_chequerboard(**kwargs)
+
     def plot_chequerboard(
         self,
         view="x-y",
@@ -1444,6 +1459,7 @@ class ImageComparison:
         n_splits=2,
         mpl_kwargs=None,
         save_as=None,
+        show=True,
         **kwargs,
     ):
 
@@ -1470,6 +1486,9 @@ class ImageComparison:
             np.ma.masked_where(mask < 0.5, im2_slice),
             **self.ims[i2].get_mpl_kwargs(view, mpl_kwargs),
         )
+
+        if show:
+            plt.show()
 
         if save_as:
             self.ims[0].fig.savefig(save_as)
@@ -1504,9 +1523,20 @@ class ImageComparison:
             mpl_kwargs["alpha"] = alphas[n]
             ax.imshow(im_slice, **mpl_kwargs)
 
+        if show:
+            plt.show()
+
         if save_as:
             self.ims[0].fig.savefig(save_as)
             plt.close()
+
+    def get_plot_aspect_ratio(self, view, colorbar=False, 
+                              figsize=_default_figsize):
+        """Get relative width first image."""
+
+        return self.ims[0].get_plot_aspect_ratio(view, 
+                                                 n_colorbars=colorbar, 
+                                                 figsize=figsize)
 
 
 def load_nifti(path):

@@ -13,6 +13,7 @@ import re
 from skrt.core import is_list
 from skrt.image import (
     Image, 
+    ImageComparison,
     _axes, 
     _slice_axes, 
     _plot_axes,
@@ -810,7 +811,7 @@ class BetterViewer:
             name = 'multicomp' if comp == 'all' else comp
             plot_type = None if comp == 'all' else comp
             comp_im = ImageComparison(
-                im1, im2, plot_type=plot_type, scale_in_mm=self.scale_in_mm
+                im1, im2, plot_type=plot_type 
             )
             setattr(self, name, comp_im)
             self.comparison[name] = comp_im
@@ -940,7 +941,7 @@ class BetterViewer:
 
         # Make extra UI elements
         #  self.make_lower_ui()
-        #  self.make_comparison_ui()
+        self.make_comparison_ui()
         #  self.make_translation_ui()
 
         # Assemble UI boxes
@@ -949,7 +950,7 @@ class BetterViewer:
                 ipyw.VBox(self.main_ui),
                 #  ipyw.VBox(self.extra_ui),
                 #  ipyw.VBox(self.trans_ui),
-                #  ipyw.VBox(self.comp_ui),
+                ipyw.VBox(self.comp_ui),
             ]
         )
         self.slider_boxes = [ipyw.VBox(ui) for ui in self.per_image_ui]
@@ -962,7 +963,7 @@ class BetterViewer:
             self.main_ui
             #  + self.extra_ui
             + list(itertools.chain.from_iterable(self.per_image_ui))
-            #  + self.comp_ui
+            + self.comp_ui
             #  + self.trans_ui
             #  + self.ui_roi_checkboxes
             + [self.trigger]
@@ -1338,42 +1339,42 @@ class BetterViewer:
                 v.plot()
 
         # Adjust comparison UI
-        #  multicomp_plot_type = self.ui_multicomp.value
-        #  if self.has_multicomp and len(self.comparison) == 1:
-            #  self.ui_cb.disabled = not multicomp_plot_type == 'chequerboard'
-            #  self.ui_overlay.disabled = not multicomp_plot_type == 'overlay'
+        multicomp_plot_type = self.ui_multicomp.value
+        if self.has_multicomp and len(self.comparison) == 1:
+            self.ui_cb.disabled = not multicomp_plot_type == 'chequerboard'
+            self.ui_overlay.disabled = not multicomp_plot_type == 'overlay'
 
         # Deal with comparisons
-        #  if len(self.comparison):
+        if len(self.comparison):
 
-            #  # Get settings
-            #  invert = self.ui_invert.value
-            #  plot_kwargs = self.viewers[0].v_min_max
-            #  if self.viewers[0].mpl_kwargs is not None:
-                #  plot_kwargs.update(self.viewers[0].mpl_kwargs)
+            # Get settings
+            invert = self.ui_invert.value
+            plot_kwargs = self.viewers[0].v_min_max
+            if self.viewers[0].mpl_kwargs is not None:
+                plot_kwargs.update(self.viewers[0].mpl_kwargs)
 
-            #  # Plot all comparisons
-            #  for name, comp in self.comparison.items():
-                #  plot_type = None if name != 'multicomp' else multicomp_plot_type
-                #  SingleViewer.plot_image(
-                    #  self,
-                    #  comp,
-                    #  invert=invert,
-                    #  plot_type=plot_type,
-                    #  cb_splits=self.ui_cb.value,
-                    #  overlay_opacity=self.ui_overlay.value,
-                    #  overlay_legend=self.overlay_legend,
-                    #  overlay_legend_loc=self.legend_loc,
-                    #  zoom=self.viewers[0].zoom,
-                    #  zoom_centre=self.viewers[0].zoom_centre,
-                    #  mpl_kwargs=self.viewers[0].v_min_max,
-                    #  colorbar=self.comp_colorbar,
-                    #  colorbar_label=self.viewers[0].colorbar_label,
-                    #  show_mse=self.show_mse,
-                    #  dta_tolerance=self.dta_tolerance,
-                    #  dta_crit=self.dta_crit,
-                    #  diff_crit=self.diff_crit,
-                #  )
+            # Plot all comparisons
+            for name, comp in self.comparison.items():
+                plot_type = None if name != 'multicomp' else multicomp_plot_type
+                SingleViewer.plot_image(
+                    self,
+                    comp,
+                    invert=invert,
+                    plot_type=plot_type,
+                    n_splits=self.ui_cb.value,
+                    overlay_opacity=self.ui_overlay.value,
+                    overlay_legend=self.overlay_legend,
+                    overlay_legend_loc=self.legend_loc,
+                    zoom=self.viewers[0].zoom,
+                    zoom_centre=self.viewers[0].zoom_centre,
+                    mpl_kwargs=self.viewers[0].v_min_max,
+                    colorbar=self.comp_colorbar,
+                    colorbar_label=self.viewers[0].colorbar_label,
+                    show_mse=self.show_mse,
+                    dta_tolerance=self.dta_tolerance,
+                    dta_crit=self.dta_crit,
+                    diff_crit=self.diff_crit,
+                )
 
         if self.suptitle is not None:
             self.fig.suptitle(self.suptitle)
