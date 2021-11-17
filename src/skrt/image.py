@@ -3,6 +3,7 @@
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
 from scipy import interpolate
+import copy
 import datetime
 import glob
 import functools
@@ -1424,10 +1425,10 @@ class Image(skrt.core.Archive):
 
 
 
-class ImageComparison:
+class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
 
-    def __init__(self, im1, im2, plot_type="overlay", **kwargs):
+    def __init__(self, im1, im2, plot_type="overlay", title=None, **kwargs):
 
         # Load images
         self.ims = []
@@ -1442,101 +1443,312 @@ class ImageComparison:
         else:
             self.plot_type = "overlay"
 
-    def plot(self, plot_type=None, **kwargs):
+        self.override_title = title
+        self.gs = None
 
+    def plot(
+        self,
+        view="x-y",
+        sl=None,
+        pos=None,
+        idx=None,
+        scale_in_mm=True,
+        invert=False,
+        ax=None,
+        mpl_kwargs=None,
+        show=True,
+        figsize=None,
+        zoom=None,
+        zoom_centre=None,
+        plot_type=None,
+        cb_splits=2,
+        overlay_opacity=0.5,
+        overlay_legend=False,
+        overlay_legend_loc=None,
+        colorbar=False,
+        colorbar_label="HU",
+        show_mse=False,
+        dta_tolerance=None,
+        dta_crit=None,
+        diff_crit=None,
+        **kwargs
+    ):
+
+        # Use default plot_type attribute if no type given
         if plot_type is None:
             plot_type = self.plot_type
 
-        if plot_type == "overlay":
-            self.plot_overlay(**kwargs)
-        elif plot_type == "chequerboard":
-            self.plot_chequerboard(**kwargs)
+        # By default, use comparison type as title
+        if self.override_title is None:
+            self.title = plot_type[0].upper() + plot_type[1:]
+        else:
+            self.title = self.override_title
 
-    def plot_chequerboard(
-        self,
-        view="x-y",
-        invert=False,
-        n_splits=2,
-        mpl_kwargs=None,
-        save_as=None,
-        show=True,
-        **kwargs,
-    ):
+        # Get image slices
+        idx = self.ims[0].get_idx(view, sl, pos, idx)
+        self.set_slices(view, sl, pos, idx)
 
-        # Get indices of images to plot
-        i1 = int(invert)
-        i2 = 1 - i1
+        # Set up axes
+        self.set_ax(view, ax=ax, gs=self.gs, figsize=figsize, zoom=zoom)
+        self.mpl_kwargs = self.ims[0].get_mpl_kwargs(view, mpl_kwargs)
+        self.cmap = copy.copy(matplotlib.cm.get_cmap(self.mpl_kwargs.pop("cmap")))
 
-        # Plot background image
-        self.ims[i1].plot(view=view, mpl_kwargs=mpl_kwargs, show=False,
-                          **kwargs)
+        # Make plot
+        if plot_type in ["chequerboard", "cb"]:
+            mesh = self._plot_chequerboard(invert, cb_splits)
+        elif plot_type == "overlay":
+            mesh = self._plot_overlay(
+                invert, overlay_opacity, overlay_legend, overlay_legend_loc
+            )
+        elif plot_type in ["difference", "diff"]:
+            mesh = self._plot_difference(invert)
+        elif plot_type == "absolute difference":
+            mesh = self._plot_difference(invert, ab=True)
+        elif plot_type == "distance to agreement":
+            mesh = self._plot_dta(view, idx, dta_tolerance)
+        elif plot_type == "gamma index":
+            mesh = self._plot_gamma(view, idx, invert, dta_crit, diff_crit)
+        elif plot_type == "image 1":
+            self.title = self.ims[0].title
+            mesh = self.ax.imshow(
+                self.slices[0],
+                cmap=self.cmap,
+                **self.mpl_kwargs,
+            )
+        elif plot_type == "image 2":
+            self.title = self.ims[1].title
+            mesh = self.ax.imshow(
+                self.slices[1],
+                cmap=self.cmap,
+                **self.mpl_kwargs,
+            )
+        else:
+            print("Unrecognised plotting option:", plot_type)
+            return
 
-        # Create mask for second image
-        im2_slice = self.ims[i2].get_slice(view=view, **kwargs)
-        nx = int(np.ceil(im2_slice.shape[0] / n_splits))
-        ny = int(np.ceil(im2_slice.shape[1] / n_splits))
-        mask = np.kron(
-            [[1, 0] * n_splits, [0, 1] * n_splits] * n_splits,
-            np.ones((nx, ny))
-        )
-        mask = mask[: im2_slice.shape[0], : im2_slice.shape[1]]
+        # Draw colorbar
+        if colorbar:
+            clb_label = colorbar_label
+            if plot_type in ["difference", "absolute difference"]:
+                clb_label += " difference"
+            elif plot_type == "distance to agreement":
+                clb_label = "Distance (mm)"
+            elif plot_type == "gamma index":
+                clb_label = "Gamma index"
 
-        # Plot second image
-        self.ims[i1].ax.imshow(
-            np.ma.masked_where(mask < 0.5, im2_slice),
-            **self.ims[i2].get_mpl_kwargs(view, mpl_kwargs),
-        )
+            clb = self.fig.colorbar(mesh, ax=self.ax, label=clb_label)
+            clb.solids.set_edgecolor("face")
+
+        # Adjust axes
+        self.label_ax(view, idx, title=self.title, **kwargs)
+        self.zoom_ax(view, zoom, zoom_centre)
+
+        # Annotate with mean squared error
+        if show_mse:
+            mse = np.sqrt(((self.slices[1] - self.slices[0]) ** 2).mean())
+            mse_str = f"Mean sq. error = {mse:.2f}"
+            if matplotlib.colors.is_color_like(show_mse):
+                col = show_mse
+            else:
+                col = "white"
+            self.ax.annotate(
+                mse_str,
+                xy=(0.05, 0.93),
+                xycoords="axes fraction",
+                color=col,
+                fontsize="large",
+            )
 
         if show:
             plt.show()
 
-        if save_as:
-            self.ims[0].fig.savefig(save_as)
-            plt.close()
+    def set_slices(self, view, sl, pos, idx):
+        self.slices = [im.get_slice(view, sl=sl, pos=pos, idx=idx)
+                       for im in self.ims]
 
-    def plot_overlay(
+    def _plot_chequerboard(
         self,
-        view="x-y",
+        invert=False,
+        cb_splits=2,
+    ):
+
+        # Get masked image
+        i1 = int(invert)
+        i2 = 1 - i1
+        size_x = int(np.ceil(self.slices[i2].shape[0] / cb_splits))
+        size_y = int(np.ceil(self.slices[i2].shape[1] / cb_splits))
+        cb_mask = np.kron(
+            [[1, 0] * cb_splits, [0, 1] * cb_splits] * cb_splits, np.ones((size_x, size_y))
+        )
+        cb_mask = cb_mask[: self.slices[i2].shape[0], : self.slices[i2].shape[1]]
+        to_show = {
+            i1: self.slices[i1],
+            i2: np.ma.masked_where(cb_mask < 0.5, self.slices[i2]),
+        }
+
+        # Plot
+        for i in [i1, i2]:
+            mesh = self.ax.imshow(
+                to_show[i],
+                cmap=self.cmap,
+                **self.mpl_kwargs,
+            )
+        return mesh
+
+    def _plot_overlay(
+        self,
         invert=False,
         opacity=0.5,
-        mpl_kwargs=None,
-        save_as=None,
-        show=True,
-        **kwargs,
+        legend=False,
+        legend_loc="auto"
     ):
 
-        i1 = int(invert)
-        i2 = 1 - i1
+        order = [0, 1] if not invert else [1, 0]
         cmaps = ["Reds", "Blues"]
         alphas = [1, opacity]
+        self.ax.set_facecolor("w")
+        handles = []
+        for n, i in enumerate(order):
 
-        # Set axes
-        self.ims[0].set_ax(view=view, **kwargs)
-        ax = self.ims[0].ax
-        ax.set_facecolor("w")
+            # Show image
+            mesh = self.ax.imshow(
+                self.slices[i],
+                cmap=cmaps[n],
+                alpha=alphas[n],
+                **self.mpl_kwargs,
+            )
 
-        # Plot images
-        for n, i in enumerate([i1, i2]):
-            im_slice = self.ims[i].get_slice(view=view, **kwargs)
-            mpl_kwargs = self.ims[i].get_mpl_kwargs(view, mpl_kwargs)
-            mpl_kwargs["cmap"] = cmaps[n]
-            mpl_kwargs["alpha"] = alphas[n]
-            ax.imshow(im_slice, **mpl_kwargs)
+            # Make handle for legend
+            if legend:
+                patch_color = cmaps[n].lower()[:-1]
+                alpha = 1 - opacity if alphas[n] == 1 else opacity
+                handles.append(
+                    mpatches.Patch(
+                        color=patch_color, alpha=alpha, label=self.ims[i].title
+                    )
+                )
 
-        if show:
-            plt.show()
+    def get_difference(self, view=None, sl=None, pos=None, idx=None, 
+                       invert=False, ab=False, reset_slices=True):
+        """Get array containing difference between two Images."""
 
-        if save_as:
-            self.ims[0].fig.savefig(save_as)
-            plt.close()
+        # No view/position/index/slice given: use 3D arrays
+        if reset_slices and (view is None and sl is None and pos is None and idx is None):
+            diff = self.ims[1].get_data() - self.ims[0].get_data()
+        else:
+            if view is None:
+                view = "x-y"
+            if reset_slices:
+                self.set_slices(view, sl, pos, idx)
+            diff = (
+                self.slices[1] - self.slices[0]
+                if not invert
+                else self.slices[0] - self.slices[1]
+            )
+        if ab:
+            diff = np.absolute(diff)
+        return diff
 
-    def get_plot_aspect_ratio(self, view, colorbar=False, 
-                              figsize=_default_figsize):
-        """Get relative width first image."""
+    def _plot_difference(self, invert=False, ab=False):
+        """Produce a difference plot."""
 
-        return self.ims[0].get_plot_aspect_ratio(view, 
-                                                 n_colorbars=colorbar, 
-                                                 figsize=figsize)
+        diff = self.get_difference(reset_slices=False, ab=ab, invert=invert)
+        if ab:
+            min_diff = np.min(diff)
+            self.mpl_kwargs["vmin"] = 0
+        else:
+            self.mpl_kwargs["vmin"] = np.min(diff)
+        self.mpl_kwargs["vmax"] = np.max(diff)
+        return self.ax.imshow(
+            diff,
+            cmap=self.cmap,
+            **self.mpl_kwargs,
+        )
+
+    def _plot_dta(self, view, idx, tolerance=5):
+        """Produce a distance-to-agreement plot."""
+
+        dta = self.get_dta(view, idx=idx, reset_slices=False, 
+                           tolerance=tolerance)
+        return self.ax.imshow(
+            dta,
+            cmap="viridis",
+            interpolation=None,
+            **self.mpl_kwargs,
+        )
+
+    def _plot_gamma(self, view, idx, invert=False, dta_crit=None, 
+                    diff_crit=None):
+        """Produce a distance-to-agreement plot."""
+
+        gamma = self.get_gamma(view, idx=idx, invert=invert, dta_crit=dta_crit, 
+                               diff_crit=diff_crit, reset_slices=False)
+        return self.ax.imshow(
+            gamma,
+            cmap="viridis",
+            interpolation=None,
+            **self.mpl_kwargs,
+        )
+
+    def get_dta(self, view="x-y", sl=None, pos=None, idx=None, tolerance=None, 
+                reset_slices=True):
+        """Compute distance to agreement array on current slice."""
+
+        if not hasattr(self, "dta"):
+            self.dta = {}
+        if view not in self.dta:
+            self.dta[view] = {}
+        idx = self.ims[0].get_idx(view, sl, pos, idx)
+
+        if sl not in self.dta[view]:
+
+            x_ax, y_ax = _plot_axes[view]
+            vx = abs(self.ims[0].get_voxel_size()[x_ax])
+            vy = abs(self.ims[0].get_voxel_size()[y_ax])
+
+            if reset_slices:
+                self.set_slices(view, sl, pos, idx)
+            im1, im2 = self.slices
+            if tolerance is None:
+                tolerance = 5
+            abs_diff = np.absolute(im2 - im1)
+            agree = np.transpose(np.where(abs_diff <= tolerance))
+            disagree = np.transpose(np.where(abs_diff > tolerance))
+            dta = np.zeros(abs_diff.shape)
+            for coords in disagree:
+                dta_vec = agree - coords
+                dta_val = np.sqrt(
+                    vy * dta_vec[:, 0] ** 2 + vx * dta_vec[:, 1] ** 2
+                ).min()
+                dta[coords[0], coords[1]] = dta_val
+
+            self.dta[view][idx] = dta
+
+        return self.dta[view][idx]
+
+    def get_gamma(self, view="x-y", sl=None, pos=None, idx=None, invert=False, 
+                  dta_crit=None, diff_crit=None, reset_slices=True):
+        """Get gamma index on current slice."""
+
+        if reset_slices:
+            self.set_slices(view, sl, pos, idx)
+        im1, im2 = self.slices
+        if invert:
+            im1, im2 = im2, im1
+
+        if dta_crit is None:
+            dta_crit = 1
+        if diff_crit is None:
+            diff_crit = 15
+
+        diff = im2 - im1
+        dta = self.get_dta(view, reset_slices=False)
+        return np.sqrt((dta / dta_crit) ** 2 + (diff / diff_crit) ** 2)
+
+    def get_plot_aspect_ratio(self, *args, **kwargs):
+        """Get relative width of first image."""
+
+        return self.ims[0].get_plot_aspect_ratio(*args, **kwargs)
 
 
 def load_nifti(path):

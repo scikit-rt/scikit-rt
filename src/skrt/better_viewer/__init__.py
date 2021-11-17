@@ -1177,7 +1177,8 @@ class BetterViewer:
         ]
         width_ratios.extend(
             [
-                c.get_plot_aspect_ratio(self.view, self.comp_colorbar, self.figsize)
+                c.get_plot_aspect_ratio(self.view, self.zoom, 
+                                        self.comp_colorbar, self.figsize)
                 for c in self.comparison.values()
             ]
         )
@@ -1359,9 +1360,11 @@ class BetterViewer:
                 SingleViewer.plot_image(
                     self,
                     comp,
+                    viewer=self.viewers[0].view,
+                    sl=self.viewers[0].slice[self.viewers[0].view],
                     invert=invert,
                     plot_type=plot_type,
-                    n_splits=self.ui_cb.value,
+                    cb_splits=self.ui_cb.value,
                     overlay_opacity=self.ui_overlay.value,
                     overlay_legend=self.overlay_legend,
                     overlay_legend_loc=self.legend_loc,
@@ -1374,6 +1377,7 @@ class BetterViewer:
                     dta_tolerance=self.dta_tolerance,
                     dta_crit=self.dta_crit,
                     diff_crit=self.diff_crit,
+                    show=False
                 )
 
         if self.suptitle is not None:

@@ -1215,7 +1215,7 @@ class ROI(skrt.image.Image):
 
         # Plot a mask
         if plot_type == "mask":
-            self.plot_mask(
+            self._plot_mask(
                 view,
                 sl,
                 idx,
@@ -1229,7 +1229,7 @@ class ROI(skrt.image.Image):
 
         # Plot a contour
         elif plot_type in ["contour", "centroid"]:
-            self.plot_contour(
+            self._plot_contour(
                 view,
                 sl,
                 idx,
@@ -1248,11 +1248,11 @@ class ROI(skrt.image.Image):
         elif "filled" in plot_type:
             if opacity is None:
                 opacity = 0.3
-            self.plot_mask(view, sl, idx, pos, mask_kwargs, opacity, 
+            self._plot_mask(view, sl, idx, pos, mask_kwargs, opacity, 
                            show=False, **kwargs)
             kwargs["ax"] = self.ax
             kwargs["include_image"] = False
-            self.plot_contour(
+            self._plot_contour(
                 view,
                 sl,
                 idx,
@@ -1270,7 +1270,7 @@ class ROI(skrt.image.Image):
         else:
             print("Unrecognised ROI plotting option:", plot_type)
 
-    def plot_mask(
+    def _plot_mask(
         self,
         view="x-y",
         sl=None,
@@ -1325,7 +1325,7 @@ class ROI(skrt.image.Image):
         if show:
             plt.show()
 
-    def plot_contour(
+    def _plot_contour(
         self,
         view="x-y",
         sl=None,
