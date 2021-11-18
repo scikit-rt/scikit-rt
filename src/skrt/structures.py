@@ -235,13 +235,9 @@ class ROI(skrt.image.Image):
 
             # Create Image object
             if self.image is not None:
-                self.kwargs["voxel_size"] = self.image.voxel_size
-                self.kwargs["origin"] = self.image.origin
                 self.shape = self.image.data.shape
                 skrt.image.Image.__init__(self, np.zeros(self.shape), 
-                                          affine=self.affine, 
-                                          origin=self.origin,
-                                          voxel_size=self.voxel_size,
+                                          affine=self.image.get_affine(), 
                                           **self.kwargs)
 
             # Set x-y contours with z positions as keys
