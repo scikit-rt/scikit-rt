@@ -231,26 +231,43 @@ class ROI(skrt.image.Image):
                 self.shape = self.image.data.shape
                 skrt.image.Image.__init__(self, np.zeros(self.shape), **self.kwargs)
 
-            # Set x-y contours with z indices as keys
+            # Set x-y contours with z positions as keys
             self.contours["x-y"] = {}
             for z, contours in self.input_contours.items():
-                if self.image is None:
-                    raise RuntimeError("ROI must have an associated Image! "
-                                       "Try setting the .image attribute to an"
-                                       " Image object.")
-                iz = self.image.pos_to_idx(z, "z")
-                self.contours["x-y"][iz] = [
-                    [tuple(p[:2]) for p in points] for points in contours
-                ]
+                self.contours["x-y"][z] = [contour[:, :2] for contour in contours]
             self.roi_source_type = "contour"
             self.loaded = True
 
-    def get_contours(self, view="x-y"):
+        # Store flag for cases with no associated image or geometric info
+        self.no_image = self.input_contours is not None and (
+            self.shape is None or self.image is None)
+
+    def get_contours(self, view="x-y", idx_as_key=False):
         """Get dict of contours in a given orientation."""
 
+        self.load()
         if view not in self.contours:
             self.create_contours()
-        return self.contours[view]
+        contours = self.contours[view]
+
+        # Convert keys to indices rather than positions
+        if idx_as_key:
+            contours = {self.pos_to_idx(key, skrt.image._slice_axes[view]): 
+                        value for key, value in contours.items()}
+        return contours
+
+    def get_contours_on_slice(self, view="x-y", sl=None, idx=None, pos=None):
+
+        self.load()
+        if sl is None and idx is None and pos is None:
+            idx = self.get_mid_idx(view)
+        else:
+            idx = self.get_idx(view, sl, idx, pos)
+
+        try:
+            return self.get_contours(view, idx_as_key=True)[idx]
+        except KeyError:
+            return []
 
     def get_mask(self, view="x-y", flatten=False):
         """Get binary mask."""
@@ -263,28 +280,19 @@ class ROI(skrt.image.Image):
             self.get_standardised_data(), axis=skrt.image._slice_axes[view]
         ).astype(bool)
 
-    def get_polygons(self, view="x-y", sl=None, idx=None, pos=None):
-        """Get shapely polygon objects corresponding to a given slice."""
-
-        if sl is None and idx is None and pos is None:
-            idx = self.get_mid_idx(view)
-        else:
-            idx = self.get_idx(view, sl, idx, pos)
-
-        if idx not in self.get_contours(view):
-            print("Warning: No contour found at index:", idx)
-            return []
-
-        return [geometry.Polygon(p) for p in self.get_contours(view)[idx]]
-
-    def get_polygon_dict(self, view="x-y"):
-        """Get dict of polygons for every slice, where the dict key is the 
-        slice index and the dict value is a list of polygons on that slice."""
+    def get_polygons(self, view="x-y", idx_as_key=False):
+        """Get dict of polygons for each slice."""
 
         polygons = {}
-        for idx in self.get_contours(view):
-            polygons[idx] = self.get_polygons(view, idx=idx)
+        for i, contours in self.get_contours(view, idx_as_key).items():
+            polygons[i] = [geometry.Polygon(c) for c in contours]
         return polygons
+
+    def get_polygons_on_slice(self, view="x-y", sl=None, idx=None, pos=None):
+        """Get shapely polygon objects corresponding to a given slice."""
+
+        contours = self.get_contours_on_slice(view, sl, idx, pos)
+        return [geometry.Polygon(p) for p in contours]
 
     def create_contours(self, force=False):
         """Create contours in all orientations."""
@@ -314,7 +322,7 @@ class ROI(skrt.image.Image):
 
                 points = self.mask_to_contours(mask_slice, view)
                 if points:
-                    self.contours[view][iz] = points
+                    self.contours[view][self.idx_to_pos(iz, z_ax)] = points
 
         self.loaded_contours = True
 
@@ -333,8 +341,8 @@ class ROI(skrt.image.Image):
                 py = self.idx_to_pos(iy, y_ax)
                 if invert:
                     px, py = py, px
-                contour_points.append((px, py))
-            points.append(contour_points)
+                contour_points.append([px, py])
+            points.append(np.array(contour_points))
 
         return points
 
@@ -429,35 +437,59 @@ class ROI(skrt.image.Image):
         self.create_mask()
         return skrt.image.Image.get_slice(self, *args, **kwargs).astype(bool)
 
-    def get_indices(self, view="x-y", slice_num=False):
-        """Get list of slice indices on which this ROI exists. If
-        <slice_num> is True, slice numbers will be returned instead of
-        indices."""
+    def get_indices(self, view="x-y"):
+        """Get list of slice indices on which this ROI exists."""
 
-        indices = list(self.get_contours(view).keys())
-        if slice_num:
-            z_ax = skrt.image._slice_axes[view]
-            return [self.idx_to_slice(i, z_ax) for i in indices]
-        else:
-            return indices
+        self.load()
+        return list(self.get_contours(view, idx_as_key=True).keys())
 
-    def get_mid_idx(self, view="x-y", slice_num=False):
+    def get_mid_idx(self, view="x-y"):
         """Get central slice index of this ROI in a given orientation."""
 
-        indices = self.get_indices(view, slice_num=slice_num)
+        indices = self.get_indices(view)
         if not len(indices):
             return None
         return round(np.mean(indices))
+
+    def idx_to_pos(self, idx, ax):
+        """Convert an array index to a position in mm along a given axis."""
+
+        self.load()
+        if self.no_image:
+            if ax not in ["z", 2]:
+                print("Warning: cannot convert index to position in the x/y "
+                      "directions without associated image geometry!")
+                return
+            conversion = {i: p for i, p in 
+                          enumerate(self.get_contours("x-y").keys())}
+            return conversion[idx]
+        else:
+            return skrt.image.Image.idx_to_pos(self, idx, ax)
+
+    def pos_to_idx(self, pos, ax, return_int=True):
+        """Convert a position in mm to an array index along a given axis."""
+
+        self.load()
+        if self.no_image:
+            if ax not in ["z", 2]:
+                print("Warning: cannot convert position to index in the x/y "
+                      "directions without associated image geometry!")
+                return
+            conversion = {p: i for i, p in 
+                          enumerate(self.get_contours("x-y").keys())}
+            idx = conversion[pos]
+            if return_int:
+                return round(idx)
+            else:
+                return idx
+        else:
+            return skrt.image.Image.pos_to_idx(self, pos, ax, return_int)
 
     def on_slice(self, view, sl=None, idx=None, pos=None):
         """Check whether this ROI exists on a given slice."""
 
         idx = self.get_idx(view, sl, idx, pos)
-        if hasattr(self, 'contours') and view in self.contours:
-            return idx in self.contours[view]
-        else:
-            self.create_mask()
-            return idx in self.get_indices(view)
+        return idx in self.get_indices(view)
 
     def get_centroid(
         self,
@@ -557,7 +589,7 @@ class ROI(skrt.image.Image):
         # Calculate from polygon areas
         if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
             slice_areas = []
-            for idx in self.get_contours("x-y"):
+            for idx in self.get_contours("x-y", idx_as_key=True):
                 slice_areas.append(self.get_area("x-y", idx=idx))
             return sum(slice_areas) * abs(self.get_voxel_size()[2])
 
@@ -600,18 +632,25 @@ class ROI(skrt.image.Image):
             area *= abs(self.voxel_size[x_ax] * self.voxel_size[y_ax])
         return area
 
-    def get_length(self, units="mm", ax="z", method="mask"):
+    def get_length(self, units="mm", ax="z", method="auto"):
         """Get total length of the ROI along a given axis."""
 
         # Calculate length from contours
         self.load()
-        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
+        if method == "contour" or (
+            method == "auto" and self.roi_source_type == "contour"):
 
-            # Calculate z length from contour indices
+            # Calculate z length from contour positions
             if ax == "z":
-                len_z_idx = max(self.get_contours("x-y").keys()) \
-                        - min(self.get_contours("x-y").keys())
-                return len_z_idx * abs(self.get_voxel_size()[2])
+                z_keys = list(self.get_contours("x-y").keys())
+                z_interval = max(z_keys) - min(z_keys)
+                
+                # Add one extra voxel size to account for half a voxel on 
+                # either side
+                z_keys = sorted(z_keys)
+                diffs = [z_keys[i] - z_keys[i - 1] for i in range(1, len(z_keys))]
+                vz = min(diffs)
+                return z_interval + abs(vz)
 
             # Calculate x or y length from min/max contour positions
             i_ax = skrt.image._axes.index(ax)
@@ -623,12 +662,15 @@ class ROI(skrt.image.Image):
 
         # Otherwise, calculate from binary mask
         self.create_mask()
-        nonzero = np.argwhere(self.data)
-        vals = nonzero[:, skrt.image._axes.index(ax)]
+        nonzero = np.argwhere(self.get_data(standardise=True))
+        i_ax = skrt.image._axes.index(ax)
+        if i_ax != 2:
+            i_ax = 1 - i_ax
+        vals = nonzero[:, i_ax]
         if len(vals):
-            length_voxels = max(vals) + 1 - min(vals)
+            length_voxels = max(vals) - min(vals) + 1
             if units == "mm":
-                return length_voxels * abs(self.voxel_size[skrt.image._axes.index(ax)])
+                return length_voxels * abs(self.get_voxel_size()[i_ax])
             return length_voxels
         else:
             return 0
@@ -760,7 +802,7 @@ class ROI(skrt.image.Image):
 
             # Get indices on which to calculate intersecting area
             if sl is None and idx is None and pos is None:
-                indices = list(self.get_contours("x-y").keys())
+                indices = list(self.get_contours("x-y", idx_as_key=True).keys())
                 area1 = self.get_volume()
                 area2 = roi.get_volume()
             else:
@@ -1356,9 +1398,8 @@ class ROI(skrt.image.Image):
             return
         if figsize is None:
             x_ax, y_ax = skrt.image._plot_axes[view]
-            aspect = self.get_length(ax=skrt.image._axes[x_ax]) / self.get_length(
-                ax=skrt.image._axes[y_ax]
-            )
+            aspect = self.get_length(ax=skrt.image._axes[x_ax]) \
+                    / self.get_length(ax=skrt.image._axes[y_ax])
             figsize = (
                 aspect * skrt.image._default_figsize,
                 skrt.image._default_figsize,
@@ -1378,7 +1419,7 @@ class ROI(skrt.image.Image):
             mask = self.get_slice(view, idx=idx, flatten=True)
             contours = self.mask_to_contours(mask, view, invert=True)
         else:
-            contours = self.get_contours(view)[idx]
+            contours = self.get_contours(view, idx_as_key=True)[idx]
 
         # Plot contour
         for points in contours:
