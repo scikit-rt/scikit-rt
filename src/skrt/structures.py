@@ -163,6 +163,7 @@ class ROI(skrt.image.Image):
             else:
                 self.name = ROIDefaults().get_default_roi_name()
         self.original_name = name
+        self.title = self.name
 
         # Load ROI data
         self.loaded = False
@@ -188,7 +189,9 @@ class ROI(skrt.image.Image):
                 self.image = self.source
             skrt.image.Image.__init__(self, 
                                       self.source.get_data() > self.mask_level,
+                                      title=self.name,
                                       affine=self.source.get_affine())
+            self.title = self.name
             self.roi_source_type = "mask"
             self.loaded = True
             self.create_mask()
@@ -216,7 +219,8 @@ class ROI(skrt.image.Image):
 
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
-            skrt.image.Image.__init__(self, self.source, **self.kwargs)
+            skrt.image.Image.__init__(self, self.source, title=self.name, 
+                                      **self.kwargs)
             self.loaded = True
             self.roi_source_type = "mask"
             self.create_mask()
@@ -229,7 +233,8 @@ class ROI(skrt.image.Image):
                 self.kwargs["voxel_size"] = self.image.voxel_size
                 self.kwargs["origin"] = self.image.origin
                 self.shape = self.image.data.shape
-                skrt.image.Image.__init__(self, np.zeros(self.shape), **self.kwargs)
+                skrt.image.Image.__init__(self, np.zeros(self.shape), 
+                                          title=self.name, **self.kwargs)
 
             # Set x-y contours with z positions as keys
             self.contours["x-y"] = {}
@@ -364,7 +369,8 @@ class ROI(skrt.image.Image):
                     " before creating mask!"
                 )
             if self.image is None:
-                skrt.image.Image.__init__(self, np.zeros(self.shape), **self.kwargs)
+                skrt.image.Image.__init__(self, np.zeros(self.shape), 
+                                          title=self.name, **self.kwargs)
 
             # Create mask on each z layer
             for z, contours in self.input_contours.items():
@@ -1430,9 +1436,12 @@ class ROI(skrt.image.Image):
             self.ax.plot(points_x, points_y, **contour_kwargs)
 
         # Check whether y axis needs to be inverted
-        if not (self.plot_extent[view][3] > self.plot_extent[view][2]) == (
-            self.ax.get_ylim()[1] > self.ax.get_ylim()[0]
-        ):
+        if hasattr(self, "plot_extent"):
+            if not (self.plot_extent[view][3] > self.plot_extent[view][2]) == (
+                self.ax.get_ylim()[1] > self.ax.get_ylim()[0]
+            ):
+                self.ax.invert_yaxis()
+        elif view == "x-y":
             self.ax.invert_yaxis()
 
         # Plot centroid point
