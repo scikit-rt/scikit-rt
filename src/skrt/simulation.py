@@ -224,7 +224,8 @@ class SyntheticImage(Image):
                     self.groups[group] = ShapeGroup([shape], name=group)
                     self.roi_shapes[group] = self.groups[group]
                     self.rois[group] = ROI(
-                        shape.get_data(self.get_coords()), name=group, affine=self.affine
+                        shape.get_data(self.get_coords()), name=group, 
+                        affine=self.affine
                     )
                 else:
                     self.groups[group].add_shape(shape)

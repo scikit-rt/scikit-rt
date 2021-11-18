@@ -218,7 +218,7 @@ class Image(skrt.core.Archive):
         if self.downsampling:
             self.downsample(self.downsampling)
         else:
-            self.set_geometry(force=force)
+            self.set_geometry()
 
         # Set default grayscale range
         if window_width and window_centre:
@@ -378,7 +378,7 @@ class Image(skrt.core.Archive):
         self.n_voxels = n_voxels
         self.voxel_size = voxel_size
         self.affine = None
-        self.set_geometry(force=True)
+        self.set_geometry()
 
     def match_voxel_size(self, image, method="self"):
         """Resample to match z-axis voxel size with that of another Image
@@ -515,7 +515,7 @@ class Image(skrt.core.Archive):
                 machine = stations[station]
         return machine
 
-    def set_geometry(self, force=False):
+    def set_geometry(self):
         """Set geometric properties."""
 
         # Set affine matrix, voxel sizes, and origin

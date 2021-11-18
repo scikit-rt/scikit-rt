@@ -86,6 +86,9 @@ class ROI(skrt.image.Image):
         load=None,
         image=None,
         shape=None,
+        affine=None,
+        voxel_size=None,
+        origin=None,
         mask_level=0.25,
         **kwargs,
     ):
@@ -147,6 +150,9 @@ class ROI(skrt.image.Image):
         if image and not isinstance(image, skrt.image.Image):
             self.image = skrt.image.Image(image)
         self.shape = shape
+        self.affine = affine
+        self.voxel_size = voxel_size
+        self.origin = origin
         self.mask_level = mask_level
         self.contours = {}
         self.kwargs = kwargs
@@ -217,7 +223,9 @@ class ROI(skrt.image.Image):
 
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
-            skrt.image.Image.__init__(self, self.source, **self.kwargs)
+            skrt.image.Image.__init__(self, self.source, affine=self.affine, 
+                                      voxel_size=self.voxel_size, 
+                                      origin=self.origin, **self.kwargs)
             self.loaded = True
             self.roi_source_type = "mask"
             self.create_mask()
@@ -231,6 +239,9 @@ class ROI(skrt.image.Image):
                 self.kwargs["origin"] = self.image.origin
                 self.shape = self.image.data.shape
                 skrt.image.Image.__init__(self, np.zeros(self.shape), 
+                                          affine=self.affine, 
+                                          origin=self.origin,
+                                          voxel_size=self.voxel_size,
                                           **self.kwargs)
 
             # Set x-y contours with z positions as keys
@@ -241,8 +252,13 @@ class ROI(skrt.image.Image):
             self.loaded = True
 
         # Store flag for cases with no associated image or geometric info
-        self.no_image = self.input_contours is not None and (
-            self.shape is None or self.image is None)
+        has_image = self.image is not None
+        has_geom = self.shape is not None and (
+            self.affine is not None or (
+                self.voxel_size is not None and self.origin is not None
+            ))
+        self.contours_only = self.roi_source_type == "contour" \
+                and not has_image and not has_geom
 
     def get_contours(self, view="x-y", idx_as_key=False):
         """Get dict of contours in a given orientation."""
@@ -360,13 +376,17 @@ class ROI(skrt.image.Image):
         if self.input_contours:
 
             # Check an image or shape was given
-            if self.image is None and self.shape is None:
+            if self.contours_only:
                 raise RuntimeError(
-                    "Must set ROI.image or ROI.shape"
-                    " before creating mask!"
+                    "Not enough information to create mask. Must assign either: "
+                    "ROI.image; ROI.shape and ROI.affine; or ROI.shape, "
+                    "ROI.voxel_size and ROI.origin."
                 )
             if self.image is None:
                 skrt.image.Image.__init__(self, np.zeros(self.shape), 
+                                          affine=self.affine, 
+                                          voxel_size=self.voxel_size,
+                                          origin=self.origin,
                                           **self.kwargs)
 
             # Create mask on each z layer
@@ -424,6 +444,9 @@ class ROI(skrt.image.Image):
                 self.empty = not np.any(self.data)
             self.loaded_mask = True
 
+        # Set geometric properties
+        self.set_geometry()
+
     def resample(self, *args, **kwargs):
         self.create_mask()
         skrt.image.Image.resample(self, *args, **kwargs)
@@ -458,7 +481,7 @@ class ROI(skrt.image.Image):
         """Convert an array index to a position in mm along a given axis."""
 
         self.load()
-        if self.no_image:
+        if self.contours_only:
             if ax not in ["z", 2]:
                 print("Warning: cannot convert index to position in the x/y "
                       "directions without associated image geometry!")
@@ -473,7 +496,7 @@ class ROI(skrt.image.Image):
         """Convert a position in mm to an array index along a given axis."""
 
         self.load()
-        if self.no_image:
+        if self.contours_only:
             if ax not in ["z", 2]:
                 print("Warning: cannot convert position to index in the x/y "
                       "directions without associated image geometry!")
