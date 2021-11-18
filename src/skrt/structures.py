@@ -506,7 +506,7 @@ class ROI(skrt.image.Image):
         units="mm",
         standardise=True,
         flatten=False,
-        method="mask",
+        method="auto",
     ):
         """Get centroid position in 2D or 3D. The 'method' can be either:
             (a) "auto": centroid will be calculated based on input ROI source,
@@ -518,33 +518,68 @@ class ROI(skrt.image.Image):
                 this ROI.
         """
 
-        # Calculate centroid from Shapely polygons
         self.load()
-        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
-            return
 
-        # Otherwise, calculate centroid from binary mask
-        # Get 2D or 3D data from which to calculate centroid
+        # Default view and index settings
         if view or sl or idx or pos:
+            use_2d = True
             if sl is None and idx is None and pos is None:
                 idx = self.get_mid_idx(view)
             if view is None:
                 view = "x-y"
+        else:
+            use_2d = False
+
+        # Calculate centroid from Shapely polygons
+        if method == "contour" or (
+            method == "auto" and self.roi_source_type == "contour"):
+
+            # Get 2D or 3D centroids and areas of each polygon
+            if use_2d:
+                polygons = self.get_polygons_on_slice(view, sl, idx, pos)
+                centroids = []
+                areas = []
+                for p in polygons:
+                    centroid = p.centroid.xy
+                    centroids.append(np.array([
+                        centroid[0][0], centroid[1][0]
+                    ]))
+                    areas.append(p.area)
+            else:
+                centroids = []
+                areas = []
+                polygon_dict = self.get_polygons()
+                for z, polygons in polygon_dict.items():
+                    for p in polygons:
+                        centroid = p.centroid.xy
+                        centroids.append(np.array([
+                            centroid[0][0], centroid[1][0], z
+                        ]))
+                        areas.append(p.area)
+
+            # Get weighted average of polygon centroids
+            weighted_sum = np.sum(
+                [centroids[i] * areas[i] for i in range(len(centroids))],
+                axis=0
+            )
+            return weighted_sum / sum(areas)
+
+        # Otherwise, calculate centroid from binary mask
+        # Get 2D or 3D data from which to calculate centroid
+        if use_2d:
             if not self.on_slice(view, sl, idx, pos):
                 return [None, None]
             data = self.get_slice(view, sl, idx, pos)
             axes = skrt.image._plot_axes[view]
         else:
             if flatten:
-                if view is None:
-                    view = "x-y"
                 data = self.get_mask(view, flatten=True)
             else:
                 self.create_mask()
                 data = self.get_data(standardise)
             axes = skrt.image._axes
 
-        # Compute centroid
+        # Compute centroid from 2D or 3D binary mask
         non_zero = np.argwhere(data)
         if not len(non_zero):
             if data.ndim == 2:
@@ -557,7 +592,7 @@ class ROI(skrt.image.Image):
         # Convert to mm
         if units == "mm":
             centroid = [self.idx_to_pos(c, axes[i]) for i, c in enumerate(centroid)]
-        return centroid
+        return np.array(centroid)
 
     def get_centre(
         self, view=None, sl=None, idx=None, pos=None, units="mm", standardise=True
@@ -812,7 +847,7 @@ class ROI(skrt.image.Image):
                 area1 = self.get_volume()
                 area2 = roi.get_volume()
             else:
-                indices = [self.get_idx(view, sl, pos, idx)]
+                indices = [self.get_idx(view, sl, idx, pos)]
                 area1 = self.get_area(view, sl=sl, pos=pos, idx=idx)
                 area2 = roi.get_volume(view, sl=sl, pos=pos, idx=idx)
             
