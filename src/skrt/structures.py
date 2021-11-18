@@ -90,6 +90,7 @@ class ROI(skrt.image.Image):
         voxel_size=None,
         origin=None,
         mask_level=0.25,
+        default_geom_method="auto",
         **kwargs,
     ):
 
@@ -129,11 +130,37 @@ class ROI(skrt.image.Image):
 
         shape : list, default=None
             Number of voxels in the image to which the ROI belongs, in
-            order (x, y, z). Needed if <contours> is used instead of <source>.
+            order (x, y, z); needed to create mask if contours are provided
+            in <source> but no associated <image> is assigned.
+
+        affine : np.ndarray, default=None
+            Affine matrix of the image to which the ROI belongs.
+            Needed to create mask if contours are provided
+            in <source> but no associated <image> is assigned, and no 
+            <voxel_size> and <origin> are given. If <affine> is given, it
+            supercedes the latter two arguments.
+
+        affine : np.ndarray, default=None
+            Affine matrix of the image to which the ROI belongs.
+            Needed to create mask if contours are provided
+            in <source> but no associated <image> is assigned, and no 
+            <voxel_size> and <origin> are given. If <affine> is given, it
+            supercedes the latter two arguments.
+
+        default_geom_method : str, default="auto"
+            Default method for computing geometric quantities (area, centroid, etc).
+            Can be any of:
+                (a) "contour": geometric quantities will be calculated from 
+                    Shapely polygons made from contour points.
+                (b) "mask": geometric quantities will be calculated from 
+                    numpy array representing a binary mask.
+                (c) "auto": the "contour" or "mask" method will be used, 
+                    depending on whether the input that create the ROI comprised
+                    of contours or an array, respectively.
 
         kwargs : dict, default=None
             Extra arguments to pass to the initialisation of the parent
-            Image object (e.g. affine matrix if loading from a numpy array).
+            Image object.
 
         """
 
@@ -155,6 +182,7 @@ class ROI(skrt.image.Image):
         self.origin = origin
         self.mask_level = mask_level
         self.contours = {}
+        self.default_geom_method = default_geom_method
         self.kwargs = kwargs
         self.roi_source_type = None
 
@@ -255,6 +283,8 @@ class ROI(skrt.image.Image):
             ))
         self.contours_only = self.roi_source_type == "contour" \
                 and not has_image and not has_geom
+        if self.default_geom_method == "auto":
+            self.default_geom_method = self.roi_source_type
 
     def get_contours(self, view="x-y", idx_as_key=False):
         """Get dict of contours in a given orientation."""
@@ -515,43 +545,59 @@ class ROI(skrt.image.Image):
 
     def get_centroid(
         self,
-        view=None,
+        single_slice=False,
+        view="x-y",
         sl=None,
         idx=None,
         pos=None,
         units="mm",
         standardise=True,
         flatten=False,
-        method="auto",
+        method=None
     ):
-        """Get centroid position in 2D or 3D. The 'method' can be either:
-            (a) "auto": centroid will be calculated based on input ROI source,
-                i.e. from contours if ROI was loaded as a contour, or from
-                a mask if ROI was loaded from a mask.
-            (b) "contour": centroid will be calculated using Shapely polygons
-                of the contour(s) of this ROI.
-            (c) "mask": centroid will be calculated from the binary mask of
-                this ROI.
+        """Get centroid position in 2D or 3D. 
+
+        Parameters
+        ----------
+        single_slice : bool, default=False
+            If False, the 3D centroid of the entire ROI will be returned;
+            otherwise, the 2D centroid of a single slice will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice for which to get centroid, if <single_slice>
+            is True (otherwise ignored).
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        units : str, default="mm"
+            Units in which to return the centroid position. Can be either "mm"
+            or "voxels".
+
         """
 
         self.load()
+        if method is None:
+            method = self.default_geom_method
 
-        # Default view and index settings
-        if view or sl or idx or pos:
-            use_2d = True
-            if sl is None and idx is None and pos is None:
-                idx = self.get_mid_idx(view)
-            if view is None:
-                view = "x-y"
-        else:
-            use_2d = False
+        # Get default index
+        if single_slice and pos is None and sl is None and idx is None:
+            idx = self.get_mid_idx(view)
 
         # Calculate centroid from Shapely polygons
-        if method == "contour" or (
-            method == "auto" and self.roi_source_type == "contour"):
+        if method == "contour":
 
             # Get 2D or 3D centroids and areas of each polygon
-            if use_2d:
+            if single_slice:
                 polygons = self.get_polygons_on_slice(view, sl, idx, pos)
                 centroids = []
                 areas = []
@@ -582,7 +628,7 @@ class ROI(skrt.image.Image):
 
         # Otherwise, calculate centroid from binary mask
         # Get 2D or 3D data from which to calculate centroid
-        if use_2d:
+        if single_slice:
             if not self.on_slice(view, sl, idx, pos):
                 return [None, None]
             data = self.get_slice(view, sl, idx, pos)
@@ -619,12 +665,19 @@ class ROI(skrt.image.Image):
         return min(diffs)
 
     def get_centre(
-        self, view=None, sl=None, idx=None, pos=None, units="mm", standardise=True
+        self, 
+        single_slice=False,
+        view="x-y", 
+        sl=None, 
+        idx=None, 
+        pos=None, 
+        units="mm", 
+        standardise=True
     ):
         """Get centre position in 2D or 3D."""
 
         # Get 2D or 3D data for which to calculate centre
-        if view is None:
+        if not single_slice:
             self.create_mask()
             data = self.get_data(standardise)
             axes = skrt.image._axes
@@ -646,13 +699,15 @@ class ROI(skrt.image.Image):
             centre = [self.idx_to_pos(c, axes[i]) for i, c in enumerate(centre)]
         return centre
 
-    def get_volume(self, units="mm", method="auto"):
+    def get_volume(self, units="mm", method=None):
         """Get ROI volume."""
 
         self.load()
+        if method is None:
+            method = self.default_geom_method
 
         # Calculate from polygon areas
-        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
+        if method == "contour":
             slice_areas = []
             for idx in self.get_contours("x-y", idx_as_key=True):
                 slice_areas.append(self.get_area("x-y", idx=idx))
@@ -675,19 +730,18 @@ class ROI(skrt.image.Image):
         pos=None, 
         units="mm", 
         flatten=False,
-        method="auto"
+        method=None
     ):
         """Get the area of the ROI on a given slice."""
 
-        # Get default orientation and slice index
-        if view is None:
-            view = "x-y"
-        if sl is None and idx is None and pos is None:
+        # Get default slice index and method
+        if sl is None and idx is None and pos is None: 
             idx = self.get_mid_idx(view)
+        if method is None:
+            method = self.default_geom_method
 
         # Calculate from shapely polygon(s)
-        if method == "contour" or (
-            method == "auto" and self.roi_source_type == "contour"):
+        if method == "contour":
             polygons = self.get_polygons_on_slice(view, sl, idx, pos)
             return sum([p.area for p in polygons])
 
@@ -699,13 +753,14 @@ class ROI(skrt.image.Image):
             area *= abs(self.get_voxel_size()[x_ax] * self.get_voxel_size()[y_ax])
         return area
 
-    def get_length(self, units="mm", ax="z", method="auto"):
+    def get_length(self, units="mm", ax="z", method=None):
         """Get total length of the ROI along a given axis."""
 
         # Calculate length from contours
         self.load()
-        if method == "contour" or (
-            method == "auto" and self.roi_source_type == "contour"):
+        if method is None:
+            method = self.default_geom_method
+        if method == "contour":
 
             # Calculate z length from contour positions
             if ax == "z":
@@ -746,7 +801,7 @@ class ROI(skrt.image.Image):
         area_units="mm",
         length_units="mm",
         centroid_units="mm",
-        view=None,
+        view="x-y",
         sl=None,
         pos=None,
         idx=None,
@@ -848,25 +903,29 @@ class ROI(skrt.image.Image):
     def get_dice(
         self, 
         roi, 
+        single_slice=False,
         view="x-y", 
         sl=None, 
         idx=None, 
         pos=None, 
         flatten=False,
-        method="mask"
+        method=None
     ):
-        """Get Dice score, either global or on a given slice."""
+        """Get Dice score, either globally or on a single slice."""
 
-        if view is None:
-            view = "x-y"
+        self.load()
+        if single_slice:
+            if sl is None and idx is None and pos is None:
+                idx = self.get_mid_idx(view)
+        if method is None:
+            method = self.default_geom_method
 
         # Calculate intersections and areas from polygons
-        self.load()
-        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
+        if method == "contour":
 
             # Get positions of slice(s) on which to compare areas and total areas
             # on those slice(s)
-            if sl is None and idx is None and pos is None:
+            if not single_slice:
                 positions = list(self.get_contours("x-y").keys())
                 area1 = sum([self.get_area("x-y", idx=i) for i in self.get_indices()])
                 area2 = sum([roi.get_area("x-y", idx=i) for i in roi.get_indices()])
@@ -887,12 +946,12 @@ class ROI(skrt.image.Image):
         # Calculate intersections and areas from binary mask voxel counts
         else:
 
-            # No slice/index/position given: use 3D mask
-            if sl is None and idx is None and pos is None:
+            # Use 3D mask
+            if not single_slice:
                 data1 = self.get_mask(view, flatten)
                 data2 = roi.get_mask(view, flatten)
 
-            # Otherwise, use one slice only
+            # Otherwise, use single 2D slice
             else:
                 data1 = self.get_slice(view, sl, idx, pos)
                 data2 = roi.get_slice(view, sl, idx, pos)
@@ -903,7 +962,7 @@ class ROI(skrt.image.Image):
 
         return intersection / np.mean([area1, area2])
 
-    def get_volume_ratio(self, roi, method="mask"):
+    def get_volume_ratio(self, roi, method=None):
         """Get ratio of another ROI's volume with respect to own volume."""
 
         own_volume = roi.get_volume(method=method)
@@ -921,7 +980,7 @@ class ROI(skrt.image.Image):
             return None
         return own_area / other_area
 
-    def get_relative_volume_diff(self, roi, method="mask"):
+    def get_relative_volume_diff(self, roi, method=None):
         """Get relative volume of another ROI with respect to own volume."""
 
         own_volume = self.get_volume(method=method)
@@ -951,8 +1010,9 @@ class ROI(skrt.image.Image):
     def get_surface_distances(
         self,
         roi,
+        single_slice=False,
         signed=False,
-        view=None,
+        view="x-y",
         sl=None,
         idx=None,
         pos=None,
@@ -970,21 +1030,20 @@ class ROI(skrt.image.Image):
             return
 
         # Get binary masks and voxel sizes
-        if flatten and view is None:
-            view = "x-y"
-        if view or sl or idx or pos:
+        if single_slice:
             voxel_size = [self.voxel_size[i] for i in skrt.image._plot_axes[view]]
-            if not flatten:
-                mask1 = self.get_slice(view, sl=sl, idx=idx, pos=pos)
-                mask2 = roi.get_slice(view, sl=sl, idx=idx, pos=pos)
-            else:
-                mask1 = self.get_mask(view, True)
-                mask2 = roi.get_mask(view, True)
+            mask1 = self.get_slice(view, sl=sl, idx=idx, pos=pos)
+            mask2 = roi.get_slice(view, sl=sl, idx=idx, pos=pos)
         else:
-            vx, vy, vz = self.voxel_size
-            voxel_size = [vy, vx, vz]
-            mask1 = self.get_mask()
-            mask2 = roi.get_mask()
+            if not flatten:
+                vx, vy, vz = self.voxel_size
+                voxel_size = [vy, vx, vz]
+                mask1 = self.get_mask()
+                mask2 = roi.get_mask()
+            else:
+                voxel_size = [self.voxel_size[i] for i in skrt.image._plot_axes[view]]
+                mask1 = self.get_mask(view, flatten=True)
+                mask2 = roi.get_mask(view, flatten=True)
 
         # Make structuring element
         conn2 = morphology.generate_binary_structure(2, connectivity)
@@ -1066,7 +1125,7 @@ class ROI(skrt.image.Image):
         vol_units="mm",
         area_units="mm",
         centroid_units="mm",
-        view=None,
+        view="x-y",
         sl=None,
         idx=None,
         pos=None,

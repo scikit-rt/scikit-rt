@@ -34,13 +34,13 @@ def test_centroid_global():
     assert np.all(np.array(cube1.get_centroid()) == centre1)
 
 def test_centroid_slice():
-    assert np.all(np.array(cube1.get_centroid(view='x-y')) == centre1[:2])
+    assert np.all(np.array(cube1.get_centroid(single_slice=True, view='x-y')) == centre1[:2])
 
 def test_centre():
     assert np.all(np.array(cube1.get_centre()) == centre1)
 
 def test_centre_slice():
-    assert np.all(np.array(cube1.get_centre(view='x-y')) == centre1[:2])
+    assert np.all(np.array(cube1.get_centre(single_slice=True, view='x-y')) == centre1[:2])
 
 def test_volume():
     assert cube1.get_volume() == side_length ** 3
@@ -61,7 +61,8 @@ def test_centroid_vector():
                   == -cube2.get_centroid_vector(cube1))
 
 def test_centroid_vector_slice():
-    assert np.all(cube1.get_centroid_vector(cube2, idx=cube1.get_mid_idx(),
+    assert np.all(cube1.get_centroid_vector(cube2, single_slice=True, 
+                                            idx=cube1.get_mid_idx(),
                                             view='x-y')
                   == (centre2 - centre1)[:2])
 
@@ -75,7 +76,8 @@ def test_dice():
     assert cube1.get_dice(cube2) == 0.5
 
 def test_dice_slice():
-    assert cube1.get_dice(cube2, view='x-y', idx=cube1.get_mid_idx()) == 0.5
+    assert cube1.get_dice(cube2, single_slice=True, view='x-y', 
+                          idx=cube1.get_mid_idx()) == 0.5
 
 def test_dice_flattened():
     assert cube1.get_dice(cube2, flatten=True) == 0.5
