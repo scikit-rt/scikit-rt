@@ -163,7 +163,7 @@ class ROI(skrt.image.Image):
             else:
                 self.name = ROIDefaults().get_default_roi_name()
         self.original_name = name
-        self.title = self.name
+        self.title = None
 
         # Load ROI data
         self.loaded = False
@@ -172,10 +172,10 @@ class ROI(skrt.image.Image):
         if load:
             self.load()
 
-    def load(self):
-        """Load ROI from file."""
+    def load(self, force=False):
+        """Load ROI from file or source."""
 
-        if self.loaded:
+        if self.loaded and not force:
             return
 
         if self.image:
@@ -189,9 +189,7 @@ class ROI(skrt.image.Image):
                 self.image = self.source
             skrt.image.Image.__init__(self, 
                                       self.source.get_data() > self.mask_level,
-                                      title=self.name,
                                       affine=self.source.get_affine())
-            self.title = self.name
             self.roi_source_type = "mask"
             self.loaded = True
             self.create_mask()
@@ -219,8 +217,7 @@ class ROI(skrt.image.Image):
 
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
-            skrt.image.Image.__init__(self, self.source, title=self.name, 
-                                      **self.kwargs)
+            skrt.image.Image.__init__(self, self.source, **self.kwargs)
             self.loaded = True
             self.roi_source_type = "mask"
             self.create_mask()
@@ -234,7 +231,7 @@ class ROI(skrt.image.Image):
                 self.kwargs["origin"] = self.image.origin
                 self.shape = self.image.data.shape
                 skrt.image.Image.__init__(self, np.zeros(self.shape), 
-                                          title=self.name, **self.kwargs)
+                                          **self.kwargs)
 
             # Set x-y contours with z positions as keys
             self.contours["x-y"] = {}
@@ -351,10 +348,10 @@ class ROI(skrt.image.Image):
 
         return points
 
-    def create_mask(self):
+    def create_mask(self, force=False):
         """Create binary mask."""
 
-        if self.loaded_mask:
+        if self.loaded_mask and not force:
             return
         if not self.loaded:
             self.load()
@@ -370,7 +367,7 @@ class ROI(skrt.image.Image):
                 )
             if self.image is None:
                 skrt.image.Image.__init__(self, np.zeros(self.shape), 
-                                          title=self.name, **self.kwargs)
+                                          **self.kwargs)
 
             # Create mask on each z layer
             for z, contours in self.input_contours.items():
@@ -594,6 +591,14 @@ class ROI(skrt.image.Image):
             centroid = [self.idx_to_pos(c, axes[i]) for i, c in enumerate(centroid)]
         return np.array(centroid)
 
+    def get_slice_thickness_contours(self):
+        """Get z voxel size using positions of contours."""
+
+        contours = self.get_contours("x-y")
+        z_keys = sorted(contours.keys())
+        diffs = [z_keys[i] - z_keys[i - 1] for i in range(1, len(z_keys))]
+        return min(diffs)
+
     def get_centre(
         self, view=None, sl=None, idx=None, pos=None, units="mm", standardise=True
     ):
@@ -622,7 +627,7 @@ class ROI(skrt.image.Image):
             centre = [self.idx_to_pos(c, axes[i]) for i, c in enumerate(centre)]
         return centre
 
-    def get_volume(self, units="mm", method="mask"):
+    def get_volume(self, units="mm", method="auto"):
         """Get ROI volume."""
 
         self.load()
@@ -632,15 +637,16 @@ class ROI(skrt.image.Image):
             slice_areas = []
             for idx in self.get_contours("x-y", idx_as_key=True):
                 slice_areas.append(self.get_area("x-y", idx=idx))
-            return sum(slice_areas) * abs(self.get_voxel_size()[2])
+            return sum(slice_areas) * self.get_slice_thickness_contours()
 
         # Otherwise, calculate from number of voxels in mask
         self.create_mask()
-        self.volume = {}
-        self.volume["voxels"] = self.data.astype(bool).sum()
-        self.volume["mm"] = self.volume["voxels"] * abs(np.prod(self.voxel_size))
-        self.volume["ml"] = self.volume["mm"] * (0.1 ** 3)
-        return self.volume[units]
+        volume = self.data.astype(bool).sum()
+        if units in ["mm", "ml"]:
+            volume *= abs(np.prod(self.get_voxel_size()))
+            if units == "ml":
+                volume *= (0.1 ** 3)
+        return volume
 
     def get_area(
         self, 
@@ -650,7 +656,7 @@ class ROI(skrt.image.Image):
         pos=None, 
         units="mm", 
         flatten=False,
-        method="mask"
+        method="auto"
     ):
         """Get the area of the ROI on a given slice."""
 
@@ -661,8 +667,9 @@ class ROI(skrt.image.Image):
             idx = self.get_mid_idx(view)
 
         # Calculate from shapely polygon(s)
-        if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
-            polygons = self.get_polygons(view, idx=idx)
+        if method == "contour" or (
+            method == "auto" and self.roi_source_type == "contour"):
+            polygons = self.get_polygons_on_slice(view, sl, idx, pos)
             return sum([p.area for p in polygons])
 
         # Otherwise, calculate from binary mask
@@ -670,7 +677,7 @@ class ROI(skrt.image.Image):
         area = im_slice.astype(bool).sum()
         if units == "mm":
             x_ax, y_ax = skrt.image._plot_axes[view]
-            area *= abs(self.voxel_size[x_ax] * self.voxel_size[y_ax])
+            area *= abs(self.get_voxel_size()[x_ax] * self.get_voxel_size()[y_ax])
         return area
 
     def get_length(self, units="mm", ax="z", method="auto"):
@@ -688,10 +695,7 @@ class ROI(skrt.image.Image):
                 
                 # Add one extra voxel size to account for half a voxel on 
                 # either side
-                z_keys = sorted(z_keys)
-                diffs = [z_keys[i] - z_keys[i - 1] for i in range(1, len(z_keys))]
-                vz = min(diffs)
-                return z_interval + abs(vz)
+                return z_interval + self.get_slice_thickness_contours()
 
             # Calculate x or y length from min/max contour positions
             i_ax = skrt.image._axes.index(ax)
@@ -841,21 +845,22 @@ class ROI(skrt.image.Image):
         self.load()
         if method == "contour" or (method == "auto" and self.roi_source_type == "contour"):
 
-            # Get indices on which to calculate intersecting area
+            # Get positions of slice(s) on which to compare areas and total areas
+            # on those slice(s)
             if sl is None and idx is None and pos is None:
-                indices = list(self.get_contours("x-y", idx_as_key=True).keys())
-                area1 = self.get_volume()
-                area2 = roi.get_volume()
+                positions = list(self.get_contours("x-y").keys())
+                area1 = sum([self.get_area("x-y", idx=i) for i in self.get_indices()])
+                area2 = sum([roi.get_area("x-y", idx=i) for i in roi.get_indices()])
             else:
-                indices = [self.get_idx(view, sl, idx, pos)]
-                area1 = self.get_area(view, sl=sl, pos=pos, idx=idx)
-                area2 = roi.get_volume(view, sl=sl, pos=pos, idx=idx)
+                positions = [self.idx_to_pos(self.get_idx(view, sl, idx, pos))]
+                area1 = self.get_area(view, sl, idx, pos)
+                area2 = roi.get_area(view, sl, idx, pos)
             
             # Compute intersecting area on one or more slices
             intersection = 0
-            for i in indices:
-                polygons1 = self.get_polygons(view, idx=i)
-                polygons2 = roi.get_polygons(view, idx=i)
+            for p in positions:
+                polygons1 = self.get_polygons_on_slice(view, pos=p)
+                polygons2 = roi.get_polygons_on_slice(view, pos=p)
                 for p1 in polygons1:
                     for p2 in polygons2:
                         intersection += p1.intersection(p2).area
@@ -1567,9 +1572,8 @@ class ROI(skrt.image.Image):
             roi_source = ".tmp_rois.nii.gz"
             self.write(roi_source)
 
-        QuickViewer(im_source, affine=self.get_affine(), title=self.name, 
-                    structs=roi_source, struct_names={self.name: "*"}, 
-                    **kwargs)
+        QuickViewer(im_source, affine=self.get_affine(), structs=roi_source, 
+                    struct_names={self.name: "*"}, **kwargs)
 
         os.remove(im_source)
         os.remove(roi_source)
