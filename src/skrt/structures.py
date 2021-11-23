@@ -489,11 +489,17 @@ class ROI(skrt.image.Image):
         self.create_mask()
         return skrt.image.Image.get_slice(self, *args, **kwargs).astype(bool)
 
-    def get_indices(self, view="x-y"):
+    def get_indices(self, view="x-y", method=None):
         """Get list of slice indices on which this ROI exists."""
 
         self.load()
-        return list(self.get_contours(view, idx_as_key=True).keys())
+        if method is None:
+            method = self.default_geom_method
+
+        if method == "contour":
+            return list(self.get_contours(view, idx_as_key=True).keys())
+        else:
+            return list(np.unique(np.argwhere(self.get_mask())[:, 2]))
 
     def get_mid_idx(self, view="x-y"):
         """Get central slice index of this ROI in a given orientation."""
@@ -710,7 +716,7 @@ class ROI(skrt.image.Image):
         if method == "contour":
             slice_areas = []
             for idx in self.get_contours("x-y", idx_as_key=True):
-                slice_areas.append(self.get_area("x-y", idx=idx))
+                slice_areas.append(self.get_area("x-y", idx=idx, method=method))
             return sum(slice_areas) * self.get_slice_thickness_contours()
 
         # Otherwise, calculate from number of voxels in mask

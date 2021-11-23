@@ -1,6 +1,7 @@
 '''Test ROI metrics and comparison metrics.'''
 
 import numpy as np
+from pytest import approx
 
 from skrt.simulation import SyntheticImage
 
@@ -111,3 +112,24 @@ def test_hausdorff_distance():
 
 def test_hausdorff_distance_flattened():
     assert cube1.get_hausdorff_distance(cube2, flatten=True) == 2
+
+def test_volume_from_contour():
+    vol1 = cube1.get_volume(method="mask")
+    vol2 = cube1.get_volume(method="contour")
+    assert abs(vol1 - vol2) / vol1 < 0.1
+
+def test_area_from_contour():
+    area1 = cube1.get_area(method="mask")
+    area2 = cube1.get_area(method="contour")
+    assert abs(area1 - area2) / area1 < 0.1
+
+def test_length_from_contour():
+    for ax in ["x", "y", "z"]:
+        len1 = cube1.get_length(ax=ax, method="mask")
+        len2 = cube1.get_length(ax=ax, method="contour")
+        assert abs(len1 - len2) / len1 < 0.1
+
+def test_get_indices_from_contour():
+    ind1 = cube1.get_indices(method="contour")
+    ind2 = cube1.get_indices(method="mask")
+    assert ind1 == ind2
