@@ -4,6 +4,7 @@ import fnmatch
 import os
 import shutil
 import pandas as pd
+import pytest
 
 from skrt.simulation import SyntheticImage
 from skrt.structures import StructureSet, ROI
@@ -19,6 +20,7 @@ sim = SyntheticImage((100, 100, 40))
 sim.add_cube(side_length=40, name='cube', intensity=1)
 sim.add_sphere(radius=20, name='sphere', intensity=10)
 structure_set = sim.get_structure_set()
+roi = structure_set.get_roi('cube')
 
 
 def test_structure_set_from_sythetic_image():
@@ -46,7 +48,6 @@ def test_get_dict():
     assert set(sdict.keys()) == set(['cube', 'sphere'])
 
 def test_get_roi():
-    roi = structure_set.get_roi('cube')
     assert isinstance(roi, ROI)
     assert roi.name == 'cube'
 
@@ -153,3 +154,13 @@ def test_write_dicom():
 def test_roi_from_image_threshold():
     roi = ROI(sim, mask_level=5)  
     assert roi.get_area() == sim.get_roi("sphere").get_area()
+
+def test_roi_no_image():
+    '''Check that an ROI object can be created from contours without an 
+    associated Image object or geometric info.'''
+
+    new_roi = ROI(roi.get_contours())
+    new_roi.plot(show=False)
+    with pytest.raises(RuntimeError):
+        new_roi.get_mask()
+
