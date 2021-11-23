@@ -422,7 +422,7 @@ class Dated(PathData):
             try:
                 self.date, self.time = timestamp.split("_")
             except ValueError:
-                self.date, self.time = (None, None)
+                self.date, self.time = ("", "")
 
         # Set date and time from current time
         if not self.date and auto_timestamp:
@@ -430,7 +430,10 @@ class Dated(PathData):
             self.time = time.strftime("%H%M%S")
 
         # Make full timestamp string
-        self.timestamp = f"{self.date}_{self.time}"
+        if not self.date and not self.time:
+            self.timestamp = ""
+        else:
+            self.timestamp = f"{self.date}_{self.time}"
 
     def in_date_interval(self, 
                          min_date: Optional[str] = None, 
