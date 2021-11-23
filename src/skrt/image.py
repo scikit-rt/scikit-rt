@@ -123,7 +123,7 @@ class Image(skrt.core.Archive):
         path = self.source if isinstance(self.source, str) else ""
         skrt.core.Archive.__init__(self, path)
 
-        if load and self.source != "":
+        if load or (isinstance(self.source, str) and not self.source):
             self.load_data()
 
     def get_data(self, standardise=False):
