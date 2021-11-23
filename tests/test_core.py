@@ -76,3 +76,41 @@ def test_logger(capsys):
     logger.debug(test_msg)
     captured = capsys.readouterr()
     assert test_msg not in captured.err
+
+def test_null_data():
+    x = skrt.core.Data()
+    assert(type(x).__name__ == 'Data')
+
+def test_null_path_data():
+    x = skrt.core.PathData()
+    assert(type(x).__name__ == 'PathData')
+    assert(x.path == '')
+    assert(x.subdir == '')
+
+def test_null_dated():
+    x = skrt.core.Dated()
+    assert(type(x).__name__ == 'Dated')
+    assert(x.date == '')
+    assert(x.path == '')
+    assert(x.subdir == '')
+    assert(x.time == '')
+    assert(x.timestamp == '')
+
+def test_null_archive():
+    x = skrt.core.Archive()
+    assert(type(x).__name__ == 'Archive')
+    assert(x.date == '')
+    assert(x.files == [])
+    assert(x.path == '')
+    assert(x.subdir == '')
+    assert(x.time == '')
+    assert(x.timestamp == '')
+
+def test_null_file():
+    x = skrt.core.File()
+    assert(type(x).__name__ == 'File')
+    assert(x.date == '')
+    assert(x.path == '')
+    assert(x.subdir == '')
+    assert(x.time == '')
+    assert(x.timestamp == '')
