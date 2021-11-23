@@ -92,6 +92,10 @@ Defaults({"print_depth": 0})
 # 'WARNING' (30), 'ERROR' (40), 'CRITICAL' (50)
 Defaults({"log_level": "WARNING"})
 
+# Lengths of date and time stamps.
+Defaults({"len_date": 8})
+Defaults({"len_time": 6})
+
 
 class Data:
     """
@@ -622,6 +626,14 @@ def is_timestamp(string: str = "") -> bool:
             if not item.isdigit():
                 valid = False
                 break
+        if valid:
+            if type(Defaults().len_date) == int:
+                if len(items[0]) != Defaults().len_date:
+                    valid = False
+            if type(Defaults().len_time) == int:
+                if len(items[1]) != Defaults().len_time:
+                    valid = False
+
     return valid
 
 
