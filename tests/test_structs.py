@@ -156,3 +156,23 @@ def test_dicom_dataset():
 def test_roi_from_image_threshold():
     roi = ROI(sim, mask_level=5)  
     assert roi.get_area() == sim.get_roi("sphere").get_area()
+
+def test_null_roi():
+    roi = ROI()
+    assert(type(roi).__name__ == 'ROI')
+    assert(roi.affine is None)
+    assert(roi.contours == {})
+    assert(not roi.custom_color)
+    assert(roi.image is None)
+    assert(roi.input_contours is None)
+    assert(roi.kwargs == {})
+    assert(not roi.loaded)
+    assert(not roi.loaded_contours)
+    assert(not roi.loaded_mask)
+    assert(roi.origin is None)
+    assert(roi.original_name is None)
+    assert(roi.roi_source_type is None)
+    assert(roi.shape is None)
+    assert(roi.source is None)
+    assert(roi.title is None)
+    assert(roi.voxel_size is None)

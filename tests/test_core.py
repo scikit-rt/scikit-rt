@@ -10,7 +10,7 @@ import skrt.core
 def test_defaults():
 
     assert skrt.core.Defaults().print_depth == 0
-    skrt.core.Defaults(opts={'print_depth': 2, 'test_item': 1}, reset=True)
+    skrt.core.Defaults(opts={'print_depth': 2, 'test_item': 1})
     assert skrt.core.Defaults().print_depth == 2
     assert skrt.core.Defaults().test_item == 1
 
@@ -29,8 +29,8 @@ def test_pathdata():
 
 def test_dated():
     dated = skrt.core.Dated(path='.')
-    assert dated.date is None
-    assert dated.time is None
+    assert not dated.date
+    assert not dated.time
 
 def test_dated_sorting():
     dated1 = skrt.core.Dated("19990405_120394")
