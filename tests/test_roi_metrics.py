@@ -133,3 +133,16 @@ def test_get_indices_from_contour():
     ind1 = cube1.get_indices(method="contour")
     ind2 = cube1.get_indices(method="mask")
     assert ind1 == ind2
+
+def test_centroid_from_contour():
+    c1 = cube1.get_centroid(method="mask")
+    c2 = cube1.get_centroid(method="contour")
+    for i in range(len(c1)):
+        assert abs((c1[i] - c2[i]) / c1[i]) < 0.1
+
+def test_2d_centroid_from_contour():
+    for view in ["x-y", "y-z", "x-z"]:
+        c1 = cube1.get_centroid(single_slice=True, method="mask", view=view)
+        c2 = cube1.get_centroid(single_slice=True, method="contour", view=view)
+        for i in range(len(c1)):
+            assert abs((c1[i] - c2[i]) / c1[i]) < 0.1
