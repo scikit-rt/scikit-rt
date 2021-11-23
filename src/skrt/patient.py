@@ -398,7 +398,7 @@ class Patient(skrt.core.PathData):
     """Object associated with a top-level directory whose name corresponds to
     a patient ID, and whose subdirectories contain studies."""
 
-    def __init__(self, path=None, exclude=["logfiles"]):
+    def __init__(self, path="", exclude=["logfiles"]):
 
         # Set path and patient ID
         if path is None:

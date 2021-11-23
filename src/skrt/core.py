@@ -92,6 +92,10 @@ Defaults({"print_depth": 0})
 # 'WARNING' (30), 'ERROR' (40), 'CRITICAL' (50)
 Defaults({"log_level": "WARNING"})
 
+# Lengths of date and time stamps.
+Defaults({"len_date": 8})
+Defaults({"len_time": 6})
+
 
 class Data:
     """
@@ -418,7 +422,7 @@ class Dated(PathData):
             try:
                 self.date, self.time = timestamp.split("_")
             except ValueError:
-                self.date, self.time = (None, None)
+                self.date, self.time = ("", "")
 
         # Set date and time from current time
         if not self.date and auto_timestamp:
@@ -426,7 +430,10 @@ class Dated(PathData):
             self.time = time.strftime("%H%M%S")
 
         # Make full timestamp string
-        self.timestamp = f"{self.date}_{self.time}"
+        if not self.date and not self.time:
+            self.timestamp = ""
+        else:
+            self.timestamp = f"{self.date}_{self.time}"
 
     def in_date_interval(self, 
                          min_date: Optional[str] = None, 
@@ -622,6 +629,14 @@ def is_timestamp(string: str = "") -> bool:
             if not item.isdigit():
                 valid = False
                 break
+        if valid:
+            if type(Defaults().len_date) == int:
+                if len(items[0]) != Defaults().len_date:
+                    valid = False
+            if type(Defaults().len_time) == int:
+                if len(items[1]) != Defaults().len_time:
+                    valid = False
+
     return valid
 
 
