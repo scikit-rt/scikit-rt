@@ -112,6 +112,7 @@ class Image(skrt.core.Archive):
         self.title = title
         self.source = path
         self.source_type = None
+        self.dicom_dataset = None
         self.voxel_size = voxel_size
         self.origin = origin
         self.affine = affine
@@ -133,6 +134,13 @@ class Image(skrt.core.Archive):
         if standardise:
             return self.get_standardised_data(force=True)
         return self.data
+
+    def get_dicom_dataset(self):
+        """Return pydicom.dataset.FileDataset object associated with this Image,
+        if loaded from dicom; otherwise, return None."""
+
+        self.load_data()
+        return self.dicom_dataset
 
     def get_voxel_size(self):
         """Return voxel sizes in mm in order (x, y, z)."""
@@ -195,10 +203,11 @@ class Image(skrt.core.Archive):
 
         # Try loading from dicom file
         if self.data is None:
-            self.data, affine, window_centre, window_width = load_dicom(
-                self.source)
+            self.data, affine, window_centre, window_width, ds \
+                    = load_dicom(self.source)
             self.source_type = "dicom"
             if self.data is not None:
+                self.dicom_dataset = ds
                 self.affine = affine
 
         # Try loading from numpy file
@@ -1778,7 +1787,7 @@ def load_dicom(path):
 
         # Discard if not a valid dicom file
         if not hasattr(ds, "SOPClassUID"):
-            return None, None, None, None
+            return None, None, None, None, None
 
         # Assign TransferSyntaxUID if missing
         if not hasattr(ds, "TransferSyntaxUID"):
@@ -1882,7 +1891,7 @@ def load_dicom(path):
     # Case where no data was found
     if not data_slices:
         print(f"Warning: no valid dicom files found in {path}")
-        return None, None, None, None
+        return None, None, None, None, None
 
     # Case with single image array
     if len(data_slices) == 1:
@@ -1935,7 +1944,7 @@ def load_dicom(path):
     if rescale_intercept:
         data = data + rescale_intercept
 
-    return data, affine, window_centre, window_width
+    return data, affine, window_centre, window_width, ds
 
 
 def load_npy(path):

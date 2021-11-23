@@ -157,6 +157,7 @@ class ROI(skrt.image.Image):
         self.contours = {}
         self.kwargs = kwargs
         self.roi_source_type = None
+        self.dicom_dataset = None
 
         # Create name
         self.name = name
@@ -185,7 +186,7 @@ class ROI(skrt.image.Image):
             return
 
         if self.image:
-            self.image.load_data()
+            self.image.load()
 
         rois = []
 
@@ -203,7 +204,7 @@ class ROI(skrt.image.Image):
         # Try loading from dicom structure set
         elif isinstance(self.source, str):
 
-            rois = load_rois_dicom(self.source, names=self.name)
+            rois, ds = load_rois_dicom(self.source, names=self.name)
             if len(rois):
 
                 # Check a shape or image was given
@@ -220,6 +221,7 @@ class ROI(skrt.image.Image):
                 self.input_contours = roi["contours"]
                 if not self.custom_color:
                     self.set_color(roi["color"])
+                self.dicom_dataset = ds
 
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
@@ -1694,6 +1696,7 @@ class StructureSet(skrt.core.Archive):
         self.to_remove = to_remove
         self.names = names
         self.multi_label = multi_label
+        self.dicom_dataset = None
 
         path = sources if isinstance(sources, str) else ""
         skrt.core.Archive.__init__(self, path)
@@ -1757,7 +1760,7 @@ class StructureSet(skrt.core.Archive):
             # Attempt to load from dicom
             rois = []
             if isinstance(source, str):
-                rois = load_rois_dicom(source)
+                rois, ds = load_rois_dicom(source)
             if len(rois):
                 for roi in rois.values():
                     self.rois.append(
@@ -1768,6 +1771,8 @@ class StructureSet(skrt.core.Archive):
                             image=self.image,
                         )
                     )
+                    self.rois[-1].dicom_dataset = ds
+                self.dicom_dataset = ds
 
             # Load from ROI mask
             else:
@@ -2160,12 +2165,12 @@ def load_rois_dicom(path, names=None):
     try:
         ds = pydicom.read_file(path, force=True)
     except pydicom.errors.InvalidDicomError:
-        return []
+        return [], None
     if not hasattr(ds, "SOPClassUID"):
-        return []
+        return [], None
     if not (ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3"):
         print(f"Warning: {path} is not a DICOM structure set file!")
-        return []
+        return [], None
 
     # Get ROI names
     seq = get_dicom_sequence(ds, "StructureSetROI")
@@ -2189,7 +2194,7 @@ def load_rois_dicom(path, names=None):
         }
         if not len(rois):
             print(f"Warning: no ROIs found matching name(s): {names}")
-            return
+            return [], None
 
     # Get ROI details
     roi_seq = get_dicom_sequence(ds, "ROIContour")
@@ -2221,7 +2226,7 @@ def load_rois_dicom(path, names=None):
 
         rois[number].update(data)
 
-    return rois
+    return rois, ds
 
 
 def get_dicom_sequence(ds=None, basename=""):
