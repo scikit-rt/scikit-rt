@@ -43,7 +43,7 @@ class Image(skrt.core.Archive):
 
     def __init__(
         self,
-        path,
+        path="",
         load=True,
         title=None,
         affine=None,
@@ -57,7 +57,7 @@ class Image(skrt.core.Archive):
 
         Parameters
         ----------
-        path : str/array/Nifti1Image
+        path : str/array/Nifti1Image, default = ""
             Source of image data. Can be either:
                 (a) A string containing the path to a dicom or nifti file;
                 (b) A string containing the path to a numpy file containing a
@@ -122,7 +122,7 @@ class Image(skrt.core.Archive):
         path = self.source if isinstance(self.source, str) else ""
         skrt.core.Archive.__init__(self, path)
 
-        if load:
+        if load and self.source != "":
             self.load_data()
 
     def get_data(self, standardise=False):
