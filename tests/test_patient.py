@@ -4,7 +4,7 @@ import numpy as np
 import os
 import shutil
 
-from skrt.patient import Patient
+from skrt.patient import Patient, Study
 from skrt.simulation import SyntheticImage
 
 # Create synthetic patient object
@@ -107,3 +107,20 @@ def test_write_rois_dicom():
 
 def test_read_nifti_patient():
     pass
+
+def test_null_patient():
+    p = Patient()
+    assert(type(p).__name__ == 'Patient')
+    assert(p.id == '')
+    assert(p.path == '')
+    assert(p.studies == [])
+
+def test_null_study():
+    s = Study()
+    assert(type(s).__name__ == 'Study')
+    assert(s.date == '')
+    assert(s.files == [])
+    assert(s.path == '')
+    assert(s.subdir == '')
+    assert(s.time == '')
+    assert(s.timestamp == '')
