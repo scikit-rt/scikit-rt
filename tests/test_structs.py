@@ -150,6 +150,9 @@ def test_plot_comparisons():
 def test_write_dicom():
     pass
 
+def test_dicom_dataset():
+    pass
+
 def test_roi_from_image_threshold():
     roi = ROI(sim, mask_level=5)  
     assert roi.get_area() == sim.get_roi("sphere").get_area()

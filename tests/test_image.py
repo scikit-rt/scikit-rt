@@ -3,6 +3,7 @@
 import os
 import numpy as np
 import shutil
+import pydicom
 
 from skrt.core import File
 from skrt.image import Image
@@ -278,3 +279,8 @@ def test_init_from_image():
     assert np.all(im.get_data() == im_cloned.get_data())
     assert np.all(im.get_standardised_data()
                   == im_cloned.get_standardised_data())
+
+def test_dicom_dataset():
+    '''Check that dicom dataset property is assigned.'''
+
+    assert isinstance(im_dcm.get_dicom_dataset(), pydicom.dataset.FileDataset)
