@@ -5,6 +5,7 @@ import functools
 import numpy as np
 import os
 import time
+import pydicom
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 
@@ -91,6 +92,10 @@ Defaults({"print_depth": 0})
 # Defined values are: 'NOTSET' (0), 'DEBUG' (10), 'INFO' (20),
 # 'WARNING' (30), 'ERROR' (40), 'CRITICAL' (50)
 Defaults({"log_level": "WARNING"})
+
+# Lengths of date and time stamps.
+Defaults({"len_date": 8})
+Defaults({"len_time": 6})
 
 
 class Data:
@@ -204,6 +209,10 @@ class Data:
                         value_string = f"{{{n} * keys of type {list(item.keys())[0].__class__}}}"
                 else:
                     value_string = "{}"
+
+            # Handle printing of pydicom datasets
+            elif isinstance(item, pydicom.dataset.FileDataset):
+                value_string = str(item.__class__)
 
             # Handle printing of nested Data objects
             else:
@@ -418,7 +427,7 @@ class Dated(PathData):
             try:
                 self.date, self.time = timestamp.split("_")
             except ValueError:
-                self.date, self.time = (None, None)
+                self.date, self.time = ("", "")
 
         # Set date and time from current time
         if not self.date and auto_timestamp:
@@ -426,7 +435,10 @@ class Dated(PathData):
             self.time = time.strftime("%H%M%S")
 
         # Make full timestamp string
-        self.timestamp = f"{self.date}_{self.time}"
+        if not self.date and not self.time:
+            self.timestamp = ""
+        else:
+            self.timestamp = f"{self.date}_{self.time}"
 
     def in_date_interval(self, 
                          min_date: Optional[str] = None, 
@@ -622,6 +634,14 @@ def is_timestamp(string: str = "") -> bool:
             if not item.isdigit():
                 valid = False
                 break
+        if valid:
+            if type(Defaults().len_date) == int:
+                if len(items[0]) != Defaults().len_date:
+                    valid = False
+            if type(Defaults().len_time) == int:
+                if len(items[1]) != Defaults().len_time:
+                    valid = False
+
     return valid
 
 

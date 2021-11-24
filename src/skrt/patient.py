@@ -81,7 +81,7 @@ class Study(skrt.core.Archive):
         images.append(im)
 
         # Ensure image has a timestamp
-        if im.timestamp == "None_None":
+        if not im.timestamp:
             im.timestamp = skrt.core.generate_timestamp()
 
         # Ensure corresponding structure list exists
@@ -94,7 +94,7 @@ class Study(skrt.core.Archive):
         structure_sets = getattr(self, struct_name)
         for structure_set in im.get_structure_sets():
             structure_sets.append(structure_set)
-            if structure_set.timestamp == "None_None":
+            if not structure_set.timestamp:
                 structure_set.timestamp = skrt.core.generate_timestamp()
 
     def correct_dose_image_position(self, doses=[]):
@@ -398,7 +398,7 @@ class Patient(skrt.core.PathData):
     """Object associated with a top-level directory whose name corresponds to
     a patient ID, and whose subdirectories contain studies."""
 
-    def __init__(self, path=None, exclude=["logfiles"]):
+    def __init__(self, path="", exclude=["logfiles"]):
 
         # Set path and patient ID
         if path is None:

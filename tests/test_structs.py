@@ -5,6 +5,7 @@ import os
 import shutil
 import pandas as pd
 import pytest
+import numpy as np
 
 from skrt.simulation import SyntheticImage
 from skrt.structures import StructureSet, ROI
@@ -151,6 +152,9 @@ def test_plot_comparisons():
 def test_write_dicom():
     pass
 
+def test_dicom_dataset():
+    pass
+
 def test_roi_from_image_threshold():
     roi = ROI(sim, mask_level=5)  
     assert roi.get_area() == sim.get_roi("sphere").get_area()
@@ -164,3 +168,50 @@ def test_roi_no_image():
     with pytest.raises(RuntimeError):
         new_roi.get_mask()
 
+def test_roi_no_image_with_geom():
+    """Check that an ROI object can be created from contours only plus 
+    geometric info."""
+
+    new_roi = ROI(roi.get_contours(),
+                  origin=roi.get_origin(),
+                  voxel_size=roi.get_voxel_size(),
+                  shape=roi.get_mask().shape
+                 )
+    assert np.all(new_roi.get_mask() == roi.get_mask())
+
+def test_null_roi():
+    roi = ROI()
+    assert(type(roi).__name__ == 'ROI')
+    assert(roi.affine is None)
+    assert(roi.contours == {})
+    assert(roi.custom_color is False)
+    assert(roi.image is None)
+    assert(roi.input_contours is None)
+    assert(roi.kwargs == {})
+    assert(roi.loaded is False)
+    assert(roi.loaded_contours is False)
+    assert(roi.loaded_mask is False)
+    assert(roi.origin is None)
+    assert(roi.original_name is None)
+    assert(roi.roi_source_type is None)
+    assert(roi.shape is None)
+    assert(roi.source is None)
+    assert(roi.title is None)
+    assert(roi.voxel_size is None)
+
+def test_null_structure_set():
+    ss = StructureSet()
+    assert(ss.date == '')
+    assert(ss.files == [])
+    assert(ss.image is None)
+    assert(ss.loaded is True)
+    assert(ss.multi_label is False)
+    assert(ss.names is None)
+    assert(ss.path == '')
+    assert(ss.rois == [])
+    assert(ss.sources == [])
+    assert(ss.subdir == '')
+    assert(ss.time == '')
+    assert(ss.timestamp =='')
+    assert(ss.to_keep is None)
+    assert(ss.to_remove is None)
