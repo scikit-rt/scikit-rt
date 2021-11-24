@@ -5,6 +5,7 @@ import functools
 import numpy as np
 import os
 import time
+import pydicom
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 
@@ -208,6 +209,10 @@ class Data:
                         value_string = f"{{{n} * keys of type {list(item.keys())[0].__class__}}}"
                 else:
                     value_string = "{}"
+
+            # Handle printing of pydicom datasets
+            elif isinstance(item, pydicom.dataset.FileDataset):
+                value_string = str(item.__class__)
 
             # Handle printing of nested Data objects
             else:
