@@ -587,7 +587,8 @@ class Image(skrt.core.Archive):
         return idx
 
     def get_slice(
-        self, view="x-y", sl=None, idx=None, pos=None, flatten=False, **kwargs
+        self, view="x-y", sl=None, idx=None, pos=None, flatten=False, 
+        force=True, **kwargs
     ):
         """Get a slice of the data in the correct orientation for plotting."""
 
@@ -595,7 +596,7 @@ class Image(skrt.core.Archive):
         idx = self.get_idx(view, sl, idx, pos)
 
         # Check whether index and view match cached slice
-        if hasattr(self, "_current_slice") and not flatten:
+        if hasattr(self, "_current_slice") and not force and not flatten:
             if self._current_idx == idx and self._current_view == view:
                 return self._current_slice
 
@@ -1491,6 +1492,7 @@ class ImageComparison(Image):
         dta_tolerance=None,
         dta_crit=None,
         diff_crit=None,
+        use_cached_slices=False,
         **kwargs
     ):
 
@@ -1506,7 +1508,7 @@ class ImageComparison(Image):
 
         # Get image slices
         idx = self.ims[0].get_idx(view, sl, pos, idx)
-        self.set_slices(view, sl, pos, idx)
+        self.set_slices(view, sl, pos, idx, use_cached_slices)
 
         # Set up axes
         self.set_ax(view, ax=ax, gs=self.gs, figsize=figsize, zoom=zoom)
@@ -1582,8 +1584,10 @@ class ImageComparison(Image):
         if show:
             plt.show()
 
-    def set_slices(self, view, sl, pos, idx):
-        self.slices = [im.get_slice(view, sl=sl, pos=pos, idx=idx)
+    def set_slices(self, view, sl, pos, idx, use_cached_slices=False):
+
+        self.slices = [im.get_slice(view, sl=sl, pos=pos, idx=idx,
+                                    force=(not use_cached_slices))
                        for im in self.ims]
 
     def _plot_chequerboard(

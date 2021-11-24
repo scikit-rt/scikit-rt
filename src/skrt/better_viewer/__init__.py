@@ -1377,7 +1377,8 @@ class BetterViewer:
                     dta_tolerance=self.dta_tolerance,
                     dta_crit=self.dta_crit,
                     diff_crit=self.diff_crit,
-                    show=False
+                    show=False,
+                    use_cached_slices=(not self.comparison_only),
                 )
 
         if self.suptitle is not None:
