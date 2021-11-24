@@ -80,6 +80,16 @@ def test_dice_slice():
     assert cube1.get_dice(cube2, single_slice=True, view='x-y', 
                           idx=cube1.get_mid_idx()) == 0.5
 
+def test_dice_contour():
+    d1 = cube1.get_dice(cube2, method="contour")
+    d2 = cube1.get_dice(cube2, method="mask")
+    assert abs(d1 - d2) / d1 < 0.1
+
+def test_dice_contour_slice():
+    d1 = cube1.get_dice(cube2, method="contour", single_slice=True)
+    d2 = cube1.get_dice(cube2, method="mask", single_slice=True)
+    assert abs(d1 - d2) / d1 < 0.1
+
 def test_dice_flattened():
     assert cube1.get_dice(cube2, flatten=True) == 0.5
 

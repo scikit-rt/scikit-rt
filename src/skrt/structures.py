@@ -945,7 +945,8 @@ class ROI(skrt.image.Image):
                 area1 = sum([self.get_area("x-y", idx=i) for i in self.get_indices()])
                 area2 = sum([roi.get_area("x-y", idx=i) for i in roi.get_indices()])
             else:
-                positions = [self.idx_to_pos(self.get_idx(view, sl, idx, pos))]
+                positions = [self.idx_to_pos(self.get_idx(view, sl, idx, pos),
+                                             ax=skrt.image._slice_axes[view])]
                 area1 = self.get_area(view, sl, idx, pos)
                 area2 = roi.get_area(view, sl, idx, pos)
             
