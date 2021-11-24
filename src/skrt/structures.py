@@ -258,6 +258,13 @@ class ROI(skrt.image.Image):
         self.contours_only = self.roi_source_type == "contour" \
                 and not has_image and not has_geom
 
+    def get_dicom_dataset(self):
+        """Return pydicom.dataset.FileDataset object associated with this Image,
+        if loaded from dicom; otherwise, return None."""
+
+        self.load()
+        return self.dicom_dataset
+
     def get_contours(self, view="x-y", idx_as_key=False):
         """Get dict of contours in a given orientation."""
 
@@ -1787,6 +1794,13 @@ class StructureSet(skrt.core.Archive):
             roi.structure_set = self
 
         self.loaded = True
+
+    def get_dicom_dataset(self):
+        """Return pydicom.dataset.FileDataset object associated with this Image,
+        if loaded from dicom; otherwise, return None."""
+
+        self.load()
+        return self.dicom_dataset
 
     def reset(self):
         """Reload structure set from original source(s)."""
