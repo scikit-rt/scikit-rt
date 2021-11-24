@@ -214,7 +214,7 @@ class ROI(skrt.image.Image):
             return
 
         if self.image:
-            self.image.load()
+            self.image.load_data()
 
         rois = []
 
@@ -516,7 +516,8 @@ class ROI(skrt.image.Image):
         indices = self.get_indices(view)
         if not len(indices):
             return None
-        return round(np.mean(indices))
+        mid = int(len(indices) / 2)
+        return indices[mid]
 
     def idx_to_pos(self, idx, ax):
         """Convert an array index to a position in mm along a given axis."""
@@ -1404,6 +1405,7 @@ class ROI(skrt.image.Image):
                 pos,
                 mask_kwargs,
                 opacity,
+                zoom=zoom,
                 zoom_centre=zoom_centre,
                 show=show,
                 **kwargs,
