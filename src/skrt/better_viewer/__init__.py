@@ -1557,7 +1557,7 @@ class SingleViewer:
             image = im
         else:
             image = Image(im, *args, **kwargs)
-        image.load()
+        image.load_data()
         return image
 
     def set_slice(self, view, sl):

@@ -591,8 +591,15 @@ class Image(skrt.core.Archive):
     ):
         """Get a slice of the data in the correct orientation for plotting."""
 
-        # Get image slice
+        # Get index
         idx = self.get_idx(view, sl, idx, pos)
+
+        # Check whether index and view match cached slice
+        if hasattr(self, "_current_slice") and not flatten:
+            if self._current_idx == idx and self._current_view == view:
+                return self._current_slice
+
+        # Create slice
         transposes = {"x-y": (0, 1, 2), "y-z": (0, 2, 1), "x-z": (1, 2, 0)}
         transpose = transposes[view]
         list(_plot_axes[view]) + [_slice_axes[view]]
@@ -600,7 +607,11 @@ class Image(skrt.core.Archive):
         if flatten:
             return np.sum(data, axis=2)
         else:
-            return data[:, :, idx]
+            # Cache the slice
+            self._current_slice = data[:, :, idx]
+            self._current_idx = idx
+            self._current_view = view
+            return self._current_slice
 
     def set_ax(
         self,
