@@ -284,3 +284,22 @@ def test_dicom_dataset():
     '''Check that dicom dataset property is assigned.'''
 
     assert isinstance(im_dcm.get_dicom_dataset(), pydicom.dataset.FileDataset)
+
+def test_null_image():
+    im = Image()
+    assert(type(im).__name__ == 'Image')
+    assert(im.affine is None)
+    assert(im.data is None)
+    assert(im.date == '')
+    assert(im.downsampling is None)
+    assert(im.files == [])
+    assert(not im.nifti_array)
+    assert(im.origin == (0, 0, 0))
+    assert(im.path == '')
+    assert(im.source == '')
+    assert(im.source_type is None)
+    assert(im.subdir == '')
+    assert(im.time == '')
+    assert(im.timestamp == '')
+    assert(im.title is None)
+    assert(im.voxel_size == (1, 1, 1))
