@@ -53,9 +53,9 @@ class SyntheticImage(Image):
         """
 
         # Create image properties
-        shape = skrt.core.to_three(shape)
+        shape = skrt.core.to_list(shape)
         self.shape = [shape[1], shape[0], shape[2]]
-        self.input_voxel_size = [abs(v) for v in skrt.core.to_three(voxel_size)]
+        self.input_voxel_size = [abs(v) for v in skrt.core.to_list(voxel_size)]
         self.input_origin = origin
         self.max_hu = 0 if noise_std is None else noise_std * 3
         self.min_hu = -self.max_hu if self.max_hu != 0 else -20
@@ -310,7 +310,7 @@ class SyntheticImage(Image):
 
         if centre is None:
             centre = self.get_image_centre()
-        side_length = skrt.core.to_three(side_length)
+        side_length = skrt.core.to_list(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
         self.add_shape(cuboid, "cuboid", is_roi, above, group)
@@ -442,7 +442,7 @@ class Cuboid:
     def __init__(self, shape, side_length, centre, intensity, name=None):
 
         self.name = name
-        self.side_length = skrt.core.to_three(side_length)
+        self.side_length = skrt.core.to_list(side_length)
         self.centre = centre
         self.intensity = intensity
 
@@ -497,8 +497,8 @@ class Grid:
     def __init__(self, shape, spacing, thickness, intensity, axis=None, name=None):
 
         self.name = name
-        self.spacing = skrt.core.to_three(spacing)
-        self.thickness = skrt.core.to_three(thickness)
+        self.spacing = skrt.core.to_list(spacing)
+        self.thickness = skrt.core.to_list(thickness)
         self.intensity = intensity
         self.axis = axis
         self.shape = shape

@@ -655,17 +655,17 @@ def is_list(var: Any) -> bool:
     return is_a_list
 
 
-def to_three(val: Any) -> Optional[List]:
-    """Ensure that a value is a list of three items."""
+def to_list(val: Any, n : int = 3, keep_none_single : bool = True) -> Optional[List]:
+    """Ensure that a value is a list of n items."""
 
-    if val is None:
+    if val is None and keep_none_single:
         return None
     if is_list(val):
-        if not len(val) == 3:
-            print(f"Warning: {val} should be a list containing 3 items!")
+        if not len(val) == n:
+            print(f"Warning: {val} should be a list containing {n} items!")
         return list(val)
     elif not is_list(val):
-        return [val, val, val]
+        return [val] * n
 
 
 def generate_timestamp() -> str:

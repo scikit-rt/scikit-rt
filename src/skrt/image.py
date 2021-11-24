@@ -1059,7 +1059,7 @@ class Image(skrt.core.Archive):
 
         if not zoom or isinstance(zoom, str):
             return
-        zoom = skrt.core.to_three(zoom)
+        zoom = skrt.core.to_list(zoom)
         x_ax, y_ax = _plot_axes[view]
         if zoom_centre is None:
             im_centre = self.get_image_centre()
@@ -1208,7 +1208,7 @@ class Image(skrt.core.Archive):
 
         # Account for zoom
         if zoom:
-            zoom = skrt.core.to_three(zoom)
+            zoom = skrt.core.to_list(zoom)
             x_len /= zoom[x_ax]
             y_len /= zoom[y_ax]
 
@@ -1471,8 +1471,8 @@ class ImageComparison(Image):
         self,
         view="x-y",
         sl=None,
-        pos=None,
         idx=None,
+        pos=None,
         scale_in_mm=True,
         invert=False,
         ax=None,
@@ -1506,9 +1506,15 @@ class ImageComparison(Image):
         else:
             self.title = self.override_title
 
+        # Set slice inputs to lists of two items
+        sl = skrt.core.to_list(sl, 2, False)
+        idx = skrt.core.to_list(idx, 2, False)
+        pos = skrt.core.to_list(pos, 2, False)
+
         # Get image slices
-        idx = self.ims[0].get_idx(view, sl, pos, idx)
-        self.set_slices(view, sl, pos, idx, use_cached_slices)
+        idx[0] = self.ims[0].get_idx(view, sl[0], pos[0], idx[0])
+        idx[1] = self.ims[1].get_idx(view, sl[1], pos[1], idx[1])
+        self.set_slices(view, idx=idx, use_cached_slices=use_cached_slices)
 
         # Set up axes
         self.set_ax(view, ax=ax, gs=self.gs, figsize=figsize, zoom=zoom)
@@ -1584,11 +1590,17 @@ class ImageComparison(Image):
         if show:
             plt.show()
 
-    def set_slices(self, view, sl, pos, idx, use_cached_slices=False):
+    def set_slices(self, view, sl=None, idx=None, pos=None, 
+                   use_cached_slices=False):
+        """Get slice of each image and set to self.slices."""
 
-        self.slices = [im.get_slice(view, sl=sl, pos=pos, idx=idx,
-                                    force=(not use_cached_slices))
-                       for im in self.ims]
+        sl = skrt.core.to_list(sl, 2, False)
+        idx = skrt.core.to_list(idx, 2, False)
+        pos = skrt.core.to_list(pos, 2, False)
+        self.slices = [
+            im.get_slice(view, sl=sl[i], pos=pos[i], idx=idx[i],
+                         force=(not use_cached_slices))
+            for i, im in enumerate(self.ims)]
 
     def _plot_chequerboard(
         self,
@@ -1652,7 +1664,7 @@ class ImageComparison(Image):
                     )
                 )
 
-    def get_difference(self, view=None, sl=None, pos=None, idx=None, 
+    def get_difference(self, view=None, sl=None, idx=None, pos=None, 
                        invert=False, ab=False, reset_slices=True):
         """Get array containing difference between two Images."""
 
@@ -1663,7 +1675,7 @@ class ImageComparison(Image):
             if view is None:
                 view = "x-y"
             if reset_slices:
-                self.set_slices(view, sl, pos, idx)
+                self.set_slices(view, sl, idx, pos)
             diff = (
                 self.slices[1] - self.slices[0]
                 if not invert
@@ -1731,7 +1743,7 @@ class ImageComparison(Image):
             vy = abs(self.ims[0].get_voxel_size()[y_ax])
 
             if reset_slices:
-                self.set_slices(view, sl, pos, idx)
+                self.set_slices(view, sl, idx, pos)
             im1, im2 = self.slices
             if tolerance is None:
                 tolerance = 5
@@ -1755,7 +1767,7 @@ class ImageComparison(Image):
         """Get gamma index on current slice."""
 
         if reset_slices:
-            self.set_slices(view, sl, pos, idx)
+            self.set_slices(view, sl, idx, pos)
         im1, im2 = self.slices
         if invert:
             im1, im2 = im2, im1
