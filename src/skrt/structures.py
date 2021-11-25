@@ -104,14 +104,13 @@ class ROI(skrt.image.Image):
                 (b) A numpy array containing a binary mask;
                 (c) The path to a file containing a numpy array;
                 (d) The path to a dicom structure set file.
-                (e) Dictionary of contours in the x-y orienation, where the
+                (e) Dictionary of contours in the x-y orientation, where the
                 keys are z positions in mm and values are lists of lists of
-                3D contour points in order (x, y, z), with one list per contour
-                on that slice. These contours will be used to generate a
-                binary mask.
-
-            If <source> is not given, <contours> and <shape> must be given in
-            order to load an ROI directly from a contour.
+                3D contour points in order (x, y, z) or 2D contour points in
+                order (x, y) on each slice.
+                (f) Dictionary of shapely polygons in the x-y orientation,
+                where the keys are z positions in  mm and values are lists
+                of polygons on each slice.
 
         name : str, default=None
             Name of the ROI. If <source> is a file and no name is given,
@@ -127,6 +126,8 @@ class ROI(skrt.image.Image):
 
         image : Image/str, default=None
             Associated image from which to extract shape and affine matrix.
+            Can either be an existing Image object, or a path from which
+            an Image can be created.
 
         shape : list, default=None
             Number of voxels in the image to which the ROI belongs, in
@@ -140,12 +141,13 @@ class ROI(skrt.image.Image):
             <voxel_size> and <origin> are given. If <affine> is given, it
             supercedes the latter two arguments.
 
-        affine : np.ndarray, default=None
-            Affine matrix of the image to which the ROI belongs.
-            Needed to create mask if contours are provided
-            in <source> but no associated <image> is assigned, and no 
-            <voxel_size> and <origin> are given. If <affine> is given, it
-            supercedes the latter two arguments.
+        voxel_size : tuple, default=(1, 1, 1)
+            Voxel sizes in mm in order (x, y, z); used if <affine> and <image>
+            are not provided.
+
+        origin : tuple, default=(0, 0, 0)
+            Origin position in mm in order (x, y, z); used if <affine> and <image>
+            are not provided.
 
         default_geom_method : str, default="auto"
             Default method for computing geometric quantities (area, centroid, etc).
@@ -158,19 +160,35 @@ class ROI(skrt.image.Image):
                     depending on whether the input that create the ROI comprised
                     of contours or an array, respectively.
 
+        mask_level : float, default=0.25
+            Used if the ROI is created from a non-boolean pixel array. Values 
+            in the array exceeding this level are taken to be inside the ROI
+            when it is converted to a boolean array.
+
         kwargs : dict, default=None
             Extra arguments to pass to the initialisation of the parent
             Image object.
 
         """
 
-        # Assign properties
+        # Process contour dictionary
         if isinstance(source, dict):
             self.source = None
-            self.input_contours = source
+            self.input_contours = {}
+            for z, contours in source.items():
+                self.input_contours[z] = []
+                for contour in contours:
+                    if isinstance(contour, geometry.polygon.Polygon):
+                        self.input_contours[z].append(
+                            np.column_stack(contour.exterior.xy)
+                        )
+                    else:
+                        self.input_contours[z].append(contour)
         else:
             self.source = source
             self.input_contours = None
+
+        # Assign other properties
         self.custom_color = color is not None
         self.set_color(color)
         self.image = image
