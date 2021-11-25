@@ -51,6 +51,16 @@ def test_get_roi():
     assert isinstance(roi, ROI)
     assert roi.name == "cube"
 
+def test_structure_set_from_rois():
+    """Test creation of structure set from ROIs."""
+    structure_set2 = StructureSet(structure_set.get_rois())
+    assert isinstance(structure_set2, StructureSet)
+    sdict1 = structure_set.get_roi_dict()
+    sdict2 = structure_set2.get_roi_dict()
+    assert len(sdict1.keys()) > 0 
+    for key in sdict1:
+        assert key in sdict2
+
 def test_rename():
     new_names = {
         "cube2": ["cube", "test"],
