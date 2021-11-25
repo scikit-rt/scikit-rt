@@ -1335,7 +1335,7 @@ class BetterViewer:
         for v in self.viewers:
             if self.comparison_only:
                 v.set_slice_and_view()
-                v.im.set_slice(self.view, v.slice[self.view])
+                #  v.im.set_slice(self.view, v.slice[self.view])
             else:
                 v.plot()
 
@@ -1360,7 +1360,7 @@ class BetterViewer:
                 SingleViewer.plot_image(
                     self,
                     comp,
-                    viewer=self.viewers[0].view,
+                    view=self.viewers[0].view,
                     sl=[self.viewers[0].slice[self.viewers[0].view],
                         self.viewers[1].slice[self.viewers[1].view]],
                     invert=invert,
@@ -1930,6 +1930,129 @@ class SingleViewer:
             return {'vmin': centre - w, 'vmax': centre + w}
         else:
             return {'vmin': self.ui_hu.value[0], 'vmax': self.ui_hu.value[1]}
+
+    def set_callbacks(self):
+        '''Set up matplotlib callback functions for interactive plotting.'''
+
+        if not self.standalone or self.callbacks_set:
+            return
+
+        self.im.fig.canvas.mpl_connect('key_press_event', self.on_key)
+        self.im.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
+        self.callbacks_set = True
+
+    def on_key(self, event):
+        '''Events run on keypress outside jupyter notebook.'''
+
+        # Settings
+        n_small = 1
+        n_big = 5
+
+        # Press v to change view
+        if event.key == 'v':
+            next_view = {'x-y': 'y-z', 'y-z': 'x-z', 'x-z': 'x-y'}
+            self.ui_view.value = next_view[self.ui_view.value]
+
+        # Press d to change dose opacity
+        elif event.key == 'd':
+            if self.im.has_dose:
+                doses = [0, 0.15, 0.35, 0.5, 1]
+                next_dose = {
+                    doses[i]: doses[i + 1] if i + 1 < len(doses) else doses[0]
+                    for i in range(len(doses))
+                }
+                diffs = [abs(d - self.ui_dose.value) for d in doses]
+                current = doses[diffs.index(min(diffs))]
+                self.ui_dose.value = next_dose[current]
+
+        # Press m to switch mask on and off
+        elif event.key == 'm':
+            if self.im.has_mask:
+                self.ui_mask.value = not self.ui_mask.value
+
+        # Press c to change structure plot type
+        elif event.key == 'c':
+            if self.im.has_structs:
+                next_type = {
+                    'mask': 'contour',
+                    'contour': 'filled',
+                    'filled': 'centroid',
+                    'centroid': 'filled centroid',
+                    'filled centroid': 'none',
+                    'none': 'mask',
+                }
+                self.ui_struct_plot_type.value = next_type[
+                    self.ui_struct_plot_type.value
+                ]
+
+        # Press j to jump between structures
+        elif event.key == 'j' and self.im.has_structs:
+            structs = self.ui_struct_jump.options[1:]
+            if not hasattr(self, 'current_struct'):
+                current_idx = 0
+            else:
+                current_idx = structs.index(self.current_struct)
+            new_idx = current_idx + 1
+            if new_idx == len(structs):
+                new_idx = 0
+            new_struct = structs[new_idx]
+            self.ui_struct_jump.value = new_struct
+
+        # Press arrow keys to scroll through many slices
+        elif event.key == 'left':
+            self.decrease_slice(n_small)
+        elif event.key == 'right':
+            self.increase_slice(n_small)
+        elif event.key == 'down':
+            self.decrease_slice(n_big)
+        elif event.key == 'up':
+            self.increase_slice(n_big)
+
+        else:
+            return
+
+        # Remake plot
+        if self.standalone:
+            self.plot()
+
+    def on_scroll(self, event):
+        '''Events run on scroll outside jupyter notebook.'''
+
+        if event.button == 'up':
+            self.increase_slice()
+        elif event.button == 'down':
+            self.decrease_slice()
+        else:
+            return
+
+        # Remake plot
+        if self.standalone:
+            self.plot()
+
+    def increase_slice(self, n=1):
+        '''Increase slice slider value by n slices.'''
+
+        new_val = self.ui_slice.value + n * self.ui_slice.step
+        if new_val <= self.ui_slice.max:
+            self.ui_slice.value = new_val
+        else:
+            self.ui_slice.value = self.ui_slice.max
+
+    def decrease_slice(self, n=1):
+        '''Decrease slice slider value by n slices.'''
+
+        new_val = self.ui_slice.value - n * self.ui_slice.step
+        if new_val >= self.ui_slice.min:
+            self.ui_slice.value = new_val
+        else:
+            self.ui_slice.value = self.ui_slice.min
+
+    def on_view_change(self):
+        '''Deal with a view change.'''
+
+        self.update_slice_slider()
+        if self.zoom_ui:
+            self.update_zoom_sliders()
 
     def update_slice_slider(self):
         '''Update the slice slider to show the axis corresponding to the

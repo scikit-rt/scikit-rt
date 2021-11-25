@@ -593,7 +593,7 @@ class Image(skrt.core.Archive):
         """Get a slice of the data in the correct orientation for plotting."""
 
         # Get index
-        idx = self.get_idx(view, sl, idx, pos)
+        idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
 
         # Check whether index and view match cached slice
         if hasattr(self, "_current_slice") and not force and not flatten:
@@ -898,9 +898,8 @@ class Image(skrt.core.Archive):
                 print("Warning: central ROI {centre_on_roi} not found!")
 
         # Get image slice
-        idx = self.get_idx(view, sl, idx, pos)
-        image_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos,
-                                     flatten=flatten)
+        idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
+        image_slice = self.get_slice(view, idx=idx, flatten=flatten)
 
         # Apply HU window if given
         if mpl_kwargs is None:
@@ -1512,8 +1511,8 @@ class ImageComparison(Image):
         pos = skrt.core.to_list(pos, 2, False)
 
         # Get image slices
-        idx[0] = self.ims[0].get_idx(view, sl[0], pos[0], idx[0])
-        idx[1] = self.ims[1].get_idx(view, sl[1], pos[1], idx[1])
+        idx[0] = self.ims[0].get_idx(view, sl=sl[0], idx=idx[0], pos=pos[0])
+        idx[1] = self.ims[1].get_idx(view, sl=sl[1], idx=idx[1], pos=pos[1])
         self.set_slices(view, idx=idx, use_cached_slices=use_cached_slices)
 
         # Set up axes
@@ -1726,7 +1725,7 @@ class ImageComparison(Image):
             **self.mpl_kwargs,
         )
 
-    def get_dta(self, view="x-y", sl=None, pos=None, idx=None, tolerance=None, 
+    def get_dta(self, view="x-y", sl=None, idx=None, pos=None, tolerance=None, 
                 reset_slices=True):
         """Compute distance to agreement array on current slice."""
 
@@ -1734,7 +1733,7 @@ class ImageComparison(Image):
             self.dta = {}
         if view not in self.dta:
             self.dta[view] = {}
-        idx = self.ims[0].get_idx(view, sl, pos, idx)
+        idx = self.ims[0].get_idx(view, sl=sl, idx=idx, pos=pos)
 
         if sl not in self.dta[view]:
 
