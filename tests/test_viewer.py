@@ -9,7 +9,7 @@ from skrt.better_viewer import BetterViewer
 #  from skrt.viewer import OrthogViewer
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
-from skrt.image import Image
+from skrt.image import Image, ImageComparison
 
 # Create fake data
 data = (np.random.rand(40, 50, 20) * 1000).astype(np.uint16)
@@ -165,6 +165,12 @@ def test_comparison_only():
                       show=False)
     assert len(qv.comparison) == 1
     assert len(qv.fig.get_axes()) == 1
+
+
+@close_after
+def test_view_comparison():
+   comp = ImageComparison(im, im2)
+   comp.view(show=False)
 
 
 @close_after

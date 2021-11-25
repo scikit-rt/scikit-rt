@@ -1466,6 +1466,15 @@ class ImageComparison(Image):
         self.override_title = title
         self.gs = None
 
+    def view(self, **kwargs):
+        """View self with BetterViewer."""
+
+        from skrt.better_viewer import BetterViewer
+        kwargs.setdefault("comparison", True)
+
+        BetterViewer(self.ims, **kwargs)
+
+
     def plot(
         self,
         view="x-y",
