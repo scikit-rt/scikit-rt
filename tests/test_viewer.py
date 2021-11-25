@@ -23,9 +23,8 @@ def create_test_image():
 im = create_test_image()
 
 # Make temporary test dir
-if os.path.exists('tmp'):
-    shutil.rmtree('tmp')
-os.mkdir('tmp')
+if not os.path.exists('tmp'):
+    os.mkdir('tmp')
 
 # Create a test nifti file
 nii_file = 'tmp/tmp.nii'

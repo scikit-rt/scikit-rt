@@ -12,9 +12,8 @@ from skrt.structures import StructureSet, ROI
 
 
 # Make temporary test dir
-if os.path.exists("tmp"):
-    shutil.rmtree("tmp")
-os.mkdir("tmp")
+if not os.path.exists("tmp"):
+    os.mkdir("tmp")
 
 # Create synthetic structure set
 sim = SyntheticImage((100, 100, 40))

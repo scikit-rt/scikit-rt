@@ -356,14 +356,14 @@ class ROI(skrt.image.Image):
 
         polygons = {}
         for i, contours in self.get_contours(view, idx_as_key).items():
-            polygons[i] = [geometry.Polygon(c) for c in contours]
+            polygons[i] = [contour_to_polygon(c) for c in contours]
         return polygons
 
     def get_polygons_on_slice(self, view="x-y", sl=None, idx=None, pos=None):
         """Get shapely polygon objects corresponding to a given slice."""
 
         contours = self.get_contours_on_slice(view, sl, idx, pos)
-        return [geometry.Polygon(p) for p in contours]
+        return [contour_to_polygon(c) for c in contours]
 
     def create_contours(self, force=False):
         """Create contours in all orientations."""
@@ -460,7 +460,7 @@ class ROI(skrt.image.Image):
                         )
 
                     # Create polygon
-                    polygon = geometry.Polygon(points_idx)
+                    polygon = contour_to_polygon(points_idx)
 
                     # Get polygon's bounding box
                     ix1, iy1, ix2, iy2 = [int(xy) for xy in polygon.bounds]
@@ -1404,6 +1404,7 @@ class ROI(skrt.image.Image):
         zoom_centre=None,
         color=None,
         show=True,
+        save_as=None,
         **kwargs,
     ):
         """Plot this ROI as either a mask or a contour."""
@@ -1471,6 +1472,12 @@ class ROI(skrt.image.Image):
 
         else:
             print("Unrecognised ROI plotting option:", plot_type)
+
+        # Save to file
+        if save_as:
+            plt.tight_layout()
+            self.fig.savefig(save_as)
+            plt.close()
 
     def _plot_mask(
         self,
@@ -2338,6 +2345,27 @@ def get_dicom_sequence(ds=None, basename=""):
             sequence = getattr(ds, attribute)
             break
     return sequence
+
+
+def contour_to_polygon(contour):
+    """Convert a list of contour points to a Shapely polygon, ensuring that 
+    the polygon is valid."""
+
+    polygon = geometry.Polygon(contour)
+
+    delta = 0.001
+    if not polygon.is_valid:
+        tmp = geometry.Polygon(polygon)
+        buffer = 0.
+        while not polygon.is_valid:
+            buffer += delta
+            polygon = tmp.buffer(buffer)
+        points = []
+        for x, y in polygon.exterior.coords:
+            points.append((x, y))
+        polygon = geometry.Polygon(points)
+
+    return polygon
 
 
 def write_structure_set_dicom(

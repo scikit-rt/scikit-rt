@@ -135,14 +135,43 @@ class Image(skrt.core.Archive):
             return self.get_standardised_data(force=True)
         return self.data
 
-    def get_dicom_dataset(self):
+    def get_dicom_filepath(self, sl=None, idx=None, pos=None):
+        """Return path to dicom dataset corresponding to a specific slice 
+        number, index, or position in mm."""
+
+        if sl is None and idx is None and pos is None:
+            print("Must provide a slice number, array index, or position in "
+                  "mm!")
+            return 
+
+        idx = self.get_idx("x-y", sl=sl, idx=idx, pos=pos)
+        paths = {
+            self.pos_to_idx(z, "z"): path for z, path in self._z_paths.items()
+        }
+        return paths[idx]
+
+    def get_dicom_dataset(self, sl=None, idx=None, pos=None):
         """Return pydicom.dataset.FileDataset object associated with this Image,
-        if loaded from dicom; otherwise, return None."""
+        if loaded from dicom; otherwise, return None.
+
+        If any of <sl>, <idx> or <pos> are provided, the dataset corresponding
+        to that specific slice will be returned; otherwise, the last loaded
+        dataset will be returned.
+        """
 
         self.load_data()
-        return self.dicom_dataset
+
+        # If no specific slice is requested, just return the last loaded dataset
+        if sl is None and idx is None and pos is None:
+            return self.dicom_dataset
+
+        # Otherwise, load the dataset for that slice
+        return pydicom.read_file(
+            self.get_dicom_filepath(sl=sl, idx=idx, pos=pos), force=True
+        )
 
     def get_voxel_size(self):
+
         """Return voxel sizes in mm in order (x, y, z)."""
 
         self.load_data()
@@ -203,7 +232,7 @@ class Image(skrt.core.Archive):
 
         # Try loading from dicom file
         if self.data is None:
-            self.data, affine, window_centre, window_width, ds \
+            self.data, affine, window_centre, window_width, ds, self._z_paths \
                     = load_dicom(self.source)
             self.source_type = "dicom"
             if self.data is not None:
@@ -1822,7 +1851,7 @@ def load_dicom(path):
 
         # Discard if not a valid dicom file
         if not hasattr(ds, "SOPClassUID"):
-            return None, None, None, None, None
+            return None, None, None, None, None, None
 
         # Assign TransferSyntaxUID if missing
         if not hasattr(ds, "TransferSyntaxUID"):
@@ -1856,6 +1885,7 @@ def load_dicom(path):
     window_width = None
     data_slices = {}
     image_position = {}
+    z_paths = {}
     for dcm in paths:
         try:
 
@@ -1889,6 +1919,7 @@ def load_dicom(path):
             # Get data
             pos = getattr(ds, "ImagePositionPatient", [0, 0, 0])
             z = pos[axes[2]]
+            z_paths[z] = dcm
             data_slices[z] = ds.pixel_array
             image_position[z] = pos
 
@@ -1926,7 +1957,7 @@ def load_dicom(path):
     # Case where no data was found
     if not data_slices:
         print(f"Warning: no valid dicom files found in {path}")
-        return None, None, None, None, None
+        return None, None, None, None, None, None
 
     # Case with single image array
     if len(data_slices) == 1:
@@ -1979,7 +2010,7 @@ def load_dicom(path):
     if rescale_intercept:
         data = data + rescale_intercept
 
-    return data, affine, window_centre, window_width, ds
+    return data, affine, window_centre, window_width, ds, z_paths
 
 
 def load_npy(path):
