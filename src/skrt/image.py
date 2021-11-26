@@ -148,7 +148,7 @@ class Image(skrt.core.Archive):
         paths = {
             self.pos_to_idx(z, "z"): path for z, path in self._z_paths.items()
         }
-        return paths[idx]
+        return skrt.core.fullpath(paths[idx])
 
     def get_dicom_dataset(self, sl=None, idx=None, pos=None):
         """Return pydicom.dataset.FileDataset object associated with this Image,
