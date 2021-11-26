@@ -201,6 +201,10 @@ def test_roi_from_polygons():
                  )
     assert np.all(new_roi.get_mask() == roi.get_mask())
 
+    df = StructureSet(new_roi).get_comparison(StructureSet(roi))
+    # Dice score may not be exactly 1 because of rounding errors
+    assert df['Dice score'][0] == pytest.approx(1.0, abs=1.e-3)
+
 def test_null_roi():
     roi = ROI()
     assert(type(roi).__name__ == "ROI")
