@@ -283,6 +283,17 @@ def test_dicom_dataset():
     """Check that dicom dataset property is assigned."""
 
     assert isinstance(im_dcm.get_dicom_dataset(), pydicom.dataset.FileDataset)
+    for i in range(1, 1 + len(im_dcm.files)):
+        assert isinstance(
+                im_dcm.get_dicom_dataset(i), pydicom.dataset.FileDataset)
+
+def test_dicom_filepath():
+    """Check that filepaths are retrieved correctly."""
+
+    i = 0
+    for dicom_file in im_dcm.files:
+        i += 1
+        assert im_dcm.get_dicom_filepath(i) == dicom_file.path
 
 def test_dicom_dataset_slice():
     """Check that a dataset can be retrieved for a specific slice."""
