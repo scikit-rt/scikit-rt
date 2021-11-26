@@ -7,8 +7,11 @@ import pandas as pd
 import pytest
 import numpy as np
 
+from shapely.geometry import Polygon
+from shapely.validation import explain_validity
+
 from skrt.simulation import SyntheticImage
-from skrt.structures import StructureSet, ROI
+from skrt.structures import contour_to_polygon, StructureSet, ROI
 
 
 # Make temporary test dir
@@ -154,7 +157,7 @@ def test_get_comparison():
 def test_plot_comparisons():
     plot_dir = "tmp/struct_plots"
     if os.path.exists(plot_dir):
-        shutil.rmdir(plot_dir)
+        shutil.rmtree(plot_dir)
     structure_set.plot_comparisons(outdir=plot_dir, show=False)
     assert len(os.listdir(plot_dir)) == 2
     
@@ -234,3 +237,11 @@ def test_null_structure_set():
     assert(ss.timestamp =="")
     assert(ss.to_keep is None)
     assert(ss.to_remove is None)
+
+def test_contour_to_polygon():
+    # Create self-intersecting polygon
+    contour = [(0, 0), (0, 2), (2, 2), (1.9, 2.1), (1.9, 0), (0, 0)]
+    p1 = Polygon(contour)
+    assert 'self-intersection' in explain_validity(p1).lower()
+    p2 = contour_to_polygon(contour)
+    assert 'self-intersection' not in explain_validity(p2).lower()
