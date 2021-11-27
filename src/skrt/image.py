@@ -36,6 +36,9 @@ mpl.rcParams["font.serif"] = "Times New Roman"
 mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
+# Pydicom settings
+pydicom.config.enforce_valid_values = True
+
 
 class Image(skrt.core.Archive):
     """Loads and stores a medical image and its geometrical properties, either
@@ -1847,7 +1850,10 @@ def load_dicom(path):
     # Try loading single dicom file
     paths = []
     if os.path.isfile(path):
-        ds = pydicom.read_file(path, force=True)
+        try:
+            ds = pydicom.read_file(path, force=True)
+        except pydicom.errors.InvalidDicomError:
+            return None, None, None, None, None, None
 
         # Discard if not a valid dicom file
         if not hasattr(ds, "SOPClassUID"):
