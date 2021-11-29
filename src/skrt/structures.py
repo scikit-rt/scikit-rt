@@ -2276,7 +2276,7 @@ def load_rois_dicom(path, names=None):
 
     # Load dicom object
     try:
-        ds = pydicom.read_file(path, force=True)
+        ds = pydicom.dcmread(path, force=True)
     except pydicom.errors.InvalidDicomError:
         return [], None
     if not hasattr(ds, "SOPClassUID"):

@@ -363,7 +363,7 @@ class Study(skrt.core.Archive):
         if obj:
             if obj.files:
                 image_path = obj.files[-1].path
-                ds = pydicom.read_file(fp=image_path, force=True)
+                ds = pydicom.dcmread(fp=image_path, force=True)
                 if hasattr(ds, "StudyDescription"):
                     description = ds.StudyDescription
 
@@ -496,7 +496,7 @@ class Patient(skrt.core.PathData):
 
         # Read demographic info from the object
         if obj and obj.files:
-            ds = pydicom.read_file(fp=obj.files[-1].path, force=True)
+            ds = pydicom.dcmread(fp=obj.files[-1].path, force=True)
             for key in info:
                 for prefix in ["Patient", "Patients"]:
                     attr = f"{prefix}{key[0].upper()}{key[1:]}"

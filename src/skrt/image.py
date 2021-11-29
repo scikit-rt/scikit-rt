@@ -169,7 +169,7 @@ class Image(skrt.core.Archive):
             return self.dicom_dataset
 
         # Otherwise, load the dataset for that slice
-        return pydicom.read_file(
+        return pydicom.dcmread(
             self.get_dicom_filepath(sl=sl, idx=idx, pos=pos), force=True
         )
 
@@ -547,7 +547,7 @@ class Image(skrt.core.Archive):
 
         machine = None
         if self.files:
-            ds = pydicom.read_file(self.files[0].path, force=True)
+            ds = pydicom.dcmread(self.files[0].path, force=True)
             try:
                 station = ds.StationName
             except BaseException:
@@ -1851,7 +1851,7 @@ def load_dicom(path):
     paths = []
     if os.path.isfile(path):
         try:
-            ds = pydicom.read_file(path, force=True)
+            ds = pydicom.dcmread(path, force=True)
         except pydicom.errors.InvalidDicomError:
             return None, None, None, None, None, None
 
@@ -1896,7 +1896,7 @@ def load_dicom(path):
         try:
 
             # Load file and check it matches the others
-            ds = pydicom.read_file(dcm, force=True)
+            ds = pydicom.dcmread(dcm, force=True)
             if study_uid is None:
                 study_uid = ds.StudyInstanceUID
             if series_num is None:
@@ -2139,7 +2139,7 @@ def write_dicom(
                     dcm_path = dcms[0]
             if dcm_path:
                 try:
-                    ds = pydicom.read_file(dcm_path, force=True)
+                    ds = pydicom.dcmread(dcm_path, force=True)
                 except pydicom.errors.InvalidDicomError:
                     pass
 
