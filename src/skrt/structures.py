@@ -1,6 +1,7 @@
 """Classes related to ROIs and structure sets."""
 
-from scipy.ndimage import morphology
+from scipy import ndimage
+from skimage import draw
 from shapely import geometry
 import fnmatch
 import matplotlib.cm
@@ -14,6 +15,7 @@ import pydicom
 import re
 import shutil
 import skimage.measure
+import time
 
 import skrt.core
 import skrt.image
@@ -417,13 +419,16 @@ class ROI(skrt.image.Image):
 
         return points
 
-    def create_mask(self, force=False):
+    def create_mask(self, force=False, overlap_level=0.25):
         """Create binary mask."""
 
         if self.loaded_mask and not force:
             return
         if not self.loaded:
             self.load()
+
+        if force and hasattr(self, "data"):
+            self.data[:, :, :] = 0
 
         # Create mask from x-y contours if needed
         if self.input_contours:
@@ -443,12 +448,11 @@ class ROI(skrt.image.Image):
                                           **self.kwargs)
 
             # Create mask on each z layer
+            data_sum = 0
             for z, contours in self.input_contours.items():
 
-                # Convert z position to index
-                iz = self.pos_to_idx(z, "z")
-
                 # Loop over each contour on the z slice
+                iz = int(self.pos_to_idx(z, "z"))
                 pos_to_idx_vec = np.vectorize(self.pos_to_idx)
                 for points in contours:
 
@@ -459,42 +463,43 @@ class ROI(skrt.image.Image):
                             points[:, i], i, return_int=False
                         )
 
-                    # Create polygon
+                    # Create polygon in index space
                     polygon = contour_to_polygon(points_idx)
 
-                    # Get polygon's bounding box
-                    ix1, iy1, ix2, iy2 = [int(xy) for xy in polygon.bounds]
-                    ix1 = max(0, ix1)
-                    ix2 = min(ix2 + 1, self.shape[1])
-                    iy1 = max(0, iy1)
-                    iy2 = min(iy2 + 1, self.shape[0])
+                    # Get mask of all pixels inside contour
+                    mask = draw.polygon2mask(self.data.shape[:2], points_idx)
 
-                    # Loop over pixels
-                    for ix in range(ix1, ix2):
-                        for iy in range(iy1, iy2):
+                    # Get edge pixels
+                    conn = ndimage.morphology.generate_binary_structure(2, 2)
+                    edge = mask ^ ndimage.morphology.binary_dilation(mask, conn)
+                    edge += mask ^ ndimage.morphology.binary_erosion(mask, conn)
 
-                            # Make polygon of current pixel
-                            pixel = geometry.Polygon(
-                                [
-                                    [ix - 0.5, iy - 0.5],
-                                    [ix - 0.5, iy + 0.5],
-                                    [ix + 0.5, iy + 0.5],
-                                    [ix + 0.5, iy - 0.5],
-                                ]
-                            )
+                    # Check whether each edge pixel has sufficient overlap
+                    for ix, iy in np.argwhere(edge):
 
-                            # Compute overlap
-                            overlap = polygon.intersection(pixel).area
-                            self.data[iy, ix, int(iz)] += overlap
+                        # Make polygon of current pixel
+                        pixel = geometry.Polygon(
+                            [
+                                [ix - 0.5, iy - 0.5],
+                                [ix - 0.5, iy + 0.5],
+                                [ix + 0.5, iy + 0.5],
+                                [ix + 0.5, iy - 0.5],
+                            ]
+                        )
 
-            self.data = self.data > self.mask_level
+                        # Compute overlap
+                        overlap = polygon.intersection(pixel).area
+                        mask[ix, iy] = overlap > overlap_level
+
+                    # Add to 3D mask
+                    self.data[:, :, iz] += mask.T
+                    data_sum = self.data.sum()
 
         # Convert to boolean mask
         if hasattr(self, "data"):
             if not self.data.dtype == "bool":
-                self.data = self.data > self.mask_level
-            if not hasattr(self, "empty"):
-                self.empty = not np.any(self.data)
+                self.data = self.data.astype(bool)
+            self.empty = not np.any(self.data)
             self.loaded_mask = True
 
         # Set geometric properties
@@ -1081,7 +1086,7 @@ class ROI(skrt.image.Image):
                 mask2 = roi.get_mask(view, flatten=True)
 
         # Make structuring element
-        conn2 = morphology.generate_binary_structure(2, connectivity)
+        conn2 = ndimage.morphology.generate_binary_structure(2, connectivity)
         if mask1.ndim == 2:
             conn = conn2
         else:
@@ -1089,12 +1094,12 @@ class ROI(skrt.image.Image):
             conn[:, :, 1] = conn2
 
         # Get outer pixel of binary maps
-        surf1 = mask1 ^ morphology.binary_erosion(mask1, conn)
-        surf2 = mask2 ^ morphology.binary_erosion(mask2, conn)
+        surf1 = mask1 ^ ndimage.morphology.binary_erosion(mask1, conn)
+        surf2 = mask2 ^ ndimage.morphology.binary_erosion(mask2, conn)
 
         # Make arrays of distances to surface of each pixel
-        dist1 = morphology.distance_transform_edt(~surf1, voxel_size)
-        dist2 = morphology.distance_transform_edt(~surf2, voxel_size)
+        dist1 = ndimage.morphology.distance_transform_edt(~surf1, voxel_size)
+        dist2 = ndimage.morphology.distance_transform_edt(~surf2, voxel_size)
 
         # Get signed arrays
         if signed:
