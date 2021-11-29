@@ -37,7 +37,7 @@ mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
 # Pydicom settings
-pydicom.config.enforce_valid_values = True
+#  pydicom.config.enforce_valid_values = True
 
 
 class Image(skrt.core.Archive):

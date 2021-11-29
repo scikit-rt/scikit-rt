@@ -19,6 +19,7 @@ from skrt.image import (
     _plot_axes,
     _default_figsize
 )
+from skrt.structures import StructureSet, ROI
 
 # ipywidgets settings
 _style = {'description_width': 'initial'}
@@ -1471,6 +1472,9 @@ class SingleViewer:
         self.scale_in_mm = scale_in_mm
         self.title = title
 
+        # Make ROIs
+        self.rois = self.make_rois(rois)
+
         # Set initial orientation
         view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
         if init_view in view_map:
@@ -1540,6 +1544,7 @@ class SingleViewer:
         self.ticks_all_sides = ticks_all_sides
         self.no_axis_labels = no_axis_labels
         self.legend_loc = legend_loc
+        self.roi_legend = roi_legend
 
         # Colormap
         if cmap:
@@ -1561,6 +1566,21 @@ class SingleViewer:
             image = Image(im, *args, **kwargs)
         image.load_data()
         return image
+
+    def make_rois(self, rois):
+        """Set up StructureSets/ROIs."""
+
+        output_rois = []
+        if not is_list(rois):
+            rois = [rois]
+        for roi in rois:
+            if isinstance(roi, int):
+                output_rois.append(self.im.structure_sets[roi])
+            elif isinstance(roi, StructureSet) or isinstance(roi, ROI):
+                output_rois.append(roi)
+            else:
+                output_rois.append(StructureSet(roi, image=self.im))
+        return output_rois
 
     def set_slice(self, view, sl):
         """Set the current slice number in a specific orientation."""
@@ -1840,7 +1860,9 @@ class SingleViewer:
             show=False,
             xlim=self.custom_ax_lims[_plot_axes[self.view][0]],
             ylim=self.custom_ax_lims[_plot_axes[self.view][1]],
-            title=self.title
+            title=self.title,
+            rois=self.rois,
+            legend=self.roi_legend
         )
         self.plotting = False
         self.colorbar_drawn = True
