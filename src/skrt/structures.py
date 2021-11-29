@@ -472,7 +472,8 @@ class ROI(skrt.image.Image):
                     # Get edge pixels
                     conn = ndimage.morphology.generate_binary_structure(2, 2)
                     edge = mask ^ ndimage.morphology.binary_dilation(mask, conn)
-                    edge += mask ^ ndimage.morphology.binary_erosion(mask, conn)
+                    if overlap_level >= 0.5:
+                        edge += mask ^ ndimage.morphology.binary_erosion(mask, conn)
 
                     # Check whether each edge pixel has sufficient overlap
                     for ix, iy in np.argwhere(edge):
