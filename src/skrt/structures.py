@@ -1572,7 +1572,7 @@ class ROI(skrt.image.Image):
             origin=origin
         )
 
-    def view(self, include_image=False, **kwargs):
+    def view(self, include_image=True, **kwargs):
         """View the ROI."""
 
         from skrt.better_viewer import BetterViewer
@@ -2456,7 +2456,7 @@ class StructureSet(skrt.core.Archive):
         vals, counts = np.unique(indices, return_counts=True)
         return vals[np.argmax(counts)]
 
-    def view(self, include_image=False, **kwargs):
+    def view(self, include_image=True, **kwargs):
         """View the StructureSet."""
 
         from skrt.better_viewer import BetterViewer
