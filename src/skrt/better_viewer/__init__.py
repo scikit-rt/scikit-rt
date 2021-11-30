@@ -2296,7 +2296,7 @@ class SingleViewer:
         roi = self.rois_for_jump[self.current_roi]
         if not roi.is_empty():
             if not roi.on_slice(self.view, sl=self.slice[self.view]):
-                mid_slice = roi.idx_to_slice(roi.get_mid_idx(), 
+                mid_slice = roi.idx_to_slice(roi.get_mid_idx(self.view), 
                                              ax=_slice_axes[self.view])
                 self.ui_slice.value = self.slice_to_slider(
                     mid_slice, _slice_axes[self.view]
