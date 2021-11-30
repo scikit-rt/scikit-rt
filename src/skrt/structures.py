@@ -730,32 +730,27 @@ class ROI(skrt.image.Image):
         sl=None, 
         idx=None, 
         pos=None, 
+        method=None,
         units="mm", 
-        standardise=True
     ):
         """Get centre position in 2D or 3D."""
 
-        # Get 2D or 3D data for which to calculate centre
-        if not single_slice:
-            self.create_mask()
-            data = self.get_data(standardise)
-            axes = skrt.image._axes
-        else:
-            if sl is None and idx is None and pos is None:
-                idx = self.get_mid_idx(view)
-            data = self.get_slice(view, sl, idx, pos)
+        if single_slice:
             axes = skrt.image._plot_axes[view]
-
-        # Calculate mean of min and max positions
-        non_zero = np.argwhere(data)
-        if not len(non_zero):
-            return [0 for i in axes]
-        centre_rowcol = list((non_zero.max(0) + non_zero.min(0)) / 2)
-        centre = [centre_rowcol[1], centre_rowcol[0]] + centre_rowcol[2:]
-
-        # Convert to mm
-        if units == "mm":
-            centre = [self.idx_to_pos(c, axes[i]) for i, c in enumerate(centre)]
+        else:
+            axes = skrt.image._axes
+        centre = [
+            np.mean(self.get_extent(
+                ax=ax,
+                single_slice=single_slice,
+                view=view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                method=method,
+                units=units
+            )) for ax in axes
+        ]
         return centre
 
     def get_volume(self, units="mm", method=None):
@@ -812,37 +807,64 @@ class ROI(skrt.image.Image):
             area *= abs(self.get_voxel_size()[x_ax] * self.get_voxel_size()[y_ax])
         return area
 
-    def get_extent(self, ax="z", method=None, units="mm"):
+    def get_extent(self, 
+                   ax="z", 
+                   single_slice=False,
+                   view="x-y",
+                   sl=None, 
+                   idx=None, 
+                   pos=None, 
+                   method=None, 
+                   units="mm",
+                  ):
         """Get minimum and maximum extent along a given axis."""
 
         self.load()
         if method is None:
             method = self.default_geom_method
+        if single_slice:
+            if idx is None and sl is None and pos is None:
+                idx = self.get_mid_idx()
+
+        # Check the axis is valid for the slice
+        i_ax = ax if isinstance(ax, int) else skrt.image._axes.index(ax)
+        if single_slice:
+            if i_ax not in skrt.image._plot_axes[view]:
+                print(f"Cannot compute extent of axis {ax} in the {view} plane!")
+                return
+            i_ax = skrt.image._plot_axes[view].index(i_ax)
 
         # Calculate extent from contours
         if method == "contour":
 
             # Calculate z extent from contour positions
-            if ax == "z":
+            if ax == "z" and not single_slice:
                 z_keys = list(self.get_contours("x-y").keys())
                 z_max = max(z_keys) + 0.5
                 z_min = min(z_keys) - 0.5
                 return z_min, z_max
 
-            # Calculate x or y length from min/max contour positions
-            i_ax = skrt.image._axes.index(ax)
+            # Calculate from min/max contour positions
             points = []
-            for i, contours in self.get_contours("x-y").items():
-                for contour in contours:
-                    points.extend([p[i_ax] for p in contour])
+            if not single_slice:
+                for i, contours in self.get_contours("x-y").items():
+                    for contour in contours:
+                        points.extend([p[i_ax] for p in contour])
+            else:
+                for contour in self.get_contours_on_slice(
+                    view, sl=sl, idx=idx, pos=pos):
+                    points.extent([p[i_ax] for p in contour])
             return min(points), max(points)
 
         # Otherwise, get extent from mask
         self.create_mask()
-        nonzero = np.argwhere(self.get_data(standardise=True))
-        i_ax = skrt.image._axes.index(ax)
-        if i_ax != 2:
+        if i_ax != 2:  # Transpose x-y axes
             i_ax = 1 - i_ax
+        if not single_slice:
+            nonzero = np.argwhere(self.get_data(standardise=True))
+        else:
+            nonzero = np.argwhere(self.get_slice(
+                view, sl=sl, idx=idx, pos=pos))
         vals = nonzero[:, i_ax]
         min_pos = min(vals) - 0.5
         max_pos = max(vals) + 0.5
@@ -850,12 +872,28 @@ class ROI(skrt.image.Image):
             return self.idx_to_pos(min_pos, ax), self.idx_to_pos(max_pos, ax)
         return min_pos, max_pos
 
-    def get_length(self, ax="z", method=None, units="mm"):
+    def get_length(self, 
+                   ax="z", 
+                   single_slice=False,
+                   view="x-y",
+                   sl=None, 
+                   idx=None, 
+                   pos=None, 
+                   method=None, 
+                   units="mm"):
         """Get total length of the ROI along a given axis."""
 
         # Get length from min and max positions
         self.load()
-        min_pos, max_pos = self.get_extent(ax=ax, method=method, units=units)
+        min_pos, max_pos = self.get_extent(
+            ax=ax, 
+            single_slice=single_slice,
+            view=view,
+            sl=sl,
+            idx=idx,
+            pos=pos,
+            method=method, 
+            units=units)
         return abs(max_pos - min_pos)
 
     def get_geometry(

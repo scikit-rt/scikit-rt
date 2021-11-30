@@ -2311,8 +2311,8 @@ class SingleViewer:
         if not self.zoom_ui or self.ui_zoom.value == 1:
             return
 
-        centre = roi.get_centroid(self.view, single_slice=True, 
-                                  sl=self.slice[self.view])
+        centre = roi.get_centre(self.view, single_slice=True, 
+                                sl=self.slice[self.view])
         if None in centre:
             return
         self.current_centre[self.view] = centre
