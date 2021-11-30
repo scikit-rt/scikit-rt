@@ -35,7 +35,7 @@ This code is best used inside a Jupyter notebook, but can also be implemented vi
 
 Here is a code snippet to perform a registration and qualitatively view the results:
 ```
-from skrt import Registration, set_elastix_dir
+from skrt.registration import Registration, set_elastix_dir
 
 # Set elastix location
 set_elastix_dir("some/location/elastix-5.0.1-mac")
