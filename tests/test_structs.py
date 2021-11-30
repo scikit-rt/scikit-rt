@@ -171,15 +171,6 @@ def test_roi_from_image_threshold():
     roi = ROI(sim, mask_level=5)  
     assert roi.get_area() == sim.get_roi("sphere").get_area()
 
-def test_roi_no_image():
-    """Check that an ROI object can be created from contours without an 
-    associated Image object or geometric info."""
-
-    new_roi = ROI(roi.get_contours())
-    new_roi.plot(show=False)
-    with pytest.raises(RuntimeError):
-        new_roi.get_mask()
-
 def test_roi_no_image_with_geom():
     """Check that an ROI object can be created from contours only plus 
     geometric info."""

@@ -235,7 +235,7 @@ def test_resampling():
     assert [abs(int(i)) for i in im2.voxel_size] == init_voxel_size
     assert list(im2.get_data().shape) == init_shape
 
-def test_cloning():
+def test_clone():
     """Test cloning an image."""
 
     im_cloned = im.clone()
@@ -245,6 +245,7 @@ def test_cloning():
                   == im_cloned.get_standardised_data())
 
     # Check that changing the new array doesn"t change the old one
+    assert im.data is not im_cloned.data
     im.data[0, 0, 0] = 1
     im_cloned.data[0, 0, 0] = 2
     assert im.data[0, 0, 0] != im_cloned.data[0, 0, 0]
@@ -268,6 +269,12 @@ def test_cloning():
     # Check that changing the new dictionary doesn"t change the old one
     im_cloned.user_addition["quattro"] = 4
     assert "quattro" not in im.user_addition
+
+def test_clone_no_copy():
+    """Test cloning an image without copying its data."""
+
+    im_cloned = im.clone(copy_data=False)
+    assert im.data is im_cloned.data
 
 def test_init_from_image():
     """Test cloning an image using the Image initialiser."""

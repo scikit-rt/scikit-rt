@@ -228,32 +228,55 @@ class Data:
         out.append("}")
         return "\n".join(out)
 
-    def clone(self, data_types_to_copy=None):
+    def clone(self, data_types_to_copy=None, copy_data=True):
         """
-        Return a clone of the Data object. 
-        Any lists, dicts, and numpy arrays will always be shallow copied, 
-        while all other attributes will be copied by reference, unless 
-        <types_to_copy> is set to a list of types inheriting from the Data 
-        class. Any objects of this type either directly stored as an attribute 
-        or stored in a list or dict attribute will be cloned.
-        (Note that these child Data object will be copied with 
-        data_types_to_copy=None to prevent recursion.)
+        Return a clone of the Data object. All attributes of the original
+        object will be copied by reference to the new object, with some 
+        exceptions (see parameters below).
+
+
+        Parameters
+        ----------
+        data_types_to_copy : list, default=None
+            List of types inherting from the Data class.
+            Any objects of the types in this list that are either directly 
+            stored as an attribute or stored in a list or dict attribute will 
+            be cloned, rather than assigning the same object as to an 
+            attribute of the cloned parent object.
+            (Note that these child Data object will be copied with 
+            data_types_to_copy=None to prevent recursion.)
+
+        copy_data : bool, default=True
+            If True, any lists, dicts, and numpy arrays will be shallow 
+            copied rather than copied by reference.
         """
 
         clone = copy.copy(self)
-        self.clone_attrs(clone, data_types_to_copy)
+        self.clone_attrs(clone, data_types_to_copy, copy_data)
         return clone
 
-    def clone_attrs(self, obj, data_types_to_copy=None):
+    def clone_attrs(self, obj, data_types_to_copy=None, copy_data=True):
         """
-        Apply class attributes (excluding methods) from self to a new object. 
-        Any lists, dicts, and numpy arrays will always be shallow copied, 
-        while all other attributes will be copied by reference, unless 
-        <types_to_copy> is set to a list of types inheriting from the Data 
-        class. Any objects of this type either directly stored as an attribute 
-        or stored in a list or dict attribute will be cloned.
-        (Note that these child Data object will be copied with 
-        data_types_to_copy=None to prevent recursion.)
+        Assign all attributes of <self> to another object, <obj>.
+
+
+        Parameters
+        ----------
+        obj : object
+            Object to which attributes of <self> will be copied.
+
+        data_types_to_copy : list, default=None
+            List of types inherting from the Data class.
+            Any objects of the types in this list that are either directly 
+            stored as an attribute or stored in a list or dict attribute will 
+            be cloned, rather than assigning the same object as to an 
+            attribute of the cloned parent object.
+            (Note that these child Data object will be copied with 
+            data_types_to_copy=None to prevent recursion.)
+
+        copy_data : bool, default=True
+            If True, any lists, dicts, and numpy arrays will be shallow 
+            copied rather than copied by reference.
         """
 
         # Check the data types to copy are valid
@@ -263,8 +286,8 @@ class Data:
                 if issubclass(dtype, Data):
                     dtypes_valid.append(dtype)
                 else:
-                    print("Warning: data_types_to_copy must inherit from skrt.Data!",
-                          "Type", dtype, "will be ignored.")
+                    print("Warning: data_types_to_copy must inherit from "
+                          "skrt.Data! Type", dtype, "will be ignored.")
 
         for attr_name in dir(self):
 
@@ -272,14 +295,16 @@ class Data:
             if attr_name.startswith("__"):
                 continue
 
-            # Don't copy methods
+            # Don't copy methodms
             attr = getattr(self, attr_name)
             if callable(attr):
                 continue
             
             # Make new copy of lists/dicts/arrays
-            if type(attr) in [dict, list, np.ndarray]:
+            if copy_data and type(attr) in [dict, list, np.ndarray]:
+                print("shallow copying:", attr_name)
                 setattr(obj, attr_name, copy.copy(attr))
+                print(getattr(self, attr_name) is getattr(obj, attr_name))
 
                 # Also clone given Data types
                 if isinstance(attr, list):
