@@ -235,6 +235,10 @@ class ROI(skrt.image.Image):
 
         if self.image:
             self.image.load_data()
+            self.shape = self.image.get_data().shape
+            self.affine = self.image.get_affine()
+            self.voxel_size = self.image.get_voxel_size()
+            self.origin = self.image.get_origin()
 
         rois = []
 
@@ -335,12 +339,7 @@ class ROI(skrt.image.Image):
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
         else:
-            try:
-                idx = self.get_idx(view, sl, idx, pos)
-            except IndexError:
-                print(self.name)
-                print(sl, idx, pos)
-                print(view)
+            idx = self.get_idx(view, sl, idx, pos)
         try:
             return self.get_contours(view, idx_as_key=True)[idx]
         except KeyError:
@@ -423,7 +422,8 @@ class ROI(skrt.image.Image):
 
         return points
 
-    def create_mask(self, force=False, overlap_level=0.25):
+    def create_mask(self, force=False, overlap_level=0.25, 
+                    image_shape_xy=(50, 50)):
         """Create binary mask."""
 
         if self.loaded_mask and not force:
@@ -438,12 +438,13 @@ class ROI(skrt.image.Image):
         if self.input_contours:
 
             # Check an image or shape was given
+            # Make dummy image
             if self.contours_only:
-                raise RuntimeError(
-                    "Not enough information to create mask. Must assign either: "
-                    "ROI.image; ROI.shape and ROI.affine; or ROI.shape, "
-                    "ROI.voxel_size and ROI.origin."
-                )
+                self.image = self.get_dummy_image(shape=image_shape_xy)
+                self.shape = self.image.get_data().shape
+                skrt.image.Image.__init__(self, np.zeros(self.shape),
+                                          affine=self.image.get_affine())
+
             if self.image is None:
                 skrt.image.Image.__init__(self, np.zeros(self.shape), 
                                           affine=self.affine, 
@@ -513,7 +514,7 @@ class ROI(skrt.image.Image):
         """Check whether this ROI is empty."""
 
         self.load()
-        if self.default_geom_method == "contours":
+        if self.default_geom_method == "contour":
             return bool(len(self.get_contours("x-y")))
         else:
             return np.any(self.get_data())
@@ -560,13 +561,16 @@ class ROI(skrt.image.Image):
 
         self.load()
         if self.contours_only:
-            if ax not in ["z", 2]:
+            if self.image is not None:
+                return self.image.idx_to_pos(idx, ax)
+            elif ax in ["z", 2]:
+                conversion = {i: p for i, p in 
+                              enumerate(self.get_contours("x-y").keys())}
+                return conversion[idx]
+            else:
                 print("Warning: cannot convert index to position in the x/y "
                       "directions without associated image geometry!")
                 return
-            conversion = {i: p for i, p in 
-                          enumerate(self.get_contours("x-y").keys())}
-            return conversion[idx]
         else:
             return skrt.image.Image.idx_to_pos(self, idx, ax)
 
@@ -575,13 +579,16 @@ class ROI(skrt.image.Image):
 
         self.load()
         if self.contours_only:
-            if ax not in ["z", 2]:
+            if self.image is not None:
+                return self.image.pos_to_idx(pos, ax, return_int)
+            elif ax in ["z", 2]:
+                conversion = {p: i for i, p in 
+                              enumerate(self.get_contours("x-y").keys())}
+                idx = conversion[pos]
+            else:
                 print("Warning: cannot convert position to index in the x/y "
                       "directions without associated image geometry!")
                 return
-            conversion = {p: i for i, p in 
-                          enumerate(self.get_contours("x-y").keys())}
-            idx = conversion[pos]
             if return_int:
                 return round(idx)
             else:
@@ -805,23 +812,22 @@ class ROI(skrt.image.Image):
             area *= abs(self.get_voxel_size()[x_ax] * self.get_voxel_size()[y_ax])
         return area
 
-    def get_length(self, units="mm", ax="z", method=None):
-        """Get total length of the ROI along a given axis."""
+    def get_extent(self, ax="z", method=None, units="mm"):
+        """Get minimum and maximum extent along a given axis."""
 
-        # Calculate length from contours
         self.load()
         if method is None:
             method = self.default_geom_method
+
+        # Calculate extent from contours
         if method == "contour":
 
-            # Calculate z length from contour positions
+            # Calculate z extent from contour positions
             if ax == "z":
                 z_keys = list(self.get_contours("x-y").keys())
-                z_interval = max(z_keys) - min(z_keys)
-                
-                # Add one extra voxel size to account for half a voxel on 
-                # either side
-                return z_interval + self.get_slice_thickness_contours()
+                z_max = max(z_keys) + 0.5
+                z_min = min(z_keys) - 0.5
+                return z_min, z_max
 
             # Calculate x or y length from min/max contour positions
             i_ax = skrt.image._axes.index(ax)
@@ -829,22 +835,28 @@ class ROI(skrt.image.Image):
             for i, contours in self.get_contours("x-y").items():
                 for contour in contours:
                     points.extend([p[i_ax] for p in contour])
-            return abs(max(points) - min(points))
+            return min(points), max(points)
 
-        # Otherwise, calculate from binary mask
+        # Otherwise, get extent from mask
         self.create_mask()
         nonzero = np.argwhere(self.get_data(standardise=True))
         i_ax = skrt.image._axes.index(ax)
         if i_ax != 2:
             i_ax = 1 - i_ax
         vals = nonzero[:, i_ax]
-        if len(vals):
-            length_voxels = max(vals) - min(vals) + 1
-            if units == "mm":
-                return length_voxels * abs(self.get_voxel_size()[i_ax])
-            return length_voxels
-        else:
-            return 0
+        min_pos = min(vals) - 0.5
+        max_pos = max(vals) + 0.5
+        if units == "mm":
+            return self.idx_to_pos(min_pos, ax), self.idx_to_pos(max_pos, ax)
+        return min_pos, max_pos
+
+    def get_length(self, ax="z", method=None, units="mm"):
+        """Get total length of the ROI along a given axis."""
+
+        # Get length from min and max positions
+        self.load()
+        min_pos, max_pos = self.get_extent(ax=ax, method=method, units=units)
+        return abs(max_pos - min_pos)
 
     def get_geometry(
         self,
@@ -1497,6 +1509,57 @@ class ROI(skrt.image.Image):
             self.fig.savefig(save_as)
             plt.close()
 
+    def get_dummy_image(self, shape=(20, 20), fill_val=0):
+        """Make a dummy image for an ROI with no underlying image or mask."""
+
+        if len(shape) == 2:
+            shape = list(shape) + [len(self.get_contours("x-y"))]
+        extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
+        voxel_size = [(max(ex) - min(ex)) / shape[i] 
+                      for i, ex in enumerate(extents[:2])]
+        voxel_size.append(self.get_slice_thickness_contours())
+        origin = [min(ex) + abs(voxel_size[i])
+                  for i, ex in enumerate(extents)]
+        return skrt.image.Image(
+            np.ones(shape) * fill_val,
+            voxel_size=voxel_size,
+            origin=origin
+        )
+
+    def view(self, include_image=False, **kwargs):
+        """View the ROI."""
+
+        from skrt.better_viewer import BetterViewer
+        self.load()
+
+        # View with image
+        if include_image and self.image is not None:
+            BetterViewer(self.image, rois=self, init_roi=self.name,
+                         **kwargs)
+
+        # View without image
+        else:
+
+            # Get ROI extent
+            extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
+
+            # Make dummy image
+            if self.contours_only:
+                im = self.get_dummy_image(fill_val=1e6)
+                im.title = self.name
+            else:
+                im = skrt.image.Image(
+                    np.ones(self.shape) * 1e6,
+                    affine=self.affine,
+                    title=self.name
+                )
+
+            # Create viewer
+            kwargs["show"] = False
+            bv = BetterViewer(im, rois=self, init_roi=self.name, **kwargs)
+            bv.make_ui(no_roi=True, no_hu=True)
+            bv.show()
+
     def _plot_mask(
         self,
         view="x-y",
@@ -1691,32 +1754,6 @@ class ROI(skrt.image.Image):
         zoom_centre[x_ax] = x
         zoom_centre[y_ax] = y
         return zoom_centre
-
-    def view(self, **kwargs):
-
-        from skrt.viewer import QuickViewer
-
-        self.load()
-
-        # Create image to view
-        if self.image:
-            im_source = '.tmp_image.nii.gz'
-            self.image.write(im_source)
-        else:
-            im_source = np.zeros(self.get_mask().shape)
-
-        # Save to temp file
-        if isinstance(self.source, str):
-            roi_source = self.source
-        else:
-            roi_source = ".tmp_rois.nii.gz"
-            self.write(roi_source)
-
-        QuickViewer(im_source, affine=self.get_affine(), structs=roi_source, 
-                    struct_names={self.name: "*"}, **kwargs)
-
-        os.remove(im_source)
-        os.remove(roi_source)
 
     def write(self, outname=None, outdir=".", ext=None, **kwargs):
 

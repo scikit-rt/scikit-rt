@@ -736,12 +736,11 @@ class BetterViewer:
         self.in_notebook = in_notebook()
         self.saved = False
         self.plotting = False
-        self.share_slider = share_slider
 
         # Make UI
         #  if any([v.im.timeseries for v in self.viewers]):
             #  share_slider = False
-        self.make_ui()
+        self.make_ui(share_slider)
 
         # Display
         self.show(show)
@@ -851,17 +850,17 @@ class BetterViewer:
                 if match_axes != 'x':
                     im.ax_lims[view][1] = ax_lims[1]
 
-    def make_ui(self, no_roi=False, no_hu=False):
+    def make_ui(self, share_slider, no_roi=False):
 
         # Only allow share_slider if images have same frame of reference
-        if self.share_slider:
-            self.share_slider *= all(
+        if share_slider:
+            share_slider *= all(
                 [v.im.has_same_geometry(self.viewers[0].im) for v in self.viewers]
             )
 
         # Make UI for first image
         v0 = self.viewers[0]
-        v0.make_ui(no_roi=no_roi, no_hu=no_hu)
+        v0.make_ui(no_roi=no_roi)
 
         # Store needed UIs
         self.ui_view = v0.ui_view
@@ -873,7 +872,7 @@ class BetterViewer:
         #  self.roi_plot_type2 = self.ui_roi_plot_type2.value
 
         # Make main upper UI list (= view radio + single HU/slice slider)
-        many_sliders = not self.share_slider and self.n > 1
+        many_sliders = not share_slider and self.n > 1
         if not many_sliders:
             self.main_ui = v0.main_ui
             if v0.zoom_ui:
@@ -883,8 +882,7 @@ class BetterViewer:
 
         # Make UI for other images
         for v in self.viewers[1:]:
-            v.make_ui(other_viewer=v0, share_slider=self.share_slider,
-                      no_roi=no_roi, no_hu=no_hu)
+            v.make_ui(other_viewer=v0, share_slider=share_slider)
             v0.rois_for_jump.update(v.rois_for_jump)
         v0.ui_roi_jump.options = list(v0.rois_for_jump.keys())
 
@@ -902,11 +900,10 @@ class BetterViewer:
                         sliders.append(ipyw.Label())
 
                 # HU sliders
-                if not no_hu:
-                    if v.hu_from_width:
-                        sliders.extend([v.ui_hu_centre, v.ui_hu_width])
-                    else:
-                        sliders.append(v.ui_hu)
+                if v.hu_from_width:
+                    sliders.extend([v.ui_hu_centre, v.ui_hu_width])
+                else:
+                    sliders.append(v.ui_hu)
 
                 # Zoom sliders
                 if v.zoom_ui:
@@ -936,7 +933,7 @@ class BetterViewer:
             self.extra_ui.extend(to_add)
 
         # Make extra UI elements
-        self.make_lower_ui(no_roi=no_roi)
+        self.make_lower_ui()
         self.make_comparison_ui()
         #  self.make_translation_ui()
 
@@ -965,7 +962,7 @@ class BetterViewer:
             + [self.trigger]
         )
 
-    def make_lower_ui(self, no_roi=False):
+    def make_lower_ui(self):
         '''Make lower UI for ROI checkboxes.'''
 
         # Saving UI
@@ -985,9 +982,8 @@ class BetterViewer:
                 self.lower_ui.append(ipyw.HTML(value=title))
 
             # Add to overall lower UI
-            if not no_roi:
-                self.lower_ui.extend(v.lower_ui)
-                self.ui_roi_checkboxes.extend(v.ui_roi_checkboxes)
+            self.lower_ui.extend(v.lower_ui)
+            self.ui_roi_checkboxes.extend(v.ui_roi_checkboxes)
 
         self.lower_ui.extend([self.viewers[0].save_name, self.viewers[0].save_button])
 
@@ -1628,8 +1624,7 @@ class SingleViewer:
         sl = self.im.pos_to_slice(pos, ax)
         self.set_slice(view, sl)
 
-    def make_ui(self, other_viewer=None, share_slider=True, no_roi=False,
-                no_hu=False):
+    def make_ui(self, other_viewer=None, share_slider=True, no_roi=False):
         '''Make Jupyter notebook UI. If other_viewer contains another SingleViewer
         instance, the UI will be taken from that image. If share_slider is
         False, independent HU and slice sliders will be created.'''
@@ -1697,8 +1692,7 @@ class SingleViewer:
                     ipyw.FloatRangeSlider if self.hu_step < 1 else ipyw.IntRangeSlider
                 )
                 self.ui_hu = slider_kind(**ui_hu_kwargs)
-                if not no_hu:
-                    self.main_ui.append(self.ui_hu)
+                self.main_ui.append(self.ui_hu)
 
             # Centre and window sliders
             else:
@@ -1719,8 +1713,7 @@ class SingleViewer:
                     style=_style,
                 )
                 self.ui_hu_list = [self.ui_hu_centre, self.ui_hu_width]
-                if not no_hu:
-                    self.main_ui.extend(self.ui_hu_list)
+                self.main_ui.extend(self.ui_hu_list)
                 self.ui_hu = ipyw.VBox(self.ui_hu_list)
 
             # Make zoom UI
