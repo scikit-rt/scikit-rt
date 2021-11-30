@@ -2375,6 +2375,67 @@ class StructureSet(skrt.core.Archive):
             self.fig.savefig(save_as)
             plt.close()
 
+    def view(self, include_image=False, **kwargs):
+        """View the StructureSet."""
+
+        from skrt.better_viewer import BetterViewer
+        self.load()
+
+        # View with image
+        if include_image and self.image is not None:
+            BetterViewer(self.image, rois=self, **kwargs)
+
+        # View without image
+        else:
+
+            # Make dummy image
+            self.rois[0].load()
+            if self.rois[0].contours_only:
+                im = self.get_dummy_image(fill_val=1e6)
+                for roi in self.rois:
+                    if roi.contours_only:
+                        roi.image = im
+            else:
+                im = skrt.image.Image(
+                    np.ones(self.rois[0].shape) * 1e6,
+                    affine=self.rois[0].affine,
+                )
+
+            # Create viewer
+            kwargs["show"] = False
+            bv = BetterViewer(im, rois=self, **kwargs)
+            bv.make_ui(no_hu=True)
+            bv.show()
+
+    def get_dummy_image(self, shape=(100, 100), fill_val=0):
+        """Make a dummy image for StructureSet."""
+
+        # Get number of slices in z direction
+        if len(shape) == 2:
+            all_z = []
+            for roi in self.get_rois():
+                all_z.extend(list(roi.get_contours("x-y").keys()))
+            shape = list(shape) + [len(set(all_z))]
+
+        # Get min and max extents of all ROIs
+        extents = []
+        for ax in ["x", "y", "z"]:
+            all_extents = []
+            for roi in self.get_rois():
+                all_extents.extend(roi.get_extent(ax=ax))
+            extents.append([min(all_extents), max(all_extents)])
+
+        # Get voxel sizes and origin
+        voxel_size = [(max(ex) - min(ex)) / shape[i] 
+                      for i, ex in enumerate(extents[:2])]
+        voxel_size.append(self.get_rois()[0].get_slice_thickness_contours())
+        origin = [min(ex) + abs(voxel_size[i]) for i, ex in enumerate(extents)]
+        return skrt.image.Image(
+            np.ones(shape) * fill_val,
+            voxel_size=voxel_size,
+            origin=origin
+        )
+
     def get_staple(self, **kwargs):
         """Apply STAPLE to all ROIs in this structure set and return
         STAPLE contour as an ROI."""
