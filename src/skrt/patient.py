@@ -350,6 +350,7 @@ class Study(skrt.core.Archive):
                 # Add to Image
                 if image is not None:
                     image.add_structure_set(structure_set)
+                    structure_set.name = f'Structure set {len(image.structure_sets)}'
 
                 # Add to list of all structure sets
                 structure_sets.append(structure_set)
