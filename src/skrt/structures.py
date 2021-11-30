@@ -335,8 +335,12 @@ class ROI(skrt.image.Image):
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
         else:
-            idx = self.get_idx(view, sl, idx, pos)
-
+            try:
+                idx = self.get_idx(view, sl, idx, pos)
+            except IndexError:
+                print(self.name)
+                print(sl, idx, pos)
+                print(view)
         try:
             return self.get_contours(view, idx_as_key=True)[idx]
         except KeyError:
@@ -500,11 +504,19 @@ class ROI(skrt.image.Image):
         if hasattr(self, "data"):
             if not self.data.dtype == "bool":
                 self.data = self.data.astype(bool)
-            self.empty = not np.any(self.data)
             self.loaded_mask = True
 
         # Set geometric properties
         self.set_geometry()
+
+    def is_empty(self):
+        """Check whether this ROI is empty."""
+
+        self.load()
+        if self.default_geom_method == "contours":
+            return bool(len(self.get_contours("x-y")))
+        else:
+            return np.any(self.get_data())
 
     def resample(self, *args, **kwargs):
         self.create_mask()
@@ -585,8 +597,8 @@ class ROI(skrt.image.Image):
 
     def get_centroid(
         self,
-        single_slice=False,
         view="x-y",
+        single_slice=False,
         sl=None,
         idx=None,
         pos=None,
@@ -670,7 +682,7 @@ class ROI(skrt.image.Image):
         # Get 2D or 3D data from which to calculate centroid
         if single_slice:
             if not self.on_slice(view, sl, idx, pos):
-                return [None, None]
+                return np.array([None, None])
             data = self.get_slice(view, sl, idx, pos)
             axes = skrt.image._plot_axes[view]
         else:
@@ -1614,7 +1626,8 @@ class ROI(skrt.image.Image):
         # Plot centroid point
         if centroid:
             self.ax.plot(
-                *self.get_centroid(view, sl, idx, pos, flatten=flatten),
+                *self.get_centroid(view, single_slice=True, sl=sl, 
+                                   idx=idx, pos=pos, flatten=flatten),
                 "+",
                 **contour_kwargs,
             )

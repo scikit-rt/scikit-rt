@@ -772,7 +772,7 @@ class BetterViewer:
     def any_attr(self, attr):
         '''Check whether any of this object's viewers have a given attribute.'''
 
-        return any([getattr(v.im, 'has_' + attr) for v in self.viewers])
+        return any([getattr(v, 'has_' + attr) for v in self.viewers])
 
     def load_comparison(self, comparison, show_cb, show_overlay, show_diff):
         '''Create any comparison images.'''
@@ -873,10 +873,10 @@ class BetterViewer:
         # Store needed UIs
         self.ui_view = v0.ui_view
         self.view = self.ui_view.value
-        #  self.ui_roi_plot_type = v0.ui_roi_plot_type
+        self.ui_roi_plot_type = v0.ui_roi_plot_type
         #  self.ui_roi_plot_type2 = v0.ui_roi_plot_type2
         #  self.ui_roi_comp_type = v0.ui_roi_comp_type
-        #  self.roi_plot_type = self.ui_roi_plot_type.value
+        self.roi_plot_type = self.ui_roi_plot_type.value
         #  self.roi_plot_type2 = self.ui_roi_plot_type2.value
 
         # Make main upper UI list (= view radio + single HU/slice slider)
@@ -891,21 +891,21 @@ class BetterViewer:
         # Make UI for other images
         for v in self.viewers[1:]:
             v.make_ui(other_viewer=v0, share_slider=share_slider)
-            #  v0.rois_for_jump.update(v.rois_for_jump)
-        #  v0.ui_roi_jump.options = list(v0.rois_for_jump.keys())
+            v0.rois_for_jump.update(v.rois_for_jump)
+        v0.ui_roi_jump.options = list(v0.rois_for_jump.keys())
 
-        # Make UI for each image (= unique HU/slice sliders and struct jump)
+        # Make UI for each image (= unique HU/slice sliders and ROI jump)
         self.per_image_ui = []
         if many_sliders:
             for v in self.viewers:
 
                 # ROI jumping
                 sliders = []
-                #  if v.im.has_rois:
-                    #  sliders.append(v.ui_roi_jump)
-                #  else:
-                    #  if self.any_attr('rois'):
-                        #  sliders.append(ipyw.Label())
+                if len(v.rois):
+                    sliders.append(v.ui_roi_jump)
+                else:
+                    if self.any_attr('rois'):
+                        sliders.append(ipyw.Label())
 
                 # HU sliders
                 if v.hu_from_width:
@@ -923,25 +923,25 @@ class BetterViewer:
                 self.per_image_ui.append(sliders)
 
         # Make extra UI list
-        #  self.extra_ui = []
+        self.extra_ui = []
         #  for attr in ['mask', 'dose', 'df']:
             #  if self.any_attr(attr):
                 #  self.extra_ui.append(getattr(v0, 'ui_' + attr))
         #  if self.any_attr('jacobian'):
             #  self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
-        #  if self.any_attr('rois'):
-            #  to_add = [
-                #  v0.ui_roi_plot_type,
-                #  v0.ui_roi_linewidth,
-                #  v0.ui_roi_opacity,
-            #  ]
+        if self.any_attr('rois'):
+            to_add = [
+                v0.ui_roi_plot_type,
+                v0.ui_roi_linewidth,
+                v0.ui_roi_opacity,
+            ]
             #  if any([v.im.comp_type == 'others' for v in self.viewers]):
                 #  to_add.insert(1, v0.ui_roi_plot_type2)
                 #  to_add.insert(2, v0.ui_roi_comp_type)
-            #  self.extra_ui.extend(to_add)
+            self.extra_ui.extend(to_add)
 
         # Make extra UI elements
-        #  self.make_lower_ui()
+        self.make_lower_ui()
         self.make_comparison_ui()
         #  self.make_translation_ui()
 
@@ -949,7 +949,7 @@ class BetterViewer:
         main_and_extra_box = ipyw.HBox(
             [
                 ipyw.VBox(self.main_ui),
-                #  ipyw.VBox(self.extra_ui),
+                ipyw.VBox(self.extra_ui),
                 #  ipyw.VBox(self.trans_ui),
                 ipyw.VBox(self.comp_ui),
             ]
@@ -958,15 +958,15 @@ class BetterViewer:
         self.set_slider_widths()
         self.upper_ui = [main_and_extra_box, ipyw.HBox(self.slider_boxes)]
         self.upper_ui_box = ipyw.VBox(self.upper_ui)
-        #  self.lower_ui_box = ipyw.VBox(self.lower_ui)
+        self.lower_ui_box = ipyw.VBox(self.lower_ui)
         self.trigger = ipyw.Checkbox(value=True)
         self.all_ui = (
             self.main_ui
-            #  + self.extra_ui
+            + self.extra_ui
             + list(itertools.chain.from_iterable(self.per_image_ui))
             + self.comp_ui
             #  + self.trans_ui
-            #  + self.ui_roi_checkboxes
+            + self.ui_roi_checkboxes
             + [self.trigger]
         )
 
@@ -977,12 +977,12 @@ class BetterViewer:
         self.lower_ui = []
 
         # ROI UI
-        many_with_rois = sum([v.im.has_rois for v in self.viewers]) > 1
+        many_with_rois = sum([(len(v.rois) != 0) for v in self.viewers]) > 1
         self.ui_roi_checkboxes = []
         for i, v in enumerate(self.viewers):
 
             # Add plot title to ROI UI
-            if many_with_rois and v.im.has_rois:
+            if many_with_rois and len(v.rois):
                 if not hasattr(v.im, 'title') or not v.im.title:
                     title = f'<b>Image {i + 1}</b>'
                 else:
@@ -1316,14 +1316,14 @@ class BetterViewer:
             self.set_slider_widths()
 
         # Deal with ROI plot type change
-        #  if self.roi_plot_type != self.ui_roi_plot_type.value:
-            #  self.roi_plot_type = self.ui_roi_plot_type.value
-            #  self.viewers[0].update_roi_sliders()
+        if self.roi_plot_type != self.ui_roi_plot_type.value:
+            self.roi_plot_type = self.ui_roi_plot_type.value
+            self.viewers[0].update_roi_sliders()
 
         # Deal with ROI jumps
-        #  for v in self.viewers:
-            #  if v.ui_roi_jump != '':
-                #  v.jump_to_struct()
+        for v in self.viewers:
+            if v.ui_roi_jump != '':
+                v.jump_to_roi()
 
         # Apply any translations
         #  if self.translation:
@@ -1451,7 +1451,7 @@ class SingleViewer:
         vol_units=None,
         roi_legend=False,
         legend_loc="lower left",
-        init_struct=None,
+        init_roi=None,
         standalone=True,
         continuous_update=False,
         annotate_slice=None,
@@ -1472,8 +1472,8 @@ class SingleViewer:
         self.scale_in_mm = scale_in_mm
         self.title = title
 
-        # Make ROIs
-        self.rois = self.make_rois(rois)
+        # Set up ROIs
+        self.make_rois(rois)
 
         # Set initial orientation
         view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
@@ -1537,14 +1537,27 @@ class SingleViewer:
         self.zoom = zoom
         self.zoom_centre = zoom_centre
         self.zoom_ui = zoom_ui
-        #  if zoom_ui is None:
-            #  self.zoom_ui = self.im.has_rois
+        if zoom_ui is None:
+            self.zoom_ui = bool(self.has_rois)
         self.major_ticks = major_ticks
         self.minor_ticks = minor_ticks
         self.ticks_all_sides = ticks_all_sides
         self.no_axis_labels = no_axis_labels
         self.legend_loc = legend_loc
+
+        # ROI settings
+        self.roi_plot_type = roi_plot_type
+        self.roi_mask_opacity = 1
+        self.roi_filled_opacity = 0.3
+        if roi_opacity is not None:
+            if roi_plot_type == 'mask':
+                self.roi_mask_opacity = roi_opacity
+            elif roi_plot_type in ['filled', 'filled centroid']:
+                self.roi_filled_opacity = roi_opacity
+        self.roi_linewidth = roi_linewidth
         self.roi_legend = roi_legend
+        self.legend_loc = legend_loc
+        self.init_roi = init_roi
 
         # Colormap
         if cmap:
@@ -1570,17 +1583,33 @@ class SingleViewer:
     def make_rois(self, rois):
         """Set up StructureSets/ROIs."""
 
-        output_rois = []
+        self.rois = []
+        self.all_rois = []
+        self.roi_names = []
+
+        # Ensure all rois are ROI or StructureSet objects
         if not is_list(rois):
             rois = [rois]
         for roi in rois:
-            if isinstance(roi, int):
-                output_rois.append(self.im.structure_sets[roi])
+            if roi is None:
+                continue
+            elif isinstance(roi, int):
+                self.rois.append(self.im.structure_sets[roi])
             elif isinstance(roi, StructureSet) or isinstance(roi, ROI):
-                output_rois.append(roi)
+                self.rois.append(roi)
             else:
-                output_rois.append(StructureSet(roi, image=self.im))
-        return output_rois
+                self.rois.append(StructureSet(roi, image=self.im))
+
+        # Make list of all ROIs and their names
+        for roi in self.rois:
+            if isinstance(roi, StructureSet):
+                self.all_rois.extend(roi.get_rois())
+            else:
+                self.all_rois.append(roi)
+        self.roi_names = [s.name for s in self.all_rois]
+
+        # Set boolean to indicate whether this viewer has any ROIs
+        self.has_rois = bool(len(self.all_rois))
 
     def set_slice(self, view, sl):
         """Set the current slice number in a specific orientation."""
@@ -1625,6 +1654,25 @@ class SingleViewer:
         else:
             self.ui_view = other_viewer.ui_view
             self.view = self.ui_view.value
+
+        # ROI jumping menu
+        # Get list of ROIs
+        self.rois_for_jump = {
+            '': None,
+            **{s.name: s for s in self.all_rois},
+        }
+        if self.init_roi in self.roi_names:
+            self.current_roi = self.init_roi
+        else:
+            self.current_roi = ''
+        self.ui_roi_jump = ipyw.Dropdown(
+            options=self.rois_for_jump.keys(),
+            value=self.current_roi,
+            description='Jump to',
+            style=_style,
+        )
+        if self.has_rois:
+            self.main_ui.append(self.ui_roi_jump)
 
         # HU and slice sliders
         if not share_slider or not shared_ui:
@@ -1771,18 +1819,203 @@ class SingleViewer:
                 self.current_centre = other_viewer.current_centre
             self.own_ui_slice = False
 
+        # Extra sliders
+        self.extra_ui = []
+        if not shared_ui:
+
+            # Mask checkbox
+            #  self.ui_mask = ipyw.Checkbox(
+                #  value=self.im.has_mask, indent=False, description='Apply mask'
+            #  )
+            #  if self.im.has_mask:
+                #  self.extra_ui.append(self.ui_mask)
+
+            # Dose opacity
+            #  self.ui_dose = ipyw.FloatSlider(
+                #  value=self.init_dose_opacity,
+                #  min=0,
+                #  max=1,
+                #  step=0.05,
+                #  description='Dose opacity',
+                #  continuous_update=self.continuous_update,
+                #  readout_format='.2f',
+                #  style=_style,
+            #  )
+            #  if self.im.has_dose:
+                #  self.extra_ui.append(self.ui_dose)
+
+            # Jacobian opacity and range
+            #  self.ui_jac_opacity = ipyw.FloatSlider(
+                #  value=self.init_jac_opacity,
+                #  min=0,
+                #  max=1,
+                #  step=0.05,
+                #  description='Jacobian opacity',
+                #  continuous_update=self.continuous_update,
+                #  readout_format='.2f',
+                #  style=_style,
+            #  )
+            #  self.ui_jac_range = ipyw.FloatRangeSlider(
+                #  min=-0.5,
+                #  max=2.5,
+                #  step=0.1,
+                #  value=[0.8, 1.2],
+                #  description='Jacobian range',
+                #  continuous_update=False,
+                #  style=_style,
+                #  readout_format='.1f',
+            #  )
+            #  if self.im.has_jacobian:
+                #  self.extra_ui.extend([self.ui_jac_opacity, self.ui_jac_range])
+
+            # Deformation field plot type
+            #  self.ui_df = ipyw.Dropdown(
+                #  options=['grid', 'quiver', 'none'],
+                #  value=self.df_plot_type,
+                #  description='Deformation field',
+                #  style=_style,
+            #  )
+            #  if self.im.has_df:
+                #  self.extra_ui.append(self.ui_df)
+
+            # ROI UI
+            # ROI plot type
+            self.ui_roi_plot_type = ipyw.Dropdown(
+                options=[
+                    'contour',
+                    'mask',
+                    'filled',
+                    'centroid',
+                    'filled centroid',
+                    'none',
+                ],
+                value=self.roi_plot_type,
+                description='ROI plotting',
+                style=_style,
+            )
+            #  self.ui_roi_plot_type2 = ipyw.Dropdown(
+                #  options=['individual', 'group others'],
+                #  description='Comparison plotting',
+                #  style=_style,
+            #  )
+            #  self.ui_struct_comp_type = ipyw.Dropdown(
+                #  options=['majority vote', 'sum', 'overlap', 'staple'],
+                #  description='Comparison type',
+                #  style=_style,
+            #  )
+            #  self.struct_comp_type = self.ui_struct_comp_type.value
+
+            # Opacity/linewidth sliders
+            self.ui_roi_linewidth = ipyw.IntSlider(
+                min=1,
+                max=8,
+                step=1,
+                value=self.roi_linewidth,
+                description='Linewidth',
+                continuous_update=False,
+                style=_style,
+            )
+            self.ui_roi_opacity = ipyw.FloatSlider(
+                min=0,
+                max=1,
+                step=0.1,
+                continuous_update=False,
+                description='Opacity',
+                style=_style,
+            )
+            self.update_roi_sliders()
+
+            # Add all ROI UIs
+            if self.has_rois:
+                to_add = [
+                    self.ui_roi_plot_type,
+                    self.ui_roi_linewidth,
+                    self.ui_roi_opacity,
+                ]
+                #  if self.im.comp_type == 'others':
+                    #  to_add.insert(1, self.ui_roi_plot_type2)
+                    #  to_add.insert(2, self.ui_roi_comp_type)
+                self.extra_ui.extend(to_add)
+
+        else:
+            to_share = [
+                #  'ui_mask',
+                #  'ui_dose',
+                #  'ui_jac_opacity',
+                #  'ui_jac_range',
+                #  'ui_df',
+                'ui_roi_plot_type',
+                #  'ui_roi_plot_type2',
+                #  'ui_roi_comp_type',
+                'ui_roi_linewidth',
+                'ui_roi_linewidth',
+                'ui_roi_opacity',
+                #  'roi_comp_type',
+            ]
+            for ts in to_share:
+                setattr(self, ts, getattr(other_viewer, ts))
+
+
         # Make lower
-        #  self.make_lower_ui()
+        self.make_lower_ui()
 
         # Combine UI elements
-        self.upper_ui = [ipyw.VBox(self.main_ui)] # ipyw.VBox(self.extra_ui)]
+        self.upper_ui = [ipyw.VBox(self.main_ui), ipyw.VBox(self.extra_ui)]
         self.upper_ui_box = ipyw.HBox(self.upper_ui)
-        #  self.lower_ui_box = ipyw.VBox(self.lower_ui)
+        self.lower_ui_box = ipyw.VBox(self.lower_ui)
         self.trigger = ipyw.Checkbox(value=True)
         self.all_ui = (
-            self.main_ui #+ self.extra_ui + self.ui_roi_checkboxes 
+            self.main_ui + self.extra_ui + self.ui_roi_checkboxes 
             + [self.trigger]
         )
+
+    def make_lower_ui(self):
+
+        # Saving UI
+        self.lower_ui = []
+        self.save_name = ipyw.Text(description='Output file:', value=self.save_as)
+        self.save_button = ipyw.Button(description='Save')
+        self.save_button.on_click(self.save_fig)
+
+        # ROI checkboxes and info table
+        blank = ipyw.HTML(value='&nbsp;')
+        roi_info = []
+        self.ui_roi_checkboxes = ([blank])
+        self.roi_checkboxes = {
+            s: ipyw.Checkbox(value=True, indent=False)
+            for s in self.rois_for_jump.keys()
+            if s
+        }
+        self.ui_roi_checkboxes.extend(list(self.roi_checkboxes.values()))
+        for s in self.all_rois:
+            s.checkbox = self.roi_checkboxes[s.name]
+            row = {'roi': None}
+            roi_info.append(row)
+
+        self.visible_rois = self.get_roi_visibility()
+        self.df_roi_info = pd.DataFrame(roi_info)
+        self.ui_roi_table = ipyw.HTML()
+        self.ui_roi_info = ipyw.HBox(
+            [
+                self.ui_roi_table,
+                ipyw.VBox(self.ui_roi_checkboxes, layout=ipyw.Layout(width='30px')),
+            ]
+        )
+        self.lower_ui.append(self.ui_roi_info)
+
+        if self.standalone:
+            self.lower_ui.extend([self.save_name, self.save_button])
+
+    def get_roi_visibility(self):
+        '''Get list of currently visible ROIs from checkboxes.'''
+
+        if not self.has_rois:
+            return []
+        return [
+            name
+            for name in self.rois_for_jump
+            if name and self.roi_checkboxes[name].value
+        ]
 
     def show(self, show=True):
         '''Display plot and UI.'''
@@ -1809,8 +2042,8 @@ class SingleViewer:
 
         # Display the UI and the output
         to_display = [self.upper_ui_box, self.out]
-        #  if len(self.lower_ui):
-            #  to_display.append(self.lower_ui_box)
+        if len(self.lower_ui):
+            to_display.append(self.lower_ui_box)
         if show:
             display(*to_display)
 
@@ -1839,6 +2072,30 @@ class SingleViewer:
         #  if self.im.timeseries:
             #  n_date = self.ui_time.value
 
+        # Get ROI settings
+        #  self.update_struct_info()
+        #  self.update_struct_comparisons()
+        roi_kwargs = {}
+        if self.ui_roi_plot_type.value != self.roi_plot_type:
+            self.update_roi_sliders()
+        if self.roi_plot_type in [
+            'contour',
+            'filled',
+            'centroid',
+            'filled centroid',
+        ]:
+            self.roi_linewidth = self.ui_roi_linewidth.value
+            roi_kwargs['linewidth'] = self.roi_linewidth
+        if self.roi_plot_type == 'mask':
+            self.roi_mask_opacity = self.ui_roi_opacity.value
+            roi_kwargs['opacity'] = self.roi_mask_opacity
+        elif self.roi_plot_type in ['filled', 'filled centroid']:
+            self.roi_filled_opacity = self.ui_roi_opacity.value
+            roi_kwargs['opacity'] = self.roi_filled_opacity
+        #  roi_plot_grouping = self.ui_roi_plot_type2.value
+        #  if struct_plot_grouping == 'group others' and not self.current_struct:
+            #  self.current_struct = self.im.structs[0].name_unique
+
         # Make plot
         self.plot_image(
             self.im,
@@ -1862,7 +2119,10 @@ class SingleViewer:
             ylim=self.custom_ax_lims[_plot_axes[self.view][1]],
             title=self.title,
             rois=self.rois,
-            legend=self.roi_legend
+            roi_plot_type=self.roi_plot_type,
+            roi_kwargs=roi_kwargs,
+            legend=self.roi_legend,
+            centre_on_roi=self.init_roi
         )
         self.plotting = False
         self.colorbar_drawn = True
@@ -1889,6 +2149,11 @@ class SingleViewer:
         # Plot image
         im.plot(ax=ax, **kwargs)
 
+    def save_fig(self, _=None):
+        '''Save figure to a file.'''
+
+        self.im.fig.savefig(self.save_name.value)
+
     def on_view_change(self):
         '''Deal with a view change.'''
 
@@ -1906,7 +2171,7 @@ class SingleViewer:
             self.on_view_change()
 
         # Get slice
-        self.jump_to_struct()
+        self.jump_to_roi()
         self.slice[self.view] = self.slider_to_slice(self.ui_slice.value)
         if not self.scale_in_mm:
             self.update_slice_slider_desc()
@@ -1922,26 +2187,37 @@ class SingleViewer:
                 self.zoom_centre[_plot_axes[self.view][i]] = ui.value
                 self.current_centre[self.view][i] = ui.value
 
-    def jump_to_struct(self):
+    def jump_to_roi(self):
         '''Jump to the mid slice of an ROI.'''
-
-        return
 
         if self.ui_roi_jump.value == '':
             return
 
-        self.current_struct = self.ui_roi_jump.value
-        roi = self.rois_for_jump[self.current_struct]
-        if not struct.empty:
-            if not struct.on_slice(self.view, self.slice[self.view]):
-                mid_slice = int(np.mean(list(struct.contours[self.view].keys())))
+        self.current_roi = self.ui_roi_jump.value
+        roi = self.rois_for_jump[self.current_roi]
+        if not roi.is_empty():
+            if not roi.on_slice(self.view, sl=self.slice[self.view]):
+                mid_slice = roi.idx_to_slice(roi.get_mid_idx(), 
+                                             ax=_slice_axes[self.view])
                 self.ui_slice.value = self.slice_to_slider(
                     mid_slice, _slice_axes[self.view]
                 )
                 self.slice[self.view] = mid_slice
-            self.centre_at_struct(struct)
+            self.centre_on_roi(roi)
         self.ui_roi_jump.value = ''
 
+    def centre_on_roi(self, roi):
+        '''Set the current zoom centre to be the centre of an ROI.'''
+
+        if not self.zoom_ui or self.ui_zoom.value == 1:
+            return
+
+        centre = roi.get_centroid(self.view, single_slice=True, 
+                                  sl=self.slice[self.view])
+        if None in centre:
+            return
+        self.current_centre[self.view] = centre
+        self.update_zoom_sliders()
 
     def get_hu_range(self):
         '''Get vmin and vmax from HU sliders.'''
@@ -1952,6 +2228,25 @@ class SingleViewer:
             return {'vmin': centre - w, 'vmax': centre + w}
         else:
             return {'vmin': self.ui_hu.value[0], 'vmax': self.ui_hu.value[1]}
+
+    def update_roi_sliders(self):
+        '''Update ROI sliders depending on current plot type.'''
+
+        self.roi_plot_type = self.ui_roi_plot_type.value
+
+        # Disable irrelevant sliders
+        self.ui_roi_opacity.disabled = self.roi_plot_type in [
+            'contour',
+            'none',
+            'centroid',
+        ]
+        self.ui_roi_linewidth.disabled = self.roi_plot_type in ['mask', 'none']
+
+        # Set opacity of masked or filled rois
+        if self.roi_plot_type == 'mask':
+            self.ui_roi_opacity.value = self.roi_mask_opacity
+        elif self.roi_plot_type in ['filled', 'filled centroid']:
+            self.ui_roi_opacity.value = self.roi_filled_opacity
 
     def set_callbacks(self):
         '''Set up matplotlib callback functions for interactive plotting.'''
@@ -1992,9 +2287,9 @@ class SingleViewer:
             if self.im.has_mask:
                 self.ui_mask.value = not self.ui_mask.value
 
-        # Press c to change structure plot type
+        # Press c to change ROI plot type
         elif event.key == 'c':
-            if self.im.has_structs:
+            if self.has_rois:
                 next_type = {
                     'mask': 'contour',
                     'contour': 'filled',
@@ -2003,22 +2298,22 @@ class SingleViewer:
                     'filled centroid': 'none',
                     'none': 'mask',
                 }
-                self.ui_struct_plot_type.value = next_type[
-                    self.ui_struct_plot_type.value
+                self.ui_roi_plot_type.value = next_type[
+                    self.ui_roi_plot_type.value
                 ]
 
-        # Press j to jump between structures
-        elif event.key == 'j' and self.im.has_structs:
-            structs = self.ui_struct_jump.options[1:]
-            if not hasattr(self, 'current_struct'):
+        # Press j to jump between ROIs
+        elif event.key == 'j' and self.has_rois:
+            rois = self.ui_roi_jump.options[1:]
+            if not hasattr(self, 'current_roi'):
                 current_idx = 0
             else:
-                current_idx = structs.index(self.current_struct)
+                current_idx = rois.index(self.current_roi)
             new_idx = current_idx + 1
-            if new_idx == len(structs):
+            if new_idx == len(rois):
                 new_idx = 0
-            new_struct = structs[new_idx]
-            self.ui_struct_jump.value = new_struct
+            new_roi = rois[new_idx]
+            self.ui_roi_jump.value = new_roi
 
         # Press arrow keys to scroll through many slices
         elif event.key == 'left':
