@@ -2002,6 +2002,7 @@ class SingleViewer:
             ]
         )
         self.lower_ui.append(self.ui_roi_info)
+        self.update_roi_info()
 
         if self.standalone:
             self.lower_ui.extend([self.save_name, self.save_button])
@@ -2016,6 +2017,101 @@ class SingleViewer:
             for name in self.rois_for_jump
             if name and self.roi_checkboxes[name].value
         ]
+
+    def update_roi_info(self):
+        '''Update ROI info UI to reflect current view/slice.'''
+
+        for i, s in enumerate(self.all_rois):
+
+            # ROI name
+            #  if not self.roi_info:
+            self.df_roi_info.at[i, 'roi'] = self.get_roi_html(s)
+            #  continue
+
+            #  self.df_roi_info.at[i, ('', 'roi')] = self.get_roi_html(s)
+
+            #  if s.visible:
+
+                #  # Get metrics
+                #  volume = s.get_volume(self.vol_units)
+                #  area = s.get_area(self.view, self.slice[self.view], self.area_units)
+                #  full_extents = s.roi_extent(units=self.length_units)
+                #  extents = s.roi_extent(
+                    #  self.view, self.slice[self.view], self.length_units
+                #  )
+                #  centre_units = 'mm' if self.im.scale_in_mm else 'voxels'
+                #  centre = s.centroid(
+                    #  self.view, self.slice[self.view], centre_units
+                #  )
+
+                #  # Update dataframe
+                #  self.df_struct_info.at[i, ('overall', 'vol')] = volume
+                #  self.df_struct_info.at[i, ('overall', 'full_x')] = full_extents[0]
+                #  self.df_struct_info.at[i, ('overall', 'full_y')] = full_extents[1]
+                #  self.df_struct_info.at[i, ('overall', 'full_z')] = full_extents[2]
+                #  self.df_struct_info.at[i, ('slice', 'area')] = area
+                #  self.df_struct_info.at[i, ('slice', 'x')] = extents[0]
+                #  self.df_struct_info.at[i, ('slice', 'y')] = extents[1]
+                #  self.df_struct_info.at[i, ('slice', 'centroid_x')] = centre[0]
+                #  self.df_struct_info.at[i, ('slice', 'centroid_y')] = centre[1]
+
+            #  else:
+                #  self.df_struct_info.iloc[i, 1:] = None
+
+        # Convert dataframe to HTML
+        x_ax, y_ax = _plot_axes[self.view]
+        #  centroid_units = ' (mm)' if self.im.scale_in_mm else ''
+        #  self.col_names.update(
+            #  {
+                #  'x': f'{x_ax} length ({self.length_units})',
+                #  'y': f'{y_ax} length ({self.length_units})',
+                #  'centroid_x': f'{x_ax} centroid{centroid_units}',
+                #  'centroid_y': f'{y_ax} centroid{centroid_units}',
+            #  }
+        #  )
+        html = (
+            self.df_roi_info
+            #  .rename(self.col_names, axis=1)
+            .fillna('—')
+            .to_html(index=False)
+                     #  , float_format=self.float_fmt)
+        )
+        header = '''
+            <head>
+                <style>
+                    th, td {
+                        padding: 2px 10px;
+                    }
+                    th {
+                        background-color: rgb(225, 225, 225);
+                        text-align: center;
+                    }
+                </style>
+            </head>
+        '''
+        #  white-space: nowrap;
+        table_html = (
+            (header + html)
+            .replace('&gt;', '>')
+            .replace('&lt;', '<')
+            .replace('&amp;', '&')
+        )
+        self.ui_roi_table.value = table_html
+
+    def get_roi_html(self, roi):
+        '''Get HTML string containing name and colour for an ROI.'''
+
+        if roi.name not in self.get_roi_visibility():
+            return '<p style="color: rgb(100, 100, 100)">' f'{roi.name}</p>'
+
+        red, green, blue = [c * 255 for c in roi.color[:3]]
+        text_col = (
+            'black' if (red * 0.299 + green * 0.587 + blue * 0.114) > 186 else 'white'
+        )
+        return (
+            '<p style="background-color: rgb({}, {}, {}); '
+            'color: {};">&nbsp;{}&nbsp;</p>'
+        ).format(red, green, blue, text_col, roi.name)
 
     def show(self, show=True):
         '''Display plot and UI.'''
@@ -2073,8 +2169,11 @@ class SingleViewer:
             #  n_date = self.ui_time.value
 
         # Get ROI settings
-        #  self.update_struct_info()
-        #  self.update_struct_comparisons()
+        self.visible_rois = self.get_roi_visibility()
+        rois_to_plot = [roi for roi in self.all_rois if roi.name in 
+                        self.visible_rois]
+        self.update_roi_info()
+        #  self.update_roi_comparisons()
         roi_kwargs = {}
         if self.ui_roi_plot_type.value != self.roi_plot_type:
             self.update_roi_sliders()
@@ -2118,7 +2217,7 @@ class SingleViewer:
             xlim=self.custom_ax_lims[_plot_axes[self.view][0]],
             ylim=self.custom_ax_lims[_plot_axes[self.view][1]],
             title=self.title,
-            rois=self.rois,
+            rois=rois_to_plot,
             roi_plot_type=self.roi_plot_type,
             roi_kwargs=roi_kwargs,
             legend=self.roi_legend,
