@@ -604,6 +604,14 @@ class Image(skrt.core.Archive):
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
 
+    def get_length(self, ax):
+        """Get image length along a given axis."""
+
+        self.load_data()
+        if not isinstance(ax, int):
+            ax = _axes.index(ax)
+        return abs(self.lims[ax][1] - self.lims[ax][0])
+
     def get_idx(self, view, sl=None, idx=None, pos=None):
         """Get an array index from either a slice number, index, or
         position."""

@@ -297,7 +297,7 @@ class BetterViewer:
         init_view : string, default='x-y'
             Orientation at which to initially display the image(s).
 
-        init_sl : integer, default=None
+        init_slice : integer, default=None
             Slice number in the initial orientation direction at which to
             display the first image (can be changed interactively later). If
             None, the central slice will be displayed.
@@ -480,7 +480,7 @@ class BetterViewer:
         init_roi : str, default=None
             If set to an ROI name, the first slice to be displayed will
             be the central slice of that ROI. This supercedes <init_pos>
-            and <init_sl>.
+            and <init_slice>.
 
         roi_names : list/dict, default=None
             Custom names for ROIs.
@@ -1404,7 +1404,7 @@ class SingleViewer:
         self,
         im=None,
         init_view="x-y",
-        init_sl=None,
+        init_slice=None,
         init_pos=None,
         hu=[-300, 200],
         hu_width=500,
@@ -1486,7 +1486,7 @@ class SingleViewer:
         if init_pos is not None and self.scale_in_mm:
             self.set_slice_from_pos(init_view, init_pos)
         else:
-            self.set_slice(init_view, init_sl)
+            self.set_slice(init_view, init_slice)
 
         # Assign plot settings
         # HU range settings

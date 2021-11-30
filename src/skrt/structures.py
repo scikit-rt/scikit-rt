@@ -515,9 +515,9 @@ class ROI(skrt.image.Image):
 
         self.load()
         if self.default_geom_method == "contour":
-            return bool(len(self.get_contours("x-y")))
+            return not bool(len(self.get_contours("x-y")))
         else:
-            return np.any(self.get_data())
+            return not np.any(self.get_data())
 
     def resample(self, *args, **kwargs):
         self.create_mask()
@@ -725,8 +725,8 @@ class ROI(skrt.image.Image):
 
     def get_centre(
         self, 
-        single_slice=False,
         view="x-y", 
+        single_slice=False,
         sl=None, 
         idx=None, 
         pos=None, 
@@ -840,8 +840,9 @@ class ROI(skrt.image.Image):
             # Calculate z extent from contour positions
             if ax == "z" and not single_slice:
                 z_keys = list(self.get_contours("x-y").keys())
-                z_max = max(z_keys) + 0.5
-                z_min = min(z_keys) - 0.5
+                vz = self.get_slice_thickness_contours()
+                z_max = max(z_keys) +  vz / 2
+                z_min = min(z_keys) - vz / 2
                 return z_min, z_max
 
             # Calculate from min/max contour positions
@@ -853,7 +854,7 @@ class ROI(skrt.image.Image):
             else:
                 for contour in self.get_contours_on_slice(
                     view, sl=sl, idx=idx, pos=pos):
-                    points.extent([p[i_ax] for p in contour])
+                    points.extend([p[i_ax] for p in contour])
             return min(points), max(points)
 
         # Otherwise, get extent from mask
@@ -1556,7 +1557,7 @@ class ROI(skrt.image.Image):
         voxel_size = [(max(ex) - min(ex)) / shape[i] 
                       for i, ex in enumerate(extents[:2])]
         voxel_size.append(self.get_slice_thickness_contours())
-        origin = [min(ex) + abs(voxel_size[i])
+        origin = [min(ex) + abs(voxel_size[i]) / 2
                   for i, ex in enumerate(extents)]
         return skrt.image.Image(
             np.ones(shape) * fill_val,
@@ -1569,9 +1570,23 @@ class ROI(skrt.image.Image):
 
         from skrt.better_viewer import BetterViewer
         self.load()
+        
+        # Set initial zoom amount and centre
+        if self.image is not None and not self.contours_only:
+            view = kwargs.get("init_view", "x-y")
+            axes = skrt.image._plot_axes[view]
+            extents = [self.get_length(ax=ax) for ax in axes]
+            im_lims = [self.image.get_length(ax=ax) for ax in axes]
+            zoom = min([im_lims[i] / extents[i] for i in range(2)]) * 0.8
+            zoom_centre = self.get_centre()
+            if zoom > 1:
+                kwargs.setdefault("zoom", zoom)
+                kwargs.setdefault("zoom_centre", zoom_centre)
 
         # View with image
         if include_image and self.image is not None:
+
+            # View with image
             BetterViewer(self.image, rois=self, init_roi=self.name,
                          **kwargs)
 
@@ -1581,7 +1596,7 @@ class ROI(skrt.image.Image):
             # Get ROI extent
             extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
 
-            # Make dummy image
+            # Make dummy image for background
             if self.contours_only:
                 im = self.get_dummy_image(fill_val=1e6)
                 im.title = self.name
@@ -2413,11 +2428,51 @@ class StructureSet(skrt.core.Archive):
             self.fig.savefig(save_as)
             plt.close()
 
+    def get_length(self, ax):
+        """Get length covered by ROIs along an axis."""
+
+        extent = self.get_extent(ax=ax)
+        return abs(extent[1] - extent[0])
+
+    def get_centre(self):
+        """Get 3D centre of the area covered by ROIs."""
+
+        extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
+        return [np.mean(ex) for ex in extents]
+
+    def find_most_populated_slice(self, view="x-y"):
+        """Find the index of the slice with the most ROIs on it."""
+
+        indices = []
+        for roi in self.get_rois():
+            indices.extend(roi.get_indices(view))
+        vals, counts = np.unique(indices, return_counts=True)
+        return vals[np.argmax(counts)]
+
     def view(self, include_image=False, **kwargs):
         """View the StructureSet."""
 
         from skrt.better_viewer import BetterViewer
         self.load()
+
+        # Set initial zoom amount and centre
+        self.rois[0].load()
+        if self.image is not None and not self.get_rois()[0].contours_only:
+            view = kwargs.get("init_view", "x-y")
+            axes = skrt.image._plot_axes[view]
+            extents = [self.get_length(ax=ax) for ax in axes]
+            im_lims = [self.image.get_length(ax=ax) for ax in axes]
+            zoom = min([im_lims[i] / extents[i] for i in range(2)]) * 0.8
+            zoom_centre = self.get_centre()
+            if zoom > 1:
+                kwargs.setdefault("zoom", zoom)
+                kwargs.setdefault("zoom_centre", zoom_centre)
+
+            # Set initial slice
+            kwargs.setdefault(
+                "init_slice", 
+                self.image.idx_to_slice(self.find_most_populated_slice(view),
+                                        skrt.image._slice_axes[view]))
 
         # View with image
         if include_image and self.image is not None:
@@ -2427,7 +2482,6 @@ class StructureSet(skrt.core.Archive):
         else:
 
             # Make dummy image
-            self.rois[0].load()
             if self.rois[0].contours_only:
                 im = self.get_dummy_image(fill_val=1e6)
                 for roi in self.rois:
@@ -2445,6 +2499,14 @@ class StructureSet(skrt.core.Archive):
             bv.make_ui(no_hu=True)
             bv.show()
 
+    def get_extent(self, **kwargs):
+        """Get min and max extent of all ROIs in the StructureSet."""
+
+        all_extents = []
+        for roi in self.get_rois():
+            all_extents.extend(roi.get_extent(**kwargs))
+        return min(all_extents), max(all_extents)
+
     def get_dummy_image(self, shape=(100, 100), fill_val=0):
         """Make a dummy image for StructureSet."""
 
@@ -2456,12 +2518,7 @@ class StructureSet(skrt.core.Archive):
             shape = list(shape) + [len(set(all_z))]
 
         # Get min and max extents of all ROIs
-        extents = []
-        for ax in ["x", "y", "z"]:
-            all_extents = []
-            for roi in self.get_rois():
-                all_extents.extend(roi.get_extent(ax=ax))
-            extents.append([min(all_extents), max(all_extents)])
+        extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
 
         # Get voxel sizes and origin
         voxel_size = [(max(ex) - min(ex)) / shape[i] 
