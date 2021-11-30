@@ -1484,6 +1484,13 @@ class ROI(skrt.image.Image):
         if color is None:
             color = self.color
 
+        # Adjust centroid marker size
+        if contour_kwargs is None:
+            contour_kwargs = {}
+        if "centroid" in plot_type:
+            contour_kwargs.setdefault("markersize", 7 * np.sqrt(linewidth))
+            contour_kwargs.setdefault("markeredgewidth", np.sqrt(linewidth))
+
         # Plot a mask
         if plot_type == "mask":
             self._plot_mask(
