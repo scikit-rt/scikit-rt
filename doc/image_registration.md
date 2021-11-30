@@ -60,12 +60,12 @@ Explanation of each part of the code:
 
 1. Import the image registration class
 ```
-from skrt import Registration
+from skrt.registration import Registration
 ```
 
 2. If you didn't add your elastix installation to your `$PATH` variable, you'll need to manually set the location of your elastix installation:
 ```
-from skrt import set_elastix_dir
+from skrt.registration import set_elastix_dir
 set_elastix_dir("some/location/elastix-5.0.1-mac")
 ```
 On mac/linux, this should be the directory containing the `bin` and `lib` folders; on Windows, it should be the  directory containing `elastix.exe`.
