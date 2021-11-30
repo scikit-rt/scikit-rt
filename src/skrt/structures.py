@@ -2244,6 +2244,100 @@ class StructureSet(skrt.core.Archive):
         for s in self.get_rois():
             s.write(outdir=outdir, ext=ext, **kwargs)
 
+    def plot(
+        self,
+        view="x-y",
+        plot_type="contour",
+        sl=None,
+        idx=None,
+        pos=None,
+        opacity=None,
+        linewidth=None,
+        include_image=False,
+        centre_on_roi=None,
+        show=True,
+        save_as=None,
+        legend=False,
+        legend_loc="lower left",
+        **kwargs,
+    ):
+        """Plot the ROIs in this structure set."""
+
+        # Plot with image
+        roi_kwargs = {}
+        if opacity is not None:
+            roi_kwargs["opacity"] = opacity
+        if linewidth is not None:
+            roi_kwargs["linewidth"] = opacity
+        if include_image:
+            self.image.plot(
+                view,
+                sl=sl, 
+                idx=idx,
+                pos=pos,
+                rois=self,
+                roi_plot_type=plot_type,
+                roi_kwargs=roi_kwargs,
+                centre_on_roi=centre_on_roi,
+                show=show,
+                save_as=save_as,
+                legend=legend,
+                legend_loc=legend_loc,
+                **kwargs
+            )
+            return
+
+        # Otherwise, plot first ROI and get axes
+        if centre_on_roi is not None:
+            central = self.get_roi(centre_on_roi)
+            idx = central.get_mid_idx(view)
+            sl = None
+            pos = None
+            first_roi = central
+        else:
+            central = self.get_rois()[0]
+        central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
+                     opacity=opacity, linewidth=linewidth, show=False)
+        self.fig = central.fig
+        self.ax = central.ax
+
+        # Make patches for legend
+        roi_handles = []
+        if legend:
+            roi_handles.append(mpatches.Patch(color=central.color,
+                                              label=central.name))
+
+        # Plot other ROIs
+        for roi in self.get_rois():
+            if roi is central:
+                continue
+            roi.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
+                     opacity=opacity, linewidth=linewidth, show=False,
+                     ax=self.ax)
+            if legend:
+                if (idx is None and pos is None and sl is None) or \
+                   roi.on_slice(view, sl=sl, idx=idx, pos=pos):
+                    roi_handles.append(mpatches.Patch(
+                        color=roi.color,
+                        label=roi.name))
+
+        # Draw legend
+        if legend and len(roi_handles):
+            self.ax.legend(
+                handles=roi_handles, loc=legend_loc, facecolor="white",
+                framealpha=1
+            )
+
+        # Display image
+        plt.tight_layout()
+        if show:
+            plt.show()
+
+        # Save to file
+        if save_as:
+            self.fig.savefig(save_as)
+            plt.close()
+
     def get_staple(self, **kwargs):
         """Apply STAPLE to all ROIs in this structure set and return
         STAPLE contour as an ROI."""
