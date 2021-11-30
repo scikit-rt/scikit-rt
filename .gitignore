@@ -7,5 +7,5 @@ build
 *.nii*
 *.dcm
 tests/tmp
-tests/tmp
+examples/*/tests/tmp
 makefile
