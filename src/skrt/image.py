@@ -690,6 +690,9 @@ class Image(skrt.core.Archive):
         """Add a structure set."""
 
         self.structure_sets.append(structure_set)
+        for roi in structure_set.get_rois():
+            if roi.image is None:
+                roi.image = self
 
     def clear_structure_sets(self):
         """Clear all structure sets."""
@@ -1459,16 +1462,11 @@ class Image(skrt.core.Archive):
         matrix = skimage.transform.SimilarityTransform(
             scale=scale, translation=translation, rotation=rotation)
 
-        print(matrix)
-
         # Apply
         self.load_data()
         for z in range(self.data.shape[2]):
             self.data[:, :, z] = skimage.transform.warp(
                 self.data[:, :, z], matrix)
-
-        # Remake standardised image
-        self.standardise_data(force=True)
 
     def has_same_geometry(self, im):
         """Check whether this Image has the same geometric properties

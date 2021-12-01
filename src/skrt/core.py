@@ -302,9 +302,7 @@ class Data:
             
             # Make new copy of lists/dicts/arrays
             if copy_data and type(attr) in [dict, list, np.ndarray]:
-                print("shallow copying:", attr_name)
                 setattr(obj, attr_name, copy.copy(attr))
-                print(getattr(self, attr_name) is getattr(obj, attr_name))
 
                 # Also clone given Data types
                 if isinstance(attr, list):
