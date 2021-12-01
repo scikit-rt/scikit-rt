@@ -125,6 +125,19 @@ def test_clone():
     sphere2.set_color("blue")
     assert sphere1.color != sphere2.color
 
+def test_filtered_copy_no_copy_data():
+    """Test copying but using same data for ROIs."""
+
+    # First check that data is copied correctly
+    structure_set2 = structure_set.filtered_copy(copy_roi_data=True)
+    assert structure_set2.get_rois()[0].get_mask() \
+            is not structure_set.get_rois()[0].get_mask()
+
+    # Check that data is passed by reference
+    structure_set2 = structure_set.filtered_copy(copy_roi_data=False)
+    assert structure_set2.get_rois()[0].get_mask() \
+            is structure_set.get_rois()[0].get_mask()
+
 def test_read_nii():
     nii_dir = "tmp/nii_structs"
     structs_from_nii = StructureSet(nii_dir)

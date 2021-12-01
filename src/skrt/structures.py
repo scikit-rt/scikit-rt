@@ -2031,9 +2031,27 @@ class StructureSet(skrt.core.Archive):
     def rename_rois(
         self, names=None, first_match_only=True, keep_renamed_only=False
     ):
-        """Rename ROIs if a naming dictionary is given. If
+        """Rename ROIs in this StructureSet.
         <first_match_only> is True, only the first ROI matching the
-        possible matches will be renamed."""
+        possible matches will be renamed.
+
+        Parameters
+        ----------
+        names : dict, default=None
+            Dictionary of names for renaming ROIs, where the keys are new 
+            names and values are lists of possible names of ROIs that should
+            be assigned the new name. These names can also contain wildcards
+            with the '*' symbol.
+
+        first_match_only : bool, default=True
+            If True, only the first ROI matching the possible names in the 
+            values of <names> will be renamed; this prevents name duplication
+            if multiple ROIs in the StructureSet are a match.
+
+        keep_renamed_only : bool, default=False
+            If True, any ROIs that do not get renamed will be removed from
+            the StructureSet.
+        """
 
         if names is None:
             names = self.names
@@ -2077,8 +2095,23 @@ class StructureSet(skrt.core.Archive):
 
     def filter_rois(self, to_keep=None, to_remove=None):
         """Keep only the ROIs in the to_keep list and remove any in the
-        to_remove list."""
+        to_remove list.
 
+        Parameters
+        ----------
+
+        to_keep : list, default=None
+            List of names of ROIs to keep in the copied StructureSet; all 
+            others will be removed. These names can also contain wildcards
+            with the '*' symbol. 
+
+        to_remove : list, default=None
+            List of names of ROIs to remove from the copied StructureSet; all 
+            others will be removed. These names can also contain wildcards
+            with the '*' symbol. Applied after filtering with <to_keep>.
+        """
+
+        # Ensure to_keep and to_remove are lists
         if to_keep is None:
             to_keep = self.to_keep
         elif not skrt.core.is_list(to_keep):
@@ -2088,18 +2121,22 @@ class StructureSet(skrt.core.Archive):
         elif not skrt.core.is_list(to_remove):
             to_remove = [to_remove]
 
+        # Keep only the ROIs in to_keep
         if to_keep is not None:
             keep = []
             for s in self.rois:
-                if any([fnmatch.fnmatch(s.name.lower(), k.lower()) for k in to_keep]):
+                if any([fnmatch.fnmatch(s.name.lower(), k.lower()) 
+                        for k in to_keep]):
                     keep.append(s)
             self.rois = keep
 
+        # Remove the ROIs in to_remove
         if to_remove is not None:
             keep = []
             for s in self.rois:
                 if not any(
-                    [fnmatch.fnmatch(s.name.lower(), r.lower()) for r in to_remove]
+                    [fnmatch.fnmatch(s.name.lower(), r.lower()) 
+                     for r in to_remove]
                 ):
                     keep.append(s)
             self.rois = keep
@@ -2123,12 +2160,32 @@ class StructureSet(skrt.core.Archive):
         roi.structure_set = self
         self.rois.append(roi)
 
-    def clone(self, data_types_to_copy=[ROI]):
+    def clone(self, data_types_to_copy=[ROI], copy_roi_data=True):
         """Create a clone; by default, any lists, dicts, np.ndarrays and ROIs
         will be fully copied, while all other attributes are copied as 
-        references."""
+        references.
 
-        return skrt.core.Data.clone(self, data_types_to_copy)
+        Parameters
+        ----------
+        data_types_to_copy : list, default=[ROI]
+            List of types inherting from the Data class.
+            Any objects of the types in this list that are either directly 
+            stored as an attribute or stored in a list or dict attribute will 
+            be cloned, rather than assigning the same object as to an 
+            attribute of the cloned parent object.
+            By default, the child ROI objects of this StructureSet will be
+            copied.
+        
+        copy_roi_data : bool, default=True
+            If True, the ROIs in the returned StructureSet will contain
+            copies of the data from the original StructureSet. Otherwise,
+            the new ROIs will contain references to the same data, e.g. the 
+            same numpy ndarray object for the mask/same dict for the contours.
+        """
+
+        return skrt.core.Data.clone(self, 
+                                    data_types_to_copy, 
+                                    copy_data=copy_roi_data)
 
     def filtered_copy(
         self,
@@ -2137,9 +2194,43 @@ class StructureSet(skrt.core.Archive):
         to_keep=None,
         to_remove=None,
         keep_renamed_only=False,
+        copy_roi_data=True
     ):
         """Create a copy of this structure set with ROIs optionally
-        renamed or filtered. Returns a new StructureSet object."""
+        renamed or filtered. Returns a new StructureSet object.
+
+        Parameters
+        ----------
+        names : dict, default=None
+            Dictionary of names for renaming ROIs, where the keys are new 
+            names and values are lists of possible names of ROIs that should
+            be assigned the new name. These names can also contain wildcards
+            with the '*' symbol.
+
+        name : str, default=None
+            Name for the returned StructureSet.
+
+        to_keep : list, default=None
+            List of names of ROIs to keep in the copied StructureSet; all 
+            others will be removed. These names can also contain wildcards
+            with the '*' symbol. Applied after renaming with <names>.
+
+        to_remove : list, default=None
+            List of names of ROIs to remove from the copied StructureSet; all 
+            others will be removed. These names can also contain wildcards
+            with the '*' symbol. Applied after renaming with <names> and 
+            filtering with <to_keep>.
+
+        keep_renamed_only : bool, default=False
+            If True, any ROIs that do not get renamed will be removed from
+            the StructureSet.
+
+        copy_roi_data : bool, default=True
+            If True, the ROIs in the returned StructureSet will contain
+            copies of the data from the original StructureSet. Otherwise,
+            the new ROIs will contain references to the same data, e.g. the 
+            same numpy ndarray object for the mask/same dict for the contours.
+        """
 
         if not hasattr(self, "n_copies"):
             self.n_copies = 1
@@ -2148,21 +2239,11 @@ class StructureSet(skrt.core.Archive):
         if name is None:
             name = f"{self.name} (copy {self.n_copies})"
 
-        ss = StructureSet(
-            self.sources,
-            name=name,
-            image=self.image,
-            load=False,
-            names=names,
-            to_keep=to_keep,
-            to_remove=to_remove,
-        )
-        if self.loaded:
-            ss.rois = self.rois
-            ss.loaded = True
-            ss.rename_rois(names, keep_renamed_only=keep_renamed_only)
-            ss.filter_rois(to_keep, to_remove)
-
+        ss = self.clone(copy_roi_data=copy_roi_data)
+        if name is not None:
+            ss.name = name
+        ss.rename_rois(names, keep_renamed_only=keep_renamed_only)
+        ss.filter_rois(to_keep, to_remove)
         return ss
 
     def get_rois(self, names=None):
