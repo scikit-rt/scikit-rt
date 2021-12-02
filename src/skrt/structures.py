@@ -452,7 +452,7 @@ class ROI(skrt.core.Archive):
 
         return points
 
-    def create_mask(self, force=False, check_borders=True, overlap_level=0.25, 
+    def create_mask(self, force=False, check_borders=False, overlap_level=0.25, 
                     voxel_size=None, shape=None):
         """Create binary mask representation of this ROI. If the ROI was created
         from contours, these contours will be converted to a mask; if the ROI
@@ -465,7 +465,7 @@ class ROI(skrt.core.Archive):
         force : bool, default=False
             If True, the mask will be recreated even if it already exists.
 
-        check_borders : bool, default=True
+        check_borders : bool, default=False
             If True, border pixels will be checked for overlap with the ROI
             contour. Otherwise, the output of shapely.draw.polygon2mask 
             will be returned with no border checks, which is faster than
@@ -535,28 +535,29 @@ class ROI(skrt.core.Archive):
                                              self.mask.data.shape[0]],
                                              points_idx)
 
-                    # Get edge pixels
-                    conn = ndimage.morphology.generate_binary_structure(2, 2)
-                    edge = mask ^ ndimage.morphology.binary_dilation(mask, conn)
-                    if overlap_level >= 0.5:
-                        edge += mask ^ ndimage.morphology.binary_erosion(mask, conn)
+                    # Check overlap of edge pixels
+                    if check_borders:
+                        conn = ndimage.morphology.generate_binary_structure(2, 2)
+                        edge = mask ^ ndimage.morphology.binary_dilation(mask, conn)
+                        if overlap_level >= 0.5:
+                            edge += mask ^ ndimage.morphology.binary_erosion(mask, conn)
 
-                    # Check whether each edge pixel has sufficient overlap
-                    for ix, iy in np.argwhere(edge):
+                        # Check whether each edge pixel has sufficient overlap
+                        for ix, iy in np.argwhere(edge):
 
-                        # Make polygon of current pixel
-                        pixel = geometry.Polygon(
-                            [
-                                [ix - 0.5, iy - 0.5],
-                                [ix - 0.5, iy + 0.5],
-                                [ix + 0.5, iy + 0.5],
-                                [ix + 0.5, iy - 0.5],
-                            ]
-                        )
+                            # Make polygon of current pixel
+                            pixel = geometry.Polygon(
+                                [
+                                    [ix - 0.5, iy - 0.5],
+                                    [ix - 0.5, iy + 0.5],
+                                    [ix + 0.5, iy + 0.5],
+                                    [ix + 0.5, iy - 0.5],
+                                ]
+                            )
 
-                        # Compute overlap
-                        overlap = polygon.intersection(pixel).area
-                        mask[ix, iy] = overlap > overlap_level
+                            # Compute overlap
+                            overlap = polygon.intersection(pixel).area
+                            mask[ix, iy] = overlap > overlap_level
 
                     # Add to 3D mask
                     self.mask.data[:, :, iz] += mask.T
