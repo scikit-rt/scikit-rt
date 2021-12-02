@@ -506,7 +506,7 @@ class ROI(skrt.core.Archive):
 
             # Initialise self.mask as image
             self.mask = skrt.image.Image(
-                np.zeros(self.shape),
+                np.zeros((self.shape[1], self.shape[0], self.shape[2])),
                 affine=self.affine, 
                 voxel_size=self.voxel_size,
                 origin=self.origin
@@ -531,7 +531,8 @@ class ROI(skrt.core.Archive):
                     polygon = contour_to_polygon(points_idx)
 
                     # Get mask of all pixels inside contour
-                    mask = draw.polygon2mask(self.mask.data.shape[:2], 
+                    mask = draw.polygon2mask([self.mask.data.shape[1], 
+                                             self.mask.data.shape[0]],
                                              points_idx)
 
                     # Get edge pixels
@@ -2860,25 +2861,60 @@ class StructureSet(skrt.core.Archive):
             all_extents.extend(roi.get_extent(**kwargs))
         return min(all_extents), max(all_extents)
 
-    def get_dummy_image(self, shape=(100, 100), fill_val=0):
-        """Make a dummy image covering the area spanned by all ROIs in this
-        StructureSet."""
+    def get_dummy_image(self, shape=None, voxel_size=None, fill_val=1e4):
+        """Make a dummy image that covers the area spanned by all ROIs in this
+        StructureSet. Returns an Image object.
 
-        # Get number of slices in z direction
-        if len(shape) == 2:
-            all_z = []
-            for roi in self.get_rois():
-                all_z.extend(list(roi.get_contours("x-y").keys()))
-            shape = list(shape) + [len(set(all_z))]
+        Parameters
+        ----------
+        shape : list, default=None
+            Number of voxels in the dummy image in the x-y plane, given as
+            [nx, ny]. If <shape> and <voxel_size> are both None, a shape of
+            [100, 100] will be used by default. The number of voxels in the z
+            direction will be taken from the number of slices in the x-y
+            contours dictionary.
 
-        # Get min and max extents of all ROIs
-        extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
+        voxel_size : list, default=None
+            Voxel size in mm in the dummy image in the x-y plane, given as 
+            [vx, vy]. Only used if <shape> is None. The voxel size in the z 
+            direction will be taken from the minimum distance between slice 
+            positions in the x-y contours dictionary.
 
-        # Get voxel sizes and origin
-        voxel_size = [(max(ex) - min(ex)) / shape[i] 
-                      for i, ex in enumerate(extents[:2])]
+        fill_val : int/float, default=1e4
+            Value with which the voxels in the dummy image should be filled. 
+        """
+
+        # Assign default shape
+        if shape is None and voxel_size is None:
+            shape = [20, 20]
+
+        # Calculate voxel sizes from shape
+        extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
+        if shape is not None:
+            shape = list(shape)
+            if len(shape) != 2:
+                raise TypeError("Shape should be a list of two values "
+                                "specifying dummy image shape in the [x, y] "
+                                "directions.")
+            voxel_size = [(max(ex) - min(ex)) / shape[i] 
+                          for i, ex in enumerate(extents[:2])]
+
+        # Otherwise, calculate shape from voxel sizes
+        else:
+            voxel_size = list(voxel_size)
+            shape = [np.ceil((max(ex) - min(ex)) / voxel_size[i]) 
+                     for i, ex in enumerate(extents[:2])]
+
+        # Get z voxel size and shape
         voxel_size.append(self.get_rois()[0].get_slice_thickness_contours())
-        origin = [min(ex) + abs(voxel_size[i]) for i, ex in enumerate(extents)]
+        shape.append(self.get_rois()[0].get_nz_contours())
+        shape = [int(s) for s in shape]
+
+        # Get origin position
+        origin = [min(ex) + abs(voxel_size[i]) / 2
+                  for i, ex in enumerate(extents)]
+
+        # Create image
         return skrt.image.Image(
             np.ones(shape) * fill_val,
             voxel_size=voxel_size,
