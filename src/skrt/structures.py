@@ -92,8 +92,9 @@ class ROI(skrt.core.Archive):
         affine=None,
         voxel_size=None,
         origin=None,
-        mask_level=0.25,
+        mask_threshold=0.25,
         default_geom_method="auto",
+        overlap_level=None,
         **kwargs,
     ):
 
@@ -152,6 +153,11 @@ class ROI(skrt.core.Archive):
             Origin position in mm in order (x, y, z); used if <affine> and <image>
             are not provided.
 
+        mask_threshold : float, default=0.25
+            Used if the ROI is created from a non-boolean pixel array. Values 
+            in the array exceeding this level are taken to be inside the ROI
+            when it is converted to a boolean array.
+
         default_geom_method : str, default="auto"
             Default method for computing geometric quantities (area, centroid, etc).
             Can be any of:
@@ -163,10 +169,12 @@ class ROI(skrt.core.Archive):
                     depending on whether the input that create the ROI comprised
                     of contours or an array, respectively.
 
-        mask_level : float, default=0.25
-            Used if the ROI is created from a non-boolean pixel array. Values 
-            in the array exceeding this level are taken to be inside the ROI
-            when it is converted to a boolean array.
+        overlap_level : float, default=None
+            Used when converting an input ROI contour to a mask; required 
+            overlap of a pixel with the ROI contour in order for the 
+            pixel to be added to the mask. If None, the output of 
+            shapely.draw.polygon2mask will be returned with no border checks, 
+            which is faster than performing border checks.
 
         kwargs : dict, default=None
             Extra arguments to pass to the initialisation of the parent
@@ -201,7 +209,8 @@ class ROI(skrt.core.Archive):
         self.shape = shape
         self.affine, self.voxel_size, self.origin = \
                 skrt.image.get_geometry(affine, voxel_size, origin)
-        self.mask_level = mask_level
+        self.mask_threshold = mask_threshold
+        self.overlap_level = overlap_level
         self.contours = {}
         self.default_geom_method = default_geom_method
         self.kwargs = kwargs
@@ -253,7 +262,7 @@ class ROI(skrt.core.Archive):
             if not self.image:
                 self.image = self.source
             self.mask = skrt.image.Image(
-                self.source.get_data() > self.mask_level,
+                self.source.get_data() > self.mask_threshold,
                 affine=self.source.get_affine()
             )
             self.source_type = "mask"
@@ -452,8 +461,8 @@ class ROI(skrt.core.Archive):
 
         return points
 
-    def create_mask(self, force=False, check_borders=False, overlap_level=0.25, 
-                    voxel_size=None, shape=None):
+    def create_mask(self, force=False, overlap_level=None, voxel_size=None, 
+                    shape=None):
         """Create binary mask representation of this ROI. If the ROI was created
         from contours, these contours will be converted to a mask; if the ROI
         was created from a mask, this mask will be cast to a boolean array.
@@ -465,16 +474,13 @@ class ROI(skrt.core.Archive):
         force : bool, default=False
             If True, the mask will be recreated even if it already exists.
 
-        check_borders : bool, default=False
-            If True, border pixels will be checked for overlap with the ROI
-            contour. Otherwise, the output of shapely.draw.polygon2mask 
-            will be returned with no border checks, which is faster than
-            performing border checks.
-
         overlap_level : float, default=0.25
             Required overlap of a pixel with the ROI contour in order for the 
             pixel to be added to the mask. Only used if <check_borders> is 
-            True.
+            True. If None, the value of self.overlap_level will be used; otherwise,
+            self.overlap_level will be overwritten with this value. If both are 
+            None, the output of shapely.draw.polygon2mask will be returned 
+            with no border checks, which is faster than performing border checks.
 
         voxel_size : list, default=None
             Voxel sizes of the desired mask in the [x, y] direction. Only used if 
@@ -493,8 +499,8 @@ class ROI(skrt.core.Archive):
             return
         if not self.loaded:
             self.load()
-
-        start = time.time()
+        if overlap_level is not None:
+            self.overlap_level = overlap_level
 
         # Set image to dummy image if needed
         if (force and (shape is not None or voxel_size is not None)) \
@@ -536,11 +542,14 @@ class ROI(skrt.core.Archive):
                                              points_idx)
 
                     # Check overlap of edge pixels
-                    if check_borders:
-                        conn = ndimage.morphology.generate_binary_structure(2, 2)
-                        edge = mask ^ ndimage.morphology.binary_dilation(mask, conn)
-                        if overlap_level >= 0.5:
-                            edge += mask ^ ndimage.morphology.binary_erosion(mask, conn)
+                    if self.overlap_level is not None:
+                        conn = ndimage.morphology.generate_binary_structure(
+                            2, 2)
+                        edge = mask ^ ndimage.morphology.binary_dilation(
+                            mask, conn)
+                        if self.overlap_level >= 0.5:
+                            edge += mask ^ ndimage.morphology.binary_erosion(
+                                mask, conn)
 
                         # Check whether each edge pixel has sufficient overlap
                         for ix, iy in np.argwhere(edge):
@@ -557,7 +566,7 @@ class ROI(skrt.core.Archive):
 
                             # Compute overlap
                             overlap = polygon.intersection(pixel).area
-                            mask[ix, iy] = overlap > overlap_level
+                            mask[ix, iy] = overlap > self.overlap_level
 
                     # Add to 3D mask
                     self.mask.data[:, :, iz] += mask.T
@@ -567,8 +576,6 @@ class ROI(skrt.core.Archive):
             if not self.mask.data.dtype == "bool":
                 self.mask.data = self.mask.data.astype(bool)
             self.loaded_mask = True
-
-        #  print("made mask in time:", time.time() - start)
 
         # Set own geometric properties from mask
         self.voxel_size = self.mask.get_voxel_size()
@@ -2171,7 +2178,8 @@ class StructureSet(skrt.core.Archive):
         names=None,
         to_keep=None,
         to_remove=None,
-        multi_label=False
+        multi_label=False,
+        **kwargs
     ):
         """Load structure set from source(s)."""
 
@@ -2190,6 +2198,7 @@ class StructureSet(skrt.core.Archive):
         self.names = names
         self.multi_label = multi_label
         self.dicom_dataset = None
+        self.roi_kwargs = kwargs
 
         path = sources if isinstance(sources, str) else ""
         skrt.core.Archive.__init__(self, path)
@@ -2221,8 +2230,13 @@ class StructureSet(skrt.core.Archive):
 
             n = sources.max()
             for i in range(0, n):
-                self.rois.append(ROI(sources == i, image=self.image,
-                                    name=f"ROI_{i}", affine=self.image.affine))
+                self.rois.append(ROI(
+                    sources == i, 
+                    image=self.image,
+                    name=f"ROI_{i}", 
+                    affine=self.image.affine,
+                    **self.roi_kwargs
+                ))
             self.loaded = True
 
         elif not skrt.core.is_list(sources):
@@ -2262,6 +2276,7 @@ class StructureSet(skrt.core.Archive):
                             name=roi["name"],
                             color=roi["color"],
                             image=self.image,
+                            **self.roi_kwargs
                         )
                     )
                     self.rois[-1].dicom_dataset = ds
@@ -2270,7 +2285,11 @@ class StructureSet(skrt.core.Archive):
             # Load from ROI mask
             else:
                 try:
-                    self.rois.append(ROI(source, image=self.image))
+                    self.rois.append(ROI(
+                        source, 
+                        image=self.image,
+                        **self.roi_kwargs
+                    ))
                 except RuntimeError:
                     continue
 
@@ -2433,7 +2452,9 @@ class StructureSet(skrt.core.Archive):
         if isinstance(source, ROI):
             roi = source
         else:
-            roi = ROI(source, **kwargs)
+            roi_kwargs = self.roi_kwargs.copy()
+            roi_kwargs.update(kwargs)
+            roi = ROI(source, **roi_kwargs)
         roi.structure_set = self
         self.rois.append(roi)
 
@@ -2946,12 +2967,14 @@ class StructureSet(skrt.core.Archive):
         mask = probs > 0.95
 
         # Create staple ROI
+        roi_kwargs = self.roi_kwargs.copy()
+        roi_kwargs.update(kwargs)
         staple = ROI(
             mask, 
             name="staple", 
             image=self.image,
             affine=self.rois[0].saffine,
-            **kwargs
+            **roi_kwargs
         )
 
         # Return staple ROI

@@ -193,7 +193,7 @@ def test_dicom_dataset():
     pass
 
 def test_roi_from_image_threshold():
-    roi = ROI(sim, mask_level=5)  
+    roi = ROI(sim, mask_threshold=5)  
     assert roi.get_area() == sim.get_roi("sphere").get_area()
 
 def test_roi_no_image_with_geom():
@@ -303,5 +303,25 @@ def test_forced_mask_recreation():
     roi2.create_mask(force=True, voxel_size=(vx, vy))
     assert roi2.mask.get_voxel_size()[0] == vx
     assert roi2.mask.get_voxel_size()[1] == vy
+
+def test_overlap_level():
+    """Create mask from contours using different overlap requirements."""
+
+    # First set tight overlap level in __init__
+    roi = ROI(sim.get_roi("sphere").get_contours(), overlap_level=1)
+    roi.create_mask()
+
+    # Mask area should be smaller than contour area with this requirement
+    assert roi.get_area(method="mask") < roi.get_area(method="contour")
+
+    # Force mask recreation with overlap_level set in create_mask()
+    level = 0.1
+    prev_mask = roi.get_mask()
+    roi.create_mask(force=True, overlap_level=level)
+    assert not np.all(roi.get_mask() == prev_mask)
+    assert roi.overlap_level == level
+
+    # Mask area should be larger than contour area with loose overlap
+    assert roi.get_area(method="mask") > roi.get_area(method="contour")
                                   
 
