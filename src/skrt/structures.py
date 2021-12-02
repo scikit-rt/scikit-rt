@@ -1724,6 +1724,11 @@ class ROI(skrt.core.Archive):
                 **kwargs,
             )
 
+        # Check whether y axis needs to be inverted
+        if not include_image and view == "x-y" \
+           and plot_type in ["contour", "centroid"]:
+            self.ax.invert_yaxis()
+
         plt.tight_layout()
         if show:
             plt.show()
@@ -1788,7 +1793,7 @@ class ROI(skrt.core.Archive):
 
         # Create image
         return skrt.image.Image(
-            np.ones(shape) * fill_val,
+            np.ones((shape[1], shape[0], shape[2])) * fill_val,
             voxel_size=voxel_size,
             origin=origin
         )
@@ -1831,7 +1836,8 @@ class ROI(skrt.core.Archive):
         self.mask = None
 
         # Set geoemtric info
-        self.shape = self.image.get_data().shape
+        data_shape = self.image.get_data().shape
+        self.shape = [data_shape[1], data_shape[0], data_shape[2]]
         self.voxel_size = self.image.get_voxel_size()
         self.origin = self.image.get_origin()
         self.affine = self.image.get_affine()
@@ -1985,10 +1991,6 @@ class ROI(skrt.core.Archive):
             points_x.append(points_x[0])
             points_y.append(points_y[0])
             self.ax.plot(points_x, points_y, **contour_kwargs)
-
-        # Check whether y axis needs to be inverted
-        if not include_image and view == "x-y":
-            self.ax.invert_yaxis()
 
         # Plot centroid point
         if centroid:

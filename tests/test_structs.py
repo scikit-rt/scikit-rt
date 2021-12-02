@@ -274,15 +274,21 @@ def test_dummy_image():
     ny = [30, 150]
     for x, y in zip(nx, ny):
         roi2.set_image_to_dummy(shape=(x, y))
-        assert roi2.image.get_data().shape[0] == x
-        assert roi2.image.get_data().shape[1] == y
+        assert roi2.image.get_data().shape[1] == x
+        assert roi2.image.get_data().shape[0] == y
 
 def test_dummy_image_from_voxel_size():
     """Test setting an ROI's image to a dummy image with given voxel sizes."""
-    pass
+    
+    vx = 1.5
+    vy = 1
+    roi2 = cube.clone()
+    roi2.set_image_to_dummy(voxel_size=(vx, vy))
+    assert roi2.image.voxel_size[0] == vx
+    assert roi2.image.voxel_size[1] == vy
 
 def test_forced_mask_recreation():
-    """Recreate a contour ROI's mask with a given shape."""
+    """Recreate a contour ROI's mask with a given shape or voxel size."""
 
     roi2 = ROI(cube.get_contours("x-y"))
     nx = [20, 200]
@@ -291,5 +297,11 @@ def test_forced_mask_recreation():
         roi2.create_mask(force=True, shape=(x, y))
         assert roi2.get_mask().shape[1] == x
         assert roi2.get_mask().shape[0] == y
+
+    vx = 1.5
+    vy = 1
+    roi2.create_mask(force=True, voxel_size=(vx, vy))
+    assert roi2.mask.get_voxel_size()[0] == vx
+    assert roi2.mask.get_voxel_size()[1] == vy
                                   
 
