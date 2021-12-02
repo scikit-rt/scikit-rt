@@ -646,9 +646,7 @@ class Image(skrt.core.Archive):
         """Add a structure set."""
 
         self.structure_sets.append(structure_set)
-        for roi in structure_set.get_rois():
-            if roi.image is None:
-                roi.image = self
+        structure_set.set_image(self)
 
     def clear_structure_sets(self):
         """Clear all structure sets."""

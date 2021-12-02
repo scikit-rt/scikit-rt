@@ -344,7 +344,8 @@ class Study(skrt.core.Archive):
                 structure_set = StructureSet(
                     file.path, 
                     image=image,
-                    name=os.path.basename(file.path).replace('.dcm', '')
+                    name=None,
+                    load=False
                 )
 
                 # Add to Image

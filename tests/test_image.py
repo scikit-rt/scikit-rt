@@ -1,4 +1,4 @@
-"""Test prototype image class."""
+"""Test Image class."""
 
 import os
 import numpy as np
