@@ -260,7 +260,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_image_centre()
+            centre = self.get_centre()
         sphere = Sphere(self.shape, radius, centre, intensity, name)
         self.add_shape(sphere, "sphere", is_roi, above, group)
 
@@ -278,7 +278,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_image_centre()
+            centre = self.get_centre()
         cylinder = Cylinder(self.shape, radius, length, axis, centre, intensity, name)
         self.add_shape(cylinder, "cylinder", is_roi, above, group)
 
@@ -309,7 +309,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_image_centre()
+            centre = self.get_centre()
         side_length = skrt.core.to_list(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
@@ -353,7 +353,7 @@ class SyntheticImage(Image):
                         get_translation_matrix(*[-d for d in self.translation])
                     )
                 if self.rotation:
-                    centre = self.get_image_centre()
+                    centre = self.get_centre()
                     transform = transform.dot(
                         get_rotation_matrix(*[-r for r in self.rotation], centre)
                     )

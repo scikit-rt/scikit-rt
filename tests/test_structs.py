@@ -23,8 +23,7 @@ sim = SyntheticImage((100, 100, 40))
 sim.add_cube(side_length=40, name="cube", intensity=1)
 sim.add_sphere(radius=20, name="sphere", intensity=10)
 structure_set = sim.get_structure_set()
-roi = structure_set.get_roi("cube")
-
+cube = structure_set.get_roi("cube")
 
 def test_structure_set_from_sythetic_image():
     assert isinstance(structure_set, StructureSet)
@@ -51,11 +50,12 @@ def test_get_dict():
     assert set(sdict.keys()) == set(["cube", "sphere"])
 
 def test_get_roi():
-    assert isinstance(roi, ROI)
-    assert roi.name == "cube"
+    assert isinstance(cube, ROI)
+    assert cube.name == "cube"
 
 def test_structure_set_from_rois():
     """Test creation of structure set from ROIs."""
+
     structure_set2 = StructureSet(structure_set.get_rois())
     assert isinstance(structure_set2, StructureSet)
     sdict1 = structure_set.get_roi_dict()
@@ -145,6 +145,18 @@ def test_read_nii():
     assert set(structure_set.get_roi_names()) \
             == set(structs_from_nii.get_roi_names())
 
+def test_plot_contour():
+    cube.plot(plot_type="contour", show=False)
+
+def test_plot_centroid():
+    cube.plot(plot_type="centroid", show=False)
+
+def test_plot_mask():
+    cube.plot(plot_type="mask", show=False)
+
+def test_plot_filled():
+    cube.plot(plot_type="filled", show=False)
+
 def test_get_geometry():
     geom = structure_set.get_geometry()
     assert isinstance(geom, pd.DataFrame)
@@ -188,24 +200,24 @@ def test_roi_no_image_with_geom():
     """Check that an ROI object can be created from contours only plus 
     geometric info."""
 
-    new_roi = ROI(roi.get_contours(),
-                  origin=roi.get_origin(),
-                  voxel_size=roi.get_voxel_size(),
-                  shape=roi.get_mask().shape
+    new_roi = ROI(cube.get_contours(),
+                  origin=cube.get_origin(),
+                  voxel_size=cube.get_voxel_size(),
+                  shape=cube.get_mask().shape
                  )
-    assert np.all(new_roi.get_mask() == roi.get_mask())
+    assert np.all(new_roi.get_mask() == cube.get_mask())
 
 def test_roi_from_polygons():
     """Check that an ROI object can be created from shapely polygons."""
 
-    new_roi = ROI(roi.get_polygons(),
-                  origin=roi.get_origin(),
-                  voxel_size=roi.get_voxel_size(),
-                  shape=roi.get_mask().shape
+    new_roi = ROI(cube.get_polygons(),
+                  origin=cube.get_origin(),
+                  voxel_size=cube.get_voxel_size(),
+                  shape=cube.get_mask().shape
                  )
-    assert np.all(new_roi.get_mask() == roi.get_mask())
+    assert np.all(new_roi.get_mask() == cube.get_mask())
 
-    df = StructureSet(new_roi).get_comparison(StructureSet(roi))
+    df = StructureSet(new_roi).get_comparison(StructureSet(cube))
     # Dice score may not be exactly 1 because of rounding errors
     assert df['Dice score'][0] == pytest.approx(1.0, abs=1.e-3)
 
@@ -223,7 +235,7 @@ def test_null_roi():
     assert(roi.loaded_mask is False)
     assert(roi.origin is None)
     assert(roi.original_name is None)
-    assert(roi.roi_source_type is None)
+    assert(roi.source_type is None)
     assert(roi.shape is None)
     assert(roi.source is None)
     assert(roi.title is None)
@@ -253,3 +265,25 @@ def test_contour_to_polygon():
     assert 'self-intersection' in explain_validity(p1).lower()
     p2 = contour_to_polygon(contour)
     assert 'self-intersection' not in explain_validity(p2).lower()
+
+def test_dummy_image():
+    """Test setting an ROI's image to a dummy image with a given shape."""
+
+    #  roi2 = cube.clone()
+    #  nx = [20, 200]
+    #  ny = [30, 150]
+    #  for x, y in zip(nx, ny):
+        #  roi2.set_image_to_dummy(shape=(x, y))
+        #  assert roi2.image.get_data().shape[0] == x
+        #  assert roi2.image.get_data().shape[1] == y
+
+def test_dummy_image_from_voxel_size():
+    """Test setting an ROI's image to a dummy image with given voxel sizes."""
+    pass
+
+def test_forced_mask_recreation():
+    """Recreate a contour ROI's mask with a given shape."""
+
+    roi2 = ROI(cube.get_contours("x-y"))
+                                  
+

@@ -1573,7 +1573,7 @@ class SingleViewer:
             image = im
         else:
             image = Image(im, *args, **kwargs)
-        image.load_data()
+        image.load()
         return image
 
     def make_rois(self, rois):
@@ -1749,7 +1749,7 @@ class SingleViewer:
                 # Get initial zoom centres
                 zoom_centre = self.zoom_centre if is_list(self.zoom_centre) \
                         else [self.zoom_centre for i in range(3)]
-                im_centre = list(self.im.get_image_centre())
+                im_centre = list(self.im.get_centre())
                 self.default_centre = {
                     view: [im_centre[ax[0]], im_centre[ax[1]]]
                     for view, ax in _plot_axes.items()
@@ -2235,7 +2235,7 @@ class SingleViewer:
             self.im.fig.canvas.draw_idle()
             self.im.fig.canvas.flush_events()
 
-    def plot_image(self, im, **kwargs):
+    def plot_image(self, im, view, **kwargs):
         '''Plot an Image, reusing existing axes if outside a Jupyter
         notebook.'''
 
@@ -2246,7 +2246,14 @@ class SingleViewer:
             ax.clear()
 
         # Plot image
-        im.plot(ax=ax, **kwargs)
+        im.plot(ax=ax, view=view, **kwargs)
+
+        # Check y axis points in correct direction
+        if hasattr(im, "plot_extent"):
+            if not (im.plot_extent[view][3] > im.plot_extent[view][2]) == (
+                im.ax.get_ylim()[1] > im.ax.get_ylim()[0]
+            ):
+                im.ax.invert_yaxis()
 
     def save_fig(self, _=None):
         '''Save figure to a file.'''

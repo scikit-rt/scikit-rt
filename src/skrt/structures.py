@@ -8,6 +8,7 @@ import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from matplotlib import defaultParams
 import numpy as np
 import os
 import pandas as pd
@@ -77,7 +78,7 @@ class ROIDefaults:
 ROIDefaults()
 
 
-class ROI(skrt.image.Image):
+class ROI(skrt.core.Archive):
     """Single region of interest (ROI)."""
 
     def __init__(
@@ -193,19 +194,20 @@ class ROI(skrt.image.Image):
         # Assign other properties
         self.custom_color = color is not None
         self.set_color(color)
+        self.mask = None
         self.image = image
         if image and not isinstance(image, skrt.image.Image):
             self.image = skrt.image.Image(image)
         self.shape = shape
-        self.affine = affine
-        self.voxel_size = voxel_size
-        self.origin = origin
+        self.affine, self.voxel_size, self.origin = \
+                skrt.image.get_geometry(affine, voxel_size, origin)
         self.mask_level = mask_level
         self.contours = {}
         self.default_geom_method = default_geom_method
         self.kwargs = kwargs
-        self.roi_source_type = None
+        self.source_type = None
         self.dicom_dataset = None
+        self.contours_only = False
 
         # Create name
         self.name = name
@@ -227,6 +229,10 @@ class ROI(skrt.image.Image):
         if load:
             self.load()
 
+        # Initialise as skrt.core.Archive object
+        path = self.source if isinstance(self.source, str) else ""
+        skrt.core.Archive.__init__(self, path)
+
     def load(self, force=False):
         """Load ROI from file or source."""
 
@@ -234,7 +240,7 @@ class ROI(skrt.image.Image):
             return
 
         if self.image:
-            self.image.load_data()
+            self.image.load()
             self.shape = self.image.get_data().shape
             self.affine = self.image.get_affine()
             self.voxel_size = self.image.get_voxel_size()
@@ -246,10 +252,11 @@ class ROI(skrt.image.Image):
         if issubclass(type(self.source), skrt.image.Image):
             if not self.image:
                 self.image = self.source
-            skrt.image.Image.__init__(self, 
-                                      self.source.get_data() > self.mask_level,
-                                      affine=self.source.get_affine())
-            self.roi_source_type = "mask"
+            self.mask = skrt.image.Image(
+                self.source.get_data() > self.mask_level,
+                affine=self.source.get_affine()
+            )
+            self.source_type = "mask"
             self.loaded = True
             self.create_mask()
 
@@ -258,16 +265,6 @@ class ROI(skrt.image.Image):
 
             rois, ds = load_rois_dicom(self.source, names=self.name)
             if len(rois):
-
-                # Check a shape or image was given
-                if self.shape is None and self.image is None:
-                    raise RuntimeError(
-                        "Must provide an associated image or "
-                        "image shape if loading an ROI "
-                        "from dicom!"
-                    )
-
-                # Get ROI info
                 roi = rois[list(rois.keys())[0]]
                 self.name = roi["name"]
                 self.input_contours = roi["contours"]
@@ -277,11 +274,15 @@ class ROI(skrt.image.Image):
 
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
-            skrt.image.Image.__init__(self, self.source, affine=self.affine, 
-                                      voxel_size=self.voxel_size, 
-                                      origin=self.origin, **self.kwargs)
+            self.mask = skrt.image.Image(
+                self.source, 
+                affine=self.affine, 
+                voxel_size=self.voxel_size, 
+                origin=self.origin, 
+                **self.kwargs
+            )
             self.loaded = True
-            self.roi_source_type = "mask"
+            self.source_type = "mask"
             self.create_mask()
 
         # Deal with input from dicom
@@ -290,15 +291,17 @@ class ROI(skrt.image.Image):
             # Create Image object
             if self.image is not None:
                 self.shape = self.image.data.shape
-                skrt.image.Image.__init__(self, np.zeros(self.shape), 
-                                          affine=self.image.get_affine(), 
-                                          **self.kwargs)
+                self.mask = skrt.image.Image(
+                    np.zeros(self.shape), 
+                    affine=self.image.get_affine(), 
+                    **self.kwargs
+                )
 
             # Set x-y contours with z positions as keys
             self.contours["x-y"] = {}
             for z, contours in self.input_contours.items():
                 self.contours["x-y"][z] = [contour[:, :2] for contour in contours]
-            self.roi_source_type = "contour"
+            self.source_type = "contour"
             self.loaded = True
 
         # Store flag for cases with no associated image or geometric info
@@ -307,13 +310,22 @@ class ROI(skrt.image.Image):
             self.affine is not None or (
                 self.voxel_size is not None and self.origin is not None
             ))
-        self.contours_only = self.roi_source_type == "contour" \
+        self.contours_only = self.source_type == "contour" \
                 and not has_image and not has_geom
         if self.default_geom_method == "auto":
-            self.default_geom_method = self.roi_source_type
+            self.default_geom_method = self.source_type
+
+    def clone(self, copy_data=True):
+        """Clone self, ensuring that own mask's data gets correctly copied if
+        <copy_data> is True."""
+
+        clone = skrt.core.Data.clone(self, copy_data=copy_data)
+        if copy_data and self.mask is not None:
+            clone.mask = self.mask.clone(copy_data=True)
+        return clone
 
     def get_dicom_dataset(self):
-        """Return pydicom.dataset.FileDataset object associated with this Image,
+        """Return pydicom.dataset.FileDataset object associated with this ROI
         if loaded from dicom; otherwise, return None."""
 
         self.load()
@@ -345,15 +357,33 @@ class ROI(skrt.image.Image):
         except KeyError:
             return []
 
+    def get_affine(self):
+        """Load self and get affine matrix."""
+
+        self.load()
+        return self.affine
+
+    def get_voxel_size(self):
+        """Load self and get voxel_size."""
+
+        self.load()
+        return self.voxel_size
+
+    def get_origin(self):
+        """Load self and get origin."""
+
+        self.load()
+        return self.origin
+
     def get_mask(self, view="x-y", flatten=False):
         """Get binary mask."""
 
         self.load()
         self.create_mask()
         if not flatten:
-            return self.data
+            return self.mask.data
         return np.sum(
-            self.get_standardised_data(), axis=skrt.image._slice_axes[view]
+            self.mask.get_standardised_data(), axis=skrt.image._slice_axes[view]
         ).astype(bool)
 
     def get_polygons(self, view="x-y", idx_as_key=False):
@@ -389,7 +419,7 @@ class ROI(skrt.image.Image):
 
             # Make new contours from mask
             self.contours[view] = {}
-            for iz in range(self.n_voxels[z_ax]):
+            for iz in range(self.mask.n_voxels[z_ax]):
 
                 # Get slice of mask array
                 mask_slice = self.get_slice(view, idx=iz).T
@@ -422,38 +452,67 @@ class ROI(skrt.image.Image):
 
         return points
 
-    def create_mask(self, force=False, overlap_level=0.25, 
-                    image_shape_xy=(50, 50)):
-        """Create binary mask."""
+    def create_mask(self, force=False, check_borders=True, overlap_level=0.25, 
+                    shape=None, voxel_size=None):
+        """Create binary mask representation of this ROI. If the ROI was created
+        from contours, these contours will be converted to a mask; if the ROI
+        was created from a mask, this mask will be cast to a boolean array.
+        If a mask has already been created, that mask will be returned unless
+        force=True.
+
+        Parameters
+        ----------
+        force : bool, default=False
+            If True, the mask will be recreated even if it already exists.
+
+        check_borders : bool, default=True
+            If True, border pixels will be checked for overlap with the ROI
+            contour. Otherwise, the output of shapely.draw.polygon2mask 
+            will be returned with no border checks, which is faster than
+            performing border checks.
+
+        overlap_level : float, default=0.25
+            Required overlap of a pixel with the ROI contour in order for the 
+            pixel to be added to the mask. Only used if <check_borders> is 
+            True.
+
+        shape : list, default=None
+            Shape of the desired mask in the [x, y] direction. Only used if 
+            the ROI was created from contours; ignored if ROI was created from
+            mask. Causes self.image to be replaced with a blank dummy image
+            of this shape.
+
+        voxel_size : list, default=None
+            Voxel sizes of the desired mask in the [x, y] direction. Only used if 
+            <shape> is None and the ROI was created from contours; ignored if 
+            ROI was created from mask. Causes self.image to be replaced with a 
+            blank dummy image with these voxel sizes.
+        """
 
         if self.loaded_mask and not force:
             return
         if not self.loaded:
             self.load()
 
-        if force and hasattr(self, "data"):
-            self.data[:, :, :] = 0
+        start = time.time()
 
-        # Create mask from x-y contours if needed
+        # Set image to dummy image if needed
+        if (force and (shape is not None or voxel_size is not None)) \
+           or (self.contours_only and self.image is None):
+            self.set_image_to_dummy(shape=shape, voxel_size=voxel_size)
+
+        # Create mask from input x-y contours 
         if self.input_contours:
 
-            # Check an image or shape was given
-            # Make dummy image
-            if self.contours_only:
-                self.image = self.get_dummy_image(shape=image_shape_xy)
-                self.shape = self.image.get_data().shape
-                skrt.image.Image.__init__(self, np.zeros(self.shape),
-                                          affine=self.image.get_affine())
-
-            if self.image is None:
-                skrt.image.Image.__init__(self, np.zeros(self.shape), 
-                                          affine=self.affine, 
-                                          voxel_size=self.voxel_size,
-                                          origin=self.origin,
-                                          **self.kwargs)
+            # Initialise self.mask as image
+            self.mask = skrt.image.Image(
+                np.zeros(self.shape),
+                affine=self.affine, 
+                voxel_size=self.voxel_size,
+                origin=self.origin
+            )
 
             # Create mask on each z layer
-            data_sum = 0
             for z, contours in self.input_contours.items():
 
                 # Loop over each contour on the z slice
@@ -472,7 +531,8 @@ class ROI(skrt.image.Image):
                     polygon = contour_to_polygon(points_idx)
 
                     # Get mask of all pixels inside contour
-                    mask = draw.polygon2mask(self.data.shape[:2], points_idx)
+                    mask = draw.polygon2mask(self.mask.data.shape[:2], 
+                                             points_idx)
 
                     # Get edge pixels
                     conn = ndimage.morphology.generate_binary_structure(2, 2)
@@ -498,17 +558,21 @@ class ROI(skrt.image.Image):
                         mask[ix, iy] = overlap > overlap_level
 
                     # Add to 3D mask
-                    self.data[:, :, iz] += mask.T
-                    data_sum = self.data.sum()
+                    self.mask.data[:, :, iz] += mask.T
 
         # Convert to boolean mask
-        if hasattr(self, "data"):
-            if not self.data.dtype == "bool":
-                self.data = self.data.astype(bool)
+        if hasattr(self.mask, "data"):
+            if not self.mask.data.dtype == "bool":
+                self.mask.data = self.mask.data.astype(bool)
             self.loaded_mask = True
 
-        # Set geometric properties
-        self.set_geometry()
+        #  print("made mask in time:", time.time() - start)
+
+        # Set own geometric properties from mask
+        self.voxel_size = self.mask.get_voxel_size()
+        self.origin = self.mask.get_origin()
+        self.affine = self.mask.get_affine()
+        self.shape = self.mask.get_data().shape
 
     def is_empty(self):
         """Check whether this ROI is empty."""
@@ -517,23 +581,26 @@ class ROI(skrt.image.Image):
         if self.default_geom_method == "contour":
             return not bool(len(self.get_contours("x-y")))
         else:
-            return not np.any(self.get_data())
+            return not np.any(self.get_mask())
 
     def resample(self, *args, **kwargs):
         self.create_mask()
-        skrt.image.Image.resample(self, *args, **kwargs)
+        self.mask.resample(*args, **kwargs)
 
     def match_voxel_size(self, other, *args, **kwargs):
 
         if isinstance(other, ROI):
             other.create_mask()
+            mask = other.mask
+        else:
+            mask = other
         self.create_mask()
-        skrt.image.Image.match_voxel_size(self, other, *args, **kwargs)
+        self.mask.match_voxel_size(mask, *args, **kwargs)
 
     def get_slice(self, *args, **kwargs):
 
         self.create_mask()
-        return skrt.image.Image.get_slice(self, *args, **kwargs).astype(bool)
+        return self.mask.get_slice(*args, **kwargs).astype(bool)
 
     def get_indices(self, view="x-y", method=None):
         """Get list of slice indices on which this ROI exists."""
@@ -560,31 +627,55 @@ class ROI(skrt.image.Image):
         """Convert an array index to a position in mm along a given axis."""
 
         self.load()
+
         if self.contours_only:
+
+            # Use self.image's conversion function
             if self.image is not None:
                 return self.image.idx_to_pos(idx, ax)
+
+            # Otherwise count number of z slices in contours dict
             elif ax in ["z", 2]:
                 conversion = {i: p for i, p in 
                               enumerate(self.get_contours("x-y").keys())}
                 return conversion[idx]
+
+            # Otherwise, not possible to convert x/y points to indices
+            # from contours alone
             else:
                 print("Warning: cannot convert index to position in the x/y "
                       "directions without associated image geometry!")
                 return
+
+        # Otherwise, try to use mask or image's conversion
+        elif self.mask is not None:
+            return self.mask.idx_to_pos(idx, ax)
+        elif self.image is not None:
+            return self.image.idx_to_pos(idx, ax)
+
+        # Else, try to calculate from own geomtric properties
         else:
-            return skrt.image.Image.idx_to_pos(self, idx, ax)
+            i_ax = skrt.image._axes.index(ax) if ax in _axes else ax
+            return self.origin[i_ax] + idx * self.voxel_size[i_ax]
 
     def pos_to_idx(self, pos, ax, return_int=True):
         """Convert a position in mm to an array index along a given axis."""
 
         self.load()
         if self.contours_only:
+
+            # Use self.image's conversion function
             if self.image is not None:
                 return self.image.pos_to_idx(pos, ax, return_int)
+
+            # Otherwise count number of z slices in contours dict
             elif ax in ["z", 2]:
                 conversion = {p: i for i, p in 
                               enumerate(self.get_contours("x-y").keys())}
                 idx = conversion[pos]
+
+            # Otherwise, not possible to convert x/y points to indices
+            # from contours alone
             else:
                 print("Warning: cannot convert position to index in the x/y "
                       "directions without associated image geometry!")
@@ -593,8 +684,76 @@ class ROI(skrt.image.Image):
                 return round(idx)
             else:
                 return idx
+
+        # Otherwise, try to use mask or image's conversion
+        elif self.mask is not None:
+            return self.mask.pos_to_idx(pos, ax, return_int)
+        elif self.image is not None:
+            return self.image.idx_to_pos(pos, ax, return_int)
+
+        # Else, try to calculate from own geomtric properties
         else:
-            return skrt.image.Image.pos_to_idx(self, pos, ax, return_int)
+            i_ax = skrt.image._axes.index(ax) if ax in _axes else ax
+            idx = (pos - self.origin[i_ax]) / self.voxel_size[i_ax]
+            if return_int:
+                return round(idx)
+            else:
+                return idx
+
+    def idx_to_slice(self, idx, ax):
+        """Convert an array index to a slice number along a given axis."""
+
+        self.load()
+        if self.contours_only or (self.mask is None and self.image is None):
+
+            # Count number of z slices in contours dict
+            if ax in ["z", 2]:
+                nz = self.get_nz_contours()
+                return nz - idx
+            else:
+                return idx + 1
+
+        # Try to use mask or image's conversion
+        elif self.mask is not None:
+            return self.mask.idx_to_slice(idx, ax)
+        else:
+            return self.image.idx_to_slice(idx, ax)
+
+    def slice_to_idx(self, sl, ax):
+        """Convert a slice number to an array index."""
+
+        self.load()
+        if self.contours_only or (self.mask is None and self.image is None):
+
+            # Count number of z slices in contours dict
+            if ax in ["z", 2]:
+                nz = self.get_nz_contours()
+                return nz - sl
+            else:
+                return sl - 1
+
+        # Try to use mask or image's conversion
+        elif self.mask is not None:
+            return self.mask.slice_to_idx(sl, ax)
+        else:
+            return self.image.slice_to_idx(sl, ax)
+
+
+    def pos_to_slice(self, pos, ax, return_int=True, standardise=True):
+        """Convert a position in mm to a slice number along a given axis."""
+
+        return skrt.image.Image.pos_to_slice(self, pos, ax, return_int)
+
+    def slice_to_pos(self, sl, ax):
+        """Convert a slice number to a position in mm along a given axis."""
+
+        return skrt.image.Image.slice_to_pos(self, sl, ax)
+
+    def get_idx(self, view, sl=None, idx=None, pos=None):
+        """Get an array index from either a slice number, index, or
+        position."""
+
+        return skrt.image.Image.get_idx(self, view, sl=sl, idx=idx, pos=pos)
 
     def on_slice(self, view, sl=None, idx=None, pos=None):
         """Check whether this ROI exists on a given slice."""
@@ -697,7 +856,7 @@ class ROI(skrt.image.Image):
                 data = self.get_mask(view, flatten=True)
             else:
                 self.create_mask()
-                data = self.get_data(standardise)
+                data = self.mask.get_data(standardise)
             axes = skrt.image._axes
 
         # Compute centroid from 2D or 3D binary mask
@@ -722,6 +881,13 @@ class ROI(skrt.image.Image):
         z_keys = sorted(contours.keys())
         diffs = [z_keys[i] - z_keys[i - 1] for i in range(1, len(z_keys))]
         return min(diffs)
+
+    def get_nz_contours(self):
+        """Get number of voxels in the z direction using positions of contours."""
+
+        vz = self.get_slice_thickness_contours()
+        z_keys = list(self.get_contours("x-y").keys())
+        return int((max(z_keys) - min(z_keys)) / vz) + 1
 
     def get_centre(
         self, 
@@ -769,7 +935,7 @@ class ROI(skrt.image.Image):
 
         # Otherwise, calculate from number of voxels in mask
         self.create_mask()
-        volume = self.data.astype(bool).sum()
+        volume = self.mask.data.astype(bool).sum()
         if units in ["mm", "ml"]:
             volume *= abs(np.prod(self.get_voxel_size()))
             if units == "ml":
@@ -862,7 +1028,7 @@ class ROI(skrt.image.Image):
         if i_ax != 2:  # Transpose x-y axes
             i_ax = 1 - i_ax
         if not single_slice:
-            nonzero = np.argwhere(self.get_data(standardise=True))
+            nonzero = np.argwhere(self.mask.get_data(standardise=True))
         else:
             nonzero = np.argwhere(self.get_slice(
                 view, sl=sl, idx=idx, pos=pos))
@@ -1465,6 +1631,9 @@ class ROI(skrt.image.Image):
         sl=None,
         idx=None,
         pos=None,
+        ax=None,
+        gs=None,
+        figsize=skrt.image._default_figsize,
         opacity=None,
         linewidth=None,
         contour_kwargs=None,
@@ -1474,6 +1643,7 @@ class ROI(skrt.image.Image):
         color=None,
         show=True,
         save_as=None,
+        include_image=False,
         **kwargs,
     ):
         """Plot this ROI as either a mask or a contour."""
@@ -1484,10 +1654,15 @@ class ROI(skrt.image.Image):
         if color is None:
             color = self.color
 
+        # Set up axes
+        self.set_ax(plot_type, include_image, view, ax, gs, figsize)
+
         # Adjust centroid marker size
         if contour_kwargs is None:
             contour_kwargs = {}
         if "centroid" in plot_type:
+            if linewidth is None:
+                linewidth = defaultParams["lines.linewidth"][0]
             contour_kwargs.setdefault("markersize", 7 * np.sqrt(linewidth))
             contour_kwargs.setdefault("markeredgewidth", np.sqrt(linewidth))
 
@@ -1502,7 +1677,8 @@ class ROI(skrt.image.Image):
                 opacity,
                 zoom=zoom,
                 zoom_centre=zoom_centre,
-                show=show,
+                show=False,
+                include_image=include_image,
                 **kwargs,
             )
 
@@ -1519,7 +1695,8 @@ class ROI(skrt.image.Image):
                 zoom=zoom,
                 zoom_centre=zoom_centre,
                 color=color,
-                show=show,
+                show=False,
+                include_image=include_image,
                 **kwargs,
             )
 
@@ -1530,7 +1707,6 @@ class ROI(skrt.image.Image):
             self._plot_mask(view, sl, idx, pos, mask_kwargs, opacity, 
                            show=False, **kwargs)
             kwargs["ax"] = self.ax
-            kwargs["include_image"] = False
             self._plot_contour(
                 view,
                 sl,
@@ -1542,35 +1718,122 @@ class ROI(skrt.image.Image):
                 zoom=zoom,
                 zoom_centre=zoom_centre,
                 color=color,
-                show=show,
+                show=False,
+                include_image=False,
                 **kwargs,
             )
 
-        else:
-            print("Unrecognised ROI plotting option:", plot_type)
+        plt.tight_layout()
+        if show:
+            plt.show()
 
         # Save to file
         if save_as:
-            plt.tight_layout()
             self.fig.savefig(save_as)
             plt.close()
 
-    def get_dummy_image(self, shape=(20, 20), fill_val=0):
-        """Make a dummy image for an ROI with no underlying image or mask."""
+    def get_dummy_image(self, shape=None, voxel_size=None, fill_val=1e4):
+        """Make a dummy image that covers the area spanned by this ROI. 
+        Returns an Image object.
 
-        if len(shape) == 2:
-            shape = list(shape) + [len(self.get_contours("x-y"))]
+        Parameters
+        ----------
+        shape : list, default=None
+            Number of voxels in the dummy image in the x-y plane, given as
+            [nx, ny]. If <shape> and <voxel_size> are both None, a shape of
+            [20, 20] will be used by default. The number of voxels in the z
+            direction will be taken from the number of slices in the x-y
+            contours dictionary.
+
+        voxel_size : list, default=None
+            Voxel size in mm in the dummy image in the x-y plane, given as 
+            [vx, vy]. Only used if <shape> is None. The voxel size in the z 
+            direction will be taken from the minimum distance between slice 
+            positions in the x-y contours dictionary.
+
+        fill_val : int/float, default=1e4
+            Value with which the voxels in the dummy image should be filled. 
+        """
+
+        # Assign default shape
+        if shape is None and voxel_size is None:
+            shape = [20, 20]
+
+        # Calculate voxel sizes from shape
         extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
-        voxel_size = [(max(ex) - min(ex)) / shape[i] 
-                      for i, ex in enumerate(extents[:2])]
+        if shape is not None:
+            shape = list(shape)
+            if len(shape) != 2:
+                raise TypeError("Shape should be a list of two values "
+                                "specifying dummy image shape in the [x, y] "
+                                "directions.")
+            voxel_size = [(max(ex) - min(ex)) / shape[i] 
+                          for i, ex in enumerate(extents[:2])]
+
+        # Otherwise, calculate shape from voxel sizes
+        else:
+            voxel_size = list(voxel_size)
+            shape = [np.ceil((max(ex) - min(ex)) / voxel_size[i]) 
+                     for i, ex in enumerate(extents[:2])]
+
+        # Get z voxel size and shape
         voxel_size.append(self.get_slice_thickness_contours())
+        shape.append(self.get_nz_contours())
+        shape = [int(s) for s in shape]
+
+        # Get origin position
         origin = [min(ex) + abs(voxel_size[i]) / 2
                   for i, ex in enumerate(extents)]
+
+        # Create image
         return skrt.image.Image(
             np.ones(shape) * fill_val,
             voxel_size=voxel_size,
             origin=origin
         )
+
+    def set_image_to_dummy(self, shape=None, voxel_size=None,
+                           fill_val=1e4):
+        """Assign self.image property to a dummy image covering the area 
+        spanned by this ROI. The ROI's mask and x-z/y-z contours will be 
+        cleared so that they will be recreated when get_mask() or get_contours()
+        are next called.
+
+        Parameters
+        ----------
+        shape : list, default=None
+            Number of voxels in the dummy image in the x-y plane, given as
+            [nx, ny]. If <shape> and <voxel_size> are both None, a shape of
+            [20, 20] will be used by default. The number of voxels in the z
+            direction will be taken from the number of slices in the x-y
+            contours dictionary.
+
+        voxel_size : list, default=None
+            Voxel size in mm in the dummy image in the x-y plane, given as 
+            [vx, vy]. Only used if <shape> is None. The voxel size in the z 
+            direction will be taken from the minimum distance between slice 
+            positions in the x-y contours dictionary.
+
+        fill_val : int/float, default=1e4
+            Value with which the voxels in the dummy image should be filled. 
+        """
+
+        # Assign image
+        self.image = self.get_dummy_image(shape=shape, voxel_size=voxel_size,
+                                          fill_val=fill_val)
+
+        # Clear mask and contours
+        self.input_contours = self.contours["x-y"]
+        self.contours = {"x-y": self.input_contours}
+        self.loaded_contours = False
+        self.loaded_mask = False
+        self.mask = None
+
+        # Set geoemtric info
+        self.shape = self.image.get_data().shape
+        self.voxel_size = self.image.get_voxel_size()
+        self.origin = self.image.get_origin()
+        self.affine = self.image.get_affine()
 
     def view(self, include_image=True, **kwargs):
         """View the ROI."""
@@ -1605,11 +1868,11 @@ class ROI(skrt.image.Image):
 
             # Make dummy image for background
             if self.contours_only:
-                im = self.get_dummy_image(fill_val=1e6)
+                im = self.get_dummy_image(fill_val=1e4)
                 im.title = self.name
             else:
                 im = skrt.image.Image(
-                    np.ones(self.shape) * 1e6,
+                    np.ones(self.shape) * 1e4,
                     affine=self.affine,
                     title=self.name
                 )
@@ -1628,9 +1891,6 @@ class ROI(skrt.image.Image):
         pos=None,
         mask_kwargs=None,
         opacity=None,
-        ax=None,
-        gs=None,
-        figsize=skrt.image._default_figsize,
         include_image=False,
         zoom=None,
         zoom_centre=None,
@@ -1646,7 +1906,6 @@ class ROI(skrt.image.Image):
         else:
             idx = self.get_idx(view, sl, idx, pos)
         self.create_mask()
-        self.set_ax(view, ax, gs, figsize)
         mask_slice = self.get_slice(view, idx=idx, flatten=flatten)
 
         # Make colormap
@@ -1667,11 +1926,12 @@ class ROI(skrt.image.Image):
         # Make plot
         if include_image:
             self.image.plot(view, idx=idx, ax=self.ax, show=False)
-        self.ax.imshow(s_colors, extent=self.plot_extent[view], **mask_kwargs)
+        self.ax.imshow(s_colors, extent=self.mask.plot_extent[view], 
+                       **mask_kwargs)
 
         # Adjust axes
-        self.label_ax(view, idx, **kwargs)
-        self.zoom_ax(view, zoom, zoom_centre)
+        skrt.image.Image.label_ax(self, view, idx, **kwargs)
+        skrt.image.Image.zoom_ax(self, view, zoom, zoom_centre)
         if show:
             plt.show()
 
@@ -1684,9 +1944,6 @@ class ROI(skrt.image.Image):
         contour_kwargs=None,
         linewidth=None,
         centroid=False,
-        ax=None,
-        gs=None,
-        figsize=None,
         include_image=False,
         zoom=None,
         zoom_centre=None,
@@ -1704,15 +1961,6 @@ class ROI(skrt.image.Image):
             idx = self.get_idx(view, sl, idx, pos)
         if not self.on_slice(view, idx=idx):
             return
-        if figsize is None:
-            x_ax, y_ax = skrt.image._plot_axes[view]
-            aspect = self.get_length(ax=skrt.image._axes[x_ax]) \
-                    / self.get_length(ax=skrt.image._axes[y_ax])
-            figsize = (
-                aspect * skrt.image._default_figsize,
-                skrt.image._default_figsize,
-            )
-        self.set_ax(view, ax, gs, figsize)
 
         contour_kwargs = {} if contour_kwargs is None else contour_kwargs
         contour_kwargs.setdefault("color", color)
@@ -1738,12 +1986,7 @@ class ROI(skrt.image.Image):
             self.ax.plot(points_x, points_y, **contour_kwargs)
 
         # Check whether y axis needs to be inverted
-        if hasattr(self, "plot_extent"):
-            if not (self.plot_extent[view][3] > self.plot_extent[view][2]) == (
-                self.ax.get_ylim()[1] > self.ax.get_ylim()[0]
-            ):
-                self.ax.invert_yaxis()
-        elif view == "x-y":
+        if not include_image and view == "x-y":
             self.ax.invert_yaxis()
 
         # Plot centroid point
@@ -1757,8 +2000,8 @@ class ROI(skrt.image.Image):
 
         # Adjust axes
         self.ax.set_aspect("equal")
-        self.label_ax(view, idx, **kwargs)
-        self.zoom_ax(view, zoom, zoom_centre)
+        skrt.image.Image.label_ax(self, view, idx, **kwargs)
+        skrt.image.Image.zoom_ax(self, view, zoom, zoom_centre)
         if show:
             plt.show()
 
@@ -1805,12 +2048,34 @@ class ROI(skrt.image.Image):
             plt.tight_layout()
             self.fig.savefig(save_as)
 
+    def get_aspect_ratio(
+        self, view, *args, **kwargs
+    ):
+        """Get aspect ratio for this structure in a given orientation."""
+
+        x_ax, y_ax = skrt.image._plot_axes[view]
+        return self.get_length(ax=skrt.image._axes[x_ax]) \
+                / self.get_length(ax=skrt.image._axes[y_ax])
+
+    def set_ax(self, plot_type, include_image, *args, **kwargs):
+        """Set up axes."""
+
+        if plot_type in ["contour", "centroid"] and not include_image:
+            aspect_getter = self.get_aspect_ratio
+        else:
+            if self.image is not None:
+                aspect_getter = self.image.get_plot_aspect_ratio
+            else:
+                self.create_mask()
+                aspect_getter = self.mask.get_plot_aspect_ratio
+        skrt.image.set_ax(self, *args, aspect_getter=aspect_getter, **kwargs)
+
     def get_zoom_centre(self, view):
         """Get coordinates to zoom in on this ROI."""
 
         zoom_centre = [None, None, None]
         x_ax, y_ax = skrt.image._plot_axes[view]
-        x, y = self.get_centre(view)
+        x, y = self.get_centre(view=view, single_slice=True)
         zoom_centre[x_ax] = x
         zoom_centre[y_ax] = y
         return zoom_centre
@@ -1865,7 +2130,7 @@ class ROI(skrt.image.Image):
         # Write array to nifti or npy
         elif ext != ".dcm":
             self.create_mask()
-            skrt.image.Image.write(self, outname, **kwargs)
+            self.mask.write(outname, **kwargs)
         else:
             print("Warning: dicom ROI writing not currently available!")
 
@@ -1874,7 +2139,7 @@ class ROI(skrt.image.Image):
 
         self.create_mask()
         cx, cy, _ = self.get_centroid()
-        skrt.image.Image.transform(self, centre=(cx, cy), **kwargs)
+        self.mask.transform(centre=(cx, cy), **kwargs)
 
         if self.loaded_contours:
             self.loaded_contours = False
@@ -2596,7 +2861,8 @@ class StructureSet(skrt.core.Archive):
         return min(all_extents), max(all_extents)
 
     def get_dummy_image(self, shape=(100, 100), fill_val=0):
-        """Make a dummy image for StructureSet."""
+        """Make a dummy image covering the area spanned by all ROIs in this
+        StructureSet."""
 
         # Get number of slices in z direction
         if len(shape) == 2:

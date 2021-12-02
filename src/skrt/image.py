@@ -127,13 +127,13 @@ class Image(skrt.core.Archive):
         skrt.core.Archive.__init__(self, path)
 
         if load and (not isinstance(self.source, str) or self.source):
-            self.load_data()
+            self.load()
 
     def get_data(self, standardise=False):
         """Return image array."""
 
         if self.data is None:
-            self.load_data()
+            self.load()
         if standardise:
             return self.get_standardised_data(force=True)
         return self.data
@@ -162,7 +162,7 @@ class Image(skrt.core.Archive):
         dataset will be returned.
         """
 
-        self.load_data()
+        self.load()
 
         # If no specific slice is requested, just return the last loaded dataset
         if sl is None and idx is None and pos is None:
@@ -177,25 +177,25 @@ class Image(skrt.core.Archive):
 
         """Return voxel sizes in mm in order (x, y, z)."""
 
-        self.load_data()
+        self.load()
         return self.voxel_size
 
     def get_origin(self):
         """Return origin position in mm in order (x, y, z)."""
 
-        self.load_data()
+        self.load()
         return self.origin
 
     def get_n_voxels(self):
         """Return number of voxels in order (x, y, z)."""
 
-        self.load_data()
+        self.load()
         return self.n_voxels
 
     def get_affine(self, standardise=False):
         """Return affine matrix."""
 
-        self.load_data()
+        self.load()
         if not standardise:
             return self.affine
         else:
@@ -204,7 +204,7 @@ class Image(skrt.core.Archive):
     def get_structure_sets(self):
         return self.structure_sets
 
-    def load_data(self, force=False):
+    def load(self, force=False):
         """Load pixel array from image source."""
 
         if self.data is not None and not force:
@@ -353,7 +353,7 @@ class Image(skrt.core.Archive):
         """Resample image to have particular voxel sizes."""
 
         # Parse input voxel sizes
-        self.load_data()
+        self.load()
         parsed = []
         for i, vx in enumerate(voxel_size):
             if vx is None:
@@ -386,11 +386,11 @@ class Image(skrt.core.Archive):
 
         # Calculate new number of voxels
         n_voxels = [
-            int(np.round(abs(self.get_image_length(i) / voxel_size[i])))
+            int(np.round(abs(self.get_length(i) / voxel_size[i])))
             for i in range(3)
         ]
         voxel_size = [
-            np.sign(voxel_size[i]) * self.get_image_length(i) / n_voxels[i]
+            np.sign(voxel_size[i]) * self.get_length(i) / n_voxels[i]
             for i in range(3)
         ]
         shape = [n_voxels[1], n_voxels[0], n_voxels[2]]
@@ -466,13 +466,13 @@ class Image(skrt.core.Archive):
     def get_min(self):
         """Get minimum value of data array."""
 
-        self.load_data()
+        self.load()
         return self.data.min()
 
     def get_max(self):
         """Get maximum value of data array."""
 
-        self.load_data()
+        self.load()
         return self.data.max()
 
     def get_orientation_codes(self, affine=None, source_type=None):
@@ -488,7 +488,7 @@ class Image(skrt.core.Archive):
         """
 
         if affine is None:
-            self.load_data()
+            self.load()
             affine = self.affine
         codes = list(nibabel.aff2axcodes(affine))
 
@@ -560,24 +560,12 @@ class Image(skrt.core.Archive):
         """Set geometric properties."""
 
         # Set affine matrix, voxel sizes, and origin
-        if self.affine is None:
-            self.affine = np.array(
-                [
-                    [self.voxel_size[0], 0, 0, self.origin[0]],
-                    [0, self.voxel_size[1], 0, self.origin[1]],
-                    [0, 0, self.voxel_size[2], self.origin[2]],
-                    [0, 0, 0, 1],
-                ]
-            )
-            if "nifti" in self.source_type:
-                self.affine[0, :] = -self.affine[0, :]
-                self.affine[1, 3] = -(
-                    self.affine[1, 3] + (self.data.shape[1] - 1) *
-                    self.voxel_size[1]
+        self.affine, self.voxel_size, self.origin = \
+                get_geometry(
+                    self.affine, self.voxel_size, self.origin, 
+                    is_nifti=("nifti" in self.source_type),
+                    shape=self.data.shape
                 )
-        else:
-            self.voxel_size = list(np.diag(self.affine))[:-1]
-            self.origin = list(self.affine[:-1, -1])
 
         # Set number of voxels
         self.n_voxels = [self.data.shape[1], self.data.shape[0],
@@ -607,7 +595,7 @@ class Image(skrt.core.Archive):
     def get_length(self, ax):
         """Get image length along a given axis."""
 
-        self.load_data()
+        self.load()
         if not isinstance(ax, int):
             ax = _axes.index(ax)
         return abs(self.lims[ax][1] - self.lims[ax][0])
@@ -622,7 +610,7 @@ class Image(skrt.core.Archive):
             if pos is not None:
                 idx = self.pos_to_idx(pos, _slice_axes[view])
             else:
-                centre_pos = self.get_image_centre()[_slice_axes[view]]
+                centre_pos = self.get_centre()[_slice_axes[view]]
                 idx = self.pos_to_idx(centre_pos, _slice_axes[view])
         return idx
 
@@ -653,38 +641,6 @@ class Image(skrt.core.Archive):
             self._current_idx = idx
             self._current_view = view
             return self._current_slice
-
-    def set_ax(
-        self,
-        view=None,
-        ax=None,
-        gs=None,
-        figsize=_default_figsize,
-        zoom=None,
-        colorbar=False,
-        **kwargs,
-    ):
-        """Set up axes for plotting this image, either from a given exes or
-        gridspec, or by creating new axes."""
-
-        # Set up figure/axes
-        if ax is None and gs is not None:
-            ax = plt.gcf().add_subplot(gs)
-        if ax is not None:
-            self.ax = ax
-            self.fig = ax.figure
-        else:
-            if figsize is None:
-                figsize = _default_figsize
-            if skrt.core.is_list(figsize):
-                fig_tuple = figsize
-            else:
-                figsize = to_inches(figsize)
-                aspect = self.get_plot_aspect_ratio(view, zoom, colorbar,
-                                                    figsize)
-                fig_tuple = (figsize * aspect, figsize)
-            self.fig = plt.figure(figsize=fig_tuple)
-            self.ax = self.fig.add_subplot()
 
     def add_structure_set(self, structure_set):
         """Add a structure set."""
@@ -896,12 +852,12 @@ class Image(skrt.core.Archive):
             Custom limits on the x and y axes of the plot.
         """
 
-        self.load_data()
+        self.load()
 
         # Set up axes
         self.set_ax(view, ax, gs, figsize, zoom, colorbar)
         self.ax.clear()
-        self.load_data()
+        self.load()
 
         # Get list of input ROI sources
         if rois is None:
@@ -1104,15 +1060,15 @@ class Image(skrt.core.Archive):
         zoom = skrt.core.to_list(zoom)
         x_ax, y_ax = _plot_axes[view]
         if zoom_centre is None:
-            im_centre = self.get_image_centre()
+            im_centre = self.get_centre()
             mid_x = im_centre[x_ax]
             mid_y = im_centre[y_ax]
         else:
             mid_x, mid_y = zoom_centre[x_ax], zoom_centre[y_ax]
 
         # Calculate new axis limits
-        init_xlim = self.plot_extent[view][:2]
-        init_ylim = self.plot_extent[view][2:]
+        init_xlim = self.ax.get_xlim()
+        init_ylim = self.ax.get_ylim()
         xlim = [
             mid_x - (init_xlim[1] - init_xlim[0]) / (2 * zoom[x_ax]),
             mid_x + (init_xlim[1] - init_xlim[0]) / (2 * zoom[x_ax]),
@@ -1129,7 +1085,7 @@ class Image(skrt.core.Archive):
     def idx_to_pos(self, idx, ax, standardise=True):
         """Convert an array index to a position in mm along a given axis."""
 
-        self.load_data()
+        self.load()
         i_ax = _axes.index(ax) if ax in _axes else ax
         if standardise:
             origin = self._sorigin
@@ -1142,7 +1098,7 @@ class Image(skrt.core.Archive):
     def pos_to_idx(self, pos, ax, return_int=True, standardise=True):
         """Convert a position in mm to an array index along a given axis."""
 
-        self.load_data()
+        self.load()
         i_ax = _axes.index(ax) if ax in _axes else ax
         if standardise:
             origin = self._sorigin
@@ -1159,7 +1115,7 @@ class Image(skrt.core.Archive):
     def idx_to_slice(self, idx, ax):
         """Convert an array index to a slice number along a given axis."""
 
-        self.load_data()
+        self.load()
         i_ax = _axes.index(ax) if ax in _axes else ax
         if i_ax == 2:
             return self.n_voxels[i_ax] - idx
@@ -1169,7 +1125,7 @@ class Image(skrt.core.Archive):
     def slice_to_idx(self, sl, ax):
         """Convert a slice number to an array index along a given axis."""
 
-        self.load_data()
+        self.load()
         i_ax = _axes.index(ax) if ax in _axes else ax
         if i_ax == 2:
             return self.n_voxels[i_ax] - sl
@@ -1191,10 +1147,10 @@ class Image(skrt.core.Archive):
 
         return self.idx_to_pos(self.slice_to_idx(sl, ax), ax, standardise)
 
-    def get_image_centre(self):
+    def get_centre(self):
         """Get position in mm of the centre of the image."""
 
-        self.load_data()
+        self.load()
         return [np.mean(self.lims[i]) for i in range(3)]
 
     def get_range(self, ax="z"):
@@ -1205,7 +1161,7 @@ class Image(skrt.core.Archive):
         return [origin, origin + (self.n_voxels[i_ax] - 1)
                 * self.voxel_size[i_ax]]
 
-    def get_image_length(self, ax="z"):
+    def get_length(self, ax="z"):
         """Get total length of image."""
 
         i_ax = _axes.index(ax) if ax in _axes else ax
@@ -1216,6 +1172,28 @@ class Image(skrt.core.Archive):
 
         return
 
+    def set_ax(
+        self,
+        view=None,
+        ax=None,
+        gs=None,
+        figsize=_default_figsize,
+        zoom=None,
+        colorbar=False
+    ):
+        """Set up axes for this Image."""
+
+        skrt.image.set_ax(
+            self, 
+            view=view,
+            ax=ax,
+            gs=gs,
+            figsize=figsize,
+            zoom=zoom,
+            colorbar=colorbar,
+            aspect_getter=self.get_plot_aspect_ratio,
+        )
+
     def get_plot_aspect_ratio(
         self, view, zoom=None, n_colorbars=0, figsize=_default_figsize
     ):
@@ -1223,7 +1201,7 @@ class Image(skrt.core.Archive):
         in a given orientation.
 
         view : str
-            Orienation ('x-y', 'y-z', or 'x-z')
+            Orientation ('x-y', 'y-z', or 'x-z')
 
         zoom : float/list, default=None
             Zoom factors; either a single value for all axes, or three values
@@ -1234,6 +1212,7 @@ class Image(skrt.core.Archive):
         """
 
         # Get length of the image in the plot axis directions
+        self.load()
         x_ax, y_ax = _plot_axes[view]
         x_len = abs(self.lims[x_ax][1] - self.lims[x_ax][0])
         y_len = abs(self.lims[y_ax][1] - self.lims[y_ax][0])
@@ -1379,7 +1358,7 @@ class Image(skrt.core.Archive):
         """
 
         outname = os.path.expanduser(outname)
-        self.load_data()
+        self.load()
 
         # Write to nifti file
         if outname.endswith(".nii") or outname.endswith(".nii.gz"):
@@ -1441,7 +1420,24 @@ class Image(skrt.core.Archive):
         return np.meshgrid(*coords_1d)
 
     def transform(self, scale=1, translation=[0, 0], rotation=0, centre=None):
-        """Apply a similarity transform using scikit-image."""
+        """Apply a similarity transform in the x-y plane using scikit-image.
+
+        Parameters
+        ----------
+        scale : float, default=1
+            Scaling factor. Currently, scaling occurs around the top-left 
+            corner of the image.
+
+        translation : list, default=[0, 0]
+            Translation in mm in the [x, y] directions.
+
+        rotation : float, default=0
+            Rotation angle in degrees by which to rotate the image.
+
+        centre : list, default=None
+            Coordinates in mm in [x, y] about which to perform the rotation.
+            If None, the centre of the image will be used.
+        """
 
         # Rotate about centre
         if centre is None:
@@ -1463,7 +1459,7 @@ class Image(skrt.core.Archive):
             scale=scale, translation=translation, rotation=rotation)
 
         # Apply
-        self.load_data()
+        self.load()
         for z in range(self.data.shape[2]):
             self.data[:, :, z] = skimage.transform.warp(
                 self.data[:, :, z], matrix)
@@ -2267,3 +2263,77 @@ def get_new_uid(root=None):
     else:
         new_id = ".".join([new_id, str(np.random.randint(10, 99))])
     return new_id
+
+
+def default_aspect():
+    return 1
+
+
+def set_ax(
+    obj,
+    view=None,
+    ax=None,
+    gs=None,
+    figsize=_default_figsize,
+    zoom=None,
+    colorbar=False,
+    aspect_getter=default_aspect,
+    **kwargs,
+):
+    """Set up axes for plotting an object, either from a given exes or
+    gridspec, or by creating new axes."""
+
+    # Set up figure/axes
+    if ax is None and gs is not None:
+        ax = plt.gcf().add_subplot(gs)
+    if ax is not None:
+        obj.ax = ax
+        obj.fig = ax.figure
+    else:
+        if figsize is None:
+            figsize = _default_figsize
+        if skrt.core.is_list(figsize):
+            fig_tuple = figsize
+        else:
+            aspect = aspect_getter(view, zoom, colorbar, figsize)
+            figsize = to_inches(figsize)
+            fig_tuple = (figsize * aspect, figsize)
+        obj.fig = plt.figure(figsize=fig_tuple)
+        obj.ax = obj.fig.add_subplot()
+
+
+def get_geometry(affine, voxel_size, origin, is_nifti=False, shape=None):
+    """Get an affine matrix, voxel size list, and origin list from 
+    a combination of these inputs."""
+
+    # Get affine matrix from voxel size and origin
+    if affine is None:
+        
+        if voxel_size is None and origin is None:
+            return None, None, None
+
+        affine = np.array(
+            [
+                [voxel_size[0], 0, 0, origin[0]],
+                [0, voxel_size[1], 0, origin[1]],
+                [0, 0, voxel_size[2], origin[2]],
+                [0, 0, 0, 1],
+            ]
+        )
+        if is_nifti:
+            if shape is None:
+                raise RuntimeError("Must provide data shape if converting "
+                                   "affine matrix from nifti!")
+
+            affine[0, :] = -affine[0, :]
+            affine[1, 3] = -(
+                affine[1, 3] + (shape[1] - 1) * voxel_size[1]
+            )
+
+    # Otherwise, get origin and voxel size from affine
+    else:
+        voxel_size = list(np.diag(affine))[:-1]
+        origin = list(affine[:-1, -1])
+
+    return affine, voxel_size, origin
+
