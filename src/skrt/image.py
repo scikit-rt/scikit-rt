@@ -36,9 +36,6 @@ mpl.rcParams["font.serif"] = "Times New Roman"
 mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
-# Pydicom settings
-#  pydicom.config.enforce_valid_values = True
-
 
 class Image(skrt.core.Archive):
     """Loads and stores a medical image and its geometrical properties, either
@@ -233,6 +230,11 @@ class Image(skrt.core.Archive):
         else:
             raise TypeError("Unrecognised image source type:", self.source)
 
+        # Try loading from numpy file
+        if self.data is None:
+            self.data = load_npy(self.source)
+            self.source_type = "nifti array" if self.nifti_array else "array"
+
         # Try loading from dicom file
         if self.data is None:
             self.data, affine, window_centre, window_width, ds, self._z_paths \
@@ -241,11 +243,6 @@ class Image(skrt.core.Archive):
             if self.data is not None:
                 self.dicom_dataset = ds
                 self.affine = affine
-
-        # Try loading from numpy file
-        if self.data is None:
-            self.data = load_npy(self.source)
-            self.source_type = "nifti array" if self.nifti_array else "array"
 
         # If still None, raise exception
         if self.data is None:
