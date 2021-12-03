@@ -35,6 +35,13 @@ def test_write_nifti():
     structure_set.write(outdir="tmp/nii_structs")
     assert len(os.listdir(nii_dir)) == 2
 
+def test_write_txt():
+    txt_dir = "tmp/txt"
+    if os.path.exists(txt_dir):
+        shutil.rmtree(txt_dir)
+    structure_set.write(outdir="tmp/txt", ext='.txt')
+    assert len(os.listdir(txt_dir)) == 2
+
 def test_get_rois():
     assert len(structure_set.get_rois()) == 2
 
