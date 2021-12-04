@@ -2127,23 +2127,21 @@ class ROI(skrt.core.Archive):
 
             outname = os.path.join(outdir, outname)
 
-        # Write points to text file
+        # Write points to text file, in format that can be read by transformix
         if ext == ".txt":
+            self.get_contours()
 
-            self.load()
-            if "x-y" not in self.contours:
-                self.create_contours()
+            points = []
+            for z, contours in self.contours["x-y"].items():
+                for contour in contours:
+                    for point in contour:
+                        points.append(f"{point[0]:.3f} {point[1]:.3f} {z:.3f}")
 
             with open(outname, "w") as file:
                 file.write("point\n")
-                points = []
-                for z, contours in self.contours["x-y"].items():
-                    for contour in contours:
-                        for point in contour:
-                            points.append(f"{point[0]} {point[1]} {z}")
-                file.write(str(len(points)) + "\n")
+                file.write(f"{len(points)}\n")
                 file.write("\n".join(points))
-                file.close()
+
             return
 
         # Write array to nifti or npy
