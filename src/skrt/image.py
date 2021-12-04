@@ -3,10 +3,12 @@
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
 from scipy import interpolate
+from scipy.ndimage import affine_transform
 import copy
 import datetime
 import glob
 import functools
+import math
 import matplotlib as mpl
 import matplotlib.cm
 import matplotlib.colors
@@ -1414,50 +1416,96 @@ class Image(skrt.core.Archive):
         ]
         return np.meshgrid(*coords_1d)
 
-    def transform(self, scale=1, translation=[0, 0], rotation=0, centre=None):
-        """Apply a similarity transform in the x-y plane using scikit-image.
+    def image_rotation(self, rotation, ax, standardise=True):
+        """Convert spatial rotation about a given axis to image rotation"""
+
+        self.load()
+        i_ax = _axes.index(ax) if ax in _axes else ax
+        j_ax = i_ax + 1 if i_ax < 2 else 0
+        k_ax = j_ax + 1 if j_ax < 2 else 0
+        if standardise:
+            voxel_size = self._svoxel_size
+        else:
+            voxel_size = self.voxel_size
+
+        rad_rotation = math.radians(rotation)
+        dj = math.cos(rad_rotation) / voxel_size[j_ax]
+        dk = math.sin(rad_rotation) / voxel_size[k_ax]
+
+        image_rotation = math.degrees(math.atan2(dk, dj))
+
+        return image_rotation
+
+    def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
+            centre=[0, 0, 0]):
+        """Apply three-dimensional similarity transform using scikit-image.
+
+        The image is first translated, then is scaled and rotated
+        about the centre coordinates
+
 
         Parameters
         ----------
         scale : float, default=1
-            Scaling factor. Currently, scaling occurs around the top-left 
-            corner of the image.
+            Scaling factor.
 
-        translation : list, default=[0, 0]
-            Translation in mm in the [x, y] directions.
+        translation : list, default=[0, 0, 0]
+            Translation in mm in the [x, y, z] directions.
 
         rotation : float, default=0
-            Rotation angle in degrees by which to rotate the image.
+            Euler angles in degrees by which to rotate the image.
+            Angles are in the order pitch (rotation about x-axis),
+            yaw (rotation about y-axis), roll (rotation about z-axis).
 
-        centre : list, default=None
-            Coordinates in mm in [x, y] about which to perform the rotation.
-            If None, the centre of the image will be used.
+        centre : list, default=[0, 0, 0]
+            Coordinates in mm in [x, y, z] about which to perform rotation
+            and scaling of translated image.
         """
 
-        # Rotate about centre
-        if centre is None:
-            x = self.n_voxels[0] / 2
-            y = self.n_voxels[1] / 2
-        else:
-            px, py = centre
-            x = self.pos_to_idx(px, "x")
-            y = self.pos_to_idx(py, "y")
-        translation[0] += x - x * np.cos(rotation) + y * np.sin(rotation)
-        translation[1] += y - x * np.sin(rotation) - y * np.cos(rotation)
-
-        # Scale about centre
-
-
-
-        # Create transformation matrix
-        matrix = skimage.transform.SimilarityTransform(
-            scale=scale, translation=translation, rotation=rotation)
-
-        # Apply
         self.load()
-        for z in range(self.data.shape[2]):
-            self.data[:, :, z] = skimage.transform.warp(
-                self.data[:, :, z], matrix)
+
+        # Obtain rotations in radians
+        pitch, yaw, roll = rotation
+
+        ipitch = math.radians(self.image_rotation(pitch, "x"))
+        iyaw = math.radians(self.image_rotation(yaw, "y"))
+        iroll = math.radians(self.image_rotation(roll, "z"))
+
+        # print("pitch", pitch, math.degrees(ipitch))
+        # print("yaw", yaw, math.degrees(iyaw))
+        # print("roll", roll, math.degrees(iroll))
+
+        # Obtain translation in pixel units
+        idx, idy, idz = [translation[i] / self.voxel_size[i] for i in range(3)]
+
+        # Obtain centre coordinates in pixel units
+        xc, yc, zc = centre
+        ixc = self.pos_to_idx(xc, "x")
+        iyc = self.pos_to_idx(yc, "y")
+        izc = self.pos_to_idx(zc, "z")
+
+        # Overall transformation matrix obtained by combining
+        # individual transformations, following suggestion at:
+        # https://stackoverflow.com/questions/25895587/python-skimage-transform-affinetransform-rotation-center
+        tf_translation = skimage.transform.SimilarityTransform(
+                translation=[-idy, -idx, -idz], dimensionality=3)
+        tf_centre_shift = skimage.transform.SimilarityTransform(
+                translation=[-iyc, -ixc, -izc], dimensionality=3)
+        tf_rotation = skimage.transform.SimilarityTransform(
+                rotation=[-iyaw, -ipitch, iroll], dimensionality=3)
+        tf_scale = skimage.transform.SimilarityTransform(
+                scale=scale, dimensionality=3)
+        tf_centre_shift_inv = skimage.transform.SimilarityTransform(
+                translation=[iyc, ixc, izc], dimensionality=3)
+
+        matrix = tf_translation + tf_centre_shift + tf_rotation + tf_scale \
+                 + tf_centre_shift_inv
+        # print(matrix)
+
+        # Apply transform
+        self.data = affine_transform(self.data, matrix)
+
+        return None
 
     def has_same_geometry(self, im):
         """Check whether this Image has the same geometric properties
