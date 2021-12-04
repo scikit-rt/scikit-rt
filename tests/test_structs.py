@@ -133,8 +133,9 @@ def test_filtered_copy_no_copy_data():
     assert structure_set2.get_rois()[0].get_mask() \
             is not structure_set.get_rois()[0].get_mask()
 
-    # Check that data is passed by reference
+    # Check that data is passed by reference but new ROI object is made
     structure_set2 = structure_set.filtered_copy(copy_roi_data=False)
+    assert structure_set2.get_rois()[0] is not structure_set.get_rois()[0]
     assert structure_set2.get_rois()[0].get_mask() \
             is structure_set.get_rois()[0].get_mask()
 

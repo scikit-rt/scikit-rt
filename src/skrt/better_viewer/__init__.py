@@ -35,6 +35,9 @@ class BetterViewer:
         mask=None,
         dose=None,
         rois=None,
+        roi_names=None,
+        rois_to_keep=None,
+        rois_to_remove=None,
         #  multi_rois=None,
         jacobian=None,
         df=None,
@@ -685,6 +688,9 @@ class BetterViewer:
                 dose=self.dose[i],
                 mask=self.mask[i],
                 rois=self.rois[i],
+                roi_names=roi_names,
+                rois_to_keep=rois_to_keep,
+                rois_to_remove=rois_to_remove,
                 #  multi_rois=self.multi_rois[i],
                 jacobian=self.jacobian[i],
                 df=self.df[i],
@@ -895,7 +901,7 @@ class BetterViewer:
 
                 # ROI jumping
                 sliders = []
-                if len(v.rois):
+                if v.has_rois:
                     sliders.append(v.ui_roi_jump)
                 else:
                     if self.any_attr('rois'):
@@ -972,12 +978,12 @@ class BetterViewer:
         self.lower_ui = []
 
         # ROI UI
-        many_with_rois = sum([(len(v.rois) != 0) for v in self.viewers]) > 1
+        many_with_rois = sum([v.has_rois for v in self.viewers]) > 1
         self.ui_roi_checkboxes = []
         for i, v in enumerate(self.viewers):
 
             # Add plot title to ROI UI
-            if many_with_rois and len(v.rois):
+            if many_with_rois and v.has_rois:
                 if not hasattr(v.im, 'title') or not v.im.title:
                     title = f'<b>Image {i + 1}</b>'
                 else:
@@ -1437,6 +1443,9 @@ class SingleViewer:
         df_spacing=30,
         df_kwargs=None,
         rois=None,
+        roi_names=None,
+        rois_to_keep=None,
+        rois_to_remove=None,
         roi_plot_type="contour",
         roi_opacity=None,
         roi_linewidth=2,
@@ -1469,7 +1478,8 @@ class SingleViewer:
         self.title = title
 
         # Set up ROIs
-        self.make_rois(rois)
+        self.load_rois(rois, roi_names=roi_names, rois_to_keep=rois_to_keep,
+                       rois_to_remove=rois_to_remove)
 
         # Set initial orientation
         view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
@@ -1576,36 +1586,55 @@ class SingleViewer:
         image.load()
         return image
 
-    def make_rois(self, rois):
-        """Set up StructureSets/ROIs."""
+    def load_rois(
+        self, 
+        rois,
+        roi_names=None,
+        rois_to_keep=None, 
+        rois_to_remove=None
+    ):
+        """
+        Load ROIs, apply names/filters, and assign to a single StructureSet.
+        """
 
-        self.rois = []
-        self.all_rois = []
-        self.roi_names = []
-
-        # Ensure all rois are ROI or StructureSet objects
+        # Load all ROIs into structure sets
+        structure_sets = []
+        standalone_rois = StructureSet()  # Extra structure set for single ROIs
         if not is_list(rois):
             rois = [rois]
         for roi in rois:
             if roi is None:
                 continue
-            elif isinstance(roi, int):
-                self.rois.append(self.im.structure_sets[roi])
-            elif isinstance(roi, StructureSet) or isinstance(roi, ROI):
-                self.rois.append(roi)
+            elif isinstance(roi, int): 
+                structure_sets.append(self.im.structure_sets[roi])
+            elif isinstance(roi, StructureSet):
+                structure_sets.append(roi)
+            elif isinstance(roi, ROI):
+                standalone_rois.add_roi(roi)
             else:
-                self.rois.append(StructureSet(roi, image=self.im))
+                structure_sets.append(StructureSet(roi, image=self.im))
+        structure_sets.append(standalone_rois)
 
-        # Make list of all ROIs and their names
-        for roi in self.rois:
-            if isinstance(roi, StructureSet):
-                self.all_rois.extend(roi.get_rois())
-            else:
-                self.all_rois.append(roi)
-        self.roi_names = [s.name for s in self.all_rois]
+        # Load all structure sets and apply filters
+        structure_sets_filtered = []
+        for ss in structure_sets:
+            ss.load()
+            structure_sets_filtered.append(
+                ss.filtered_copy(names=roi_names, to_keep=rois_to_keep,
+                                 to_remove=rois_to_remove, copy_roi_data=False)
+            )
+
+        # Put ROIs and their names into a list
+        self.rois = []
+        for ss in structure_sets_filtered:
+            self.rois.extend(ss.get_rois())
+        self.roi_names = [roi.name for roi in self.rois]
+
+        # Store ROIs in single StructureSet
+        self.structure_set = StructureSet(self.rois)
 
         # Set boolean to indicate whether this viewer has any ROIs
-        self.has_rois = bool(len(self.all_rois))
+        self.has_rois = bool(len(self.rois))
 
     def set_slice(self, view, sl):
         """Set the current slice number in a specific orientation."""
@@ -1656,7 +1685,7 @@ class SingleViewer:
         # Get list of ROIs
         self.rois_for_jump = {
             '': None,
-            **{s.name: s for s in self.all_rois},
+            **{s.name: s for s in self.rois},
         }
         if self.init_roi in self.roi_names:
             self.current_roi = self.init_roi
@@ -1986,7 +2015,7 @@ class SingleViewer:
             if s
         }
         self.ui_roi_checkboxes.extend(list(self.roi_checkboxes.values()))
-        for s in self.all_rois:
+        for s in self.rois:
             s.checkbox = self.roi_checkboxes[s.name]
             row = {'roi': None}
             roi_info.append(row)
@@ -2021,7 +2050,7 @@ class SingleViewer:
     def update_roi_info(self):
         '''Update ROI info UI to reflect current view/slice.'''
 
-        for i, s in enumerate(self.all_rois):
+        for i, s in enumerate(self.rois):
 
             # ROI name
             #  if not self.roi_info:
@@ -2170,7 +2199,7 @@ class SingleViewer:
 
         # Get ROI settings
         self.visible_rois = self.get_roi_visibility()
-        rois_to_plot = [roi for roi in self.all_rois if roi.name in 
+        rois_to_plot = [roi for roi in self.rois if roi.name in 
                         self.visible_rois]
         self.update_roi_info()
         #  self.update_roi_comparisons()

@@ -2184,8 +2184,6 @@ class StructureSet(skrt.core.Archive):
         """Load structure set from source(s)."""
 
         self.name = name
-        if name is None:
-            self.name = ROIDefaults().get_default_structure_set_name()
         self.sources = sources
         if self.sources is None:
             self.sources = []
@@ -2226,6 +2224,7 @@ class StructureSet(skrt.core.Archive):
         if sources is None:
             sources = self.sources
 
+        # Laod from multi-label array
         if self.multi_label and isinstance(sources, np.ndarray):
 
             n = sources.max()
@@ -2239,16 +2238,26 @@ class StructureSet(skrt.core.Archive):
                 ))
             self.loaded = True
 
-        elif not skrt.core.is_list(sources):
-            sources = [sources]
+        else:
+            if not skrt.core.is_list(sources):
+                sources = [sources]
+                single_source = True
+            else:
+                single_source = False
 
         # Expand any directories
         sources_expanded = []
         for source in sources:
             if isinstance(source, str) and os.path.isdir(source):
+
                 sources_expanded.extend(
                     [os.path.join(source, file) for file in os.listdir(source)]
                 )
+
+                # Auto-assign name to directory name
+                if single_source and self.name is None:
+                    self.name = source
+
             elif not self.loaded:
                 sources_expanded.append(source)
 
@@ -2281,6 +2290,10 @@ class StructureSet(skrt.core.Archive):
                     )
                     self.rois[-1].dicom_dataset = ds
                 self.dicom_dataset = ds
+
+                # Auto-assign name from dicom filename
+                if single_source and self.name is None:
+                    self.name = os.path.basename(source).replace(".dcm", "")
 
             # Load from ROI mask
             else:
@@ -2458,32 +2471,35 @@ class StructureSet(skrt.core.Archive):
         roi.structure_set = self
         self.rois.append(roi)
 
-    def clone(self, data_types_to_copy=[ROI], copy_roi_data=True):
+    def clone(self, copy_rois=True, copy_roi_data=True):
         """Create a clone; by default, any lists, dicts, np.ndarrays and ROIs
         will be fully copied, while all other attributes are copied as 
         references.
 
         Parameters
         ----------
-        data_types_to_copy : list, default=[ROI]
-            List of types inherting from the Data class.
-            Any objects of the types in this list that are either directly 
-            stored as an attribute or stored in a list or dict attribute will 
-            be cloned, rather than assigning the same object as to an 
-            attribute of the cloned parent object.
-            By default, the child ROI objects of this StructureSet will be
-            copied.
+        copy_rois : bool, default=True
+            If True, copies will be made of any ROIs stored in this 
+            StructureSet. By default, their data attributes (contours, arrays, 
+            etc) will be shared with the original ROI object unless 
+            <copy_roi_data> is True.
         
         copy_roi_data : bool, default=True
             If True, the ROIs in the returned StructureSet will contain
             copies of the data from the original StructureSet. Otherwise,
             the new ROIs will contain references to the same data, e.g. the 
             same numpy ndarray object for the mask/same dict for the contours.
+            Only used if <copy_rois> is True
         """
 
-        return skrt.core.Data.clone(self, 
-                                    data_types_to_copy, 
-                                    copy_data=copy_roi_data)
+        clone = skrt.core.Data.clone(self)
+
+        # Create copies of ROIs
+        if copy_rois:
+            clone.rois = []
+            for roi in self.rois:
+                clone.rois.append(roi.clone(copy_data=copy_roi_data))
+        return clone
 
     def filtered_copy(
         self,
@@ -2528,14 +2544,8 @@ class StructureSet(skrt.core.Archive):
             copies of the data from the original StructureSet. Otherwise,
             the new ROIs will contain references to the same data, e.g. the 
             same numpy ndarray object for the mask/same dict for the contours.
+            Only used if <copy_rois> is True
         """
-
-        if not hasattr(self, "n_copies"):
-            self.n_copies = 1
-        else:
-            self.n_copies += 1
-        if name is None:
-            name = f"{self.name} (copy {self.n_copies})"
 
         ss = self.clone(copy_roi_data=copy_roi_data)
         if name is not None:
