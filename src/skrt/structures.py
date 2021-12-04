@@ -1074,7 +1074,7 @@ class ROI(skrt.core.Archive):
 
     def get_geometry(
         self,
-        metrics=["volume", "area", "centroid", "x_length", "y_length", "z_length"],
+        metrics=["volume", "centroid"],
         vol_units="mm",
         area_units="mm",
         length_units="mm",
@@ -1083,21 +1083,38 @@ class ROI(skrt.core.Archive):
         sl=None,
         pos=None,
         idx=None,
+        method=None,
+        units_in_header=False
     ):
         """Get a pandas DataFrame of the geometric properties listed in
         <metrics>.
 
-        Possible metrics:
-            - 'volume': volume of entire ROI.
-            - 'area': area either of the central x-y slice, or of a given
-            view/slice if either sl/pos/idx are given.
-            - 'centroid': centre-of-mass either of the entire ROI, or a
-            given view/slice if either sl/pos/idx are given.
-            - 'centroid_global': centre-of-mass of the entire ROI (note
-            that this is the same as 'centroid' if sl/pos/idx are all None)
-            - 'x_length': ROI length along the x axis
-            - 'y_length': ROI length along the y axis
-            - 'z_length': ROI length along the z axis
+        Parameters
+        ----------
+        metrics : list, default=["volume", "centroid"]
+            List of metrics to include in the table. Options:
+                - "volume" : volume of entire ROI.
+                - "area": area of ROI on a single slice.
+                - "centroid": 3D centre-of-mass of ROI; will be split into
+                  three columns corresponding to the three axes.
+                - "centroid_x": 3D centre-of-mass of ROI along the x-axis.
+                - "centroid_y": 3D centre-of-mass of ROI along the y-axis.
+                - "centroid_z": 3D centre-of-mass of ROI along the z-axis.
+                - "centroid_slice": 2D centre of mass on a single slice. Will
+                  be split into two columns corresponding to the two axes on
+                  the slice.
+                - "length": lengths of the ROI in each direction; will be split
+                  into three columns corresponding to the three axes.
+                - "length_x": length of the ROI along the x-axis.
+                - "length_y": length of the ROI along the y-axis.
+                - "length_z": length of the ROI along the z-axis.
+                - "length_slice": length of the ROI on a single slice; will be
+                  split into two columns corresponding to the two axes on the
+                  slice.
+                    
+
+
+
         """
 
         # Parse volume and area units

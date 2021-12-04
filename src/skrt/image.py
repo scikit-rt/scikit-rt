@@ -68,37 +68,37 @@ class Image(skrt.core.Archive):
                     other input args except <title> will be ignored, as these 
                     will be taken from the existing Image.
 
-            load : bool, default=True
-                If True, the image data will be immediately loaded. Otherwise, it
-                can be loaded later with the load() method.
+        load : bool, default=True
+            If True, the image data will be immediately loaded. Otherwise, it
+            can be loaded later with the load() method.
 
-            title : str, default=None
-                Title to use when plotting the image. If None and <source> is a
-                path, a title will be automatically generated from the filename.
+        title : str, default=None
+            Title to use when plotting the image. If None and <source> is a
+            path, a title will be automatically generated from the filename.
 
-            affine : 4x4 array, default=None
-                Array containing the affine matrix to use if <source> is a numpy
-                array or path to a numpy file. If not None, this takes precendence
-                over <voxel_size> and <origin>.
+        affine : 4x4 array, default=None
+            Array containing the affine matrix to use if <source> is a numpy
+            array or path to a numpy file. If not None, this takes precendence
+            over <voxel_size> and <origin>.
 
-            voxel_size : tuple, default=(1, 1, 1)
-                Voxel sizes in mm in order (x, y, z) to use if <source> is a numpy
-                array or path to a numpy file and <affine> is not provided.
+        voxel_size : tuple, default=(1, 1, 1)
+            Voxel sizes in mm in order (x, y, z) to use if <source> is a numpy
+            array or path to a numpy file and <affine> is not provided.
 
-            origin : tuple, default=(0, 0, 0)
-                Origin position in mm in order (x, y, z) to use if <source> is a
-                numpy array or path to a numpy file and <affine> is not provided.
+        origin : tuple, default=(0, 0, 0)
+            Origin position in mm in order (x, y, z) to use if <source> is a
+            numpy array or path to a numpy file and <affine> is not provided.
 
-            nifti_array : bool, default=False
-                If True and <source> is a numpy array or numpy file, the array
-                will be treated as a nifti-style array, i.e. (x, y, z) in
-                (row, column, slice), as opposed to dicom style.
+        nifti_array : bool, default=False
+            If True and <source> is a numpy array or numpy file, the array
+            will be treated as a nifti-style array, i.e. (x, y, z) in
+            (row, column, slice), as opposed to dicom style.
 
-            downsample : int/list, default=None
-                Amount by which to downsample the image. Can be a single value for
-                all axes, or a list containing downsampling amounts in order
-                (x, y, z).
-            """
+        downsample : int/list, default=None
+            Amount by which to downsample the image. Can be a single value for
+            all axes, or a list containing downsampling amounts in order
+            (x, y, z).
+        """
 
         # Clone from another Image object
         if issubclass(type(path), Image):
@@ -127,7 +127,16 @@ class Image(skrt.core.Archive):
             self.load()
 
     def get_data(self, standardise=False):
-        """Return image array."""
+        """Return 3D image array.
+
+        Parameters
+        ----------
+        standardise : bool, default=False
+            If False, the data array will be returned in the orientation in 
+            which it was loaded; otherwise, it will be returned in standard
+            dicom-style orientation such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+        """
 
         if self.data is None:
             self.load()
@@ -136,8 +145,21 @@ class Image(skrt.core.Archive):
         return self.data
 
     def get_dicom_filepath(self, sl=None, idx=None, pos=None):
-        """Return path to dicom dataset corresponding to a specific slice 
-        number, index, or position in mm."""
+        """Return path to the dicom dataset corresponding to a specific 
+        slice.
+
+        Parameters
+        ----------
+        sl : int, default=None
+            Slice number; used if not None.
+
+        idx : int, default=None
+            Slice array index; used if not None and <sl> is None.
+
+        pos : float, default=None
+            Slice position in mm; used if not None and <sl> and <idx> are both
+            None.
+        """
 
         if sl is None and idx is None and pos is None:
             print("Must provide a slice number, array index, or position in "
@@ -151,12 +173,25 @@ class Image(skrt.core.Archive):
         return skrt.core.fullpath(paths[idx])
 
     def get_dicom_dataset(self, sl=None, idx=None, pos=None):
-        """Return pydicom.dataset.FileDataset object associated with this Image,
-        if loaded from dicom; otherwise, return None.
+        """Return pydicom.dataset.FileDataset object associated with this Image
+        if it was loaded from dicom; otherwise, return None.
 
         If any of <sl>, <idx> or <pos> are provided, the dataset corresponding
         to that specific slice will be returned; otherwise, the last loaded
         dataset will be returned.
+
+        Parameters
+        ----------
+        sl : int, default=None
+            Slice number; used if not None.
+
+        idx : int, default=None
+            Slice array index; used if not None and <sl> is None.
+
+        pos : float, default=None
+            Slice position in mm; used if not None and <sl> and <idx> are both
+            None.
+
         """
 
         self.load()
@@ -172,25 +207,34 @@ class Image(skrt.core.Archive):
 
     def get_voxel_size(self):
 
-        """Return voxel sizes in mm in order (x, y, z)."""
+        """Return voxel sizes in mm in order [x, y, z]."""
 
         self.load()
         return self.voxel_size
 
     def get_origin(self):
-        """Return origin position in mm in order (x, y, z)."""
+        """Return origin position in mm in order [x, y, z]."""
 
         self.load()
         return self.origin
 
     def get_n_voxels(self):
-        """Return number of voxels in order (x, y, z)."""
+        """Return number of voxels in order [x, y, z]."""
 
         self.load()
         return self.n_voxels
 
     def get_affine(self, standardise=False):
-        """Return affine matrix."""
+        """Return affine matrix.
+
+        Parameters
+        ----------
+        standardise : bool, default=False
+            If False, the affine matrix will be returned in the orientation in 
+            which it was loaded; otherwise, it will be returned in standard
+            dicom-style orientation such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+        """
 
         self.load()
         if not standardise:
@@ -199,10 +243,86 @@ class Image(skrt.core.Archive):
             return self.get_standardised_affine(force=True)
 
     def get_structure_sets(self):
+        """Return list of StructureSet objects associated with this Image."""
+
         return self.structure_sets
 
     def load(self, force=False):
-        """Load pixel array from image source."""
+        """Load pixel array from image source. If already loaded and <force> 
+        is False, nothing will happen.
+
+        Parameters
+        ----------
+        force : bool, default=True
+            If True, the pixel array will be reloaded from source even if it 
+            has previously been loaded.
+
+        Data loading takes input from self.source and uses this to assign
+        self.data (as well as geometric properties, where relevant). The 
+        parameter self.source_type is set to a string indicating the type 
+        of source, which can be any of:
+            - "array": 
+                Data loaded from a numpy array in dicom-style orientation.
+            - "nifti array": 
+                Data loaded from a numpy array in nifti-style orientation.
+            - "nifti": 
+                Data loaded from a nifti file.
+            - "dicom": 
+                Data loaded from one or more dicom file(s).
+
+        The loading sequence is as follows: 
+
+            1. If self.source is a numpy array, self.data will be set to the
+            contents of self.source. If <nifti_array> was set to True when 
+            __init__() was called, self.source_type is set to "nifti array";
+            otherwise, self.source_type is set to "array".
+
+            2. If self.source is a string, this is treated as a filepath. 
+            Attempt to load a nifti file from this path using the function
+            load_nifti(). If the path points to a valid nifti file, this will
+            return a pixel array and affine matrix, which are assigned to
+            self.data and self.affine, respectively. Set self.source_type
+            to "nifti".
+           
+            3. If self.source is neither a numpy array nor a string, throw a
+            TypeError.
+
+            4. If no data were loaded in step 2 (i.e. self.data is still None),
+            attempt to load from a numpy binary file at the path in self.source 
+            using the function load_npy(). If the path points to a valid numpy
+            binary file, this will return a pixel array, which is assigned to
+            self.data. Set source_type to either "nifti array" or "array",
+            depending on whether <nifti_array> was set to True or False, 
+            respectively, when __init__() was called.
+
+            5. If no data were loaded in step 4 (i.e. self.data is still None),
+            attempt to load from a dicom file or directory at the path in
+            self.source using the function load_dicom(). If successful, this 
+            returns a pixel array, affine matrix, default greyscale window
+            centre and width, the last loaded pydicom.dataset.FileDataset 
+            object, and a dictionary mapping z positions to paths to the
+            dicom file for that slice. These outputs are used to assign 
+            self.data, self.affine, self.dicom_dataset, and self._z_paths; 
+            self.source_type is set to "dicom".
+
+            6. If no data were loaded in step 5 (i.e. self.data is still None),
+            raise a RuntimeError.
+
+            7. If self.data contains a 2D array, convert this to 3D by adding
+            an extra axis.
+
+            8. Apply any downsampling as specificied in __init__().
+
+            9. Run self.set_geometry() in order to compute geometric quantities
+            for this Image.
+
+            10. If a default window width and window centre were loaded from 
+            dicom, use these to set self.default_window to a greyscale window 
+            range.
+
+            11. If self.title is None and self.source is a filepath, infer
+            a title from the basename of this path.
+        """
 
         if self.data is not None and not force:
             return
@@ -273,24 +393,44 @@ class Image(skrt.core.Archive):
                 self.title = os.path.basename(self.source)
 
     def get_standardised_data(self, force=True):
-        """Return standardised image array. If <force> is True, the 
-        standardisation will be re-performed."""
+        """Return array in standard dicom orientation, where 
+        [column, row, slice] corresponds to the [x, y, z] axes.
+        standardised image array. 
+
+        Parameters
+        ----------
+        force : bool, default=True
+            If True, the standardised array will be recomputed from self.data 
+            even if it has previously been computed.
+        """
 
         if not hasattr(self, "_sdata") or force:
             self.standardise_data()
         return self._sdata
 
     def get_standardised_affine(self, force=True):
-        """Return standardised affine matrix. If <force> is True, the 
-        standardisation will be re-performed."""
+        """Return affine matrix in standard dicom orientation, where 
+        [column, row, slice] corresponds to the [x, y, z] axes.
+        standardised image array. 
+
+        Parameters
+        ----------
+        force : bool, default=True
+            If True, the standardised array will be recomputed from self.data 
+            even if it has previously been computed.
+        """
 
         if not hasattr(self, "_saffine") or force:
             self.standardise_data()
         return self._saffine
 
     def standardise_data(self):
-        """Manipulate data array and affine matrix into a standard
-        configuration."""
+        """Manipulate data array and affine matrix into standard dicom
+        orientation, where [column, row, slice] corresponds to the [x, y, z] 
+        axes; assign results to self._sdata and self._saffine, respectively.
+        Standardised voxel sizes (self._svoxel_size) and origin position
+        (self._sorigin) will also be inferred from self._affine.
+        """
 
         data = self.get_data()
         affine = self.get_affine()
@@ -347,7 +487,13 @@ class Image(skrt.core.Archive):
         self._sorigin = list(self._saffine[:-1, -1])
 
     def resample(self, voxel_size):
-        """Resample image to have particular voxel sizes."""
+        """Resample image to have particular voxel sizes.
+
+        Parameters
+        ----------
+        voxel_size : list
+            Desired voxel sizes in mm in order [x, y, z].
+        """
 
         # Parse input voxel sizes
         self.load()
@@ -422,12 +568,21 @@ class Image(skrt.core.Archive):
         """Resample to match z-axis voxel size with that of another Image
         object.
 
-        Available methods:
-            - self: match own z voxel size to that of <image>.
-            - coarse: resample the image with the smaller z voxels to match
-            that of the image with larger z voxels.
-            - fine: resample the image with the larger z voxels to match
-            that of the image with smaller z voxels.
+        Parameters
+        ----------
+        image : Image
+            Other image to which z-axis voxel size should be matched.
+
+        method : str, default="self"
+            String specifying the matching method. Can be any of:
+                - "self": 
+                    Match own z voxel size to that of <image>.
+                - "coarse": 
+                    Resample the image with the smaller z voxels to match
+                    that of the image with larger z voxels.
+                - "fine": 
+                    Resample the image with the larger z voxels to match
+                    that of the image with smaller z voxels.
         """
 
         # Determine which image should be resampled
@@ -461,27 +616,39 @@ class Image(skrt.core.Archive):
         )
 
     def get_min(self):
-        """Get minimum value of data array."""
+        """Get minimum greyscale value of data array."""
 
         self.load()
         return self.data.min()
 
     def get_max(self):
-        """Get maximum value of data array."""
+        """Get maximum greyscale value of data array."""
 
         self.load()
         return self.data.max()
 
     def get_orientation_codes(self, affine=None, source_type=None):
-        """Get image orientation codes in order (row, column, slice) for
-        dicom or (column, row, slice) for nifti.
+        """Get image orientation codes in order [row, column, slice] if 
+        image was loaded in dicom-style orientation, or [column, row, slice] 
+        if image was loaded in nifti-style orientation.
 
-        L = Left (x axis)
-        R = Right (x axis)
-        P = Posterior (y axis)
-        A = Anterior (y axis)
-        I = Inferior (z axis)
-        S = Superior (z axis)
+        This returns a list of code strings. Possible codes:
+            "L" = Left (x axis)
+            "R" = Right (x axis)
+            "P" = Posterior (y axis)
+            "A" = Anterior (y axis)
+            "I" = Inferior (z axis)
+            "S" = Superior (z axis)
+
+        Parameters
+        ----------
+        affine : np.ndarray, default=None
+            Custom affine matrix to use when determining orientation codes.
+            If None, self.affine will be used.
+
+        source_type : str, default=None
+            Assumed source type to use when determining orientation codes. If 
+            None, self.source_type will be used.
         """
 
         if affine is None:
@@ -506,7 +673,18 @@ class Image(skrt.core.Archive):
         return codes
 
     def get_orientation_vector(self, affine=None, source_type=None):
-        """Get image orientation as a row and column vector."""
+        """Get image orientation as a row and column vector.
+
+        Parameters
+        ----------
+        affine : np.ndarray, default=None
+            Custom affine matrix to use when determining orientation vector.
+            If None, self.affine will be used.
+
+        source_type : str, default=None
+            Assumed source type to use when determining orientation vector. If 
+            None, self.source_type will be used.
+        """
 
         if source_type is None:
             source_type = self.source_type
@@ -527,9 +705,16 @@ class Image(skrt.core.Archive):
         return vecs[codes[0]] + vecs[codes[1]]
 
     def get_axes(self, col_first=False):
-        """Return list of axis numbers in order (column, row, slice) if
-        col_first is True, otherwise in order (row, column, slice). The axis
-        numbers 0, 1, and 2 correspond to x, y, and z, respectively."""
+        """Return list of axis numbers in order [column, row, slice] if
+        col_first is True, otherwise in order [row, column, slice]. The axis
+        numbers 0, 1, and 2 correspond to x, y, and z, respectively.
+
+        Parameters
+        ----------
+        col_first : bool, default=True
+            If True, return axis numbers in order [column, row, slice] instead
+            of [row, column, slice].
+        """
 
         orient = np.array(self.get_orientation_vector()).reshape(2, 3)
         axes = [sum([abs(int(orient[i, j] * j)) for j in range(3)]) for i in
@@ -554,7 +739,41 @@ class Image(skrt.core.Archive):
         return machine
 
     def set_geometry(self):
-        """Set geometric properties."""
+        """Set geometric properties for this image. Should be called once image
+        data has been loaded. Sets the following properties:
+
+            Affine matrix (self.affine): 
+                4x4 affine matrix. If initially None, this is computed 
+                from self.voxel_size and self.origin.
+
+            Voxel sizes (self.voxel_size):
+                List of [x, y, z] voxel sizes in mm. If initially None, this 
+                is computed from self.affine.
+
+            Origin position (self.origin):
+                List of [x, y, z] origin coordinates in mm. If initiall None,
+                this is computed from self.affine.
+
+            Number of voxels (self.n_voxels):
+                List of number of voxels in the [x, y, z] directions. Computed 
+                from self.data.shape.
+
+            Limits (self.lims):
+                List of minimum and maximum array positions in the [x, y, z]
+                directions (corresponding the centres of the first and last 
+                voxels). Calculated from standardised origin, voxel sizes, 
+                and image shape.
+
+            Image extent (self.image_extent):
+                List of minimum and maximum positions of the edges of the array
+                in the [x, y, z] directions. Calculated from self.lims +/-
+                half a voxel size.
+
+            Plot extent (self.plot_extent):
+                Dict of plot extents for each orientation. Given in the form
+                of a list [x1, x2, y1, y2], which is the format needed for 
+                the <extent> argument for matplotlib plotting.
+        """
 
         # Set affine matrix, voxel sizes, and origin
         self.affine, self.voxel_size, self.origin = \
@@ -590,7 +809,14 @@ class Image(skrt.core.Archive):
         }
 
     def get_length(self, ax):
-        """Get image length along a given axis."""
+        """Get image length along a given axis.
+
+        Parameters
+        ----------
+        ax : str/int
+            Axis along which to get length. Can be either "x", "y", "z" or
+            0, 1, 2.
+        """
 
         self.load()
         if not isinstance(ax, int):
@@ -599,7 +825,28 @@ class Image(skrt.core.Archive):
 
     def get_idx(self, view, sl=None, idx=None, pos=None):
         """Get an array index from either a slice number, index, or
-        position."""
+        position. If <sl>, <idx>, and <pos> are all None, the index of the 
+        central slice of the image in the orienation specified in <view> will 
+        be returned.
+
+        Parameters
+        ----------
+        view : str
+            Orientation in which to compute the index. Can be "x-y", "y-z", or
+            "x-z".
+
+        sl : int, default=None
+            Slice number. If given, this number will be converted to an index 
+            and returned.
+
+        idx : int, default=None
+            Slice array index. If given and <sl> is None, this index will be 
+            returned.
+
+        pos : float, default=None
+            Slice position in mm. If given and <sl> and <idx> are both None,
+            this position will be converted to an index and returned.
+        """
 
         if sl is not None:
             idx = self.slice_to_idx(sl, _slice_axes[view])
@@ -615,7 +862,29 @@ class Image(skrt.core.Archive):
         self, view="x-y", sl=None, idx=None, pos=None, flatten=False, 
         force=True, **kwargs
     ):
-        """Get a slice of the data in the correct orientation for plotting."""
+        """Get a slice of the data in the correct orientation for plotting. 
+        If <sl>, <pos>, and <idx> are all None, the central slice of the image
+        in the orientation specified in <view> will be returned.
+
+        Parameters
+        ----------
+        view : str
+            Orientation; can be "x-y", "y-z", or "x-z".
+
+        sl : int, default=None
+            Slice number; used if not None.
+
+        idx : int, default=None
+            Slice array index; used if not None and <sl> is None.
+
+        pos : float, default=None
+            Slice position in mm; used if not None and <sl> and <idx> are both
+            None.
+
+        flatten : bool, default=False
+            If True, the image will be summed across all slices in the 
+            orientation specified in <view>; <sl>/<idx>/<pos> will be ignored.
+        """
 
         # Get index
         idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
@@ -640,18 +909,52 @@ class Image(skrt.core.Archive):
             return self._current_slice
 
     def add_structure_set(self, structure_set):
-        """Add a structure set."""
+        """Add a structure set to be associated with this image. This Image 
+        object will simultaneously be assigned to the StructureSet.
+
+        Parameters
+        ----------
+        structure_set : skrt.structures.StructureSet
+            A StructureSet object to assign to this image.
+        """
 
         self.structure_sets.append(structure_set)
         structure_set.set_image(self)
 
     def clear_structure_sets(self):
-        """Clear all structure sets."""
+        """Clear all structure sets associated with this image."""
 
         self.structure_sets = []
 
     def get_mpl_kwargs(self, view, mpl_kwargs=None, scale_in_mm=True):
-        """Get matplotlib kwargs dict including defaults."""
+        """Get a dict of kwargs for plotting this image in matplotlib. This
+        will create a default dict, which is updated to contain any kwargs
+        contained in <mpl_kwargs>.
+
+        The default parameters are:
+            - "aspect":
+                Aspect ratio determined from image geometry.
+            - "extent": 
+                Plot extent determined from image geometry.
+            - "cmap":
+                Colormap, "gray" by default.
+            - "vmin"/"vmax"
+                Greyscale range to use; taken from self.default_window by 
+                default.
+
+        Parameters
+        ----------
+        view : str
+            Orientation (any of "x-y", "x-z", "y-z"); needed to compute
+            correct aspect ratio and plot extent.
+
+        mpl_kwargs : dict, default=None
+            Dict of kwargs with which to overwrite default kwargs.
+
+        scale_in_mm : bool, default=True
+            If True, indicates that image will be plotted with axis scales in 
+            mm; needed to compute correct aspect ratio and plot extent.
+        """
 
         if mpl_kwargs is None:
             mpl_kwargs = {}
@@ -683,7 +986,9 @@ class Image(skrt.core.Archive):
         return mpl_kwargs
 
     def view(self, **kwargs):
-        """View self with BetterViewer."""
+        """View self with BetterViewer. Any **kwargs will be passed to 
+        BetterViewer initialisation.
+        """
 
         from skrt.better_viewer import BetterViewer
 
