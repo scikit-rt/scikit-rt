@@ -2,8 +2,7 @@
 
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
-from scipy import interpolate
-from scipy.ndimage import affine_transform
+import scipy.ndimage
 import copy
 import datetime
 import glob
@@ -348,74 +347,39 @@ class Image(skrt.core.Archive):
         self._svoxel_size = list(np.diag(self._saffine))[:-1]
         self._sorigin = list(self._saffine[:-1, -1])
 
-    def resample(self, voxel_size):
-        """Resample image to have particular voxel sizes."""
+    def resample(self, voxel_size=(1, 1, 1), order=1):
+        '''
+        Resample image to have particular voxel sizes.
 
-        # Parse input voxel sizes
+        Parameters
+        ----------
+        voxel_size: int/float/tuple/list, default =(0, 0, 0)
+            Voxel size to which image is to be resampled.  If voxel_size is
+            a tuple or list, then it's taken to specify voxel sizes
+            in mm in the order x, y, z.  If voxel_size is an int or float,
+            then it's taken to specify the voxel siz in mm along all axes.
+        order: int, default = 1
+            Order of the b-spline used in interpolating voxel intensity values.
+        '''
+
         self.load()
-        parsed = []
-        for i, vx in enumerate(voxel_size):
-            if vx is None:
-                parsed.append(self.voxel_size[i])
-            elif self.voxel_size[i] * vx < 0:
-                parsed.append(-vx)
-            else:
-                parsed.append(vx)
-        voxel_size = parsed
 
-        # Make interpolant
-        old_coords = [
-            np.linspace(
-                self.origin[i],
-                self.origin[i] + (self.n_voxels[i] - 1) * self.voxel_size[i],
-                self.n_voxels[i],
-            )
-            for i in range(3)
-        ]
-        for i in range(len(old_coords)):
-            if old_coords[i][0] > old_coords[i][-1]:
-                old_coords[i] = old_coords[i][::-1]
-        interpolant = interpolate.RegularGridInterpolator(
-            old_coords,
-            self.get_data(),
-            method="linear",
-            bounds_error=False,
-            fill_value=self.get_min()
-        )
+        # Define scale factors to obtain requested voxel size.
+        if isinstance(voxel_size, float) or isinstance(voxel_size, int):
+            voxel_size = 3 * [voxel_size]
+        scale = [self.voxel_size[i] / voxel_size[i] for i in range(3)]
 
-        # Calculate new number of voxels
-        n_voxels = [
-            int(np.round(abs(self.get_length(i) / voxel_size[i])))
-            for i in range(3)
-        ]
-        voxel_size = [
-            np.sign(voxel_size[i]) * self.get_length(i) / n_voxels[i]
-            for i in range(3)
-        ]
-        shape = [n_voxels[1], n_voxels[0], n_voxels[2]]
-        origin = [
-            self.origin[i] - self.voxel_size[i] / 2 + voxel_size[i] / 2
-            for i in range(3)
-        ]
-
-        # Interpolate to new coordinates
-        new_coords = [
-            np.linspace(
-                origin[i], origin[i] + (n_voxels[i] - 1) * voxel_size[i],
-                n_voxels[i]
-            )
-            for i in range(3)
-        ]
-        stack = np.vstack(np.meshgrid(*new_coords, indexing="ij"))
-        points = stack.reshape(3, -1).T.reshape(*shape, 3)
-        self.data = interpolant(points)[::-1, :, :]
+        self.data = scipy.ndimage.zoom(self.data, scale, order=order,
+                mode='nearest')
 
         # Reset properties
         self.origin = [
             self.origin[i] - self.voxel_size[i] / 2 + voxel_size[i] / 2
             for i in range(3)
         ]
-        self.n_voxels = n_voxels
+
+        ny, nx, nz = self.data.shape
+        self.n_voxels = [ny, nx, nz]
         self.voxel_size = voxel_size
         self.affine = None
         self.set_geometry()
@@ -1416,28 +1380,8 @@ class Image(skrt.core.Archive):
         ]
         return np.meshgrid(*coords_1d)
 
-    def image_rotation(self, rotation, ax, standardise=True):
-        """Convert spatial rotation about a given axis to image rotation"""
-
-        self.load()
-        i_ax = _axes.index(ax) if ax in _axes else ax
-        j_ax = i_ax + 1 if i_ax < 2 else 0
-        k_ax = j_ax + 1 if j_ax < 2 else 0
-        if standardise:
-            voxel_size = self._svoxel_size
-        else:
-            voxel_size = self.voxel_size
-
-        rad_rotation = math.radians(rotation)
-        dj = math.cos(rad_rotation) / voxel_size[j_ax]
-        dk = math.sin(rad_rotation) / voxel_size[k_ax]
-
-        image_rotation = math.degrees(math.atan2(dk, dj))
-
-        return image_rotation
-
     def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
-            centre=[0, 0, 0]):
+            centre=[0, 0, 0], resample="fine", restore=True):
         """Apply three-dimensional similarity transform using scikit-image.
 
         The image is first translated, then is scaled and rotated
@@ -1460,20 +1404,65 @@ class Image(skrt.core.Archive):
         centre : list, default=[0, 0, 0]
             Coordinates in mm in [x, y, z] about which to perform rotation
             and scaling of translated image.
+
+        resample: float/string, default='coarse'
+            Resampling to be performed before image transformation.
+            If resample is a float, then the image is resampled to that
+            this is the voxel size in mm along all axes.  If the
+            transformation involves scaling or rotation in an image
+            projection where voxels are non-square, then:
+            if resample is 'fine' then voxels are resampled to have
+            their smallest size along all axes;
+            if resample is 'coarse' then voxels are resampled to have
+            their largest size along all axes.
+
+        restore: bool, default=True
+            In case that image has been resampled:
+            if True, restore original voxel size for transformed iamge;
+            if False, keep resampled voxel size for transformed image.
         """
 
         self.load()
 
-        # Obtain rotations in radians
-        pitch, yaw, roll = rotation
+        # Decide whether to perform resampling.
+        # The scipy.ndimage function affine_transform() assumes
+        # that voxel sizes are the same # in all directions, so resampling
+        # is necessary if the transformation # affects a projection in which
+        # voxels are non-square.  In other cases resampling is optional.
+        small_number = 0.1
+        voxel_size = tuple(self.voxel_size)
+        voxel_size_min = min(voxel_size)
+        voxel_size_max = max(voxel_size)
+        if isinstance(resample, int) or isinstance(resample, float):
+            image_resample = True
+        else:
+            image_resample = False
+        if not image_resample:
+            if abs(voxel_size_max - voxel_size_min) > 0.1:
+                if (scale - 1.) > small_number:
+                    image_resample = True
+                pitch, yaw, roll = rotation
+                dx, dy, dz = voxel_size
+                if abs(pitch) > small_number and abs(dy - dz) > small_number:
+                    image_resample = True
+                if abs(yaw) > small_number and abs(dz - dx) > small_number:
+                    image_resample = True
+                if abs(roll) > small_number and abs(dx - dy) > small_number:
+                    image_resample = True
+            if image_resample and resample not in ['coarse', 'fine']:
+                resample = 'fine'
 
-        ipitch = math.radians(self.image_rotation(pitch, "x"))
-        iyaw = math.radians(self.image_rotation(yaw, "y"))
-        iroll = math.radians(self.image_rotation(roll, "z"))
+        if image_resample:
+            if 'fine' == resample:
+                resample_size = voxel_size_min
+            elif 'coarse' == resample:
+                resample_size = voxel_size_max
+            else:
+                resample_size = resample
+            self.resample(voxel_size=resample_size)
 
-        # print("pitch", pitch, math.degrees(ipitch))
-        # print("yaw", yaw, math.degrees(iyaw))
-        # print("roll", roll, math.degrees(iroll))
+        # Obtain rotation in radians
+        pitch, yaw, roll = [math.radians(x) for x in rotation]
 
         # Obtain translation in pixel units
         idx, idy, idz = [translation[i] / self.voxel_size[i] for i in range(3)]
@@ -1484,26 +1473,34 @@ class Image(skrt.core.Archive):
         iyc = self.pos_to_idx(yc, "y")
         izc = self.pos_to_idx(zc, "z")
 
-        # Overall transformation matrix obtained by combining
+        # Overall transformation matrix composed from
         # individual transformations, following suggestion at:
-        # https://stackoverflow.com/questions/25895587/python-skimage-transform-affinetransform-rotation-center
+        # https://stackoverflow.com/questions/25895587/
+        #     python-skimage-transform-affinetransform-rotation-center
+        # This gives control over the order in which
+        # the individaul transformation are performed
+        # (translation before rotation), and allows definition
+        # of point about which rotation and scaling are performed.
         tf_translation = skimage.transform.SimilarityTransform(
                 translation=[-idy, -idx, -idz], dimensionality=3)
         tf_centre_shift = skimage.transform.SimilarityTransform(
                 translation=[-iyc, -ixc, -izc], dimensionality=3)
         tf_rotation = skimage.transform.SimilarityTransform(
-                rotation=[-iyaw, -ipitch, iroll], dimensionality=3)
+                rotation=[yaw, pitch, roll], dimensionality=3)
         tf_scale = skimage.transform.SimilarityTransform(
-                scale=scale, dimensionality=3)
+                scale=1. / scale, dimensionality=3)
         tf_centre_shift_inv = skimage.transform.SimilarityTransform(
                 translation=[iyc, ixc, izc], dimensionality=3)
 
         matrix = tf_translation + tf_centre_shift + tf_rotation + tf_scale \
                  + tf_centre_shift_inv
-        # print(matrix)
 
         # Apply transform
-        self.data = affine_transform(self.data, matrix)
+        self.data = scipy.ndimage.affine_transform(self.data, matrix)
+
+        # Revert to original voxel size
+        if image_resample and restore:
+            self.resample(voxel_size=voxel_size)
 
         return None
 
