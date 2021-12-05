@@ -493,24 +493,35 @@ class Image(skrt.core.Archive):
 
         Parameters
         ----------
-        voxel_size: int/float/tuple/list, default =(0, 0, 0)
+        voxel_size: int/float/tuple/list, default =(1, 1, 1)
             Voxel size to which image is to be resampled.  If voxel_size is
             a tuple or list, then it's taken to specify voxel sizes
             in mm in the order x, y, z.  If voxel_size is an int or float,
-            then it's taken to specify the voxel siz in mm along all axes.
+            then it's taken to specify the voxel size in mm along all axes.
+
         order: int, default = 1
             Order of the b-spline used in interpolating voxel intensity values.
         '''
 
         self.load()
-
-        # Define scale factors to obtain requested voxel size.
         if isinstance(voxel_size, float) or isinstance(voxel_size, int):
             voxel_size = 3 * [voxel_size]
+
+        # Fill in None values with own voxel size
+        voxel_size2 = []
+        for i, v in enumerate(voxel_size):
+            if v is not None:
+                voxel_size2.append(v)
+            else:
+                voxel_size2.append(self.voxel_size[i])
+        voxel_size = voxel_size2
+
+        # Define scale factors to obtain requested voxel size
         scale = [self.voxel_size[i] / voxel_size[i] for i in range(3)]
 
         self.data = scipy.ndimage.zoom(self.data, scale, order=order,
                 mode='nearest')
+
 
         # Reset properties
         self.origin = [
