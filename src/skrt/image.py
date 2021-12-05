@@ -1435,8 +1435,8 @@ class Image(skrt.core.Archive):
     def pos_to_slice(self, pos, ax, return_int=True, standardise=True):
         """Convert a position in mm to a slice number along a given axis."""
 
-        sl = self.idx_to_slice(self.pos_to_idx(pos, ax, return_int,
-                                               standardise), ax)
+        sl = self.idx_to_slice(self.pos_to_idx(
+            pos, ax, return_int, standardise=standardise), ax)
         if return_int:
             return round(sl)
         else:

@@ -461,8 +461,13 @@ class ROI(skrt.core.Archive):
 
         return points
 
-    def create_mask(self, force=False, overlap_level=None, voxel_size=None, 
-                    shape=None):
+    def create_mask(
+        self, 
+        force=False, 
+        overlap_level=None, 
+        voxel_size=None, 
+        shape=None
+    ):
         """Create binary mask representation of this ROI. If the ROI was created
         from contours, these contours will be converted to a mask; if the ROI
         was created from a mask, this mask will be cast to a boolean array.
@@ -667,7 +672,7 @@ class ROI(skrt.core.Archive):
             i_ax = skrt.image._axes.index(ax) if ax in _axes else ax
             return self.origin[i_ax] + idx * self.voxel_size[i_ax]
 
-    def pos_to_idx(self, pos, ax, return_int=True):
+    def pos_to_idx(self, pos, ax, return_int=True, **kwargs):
         """Convert a position in mm to an array index along a given axis."""
 
         self.load()
@@ -778,21 +783,25 @@ class ROI(skrt.core.Archive):
         idx=None,
         pos=None,
         units="mm",
-        standardise=True,
+        method=None,
         flatten=False,
-        method=None
+        force=True
     ):
-        """Get centroid position in 2D or 3D. 
+        """Get either 3D global centroid position or 2D centroid position on 
+        a single slice. If single_slice=False, the calculated global centroid 
+        will be cached in self._centroid[units] and returned if called again,
+        unless force=True.
 
         Parameters
         ----------
         single_slice : bool, default=False
-            If False, the 3D centroid of the entire ROI will be returned;
-            otherwise, the 2D centroid of a single slice will be returned.
+            If False, the global 3D centroid of the entire ROI will be returned;
+            otherwise, the 2D centroid on a single slice will be returned.
 
         view : str, default="x-y"
-            Orientation of slice for which to get centroid, if <single_slice>
-            is True (otherwise ignored).
+            Orientation of slice on which to get centroid. Only used if 
+            single_slice=True. If using, <ax> must be an axis that lies along
+            the slice in this orientation.
 
         sl : int, default=None
             Slice number. If none of <sl>, <idx> or <pos> are supplied but
@@ -807,31 +816,55 @@ class ROI(skrt.core.Archive):
             <single_slice> is True, the central slice of the ROI will be used.
 
         units : str, default="mm"
-            Units in which to return the centroid position. Can be either "mm"
-            or "voxels".
+            Units of centroid. Can be either of:
+                - "mm": return centroid position in millimetres.
+                - "voxels": return centroid position in terms of array indices.
+                - "slice": return centroid position in terms of slice numbers.
 
+            If units="voxels" or "slice" is requested but this ROI only has 
+            contours and no mask shape/voxel size information, an error will be 
+            raised (unless ax="z", in which case voxel size will be inferred 
+            from spacing between slices).
+
+        method : str, default=None
+            Method to use for centroid calculation. Can be: 
+                - "contour": get centroid of shapely contour(s).
+                - "mask": get average position of voxels in binary mask.
+                - None: use the method set in self.default_geom_method.
+
+        force : bool, default=True
+            If True, the global centroid will always be recalculated; 
+            otherwise, it will only be calculated if it has not yet been cached 
+            in self._volume.  Note that if single_slice=True, the centroid will 
+            always be recalculated.
         """
 
+        # If global centroid already cached, return cached value
+        if not single_slice and not force:
+            if hasattr(self, "_centroid") and units in self._centroid:
+                return self._centroid[units]
+
+        # Get default slice and method
         self.load()
         if method is None:
             method = self.default_geom_method
-
-        # Get default index
         if single_slice and pos is None and sl is None and idx is None:
             idx = self.get_mid_idx(view)
 
         # Calculate centroid from Shapely polygons
+        centroid = {}
         if method == "contour":
 
-            # Get 2D or 3D centroids and areas of each polygon
+            # Get 2D or 3D centroids and areas of each polygon on the desired
+            # slice(s)
             if single_slice:
                 polygons = self.get_polygons_on_slice(view, sl, idx, pos)
                 centroids = []
                 areas = []
                 for p in polygons:
-                    centroid = p.centroid.xy
+                    centroid_xy = p.centroid.xy
                     centroids.append(np.array([
-                        centroid[0][0], centroid[1][0]
+                        centroid_xy[0][0], centroid_xy[1][0]
                     ]))
                     areas.append(p.area)
             else:
@@ -840,9 +873,9 @@ class ROI(skrt.core.Archive):
                 polygon_dict = self.get_polygons()
                 for z, polygons in polygon_dict.items():
                     for p in polygons:
-                        centroid = p.centroid.xy
+                        centroid_xy = p.centroid.xy
                         centroids.append(np.array([
-                            centroid[0][0], centroid[1][0], z
+                            centroid_xy[0][0], centroid_xy[1][0], z
                         ]))
                         areas.append(p.area)
 
@@ -851,37 +884,69 @@ class ROI(skrt.core.Archive):
                 [centroids[i] * areas[i] for i in range(len(centroids))],
                 axis=0
             )
-            return weighted_sum / sum(areas)
+            centroid["mm"] = weighted_sum / sum(areas)
+
+            # Calculate in voxels and slices if possible
+            if self.voxel_size is None and self.shape is None:
+                if units in ["voxels", "slice"]  and self.shape is None:
+                    raise RuntimeError("Cannot compute centroid in voxels/slice"
+                                       " numbers from contours without knowing voxel"
+                                       " sizes and mask shape!")
+            else:
+                centroid["voxels"] = np.array([
+                    self.pos_to_idx(c, ax=i, return_int=False) 
+                    for i, c in enumerate(centroid["mm"])
+                ])
+                centroid["slice"] = np.array([
+                    self.pos_to_slice(c, ax=i, return_int=False) 
+                    for i, c in enumerate(centroid["mm"])
+                ])
 
         # Otherwise, calculate centroid from binary mask
-        # Get 2D or 3D data from which to calculate centroid
-        if single_slice:
-            if not self.on_slice(view, sl, idx, pos):
-                return np.array([None, None])
-            data = self.get_slice(view, sl, idx, pos)
-            axes = skrt.image._plot_axes[view]
-        else:
-            if flatten:
-                data = self.get_mask(view, flatten=True)
-            else:
-                self.create_mask()
-                data = self.mask.get_data(standardise)
-            axes = skrt.image._axes
+        else: 
 
-        # Compute centroid from 2D or 3D binary mask
-        non_zero = np.argwhere(data)
-        if not len(non_zero):
-            if data.ndim == 2:
-                return None, None
+            # Get 2D or 3D data from which to calculate centroid
+            if single_slice:
+                if not self.on_slice(view, sl, idx, pos):
+                    return np.array([None, None])
+                data = self.get_slice(view, sl, idx, pos)
+                axes = skrt.image._plot_axes[view]
             else:
-                return None, None, None
-        centroid_rowcol = list(non_zero.mean(0))
-        centroid = [centroid_rowcol[1], centroid_rowcol[0]] + centroid_rowcol[2:]
+                if flatten:
+                    data = self.get_mask(view, flatten=True)
+                else:
+                    self.create_mask()
+                    data = self.mask.get_data(standardise=True)
+                axes = skrt.image._axes
 
-        # Convert to mm
-        if units == "mm":
-            centroid = [self.idx_to_pos(c, axes[i]) for i, c in enumerate(centroid)]
-        return np.array(centroid)
+            # Compute centroid from 2D or 3D binary mask
+            non_zero = np.argwhere(data)
+            if not len(non_zero):
+                if data.ndim == 2:
+                    return None, None
+                else:
+                    return None, None, None
+            centroid_rowcol = list(non_zero.mean(0))
+            centroid_voxels = [centroid_rowcol[1], centroid_rowcol[0]] \
+                    + centroid_rowcol[2:]
+            centroid["voxels"] = np.array(centroid_voxels)
+
+            # Convert to mm and slices
+            centroid["mm"] = np.array([
+                self.idx_to_pos(c, ax=i) for i, c in 
+                enumerate(centroid["voxels"])
+            ])
+            centroid["slice"] = np.array([
+                self.idx_to_slice(c, ax=i) for i, c in 
+                enumerate(centroid["voxels"])
+            ])
+
+        # Cache global centroid
+        if not single_slice:
+            self._centroid = centroid
+
+        # Return centroid in requested units
+        return centroid[units]
 
     def get_slice_thickness_contours(self):
         """Get z voxel size using positions of contours."""
@@ -906,14 +971,15 @@ class ROI(skrt.core.Archive):
         idx=None, 
         pos=None, 
         method=None,
-        units="mm", 
     ):
-        """Get centre position in 2D or 3D."""
+        """Get centre position in 2D or 3D in mm."""
 
         if single_slice:
             axes = skrt.image._plot_axes[view]
         else:
             axes = skrt.image._axes
+
+        # Get centre in mm
         centre = [
             np.mean(self.get_extent(
                 ax=ax,
@@ -923,33 +989,93 @@ class ROI(skrt.core.Archive):
                 idx=idx,
                 pos=pos,
                 method=method,
-                units=units
             )) for ax in axes
         ]
         return centre
 
-    def get_volume(self, units="mm", method=None):
-        """Get ROI volume."""
+    def get_volume(
+        self, 
+        units="mm", 
+        method=None, 
+        force=True
+    ):
+        """Get ROI volume. The calculated volume will be cached in 
+        self._volume[units] and returned if called again, unless force=True.
+
+        Parameters
+        ----------
+        units : str, default="mm"
+            Units of volume. Can be any of:
+                - "mm": return volume in millimetres cubed.
+                - "ml": return volume in millilitres.
+                - "voxels": return volume in number of voxels.
+
+            If units="voxels" is requested but this ROI only has contours and no
+            voxel size information, an error will be raised.
+
+        method : str, default=None
+            Method to use for volume calculation. Can be: 
+                - "contour": compute volume by summing areas of shapely
+                polygons on each slice and multiplying by slice thickness.
+                - "mask": compute volume by summing voxels inside the ROI and
+                multiplying by the volume of one voxel.
+                - None: use the method set in self.default_geom_method.
+
+            Note that if self.get_volume has already been called with one 
+            method, the same cached result will be returned if calling with a 
+            different method unless force=True.
+
+        force : bool, default=True
+            If True, the volume will always be recalculated; otherwise, it will
+            only be calculated if it has not yet been cached in self._volume.
+        """
+
+        # If already cached and not forcing, return
+        if hasattr(self, "_volume") and not force:
+            if units in self._volume:
+                return self._volume[units]
 
         self.load()
         if method is None:
             method = self.default_geom_method
 
+        # Make cached property
+        self._volume = {}
+
         # Calculate from polygon areas
         if method == "contour":
+
+            # Check it's possible to calculate volume with the requested units
+            if self.voxel_size is None and units == "voxels":
+                raise RuntimeError("Cannot compute volume in voxels from "
+                                   "contours without knowing voxel sizes!")
+
+            # Calculate area on each slice
             slice_areas = []
             for idx in self.get_contours("x-y", idx_as_key=True):
                 slice_areas.append(self.get_area("x-y", idx=idx, method=method))
-            return sum(slice_areas) * self.get_slice_thickness_contours()
+
+            # Convert to volume in mm
+            area_sum = sum(slice_areas)
+            self._volume["mm"] = area_sum * self.get_slice_thickness_contours()
+
+            # If possible, convert to volume in voxels
+            if self.voxel_size is not None:
+                xy_voxel_area = self.voxel_size[0] * self.voxel_size[1]
+                self._volume["voxels"] = area_sum / xy_voxel_area
 
         # Otherwise, calculate from number of voxels in mask
-        self.create_mask()
-        volume = self.mask.data.astype(bool).sum()
-        if units in ["mm", "ml"]:
-            volume *= abs(np.prod(self.get_voxel_size()))
-            if units == "ml":
-                volume *= (0.1 ** 3)
-        return volume
+        else:
+            self.create_mask()
+            self._volume["voxels"] = self.mask.data.astype(bool).sum()
+            voxel_vol = abs(np.prod(self.get_voxel_size()))
+            self._volume["mm"] = self._volume["voxels"] * voxel_vol
+
+        # Get volume in ml
+        self._volume["ml"] = self._volume["mm"] / 1000
+
+        # Return volume in the requested units
+        return self._volume[units]
 
     def get_area(
         self, 
@@ -958,28 +1084,85 @@ class ROI(skrt.core.Archive):
         idx=None, 
         pos=None, 
         units="mm", 
+        method=None,
         flatten=False,
-        method=None
+        **kwargs
     ):
-        """Get the area of the ROI on a given slice."""
+        """Get the area of the ROI on a given slice.
+
+        Parameters
+        ----------
+        view : str, default="x-y"
+            Orientation of slice for which to get area.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        units : str, default="mm"
+            Units of area. Can be either of:
+                - "mm": return area in millimetres squared.
+                - "voxels": return area in number of voxels.
+
+            If units="voxels" is requested but this ROI only has contours and no
+            voxel size information, an error will be raised.
+
+        method : str, default=None
+            Method to use for area calculation. Can be: 
+                - "contour": compute area from shapely polygon on the slice.
+                - "mask": compute area by summing pixels on the slice and 
+                multiplying by the area of one pixel.
+                - None: use the method set in self.default_geom_method.
+
+        flatten : bool, default=False
+            If True, all slices will be flattened in the given orientation and
+            the area of the flattened slice will be returned. Only available
+            if method="mask".
+        """
 
         # Get default slice index and method
+        self.load()
         if sl is None and idx is None and pos is None: 
             idx = self.get_mid_idx(view)
         if method is None:
             method = self.default_geom_method
 
-        # Calculate from shapely polygon(s)
-        if method == "contour":
-            polygons = self.get_polygons_on_slice(view, sl, idx, pos)
-            return sum([p.area for p in polygons])
+        # Raise error if trying to flatten contours
+        if flatten and method == "contour":
+            raise RuntimeError('Flattened area only available with method="mask"')
 
-        # Otherwise, calculate from binary mask
-        im_slice = self.get_slice(view, sl, idx, pos, flatten=flatten)
+        # Calculate area from shapely polygon(s)
+        if method == "contour":
+
+            # Check it's possible to calculate area with the requested units
+            if self.voxel_size is None and units == "voxels":
+                raise RuntimeError("Cannot compute area in voxels from "
+                                   "contours without knowing voxel sizes!")
+
+            polygons = self.get_polygons_on_slice(view, sl, idx, pos)
+            area = sum([p.area for p in polygons])
+            if units == "voxels":
+                x_ax, y_ax = skrt.image._plot_axes[view]
+                xy_area = abs(self.voxel_size[x_ax] * self.voxel_size[y_ax])
+                area /= xy_area
+            return area
+
+        # Otherwise, calculate area from binary mask
+        im_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos, 
+                                  flatten=flatten)
         area = im_slice.astype(bool).sum()
         if units == "mm":
             x_ax, y_ax = skrt.image._plot_axes[view]
-            area *= abs(self.get_voxel_size()[x_ax] * self.get_voxel_size()[y_ax])
+            xy_area = abs(self.voxel_size[x_ax] * self.voxel_size[y_ax])
+            area *= xy_area
         return area
 
     def get_extent(self, 
@@ -990,10 +1173,43 @@ class ROI(skrt.core.Archive):
                    idx=None, 
                    pos=None, 
                    method=None, 
-                   units="mm",
                   ):
-        """Get minimum and maximum extent along a given axis."""
+        """Get minimum and maximum extent of the ROI in mm along a given axis.
 
+        ax : str/int, default="z"
+            Axis along which to return extent. Should be one of ["x", "y", "z"] 
+            or [0, 1, 2]
+
+        single_slice : bool, default=False
+            If False, the 3D extent of the entire ROI will be returned;
+            otherwise, the 2D extent of a single slice will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice on which to get extent. Only used if 
+            single_slice=True. If using, <ax> must be an axis that lies along
+            the slice in this orientation.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        method : str, default=None
+            Method to use for length calculation. Can be: 
+                - "contour": get extent from min/max positions of contour(s).
+                - "mask": get extent from min/max positions of voxels in the 
+                binary mask.
+                - None: use the method set in self.default_geom_method.
+        """
+
+        # Get default slice and method
         self.load()
         if method is None:
             method = self.default_geom_method
@@ -1001,18 +1217,18 @@ class ROI(skrt.core.Archive):
             if idx is None and sl is None and pos is None:
                 idx = self.get_mid_idx()
 
-        # Check the axis is valid for the slice
-        i_ax = ax if isinstance(ax, int) else skrt.image._axes.index(ax)
+        # If using single slice, check the axis lies along the slice
+        i_ax = skrt.image._axes.index(ax) if isinstance(ax, str) else ax
         if single_slice:
             if i_ax not in skrt.image._plot_axes[view]:
-                print(f"Cannot compute extent of axis {ax} in the {view} plane!")
-                return
+                raise RuntimeError(
+                    f"Cannot compute extent of axis {ax} in the {view} plane!")
             i_ax = skrt.image._plot_axes[view].index(i_ax)
 
         # Calculate extent from contours
         if method == "contour":
 
-            # Calculate z extent from contour positions
+            # Calculate full z extent from contour positions
             if ax == "z" and not single_slice:
                 z_keys = list(self.get_contours("x-y").keys())
                 vz = self.get_slice_thickness_contours()
@@ -1020,46 +1236,118 @@ class ROI(skrt.core.Archive):
                 z_min = min(z_keys) - vz / 2
                 return z_min, z_max
 
-            # Calculate from min/max contour positions
+            # Otherwise, calculate extent from min/max contour positions 
             points = []
+
+            # Global: use every contour
             if not single_slice:
                 for i, contours in self.get_contours("x-y").items():
                     for contour in contours:
                         points.extend([p[i_ax] for p in contour])
+
+            # Single slice: just use the contour on the slice
             else:
                 for contour in self.get_contours_on_slice(
                     view, sl=sl, idx=idx, pos=pos):
                     points.extend([p[i_ax] for p in contour])
+
+            # Return min and max of the points in the contour(s)
             return min(points), max(points)
 
         # Otherwise, get extent from mask
         self.create_mask()
         if i_ax != 2:  # Transpose x-y axes
             i_ax = 1 - i_ax
+
+        # Get positions of voxels inside the mask
         if not single_slice:
             nonzero = np.argwhere(self.mask.get_data(standardise=True))
         else:
             nonzero = np.argwhere(self.get_slice(
                 view, sl=sl, idx=idx, pos=pos))
         vals = nonzero[:, i_ax]
+
+        # Find min and max voxels; add half a voxel either side to get 
+        # full extent
         min_pos = min(vals) - 0.5
         max_pos = max(vals) + 0.5
-        if units == "mm":
-            return self.idx_to_pos(min_pos, ax), self.idx_to_pos(max_pos, ax)
-        return min_pos, max_pos
 
-    def get_length(self, 
-                   ax="z", 
-                   single_slice=False,
-                   view="x-y",
-                   sl=None, 
-                   idx=None, 
-                   pos=None, 
-                   method=None, 
-                   units="mm"):
-        """Get total length of the ROI along a given axis."""
+        # Convert positions to mm
+        return self.idx_to_pos(min_pos, ax), self.idx_to_pos(max_pos, ax)
 
-        # Get length from min and max positions
+    def get_length(
+        self, 
+        ax="z", 
+        single_slice=False,
+        view="x-y",
+        sl=None, 
+        idx=None, 
+        pos=None, 
+        units="mm",
+        method=None, 
+        force=True
+    ):
+        """Get ROI length along a given axis. If single_slice=False (i.e. a 
+        global length is requested), calculated length will be cached in 
+        self._length[ax][units] and returned if called again, unless force=True.
+
+        Parameters
+        ----------
+        ax : str/int, default="z"
+            Axis along which to return length; should be one of ["x", "y", "z"].
+
+        single_slice : bool, default=False
+            If False, the length of the entire ROI will be returned;
+            otherwise, the length on a single slice will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice on which to get length. Only used if 
+            single_slice=True. If using, <ax> must be an axis that lies along
+            the slice in this orientation.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        units : str, default="mm"
+            Units of length. Can be either of:
+                - "mm": return length in millimetres.
+                - "voxels": return length in number of voxels.
+
+            If units="voxels" is requested but this ROI only has contours and no
+            voxel size information, an error will be raised (unless ax="z", 
+            in which case voxel size will be inferred from spacing between
+            slices).
+
+        method : str, default=None
+            Method to use for length calculation. Can be: 
+                - "contour": get length from min/max positions of contour(s).
+                - "mask": get length from min/max positions of voxels in the 
+                binary mask.
+                - None: use the method set in self.default_geom_method.
+
+        force : bool, default=True
+            If True, the length will always be recalculated; otherwise, it will
+            only be calculated if it has not yet been cached in self._volume.
+            Note that if single_slice=True, the length will always be 
+            recalculated.
+        """
+
+        # If global length already cached, return cached value
+        if not single_slice and not force:
+            if hasattr(self, "_length") and ax in self._length \
+               and units in self._length[ax]:
+                return self._length[ax][units]
+
+        # Get length in mm from min and max positions
         self.load()
         min_pos, max_pos = self.get_extent(
             ax=ax, 
@@ -1068,9 +1356,35 @@ class ROI(skrt.core.Archive):
             sl=sl,
             idx=idx,
             pos=pos,
-            method=method, 
-            units=units)
-        return abs(max_pos - min_pos)
+            method=method
+        )
+        length = {
+            "mm": abs(max_pos - min_pos)
+        }
+
+        # Get length in voxels
+        # Case where voxel size is known
+        i_ax = skrt.image._axes.index(ax)
+        if self.voxel_size is not None:
+            length["voxels"] = length["mm"] / self.voxel_size[i_ax]
+
+        # Deal with case where self.voxel_size is None
+        else:
+            if ax == "z":
+                length["voxels"] = length["mm"] / self.get_slice_thickness_contours()
+            elif units == "voxels":
+                raise RuntimeError("Cannot compute length in voxels from "
+                                   "contours without knowing voxel sizes!")
+
+        
+        # Cache the property if global
+        if not single_slice:
+            if not hasattr(self, "_length"):
+                self._length = {}
+            self._length[ax] = length
+        
+        # Return desired units
+        return length[units]
 
     def get_geometry(
         self,
@@ -1084,9 +1398,11 @@ class ROI(skrt.core.Archive):
         pos=None,
         idx=None,
         method=None,
-        units_in_header=False
+        units_in_header=False,
+        decimal_places=None,
+        force=True
     ):
-        """Get a pandas DataFrame of the geometric properties listed in
+        """Return a pandas DataFrame of the geometric properties listed in
         <metrics>.
 
         Parameters
@@ -1111,71 +1427,178 @@ class ROI(skrt.core.Archive):
                 - "length_slice": length of the ROI on a single slice; will be
                   split into two columns corresponding to the two axes on the
                   slice.
-                    
 
+        vol_units : str, default="mm"
+            Units to use for volume. Can be "mm" (=mm^3), "ml",
+            or "voxels".
 
+        area_units : str, default="mm"
+            Units to use for areas. Can be "mm" (=mm^2) or "voxels".
 
+        length_units : str, default="mm":
+            Units to use for lengths. Can be "mm" or "voxels".
+
+        centroid_units:
+            Units to use for centroids. Can be "mm" or "voxels".
+
+        view : str, default="x-y"
+            Orientation in which to compute metrics. Only relevant for 
+            single-slice metrics (area, centroid_slice, length_slice).
+
+        sl : int, default=None
+            Slice number on which to compute metrics. Only relevant for 
+            single-slice metrics (area, centroid_slice, length_slice).
+            If <sl>, <idx>, and <pos> are all None, the central slice of the
+            ROI will be used.
+
+        idx : int, default=None
+            Slice index array on which to compute metrics. Only relevant for 
+            single-slice metrics (area, centroid_slice, length_slice).
+            Used if <sl> is None.
+
+        pos : float, default=None
+            Slice position in mm on which to compute metrics. Only relevant for 
+            single-slice metrics (area, centroid_slice, length_slice).
+            Used if <sl> and <idx> are both None.
+
+        method : str, default=None
+            Method to use for metric calculation. Can be either "contour" 
+            (use shapely polygons) or "mask" (use binary mask). If None,
+            the value set in self.default_geom_method will be used.
+
+        units_in_header : bool, default=False
+            If True, units will be included in column headers.
+
+        decimal_places : int, default=None
+            Number of decimal places to keep for each metric. If None, full
+            precision will be used.
+
+        force : bool, default=True
+            If False, global metrics (volume, 3D centroid, 3D lengths) will
+            only be calculated if they have not been calculated before;
+            if True, all metrics will be recalculated.
         """
 
-        # Parse volume and area units
-        vol_units_name = vol_units
-        if vol_units in ["mm", "mm3"]:
-            vol_units = "mm"
-            vol_units_name = "mm3"
-        area_units_name = vol_units
-        if area_units in ["mm", "mm2"]:
-            area_units = "mm"
-            area_units_name = "mm2"
-
-        # Make dict of property names
-        names = {
-            "volume": f"Volume ({vol_units_name})",
-            "area": f"Area ({area_units_name})",
+        # Compute metrics
+        geom = {}
+        slice_kwargs = {
+            "single_slice": True,
+            "view": view,
+            "sl": sl,
+            "idx": idx,
+            "pos": pos
         }
-        for ax in skrt.image._axes:
-            names[f"{ax}_length"] = f"{ax} length ({length_units})"
-            names[f"centroid_{ax}"] = f"Centroid {ax} ({centroid_units})"
-            names[f"centroid_global_{ax}"] = f"Global centroid {ax} ({centroid_units})"
+        for m in metrics:
 
-        # Make dict of functions and args for each metric
-        funcs = {
-            "volume": (self.get_volume, {"units": vol_units}),
-            "area": (
-                self.get_area,
-                {"units": area_units, "view": view, "sl": sl, "pos": pos, "idx": idx},
-            ),
-            "centroid": (
-                self.get_centroid,
-                {
-                    "units": centroid_units,
-                    "view": view,
-                    "sl": sl,
-                    "pos": pos,
-                    "idx": idx,
-                },
-            ),
-            "centroid_global": (self.get_centroid, {"units": centroid_units}),
-        }
-        for ax in skrt.image._axes:
-            funcs[f"{ax}_length"] = (self.get_length, {"ax": ax, "units": length_units})
-
-        # Make dict of metrics
-        geom = {m: funcs[m][0](**funcs[m][1]) for m in metrics}
-
-        # Split centroid into multiple entries
-        for cname in ["centroid", "centroid_global"]:
-            if cname in geom:
-                centroid_vals = geom.pop(cname)
-                axes = (
-                    [0, 1, 2]
-                    if len(centroid_vals) == 3
-                    else skrt.image._plot_axes[view]
+            # 3D volume
+            if m == "volume":
+                geom[m] = self.get_volume(
+                    units=vol_units, 
+                    method=method,
+                    force=force
                 )
-                for i, i_ax in enumerate(axes):
-                    ax = skrt.image._axes[i_ax]
-                    geom[f"{cname}_{ax}"] = centroid_vals[i]
 
-        geom_named = {names[m]: g for m, g in geom.items()}
+            # Area on a slice
+            elif m == "area":
+                geom[m] = self.get_area(
+                    units=area_units, 
+                    method=method,
+                    **slice_kwargs
+                )
+
+            # 3D centroid
+            elif m == "centroid":
+                centroid = self.get_centroid(
+                    units=centroid_units, 
+                    method=method,
+                    force=force
+                )
+                for i, ax in enumerate(skrt.image._axes):
+                    geom[f"centroid_{ax}"] = centroid[i]
+
+            # 2D centroid
+            elif m == "centroid_slice":
+                centroid = self.get_centroid(
+                    units=centroid_units, 
+                    method=method,
+                    **slice_kwargs
+                )
+                for i, i_ax in enumerate(skrt.image._plot_axes(view)):
+                    ax = skrt.image._axes[i_ax]
+                    centroid[f"centroid_slice_{ax}"] = centroid[i]
+
+            # Full lengths along each axis
+            elif m == "length":
+                for ax in skrt.image._axes:
+                    geom[f"length_{ax}"] = self.get_length(
+                        ax=ax, 
+                        units=length_units,
+                        method=method,
+                        force=force
+                    )
+
+            # Lengths on a slice
+            elif m == "length_slice":
+                for ax in skrt.image._plot_axes[view]:
+                    geom[f"length_slice_{ax}"] = self.get_length(
+                        ax=ax, 
+                        units=length_units,
+                        method=method,
+                        **slice_kwargs
+                    )
+
+            else:
+
+                # Axis-specific metrics
+                for i, ax in enumerate(skrt.image._axes):
+
+                    # Global centroid position on a given axis
+                    if m == f"centroid_{ax}":
+                        geom[m] = self.get_centroid(
+                            units=centroid_units,
+                            method=method,
+                            force=force
+                        )[i]
+
+                    # Full length along a given axis
+                    elif m == f"length_{ax}":
+                        geom[m] = self.get_length(
+                            ax=ax,
+                            units=length_units, 
+                            method=method,
+                            force=force
+                        )
+
+        # Add units to metric names if requested
+        geom_named = {}
+        if not units_in_header:
+            geom_named = geom
+        else:
+            for metric, val in geom.items():
+                name = metric
+                if "volume" in metric:
+                    if vol_units == "mm":
+                        name += " (mm^3)"
+                    else:
+                        name += " (" + vol_units + ")"
+                elif "area" in metric:
+                    if area_units == "mm":
+                        name += " (mm^2)"
+                    else:
+                        name += " (" + area_units + ")"
+                elif "length" in metric:
+                    name += " (" + length_units + ")"
+                elif "centroid" in metric:
+                    name += " (" + centroid_units + ")"
+                geom_named[name] = val
+
+        # Adjust number of decimal places
+        if decimal_places is not None:
+            for metric, val in geom_named.items():
+                fmt = f"{{val:.{decimal_places}f}}"
+                geom_named[metric] = float(fmt.format(val=val))
+
+        # Convert to pandas DataFrame
         return pd.DataFrame(geom_named, index=[self.name])
 
     def get_centroid_vector(self, roi, **kwargs):
