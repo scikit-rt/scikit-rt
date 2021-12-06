@@ -3543,8 +3543,7 @@ class StructureSet(skrt.core.Archive):
             all_extents.extend(roi.get_extent(**kwargs))
         return min(all_extents), max(all_extents)
 
-    def get_dummy_image(self, voxel_size=None, shape=None, fill_val=1e4,
-                        buffer=1):
+    def get_dummy_image(self, **kwargs):
         """Make a dummy image that covers the area spanned by all ROIs in this
         StructureSet. Returns an Image object.
 
@@ -3572,7 +3571,7 @@ class StructureSet(skrt.core.Archive):
         """
 
         extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
-        slice_thickness = self.get_rois()[0].get_slice_thicknes_contours()
+        slice_thickness = self.get_rois()[0].get_slice_thickness_contours()
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
     def get_staple(self, **kwargs):
