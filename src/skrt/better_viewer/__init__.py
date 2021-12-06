@@ -752,7 +752,7 @@ class BetterViewer:
         self.share_slider = share_slider
 
         # Make UI
-        #  if any([v.im.timeseries for v in self.viewers]):
+        #  if any([v.image.timeseries for v in self.viewers]):
             #  share_slider = False
         self.make_ui()
 
@@ -836,8 +836,8 @@ class BetterViewer:
             ax_lims = []
             if match_axes in ['all', 'both', 'x', 'y', 'overlap']:
                 for i in range(2):
-                    min_lims = [v.im.ax_lims[view][i][0] for v in self.viewers]
-                    max_lims = [v.im.ax_lims[view][i][1] for v in self.viewers]
+                    min_lims = [v.image.ax_lims[view][i][0] for v in self.viewers]
+                    max_lims = [v.image.ax_lims[view][i][1] for v in self.viewers]
                     f1, f2 = min, max
                     if match_axes == 'overlap':
                         f1, f2 = f2, f1
@@ -855,7 +855,7 @@ class BetterViewer:
                     raise TypeError('Unrecognised option for <match_axes>', match_axes)
 
             # Set these limits for all plots
-            all_ims = [v.im for v in self.viewers] + [
+            all_ims = [v.image for v in self.viewers] + [
                 c for c in self.comparison.values()
             ]
             for im in all_ims:
@@ -869,7 +869,7 @@ class BetterViewer:
         # Only allow share_slider if images have same frame of reference
         if self.share_slider:
             self.share_slider *= all(
-                [v.im.has_same_geometry(self.viewers[0].im) for v in self.viewers]
+                [v.image.has_same_geometry(self.viewers[0].image) for v in self.viewers]
             )
 
         # Make UI for first image
@@ -943,7 +943,7 @@ class BetterViewer:
                 v0.ui_roi_linewidth,
                 v0.ui_roi_opacity,
             ]
-            #  if any([v.im.comp_type == 'others' for v in self.viewers]):
+            #  if any([v.image.comp_type == 'others' for v in self.viewers]):
                 #  to_add.insert(1, v0.ui_roi_plot_type2)
                 #  to_add.insert(2, v0.ui_roi_comp_type)
             self.extra_ui.extend(to_add)
@@ -991,10 +991,10 @@ class BetterViewer:
 
             # Add plot title to ROI UI
             if many_with_rois and v.has_rois:
-                if not hasattr(v.im, 'title') or not v.im.title:
+                if not hasattr(v.image, 'title') or not v.image.title:
                     title = f'<b>Image {i + 1}</b>'
                 else:
-                    title = f'<b>{v.im.title + ":"}</b>'
+                    title = f'<b>{v.image.title + ":"}</b>'
                 self.lower_ui.append(ipyw.HTML(value=title))
 
             # Add to overall lower UI
@@ -1013,7 +1013,7 @@ class BetterViewer:
             'overlay',
             'chequerboard',
         ]
-        if all([v.im.has_same_geometry(self.viewers[0].im) for v in self.viewers]):
+        if all([v.image.has_same_geometry(self.viewers[0].image) for v in self.viewers]):
             comp_opts.extend([
                 'difference',
                 'absolute difference',
@@ -1070,7 +1070,7 @@ class BetterViewer:
 
         # Get input/output filenames
         if self.tfile is None:
-            tfile = self.find_translation_file(self.trans_viewer.im)
+            tfile = self.find_translation_file(self.trans_viewer.image)
             self.has_translation_input = tfile is not None
             if self.has_translation_input:
                 tfile_out = re.sub('.0.txt', '_custom.txt', tfile)
@@ -1093,7 +1093,7 @@ class BetterViewer:
         # Make translation sliders
         self.tsliders = {}
         for ax in _axes:
-            n = self.trans_viewer.im.n_voxels[ax]
+            n = self.trans_viewer.image.n_voxels[ax]
             self.tsliders[ax] = ipyw.IntSlider(
                 min=-n,
                 max=n,
@@ -1126,7 +1126,7 @@ class BetterViewer:
         output_file = self.translation_output.value
         translations = {
             f'd{ax}': -self.tsliders[ax].value
-            * abs(self.trans_viewer.im.voxel_sizes[ax])
+            * abs(self.trans_viewer.image.voxel_sizes[ax])
             for ax in self.tsliders
         }
         write_translation_to_file(output_file, input_file=input_file, **translations)
@@ -1141,14 +1141,14 @@ class BetterViewer:
 
         # Set shift for image
         self.current_trans = new_trans
-        self.trans_viewer.im.set_shift(
+        self.trans_viewer.image.set_shift(
             self.current_trans['x'], self.current_trans['y'], self.current_trans['z']
         )
 
         # Adjust descriptions
         for ax, slider in self.tsliders.items():
             slider.description = '{} ({:.0f} mm)'.format(
-                ax, self.trans_viewer.im.shift_mm[ax]
+                ax, self.trans_viewer.image.shift_mm[ax]
             )
 
     def set_slider_widths(self):
@@ -1159,7 +1159,7 @@ class BetterViewer:
         for i, slider in enumerate(self.slider_boxes[:-1]):
             width = (
                 self.figsize
-                * self.viewers[i].im.get_plot_aspect_ratio(
+                * self.viewers[i].image.get_plot_aspect_ratio(
                     self.view, self.zoom, self.colorbar
                 )
                 * mpl.rcParams['figure.dpi']
@@ -1182,7 +1182,7 @@ class BetterViewer:
 
         # Get relative width of each subplot
         width_ratios = [
-            v.im.get_plot_aspect_ratio(self.view, self.zoom, self.colorbar)
+            v.image.get_plot_aspect_ratio(self.view, self.zoom, self.colorbar)
             for v in self.viewers
         ]
         width_ratios.extend(
@@ -1345,7 +1345,7 @@ class BetterViewer:
         for v in self.viewers:
             if self.comparison_only:
                 v.set_slice_and_view()
-                #  v.im.set_slice(self.view, v.slice[self.view])
+                #  v.image.set_slice(self.view, v.slice[self.view])
             else:
                 v.plot()
 
@@ -1479,7 +1479,7 @@ class SingleViewer:
     ):
 
         # Make Image
-        self.im = self.make_image(im, **kwargs)
+        self.image = self.make_image(im, **kwargs)
         self.gs = None  # Gridspec in which to place plot axes
         self.scale_in_mm = scale_in_mm
         self.title = title
@@ -1497,7 +1497,7 @@ class SingleViewer:
 
         # Set initial slice number for each orientation
         self.slice = {
-            view: np.ceil(self.im.n_voxels[z] / 2) 
+            view: np.ceil(self.image.n_voxels[z] / 2) 
             for view, z in _slice_axes.items()
         }
         if init_pos is not None and self.scale_in_mm:
@@ -1513,15 +1513,15 @@ class SingleViewer:
         self.hu_step = hu_step
         self.hu_from_width = isinstance(hu, float) or isinstance(hu, int)
         if hu_limits is None:
-            #  if self.im.dose_as_im:
+            #  if self.image.dose_as_im:
                 #  if dose_range:
                     #  self.hu_limits = dose_range
                 #  else:
-                    #  self.hu_limits = (self.im.data.min(), self.im.data.max())
+                    #  self.hu_limits = (self.image.data.min(), self.image.data.max())
             #  else:
             self.hu_limits = [-2000, 2000]
         elif hu_limits == "auto":
-            self.hu_limits = (self.im.data.min(), self.im.data.max())
+            self.hu_limits = (self.image.data.min(), self.image.data.max())
         if hu_step is None:
             self.hu_step = (
                 1 if abs(self.hu_limits[1] - self.hu_limits[0]) >= 10 else 0.1
@@ -1581,7 +1581,7 @@ class SingleViewer:
         # Colormap
         if cmap:
             self.mpl_kwargs["cmap"] = cmap
-        #  elif self.im.dose_as_im:
+        #  elif self.image.dose_as_im:
             #  self.mpl_kwargs["cmap"] = dose_cmap if dose_cmap else "jet"
 
         # Display plot
@@ -1619,13 +1619,13 @@ class SingleViewer:
             if roi is None:
                 continue
             elif isinstance(roi, int): 
-                structure_sets.append(self.im.structure_sets[roi])
+                structure_sets.append(self.image.structure_sets[roi])
             elif isinstance(roi, StructureSet):
                 structure_sets.append(roi)
             elif isinstance(roi, ROI):
                 standalone_rois.add_roi(roi)
             else:
-                structure_sets.append(StructureSet(roi, image=self.im))
+                structure_sets.append(StructureSet(roi, image=self.image))
         structure_sets.append(standalone_rois)
 
         # Load all structure sets and apply filters
@@ -1654,7 +1654,7 @@ class SingleViewer:
 
         if sl is None:
             return
-        max_slice = self.im.n_voxels[_slice_axes[view]]
+        max_slice = self.image.n_voxels[_slice_axes[view]]
         min_slice = 1
         if self.slice[view] < min_slice:
             self.slice[view] = min_slice
@@ -1667,7 +1667,7 @@ class SingleViewer:
         """Set the current slice number from a position in mm."""
 
         ax = _slice_axes[view]
-        sl = self.im.pos_to_slice(pos, ax)
+        sl = self.image.pos_to_slice(pos, ax)
         self.set_slice(view, sl)
 
     def make_ui(self, other_viewer=None, share_slider=True, no_roi=False,
@@ -1688,7 +1688,7 @@ class SingleViewer:
                 disabled=False,
                 style=_style,
             )
-            #  if not self.im.dim2:
+            #  if not self.image.dim2:
             self.main_ui.append(self.ui_view)
         else:
             self.ui_view = other_viewer.ui_view
@@ -1718,7 +1718,7 @@ class SingleViewer:
 
             # Make HU slider
             if self.hu_limits == 'auto':
-                hu_limits = (self.im.data.min(), self.im.data.max())
+                hu_limits = (self.image.data.min(), self.image.data.max())
             else:
                 hu_limits = self.hu_limits
 
@@ -1791,21 +1791,16 @@ class SingleViewer:
                 # Get initial zoom centres
                 zoom_centre = self.zoom_centre if is_list(self.zoom_centre) \
                         else [self.zoom_centre for i in range(3)]
-                im_centre = list(self.im.get_centre())
+                im_centre = list(self.image.get_centre())
                 self.default_centre = {
                     view: [im_centre[ax[0]], im_centre[ax[1]]]
                     for view, ax in _plot_axes.items()
                 }
-                self.current_centre = {}
+                self.current_centre = self.default_centre
                 for view in _plot_axes:
-                    self.current_centre[view] = []
                     for i, ax in enumerate(_plot_axes[view]):
-                        if zoom_centre is None or zoom_centre[ax] is None:
-                            self.current_centre[view].append(
-                                self.default_centre[view][i]
-                            )
-                        else:
-                            self.current_centre[view].append(zoom_centre[ax])
+                        if zoom_centre[ax] is not None:
+                            self.current_centre[view][i] = zoom_centre[ax]
 
                 # Make zoom centre sliders
                 self.ui_zoom_centre_x = ipyw.FloatSlider(
@@ -1841,7 +1836,7 @@ class SingleViewer:
             )
             self.own_ui_slice = True
             self.update_slice_slider()
-            #  if not self.im.dim2:
+            #  if not self.image.dim2:
             self.main_ui.append(self.ui_slice)
 
         else:
@@ -1866,9 +1861,9 @@ class SingleViewer:
 
             # Mask checkbox
             #  self.ui_mask = ipyw.Checkbox(
-                #  value=self.im.has_mask, indent=False, description='Apply mask'
+                #  value=self.image.has_mask, indent=False, description='Apply mask'
             #  )
-            #  if self.im.has_mask:
+            #  if self.image.has_mask:
                 #  self.extra_ui.append(self.ui_mask)
 
             # Dose opacity
@@ -1882,7 +1877,7 @@ class SingleViewer:
                 #  readout_format='.2f',
                 #  style=_style,
             #  )
-            #  if self.im.has_dose:
+            #  if self.image.has_dose:
                 #  self.extra_ui.append(self.ui_dose)
 
             # Jacobian opacity and range
@@ -1906,7 +1901,7 @@ class SingleViewer:
                 #  style=_style,
                 #  readout_format='.1f',
             #  )
-            #  if self.im.has_jacobian:
+            #  if self.image.has_jacobian:
                 #  self.extra_ui.extend([self.ui_jac_opacity, self.ui_jac_range])
 
             # Deformation field plot type
@@ -1916,7 +1911,7 @@ class SingleViewer:
                 #  description='Deformation field',
                 #  style=_style,
             #  )
-            #  if self.im.has_df:
+            #  if self.image.has_df:
                 #  self.extra_ui.append(self.ui_df)
 
             # ROI UI
@@ -1973,7 +1968,7 @@ class SingleViewer:
                     self.ui_roi_linewidth,
                     self.ui_roi_opacity,
                 ]
-                #  if self.im.comp_type == 'others':
+                #  if self.image.comp_type == 'others':
                     #  to_add.insert(1, self.ui_roi_plot_type2)
                     #  to_add.insert(2, self.ui_roi_comp_type)
                 self.extra_ui.extend(to_add)
@@ -2210,7 +2205,7 @@ class SingleViewer:
 
         # Get date argument
         #  n_date = 1
-        #  if self.im.timeseries:
+        #  if self.image.timeseries:
             #  n_date = self.ui_time.value
 
         # Get ROI settings
@@ -2238,11 +2233,11 @@ class SingleViewer:
             roi_kwargs['opacity'] = self.roi_filled_opacity
         #  roi_plot_grouping = self.ui_roi_plot_type2.value
         #  if struct_plot_grouping == 'group others' and not self.current_struct:
-            #  self.current_struct = self.im.structs[0].name_unique
+            #  self.current_struct = self.image.structs[0].name_unique
 
         # Make plot
         self.plot_image(
-            self.im,
+            self.image,
             view=self.view,
             sl=self.slice[self.view],
             gs=self.gs,
@@ -2277,8 +2272,8 @@ class SingleViewer:
 
         # Update figure
         if not self.in_notebook:
-            self.im.fig.canvas.draw_idle()
-            self.im.fig.canvas.flush_events()
+            self.image.fig.canvas.draw_idle()
+            self.image.fig.canvas.flush_events()
 
     def plot_image(self, im, view, **kwargs):
         '''Plot an Image, reusing existing axes if outside a Jupyter
@@ -2303,7 +2298,7 @@ class SingleViewer:
     def save_fig(self, _=None):
         '''Save figure to a file.'''
 
-        self.im.fig.savefig(self.save_name.value)
+        self.image.fig.savefig(self.save_name.value)
 
     def on_view_change(self):
         '''Deal with a view change.'''
@@ -2333,9 +2328,7 @@ class SingleViewer:
         # Get zoom settings
         if self.zoom_ui:
             self.zoom = self.ui_zoom.value
-            self.zoom_centre = [1, 1, 1]
             for i, ui in enumerate([self.ui_zoom_centre_x, self.ui_zoom_centre_y]):
-                self.zoom_centre[_plot_axes[self.view][i]] = ui.value
                 self.current_centre[self.view][i] = ui.value
 
     def jump_to_roi(self):
@@ -2405,8 +2398,8 @@ class SingleViewer:
         if not self.standalone or self.callbacks_set:
             return
 
-        self.im.fig.canvas.mpl_connect('key_press_event', self.on_key)
-        self.im.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
+        self.image.fig.canvas.mpl_connect('key_press_event', self.on_key)
+        self.image.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
         self.callbacks_set = True
 
     def on_key(self, event):
@@ -2423,7 +2416,7 @@ class SingleViewer:
 
         # Press d to change dose opacity
         elif event.key == 'd':
-            if self.im.has_dose:
+            if self.image.has_dose:
                 doses = [0, 0.15, 0.35, 0.5, 1]
                 next_dose = {
                     doses[i]: doses[i + 1] if i + 1 < len(doses) else doses[0]
@@ -2435,7 +2428,7 @@ class SingleViewer:
 
         # Press m to switch mask on and off
         elif event.key == 'm':
-            if self.im.has_mask:
+            if self.image.has_mask:
                 self.ui_mask.value = not self.ui_mask.value
 
         # Press c to change ROI plot type
@@ -2532,18 +2525,18 @@ class SingleViewer:
         # Get new min and max
         ax = _slice_axes[self.view]
         if self.scale_in_mm:
-            new_min = min(self.im.lims[ax])
-            new_max = max(self.im.lims[ax])
+            new_min = min(self.image.lims[ax])
+            new_max = max(self.image.lims[ax])
         else:
             new_min = 1
-            new_max = self.im.n_voxels[ax]
+            new_max = self.image.n_voxels[ax]
 
         # Set slider values
         val = self.slice_to_slider(self.slice[self.view])
         self.update_slider(self.ui_slice, new_min, new_max, val)
 
         # Set step and description
-        self.ui_slice.step = abs(self.im.voxel_size[ax]) if self.scale_in_mm else 1
+        self.ui_slice.step = abs(self.image.voxel_size[ax]) if self.scale_in_mm else 1
         self.update_slice_slider_desc()
 
     def update_slider(self, slider, new_min, new_max, val):
@@ -2575,7 +2568,7 @@ class SingleViewer:
         if self.scale_in_mm:
             self.ui_slice.description = f'{_axes[ax]} (mm)'
         else:
-            pos = self.im.slice_to_pos(self.slider_to_slice(self.ui_slice.value), ax)
+            pos = self.image.slice_to_pos(self.slider_to_slice(self.ui_slice.value), ax)
             self.ui_slice.description = f'{_axes[ax]} ({pos:.1f} mm)'
 
     def update_zoom_sliders(self):
@@ -2589,8 +2582,8 @@ class SingleViewer:
 
             # Set min, max, and value
             ax = _plot_axes[self.view][i]
-            new_min = min(self.im.lims[ax])
-            new_max = max(self.im.lims[ax])
+            new_min = min(self.image.lims[ax])
+            new_max = max(self.image.lims[ax])
             self.update_slider(ui, new_min, new_max, self.current_centre[self.view][i])
 
             # Update description
@@ -2617,7 +2610,7 @@ class SingleViewer:
             ax = _slice_axes[self.view]
 
         if self.scale_in_mm:
-            return self.im.slice_to_pos(sl, ax)
+            return self.image.slice_to_pos(sl, ax)
         else:
             return sl
 
@@ -2628,7 +2621,7 @@ class SingleViewer:
             ax = _slice_axes[self.view]
 
         if self.scale_in_mm:
-            return self.im.pos_to_slice(val, ax)
+            return self.image.pos_to_slice(val, ax)
         else:
             return int(val)
 

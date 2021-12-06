@@ -578,8 +578,6 @@ class ROI(skrt.core.Archive):
                     # Add to 3D mask
                     self.mask.data[:, :, iz] += mask.T
 
-        print(time.time() - now)
-
         # Convert to boolean mask
         if hasattr(self.mask, "data"):
             if not self.mask.data.dtype == "bool":
@@ -991,6 +989,14 @@ class ROI(skrt.core.Archive):
     ):
         """Get centre position in 2D or 3D in mm."""
 
+        # Get default slice index and method
+        self.load()
+        if sl is None and idx is None and pos is None: 
+            idx = self.get_mid_idx(view)
+        if method is None:
+            method = self.default_geom_method
+
+        # Get list of axes to consider
         if single_slice:
             axes = skrt.image._plot_axes[view]
         else:
@@ -2338,7 +2344,7 @@ class ROI(skrt.core.Archive):
             self.fig.savefig(save_as)
             plt.close()
 
-    def get_dummy_image(self, voxel_size=None, shape=None, fill_val=1e4):
+    def get_dummy_image(self, **kwargs):
         """Make a dummy image that covers the area spanned by this ROI. 
         Returns an Image object.
 
@@ -2359,46 +2365,17 @@ class ROI(skrt.core.Archive):
 
         fill_val : int/float, default=1e4
             Value with which the voxels in the dummy image should be filled. 
+
+        buffer : int, default=1
+            Number of empty buffer voxels to add outside the ROI in each
+            direction.
         """
 
-        # Assign default voxel size
-        if shape is None and voxel_size is None:
-            voxel_size = [1, 1]
+        extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
+        slice_thickness  = self.get_slice_thickness_contours()
+        return create_dummy_image(extents, slice_thickness, **kwargs)
 
-        # Calculate voxel sizes from shape
-        extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
-        if shape is not None:
-            shape = list(shape)
-            if len(shape) != 2:
-                raise TypeError("Shape should be a list of two values "
-                                "specifying dummy image shape in the [x, y] "
-                                "directions.")
-            voxel_size = [(max(ex) - min(ex)) / shape[i] 
-                          for i, ex in enumerate(extents[:2])]
-
-        # Otherwise, calculate shape from voxel sizes
-        else:
-            voxel_size = list(voxel_size)
-            shape = [np.ceil((max(ex) - min(ex)) / voxel_size[i]) 
-                     for i, ex in enumerate(extents[:2])]
-
-        # Get z voxel size and shape
-        voxel_size.append(self.get_slice_thickness_contours())
-        shape.append(self.get_nz_contours())
-        shape = [int(s) for s in shape]
-
-        # Get origin position
-        origin = [min(ex) + abs(voxel_size[i]) / 2
-                  for i, ex in enumerate(extents)]
-
-        # Create image
-        return skrt.image.Image(
-            np.ones((shape[1], shape[0], shape[2])) * fill_val,
-            voxel_size=voxel_size,
-            origin=origin
-        )
-
-    def set_image_to_dummy(self, voxel_size=None, shape=None, fill_val=1e4):
+    def set_image_to_dummy(self, **kwargs):
         """Assign self.image property to a dummy image covering the area 
         spanned by this ROI. The ROI's mask and x-z/y-z contours will be 
         cleared so that they will be recreated when get_mask() or get_contours()
@@ -2406,26 +2383,13 @@ class ROI(skrt.core.Archive):
 
         Parameters
         ----------
-        voxel_size : list, default=None
-            Voxel size in mm in the dummy image in the x-y plane, given as 
-            [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
-            [1, 1] will be used by default. The voxel size in the z direction 
-            will be taken from the minimum distance between slice positions in 
-            the x-y contours dictionary.
-
-        shape : list, default=None
-            Number of voxels in the dummy image in the x-y plane, given as
-            [nx, ny]. Only used if <voxel_size> is None. 
-            The number of voxels in the z direction will be taken from the 
-            number of slices in the x-y contours dictionary.
-
-        fill_val : int/float, default=1e4
-            Value with which the voxels in the dummy image should be filled. 
+        kwargs : 
+            Keyword arguments to pass to self.get_dummy_image() when creating
+            the dummy image. See documentation of ROI.get_dummy_image().
         """
 
         # Make image
-        im = self.get_dummy_image(voxel_size=voxel_size, shape=shape, 
-                                          fill_val=fill_val)
+        im = self.get_dummy_image(**kwargs)
 
         # Clear mask and contours
         self.input_contours = self.contours["x-y"]
@@ -2450,8 +2414,25 @@ class ROI(skrt.core.Archive):
         self.origin = im.get_origin()
         self.affine = im.get_affine()
 
-    def view(self, include_image=True, **kwargs):
-        """View the ROI."""
+    def view(self, include_image=True, voxel_size=[1, 1], buffer=5, **kwargs):
+        """View the ROI.
+
+        Parameters
+        ----------
+        include_image : bool, default=True
+            If True and this ROI has an associated image (in self.image),
+            the image will be displayed behind the ROI.
+
+        voxel_size : list, default=[1, 1]
+            If the ROI does not have an associated image and is described only
+            by contours, this will be the voxel sizes used in the x-y direction
+            when converting the ROI to a mask if a mask plot type is selected.
+
+        buffer : int, default=5
+            If the ROI does not have an associated image and is described only
+            by contours, this will be the number of buffer voxels 
+            (i.e. whitespace) displayed around the ROI.
+        """
 
         from skrt.better_viewer import BetterViewer
         self.load()
@@ -2483,10 +2464,14 @@ class ROI(skrt.core.Archive):
 
             # Make dummy image for background
             if self.contours_only:
-                im = self.get_dummy_image(fill_val=1e4)
+                im = self.get_dummy_image(
+                    voxel_size=voxel_size,
+                    buffer=buffer
+                )
                 im.title = self.name
                 roi_tmp = self.clone(copy_data=False)
                 roi_tmp.image = im
+                roi_tmp.load(force=True)
             else:
                 im = skrt.image.Image(
                     np.ones(self.shape) * 1e4,
@@ -2496,9 +2481,11 @@ class ROI(skrt.core.Archive):
 
             # Create viewer
             kwargs["show"] = False
-            bv = BetterViewer(im, rois=self, init_roi=self.name, **kwargs)
+            bv = BetterViewer(im, rois=roi_tmp, init_roi=self.name, **kwargs)
             bv.make_ui(no_roi=True, no_hu=True)
             bv.show()
+
+        return bv
 
     def _plot_mask(
         self,
@@ -3471,8 +3458,26 @@ class StructureSet(skrt.core.Archive):
         vals, counts = np.unique(indices, return_counts=True)
         return vals[np.argmax(counts)]
 
-    def view(self, include_image=True, **kwargs):
-        """View the StructureSet."""
+    def view(self, include_image=True, voxel_size=[1, 1], buffer=5, **kwargs):
+        """View the StructureSet.
+
+        Parameters
+        ----------
+        include_image : bool, default=True
+            If True and this StructureSet has an associated image 
+            (in self.image), the image will be displayed behind the ROIs.
+
+        voxel_size : list, default=[1, 1]
+            If the StructureSet does not have an associated image and has ROIs 
+            described only by contours, this will be the voxel sizes used in 
+            the x-y direction when converting ROIs to masks if a mask plot 
+            type is selected.
+
+        buffer : int, default=5
+            If the StructureSet does not have an associated image and has ROIs
+            described only by contours, this will be the number of buffer voxels 
+            (i.e. whitespace) displayed around the extent of the ROIs.
+        """
 
         from skrt.better_viewer import BetterViewer
         self.load()
@@ -3507,7 +3512,8 @@ class StructureSet(skrt.core.Archive):
 
             # Make dummy image
             if self.rois[0].contours_only:
-                im = self.get_dummy_image()
+                im = self.get_dummy_image(buffer=buffer, 
+                                          voxel_size=voxel_size)
                 structure_set_tmp = self.clone(
                     copy_rois=True, 
                     copy_roi_data=False
@@ -3527,6 +3533,8 @@ class StructureSet(skrt.core.Archive):
             bv.make_ui(no_hu=True)
             bv.show()
 
+        return bv
+
     def get_extent(self, **kwargs):
         """Get min and max extent of all ROIs in the StructureSet."""
 
@@ -3535,7 +3543,8 @@ class StructureSet(skrt.core.Archive):
             all_extents.extend(roi.get_extent(**kwargs))
         return min(all_extents), max(all_extents)
 
-    def get_dummy_image(self, voxel_size=None, shape=None, fill_val=1e4):
+    def get_dummy_image(self, voxel_size=None, shape=None, fill_val=1e4,
+                        buffer=1):
         """Make a dummy image that covers the area spanned by all ROIs in this
         StructureSet. Returns an Image object.
 
@@ -3556,44 +3565,15 @@ class StructureSet(skrt.core.Archive):
 
         fill_val : int/float, default=1e4
             Value with which the voxels in the dummy image should be filled. 
+
+        buffer : int, default=1
+            Number of empty buffer voxels to add outside the ROI in each
+            direction.
         """
 
-        # Assign default voxel size
-        if shape is None and voxel_size is None:
-            voxel_size = [1, 1]
-
-        # Calculate voxel sizes from shape
-        extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
-        if shape is not None:
-            shape = list(shape)
-            if len(shape) != 2:
-                raise TypeError("Shape should be a list of two values "
-                                "specifying dummy image shape in the [x, y] "
-                                "directions.")
-            voxel_size = [(max(ex) - min(ex)) / shape[i] 
-                          for i, ex in enumerate(extents[:2])]
-
-        # Otherwise, calculate shape from voxel sizes
-        else:
-            voxel_size = list(voxel_size)
-            shape = [np.ceil((max(ex) - min(ex)) / voxel_size[i]) 
-                     for i, ex in enumerate(extents[:2])]
-
-        # Get z voxel size and shape
-        voxel_size.append(self.get_rois()[0].get_slice_thickness_contours())
-        shape.append((max(extents[2]) - min(extents[2])) / voxel_size[2] + 1)
-        shape = [int(s) for s in shape]
-
-        # Get origin position
-        origin = [min(ex) + abs(voxel_size[i]) / 2
-                  for i, ex in enumerate(extents)]
-
-        # Create image
-        return skrt.image.Image(
-            np.ones((shape[1], shape[0], shape[2])) * fill_val,
-            voxel_size=voxel_size,
-            origin=origin
-        )
+        extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
+        slice_thickness = self.get_rois()[0].get_slice_thicknes_contours()
+        return create_dummy_image(extents, slice_thickness, **kwargs)
 
     def get_staple(self, **kwargs):
         """Apply STAPLE to all ROIs in this structure set and return
@@ -3797,3 +3777,94 @@ def dicom_dataset_to_structure_set(ds):
     ds.StructureSetTime = ds.InstanceCreationTime
 
     # Assign frame of reference
+
+
+def create_dummy_image(
+    extents, 
+    slice_thickness,
+    shape=None, 
+    voxel_size=None,
+    fill_val=1e4,
+    buffer=1
+):
+    """Make a dummy image that covers the area spanned by <extents> plus a 
+    buffer.
+
+    Parameters
+    ----------
+    extents : list
+        List of [min, max] extents in mm along each of the three axes in 
+        order [x, y, z].
+
+    slice_thickness : float
+        Slice thickness in mm.
+
+    voxel_size : list, default=None
+        Voxel size in mm in the dummy image in the x-y plane, given as 
+        [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
+        [1, 1] will be used by default. The voxel size in the z direction 
+        will be taken from the minimum distance between slice positions in 
+        the x-y contours dictionary.
+
+    shape : list, default=None
+        Number of voxels in the dummy image in the x-y plane, given as
+        [nx, ny]. Only used if <voxel_size> is None. 
+        The number of voxels in the z direction will be taken from the 
+        number of slices in the x-y contours dictionary.
+
+    fill_val : int/float, default=1e4
+        Value with which the voxels in the dummy image should be filled. 
+
+    buffer : float, default=1
+        Buffer amount of whitespace in mm to add outside the ROI in each 
+        direction.
+    """
+
+    # Assign default voxel size
+    if shape is None and voxel_size is None:
+        voxel_size = [1, 1]
+    if not skrt.core.is_list(voxel_size):
+        voxel_size = [voxel_size] * 2
+
+    # Calculate voxel sizes from shape
+    if shape is not None:
+        shape = list(shape)
+        if len(shape) != 2:
+            raise TypeError("Shape should be a list of two values "
+                            "specifying dummy image shape in the [x, y] "
+                            "directions.")
+
+        # Calculate voxel size if ROI extent plus buffer is divided by shape
+        voxel_size = [(max(ex) - min(ex) + 2 * buffer) / shape[i]
+                      for i, ex in enumerate(extents[:2])]
+
+    # Otherwise, calculate shape from voxel sizes
+    else:
+        voxel_size = list(voxel_size)
+        
+        # Calculate number of voxels needed to cover ROI plus buffer each side
+        shape = [(np.ceil((max(ex) - min(ex)) + 2 * buffer) / voxel_size[i]) 
+                 for i, ex in enumerate(extents[:2])]
+
+    # Get z voxel size and shape
+    voxel_size.append(slice_thickness)
+    shape_z = (max(extents[2]) - min(extents[2])) / slice_thickness
+
+    # Add nearest integer number of buffer voxels
+    n_buff_z = np.ceil(buffer / slice_thickness)
+    shape.append(shape_z + 2 * n_buff_z)
+    shape = [int(s) for s in shape]
+
+    # Get origin position; ensure that origin points to centre of buffer voxel 
+    # outside ROI
+    origin = [min(ex) + abs(voxel_size[i]) * 0.5 - buffer
+              for i, ex in enumerate(extents[:2])]
+    origin.append(min(extents[2]) - abs(slice_thickness) * (n_buff_z - 0.5))
+
+    # Create image
+    return skrt.image.Image(
+        np.ones((shape[1], shape[0], shape[2])) * fill_val,
+        voxel_size=voxel_size,
+        origin=origin
+    )
+

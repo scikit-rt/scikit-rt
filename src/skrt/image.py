@@ -963,7 +963,7 @@ class Image(skrt.core.Archive):
 
         from skrt.better_viewer import BetterViewer
 
-        BetterViewer(self, **kwargs)
+        return BetterViewer(self, **kwargs)
 
     def plot(
         self,
@@ -1159,13 +1159,10 @@ class Image(skrt.core.Archive):
         # If centering on an ROI, find index of its central slice
         roi_names = [roi.name for roi in rois_to_plot]
         if centre_on_roi:
-            try: 
-                central_roi = rois_to_plot[roi_names.index(centre_on_roi)]
-                idx = central_roi.get_mid_idx(view)
-                if zoom and zoom_centre is None:
-                    zoom_centre = central_roi.get_zoom_centre(view)
-            except ValueError:
-                print("Warning: central ROI {centre_on_roi} not found!")
+            central_roi = rois_to_plot[roi_names.index(centre_on_roi)]
+            idx = central_roi.get_mid_idx(view)
+            if zoom and zoom_centre is None:
+                zoom_centre = central_roi.get_zoom_centre(view)
 
         # Get image slice
         idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
