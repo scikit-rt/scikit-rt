@@ -49,7 +49,7 @@ def test_volume():
 
 def test_area():
     assert cube1.get_area() == side_length ** 2
-    assert cube1.get_area(sl=1) == 0
+    assert cube1.get_area(sl=1) is None
 
 def test_length():
     for ax in ['x', 'y', 'z']:

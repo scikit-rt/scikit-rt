@@ -35,9 +35,6 @@ class BetterViewer:
         mask=None,
         dose=None,
         rois=None,
-        roi_names=None,
-        rois_to_keep=None,
-        rois_to_remove=None,
         #  multi_rois=None,
         jacobian=None,
         df=None,
@@ -156,6 +153,19 @@ class BetterViewer:
                 rois='multi:my_file.nii'
 
             or alternatively use the multi_rois parameter.
+
+        roi_names : dict, default=None
+
+        rois_to_keep : list, default=None
+
+        rois_to_remove : list, default=None
+
+        roi_info : bool/list, default=False
+
+            If True, a table containg the volumes and centroids of each plotted
+            ROI will be displayed below the plot. Can also be set to a list
+            of ROI metrics - see skrt.structures.ROI.get_geometry() documentation
+            for list of available metrics.
 
         multi_rois : str/list/dict, default=None
 
@@ -688,9 +698,6 @@ class BetterViewer:
                 dose=self.dose[i],
                 mask=self.mask[i],
                 rois=self.rois[i],
-                roi_names=roi_names,
-                rois_to_keep=rois_to_keep,
-                rois_to_remove=rois_to_remove,
                 #  multi_rois=self.multi_rois[i],
                 jacobian=self.jacobian[i],
                 df=self.df[i],
@@ -1450,10 +1457,10 @@ class SingleViewer:
         roi_opacity=None,
         roi_linewidth=2,
         roi_info=False,
-        roi_info_dp=2,
-        length_units=None,
-        area_units=None,
-        vol_units=None,
+        roi_info_dp=1,
+        length_units="mm",
+        area_units="mm",
+        vol_units="mm",
         roi_legend=False,
         legend_loc="lower left",
         init_roi=None,
@@ -1564,6 +1571,12 @@ class SingleViewer:
         self.roi_legend = roi_legend
         self.legend_loc = legend_loc
         self.init_roi = init_roi
+        self.roi_info = roi_info
+        self.roi_info_dp = roi_info_dp
+        self.force_roi_geometry_calc = True
+        self.roi_vol_units = vol_units
+        self.roi_area_units = area_units
+        self.roi_length_units = length_units
 
         # Colormap
         if cmap:
@@ -2006,9 +2019,13 @@ class SingleViewer:
         self.save_button.on_click(self.save_fig)
 
         # ROI checkboxes and info table
+        # Blank checkbox to align with table header(s)
         blank = ipyw.HTML(value='&nbsp;')
-        roi_info = []
-        self.ui_roi_checkboxes = ([blank])
+        self.ui_roi_checkboxes = (
+            [blank] if not self.roi_info else [blank, blank]
+        )
+
+        # Make visibility checkbox for each ROI
         self.roi_checkboxes = {
             s: ipyw.Checkbox(value=True, indent=False)
             for s in self.rois_for_jump.keys()
@@ -2017,95 +2034,87 @@ class SingleViewer:
         self.ui_roi_checkboxes.extend(list(self.roi_checkboxes.values()))
         for s in self.rois:
             s.checkbox = self.roi_checkboxes[s.name]
-            row = {'roi': None}
-            roi_info.append(row)
 
-        self.visible_rois = self.get_roi_visibility()
-        self.df_roi_info = pd.DataFrame(roi_info)
+        # Get list of currently visible ROIs
+        self.visible_rois = self.get_visible_rois()
+
+        # Make widget for ROI table and checkboxes
         self.ui_roi_table = ipyw.HTML()
-        self.ui_roi_info = ipyw.HBox(
+        self.ui_roi_lower = ipyw.HBox(
             [
                 self.ui_roi_table,
-                ipyw.VBox(self.ui_roi_checkboxes, layout=ipyw.Layout(width='30px')),
+                ipyw.VBox(
+                    self.ui_roi_checkboxes, 
+                    layout=ipyw.Layout(width='30px')
+                ),
             ]
         )
+
+        # Add to lower UI
         if not no_roi:
-            self.lower_ui.append(self.ui_roi_info)
+            self.lower_ui.append(self.ui_roi_lower)
             self.update_roi_info()
 
         if self.standalone:
             self.lower_ui.extend([self.save_name, self.save_button])
 
-    def get_roi_visibility(self):
-        '''Get list of currently visible ROIs from checkboxes.'''
+    def roi_is_visible(self, roi):
+        """Check whether a given ROI is currently visible."""
 
-        if not self.has_rois:
-            return []
-        return [
-            name
-            for name in self.rois_for_jump
-            if name and self.roi_checkboxes[name].value
-        ]
+        return self.roi_checkboxes[roi.name].value
+
+    def get_visible_rois(self):
+        '''Get list of names of currently visible ROIs from checkboxes.'''
+
+        return [roi.name for roi in self.rois if self.roi_is_visible(roi)]
+
+    def get_roi_info_table(self):
+        """Get ROI geometric info table for current view/slice."""
 
     def update_roi_info(self):
-        '''Update ROI info UI to reflect current view/slice.'''
+        '''Update lower ROI info UI to reflect current view/slice/ROI 
+        visibility.'''
 
-        for i, s in enumerate(self.rois):
+        # Make list of coloured ROI names if not showing geometric info
+        if not self.roi_info:
+            rows = [{'ROI': self.get_roi_html(roi)} for roi in self.rois]
+            df_roi_info = pd.DataFrame(rows)
 
-            # ROI name
-            #  if not self.roi_info:
-            self.df_roi_info.at[i, 'roi'] = self.get_roi_html(s)
-            #  continue
+        # Otherwise, make ROI geometry table
+        else:
 
-            #  self.df_roi_info.at[i, ('', 'roi')] = self.get_roi_html(s)
+            # Get table for all currently visible ROIs
+            metrics = self.roi_info if is_list(self.roi_info) else None
+            df_roi_info = self.structure_set.get_geometry( 
+                metrics=metrics,
+                view=self.view,
+                sl=self.slice[self.view],
+                global_vs_slice_header=True,
+                units_in_header=True,
+                name_as_index=False,
+                nice_columns=True,
+                decimal_places=self.roi_info_dp,
+                vol_units=self.roi_vol_units,
+                area_units=self.roi_area_units,
+                length_units=self.roi_length_units,
+                force=self.force_roi_geometry_calc
+            )
 
-            #  if s.visible:
+            # Only force recalculation of global ROI metrics once
+            if self.force_roi_geometry_calc:
+                self.force_roi_geometry_calc = False
 
-                #  # Get metrics
-                #  volume = s.get_volume(self.vol_units)
-                #  area = s.get_area(self.view, self.slice[self.view], self.area_units)
-                #  full_extents = s.roi_extent(units=self.length_units)
-                #  extents = s.roi_extent(
-                    #  self.view, self.slice[self.view], self.length_units
-                #  )
-                #  centre_units = 'mm' if self.im.scale_in_mm else 'voxels'
-                #  centre = s.centroid(
-                    #  self.view, self.slice[self.view], centre_units
-                #  )
-
-                #  # Update dataframe
-                #  self.df_struct_info.at[i, ('overall', 'vol')] = volume
-                #  self.df_struct_info.at[i, ('overall', 'full_x')] = full_extents[0]
-                #  self.df_struct_info.at[i, ('overall', 'full_y')] = full_extents[1]
-                #  self.df_struct_info.at[i, ('overall', 'full_z')] = full_extents[2]
-                #  self.df_struct_info.at[i, ('slice', 'area')] = area
-                #  self.df_struct_info.at[i, ('slice', 'x')] = extents[0]
-                #  self.df_struct_info.at[i, ('slice', 'y')] = extents[1]
-                #  self.df_struct_info.at[i, ('slice', 'centroid_x')] = centre[0]
-                #  self.df_struct_info.at[i, ('slice', 'centroid_y')] = centre[1]
-
-            #  else:
-                #  self.df_struct_info.iloc[i, 1:] = None
+            # Make ROI names coloured
+            for i, roi in enumerate(self.rois):
+                df_roi_info.at[i, ("", "ROI")] = self.get_roi_html(roi)
 
         # Convert dataframe to HTML
         x_ax, y_ax = _plot_axes[self.view]
-        #  centroid_units = ' (mm)' if self.im.scale_in_mm else ''
-        #  self.col_names.update(
-            #  {
-                #  'x': f'{x_ax} length ({self.length_units})',
-                #  'y': f'{y_ax} length ({self.length_units})',
-                #  'centroid_x': f'{x_ax} centroid{centroid_units}',
-                #  'centroid_y': f'{y_ax} centroid{centroid_units}',
-            #  }
-        #  )
-        html = (
-            self.df_roi_info
-            #  .rename(self.col_names, axis=1)
-            .fillna('—')
-            .to_html(index=False)
-                     #  , float_format=self.float_fmt)
-        )
-        header = '''
+        html = df_roi_info.fillna('—').to_html(index=False)
+        html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
+
+        # Add header with style details
+        header = """
             <head>
                 <style>
                     th, td {
@@ -2117,26 +2126,33 @@ class SingleViewer:
                     }
                 </style>
             </head>
-        '''
+        """
         #  white-space: nowrap;
         table_html = (
             (header + html)
-            .replace('&gt;', '>')
-            .replace('&lt;', '<')
-            .replace('&amp;', '&')
+            .replace("&gt;", ">")
+            .replace("&lt;", "<")
+            .replace("&amp;", "&")
         )
         self.ui_roi_table.value = table_html
 
     def get_roi_html(self, roi):
         '''Get HTML string containing name and colour for an ROI.'''
 
-        if roi.name not in self.get_roi_visibility():
+        # If ROI is not currently visible, return greyed-out string
+        if not self.roi_is_visible(roi):
             return '<p style="color: rgb(100, 100, 100)">' f'{roi.name}</p>'
 
+        # Otherwise, set backgroun to ROI colour
         red, green, blue = [c * 255 for c in roi.color[:3]]
-        text_col = (
-            'black' if (red * 0.299 + green * 0.587 + blue * 0.114) > 186 else 'white'
-        )
+
+        # Find best text colour based on background colour
+        if (red * 0.299 + green * 0.587 + blue * 0.114) > 186:
+            text_col = "black"
+        else:
+            text_col = "white"
+
+        # Return formatted HTML string
         return (
             '<p style="background-color: rgb({}, {}, {}); '
             'color: {};">&nbsp;{}&nbsp;</p>'
@@ -2198,7 +2214,7 @@ class SingleViewer:
             #  n_date = self.ui_time.value
 
         # Get ROI settings
-        self.visible_rois = self.get_roi_visibility()
+        self.visible_rois = self.get_visible_rois()
         rois_to_plot = [roi for roi in self.rois if roi.name in 
                         self.visible_rois]
         self.update_roi_info()

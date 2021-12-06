@@ -512,6 +512,8 @@ class ROI(skrt.core.Archive):
            or (self.contours_only and self.image is None):
             self.set_image_to_dummy(shape=shape, voxel_size=voxel_size)
 
+        now = time.time()
+
         # Create mask from input x-y contours 
         if self.input_contours:
 
@@ -575,6 +577,8 @@ class ROI(skrt.core.Archive):
 
                     # Add to 3D mask
                     self.mask.data[:, :, iz] += mask.T
+
+        print(time.time() - now)
 
         # Convert to boolean mask
         if hasattr(self.mask, "data"):
@@ -850,6 +854,10 @@ class ROI(skrt.core.Archive):
             method = self.default_geom_method
         if single_slice and pos is None and sl is None and idx is None:
             idx = self.get_mid_idx(view)
+
+        # If single slice requested and not on current slice, return None, None
+        if single_slice and not self.on_slice(view, sl=sl, idx=idx, pos=pos):
+            return np.array([None, None])
 
         # Calculate centroid from Shapely polygons
         centroid = {}
@@ -1135,6 +1143,10 @@ class ROI(skrt.core.Archive):
         if method is None:
             method = self.default_geom_method
 
+        # If ROI is not on the given slice, return None
+        if not self.on_slice(view, sl=sl, idx=idx, pos=pos):
+            return
+
         # Raise error if trying to flatten contours
         if flatten and method == "contour":
             raise RuntimeError('Flattened area only available with method="mask"')
@@ -1294,7 +1306,8 @@ class ROI(skrt.core.Archive):
         Parameters
         ----------
         ax : str/int, default="z"
-            Axis along which to return length; should be one of ["x", "y", "z"].
+            Axis along which to return length; should be one of ["x", "y", "z"]
+            or [0, 1, 2].
 
         single_slice : bool, default=False
             If False, the length of the entire ROI will be returned;
@@ -1347,6 +1360,10 @@ class ROI(skrt.core.Archive):
                and units in self._length[ax]:
                 return self._length[ax][units]
 
+        # If single slice requested and not on current slice, return None
+        if single_slice and not self.on_slice(view, sl=sl, idx=idx, pos=pos):
+            return None
+
         # Get length in mm from min and max positions
         self.load()
         min_pos, max_pos = self.get_extent(
@@ -1364,13 +1381,13 @@ class ROI(skrt.core.Archive):
 
         # Get length in voxels
         # Case where voxel size is known
-        i_ax = skrt.image._axes.index(ax)
+        i_ax = skrt.image._axes.index(ax) if isinstance(ax, str) else ax
         if self.voxel_size is not None:
             length["voxels"] = length["mm"] / self.voxel_size[i_ax]
 
         # Deal with case where self.voxel_size is None
         else:
-            if ax == "z":
+            if i_ax == 2:
                 length["voxels"] = length["mm"] / self.get_slice_thickness_contours()
             elif units == "voxels":
                 raise RuntimeError("Cannot compute length in voxels from "
@@ -1381,14 +1398,14 @@ class ROI(skrt.core.Archive):
         if not single_slice:
             if not hasattr(self, "_length"):
                 self._length = {}
-            self._length[ax] = length
+            self._length[skrt.image._axes[i_ax]] = length
         
         # Return desired units
         return length[units]
 
     def get_geometry(
         self,
-        metrics=["volume", "centroid"],
+        metrics=None,
         vol_units="mm",
         area_units="mm",
         length_units="mm",
@@ -1399,6 +1416,9 @@ class ROI(skrt.core.Archive):
         idx=None,
         method=None,
         units_in_header=False,
+        global_vs_slice_header=False,
+        name_as_index=True,
+        nice_columns=False,
         decimal_places=None,
         force=True
     ):
@@ -1407,7 +1427,7 @@ class ROI(skrt.core.Archive):
 
         Parameters
         ----------
-        metrics : list, default=["volume", "centroid"]
+        metrics : list, default=None
             List of metrics to include in the table. Options:
                 - "volume" : volume of entire ROI.
                 - "area": area of ROI on a single slice.
@@ -1427,6 +1447,8 @@ class ROI(skrt.core.Archive):
                 - "length_slice": length of the ROI on a single slice; will be
                   split into two columns corresponding to the two axes on the
                   slice.
+
+            If None, defaults to ["volume", "centroid"]
 
         vol_units : str, default="mm"
             Units to use for volume. Can be "mm" (=mm^3), "ml",
@@ -1469,6 +1491,20 @@ class ROI(skrt.core.Archive):
         units_in_header : bool, default=False
             If True, units will be included in column headers.
 
+        global_vs_slice_header : bool, default=False
+            If True, the returned DataFrame will have an extra set of headers
+            splitting the table into "global" and "slice" metrics.
+
+        name_as_index : bool, default=True
+            If True, the index column of the pandas DataFrame will 
+            contain the ROI's name; otherwise, the name will appear in a column
+            named "ROI".
+
+        nice_columns : bool, default=False
+            If False, column names will be the same as the input metrics names;
+            if True, the names will be capitalized and underscores will be 
+            replaced with spaces.
+
         decimal_places : int, default=None
             Number of decimal places to keep for each metric. If None, full
             precision will be used.
@@ -1478,6 +1514,14 @@ class ROI(skrt.core.Archive):
             only be calculated if they have not been calculated before;
             if True, all metrics will be recalculated.
         """
+
+        # If no index given, use central slice
+        if sl is None and idx is None and pos is None:
+            idx = self.get_mid_idx(view)
+
+        # Default metrics
+        if metrics is None:
+            metrics = ["volume", "centroid"]
 
         # Compute metrics
         geom = {}
@@ -1523,9 +1567,9 @@ class ROI(skrt.core.Archive):
                     method=method,
                     **slice_kwargs
                 )
-                for i, i_ax in enumerate(skrt.image._plot_axes(view)):
+                for i, i_ax in enumerate(skrt.image._plot_axes[view]):
                     ax = skrt.image._axes[i_ax]
-                    centroid[f"centroid_slice_{ax}"] = centroid[i]
+                    geom[f"centroid_slice_{ax}"] = centroid[i]
 
             # Full lengths along each axis
             elif m == "length":
@@ -1539,7 +1583,8 @@ class ROI(skrt.core.Archive):
 
             # Lengths on a slice
             elif m == "length_slice":
-                for ax in skrt.image._plot_axes[view]:
+                for i_ax in skrt.image._plot_axes[view]:
+                    ax = skrt.image._axes[i_ax]
                     geom[f"length_slice_{ax}"] = self.get_length(
                         ax=ax, 
                         units=length_units,
@@ -1548,6 +1593,8 @@ class ROI(skrt.core.Archive):
                     )
 
             else:
+
+                found = False
 
                 # Axis-specific metrics
                 for i, ax in enumerate(skrt.image._axes):
@@ -1559,6 +1606,7 @@ class ROI(skrt.core.Archive):
                             method=method,
                             force=force
                         )[i]
+                        found = True
 
                     # Full length along a given axis
                     elif m == f"length_{ax}":
@@ -1568,6 +1616,10 @@ class ROI(skrt.core.Archive):
                             method=method,
                             force=force
                         )
+                        found = True
+
+                if not found:
+                    raise RuntimeError(f"Metric {m} not recognised by ROI.get_geometry()")
 
         # Add units to metric names if requested
         geom_named = {}
@@ -1596,10 +1648,52 @@ class ROI(skrt.core.Archive):
         if decimal_places is not None:
             for metric, val in geom_named.items():
                 fmt = f"{{val:.{decimal_places}f}}"
-                geom_named[metric] = float(fmt.format(val=val))
+                if geom_named[metric] is not None:
+                    geom_named[metric] = float(fmt.format(val=val))
 
         # Convert to pandas DataFrame
-        return pd.DataFrame(geom_named, index=[self.name])
+        df = pd.DataFrame(geom_named, index=[self.name])
+
+        # Capitalize column names and remove underscores if requested
+        if nice_columns:
+            df.columns = [col.capitalize().replace("_", " ") 
+                          for col in df.columns]
+
+        # Turn name into a regular column if requested
+        if not name_as_index:
+            df = df.reset_index().rename({"index": "ROI"}, axis=1)
+
+        # Add global/slice headers
+        if global_vs_slice_header:
+
+            # Sort columns into global or slice
+            headers = []
+            slice_cols = []
+            global_cols = []
+            for metric in geom_named:
+                if "area" in metric or "slice" in metric:
+                    headers.append(("slice", metric))
+                    slice_cols.append(metric)
+                else:
+                    headers.append(("global", metric))
+                    global_cols.append(metric)
+
+            # Reorder columns
+            dfs_ordered = [df[global_cols], df[slice_cols]]
+            if not name_as_index:
+                dfs_ordered.insert(0, df["ROI"])
+            df = pd.concat(dfs_ordered, axis=1)
+
+            # Sort headers by global/slice
+            headers = [h for h in headers if h[0] == "global"] \
+                    + [h for h in headers if h[0] == "slice"]
+            if not name_as_index:
+                headers.insert(0, ("", "ROI"))
+
+            # Add MultiIndex
+            df.columns = pd.MultiIndex.from_tuples(headers)
+
+        return df
 
     def get_centroid_vector(self, roi, **kwargs):
         """Get centroid displacement vector with respect to another ROI."""
@@ -2717,6 +2811,17 @@ class StructureSet(skrt.core.Archive):
                 rois, ds = load_rois_dicom(source)
             if len(rois):
                 for roi in rois.values():
+
+                    # Ignore entries with no contours
+                    if "contours" not in roi:
+                        continue
+
+                    # Ignore entries containing only a single point
+                    contours = roi["contours"]
+                    if len(contours) == 1:
+                        if len(contours[list(contours.keys())[0]]) == 1:
+                            continue
+
                     self.rois.append(
                         ROI(
                             roi["contours"],
@@ -3046,10 +3151,21 @@ class StructureSet(skrt.core.Archive):
         self.load()
         print("\n".join(self.get_roi_names()))
 
-    def get_geometry(self, **kwargs):
-        """Get pandas DataFrame of geometric properties for all ROIs."""
+    def get_geometry(self, name_as_index=True, **kwargs):
+        """Get pandas DataFrame of geometric properties for all ROIs.
+        If no sl/idx/pos is given, the central slice of each ROI will be used.
+        """
 
-        return pd.concat([s.get_geometry(**kwargs) for s in self.get_rois()])
+        df = pd.concat([
+            roi.get_geometry(name_as_index=name_as_index, **kwargs) 
+            for roi in self.get_rois()
+        ])
+
+        # Reset index if not using ROI names as index
+        if not name_as_index:
+            df = df.reset_index(drop=True)
+
+        return df
 
     def get_comparison(self, other=None, method=None, **kwargs):
         """Get pandas DataFrame of comparison metrics vs a single ROI or
@@ -3102,6 +3218,14 @@ class StructureSet(skrt.core.Archive):
             pairs = [p for p in pairs if p[0].name != p[1].name]
 
         return pairs
+
+    def get_mid_idx(self, view="x-y"):
+        """Return the array index of the slice that contains the most ROIs."""
+
+        indices = []
+        for roi in self.get_rois():
+            indices.extend(roi.get_indices(view))
+        return np.bincount(indices).argmax()
 
     def plot_comparisons(
         self, other=None, method=None, outdir=None, legend=True, **kwargs
@@ -3186,6 +3310,10 @@ class StructureSet(skrt.core.Archive):
         **kwargs,
     ):
         """Plot the ROIs in this structure set."""
+
+        # If no sl/idx/pos given, use the slice with the most ROIs
+        if sl is None and idx is None and pos is None:
+            idx = self.get_mid_idx(view)
 
         # Plot with image
         roi_kwargs = {}
