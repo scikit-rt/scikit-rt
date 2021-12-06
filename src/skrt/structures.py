@@ -653,10 +653,11 @@ class ROI(skrt.core.Archive):
                 return self.image.idx_to_pos(idx, ax)
 
             # Otherwise count number of z slices in contours dict
+            # If index does not correspond to a slice, return None
             elif ax in ["z", 2]:
                 conversion = {i: p for i, p in 
                               enumerate(self.get_contours("x-y").keys())}
-                return conversion[idx]
+                return conversion.get(idx, None)
 
             # Otherwise, not possible to convert x/y points to indices
             # from contours alone
@@ -687,10 +688,11 @@ class ROI(skrt.core.Archive):
                 return self.image.pos_to_idx(pos, ax, return_int)
 
             # Otherwise count number of z slices in contours dict
+            # If position does not correspond to a slie, return None
             elif ax in ["z", 2]:
                 conversion = {p: i for i, p in 
                               enumerate(self.get_contours("x-y").keys())}
-                idx = conversion[pos]
+                idx = conversion.get(pos, None)
 
             # Otherwise, not possible to convert x/y points to indices
             # from contours alone
@@ -698,7 +700,7 @@ class ROI(skrt.core.Archive):
                 print("Warning: cannot convert position to index in the x/y "
                       "directions without associated image geometry!")
                 return
-            if return_int:
+            if return_int and idx is not None:
                 return round(idx)
             else:
                 return idx
@@ -777,6 +779,8 @@ class ROI(skrt.core.Archive):
         """Check whether this ROI exists on a given slice."""
 
         idx = self.get_idx(view, sl, idx, pos)
+        if idx is None:
+            return False
         return idx in self.get_indices(view)
 
     def get_centroid(
@@ -835,6 +839,11 @@ class ROI(skrt.core.Archive):
                 - "contour": get centroid of shapely contour(s).
                 - "mask": get average position of voxels in binary mask.
                 - None: use the method set in self.default_geom_method.
+
+        flatten : bool, default=False
+            If True, all slices will be flattened in the given orientation and
+            the 2D centroid of the flattened slice will be returned. Only available
+            if method="mask".
 
         force : bool, default=True
             If True, the global centroid will always be recalculated; 
@@ -1720,12 +1729,53 @@ class ROI(skrt.core.Archive):
         sl=None, 
         idx=None, 
         pos=None, 
+        method=None,
         flatten=False,
-        method=None
     ):
-        """Get Dice score, either globally or on a single slice."""
+        """Get Dice score with respect to another ROI, either globally or on a 
+        single slice.
+
+        Parameters
+        ----------
+        roi : ROI
+            Other ROI to compare with this ROI.
+
+        single_slice : bool, default=False
+            If False, the global 3D Dice score of the full ROIs will be returned;
+            otherwise, the 2D Dice score on a single slice will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice on which to get Dice score. Only used if 
+            single_slice=True. If using, <ax> must be an axis that lies along
+            the slice in this orientation.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        method : str, default=None
+            Method to use for Dice score calculation. Can be: 
+                - "contour": get intersections and areas of shapely contours.
+                - "mask": count intersecting voxels in binary masks.
+                - None: use the method set in self.default_geom_method.
+
+        flatten : bool, default=False
+            If True, all slices will be flattened in the given orientation and
+            the Dice score of the flattened slices will be returned. Only 
+            available if method="mask".
+        """
 
         self.load()
+
+        # Get default slice and method
         if single_slice:
             if sl is None and idx is None and pos is None:
                 idx = self.get_mid_idx(view)
@@ -1739,15 +1789,23 @@ class ROI(skrt.core.Archive):
             # on those slice(s)
             if not single_slice:
                 positions = list(self.get_contours("x-y").keys())
-                area1 = sum([self.get_area("x-y", idx=i) for i in self.get_indices()])
-                area2 = sum([roi.get_area("x-y", idx=i) for i in roi.get_indices()])
+                areas1 = [self.get_area("x-y", pos=p) for p in positions]
+                area1 = sum([a for a in areas1 if a is not None])
+                areas2 = [self.get_area("x-y", pos=p) for p in positions]
+                area2 = sum([a for a in areas2 if a is not None])
             else:
-                positions = [self.idx_to_pos(self.get_idx(view, sl, idx, pos),
-                                             ax=skrt.image._slice_axes[view])]
+                positions = [
+                    self.idx_to_pos(self.get_idx(view, sl, idx, pos),
+                                    ax=skrt.image._slice_axes[view])
+                ]
                 area1 = self.get_area(view, sl, idx, pos)
+                if area1 is None:
+                    area1 = 0
                 area2 = roi.get_area(view, sl, idx, pos)
+                if area2 is None:
+                    area2 = 0
             
-            # Compute intersecting area on one or more slices
+            # Compute intersecting area on slice(s)
             intersection = 0
             for p in positions:
                 polygons1 = self.get_polygons_on_slice(view, pos=p)
@@ -2412,13 +2470,13 @@ class ROI(skrt.core.Archive):
 
         # View with image
         if include_image and self.image is not None:
-
-            # View with image
             BetterViewer(self.image, rois=self, init_roi=self.name,
                          **kwargs)
 
         # View without image
         else:
+
+            roi_tmp = self
 
             # Get ROI extent
             extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
@@ -2427,6 +2485,8 @@ class ROI(skrt.core.Archive):
             if self.contours_only:
                 im = self.get_dummy_image(fill_val=1e4)
                 im.title = self.name
+                roi_tmp = self.clone(copy_data=False)
+                roi_tmp.image = im
             else:
                 im = skrt.image.Image(
                     np.ones(self.shape) * 1e4,
@@ -3443,10 +3503,16 @@ class StructureSet(skrt.core.Archive):
         # View without image
         else:
 
+            structure_set_tmp = self
+
             # Make dummy image
             if self.rois[0].contours_only:
                 im = self.get_dummy_image()
-                for roi in self.rois:
+                structure_set_tmp = self.clone(
+                    copy_rois=True, 
+                    copy_roi_data=False
+                )
+                for roi in structure_set_tmp.rois:
                     if roi.contours_only:
                         roi.set_image(im)
             else:
@@ -3457,7 +3523,7 @@ class StructureSet(skrt.core.Archive):
 
             # Create viewer
             kwargs["show"] = False
-            bv = BetterViewer(im, rois=self, **kwargs)
+            bv = BetterViewer(im, rois=structure_set_tmp, **kwargs)
             bv.make_ui(no_hu=True)
             bv.show()
 
