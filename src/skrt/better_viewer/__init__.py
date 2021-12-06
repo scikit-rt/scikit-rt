@@ -30,7 +30,7 @@ class BetterViewer:
 
     def __init__(
         self,
-        ims=None,
+        images=None,
         title=None,
         mask=None,
         dose=None,
@@ -65,7 +65,7 @@ class BetterViewer:
         Parameters
         ----------
 
-        ims : string/Image/np.ndarray/list, default=None
+        images : string/Image/np.ndarray/list, default=None
             Source(s) of image data for each plot. If multiple plots are to be
             shown, this must be a list. Image sources can be Image objects, or 
             any of the valid sources for creating an Image object, including:
@@ -82,11 +82,11 @@ class BetterViewer:
 
         mask : string/nifti/array/list, default=None
             Source(s) of array(s) to with which to mask each plot (see valid
-            image sources for <ims>).
+            image sources for <images>).
 
         dose : string/nifti/array/list, default=None
             Source(s) of dose field array(s) to overlay on each plot (see valid
-            image sources for <ims>).
+            image sources for <images>).
 
         rois : str/list/dict, default=None
             Locations of files from which to load ROIs. This
@@ -181,11 +181,11 @@ class BetterViewer:
 
         jacobian : string/nifti/array/list, default=None
             Source(s) of jacobian determinant array(s) to overlay on each plot
-            (see valid image sources for <ims>).
+            (see valid image sources for <images>).
 
         df : string/nifti/array/list, default=None
             Source(s) of deformation field(s) to overlay on each plot
-            (see valid image sources for <ims>).
+            (see valid image sources for <images>).
 
         share_slider : bool, default=True
             If True and all displayed images are in the same frame of
@@ -219,16 +219,16 @@ class BetterViewer:
 
         show_cb : bool, default=False
             If True, a chequerboard image will be displayed. This option will
-            only be applied if the number of images in <ims> is 2.
+            only be applied if the number of images in <images> is 2.
 
         show_overlay : bool, default=False
             If True, a blue/red transparent overlaid image will be displayed.
             This option will only be applied if the number of images in
-            <ims> is 2.
+            <images> is 2.
 
         show_diff : bool, default=False
             If True, a the difference between two images will be shown. This
-            option will only be applied if the number of images in <ims>
+            option will only be applied if the number of images in <images>
             is 2.
 
         comparison : bool/str/list, default=None
@@ -671,11 +671,11 @@ class BetterViewer:
         '''
 
         # Get image file inputs
-        if not isinstance(ims, list) or isinstance(ims, tuple):
-            self.ims = [ims]
+        if not isinstance(images, list) or isinstance(images, tuple):
+            self.images = [images]
         else:
-            self.ims = ims
-        self.n = len(self.ims)
+            self.images = images
+        self.n = len(self.images)
 
         # Process other inputs
         self.title = self.get_input_list(title)
@@ -693,7 +693,7 @@ class BetterViewer:
         kwargs = {key.replace('colour', 'color'): val for key, val in kwargs.items()}
         for i in range(self.n):
             viewer = viewer_type(
-                self.ims[i],
+                self.images[i],
                 title=self.title[i],
                 dose=self.dose[i],
                 mask=self.mask[i],

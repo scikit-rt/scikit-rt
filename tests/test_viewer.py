@@ -176,8 +176,8 @@ def test_view_comparison():
 def test_titles():
     title = ["test1", "test2"]
     qv = BetterViewer([im, im2], title=title, show=False)
-    assert qv.viewers[0].im.ax.title.get_text() == title[0]
-    assert qv.viewers[1].im.ax.title.get_text() == title[1]
+    assert qv.viewers[0].image.ax.title.get_text() == title[0]
+    assert qv.viewers[1].image.ax.title.get_text() == title[1]
 
 
 #  @close_after
