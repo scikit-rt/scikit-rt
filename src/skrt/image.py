@@ -1779,9 +1779,9 @@ class Image(skrt.core.Archive):
 
         # Obtain centre coordinates in pixel units
         xc, yc, zc = centre
-        ixc = self.pos_to_idx(xc, "x")
-        iyc = self.pos_to_idx(yc, "y")
-        izc = self.pos_to_idx(zc, "z")
+        ixc = self.pos_to_idx(xc, "x", False)
+        iyc = self.pos_to_idx(yc, "y", False)
+        izc = self.pos_to_idx(zc, "z", False)
 
         # Overall transformation matrix composed from
         # individual transformations, following suggestion at:
