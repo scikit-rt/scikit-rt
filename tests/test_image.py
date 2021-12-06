@@ -1,6 +1,7 @@
 """Test Image class."""
 
 import os
+import random
 import numpy as np
 import shutil
 import pydicom
@@ -10,15 +11,22 @@ from skrt.image import Image
 
 
 # Create fake data
-data = (np.random.rand(40, 50, 20) * 1000).astype(np.uint16)
-voxel_size = (1, 2, 3)
-origin = (-40, -50, 20)
-
-def create_test_image():
+def create_test_image(shape, voxel_size, origin, data_type='rand', factor=1000):
+    if 'rand' == data_type:
+        n1, n2, n3 = shape
+        data = (np.random.rand(n1, n2, n3) * factor).astype(np.uint16)
+    elif 'zeros' == data_type:
+        data = np.zeros(shape).astype(np.uint16)
     im = Image(data, voxel_size=voxel_size, origin=origin)
     return im
 
-im = create_test_image()
+shape = (40, 50, 20)
+voxel_size = (1, 2, 3)
+origin = (-40, -50, 20)
+
+im = create_test_image(shape, voxel_size, origin)
+
+data = im.data
 
 # Make temporary test dir
 if not os.path.exists("tmp"):
@@ -279,7 +287,7 @@ def test_clone_no_copy():
 def test_init_from_image():
     """Test cloning an image using the Image initialiser."""
 
-    im = create_test_image()
+    im = create_test_image(shape, voxel_size, origin)
     im_cloned = Image(im)
     assert np.all(im.get_affine() == im_cloned.get_affine())
     assert np.all(im.get_data() == im_cloned.get_data())
@@ -333,3 +341,50 @@ def test_plot():
     im.plot(show=False, save_as=plot_out)
     assert os.path.isfile(plot_out)
     os.remove(plot_out)
+
+def get_random_voxel(im):
+    '''Obtain centre coordinates of random voxel in image im'''
+    xyz_voxel = []
+    for i in range(3):
+        v1, v2 = [im.image_extent[i][j] for j in [0, 1]]
+        v = random.uniform(v1, v2)
+        # Obtain coordinates corresponding vo voxel centre
+        iv = im.pos_to_idx(v, i)
+        v = im.idx_to_pos(iv, i)
+        xyz_voxel.append(v)
+    return xyz_voxel
+
+def test_translation():
+    '''Test translation - track movement of single bright voxel.'''
+    shape=(21, 21, 11)
+    voxel_size=(1, 1, 3)
+    origin=(-10, -10, -15)
+    im0 = create_test_image(shape, voxel_size, origin, 'zeros')
+    random.seed(1)
+    # Intensity value for bright voxel.
+    v_test = 1000
+    # Number of translations to test.
+    n_test = 10
+
+    for i in range(n_test):
+        im1 = Image(im0)
+        # Obtain coordinates for original and translated point.
+        x0, y0, z0 = get_random_voxel(im1)
+        x1, y1, z1 = get_random_voxel(im1)
+        ix0 = im1.pos_to_idx(x0, 'x')
+        iy0 = im1.pos_to_idx(y0, 'y')
+        iz0 = im1.pos_to_idx(z0, 'z')
+        ix1 = im1.pos_to_idx(x1, 'x')
+        iy1 = im1.pos_to_idx(y1, 'y')
+        iz1 = im1.pos_to_idx(z1, 'z')
+        im1.data[iy0][ix0][iz0] = v_test
+
+        # Determine translation.
+        translation = [x1-x0, y1-y0, z1-z0]
+
+        # Check that bright voxel is in expected position.
+        assert np.sum(im1.data >= 0.1 * v_test) == 1
+        assert im1.data[iy0][ix0][iz0] == v_test
+        im1.transform(translation=translation, order=0)
+        assert np.sum(im1.data >= 0.1 * v_test) == 1
+        assert im1.data[iy1][ix1][iz1] == v_test

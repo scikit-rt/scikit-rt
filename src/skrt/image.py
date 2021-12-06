@@ -1691,7 +1691,7 @@ class Image(skrt.core.Archive):
         return np.meshgrid(*coords_1d)
 
     def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
-            centre=[0, 0, 0], resample="fine", restore=True):
+            centre=[0, 0, 0], resample="fine", restore=True, order=1):
         """Apply three-dimensional similarity transform using scikit-image.
 
         The image is first translated, then is scaled and rotated
@@ -1730,6 +1730,9 @@ class Image(skrt.core.Archive):
             In case that image has been resampled:
             if True, restore original voxel size for transformed iamge;
             if False, keep resampled voxel size for transformed image.
+
+        order: int, default = 1
+            Order of the b-spline used in interpolating voxel intensity values.
         """
 
         self.load()
@@ -1769,7 +1772,7 @@ class Image(skrt.core.Archive):
                 resample_size = voxel_size_max
             else:
                 resample_size = resample
-            self.resample(voxel_size=resample_size)
+            self.resample(voxel_size=resample_size, order=order)
 
         # Obtain rotation in radians
         pitch, yaw, roll = [math.radians(x) for x in rotation]
@@ -1806,11 +1809,12 @@ class Image(skrt.core.Archive):
                  + tf_centre_shift_inv
 
         # Apply transform
-        self.data = scipy.ndimage.affine_transform(self.data, matrix)
+        self.data = scipy.ndimage.affine_transform(self.data, matrix,
+                order=order)
 
         # Revert to original voxel size
         if image_resample and restore:
-            self.resample(voxel_size=voxel_size)
+            self.resample(voxel_size=voxel_size, order=order)
 
         return None
 
