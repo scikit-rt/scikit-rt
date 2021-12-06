@@ -790,7 +790,6 @@ class ROI(skrt.core.Archive):
         pos=None,
         units="mm",
         method=None,
-        flatten=False,
         force=True
     ):
         """Get either 3D global centroid position or 2D centroid position on 
@@ -837,11 +836,6 @@ class ROI(skrt.core.Archive):
                 - "contour": get centroid of shapely contour(s).
                 - "mask": get average position of voxels in binary mask.
                 - None: use the method set in self.default_geom_method.
-
-        flatten : bool, default=False
-            If True, all slices will be flattened in the given orientation and
-            the 2D centroid of the flattened slice will be returned. Only available
-            if method="mask".
 
         force : bool, default=True
             If True, the global centroid will always be recalculated; 
@@ -927,11 +921,8 @@ class ROI(skrt.core.Archive):
                 data = self.get_slice(view, sl, idx, pos)
                 axes = skrt.image._plot_axes[view]
             else:
-                if flatten:
-                    data = self.get_mask(view, flatten=True)
-                else:
-                    self.create_mask()
-                    data = self.mask.get_data(standardise=True)
+                self.create_mask()
+                data = self.mask.get_data(standardise=True)
                 axes = skrt.image._axes
 
             # Compute centroid from 2D or 3D binary mask
@@ -1162,9 +1153,8 @@ class ROI(skrt.core.Archive):
         if not self.on_slice(view, sl=sl, idx=idx, pos=pos):
             return
 
-        # Raise error if trying to flatten contours
-        if flatten and method == "contour":
-            raise RuntimeError('Flattened area only available with method="mask"')
+        if flatten:  # Flattening only possible with "mask"
+            method = "mask"
 
         # Calculate area from shapely polygon(s)
         if method == "contour":
@@ -1444,8 +1434,10 @@ class ROI(skrt.core.Archive):
         ----------
         metrics : list, default=None
             List of metrics to include in the table. Options:
+
                 - "volume" : volume of entire ROI.
                 - "area": area of ROI on a single slice.
+
                 - "centroid": 3D centre-of-mass of ROI; will be split into
                   three columns corresponding to the three axes.
                 - "centroid_x": 3D centre-of-mass of ROI along the x-axis.
@@ -1454,6 +1446,7 @@ class ROI(skrt.core.Archive):
                 - "centroid_slice": 2D centre of mass on a single slice. Will
                   be split into two columns corresponding to the two axes on
                   the slice.
+
                 - "length": lengths of the ROI in each direction; will be split
                   into three columns corresponding to the three axes.
                 - "length_x": length of the ROI along the x-axis.
@@ -1608,7 +1601,6 @@ class ROI(skrt.core.Archive):
                     )
 
             else:
-
                 found = False
 
                 # Axis-specific metrics
@@ -1634,7 +1626,8 @@ class ROI(skrt.core.Archive):
                         found = True
 
                 if not found:
-                    raise RuntimeError(f"Metric {m} not recognised by ROI.get_geometry()")
+                    raise RuntimeError(f"Metric {m} not recognised by "
+                                       "ROI.get_geometry()")
 
         # Add units to metric names if requested
         geom_named = {}
@@ -1710,26 +1703,91 @@ class ROI(skrt.core.Archive):
 
         return df
 
-    def get_centroid_vector(self, roi, **kwargs):
-        """Get centroid displacement vector with respect to another ROI."""
+    def get_centroid_distance(self, roi, single_slice=False, **kwargs):
+        """Get centroid displacement vector with respect to another ROI.
 
-        this_centroid = np.array(self.get_centroid(**kwargs))
-        other_centroid = np.array(roi.get_centroid(**kwargs))
+        Parameters
+        ----------
+        roi : ROI
+            Other ROI with which to compare centroid.
+
+        single_slice : bool, default=False
+            If True, the centroid will be returned for a single slice.
+
+        kwargs : dict
+            Other kwargs to pass to ROI.get_centroid().
+        """
+
+        this_centroid = np.array(
+            self.get_centroid(single_slice=single_slice, **kwargs)
+        )
+        other_centroid = np.array(
+            roi.get_centroid(single_slice=single_slice, **kwargs)
+        )
         if None in this_centroid or None in other_centroid:
-            return None, None
+            if single_slice:
+                return np.array([None, None])
+            else:
+                return np.array([None, None, None])
         return other_centroid - this_centroid
 
-    def get_centroid_distance(self, roi, **kwargs):
-        """Get absolute centroid distance."""
+    def get_abs_centroid_distance(
+        self, 
+        roi, 
+        view="x-y", 
+        single_slice=False,
+        flatten=False, 
+        **kwargs):
+        """Get absolute centroid distance with respect to another ROI.
 
-        centroid = self.get_centroid_vector(roi, **kwargs)
+        Parameters
+        ----------
+        roi : ROI
+            Other ROI with which to compare centroid.
+
+        view : str, default="x-y"
+            Orientation in which to get centroids if using a single slice or
+            flattening.
+
+        single_slice : bool, default=False
+            If True, the centroid will be returned for a single slice.
+
+        flatten : bool, default=False
+            If True, the 3D centroid will be obtained and then the absolute 
+            value along only the 2D axes in the orientation in <view> will
+            be returned.
+
+        kwargs : dict
+            Other kwargs to pass to ROI.get_centroid().
+        """
+
+        # If flattening, need to get 3D centroid vector
+        if flatten:
+            single_slice = False
+
+        # Get centroid vector
+        centroid = self.get_centroid_distance(
+            roi, 
+            view=view, 
+            single_slice=single_slice,
+            **kwargs
+        )
+
+        # If centroid wasn't available, return None
         if None in centroid:
             return None
+
+        # If flattening, take 2 axes only
+        if flatten:
+            x_ax, y_ax = skrt.image._plot_axes[view]
+            centroid = np.array([centroid[x_ax], centroid[y_ax]])
+
+        # Return magnitude of vector
         return np.linalg.norm(centroid)
 
     def get_dice(
         self, 
-        roi, 
+        other, 
         single_slice=False,
         view="x-y", 
         sl=None, 
@@ -1743,7 +1801,7 @@ class ROI(skrt.core.Archive):
 
         Parameters
         ----------
-        roi : ROI
+        other : ROI
             Other ROI to compare with this ROI.
 
         single_slice : bool, default=False
@@ -1788,6 +1846,9 @@ class ROI(skrt.core.Archive):
         if method is None:
             method = self.default_geom_method
 
+        if flatten:  # Flattening only possible with "mask"
+            method = "mask"
+
         # Calculate intersections and areas from polygons
         if method == "contour":
 
@@ -1807,7 +1868,7 @@ class ROI(skrt.core.Archive):
                 area1 = self.get_area(view, sl, idx, pos)
                 if area1 is None:
                     area1 = 0
-                area2 = roi.get_area(view, sl, idx, pos)
+                area2 = other.get_area(view, sl, idx, pos)
                 if area2 is None:
                     area2 = 0
             
@@ -1815,7 +1876,7 @@ class ROI(skrt.core.Archive):
             intersection = 0
             for p in positions:
                 polygons1 = self.get_polygons_on_slice(view, pos=p)
-                polygons2 = roi.get_polygons_on_slice(view, pos=p)
+                polygons2 = other.get_polygons_on_slice(view, pos=p)
                 for p1 in polygons1:
                     for p2 in polygons2:
                         intersection += p1.intersection(p2).area
@@ -1826,12 +1887,12 @@ class ROI(skrt.core.Archive):
             # Use 3D mask
             if not single_slice:
                 data1 = self.get_mask(view, flatten)
-                data2 = roi.get_mask(view, flatten)
+                data2 = other.get_mask(view, flatten)
 
             # Otherwise, use single 2D slice
             else:
                 data1 = self.get_slice(view, sl, idx, pos)
-                data2 = roi.get_slice(view, sl, idx, pos)
+                data2 = other.get_slice(view, sl, idx, pos)
 
             intersection = (data1 & data2).sum()
             area1 = data1.sum()
@@ -1839,54 +1900,63 @@ class ROI(skrt.core.Archive):
 
         return intersection / np.mean([area1, area2])
 
-    def get_volume_ratio(self, roi, method=None):
+    def get_volume_ratio(self, other, method=None):
         """Get ratio of another ROI's volume with respect to own volume."""
 
-        own_volume = roi.get_volume(method=method)
+        own_volume = other.get_volume(method=method)
         other_volume = self.get_volume(method=method)
-        if not other_volume:
+        if not other_volume or not own_volume:
             return None
         return own_volume / other_volume
 
-    def get_area_ratio(self, roi, **kwargs):
+    def get_area_ratio(self, other, **kwargs):
         """Get ratio of another ROI's area with respect to own area."""
 
-        own_area = roi.get_area(**kwargs)
+        own_area = other.get_area(**kwargs)
         other_area = self.get_area(**kwargs)
-        if not other_area:
+        if not other_area or not own_area:
             return None
         return own_area / other_area
 
-    def get_relative_volume_diff(self, roi, method=None):
-        """Get relative volume of another ROI with respect to own volume."""
+    def get_volume_diff(self, other, **kwargs):
+        """Get own volume minus volume of other ROI."""
 
-        own_volume = self.get_volume(method=method)
-        other_volume = roi.get_volume(method=method)
-        if not own_volume:
+        own_volume = self.get_volume(**kwargs)
+        other_volume = other.get_volume(**kwargs)
+        if not own_volume or not other_volume:
             return None
         return (own_volume - other_volume) / own_volume
 
-    def get_area_diff(self, roi, **kwargs):
+    def get_relative_volume_diff(self, other, **kwargs):
+        """Get relative volume of another ROI with respect to own volume."""
+
+        own_volume = self.get_volume(**kwargs)
+        volume_diff = self.get_volume_diff(other, **kwargs)
+        if volume_diff is None:
+            return
+        return volume_diff / own_volume
+
+    def get_area_diff(self, other, **kwargs):
         """Get absolute area difference between two ROIs."""
 
         own_area = self.get_area(**kwargs)
-        other_area = roi.get_area(**kwargs)
+        other_area = other.get_area(**kwargs)
         if not own_area or not other_area:
-            return None
+            return
         return own_area - other_area
 
-    def get_relative_area_diff(self, roi, **kwargs):
+    def get_relative_area_diff(self, other, **kwargs):
         """Get relative area of another ROI with respect to own area."""
 
         own_area = self.get_area(**kwargs)
-        other_area = roi.get_area(**kwargs)
-        if not own_area or not other_area:
-            return None
-        return (own_area - other_area) / own_area
+        area_diff = self.get_area_diff(other, **kwargs)
+        if area_diff is None:
+            return 
+        return area_diff / own_area
 
     def get_surface_distances(
         self,
-        roi,
+        other,
         single_slice=False,
         signed=False,
         view="x-y",
@@ -1900,27 +1970,27 @@ class ROI(skrt.core.Archive):
 
         # Ensure both ROIs are loaded
         self.load()
-        roi.load()
+        other.load()
 
         # Check whether ROIs are empty
-        if not np.any(self.get_mask()) or not np.any(roi.get_mask()):
+        if not np.any(self.get_mask()) or not np.any(other.get_mask()):
             return
 
         # Get binary masks and voxel sizes
         if single_slice:
             voxel_size = [self.voxel_size[i] for i in skrt.image._plot_axes[view]]
             mask1 = self.get_slice(view, sl=sl, idx=idx, pos=pos)
-            mask2 = roi.get_slice(view, sl=sl, idx=idx, pos=pos)
+            mask2 = other.get_slice(view, sl=sl, idx=idx, pos=pos)
         else:
             if not flatten:
                 vx, vy, vz = self.voxel_size
                 voxel_size = [vy, vx, vz]
                 mask1 = self.get_mask()
-                mask2 = roi.get_mask()
+                mask2 = other.get_mask()
             else:
                 voxel_size = [self.voxel_size[i] for i in skrt.image._plot_axes[view]]
                 mask1 = self.get_mask(view, flatten=True)
-                mask2 = roi.get_mask(view, flatten=True)
+                mask2 = other.get_mask(view, flatten=True)
 
         # Make structuring element
         conn2 = ndimage.morphology.generate_binary_structure(2, connectivity)
@@ -1947,40 +2017,40 @@ class ROI(skrt.core.Archive):
         sds = np.concatenate([np.ravel(dist1[surf2 != 0]), np.ravel(dist2[surf1 != 0])])
         return sds
 
-    def get_mean_surface_distance(self, roi, **kwargs):
+    def get_mean_surface_distance(self, other, **kwargs):
 
-        sds = self.get_surface_distances(roi, **kwargs)
+        sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
             return
         return sds.mean()
 
-    def get_rms_surface_distance(self, roi, **kwargs):
+    def get_rms_surface_distance(self, other, **kwargs):
 
-        sds = self.get_surface_distances(roi, **kwargs)
+        sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
             return
         return np.sqrt((sds ** 2).mean())
 
-    def get_hausdorff_distance(self, roi, **kwargs):
+    def get_hausdorff_distance(self, other, **kwargs):
 
-        sds = self.get_surface_distances(roi, **kwargs)
+        sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
             return
         return sds.max()
 
-    def get_surface_distance_metrics(self, roi, **kwargs):
+    def get_surface_distance_metrics(self, other, **kwargs):
         """Get the mean surface distance, RMS surface distance, and Hausdorff
         distance."""
 
-        sds = self.get_surface_distances(roi, **kwargs)
+        sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
             return
         return sds.mean(), np.sqrt((sds ** 2).mean()), sds.max()
 
-    def plot_surface_distances(self, roi, save_as=None, signed=False, **kwargs):
+    def plot_surface_distances(self, other, save_as=None, signed=False, **kwargs):
         """Plot histogram of surface distances."""
 
-        sds = self.get_surface_distances(roi, signed=signed, **kwargs)
+        sds = self.get_surface_distances(other, signed=signed, **kwargs)
         if sds is None:
             return
         fig, ax = plt.subplots()
@@ -1997,216 +2067,380 @@ class ROI(skrt.core.Archive):
     def get_comparison(
         self,
         roi,
-        metrics=["dice", "abs_centroid", "rel_volume_diff", "rel_area_diff"],
-        fancy_names=True,
+        metrics=None,
         vol_units="mm",
         area_units="mm",
         centroid_units="mm",
         view="x-y",
         sl=None,
-        idx=None,
         pos=None,
+        idx=None,
+        method=None,
+        units_in_header=False,
+        global_vs_slice_header=False,
+        name_as_index=True,
+        nice_columns=False,
+        decimal_places=None,
+        force=True
     ):
-        """Get a pandas DataFrame of comparison metrics with another ROI.
+        """Return a pandas DataFrame of the comparison metrics listed in 
+        <metrics> with respect to another ROI.
 
-        Possible metrics:
-            - 'dice': Dice score, either on a slice (if view and sl/idx/pos
-            are given), or globally.
-            - 'dice_global': Global dice score (note that this is the same as
-            'dice' if no view and sl/idx/pos are given).
-            - 'dice_flat': Global dice score of flat ROIs.
-            - 'centroid_global': Centroid distance vector.
-            - 'abs_centroid_global': Absolute centroid distance.
-            - 'centroid': Centroid distance vector on slice.
-            - 'abs_centroid': Absolute centroid distance on slice.
-            - 'abs_centroid_flat': Absolute centroid distance on flat ROIs.
-            - 'rel_volume_diff': Relative volume difference.
-            - 'area_diff': Absolute area difference.
-            - 'area_diff_flat': Absolute area difference of projections of
-            each ROI.
-            - 'rel_area_diff': Relative area difference, either on a specific
-            slice or on the central 'x-y' slice of each ROI, if no
-            view and idx/pos/sl are given.
-            - 'rel_area_diff_flat': Relative area difference of projections of
-            each ROI.
-            - 'volume_ratio': Volume ratio.
-            - 'area_ratio': Area ratio, either on a specific slice or of the
-            central slices of the two ROIs.
-            - 'area_ratio_flat': Area ratio of projections of each ROI.
-            - 'mean_surface_distance': Mean surface distance.
-            - 'mean_surface_distance_flat': Mean surface distance of
-            flat ROIs.
-            - 'mean_surface_distance_signed_flat': Mean signed surface
-            distance of flat ROIs.
-            - 'rms_surface_distance'
-            - 'rms_surface_distance_flat'
-            - 'hausdorff_distance'
-            - 'hausdorff_distance_flat'
+        Parameters
+        ----------
+        roi : ROI
+            Other ROI with which to compare this ROI.
 
+        metrics : list, default=None
+            List of metrics to include in the table. Options:
+
+                - "dice" : global Dice score.
+                - "dice_flat": Dice score of ROIs flattened in the orientation
+                  specified in <view>.
+                - "dice_slice": Dice score on a single slice.
+
+                - "centroid": 3D centroid distance vector.
+                - "abs_centroid": magnitude of 3D centroid distance vector.
+                - "abs_centroid_flat": magnitude of 3D centroid distance vector
+                  projected into the plane specified in <view>.
+                - "centroid_slice": 2D centroid distance vector on a single slice.
+                - "abs_centroid_slice": magnitude of 2D centroid distance 
+                vector on a single slice.
+                - "centroid_x": x component of 3D centroid distance vector.
+                - "centroid_y": y component of 3D centroid distance vector.
+                - "centroid_z": z component of 3D centroid distance vector.
+
+                - "volume_diff": volume difference (own volume - other volume).
+                - "rel_volume_diff": volume difference divided by own volume.
+                - "volume ratio": volume ratio (own volume / other volume).
+
+                - "area_diff": area difference (own area - other area) on a 
+                  single slice.
+                - "rel_area_diff": area difference divided by own area on a 
+                  single slice.
+                - "area ratio": area ratio (own area / other area).
+                - "area_diff_flat": area difference of ROIs flattened in the
+                  orientation specified in <view>.
+                - "rel_area_diff_flat": relative area difference of ROIs
+                  flattened in the orientation specified in <view>.
+                - "area_ratio_flat": area ratio of ROIs flattened in the
+                  orientation specified in <view>.
+
+                - "mean_surface_distance": mean surface distance.
+                - "mean_surface_distance_flat": mean surface distance of ROIs
+                  flattened in the orientation specified in <view>.
+                - "rms_surface_distance": RMS surface distance.
+                - "rms_surface_distance_flat": RMS surface distance of ROIs
+                  flattened in the orientation specified in <view>.
+                - "hausdorff_distance": Hausdorff distance.
+                - "hausdorff_distance_flat": Hausdorff distance of ROIs
+                  flattened in the orientation specified in <view>.
+
+
+            If None, defaults to ["dice", "centroid"].
+
+        vol_units : str, default="mm"
+            Units to use for volume. Can be "mm" (=mm^3), "ml",
+            or "voxels".
+
+        area_units : str, default="mm"
+            Units to use for areas. Can be "mm" (=mm^2) or "voxels".
+
+        centroid_units:
+            Units to use for centroids. Can be "mm" or "voxels".
+
+        view : str, default="x-y"
+            Orientation in which to compute metrics. Only relevant for 
+            single-slice metrics or flattened metrics.
+
+        sl : int, default=None
+            Slice number on which to compute metrics. Only relevant for 
+            single-slice metrics (area, centroid_slice, length_slice).
+            If <sl>, <idx>, and <pos> are all None, the central slice of the
+            ROI will be used.
+
+        idx : int, default=None
+            Slice index array on which to compute metrics. Only relevant for 
+            single-slice metrics (area, centroid_slice, length_slice).
+            Used if <sl> is None.
+
+        pos : float, default=None
+            Slice position in mm on which to compute metrics. Only relevant for 
+            single-slice metrics (area, centroid_slice, length_slice).
+            Used if <sl> and <idx> are both None.
+
+        method : str, default=None
+            Method to use for metric calculation. Can be either "contour" 
+            (use shapely polygons) or "mask" (use binary mask). If None,
+            the value set in self.default_geom_method will be used. Note 
+            that flattened metrics and surface distance metrics enforce use
+            of the "mask" method.
+
+        units_in_header : bool, default=False
+            If True, units will be included in column headers.
+
+        global_vs_slice_header : bool, default=False
+            If True, the returned DataFrame will have an extra set of headers
+            splitting the table into "global" and "slice" metrics.
+
+        name_as_index : bool, default=True
+            If True, the index column of the pandas DataFrame will 
+            contain the ROI's names; otherwise, the name will appear in a column
+            named "ROI".
+
+        nice_columns : bool, default=False
+            If False, column names will be the same as the input metrics names;
+            if True, the names will be capitalized and underscores will be 
+            replaced with spaces.
+
+        decimal_places : int, default=None
+            Number of decimal places to keep for each metric. If None, full
+            precision will be used.
+
+        force : bool, default=True
+            If False, global metrics for each ROI (volume, 3D centroid, 
+            3D lengths) will only be calculated if they have not been 
+            calculated before; if True, all metrics will be recalculated.
         """
 
-        # Parse volume and area units
-        vol_units_name = vol_units
-        if vol_units in ["mm", "mm3"]:
-            vol_units = "mm"
-            vol_units_name = "mm3"
-        area_units_name = vol_units
-        if area_units in ["mm", "mm2"]:
-            area_units = "mm"
-            area_units_name = "mm2"
+        # If no index given, use central slice
+        if sl is None and idx is None and pos is None:
+            idx = self.get_mid_idx(view)
 
-        # Make dict of property names
-        names = {
-            "dice": "Dice score",
-            "dice_global": "Global Dice score",
-            "dice_flat": "Flattened Dice score",
-            "abs_centroid": f"Centroid distance ({centroid_units})",
-            "abs_centroid_flat": f"Flattened centroid distance ({centroid_units})",
-            "abs_centroid_global": f"Global centroid distance ({centroid_units})",
-            "rel_volume_diff": f"Relative volume difference ({vol_units_name})",
-            "area_diff": f"Area difference ({area_units_name})",
-            "area_diff_flat": f"Flattened area difference ({area_units_name})",
-            "rel_area_diff": f"Relative area difference ({area_units_name})",
-            "rel_area_diff_flat": f"Flattened relative area difference ({area_units_name})",
-            "volume_ratio": "Volume ratio",
-            "area_ratio": "Area ratio",
-            "area_ratio_flat": "Flattened area ratio",
-            "mean_surface_distance": "Mean surface distance (mm)",
-            "mean_surface_distance_flat": "Flattened mean surface distance (mm)",
-            "mean_surface_distance_signed_flat": "Flattened mean signed surface distance (mm)",
-            "rms_surface_distance": "RMS surface distance (mm)",
-            "rms_surface_distance_flat": "Flattened RMS surface distance (mm)",
-            "hausdorff_distance": "Hausdorff distance (mm)",
-            "hausdorff_distance_flat": "Flattened Hausdorff distance (mm)",
+        # Default metrics
+        if metrics is None:
+            metrics = ["dice", "centroid"]
+
+        # Compute metrics
+        comp = {}
+        slice_kwargs = {
+            "single_slice": True,
+            "view": view,
+            "sl": sl,
+            "idx": idx,
+            "pos": pos
         }
-        for ax in skrt.image._axes:
-            names[f"centroid_{ax}"] = f"Centroid {ax} distance ({centroid_units})"
-            names[
-                f"centroid_global_{ax}"
-            ] = f"Global centroid {ax} distance ({centroid_units})"
+        for m in metrics:
 
-        # Make dict of functions and args for each metric
-        funcs = {
-            "dice": (
-                self.get_dice,
-                {"roi": roi, "view": view, "sl": sl, "idx": idx, "pos": pos},
-            ),
-            "dice_global": (self.get_dice, {"roi": roi}),
-            "dice_flat": (self.get_dice, {"roi": roi, "flatten": True}),
-            "abs_centroid": (
-                self.get_centroid_distance,
-                {
-                    "roi": roi,
-                    "units": centroid_units,
-                    "view": view,
-                    "sl": sl,
-                    "pos": pos,
-                    "idx": idx,
-                },
-            ),
-            "abs_centroid_flat": (
-                self.get_centroid_distance,
-                {
-                    "roi": roi,
-                    "flatten": True,
-                    "units": centroid_units,
-                    "view": view,
-                    "sl": sl,
-                    "pos": pos,
-                    "idx": idx,
-                },
-            ),
-            "centroid": (
-                self.get_centroid_vector,
-                {
-                    "roi": roi,
-                    "units": centroid_units,
-                    "view": view,
-                    "sl": sl,
-                    "pos": pos,
-                    "idx": idx,
-                },
-            ),
-            "abs_centroid_global": (
-                self.get_centroid_distance,
-                {"roi": roi, "units": centroid_units},
-            ),
-            "centroid_global": (
-                self.get_centroid_vector,
-                {"roi": roi, "units": centroid_units},
-            ),
-            "rel_volume_diff": (
-                self.get_relative_volume_diff,
-                {"roi": roi},
-            ),
-            "rel_area_diff": (
-                self.get_relative_area_diff,
-                {
-                    "roi": roi,
-                    "view": view,
-                    "sl": sl,
-                    "pos": pos,
-                    "idx": idx,
-                },
-            ),
-            "rel_area_diff_flat": (
-                self.get_relative_area_diff,
-                {"roi": roi, "flatten": True},
-            ),
-            "volume_ratio": (self.get_volume_ratio, {"roi": roi}),
-            "area_ratio": (
-                self.get_area_ratio,
-                {"roi": roi, "view": view, "sl": sl, "pos": pos, "idx": idx},
-            ),
-            "area_ratio_flat": (self.get_area_ratio, {"roi": roi, "flatten": True}),
-            "area_diff": (
-                self.get_area_diff,
-                {"roi": roi, "view": view, "sl": sl, "pos": pos, "idx": idx},
-            ),
-            "area_diff_flat": (self.get_area_diff, {"roi": roi, "flatten": True}),
-            "mean_surface_distance": (self.get_mean_surface_distance, {"roi": roi},),
-            "mean_surface_distance_flat": (
-                self.get_mean_surface_distance,
-                {"roi": roi, "flatten": True},
-            ),
-            "mean_surface_distance_signed_flat": (
-                self.get_mean_surface_distance,
-                {"roi": roi, "flatten": True, "signed": True},
-            ),
-            "rms_surface_distance": (self.get_rms_surface_distance, {"roi": roi},),
-            "rms_surface_distance_flat": (
-                self.get_rms_surface_distance,
-                {"roi": roi, "flatten": True},
-            ),
-            "hausdorff_distance": (self.get_hausdorff_distance, {"roi": roi},),
-            "hausdorff_distance_flat": (
-                self.get_hausdorff_distance,
-                {"roi": roi, "flatten": True},
-            ),
-        }
-
-        # Make dict of metrics
-        comp = {m: funcs[m][0](**funcs[m][1]) for m in metrics}
-
-        # Split centroid into multiple entries
-        for cname in ["centroid", "centroid_global"]:
-            if cname in comp:
-                centroid_vals = comp.pop(cname)
-                if view is None:
-                    view = "x-y"
-                axes = (
-                    [0, 1, 2]
-                    if len(centroid_vals) == 3
-                    else skrt.image._plot_axes[view]
+            # Dice score
+            if m == "dice":
+                comp[m] = self.get_dice(roi, method=method)
+            elif m == "dice_flat":
+                comp[m] = self.get_dice(
+                    roi, 
+                    view=view,
+                    method=method,
+                    flatten=True, 
                 )
-                for i, i_ax in enumerate(axes):
-                    ax = skrt.image._axes[i_ax]
-                    comp[f"{cname}_{ax}"] = centroid_vals[i]
+            elif m == "dice_slice":
+                comp[m] = self.get_dice(roi, method=method, **slice_kwargs)
 
-        if fancy_names:
-            comp = {names[m]: c for m, c in comp.items()}
-        name = self.get_comparison_name(roi)
-        return pd.DataFrame(comp, index=[name])
+            # Centroid distances
+            elif m == "centroid":
+                centroid = self.get_centroid_distance(
+                    roi, 
+                    units=centroid_units, 
+                    method=method,
+                    force=force
+                )
+                for i, ax in enumerate(skrt.image._axes):
+                    comp[f"centroid_{ax}"] = centroid[i]
+            elif m == "abs_centroid":
+                comp["m"] = self.get_abs_centroid_distance(
+                    roi, 
+                    units=centroid_units,
+                    method=method, 
+                    force=force
+                )
+            elif m == "abs_centroid_flat":
+                comp["m"] = self.get_abs_centroid_distance(
+                    roi,
+                    view=view,
+                    units=centroid_units,
+                    method=method,
+                    flatten=True,
+                    force=force
+                )
+            elif m == "centroid_slice":
+                centroid = self.get_centroid_distance(
+                    roi,
+                    units=centroid_units,
+                    method=method,
+                    **slice_kwargs
+                )
+                for i, i_ax in enumerate(skrt.image._plot_axes):
+                    ax = skrt.image.axes[i_ax]
+                    comp[f"centroid_slice_{ax}"] = centroid[i]
+            elif m == "abs_centroid_slice":
+                centroid = self.get_abs_centroid_distance(
+                    roi,
+                    units=centroid_units,
+                    method=method,
+                    **slice_kwargs
+                )
+
+            # Volume metrics
+            elif m == "volume_diff":
+                comp["m"] = self.get_volume_diff(
+                    roi,
+                    units=vol_units,
+                    method=method,
+                    force=force
+                )
+            elif m == "rel_volume_diff":
+                comp["m"] = self.get_relative_volume_diff(
+                    roi,
+                    method=method,
+                    force=force
+                )
+            elif m == "volume_ratio":
+                comp["m"] = self.get_volume_ratio(
+                    roi,
+                    method=method,
+                    force=force
+                )
+
+            # Area metrics
+            elif m == "area_diff":
+                comp["m"] = self.get_area_diff(
+                    roi,
+                    units=area_units,
+                    method=method,
+                    **slice_kwargs
+                )
+            elif m == "rel_area_diff":
+                comp["m"] = self.get_relative_area_diff(
+                    roi,
+                    method=method,
+                    **slice_kwargs
+                )
+            elif m == "area_ratio":
+                comp["m"] = self.get_area_ratio(
+                    roi,
+                    method=method,
+                    **slice_kwargs
+                )
+            elif m == "rel_area_diff_flat":
+                comp["m"] = self.get_relative_area_diff(
+                    roi,
+                    view=view,
+                    method=method,
+                    flatten=True,
+                )
+            elif m == "area_ratio_flat":
+                comp["m"] = self.get_area_ratio(
+                    roi,
+                    view=view,
+                    method=method,
+                    flatten=True,
+                )
+
+            # Surface distance metrics
+            elif m == "mean_surface_distance":
+                comp[m] = self.get_mean_surface_distance(roi)
+            elif m == "mean_surface_distance_flat":
+                comp[m] = self.get_mean_surface_distance(roi, flatten=True)
+            elif m == "rms_surface_distance":
+                comp[m] = self.get_rms_surface_distance(roi)
+            elif m == "rms_surface_distance_flat":
+                comp[m] = self.get_rms_surface_distance(roi, flatten=True)
+            elif m == "hausdorff_distance":
+                comp[m] = self.get_hausdorff_distance(roi)
+            elif m == "hausdorff_distance_flat":
+                comp[m] = self.get_hausdorff_distance(roi, flatten=True)
+
+            else:
+                found = False
+
+                # Axis-specific metrics
+                for i, ax in enumerate(skrt.image._axes):
+
+                    # Global centroid position on a given axis
+                    if m == f"centroid_{ax}":
+                        comp[m] = self.get_abs_centroid_distance(
+                            roi,
+                            units=centroid_units,
+                            method=method,
+                            force=force
+                        )[i]
+                        found = True
+
+                if not found:
+                    raise RuntimeError(f"Metric {m} not recognised by "
+                                       "ROI.get_comparison()")
+
+        # Add units to metric names if requested
+        comp_named = {}
+        if not units_in_header:
+            comp_named = comp
+        else:
+            for metric, val in comp.items():
+                name = metric
+                if metric == "volume_diff":
+                    if vol_units == "mm":
+                        name += " (mm^3)"
+                    else:
+                        name += " (" + vol_units + ")"
+                elif metric == "area_diff":
+                    if area_units == "mm":
+                        name += " (mm^2)"
+                    else:
+                        name += " (" + area_units + ")"
+                elif "centroid" in metric:
+                    name += " (" + centroid_units + ")"
+                comp_named[name] = val
+
+        # Adjust number of decimal places
+        if decimal_places is not None:
+            for metric, val in comp_named.items():
+                fmt = f"{{val:.{decimal_places}f}}"
+                if comp_named[metric] is not None:
+                    comp_named[metric] = float(fmt.format(val=val))
+
+        # Convert to pandas DataFrame
+        df = pd.DataFrame(comp_named, index=[self.name])
+
+        # Capitalize column names and remove underscores if requested
+        if nice_columns:
+            df.columns = [col.capitalize().replace("_", " ").replace("rms", "RMS")
+                          for col in df.columns]
+
+        # Turn name into a regular column if requested
+        if not name_as_index:
+            df = df.reset_index().rename({"index": "ROI"}, axis=1)
+
+        # Add global/slice headers
+        if global_vs_slice_header:
+
+            # Sort columns into global or slice
+            headers = []
+            slice_cols = []
+            global_cols = []
+            for metric in comp_named:
+                if "slice" in metric or \
+                   ("area" in metric and "flat" not in metric):
+                    headers.append(("slice", metric))
+                    slice_cols.append(metric)
+                else:
+                    headers.append(("global", metric))
+                    global_cols.append(metric)
+
+            # Reorder columns
+            dfs_ordered = [df[global_cols], df[slice_cols]]
+            if not name_as_index:
+                dfs_ordered.insert(0, df["ROI"])
+            df = pd.concat(dfs_ordered, axis=1)
+
+            # Sort headers by global/slice
+            headers = [h for h in headers if h[0] == "global"] \
+                    + [h for h in headers if h[0] == "slice"]
+            if not name_as_index:
+                headers.insert(0, ("", "ROI"))
+
+            # Add MultiIndex
+            df.columns = pd.MultiIndex.from_tuples(headers)
+
+        return df
 
     def get_comparison_name(self, roi, camelcase=False):
         """Get name of comparison between this ROI and another."""
@@ -2605,26 +2839,93 @@ class ROI(skrt.core.Archive):
         if show:
             plt.show()
 
-    def plot_comparison(self, other, legend=True, save_as=None, names=None, 
-                        show=True, **kwargs):
-        """Plot comparison with another ROI."""
+    def plot_comparison(
+        self, 
+        other, 
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        mid_slice_for_both=False,
+        legend=True, 
+        save_as=None, 
+        names=None, 
+        show=True, 
+        **kwargs
+    ):
+        """Plot comparison with another ROI. If no sl/idx/pos are given,
+        the central slice of this ROI will be plotted, unless 
+        mid_slice_for_both=True, in which case the central slice of both ROIs
+        will be plotted (even though this may not correspond to the same 
+        point in space).
 
+        Parameters
+        ----------
+        other : ROI
+            Other ROI with which to plot comparison.
+
+        view : str, default="x-y"
+            Orientation in which to plot ROIs. 
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        mid_slice_for_both : bool, default=False
+            If True and no sl/idx/pos are given, the central slices of both
+            ROIs will be plotted, even if this does not correspond to the same
+            point in space; otherwise, the position of the central slice of
+            this ROI will be plotted for both.
+
+        legend : bool, default=True
+            If True, a legend will be added to the plot containing the names 
+            of the two ROIs.
+
+        save_as : str, default=None
+            Path to a file at which the plot will be saved. If None, the plot
+            will not be saved.
+
+        names : list, default=None
+            Custom names to use for the ROI legend in order [this ROI, other ROI].
+            If None, the names in self.name and roi.name will be used.
+
+        show : bool, default=True
+            If True, the plot will be displayed.
+        """
+
+        # Ensure ROIs are plotted in different colours
         if self.color == other.color:
             roi2_color = ROIDefaults().get_default_roi_color()
         else:
             roi2_color = other.color
 
-        self.plot(show=False, **kwargs)
-        if kwargs is None:
-            kwargs = {}
-        else:
-            kwargs = kwargs.copy()
+        # Get index to plot
+        if sl is None and pos is None and idx is None:
+            idx1 = self.get_mid_idx(view)
+            if mid_slice_for_both:
+                idx2 = other.get_mid_idx(view)
+            else:
+                idx2 = idx1
+
+        # Plot self
+        self.plot(show=False, view=view, idx=idx1, **kwargs)
+
+        # Adjust kwargs for plotting second ROI
         kwargs["ax"] = self.ax
         kwargs["color"] = roi2_color
         kwargs["include_image"] = False
-        other.plot(show=False, **kwargs)
+        other.plot(show=False, view=view, idx=idx2, **kwargs)
         self.ax.set_title(self.get_comparison_name(other))
 
+        # Create legend
         if legend:
             if names:
                 roi1_name = names[0]
@@ -2641,9 +2942,9 @@ class ROI(skrt.core.Archive):
                 loc="lower left"
             )
 
+        # Show/save
         if show:
             plt.show()
-
         if save_as:
             plt.tight_layout()
             self.fig.savefig(save_as)
