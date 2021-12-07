@@ -17,6 +17,10 @@ On windows (if using conda), you will also need to run:
 conda install conda-forge shapely
 ```
 
+When using the image viewer in a [Jupyter notebook](https://jupyter-notebook.readthedocs.io/en/stable/) or in [JupyterLab](https://jupyterlab.readthedocs.io/en/latest/),
+if image scrolling or other interactive features don't seem to be working, check
+that [ipywidgets](https://ipywidgets.readthedocs.io/en/latest/) are installed.
+
 ## Table of contents
 1) [Images](#1-images)
 2) [Regions of interest (ROIs) and structure sets](#2-rois-and-structure-sets)
