@@ -1797,7 +1797,8 @@ class Image(skrt.core.Archive):
         return np.meshgrid(*coords_1d)
 
     def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
-            centre=[0, 0, 0], resample="fine", restore=True, order=1):
+            centre=[0, 0, 0], resample="fine", restore=True, order=1,
+            fill_value=None):
         """Apply three-dimensional similarity transform using scikit-image.
 
         The image is first translated, then is scaled and rotated
@@ -1839,6 +1840,11 @@ class Image(skrt.core.Archive):
 
         order: int, default = 1
             Order of the b-spline used in interpolating voxel intensity values.
+
+        fill_value: float/None, default = None
+            Intensity value to be assigned to any voxels in the resized
+            image that are outside the original image.  If set to None,
+            the minimum intensity value of the original image is used.
         """
 
         self.load()
@@ -1914,9 +1920,13 @@ class Image(skrt.core.Archive):
         matrix = tf_translation + tf_centre_shift + tf_rotation + tf_scale \
                  + tf_centre_shift_inv
 
+        # Set fill value
+        if fill_value is None:
+            fill_value = self.data.min()
+
         # Apply transform
         self.data = scipy.ndimage.affine_transform(self.data, matrix,
-                order=order)
+                order=order, cval=fill_value)
 
         # Revert to original voxel size
         if image_resample and restore:
