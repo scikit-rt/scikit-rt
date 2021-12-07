@@ -165,7 +165,8 @@ class BetterViewer:
             If True, a table containg the volumes and centroids of each plotted
             ROI will be displayed below the plot. Can also be set to a list
             of ROI metrics - see skrt.structures.ROI.get_geometry() documentation
-            for list of available metrics.
+            for list of available metrics. If roi_info=True, metrics will be
+            set to ["volume", "centroid", "area"].
 
         multi_rois : str/list/dict, default=None
 
@@ -810,8 +811,8 @@ class BetterViewer:
 
         # Use first two images
         assert self.n > 1
-        im1 = self.viewers[0].im
-        im2 = self.viewers[1].im
+        im1 = self.viewers[0].image
+        im2 = self.viewers[1].image
 
         # Make individual comparisons
         for comp in comp_opts:
@@ -848,7 +849,7 @@ class BetterViewer:
             # Match axes to one plot
             else:
                 try:
-                    im = self.viewers[match_axes].im
+                    im = self.viewers[match_axes].image
                     ax_lims = im.ax_lims[view]
 
                 except TypeError:
@@ -998,7 +999,7 @@ class BetterViewer:
                 self.lower_ui.append(ipyw.HTML(value=title))
 
             # Add to overall lower UI
-            if not no_roi:
+            if not no_roi or v.roi_info:
                 self.lower_ui.extend(v.lower_ui)
                 self.ui_roi_checkboxes.extend(v.ui_roi_checkboxes)
 
@@ -1694,6 +1695,9 @@ class SingleViewer:
             self.ui_view = other_viewer.ui_view
             self.view = self.ui_view.value
 
+        # Empty list for zoom centre coords
+        self.current_centre = {view: None for view in _slice_axes}
+
         # ROI jumping menu
         # Get list of ROIs
         self.rois_for_jump = {
@@ -1790,7 +1794,7 @@ class SingleViewer:
 
                 # Get initial zoom centres
                 zoom_centre = self.zoom_centre if is_list(self.zoom_centre) \
-                        else [self.zoom_centre for i in range(3)]
+                        else [self.zoom_centre] * 3
                 im_centre = list(self.image.get_centre())
                 self.default_centre = {
                     view: [im_centre[ax[0]], im_centre[ax[1]]]
@@ -2035,18 +2039,18 @@ class SingleViewer:
 
         # Make widget for ROI table and checkboxes
         self.ui_roi_table = ipyw.HTML()
-        self.ui_roi_lower = ipyw.HBox(
-            [
-                self.ui_roi_table,
+        ui_roi_lower = [self.ui_roi_table]
+        if not no_roi:
+            ui_roi_lower.append(
                 ipyw.VBox(
                     self.ui_roi_checkboxes, 
                     layout=ipyw.Layout(width='30px')
                 ),
-            ]
-        )
+            )
+        self.ui_roi_lower = ipyw.HBox(ui_roi_lower)
 
         # Add to lower UI
-        if not no_roi:
+        if not no_roi or self.roi_info:
             self.lower_ui.append(self.ui_roi_lower)
             self.update_roi_info()
 
@@ -2079,7 +2083,8 @@ class SingleViewer:
         else:
 
             # Get table for all currently visible ROIs
-            metrics = self.roi_info if is_list(self.roi_info) else None
+            metrics = self.roi_info if is_list(self.roi_info) \
+                    else ["volume", "centroid", "area"]
             df_roi_info = self.structure_set.get_geometry( 
                 metrics=metrics,
                 view=self.view,
@@ -2244,7 +2249,7 @@ class SingleViewer:
             mpl_kwargs=mpl_kwargs,
             figsize=self.figsize,
             zoom=self.zoom,
-            zoom_centre=self.zoom_centre,
+            zoom_centre=self.current_centre[self.view],
             colorbar=colorbar,
             colorbar_label=self.colorbar_label,
             legend_loc=self.legend_loc,
@@ -2584,7 +2589,8 @@ class SingleViewer:
             ax = _plot_axes[self.view][i]
             new_min = min(self.image.lims[ax])
             new_max = max(self.image.lims[ax])
-            self.update_slider(ui, new_min, new_max, self.current_centre[self.view][i])
+            self.update_slider(ui, new_min, new_max, 
+                               self.current_centre[self.view][i])
 
             # Update description
             ui.description = '{} centre {}'.format(

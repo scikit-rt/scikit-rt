@@ -515,7 +515,7 @@ class ROI(skrt.core.Archive):
         now = time.time()
 
         # Create mask from input x-y contours 
-        if self.input_contours:
+        if self.input_contours is not None:
 
             # Initialise self.mask as image
             self.mask = skrt.image.Image(
@@ -639,7 +639,7 @@ class ROI(skrt.core.Archive):
         mid = int(len(indices) / 2)
         return indices[mid]
 
-    def idx_to_pos(self, idx, ax):
+    def idx_to_pos(self, idx, ax, standardise=True):
         """Convert an array index to a position in mm along a given axis."""
 
         self.load()
@@ -707,7 +707,7 @@ class ROI(skrt.core.Archive):
         elif self.mask is not None:
             return self.mask.pos_to_idx(pos, ax, return_int)
         elif self.image is not None:
-            return self.image.idx_to_pos(pos, ax, return_int)
+            return self.image.pos_to_idx(pos, ax, return_int)
 
         # Else, try to calculate from own geomtric properties
         else:
@@ -762,7 +762,7 @@ class ROI(skrt.core.Archive):
 
         return skrt.image.Image.pos_to_slice(self, pos, ax, return_int)
 
-    def slice_to_pos(self, sl, ax):
+    def slice_to_pos(self, sl, ax, standardise=True):
         """Convert a slice number to a position in mm along a given axis."""
 
         return skrt.image.Image.slice_to_pos(self, sl, ax)
@@ -1663,7 +1663,7 @@ class ROI(skrt.core.Archive):
         df = pd.DataFrame(geom_named, index=[self.name])
 
         # Capitalize column names and remove underscores if requested
-        if nice_columns:
+        if nice_columns and not global_vs_slice_header:
             df.columns = [col.capitalize().replace("_", " ") 
                           for col in df.columns]
 
@@ -1678,12 +1678,16 @@ class ROI(skrt.core.Archive):
             headers = []
             slice_cols = []
             global_cols = []
+            slice_name = "slice" if not nice_columns else "Slice"
+            global_name = "global" if not nice_columns else "Global"
             for metric in geom_named:
+                name = metric if not nice_columns else \
+                        metric.capitalize().replace("_", "")
                 if "area" in metric or "slice" in metric:
-                    headers.append(("slice", metric))
+                    headers.append((slice_name, metric))
                     slice_cols.append(metric)
                 else:
-                    headers.append(("global", metric))
+                    headers.append((global_name, metric))
                     global_cols.append(metric)
 
             # Reorder columns
@@ -1693,8 +1697,8 @@ class ROI(skrt.core.Archive):
             df = pd.concat(dfs_ordered, axis=1)
 
             # Sort headers by global/slice
-            headers = [h for h in headers if h[0] == "global"] \
-                    + [h for h in headers if h[0] == "slice"]
+            headers = [h for h in headers if h[0] == global_name] \
+                    + [h for h in headers if h[0] == slice_name]
             if not name_as_index:
                 headers.insert(0, ("", "ROI"))
 
@@ -2401,7 +2405,7 @@ class ROI(skrt.core.Archive):
         df = pd.DataFrame(comp_named, index=[self.name])
 
         # Capitalize column names and remove underscores if requested
-        if nice_columns:
+        if nice_columns and not global_vs_slice_header:
             df.columns = [col.capitalize().replace("_", " ").replace("rms", "RMS")
                           for col in df.columns]
 
@@ -2416,13 +2420,15 @@ class ROI(skrt.core.Archive):
             headers = []
             slice_cols = []
             global_cols = []
+            slice_name = "slice" if not nice_columns else "Slice"
+            global_name = "global" if not nice_columns else "Global"
             for metric in comp_named:
                 if "slice" in metric or \
                    ("area" in metric and "flat" not in metric):
-                    headers.append(("slice", metric))
+                    headers.append((slice_name, metric))
                     slice_cols.append(metric)
                 else:
-                    headers.append(("global", metric))
+                    headers.append((global_name, metric))
                     global_cols.append(metric)
 
             # Reorder columns
@@ -2432,8 +2438,8 @@ class ROI(skrt.core.Archive):
             df = pd.concat(dfs_ordered, axis=1)
 
             # Sort headers by global/slice
-            headers = [h for h in headers if h[0] == "global"] \
-                    + [h for h in headers if h[0] == "slice"]
+            headers = [h for h in headers if h[0] == global_name] \
+                    + [h for h in headers if h[0] == slice_name]
             if not name_as_index:
                 headers.insert(0, ("", "ROI"))
 
@@ -2637,9 +2643,16 @@ class ROI(skrt.core.Archive):
 
     def set_image(self, im):
         """Set self.image to a given image and adjust geometric properties
-        accordingly."""
+        accordingly. Note that self.mask will be removed if the current mask's 
+        shape doesn't match the image."""
 
         self.image = im
+        self.contours_only = False
+        if self.loaded_mask and not im.has_same_geometry(mask):
+            if not hasattr(self, "input_contours"):
+                self.input_contours = self.get_contours("x-y")
+            self.mask = None
+            self.loaded_mask = False
 
         # Set geoemtric info
         data_shape = im.get_data().shape
@@ -2685,7 +2698,7 @@ class ROI(skrt.core.Archive):
 
         # View with image
         if include_image and self.image is not None:
-            BetterViewer(self.image, rois=self, init_roi=self.name,
+            bv = BetterViewer(self.image, rois=self, init_roi=self.name,
                          **kwargs)
 
         # View without image
@@ -2825,9 +2838,15 @@ class ROI(skrt.core.Archive):
 
         # Plot centroid point
         if centroid:
+            if not flatten:
+                centroid_points = self.get_centroid(
+                    view, single_slice=True, sl=sl, idx=idx, pos=pos)
+            else:
+                centroid_3d = self.get_centroid()
+                x_ax, y_ax = skrt.image._plot_axes[view]
+                centroid_points = [centroid_3d[x_ax], centroid_3d[y_ax]]
             self.ax.plot(
-                *self.get_centroid(view, single_slice=True, sl=sl, 
-                                   idx=idx, pos=pos, flatten=flatten),
+                *centroid_points,
                 "+",
                 **contour_kwargs,
             )
@@ -3804,7 +3823,7 @@ class StructureSet(skrt.core.Archive):
 
         # View with image
         if include_image and self.image is not None:
-            BetterViewer(self.image, rois=self, **kwargs)
+            bv = BetterViewer(self.image, rois=self, **kwargs)
 
         # View without image
         else:

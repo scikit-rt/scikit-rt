@@ -56,22 +56,22 @@ def test_length():
         assert cube1.get_length(ax=ax) == side_length
         assert cube1.get_length(units='voxels', ax=ax) == side_length
 
-def test_centroid_vector():
-    assert np.all(cube1.get_centroid_vector(cube2) == (centre2 - centre1))
-    assert np.all(cube1.get_centroid_vector(cube2) 
-                  == -cube2.get_centroid_vector(cube1))
+def test_centroid_distance():
+    assert np.all(cube1.get_centroid_distance(cube2) == (centre2 - centre1))
+    assert np.all(cube1.get_centroid_distance(cube2) 
+                  == -cube2.get_centroid_distance(cube1))
 
-def test_centroid_vector_slice():
-    assert np.all(cube1.get_centroid_vector(cube2, single_slice=True, 
+def test_centroid_distance_slice():
+    assert np.all(cube1.get_centroid_distance(cube2, single_slice=True, 
                                             idx=cube1.get_mid_idx(),
                                             view='x-y')
                   == (centre2 - centre1)[:2])
 
-def test_centroid_distance():
-    assert cube1.get_centroid_distance(cube2) == np.sqrt(
+def test_abs_centroid_distance():
+    assert cube1.get_abs_centroid_distance(cube2) == np.sqrt(
         ((centre2 - centre1) ** 2).sum())
-    assert cube1.get_centroid_distance(cube2) \
-            == cube2.get_centroid_distance(cube1)
+    assert cube1.get_abs_centroid_distance(cube2) \
+            == cube2.get_abs_centroid_distance(cube1)
 
 def test_dice():
     assert cube1.get_dice(cube2) == 0.5

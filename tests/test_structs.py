@@ -227,7 +227,7 @@ def test_roi_from_polygons():
 
     df = StructureSet(new_roi).get_comparison(StructureSet(cube))
     # Dice score may not be exactly 1 because of rounding errors
-    assert df['Dice score'][0] == pytest.approx(1.0, abs=1.e-3)
+    assert df['dice'][0] == pytest.approx(1.0, abs=1.e-3)
 
 def test_null_roi():
     roi = ROI()
@@ -331,5 +331,25 @@ def test_overlap_level():
 
     # Mask area should be larger than contour area with loose overlap
     assert roi.get_area(method="mask") > roi.get_area(method="contour")
+
+def test_slice_number_conversions():
+    """For an ROI with no image, check position-contour-index conversion works."""
+    roi2 = ROI(cube.get_contours("x-y"))
+    assert roi2.pos_to_idx(roi2.idx_to_pos(0, "z"), "z") == 0
+    assert roi2.pos_to_slice(roi2.slice_to_pos(1, "z"), "z") == 1
+    assert roi2.slice_to_idx(roi2.idx_to_slice(0, "z"), "z") == 0
+
                                   
+def test_slice_number_conversions_image():
+    """For an ROI with an image, check position-contour-index conversion works."""
+
+    roi2 = ROI(cube.get_contours("x-y"))
+    roi2.set_image_to_dummy()
+    im = roi2.image
+    assert roi2.pos_to_idx(0, "z") == im.pos_to_idx(0, "z")
+    assert roi2.idx_to_pos(0, "z") == im.idx_to_pos(0, "z")
+    assert roi2.pos_to_slice(0, "z") == im.pos_to_slice(0, "z")
+    assert roi2.slice_to_pos(0, "z") == im.slice_to_pos(0, "z")
+    assert roi2.slice_to_idx(0, "z") == im.slice_to_idx(0, "z")
+    assert roi2.idx_to_slice(0, "z") == im.idx_to_slice(0, "z")
 
