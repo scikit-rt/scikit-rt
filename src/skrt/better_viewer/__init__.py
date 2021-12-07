@@ -810,8 +810,8 @@ class BetterViewer:
 
         # Use first two images
         assert self.n > 1
-        im1 = self.viewers[0].im
-        im2 = self.viewers[1].im
+        im1 = self.viewers[0].image
+        im2 = self.viewers[1].image
 
         # Make individual comparisons
         for comp in comp_opts:
