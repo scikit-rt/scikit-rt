@@ -1441,7 +1441,10 @@ class Image(skrt.core.Archive):
             mid_x = im_centre[x_ax]
             mid_y = im_centre[y_ax]
         else:
-            mid_x, mid_y = zoom_centre[x_ax], zoom_centre[y_ax]
+            if len(zoom_centre) == 2:
+                mid_x, mid_y = zoom_centre
+            else:
+                mid_x, mid_y = zoom_centre[x_ax], zoom_centre[y_ax]
 
         # Calculate new axis limits
         init_xlim = self.ax.get_xlim()
