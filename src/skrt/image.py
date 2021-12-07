@@ -535,6 +535,115 @@ class Image(skrt.core.Archive):
         self.affine = None
         self.set_geometry()
 
+    def get_coordinate_arrays(self):
+        '''
+        Obtain (x, y, z) arrays of coordinates of voxel centres.
+
+        Arrays are useful for image resizing.
+        '''
+
+        self.load()
+
+        # Extract parameters for determining coordinates of voxel centres.
+        x, y, z = self.origin
+        dx, dy, dz = self.voxel_size
+
+        if 2 == len(self.data.shape):
+            ny, nx = self.data.shape
+            self.data = self.data.reshape(ny, nx, 1)
+
+        ny, nx, nz = self.data.shape
+  
+        # Obtain coordinate arrays.
+        try:
+            x_array = np.linspace(x, x + (nx - 1) * dx, nx)
+        except TypeError:
+            x_array = None
+        try:
+            y_array = np.linspace(y, y + (ny - 1) * dy, ny)
+        except TypeError:
+            y_array = None
+        try:
+            z_array = np.linspace(z, z + (nz - 1) * dz, nz)
+        except TypeError:
+            z_array = None
+
+        return (x_array, y_array, z_array)
+
+    def match_size(self, image=None, fill_value=None):
+
+        '''
+        Match image size to that of a reference image.
+
+        After matching, the image voxels are in one-to-one correspondence
+        with those of the reference.
+
+        Parameters
+        ----------
+        image: skrt.image.Image/None, default=None
+            Reference image, with which size is to be matched.
+        fill_value: float/None, default = None
+            Intensity value to be assigned to any voxels in the resized
+            image that are outside the original image.  If set to None,
+            the minimum intensity value of the original image is used.
+        '''
+        self.load()
+        image.load()
+
+        # Check that voxel sizes are defined
+        voxel_size_ok = True
+        if (None in self.voxel_size[0: 2]) or (None in image.voxel_size):
+            voxel_size_ok = False
+
+        # Check whether current image is already matched to the reference
+        match = (self.data.shape == image.data.shape) \
+            and (self.origin == image.origin) \
+            and (self.voxel_size == image.voxel_size)
+
+        if voxel_size_ok and not match:
+            # If slice thickness not known,
+            # guess that it is the same as that of the reference image
+            if self.voxel_size[2] is None:
+                self.voxel_size[2] = image.voxel_size[2]
+
+            # Set fill value
+            if fill_value is None:
+                fill_value = self.data.min()
+
+            #print(f"interpolation start time: {time.strftime('%c')}")
+            x1_array, y1_array, z1_array = self.get_coordinate_arrays()
+            if not (x1_array is None or y1_array is None or z1_array is None):
+                # Define how intensity values for the original image
+                # are to be interpolated.
+                interpolant = scipy.interpolate.RegularGridInterpolator(
+                        (y1_array, x1_array, z1_array),
+                        self.data,
+                        method="linear",
+                        bounds_error=False,
+                        fill_value=fill_value)
+
+                # Define grid of voxel centres for the reference image.
+                x2_array, y2_array, z2_array = image.get_coordinate_arrays()
+                ny, nx, nz = image.data.shape
+                meshgrid = np.meshgrid(
+                        y2_array, x2_array, z2_array, indexing="ij")
+                vstack = np.vstack(meshgrid)
+                point_array = vstack.reshape(3, -1).T.reshape(ny, nx, nz, 3)
+
+                # Perform resizing
+                self.data = interpolant(point_array)
+
+                # Reset geometry
+                self.voxel_size = image.voxel_size
+                self.origin= image.origin
+                self.n_voxels = [ny, nx, nz]
+                self.affine = None
+                self.set_geometry()
+
+            #print(f"interpolation end time: {time.strftime('%c')}")
+
+        return None
+
     def match_voxel_size(self, image, method="self"):
         """Resample to match z-axis voxel size with that of another Image
         object.

@@ -272,6 +272,33 @@ def test_resampling_3d():
                 assert im1.image_extent[i][1] == pytest.approx(
                         im0.image_extent[i][1], im0.voxel_size[i])
 
+def test_match_size():
+    """Test resampling to different voxel size in three dimensions."""
+
+    # Create inital images
+    shape_1 = (40, 40, 40)
+    voxel_size_1 = (1, 2, 3)
+    origin_1 = (-100, -100, -100)
+    shape_2 = (50, 50, 50)
+    voxel_size_2 = (1, 2, 3)
+    origin_2 = (-150, -120, -80)
+
+    im1 = Image(np.random.rand(*shape_1), voxel_size=voxel_size_1,
+            origin=origin_1)
+    im2 = Image(np.random.rand(*shape_2), voxel_size=voxel_size_2,
+            origin=origin_2)
+
+    # Resize im1 to im2
+    for image0, image2 in [(im1, im2), (im2, im1)]:
+        image1 = Image(image0)
+        image1.match_size(image2)
+        assert image1.voxel_size == image2.voxel_size
+        assert image1.data.shape == image2.data.shape
+        assert image1.image_extent == image2.image_extent
+        assert image1.origin == image2.origin
+        image_diff = np.absolute(image1.data - image2.data)
+        assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
+                0.5 * image_diff.size, rel=0.01)
 
 def test_clone():
     """Test cloning an image."""
