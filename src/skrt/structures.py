@@ -1904,11 +1904,11 @@ class ROI(skrt.core.Archive):
 
         return intersection / np.mean([area1, area2])
 
-    def get_volume_ratio(self, other, method=None):
+    def get_volume_ratio(self, other, **kwargs):
         """Get ratio of another ROI's volume with respect to own volume."""
 
-        own_volume = other.get_volume(method=method)
-        other_volume = self.get_volume(method=method)
+        own_volume = other.get_volume(**kwargs)
+        other_volume = self.get_volume(**kwargs)
         if not other_volume or not own_volume:
             return None
         return own_volume / other_volume
@@ -2250,14 +2250,14 @@ class ROI(skrt.core.Archive):
                 for i, ax in enumerate(skrt.image._axes):
                     comp[f"centroid_{ax}"] = centroid[i]
             elif m == "abs_centroid":
-                comp["m"] = self.get_abs_centroid_distance(
+                comp[m] = self.get_abs_centroid_distance(
                     roi, 
                     units=centroid_units,
                     method=method, 
                     force=force
                 )
             elif m == "abs_centroid_flat":
-                comp["m"] = self.get_abs_centroid_distance(
+                comp[m] = self.get_abs_centroid_distance(
                     roi,
                     view=view,
                     units=centroid_units,
@@ -2285,20 +2285,20 @@ class ROI(skrt.core.Archive):
 
             # Volume metrics
             elif m == "volume_diff":
-                comp["m"] = self.get_volume_diff(
+                comp[m] = self.get_volume_diff(
                     roi,
                     units=vol_units,
                     method=method,
                     force=force
                 )
             elif m == "rel_volume_diff":
-                comp["m"] = self.get_relative_volume_diff(
+                comp[m] = self.get_relative_volume_diff(
                     roi,
                     method=method,
                     force=force
                 )
             elif m == "volume_ratio":
-                comp["m"] = self.get_volume_ratio(
+                comp[m] = self.get_volume_ratio(
                     roi,
                     method=method,
                     force=force
@@ -2306,33 +2306,33 @@ class ROI(skrt.core.Archive):
 
             # Area metrics
             elif m == "area_diff":
-                comp["m"] = self.get_area_diff(
+                comp[m] = self.get_area_diff(
                     roi,
                     units=area_units,
                     method=method,
                     **slice_kwargs
                 )
             elif m == "rel_area_diff":
-                comp["m"] = self.get_relative_area_diff(
+                comp[m] = self.get_relative_area_diff(
                     roi,
                     method=method,
                     **slice_kwargs
                 )
             elif m == "area_ratio":
-                comp["m"] = self.get_area_ratio(
+                comp[m] = self.get_area_ratio(
                     roi,
                     method=method,
                     **slice_kwargs
                 )
             elif m == "rel_area_diff_flat":
-                comp["m"] = self.get_relative_area_diff(
+                comp[m] = self.get_relative_area_diff(
                     roi,
                     view=view,
                     method=method,
                     flatten=True,
                 )
             elif m == "area_ratio_flat":
-                comp["m"] = self.get_area_ratio(
+                comp[m] = self.get_area_ratio(
                     roi,
                     view=view,
                     method=method,
@@ -2927,21 +2927,31 @@ class ROI(skrt.core.Archive):
             roi2_color = other.color
 
         # Get index to plot
+        z_ax = skrt.image._slice_axes[view]
+
+        # Compute position in mm to plot
         if sl is None and pos is None and idx is None:
-            idx1 = self.get_mid_idx(view)
-            if mid_slice_for_both:
-                idx2 = other.get_mid_idx(view)
-            else:
-                idx2 = idx1
+            pos1 = self.idx_to_pos(self.get_mid_idx(view), z_ax)
+        else:
+            pos1 = self.idx_to_pos(
+                self.get_idx(view, sl=sl, idx=idx, pos=pos), 
+                z_ax
+            )
+
+        # Plot the same position for other ROI, unless mid_slice_for_both=True
+        if not mid_slice_for_both:
+            pos2 = pos1
+        else:
+            pos2 = other.idx_to_pos(other.get_mid_idx(view), z_ax)
 
         # Plot self
-        self.plot(show=False, view=view, idx=idx1, **kwargs)
+        self.plot(show=False, view=view, pos=pos1, **kwargs)
 
         # Adjust kwargs for plotting second ROI
         kwargs["ax"] = self.ax
         kwargs["color"] = roi2_color
         kwargs["include_image"] = False
-        other.plot(show=False, view=view, idx=idx2, **kwargs)
+        other.plot(show=False, view=view, pos=pos2, **kwargs)
         self.ax.set_title(self.get_comparison_name(other))
 
         # Create legend
@@ -3595,7 +3605,8 @@ class StructureSet(skrt.core.Archive):
         return np.bincount(indices).argmax()
 
     def plot_comparisons(
-        self, other=None, method=None, outdir=None, legend=True, **kwargs
+        self, other=None, method=None, outdir=None, legend=True, names=None, 
+        **kwargs
     ):
         """Plot comparison pairs."""
 
@@ -3609,8 +3620,7 @@ class StructureSet(skrt.core.Archive):
                 comp_name = roi1.get_comparison_name(roi2, True)
                 outname = os.path.join(outdir, f"{comp_name}.png")
 
-            names = None
-            if roi1.name == roi2.name:
+            if names is None and roi1.name == roi2.name:
                 names = [self.name, other.name]
 
             roi1.plot_comparison(

@@ -156,3 +156,10 @@ def test_2d_centroid_from_contour():
         c2 = cube1.get_centroid(single_slice=True, method="contour", view=view)
         for i in range(len(c1)):
             assert abs((c1[i] - c2[i]) / c1[i]) < 0.1
+
+def test_force_volume():
+    v_mask = cube1.get_volume(method="mask")
+    assert cube1.get_volume(method="mask", force=True) == v_mask
+    assert cube1.get_volume(method="contour", force=True) != v_mask
+    v_contour = cube1.get_volume(method="contour")
+    assert cube1.get_volume(method="mask", force=False) == v_contour
