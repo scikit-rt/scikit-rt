@@ -3,6 +3,7 @@
 import math
 import os
 import random
+import pytest
 import numpy as np
 import shutil
 import pydicom
@@ -244,6 +245,34 @@ def test_resampling():
     assert [abs(int(i)) for i in im2.voxel_size] == init_voxel_size
     assert list(im2.get_data().shape) == init_shape
 
+def test_resampling_3d():
+    """Test resampling to different voxel size in three dimensions."""
+
+    # Create inital images
+    init_shape = (31, 40, 25)
+    init_voxel_size = (1, 2, 3)
+    im0 = Image(np.random.rand(*init_shape), voxel_size=init_voxel_size)
+
+    # Resample to different multiples of original voxel size in each direction
+    small_number = 1.e-6
+    for factor in [1 / 3, 1 / 2, 2, 5]:
+        voxel_size = [x * factor for x in init_voxel_size]
+        im1 = Image(im0)
+        im1.resample(voxel_size)
+        for i in range(3):
+            assert im1.voxel_size[i] == im0.voxel_size[i] * factor
+            assert abs(im1.data.shape[i] - im0.data.shape[i] / factor) < 1
+            assert im1.origin[i] == im0.origin[i] + \
+                   (im1.voxel_size[i] -  im0.voxel_size[i]) / 2
+            assert im1.image_extent[i][0] == im0.image_extent[i][0]
+            if factor < 1:
+                assert im1.image_extent[i][1] == pytest.approx(
+                        im0.image_extent[i][1], small_number)
+            else:
+                assert im1.image_extent[i][1] == pytest.approx(
+                        im0.image_extent[i][1], im0.voxel_size[i])
+
+
 def test_clone():
     """Test cloning an image."""
 
@@ -454,9 +483,9 @@ def get_plane_data(iplane, xyzc, xyz0, xyz1, min_length=1000,
 def test_scale_and_rotation():
     '''Test scale and rotation - track movement of single bright voxel.'''
 
-    shape=(31, 31, 31)
-    voxel_size=(1, 1, 3)
-    origin=(-15, -15, -45)
+    shape = (31, 31, 31)
+    voxel_size = (1, 1, 3)
+    origin = (-15, -15, -45)
     im0 = create_test_image(shape, voxel_size, origin, 'zeros')
     random.seed(1)
 
