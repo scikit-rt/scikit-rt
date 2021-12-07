@@ -384,15 +384,16 @@ class ROI(skrt.core.Archive):
         self.load()
         return self.origin
 
-    def get_mask(self, view="x-y", flatten=False):
-        """Get binary mask."""
+    def get_mask(self, view="x-y", flatten=False, standardise=False):
+        """Get binary mask, optionally flattened in a given orientation."""
 
         self.load()
         self.create_mask()
         if not flatten:
-            return self.mask.data
+            return self.mask.get_data(standardise=False)
         return np.sum(
-            self.mask.get_standardised_data(), axis=skrt.image._slice_axes[view]
+            self.mask.get_data(standardise=standardise), 
+            axis=skrt.image._slice_axes[view]
         ).astype(bool)
 
     def get_polygons(self, view="x-y", idx_as_key=False):
@@ -628,7 +629,9 @@ class ROI(skrt.core.Archive):
         if method == "contour":
             return list(self.get_contours(view, idx_as_key=True).keys())
         else:
-            return list(np.unique(np.argwhere(self.get_mask())[:, 2]))
+            ax = skrt.image._slice_axes[view]
+            mask = self.get_mask(standardise=True).transpose(1, 0, 2)
+            return list(np.unique(np.argwhere(mask)[:, ax]))
 
     def get_mid_idx(self, view="x-y"):
         """Get central slice index of this ROI in a given orientation."""
@@ -1005,7 +1008,7 @@ class ROI(skrt.core.Archive):
                 method=method,
             )) for ax in axes
         ]
-        return centre
+        return np.array(centre)
 
     def get_volume(
         self, 

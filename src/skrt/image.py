@@ -1531,7 +1531,7 @@ class Image(skrt.core.Archive):
         """Get position in mm of the centre of the image."""
 
         self.load()
-        return [np.mean(self.lims[i]) for i in range(3)]
+        return np.array([np.mean(self.lims[i]) for i in range(3)])
 
     def get_range(self, ax="z"):
         """Get range of the image in mm along a given axis."""

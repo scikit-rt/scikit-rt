@@ -11,7 +11,7 @@ from skrt.structures import StructureSet, ROI
 import skrt.core
 
 
-class SyntheticImage(Image):
+class SyntheticImage(skrt.core.Data):
     """Class for creating synthetic image data with simple geometric shapes."""
 
     def __init__(
@@ -23,8 +23,8 @@ class SyntheticImage(Image):
         intensity=-1024,
         noise_std=None,
     ):
-        """Create data to write to a NIfTI file, initially containing a
-        blank image array.
+        """Create an initially blank synthetic image to which geometric 
+        ROIs can be added.
 
         Parameters
         ----------
@@ -52,16 +52,15 @@ class SyntheticImage(Image):
             If None, no noise will be applied.
         """
 
-        # Create image properties
+        # Assign properties
         shape = skrt.core.to_list(shape)
         self.shape = [shape[1], shape[0], shape[2]]
-        self.input_voxel_size = [abs(v) for v in skrt.core.to_list(voxel_size)]
-        self.input_origin = origin
+        self.voxel_size = [abs(v) for v in skrt.core.to_list(voxel_size)]
+        self.origin = origin
         self.max_hu = 0 if noise_std is None else noise_std * 3
         self.min_hu = -self.max_hu if self.max_hu != 0 else -20
         self.noise_std = noise_std
         self.bg_intensity = intensity
-        self.background = self.make_background()
         self.shapes = []
         self.roi_shapes = {}
         self.rois = {}
@@ -70,55 +69,83 @@ class SyntheticImage(Image):
         self.translation = None
         self.rotation = None
 
-        # Initialise as Image
-        Image.__init__(self, self.background, 
-                       voxel_size=self.input_voxel_size, 
-                       origin=self.input_origin)
+        # Create Image object
+        self.update_image()
 
         # Write to file if a filename is given
         if filename is not None:
             self.filename = os.path.expanduser(filename)
             self.write()
 
-    #  def view(self, **kwargs):
-        #  """View with QuickViewer."""
+    def view(self, **kwargs):
+        """View with QuickViewer."""
 
-        #  from skrt.viewer import QuickViewer
+        from skrt.viewer import QuickViewer
 
-        #  qv_kwargs = {
-            #  "hu": [self.min_hu, self.max_hu],
-            #  "title": "",
-            #  "origin": self.origin,
-            #  "voxel_size": self.voxel_size,
-            #  "mpl_kwargs": {"interpolation": "none"},
-        #  }
-        #  qv_kwargs.update(kwargs)
-        #  rois = self.get_roi_data()
-        #  QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
+        qv_kwargs = {
+            "hu": [self.min_hu, self.max_hu],
+            "title": "",
+            "origin": self.origin,
+            "voxel_size": self.voxel_size,
+            "mpl_kwargs": {"interpolation": "none"},
+        }
+        qv_kwargs.update(kwargs)
+        rois = self.get_roi_data()
+        QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
 
-    def get_data(self):
-        """Get data with noise overlaid."""
+    def update_image(self, force_bkg=False):
+        """Update Image data so that it contains all current shapes."""
 
-        # Get noiseless image
-        data = self.background.copy()
+        # Get background array
+        data = self.get_background(force=force_bkg)
+
+        # Add shapes
         for shape in self.shapes:
             data[shape.get_data(self.get_coords())] = shape.intensity
 
-        # Apply noise
-        if self.noise_std is not None:
-            data += np.random.normal(0, self.noise_std, self.shape)
+        # Recreate image with current data
+        self.image = Image(data, voxel_size=self.voxel_size, origin=self.origin)
 
-        return data
+        # Assign structure set
+        self.image.add_structure_set(self.get_structure_set())
 
-    def plot(self, *args, **kwargs):
-        """Plot the current image."""
+    def get_image(self):
+        """Get Image object."""
 
-        self.sdata = self.get_data()
-        self.structure_sets = [self.get_structure_set()]
-        Image.plot(self, rois=0, *args, **kwargs)
+        self.update_image()
+        return self.image
+
+    def get_data(self):
+        """Get Image data."""
+
+        self.update_image()
+        return self.image.get_data()
+
+    def get_affine(self):
+        return self.image.get_affine()
+
+    def get_origin(self):
+        return self.image.get_origin();
+
+    def get_voxel_size(self):
+        return self.image.get_voxel_size()
+
+    def plot(self, **kwargs):
+        """Plot the current image with ROIs overlaid."""
+
+        self.update_image()
+        self.image.plot(rois=self.get_structure_set(), **kwargs)
+
+    def view(self, **kwargs):
+        """View the current image with QuickViewer."""
+
+        from skrt.better_viewer import BetterViewer
+        self.update_image()
+        self.update_rois()
+        return BetterViewer(self.image, rois=self.get_rois(), **kwargs)
 
     def get_roi_data(self):
-        """Get dict of ROIs and names, with any transformations applied."""
+        """Get dict of ROIs and names with any transformations applied."""
 
         roi_data = {}
         for name, shape in self.roi_shapes.items():
@@ -127,13 +154,10 @@ class SyntheticImage(Image):
         return roi_data
 
     def get_structure_set(self):
-        """Make StructureSet object of own structures."""
+        """Return StructureSet containing own structures."""
 
-        structure_set = StructureSet(name="StructureSet")
         self.update_rois()
-        for roi in self.rois.values():
-            structure_set.add_roi(roi)
-        return structure_set
+        return StructureSet(list(self.rois.values()))
 
     def update_roi(self, name):
         """Update an ROI to ensure it has the correct data."""
@@ -145,9 +169,6 @@ class SyntheticImage(Image):
 
         for name in self.rois:
             self.update_roi(name)
-
-    def get_structure_sets(self):
-        return [self.get_structure_set()]
 
     def get_roi(self, name):
         """Get a named ROI as an ROI object."""
@@ -178,7 +199,8 @@ class SyntheticImage(Image):
                 )
 
         # Write image data
-        Image.write(self, outname)
+        self.update_image()
+        self.image.write(self, outname)
 
         # Write ROIs
         structure_set = self.get_structure_set()
@@ -192,20 +214,33 @@ class SyntheticImage(Image):
         structure_set.write(outdir=outdir, ext=ext_to_use, 
                             overwrite=overwrite_roi_dir)
 
-    def make_background(self):
+    def get_background(self, force=False):
         """Make blank image array or noisy array."""
 
-        return np.ones(self.shape) * self.bg_intensity
+        if hasattr(self, "background") and not force:
+            return self.background
+
+        bkg = np.ones(self.shape) * self.bg_intensity
+        if self.noise_std is not None:
+            bkg += np.random.normal(0, self.noise_std, self.shape)
+        self.background = bkg
+        return bkg
+
+    def set_noise_std(self, std):
+
+        self.noise_std = std
+        self.update_image(force_bkg=True)
 
     def reset(self):
         """Remove all shapes."""
 
         self.shapes = []
-        self.roi_shapes = []
+        self.roi_shapes = {}
         self.groups = {}
         self.shape_count = {}
         self.translation = None
         self.rotation = None
+        self.update_image()
 
     def add_shape(self, shape, shape_type, is_roi, above, group):
 
@@ -225,7 +260,7 @@ class SyntheticImage(Image):
                     self.roi_shapes[group] = self.groups[group]
                     self.rois[group] = ROI(
                         shape.get_data(self.get_coords()), name=group, 
-                        affine=self.affine
+                        affine=self.get_affine()
                     )
                 else:
                     self.groups[group].add_shape(shape)
@@ -242,7 +277,7 @@ class SyntheticImage(Image):
                 self.roi_shapes[shape.name] = shape
                 self.rois[shape.name] = ROI(
                     shape.get_data(self.get_coords()), name=shape.name, 
-                    affine=self.affine
+                    affine=self.get_affine()
                 )
 
         self.min_hu = min([shape.intensity, self.min_hu])
@@ -260,7 +295,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_centre()
+            centre = self.image.get_centre()
         sphere = Sphere(self.shape, radius, centre, intensity, name)
         self.add_shape(sphere, "sphere", is_roi, above, group)
 
@@ -278,7 +313,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_centre()
+            centre = self.image.get_centre()
         cylinder = Cylinder(self.shape, radius, length, axis, centre, intensity, name)
         self.add_shape(cylinder, "cylinder", is_roi, above, group)
 
@@ -309,7 +344,7 @@ class SyntheticImage(Image):
     ):
 
         if centre is None:
-            centre = self.get_centre()
+            centre = self.image.get_centre()
         side_length = skrt.core.to_list(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
@@ -337,7 +372,7 @@ class SyntheticImage(Image):
                 coords_1d.append(
                     np.arange(
                         self.origin[i],
-                        self.origin[i] + self.voxel_size[i] * self.n_voxels[i],
+                        self.origin[i] + self.voxel_size[i] * self.image.n_voxels[i],
                         self.voxel_size[i],
                     )
                 )
@@ -353,7 +388,7 @@ class SyntheticImage(Image):
                         get_translation_matrix(*[-d for d in self.translation])
                     )
                 if self.rotation:
-                    centre = self.get_centre()
+                    centre = self.image.get_centre()
                     transform = transform.dot(
                         get_rotation_matrix(*[-r for r in self.rotation], centre)
                     )

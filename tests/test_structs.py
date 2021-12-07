@@ -201,7 +201,7 @@ def test_dicom_dataset():
     pass
 
 def test_roi_from_image_threshold():
-    roi = ROI(sim, mask_threshold=5)  
+    roi = ROI(sim.get_image(), mask_threshold=5)  
     assert roi.get_area() == sim.get_roi("sphere").get_area()
 
 def test_roi_no_image_with_geom():

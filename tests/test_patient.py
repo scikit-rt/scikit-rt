@@ -62,13 +62,13 @@ def test_load_studies():
 
 def test_study_with_images():
     p.studies = []
-    p.add_study(images=[sim], image_type="MR")
+    p.add_study(images=[sim.get_image()], image_type="MR")
     s = p.studies[0]
     assert len(s.mr_images) == 1
     assert s.mr_images[0].get_voxel_size() == sim.get_voxel_size()
     assert len(s.mr_structure_sets) == 1
     assert len(s.mr_structure_sets[0].get_rois()) == 2
-    s.add_image(sim, image_type="CT")
+    s.add_image(sim.get_image(), image_type="CT")
     assert len(s.ct_images) == 1
     assert len(s.ct_structure_sets) == 1
     p.write("tmp", structure_set=None)
@@ -77,9 +77,9 @@ def test_study_with_images():
     assert os.path.exists(f"{sdir}/CT")
     assert not os.path.exists(f"{sdir}/RTSTRUCT")
     assert len(os.listdir(f"{sdir}/CT")) == 1
-    assert sim.timestamp in os.listdir(f"{sdir}/CT")
-    assert sim.timestamp in os.listdir(f"{sdir}/MR")
-    assert len(os.listdir(f"{sdir}/CT/{sim.timestamp}")) == sim.n_voxels[2]
+    assert sim.image.timestamp in os.listdir(f"{sdir}/CT")
+    assert sim.image.timestamp in os.listdir(f"{sdir}/MR")
+    assert len(os.listdir(f"{sdir}/CT/{sim.image.timestamp}")) == sim.image.n_voxels[2]
 
 def test_load_images():
     p2 = Patient(pdir)
@@ -90,15 +90,15 @@ def test_load_images():
 
 def test_write_rois_nifti():
     p.studies = []
-    p.add_study(images=[sim])
+    p.add_study(images=[sim.get_image()])
     if os.path.exists(pdir):
         shutil.rmtree(pdir)
     p.write("tmp", ext=".nii", structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert os.path.exists(f"{sdir}/CT")
     assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
-    nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}/"
-                               f"RTSTRUCT_{sim.get_structure_sets()[0].timestamp}")
+    nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.image.timestamp}/"
+                               f"RTSTRUCT_{sim.image.structure_sets[0].timestamp}")
     assert "cube.nii" in nifti_rois
     assert "sphere.nii" in nifti_rois
 
