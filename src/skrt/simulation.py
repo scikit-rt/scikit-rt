@@ -97,7 +97,7 @@ class SyntheticImage(skrt.core.Data):
         """Update Image data so that it contains all current shapes."""
 
         # Get background array
-        data = self.get_background(force=force_bkg)
+        data = self.get_background(force=force_bkg).copy()
 
         # Add shapes
         for shape in self.shapes:
@@ -360,63 +360,7 @@ class SyntheticImage(skrt.core.Data):
     def get_coords(self):
         """Get grids of x, y, and z coordinates in mm for this image."""
 
-        if (
-            not hasattr(self, "current_coords")
-            or self.prev_translation != self.translation
-            or self.prev_rotation != self.rotation
-        ):
-
-            # Make coordinates
-            coords_1d = []
-            for i in range(3):
-                coords_1d.append(
-                    np.arange(
-                        self.origin[i],
-                        self.origin[i] + self.voxel_size[i] * self.image.n_voxels[i],
-                        self.voxel_size[i],
-                    )
-                )
-            X, Y, Z = np.meshgrid(*coords_1d)
-
-            # Apply transformations
-            self.prev_translation = self.translation
-            self.prev_rotation = self.rotation
-            if self.rotation or self.translation:
-                transform = np.identity(4)
-                if self.translation:
-                    transform = transform.dot(
-                        get_translation_matrix(*[-d for d in self.translation])
-                    )
-                if self.rotation:
-                    centre = self.image.get_centre()
-                    transform = transform.dot(
-                        get_rotation_matrix(*[-r for r in self.rotation], centre)
-                    )
-                Yt = (
-                    transform[0, 0] * Y
-                    + transform[0, 1] * X
-                    + transform[0, 2] * Z
-                    + transform[0, 3]
-                )
-                Xt = (
-                    transform[1, 0] * Y
-                    + transform[1, 1] * X
-                    + transform[1, 2] * Z
-                    + transform[1, 3]
-                )
-                Zt = (
-                    transform[2, 0] * Y
-                    + transform[2, 1] * X
-                    + transform[2, 2] * Z
-                    + transform[2, 3]
-                )
-                X, Y, Z = Xt, Yt, Zt
-
-            # Set coords
-            self.current_coords = (Y, X, Z)
-
-        # Apply transformations
-        return self.current_coords
+        return self.image.get_coords()
 
     def reset_transforms(self):
         """Remove any rotations or translations."""
@@ -466,8 +410,8 @@ class Sphere:
     def get_data(self, coords):
 
         distance_to_centre = np.sqrt(
-            (coords[0] - self.centre[1]) ** 2
-            + (coords[1] - self.centre[0]) ** 2
+            (coords[1] - self.centre[1]) ** 2
+            + (coords[0] - self.centre[0]) ** 2
             + (coords[2] - self.centre[2]) ** 2
         )
         return distance_to_centre <= self.radius
@@ -485,8 +429,8 @@ class Cuboid:
 
         try:
             data = (
-                (np.absolute(coords[0] - self.centre[1]) <= self.side_length[1] / 2)
-                & (np.absolute(coords[1] - self.centre[0]) <= self.side_length[0] / 2)
+                (np.absolute(coords[1] - self.centre[1]) <= self.side_length[1] / 2)
+                & (np.absolute(coords[0] - self.centre[0]) <= self.side_length[0] / 2)
                 & (np.absolute(coords[2] - self.centre[2]) <= self.side_length[2] / 2)
             )
             return data
@@ -508,16 +452,16 @@ class Cylinder:
     def get_data(self, coords):
 
         # Get coordinates in each direction
-        axis_idx = {"x": 1, "y": 0, "z": 2}[self.axis]
+        axis_idx = _axes.index(self.axis)
         circle_idx = [i for i in range(3) if i != axis_idx]
-        coords_c1 = coords[circle_idx[0]]
-        coords_c2 = coords[circle_idx[1]]
+        coords_c1 = coords[circle_idx[1]]
+        coords_c2 = coords[circle_idx[0]]
         coords_length = coords[axis_idx]
 
         # Get centre in each direction
         centre = [self.centre[1], self.centre[0], self.centre[2]]
-        centre_c1 = centre[circle_idx[0]]
-        centre_c2 = centre[circle_idx[1]]
+        centre_c1 = centre[circle_idx[1]]
+        centre_c2 = centre[circle_idx[0]]
         centre_length = centre[axis_idx]
 
         # Make cylinder array
@@ -541,8 +485,8 @@ class Grid:
     def get_data(self, _):
 
         coords = np.meshgrid(
-            np.arange(0, self.shape[0]),
             np.arange(0, self.shape[1]),
+            np.arange(0, self.shape[0]),
             np.arange(0, self.shape[2]),
         )
         if self.axis is not None:
@@ -553,61 +497,7 @@ class Grid:
             )
         else:
             return (
-                (coords[0] % self.spacing[0] < self.thickness[0])
-                | (coords[1] % self.spacing[1] < self.thickness[1])
+                (coords[1] % self.spacing[1] < self.thickness[1])
+                | (coords[0] % self.spacing[0] < self.thickness[0])
                 | (coords[2] % self.spacing[2] < self.thickness[2])
             )
-
-
-def get_translation_matrix(dx, dy, dz):
-    return np.array([[1, 0, 0, dx], [0, 1, 0, dy], [0, 0, 1, dz], [0, 0, 0, 1]])
-
-
-def get_rotation_matrix(yaw, pitch, roll, centre):
-
-    # Convert angles to radians
-    yaw = np.radians(yaw)
-    pitch = np.radians(pitch)
-    roll = np.radians(roll)
-
-    cx, cy, cz = centre
-    r1 = np.array(
-        [
-            [np.cos(yaw), -np.sin(yaw), 0, cx - cx * np.cos(yaw) + cy * np.sin(yaw)],
-            [np.sin(yaw), np.cos(yaw), 0, cy - cx * np.sin(yaw) - cy * np.cos(yaw)],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-        ]
-    )
-    r2 = np.array(
-        [
-            [
-                np.cos(pitch),
-                0,
-                np.sin(pitch),
-                cx - cx * np.cos(pitch) - cz * np.sin(pitch),
-            ],
-            [0, 1, 0, 0],
-            [
-                -np.sin(pitch),
-                0,
-                np.cos(pitch),
-                cz + cx * np.sin(pitch) - cz * np.cos(pitch),
-            ],
-            [0, 0, 0, 1],
-        ]
-    )
-    r3 = np.array(
-        [
-            [1, 0, 0, 0],
-            [
-                0,
-                np.cos(roll),
-                -np.sin(roll),
-                cy - cy * np.cos(roll) + cz * np.sin(roll),
-            ],
-            [0, np.sin(roll), np.cos(roll), cz - cy * np.sin(roll) - cz * np.cos(roll)],
-            [0, 0, 0, 1],
-        ]
-    )
-    return r1.dot(r2).dot(r3)

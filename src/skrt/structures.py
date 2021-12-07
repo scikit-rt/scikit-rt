@@ -919,9 +919,9 @@ class ROI(skrt.core.Archive):
 
             # Get 2D or 3D data from which to calculate centroid
             if single_slice:
-                if not self.on_slice(view, sl, idx, pos):
+                if not self.on_slice(view, sl=sl, idx=idx, pos=pos):
                     return np.array([None, None])
-                data = self.get_slice(view, sl, idx, pos)
+                data = self.get_slice(view, sl=sl, idx=idx, pos=pos)
                 axes = skrt.image._plot_axes[view]
             else:
                 self.create_mask()
