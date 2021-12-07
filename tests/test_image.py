@@ -1,7 +1,9 @@
 """Test Image class."""
 
+import math
 import os
 import random
+import pytest
 import numpy as np
 import shutil
 import pydicom
@@ -243,6 +245,61 @@ def test_resampling():
     assert [abs(int(i)) for i in im2.voxel_size] == init_voxel_size
     assert list(im2.get_data().shape) == init_shape
 
+def test_resampling_3d():
+    """Test resampling to different voxel size in three dimensions."""
+
+    # Create inital images
+    init_shape = (31, 40, 25)
+    init_voxel_size = (1, 2, 3)
+    im0 = Image(np.random.rand(*init_shape), voxel_size=init_voxel_size)
+
+    # Resample to different multiples of original voxel size in each direction
+    small_number = 1.e-6
+    for factor in [1 / 3, 1 / 2, 2, 5]:
+        voxel_size = [x * factor for x in init_voxel_size]
+        im1 = Image(im0)
+        im1.resample(voxel_size)
+        for i in range(3):
+            assert im1.voxel_size[i] == im0.voxel_size[i] * factor
+            assert abs(im1.data.shape[i] - im0.data.shape[i] / factor) < 1
+            assert im1.origin[i] == im0.origin[i] + \
+                   (im1.voxel_size[i] -  im0.voxel_size[i]) / 2
+            assert im1.image_extent[i][0] == im0.image_extent[i][0]
+            if factor < 1:
+                assert im1.image_extent[i][1] == pytest.approx(
+                        im0.image_extent[i][1], small_number)
+            else:
+                assert im1.image_extent[i][1] == pytest.approx(
+                        im0.image_extent[i][1], im0.voxel_size[i])
+
+def test_match_size():
+    """Test resampling to different voxel size in three dimensions."""
+
+    # Create inital images
+    shape_1 = (40, 40, 40)
+    voxel_size_1 = (1, 2, 3)
+    origin_1 = (-100, -100, -100)
+    shape_2 = (50, 50, 50)
+    voxel_size_2 = (1, 2, 3)
+    origin_2 = (-150, -120, -80)
+
+    im1 = Image(np.random.rand(*shape_1), voxel_size=voxel_size_1,
+            origin=origin_1)
+    im2 = Image(np.random.rand(*shape_2), voxel_size=voxel_size_2,
+            origin=origin_2)
+
+    # Resize im1 to im2
+    for image0, image2 in [(im1, im2), (im2, im1)]:
+        image1 = Image(image0)
+        image1.match_size(image2)
+        assert image1.voxel_size == image2.voxel_size
+        assert image1.data.shape == image2.data.shape
+        assert image1.image_extent == image2.image_extent
+        assert image1.origin == image2.origin
+        image_diff = np.absolute(image1.data - image2.data)
+        assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
+                0.5 * image_diff.size, rel=0.01)
+
 def test_clone():
     """Test cloning an image."""
 
@@ -342,11 +399,20 @@ def test_plot():
     assert os.path.isfile(plot_out)
     os.remove(plot_out)
 
-def get_random_voxel(im):
-    '''Obtain centre coordinates of random voxel in image im'''
+def get_random_voxel(im, fraction=1):
+    '''
+    Obtain centre coordinates of random voxel in image
+
+    Parameters
+    ----------
+    im : skrt.image.Image
+        Image object for which coordinates of random voxel are to be retrieved
+    fraction : float, default = 1
+        Fraction of image extents to be considered.
+    '''
     xyz_voxel = []
     for i in range(3):
-        v1, v2 = [im.image_extent[i][j] for j in [0, 1]]
+        v1, v2 = [im.image_extent[i][j] * fraction for j in [0, 1]]
         v = random.uniform(v1, v2)
         # Obtain coordinates corresponding vo voxel centre
         iv = im.pos_to_idx(v, i)
@@ -356,15 +422,15 @@ def get_random_voxel(im):
 
 def test_translation():
     '''Test translation - track movement of single bright voxel.'''
-    shape=(21, 21, 11)
+    shape=(31, 31, 31)
     voxel_size=(1, 1, 3)
-    origin=(-10, -10, -15)
+    origin=(-15, -15, -45)
     im0 = create_test_image(shape, voxel_size, origin, 'zeros')
     random.seed(1)
     # Intensity value for bright voxel.
     v_test = 1000
     # Number of translations to test.
-    n_test = 10
+    n_test = 20
 
     for i in range(n_test):
         im1 = Image(im0)
@@ -383,8 +449,172 @@ def test_translation():
         translation = [x1-x0, y1-y0, z1-z0]
 
         # Check that bright voxel is in expected position.
-        assert np.sum(im1.data >= 0.1 * v_test) == 1
+        assert np.sum(im1.data >= 0.9 * v_test) == 1
         assert im1.data[iy0][ix0][iz0] == v_test
         im1.transform(translation=translation, order=0)
-        assert np.sum(im1.data >= 0.1 * v_test) == 1
+        assert np.sum(im1.data >= 0.9 * v_test) == 1
         assert im1.data[iy1][ix1][iz1] == v_test
+
+def get_plane_data(iplane, xyzc, xyz0, xyz1, min_length=1000,
+        min_scale=0.8, max_scale=1.2):
+    '''
+    Extract plane data for checking rotations.
+
+    Parameters
+    ----------
+    iplane: int
+        Plane identifier:
+            0 - perpendicular to x-axis;
+            1 - perpendicular to y-axis;
+            2 - perpendicular to z-axis;
+
+    xyzc: tuple
+        (x, y, z) coordinates of point of rotation.
+
+    xyz0: tuple
+        (x, y, z) coordinates of unrotated point.
+
+    xyz1: tuple
+        (x, y, z) coordinates of rotated point.
+
+    min_length: float, default=1000
+        Minimum length (mm) of displacement vectors.
+
+    min_scale: float, default=0.8
+        Minimum ratio of displacement vector lengths.
+
+    max_scale: float, default=1.2
+        Maximum ratio of displacement vector lengths.
+    '''
+
+    # Obtain coordinates in plane for centre of rotation and rotated point.
+    centre = list(xyzc)
+    centre[iplane] = xyz0[iplane]
+    xyzr = list(xyz1)
+    xyzr[iplane] = xyz0[iplane]
+
+    # Calculate displacement vectors and their lengths.
+    vec0 = np.array(xyz0) - np.array(centre)
+    vecr = np.array(xyzr) - np.array(centre)
+    len0 = np.linalg.norm(vec0)
+    lenr = np.linalg.norm(vecr)
+
+    scale = None
+    if min(len0, lenr) >= min_length[iplane]:
+        scale = lenr / len0
+        if (scale < min_scale) or (scale > max_scale):
+            scale = None
+
+    return(centre, xyzr, vec0, vecr, scale)
+    
+def test_scale_and_rotation():
+    '''Test scale and rotation - track movement of single bright voxel.'''
+
+    shape = (31, 31, 31)
+    voxel_size = (1, 1, 3)
+    origin = (-15, -15, -45)
+    im0 = create_test_image(shape, voxel_size, origin, 'zeros')
+    random.seed(1)
+
+    # Intensity value for bright voxel.
+    v_test = 1000
+
+    # Set constraints to reduce changes of bright voxel
+    # being rotated out of the image region.
+    #
+    # Fraction of image extents to be considered
+    # when choosing original and rotated bright voxel.
+    fraction = 0.4
+    #
+    # For displacement vectors from centre of rotation to rotated and
+    # original bright, define minimum length (min_length),
+    # and minimum and maximum length ratios (min_scale, max_scale).
+    min_length = [2 * x for x in voxel_size]
+    min_scale = 0.8
+    max_scale = 1.2
+
+    # Number of rotations to test.
+    n_test = 20
+
+    # Number of cases, in each projection, where single bright voxel
+    # found in expected location after rotation.  Interpolation and rouding
+    # errors may result in more than one bright pixel, or in bright voxel
+    # being displaced.
+    n_good = [0, 0, 0]
+
+    # Minimum accepted fraction of cases where single bright voxel found
+    # in expected location after rotation.
+    min_fraction_good = 0.95
+
+    for i in range(n_test):
+        # Obtain coordinates for original and rotated point,
+        # and for centre of rotation, ensuring that constraints are respected.
+        point_ok = False
+        while not point_ok:
+            xyzc = get_random_voxel(im0)
+            xyz0 = get_random_voxel(im0, fraction)
+            xyz1 = get_random_voxel(im0, fraction)
+            point_ok = True
+            for j in range(3):
+                centre, xyzr, vec0, vecr, scale = get_plane_data(
+                        j, xyzc, xyz0, xyz1, min_length, min_scale, max_scale)
+                if scale is None:
+                    point_ok = False
+                    break
+
+        # Consider rotations in individual planes.
+        for j in range(3):
+
+            # Obtain in-plane coordinates and set bright voxel.
+            centre, xyzr, vec0, vecr, scale = get_plane_data(
+                    j, xyzc, xyz0, xyz1, min_length, min_scale, max_scale)
+            im1 = Image(im0)
+            ix0 = im1.pos_to_idx(xyz0[0], 'x')
+            iy0 = im1.pos_to_idx(xyz0[1], 'y')
+            iz0 = im1.pos_to_idx(xyz0[2], 'z')
+            ix1 = im1.pos_to_idx(xyzr[0], 'x')
+            iy1 = im1.pos_to_idx(xyzr[1], 'y')
+            iz1 = im1.pos_to_idx(xyzr[2], 'z')
+            im1.data[iy0][ix0][iz0] = v_test
+
+            # Determine rotation angle as the difference between
+            # the positive angles of rotation for rotated and original points.
+            rotation = [0, 0, 0]
+            k1 = j + 1 if j + 1 < 3 else 0
+            k2 = k1 + 1 if k1 + 1 < 3 else 0
+            theta0 = math.atan2(vec0[k2], vec0[k1]) % (2. * math.pi)
+            thetar = math.atan2(vecr[k2], vecr[k1]) % (2. * math.pi)
+            rotation[j] = math.degrees(thetar - theta0)
+
+            # Check that bright voxel is in expected position before transform.
+            iyy = np.where(im1.data == im1.data.max())[0][0]
+            ixx = np.where(im1.data == im1.data.max())[1][0]
+            izz = np.where(im1.data == im1.data.max())[2][0]
+            assert np.sum(im1.data >= 0.9 * v_test) == 1
+            assert im1.data[iy0][ix0][iz0] == v_test
+
+            # Perform transform.
+            im1.transform(centre=centre, scale=scale, rotation=rotation,
+                    order=0)
+
+            # Allow up to 3 bright voxels after rotation
+            # (possible interpolation/rounding errors).
+            assert np.sum(im1.data >= 0.9 * v_test) >=1
+            assert np.sum(im1.data >= 0.9 * v_test) <=3
+            if np.sum(im1.data >= 0.9* v_test) ==1:
+                if im1.data[iy1][ix1][iz1] == v_test:
+                    n_good[j] += 1
+            # Allow bright voxel to be displaced by 1 in any direction
+            # from expected position after rotation
+            # (possible interpolation/rouding errors).
+            iy2 = np.where(im1.data == im1.data.max())[0][0]
+            ix2 = np.where(im1.data == im1.data.max())[1][0]
+            iz2 = np.where(im1.data == im1.data.max())[2][0]
+            assert abs(ix2 - ix1) < 2
+            assert abs(iy2 - iy1) < 2
+            assert abs(iz2 - iz1) < 2
+    
+    # Require single bright voxel in expected position after rotation
+    # in at least some fraction of cases.
+    for i in range(3):
+        assert n_good[i] >= min_fraction_good
