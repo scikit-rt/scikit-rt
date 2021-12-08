@@ -3074,7 +3074,7 @@ class ROI(skrt.core.Archive):
 
         if self.loaded_contours:
             self.loaded_contours = False
-            delattr(self, "contours")
+            self.contours = {}
             self.input_contours = None
 
 
