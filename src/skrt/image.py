@@ -2005,6 +2005,20 @@ class Image(skrt.core.Archive):
 
         return None
 
+    def translate_origin(self, translation=[0, 0, 0]):
+        """Translate origin, effectively changing image position.
+
+        Parameter
+        ---------
+        translation : list, default=[0, 0, 0]
+            Translation in mm in the [x, y, z] directions.
+        """
+        self.load()
+        self.origin = [self.get_origin[i] + translation[i] for i in range(3)]
+        self.affine = None
+        self.set_geometry()
+        return None
+
     def has_same_geometry(self, im):
         """Check whether this Image has the same geometric properties
         another Image <im> (i.e. same origin, voxel sizes, and shape)."""

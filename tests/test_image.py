@@ -448,12 +448,25 @@ def test_translation():
         # Determine translation.
         translation = [x1-x0, y1-y0, z1-z0]
 
-        # Check that bright voxel is in expected position.
+        # Check that bright voxel is in expected position in original image.
         assert np.sum(im1.data >= 0.9 * v_test) == 1
         assert im1.data[iy0][ix0][iz0] == v_test
-        im1.transform(translation=translation, order=0)
-        assert np.sum(im1.data >= 0.9 * v_test) == 1
-        assert im1.data[iy1][ix1][iz1] == v_test
+
+        # Translate image
+        im1_a = Image.clone(im1)
+        im1_a.transform(translation=translation, order=0)
+
+        # Check that bright voxel is in expected position in translated image.
+        assert np.sum(im1_a.data >= 0.9 * v_test) == 1
+        assert im1_a.data[iy1][ix1][iz1] == v_test
+
+        # Translate origin
+        im1_b = Image.clone(im1)
+        im1_b.transform(translation=translation, order=0)
+
+        # Check that bright voxel is in expected position after translating origin.
+        assert np.sum(im1_b.data >= 0.9 * v_test) == 1
+        assert im1_b.data[iy1][ix1][iz1] == v_test
 
 def get_plane_data(iplane, xyzc, xyz0, xyz1, min_length=1000,
         min_scale=0.8, max_scale=1.2):
