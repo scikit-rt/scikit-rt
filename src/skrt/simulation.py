@@ -11,7 +11,7 @@ from skrt.structures import StructureSet, ROI
 import skrt.core
 
 
-class SyntheticImage(skrt.core.Data):
+class SyntheticImage(Image):
     """Class for creating synthetic image data with simple geometric shapes."""
 
     def __init__(
@@ -69,8 +69,11 @@ class SyntheticImage(skrt.core.Data):
         self.translation = None
         self.rotation = None
 
-        # Create Image object
-        self.update_image()
+        # Initialise as Image
+        Image.__init__(
+            self, self.get_background(), voxel_size=self.voxel_size,
+            origin=self.origin
+        )
 
         # Write to file if a filename is given
         if filename is not None:
@@ -93,8 +96,8 @@ class SyntheticImage(skrt.core.Data):
         rois = self.get_roi_data()
         QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
 
-    def update_image(self, force_bkg=False):
-        """Update Image data so that it contains all current shapes."""
+    def update(self, force_bkg=False):
+        """Update self.data so that it contains all current shapes."""
 
         # Get background array
         data = self.get_background(force=force_bkg).copy()
@@ -104,45 +107,38 @@ class SyntheticImage(skrt.core.Data):
             data[shape.get_data(self.get_coords())] = shape.intensity
 
         # Recreate image with current data
-        self.image = Image(data, voxel_size=self.voxel_size, origin=self.origin)
+        self.data = data
 
         # Assign structure set
-        self.image.add_structure_set(self.get_structure_set())
+        self.clear_structure_sets()
+        self.add_structure_set(self.get_structure_set())
 
     def get_image(self):
-        """Get Image object."""
+        """Get self as an Image object."""
 
-        self.update_image()
-        return self.image
+        self.update()
+        return Image(self)
 
     def get_data(self):
         """Get Image data."""
 
-        self.update_image()
-        return self.image.get_data()
-
-    def get_affine(self):
-        return self.image.get_affine()
-
-    def get_origin(self):
-        return self.image.get_origin();
-
-    def get_voxel_size(self):
-        return self.image.get_voxel_size()
+        self.update()
+        return Image.get_data(self)
 
     def plot(self, **kwargs):
         """Plot the current image with ROIs overlaid."""
 
-        self.update_image()
-        self.image.plot(rois=self.get_structure_set(), **kwargs)
+        self.update()
+        self.update_rois()
+        Image.plot(self, rois=-1, **kwargs)
 
     def view(self, **kwargs):
         """View the current image with QuickViewer."""
 
         from skrt.better_viewer import BetterViewer
-        self.update_image()
-        self.update_rois()
-        return BetterViewer(self.image, rois=self.get_rois(), **kwargs)
+        return BetterViewer(self.get_image(), 
+                            rois=self.get_structure_set(), 
+                            **kwargs)
 
     def get_roi_data(self):
         """Get dict of ROIs and names with any transformations applied."""
@@ -199,8 +195,8 @@ class SyntheticImage(skrt.core.Data):
                 )
 
         # Write image data
-        self.update_image()
-        self.image.write(self, outname)
+        self.update()
+        Image.write(self, outname)
 
         # Write ROIs
         structure_set = self.get_structure_set()
@@ -229,7 +225,7 @@ class SyntheticImage(skrt.core.Data):
     def set_noise_std(self, std):
 
         self.noise_std = std
-        self.update_image(force_bkg=True)
+        self.update(force_bkg=True)
 
     def reset(self):
         """Remove all shapes."""
@@ -240,7 +236,7 @@ class SyntheticImage(skrt.core.Data):
         self.shape_count = {}
         self.translation = None
         self.rotation = None
-        self.update_image()
+        self.update()
 
     def add_shape(self, shape, shape_type, is_roi, above, group):
 
@@ -295,7 +291,7 @@ class SyntheticImage(skrt.core.Data):
     ):
 
         if centre is None:
-            centre = self.image.get_centre()
+            centre = self.get_centre()
         sphere = Sphere(self.shape, radius, centre, intensity, name)
         self.add_shape(sphere, "sphere", is_roi, above, group)
 
@@ -313,7 +309,7 @@ class SyntheticImage(skrt.core.Data):
     ):
 
         if centre is None:
-            centre = self.image.get_centre()
+            centre = self.get_centre()
         cylinder = Cylinder(self.shape, radius, length, axis, centre, intensity, name)
         self.add_shape(cylinder, "cylinder", is_roi, above, group)
 
@@ -344,7 +340,7 @@ class SyntheticImage(skrt.core.Data):
     ):
 
         if centre is None:
-            centre = self.image.get_centre()
+            centre = self.get_centre()
         side_length = skrt.core.to_list(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
@@ -356,11 +352,6 @@ class SyntheticImage(skrt.core.Data):
 
         grid = Grid(self.shape, spacing, thickness, intensity, axis, name)
         self.add_shape(grid, "grid", False, above, group=None)
-
-    def get_coords(self):
-        """Get grids of x, y, and z coordinates in mm for this image."""
-
-        return self.image.get_coords()
 
     def reset_transforms(self):
         """Remove any rotations or translations."""

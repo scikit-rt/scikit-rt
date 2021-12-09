@@ -3123,11 +3123,7 @@ class ROI(skrt.core.Archive):
         self.create_mask()
         cx, cy, _ = self.get_centroid()
         self.mask.transform(centre=(cx, cy), **kwargs)
-
-        if self.loaded_contours:
-            self.loaded_contours = False
-            self.contours = {}
-            self.input_contours = None
+        self.reset_mask()
 
 
 class StructureSet(skrt.core.Archive):

@@ -91,15 +91,15 @@ def test_load_images():
 
 def test_write_rois_nifti():
     p.studies = []
-    p.add_study(images=[sim.get_image()])
+    p.add_study(images=[sim])
     if os.path.exists(pdir):
         shutil.rmtree(pdir)
     p.write("tmp", ext=".nii", structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert os.path.exists(f"{sdir}/CT")
     assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
-    nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.image.timestamp}/"
-                               f"RTSTRUCT_{sim.image.structure_sets[0].timestamp}")
+    nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}/"
+                               f"RTSTRUCT_{sim.structure_sets[0].timestamp}")
     assert "cube.nii" in nifti_rois
     assert "sphere.nii" in nifti_rois
 
