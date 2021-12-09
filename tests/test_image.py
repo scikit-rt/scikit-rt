@@ -383,7 +383,7 @@ def test_null_image():
     assert(im_null.downsampling is None)
     assert(im_null.files == [])
     assert(not im_null.nifti_array)
-    assert(im_null.origin == (0, 0, 0))
+    assert(im_null.origin == [0, 0, 0])
     assert(im_null.path == "")
     assert(im_null.source == "")
     assert(im_null.source_type is None)
@@ -391,7 +391,7 @@ def test_null_image():
     assert(im_null.time == "")
     assert(im_null.timestamp == "")
     assert(im_null.title is None)
-    assert(im_null.voxel_size == (1, 1, 1))
+    assert(im_null.voxel_size == [1, 1, 1])
 
 def test_plot():
     plot_out = "tmp/plot.pdf"
