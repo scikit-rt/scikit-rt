@@ -2,6 +2,7 @@
 
 import os
 import re
+import shutil
 import subprocess
 
 from skrt.image import Image, ImageComparison
@@ -40,15 +41,27 @@ class Registration:
         fixed : Image/str
             Fixed image; can either be an Image object or the path to a source
             for an Image object.
+
         moving : Image/str
             Moving image; can either be an Image object or the path to a source
             for an Image object.
+
         pfile : str
-            Path to an elastix parameter file.
+            Path(s) to elastix parameter file(s). These parameter files will be
+            used in series to find transforms mapping the moving image to the 
+            fixed image.
+
         outdir : str, default='.'
-            Path to output directory.
+            Path to output directory. If this directory already exists, data
+            will be loaded in from that directory.
+
         auto_reg : bool, default=True
             If True, registration will be performed immediately.
+
+        force : bool, default=False
+            If <outdir> already exists and transformations with names matching
+            the parameter files are found, registrations will not be rerun
+            for these parameter files.
         """
 
         # Set up fixed and moving images
@@ -58,19 +71,24 @@ class Registration:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
         self.get_nifti_inputs(force)
-        self.registered = False
 
-        # Parameter file(s) and output location(s)
-        self.pfiles = pfile
+        # Set parameter file and output directories for each input parameter 
+        # file
         if isinstance(pfile, str):
-            self.pfiles = [pfile]
-        self.outdirs = [
-            os.path.join(self.outdir, os.path.basename(p).replace(".txt", ""))
-            for p in self.pfiles
-        ]
+            pfile = [pfile]
+        if isinstance(pfile, dict):
+            input_pfiles = pfile
+        else:
+            input_pfiles = {os.path.basename(p).replace(".txt", ""): p
+                            for p in pfile}
+        self.parameter_sets = list(input_pfiles.keys())
+        self.outdirs = {p: os.path.join(self.outdir, p) for p in input_pfiles}
         for d in self.outdirs:
             if not os.path.exists(d):
                 os.makedirs(d)
+        self.pfiles = {}
+        for p, file in input_pfiles.items():
+            shutil.copy(file, f'{self.outdirs[p]}/InputParameters.txt')
 
         # Expected locations of outputs
         self.tfiles = [
@@ -78,13 +96,16 @@ class Registration:
         ]
         self.tfile = self.tfiles[-1]
         self.out_path = os.path.join(self.outdirs[-1], "result.0.nii")
+        self.transformed_images = {}
+        self.final_image = None
 
         # Perform registration
         if auto_reg:
             self.register(force)
 
     def get_nifti_inputs(self, force=False):
-        """Ensure nifti versions of fixed and moving images exist."""
+        """Write fixed and moving images to nifti files at the top level of
+        self.outdir if they do not yet exist."""
 
         for im in ["fixed", "moving"]:
             if not hasattr(self, f"{im}_path") or force:
@@ -93,14 +114,28 @@ class Registration:
                 if not os.path.exists(path) or force:
                     setattr(self, im, ensure_image(getattr(self, im)))
                     path = get_nifti_path(getattr(self, im), path, force)
-
                 setattr(self, f"{im}_path", path)
 
-    def create_elastix_command(self, pfile, outdir, tfile=None, force=False):
-        """Create elastix command."""
+    def create_elastix_command(self, pfile, outdir, tfile=None):
+        """Create elastix command for a given parameter file, output directory,
+        and optional initial transform file. This command will be cached in 
+        self.cmd.
+
+        Parameters
+        ----------
+        pfile : str
+            String containing the path to an elastix parameter file.
+
+        outdir : str
+            Directory in which output will be saved.
+
+        tfile : str, default=None
+            Optional path to an elastix transform parameter file which will
+            be applied to the moving image before the registration is performed.
+        """
 
         # Create elastix command
-        self.cmd = (
+        cmd = (
             f"{_elastix} -f {self.fixed_path} -m {self.moving_path} "
             f"-p {pfile} -out {outdir}"
         )
@@ -108,49 +143,113 @@ class Registration:
             self.cmd += f" -t0 {tfile}"
 
         # Replace all backslashes
-        self.cmd = self.cmd.replace("\\", "/")
+        cmd = cmd.replace("\\", "/")
+        self.cmd = cmd
+        return cmd
 
-    def register(self, force=False, apply=False):
+    def is_registered(self, p):
+        """Check whether registration has already been performed for a given
+        parameter set."""
 
-        # Run elastix
-        if not self.registered:
-            for i, pfile in enumerate(self.pfiles):
+        if isinstance(p, int):
+            p = self.parameter_sets[p]
+        return os.path.exists(self.tfiles[p])
 
-                # Check if this step has already been done
-                if os.path.exists(self.tfiles[i]) and not force:
-                    print(f"Transform {self.tfiles[i]} already exists")
-                    continue
+    def register(self, p=None, force=False, apply=False):
+        """Run a registration. By default the registration will be run for
+        all parameter sets in self.param_sets, but can optionally be run for
+        just one set.
 
-                # Create elastix command
-                force_nii_creation = force and i == 0
-                tfile = None if i == 0 else self.tfiles[i - 1]
-                self.create_elastix_command(
-                    pfile, self.outdirs[i], tfile=tfile, force=force_nii_creation
-                )
+        Parameters
+        ----------
+        p : int/str, default=None
+            Name or number of the parameter set for which the registration 
+            should be performed. By default, registration will be performed 
+            for all parameter sets in series, using the previous set's
+            output transform as input for the next. Available parameter sets 
+            are listed in self.parameter_sets.
 
-                # Run elastix
-                print("Running command:", self.cmd)
-                subprocess.call(self.cmd.split())
+        force : bool, default=None
+            If False and a registration has already been performed for the 
+            given parameter (sets), the registration will not be re-run.
 
-        self.registered = True
+        apply : bool, default=True
+            If True, the resultant transform will be applied to the moving
+            image in order to create a transformed image. If multiple 
+            registrations are performed in series, only the final transform
+            will be applied.
+        """
+
+        # Make list of transforms to apply
+        if p is None:
+            params = self.param_sets
+        elif not isinstance(p, list):
+            params = [p]
+        else:
+            params = p
+
+        # Run elastix for each parameter file
+        for par in params:
+
+            # Check if this step has already been done
+            if self.is_registered(par) and not force:
+                print(f"Registration {par} has already been performed.")
+                continue
+
+            # Get input transform file from previous step
+            i = self.parameter_sets.index(par)
+            tfile = None
+            if i != 0:
+                prev = self.parameter_sets[i - 1]
+                if not is_registered(prev):
+                    print(f"Warning: previous registration {prev} has not yet "
+                          f"been performed! Registration {par} will be "
+                          "performed without input transform."
+                         )
+                else:
+                    tfile = self.tfiles[prev]
+
+            # Run elastix
+            self.create_elastix_command(
+                pfile, self.outdirs[i], tfile=tfile, force=force_nii_creation
+            )
+            print("Running command:", self.cmd)
+            subprocess.call(self.cmd.split())
 
         # Get output image
         if apply:
             self.get_final_image()
 
-    def transform_image(self, im_path, outdir=None, force=False):
-        """Transform an image at a given path using own final transform."""
+    def transform_image(self, im, p=-1, outfile=None):
+        """Transform an image using a transform. By default, the final 
+        transform in the sequence will be used.
 
-        out_path = os.path.join(self.outdirs[-1], "result.nii")
-        if os.path.exists(out_path) and not force:
-            return out_path
+        Parameters
+        ----------
+        im : Image/str
+            Image to transform, or path that can be used to create an image
+            object.
 
-        if not self.registered:
-            self.register()
-        if outdir is None:
-            outdir = self.outdirs[-1]
+        p : int/str
+            Name or number of the parameter set whose transform should be used.
+            By default, the last parameter set in self.parameter_sets is used.
 
-        # Ensure output format is nifti
+        outfile : str, default=None
+            If set, the image will be written to an output file rather than
+            returned.
+        """
+
+        # Make temporary output directory
+        tmp_dir = f"{self.outdir}/_tmp"
+        os.path.mkdir(tmp_dir)
+
+        # Check the transformation for this parameter set exists
+        if not self.is_registered(p):
+            print(f"Registration {p} has not yet been performed. Run "
+                  "self.register() before transforming an image.")
+            return
+
+        # Ensure output format in transform file is nifti
         set_parameters(
             self.tfile, {"ResultImageFormat": '"nii"', 
                          "CompressResultImage": '"false"'}
@@ -161,20 +260,36 @@ class Registration:
         cmd = cmd.replace("\\", "/")
         print("Running command:", cmd)
         subprocess.call(cmd.split())
-        return out_path
+
+        # Copy output to file if requested
+        tmp_file = f"{tmp_dir}/result.nii"
+        if outfile is not None:
+            shutil.copy(tmpfile, outfile)
+            shutil.rmdir(tmp_dir)
+            return
+
+        # Otherwise, return transformed Image object
+        im = Image(tmp_file)
+        shutil.rmtree(tmp_dir)
+        return im
+
+    def transform_moving_image(self, p=-1):
+        """Transform the moving image using a given parameter set and write
+        to that parameter set's directory."""
+
+        self.transform_image(
+            p=p, outfile=f"{self.outdirs[p]}/transformed_moving.nii.gz")
 
     def get_final_image(self, force=False):
-        """Get transformed moving image."""
+        """Get moving image with final transform applied."""
 
-        if not self.registered:
+        if not is_registered(self.parameter_sets[-1]):
             self.register()
-        if hasattr(self, "final") and not force:
-            return self.final
+        if self.final_image is not None and not force:
+            return self.final_image
 
-        if not os.path.exists(self.out_path) or force:
-            self.out_path = self.transform_image(
-                self.moving_path, self.outdirs[-1], force
-            )
+        if self.parameter_sets[-1] not in self.transformed_images or force:
+            self.transform_moving_image(p=-1)
         self.final = Image(self.out_path)
 
     def get_comparison(self):
@@ -294,3 +409,4 @@ def set_parameters(tfile, params, output_tfile=None):
     # Write to output
     with open(output_tfile, "w") as file:
         file.write(lines)
+

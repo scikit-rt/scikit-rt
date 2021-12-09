@@ -831,14 +831,16 @@ class BetterViewer:
             return
 
         # Match axes in all orientations
-        for view in _slider_axes:
+        for view in _slice_axes:
 
             # Calculate limits using all plots
-            ax_lims = []
+            z = _slice_axes[view]
             if match_axes in ['all', 'both', 'x', 'y', 'overlap']:
                 for i in range(2):
-                    min_lims = [v.image.ax_lims[view][i][0] for v in self.viewers]
-                    max_lims = [v.image.ax_lims[view][i][1] for v in self.viewers]
+                    min_lims = [v.image.plot_extent[z][i]
+                                for v in self.viewers]
+                    max_lims = [v.image.plot_extent[z][i + 2]
+                                for v in self.viewers]
                     f1, f2 = min, max
                     if match_axes == 'overlap':
                         f1, f2 = f2, f1
