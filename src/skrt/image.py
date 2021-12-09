@@ -114,8 +114,8 @@ class Image(skrt.core.Archive):
         self.source = path
         self.source_type = None
         self.dicom_dataset = None
-        self.voxel_size = voxel_size
-        self.origin = origin
+        self.voxel_size = list(voxel_size)
+        self.origin = list(origin)
         self.affine = affine
         self.downsampling = downsample
         self.nifti_array = nifti_array
@@ -2852,6 +2852,9 @@ def get_geometry(affine, voxel_size, origin, is_nifti=False, shape=None):
         
         if voxel_size is None and origin is None:
             return None, None, None
+
+        voxel_size = list(voxel_size)
+        origin = list(origin)
 
         affine = np.array(
             [

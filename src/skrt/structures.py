@@ -340,6 +340,55 @@ class ROI(skrt.core.Archive):
         self.load()
         return self.dicom_dataset
 
+    def reset_contours(self, contours=None):
+        """Reset x-y contours to a given dict of slices and contour lists, 
+        and ensure that mask and y-z/x-z contours will be recreated. If 
+        contours is None, contours will be reset using own x-y contours."""
+
+        # Check format is correct
+        if contours is None:
+            contours = self.get_contours()
+        if not isinstance(contours, dict):
+            raise TypeError("contours should be a dict")
+        for z, c in contours.items():
+            if not isinstance(c, list):
+                raise TypeError(f"contours[{z}] should be a list of contours "
+                                f"on slice {z}")
+
+        self.input_contours = contours
+        self.contours = {"x-y": contours}
+        self.loaded_mask = False
+        self.loaded_contours = False
+        self.mask = None
+
+    def reset_mask(self, mask=None):
+        """Set mask to either a numpy array or an Image object, and ensure 
+        that contours will be recreated. If mask is None, contours will be 
+        reset using own mask."""
+
+        if isinstance(mask, Image):
+            self.mask = mask
+            self.affine = mask.get_affine()
+            self.voxel_size = mask.get_voxel_size()
+            self.origin = mask.get_origin()
+            self.shape = mask.get_data().shape
+
+        elif isinstance(mask, np.ndarray):
+            self.mask = skrt.image.Image(
+                mask,
+                affine = self.affine,
+                voxel_size=self.voxel_size,
+                origin=self.origin
+            )
+
+        elif mask is not None:
+            raise TypeError("mask should be an Image or a numpy array")
+
+        self.loaded_mask = True
+        self.loaded_contours = False
+        self.contours = {}
+        self.input_contours = None
+
     def get_contours(self, view="x-y", idx_as_key=False):
         """Get dict of contours in a given orientation."""
 
@@ -633,10 +682,13 @@ class ROI(skrt.core.Archive):
             mask = self.get_mask(standardise=True).transpose(1, 0, 2)
             return list(np.unique(np.argwhere(mask)[:, ax]))
 
-    def get_mid_idx(self, view="x-y"):
+    def get_mid_idx(self, view="x-y", method=None):
         """Get central slice index of this ROI in a given orientation."""
 
-        indices = self.get_indices(view)
+        if method is None:
+            method = self.default_geom_method
+
+        indices = self.get_indices(view, method=method)
         if not len(indices):
             return None
         mid = int(len(indices) / 2)

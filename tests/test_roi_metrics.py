@@ -4,6 +4,7 @@ import numpy as np
 from pytest import approx
 
 from skrt.simulation import SyntheticImage
+from skrt.image import _plot_axes, _slice_axes, _axes
 
 
 # Create fake image
@@ -20,7 +21,10 @@ cube2 = sim.get_roi(name2)
 
 
 def test_mid_idx():
-    assert abs(cube1.get_mid_idx() - centre1[2]) <= 1
+    for view, z in _slice_axes.items():
+        for method in "contour", "mask":
+            assert abs(cube1.get_mid_idx(view=view, method=method) 
+                       - centre1[z]) <= 1
 
 def test_get_indices():
     assert cube1.get_indices() == [i for i in 
