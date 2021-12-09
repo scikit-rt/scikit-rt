@@ -578,7 +578,7 @@ class Image(skrt.core.Archive):
         return (x_array, y_array, z_array)
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
-            fill_value=None, image_size_unit=None):
+            fill_value=None, image_size_unit=None, keep_centre=False):
         '''
         Resize image to specified image size, voxel size and origin.
 
@@ -607,9 +607,13 @@ class Image(skrt.core.Archive):
             image that are outside the original image.  If set to None,
             the minimum intensity value of the original image is used.
 
-        image_size_unit : str, default=None
+        image_size_unit: str, default=None
             Unit of measurement ('voxel' or 'mm') for image_size.  If None,
             use 'voxel'.
+
+        keep_centre: bool, default=False
+            If True, make the centre of the initial image the centre of
+            the resized image, disregarding the value passed to origin.
         '''
         # Return if no resizing requested.
         if image_size is None and voxel_size is None and origin is None:
@@ -625,11 +629,11 @@ class Image(skrt.core.Archive):
         if image_size is None:
             image_size = self.get_n_voxels()
 
-        if voxel_size is None:
-            voxel_size = self.get_voxel_size()
-
         if origin is None:
             origin = self.get_origin()
+
+        if voxel_size is None:
+            voxel_size = self.get_voxel_size()
 
         if 'mm' == image_size_unit:
             for i in range(3):
@@ -655,6 +659,11 @@ class Image(skrt.core.Archive):
             if voxel_size[i] is None:
                 voxel_size[i] = self.get_voxel_size()[i]
 
+        # Redefine origin to fix centre position.
+        if keep_centre:
+            centre = self.get_centre()
+            origin = [centre[i] - (0.5 * image_size[i] - 0.5)
+                    * voxel_size[i] for i in range(3)]
 
         # Check whether image is already the requested size
         nx, ny, nz = image_size

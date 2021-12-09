@@ -294,7 +294,6 @@ def test_resize_and_match_size():
     for image0, image2, image_size, origin, voxel_size in [
             (im1, im2, shape_2, origin_2, voxel_size_2),
             (im2, im1, shape_1, origin_1, voxel_size_1)]:
-        image1 = Image(image0)
         image_size = list(image_size)
         origin = list(origin)
         voxel_size = list(voxel_size)
@@ -304,6 +303,7 @@ def test_resize_and_match_size():
                 image_size[i] = None
                 origin[i] = None
                 voxel_size[i] = None
+            image1 = Image(image0)
             image1.resize(image_size, origin, voxel_size)
             for i in range(3):
                 if image_size[i] is None:
@@ -314,6 +314,19 @@ def test_resize_and_match_size():
                 assert image1.n_voxels[i] == image3.n_voxels[i]
                 assert image1.image_extent[i] == image3.image_extent[i]
                 assert image1.origin[i] == image3.origin[i]
+
+            # Check case where centre position is fixed.
+            image1 = Image(image0)
+            image1.resize(image_size, origin, voxel_size, keep_centre=True)
+            for i in range(3):
+                if image_size[i] is None:
+                    image3 = image1
+                else:
+                    image3 = image2
+                assert image1.voxel_size[i] == image3.voxel_size[i]
+                assert image1.n_voxels[i] == image3.n_voxels[i]
+                assert image1.get_length(i) == image3.get_length(i)
+                assert image1.get_centre()[i] == image0.get_centre()[i]
 
     # Resize im1 to im2
     for image0, image2 in [(im1, im2), (im2, im1)]:
