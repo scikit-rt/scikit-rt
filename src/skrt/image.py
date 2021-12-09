@@ -504,11 +504,12 @@ class Image(skrt.core.Archive):
         '''
 
         self.load()
-        if isinstance(voxel_size, float) or isinstance(voxel_size, int):
+        if not (isinstance(voxel_size, list) or isinstance(voxel_size, tuple)):
             voxel_size = 3 * [voxel_size]
 
         # Fill in None values with own voxel size
         voxel_size2 = []
+        print(voxel_size)
         for i, v in enumerate(voxel_size):
             if v is not None:
                 voxel_size2.append(v)
@@ -576,36 +577,39 @@ class Image(skrt.core.Archive):
 
         return (x_array, y_array, z_array)
 
-    def resize(self, image_size=None, image_size_unit=None, origin=None,
-            voxel_size=None, fill_value=None):
+    def resize(self, image_size=None, origin=None, voxel_size=None,
+            fill_value=None, image_size_unit=None):
         '''
         Resize image to specified image size, voxel size and origin.
 
         Parameters
         ----------
-        image_size : tuple/None, default=None
-            Image sizes in order (x,y,z) to which image is to be resized,  If None,
-            the image's existing size is kept.  The unit of measurement
-            ('voxel' or 'mm') is specified via image_size_unit.  If the size
-            is in mm, and isn't an integer multiple of voxel_size, resizing
-            won't be exact.
+        image_size : tuple/list/None, default=None
+            Image sizes in order (x,y,z) to which image is to be resized.
+            If None, the image's existing size is kept.  If a value
+            in the tuple/list is None, the relevant existing value is
+            kept.  The unit of measurement ('voxel' or 'mm') is specified
+            via image_size_unit.  If the size is in mm, and isn't an
+            integer multiple of voxel_size, resizing won't be exact.
 
-        image_size_unit : str, default=None
-            Unit of measurement ('voxel' or 'mm') for image_size.  If None,
-            use 'voxel'.
-
-        origin : tuple, default=(0, 0, 0)
+        origin : tuple/list/None, default=(0, 0, 0)
             Origin position in mm in order (x, y, z).  If None, the image's
-            existing origin is kept.
+            existing origin is kept.  If a value in the tuple/list is None,
+            the relevant existing value is kept.
 
-        voxel_size : tuple/None, default=None
+        voxel_size : tuple/list/None, default=None
             Voxel sizes in mm in order (x, y, z).  If None, the image's
-            existing origin is kept.
+            existing origin is kept.  If a value in the tuple/list is None,
+            the relevant existing value is kept.
 
         fill_value: float/None, default = None
             Intensity value to be assigned to any voxels in the resized
             image that are outside the original image.  If set to None,
             the minimum intensity value of the original image is used.
+
+        image_size_unit : str, default=None
+            Unit of measurement ('voxel' or 'mm') for image_size.  If None,
+            use 'voxel'.
         '''
         # Return if no resizing requested.
         if image_size is None and voxel_size is None and origin is None:
@@ -628,16 +632,32 @@ class Image(skrt.core.Archive):
             origin = self.get_origin()
 
         if 'mm' == image_size_unit:
-            image_size = [math.ceil(image_size[i] / voxel_size[i]) for i in range(3)]
+            for i in range(3):
+                image_size = math.ceil(image_size[i] / voxel_size[i])
 
         # Allow for two-dimensional images
         if 2 == len(self.get_data().shape):
             ny, nx = self.get_data().shape
             self.data = self.get_data().reshape(ny, nx, 1)
 
-        nx, ny, nz = image_size
+        # Ensure that values are in lists, rather than tuples,
+        # to simplify value replacement.
+        image_size = list(image_size)
+        origin = list(origin)
+        voxel_size = list(voxel_size)
+
+        # Replace any None values among resizing parameters
+        for i in range(3):
+            if image_size[i] is None:
+                image_size[i] = self.get_n_voxels()[i]
+            if origin[i] is None:
+                origin[i] = self.get_origin()[i]
+            if voxel_size[i] is None:
+                voxel_size[i] = self.get_voxel_size()[i]
+
 
         # Check whether image is already the requested size
+        nx, ny, nz = image_size
         match = (self.get_data().shape == [ny, nx, nz]
             and (self.get_origin() == origin) \
             and (self.get_voxel_size() == voxel_size))
@@ -707,7 +727,7 @@ class Image(skrt.core.Archive):
             the minimum intensity value of the original image is used.
         '''
 
-        self.resize(image.get_n_voxels(), None, image.get_origin(),
+        self.resize(image.get_n_voxels(), image.get_origin(),
                 image.get_voxel_size(), fill_value)
 
         return None

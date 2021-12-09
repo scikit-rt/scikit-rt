@@ -272,8 +272,8 @@ def test_resampling_3d():
                 assert im1.image_extent[i][1] == pytest.approx(
                         im0.image_extent[i][1], im0.voxel_size[i])
 
-def test_match_size():
-    """Test resampling to different voxel size in three dimensions."""
+def test_resize_and_match_size():
+    """Test image resizing and matching to reference."""
 
     # Create inital images
     shape_1 = (40, 40, 40)
@@ -285,8 +285,35 @@ def test_match_size():
 
     im1 = Image(np.random.rand(*shape_1), voxel_size=voxel_size_1,
             origin=origin_1)
+    im1.set_geometry()
     im2 = Image(np.random.rand(*shape_2), voxel_size=voxel_size_2,
             origin=origin_2)
+    im2.set_geometry()
+
+    # Resize im1
+    for image0, image2, image_size, origin, voxel_size in [
+            (im1, im2, shape_2, origin_2, voxel_size_2),
+            (im2, im1, shape_1, origin_1, voxel_size_1)]:
+        image1 = Image(image0)
+        image_size = list(image_size)
+        origin = list(origin)
+        voxel_size = list(voxel_size)
+        for i in range(4):
+            # Include check that None values are handled.
+            if i < 3:
+                image_size[i] = None
+                origin[i] = None
+                voxel_size[i] = None
+            image1.resize(image_size, origin, voxel_size)
+            for i in range(3):
+                if image_size[i] is None:
+                    image3 = image1
+                else:
+                    image3 = image2
+                assert image1.voxel_size[i] == image3.voxel_size[i]
+                assert image1.n_voxels[i] == image3.n_voxels[i]
+                assert image1.image_extent[i] == image3.image_extent[i]
+                assert image1.origin[i] == image3.origin[i]
 
     # Resize im1 to im2
     for image0, image2 in [(im1, im2), (im2, im1)]:
