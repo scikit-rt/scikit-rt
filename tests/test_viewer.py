@@ -61,6 +61,8 @@ def test_viewer_from_image():
 def test_view_from_image_with_multi():
     qv = im.view(images=[im, im], show=False)
     assert len(qv.viewers) == 3
+    qv = im.view(images=im, show=False)
+    assert len(qv.viewers) == 2
 
 @close_after
 def test_multiple_image():

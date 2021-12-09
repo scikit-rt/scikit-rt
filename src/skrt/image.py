@@ -1159,10 +1159,14 @@ class Image(skrt.core.Archive):
         """
 
         from skrt.better_viewer import BetterViewer
-        im = self
+        ims = [self]
         if images is not None:
-            im = [self] + images
-        return BetterViewer(im, **kwargs)
+            if isinstance(images, Image):
+                ims.append(images)
+            else:
+                ims.extend(images)
+
+        return BetterViewer(ims, **kwargs)
 
     def plot(
         self,
