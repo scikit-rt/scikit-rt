@@ -1153,14 +1153,16 @@ class Image(skrt.core.Archive):
 
         return mpl_kwargs
 
-    def view(self, **kwargs):
-        """View self with BetterViewer. Any **kwargs will be passed to 
-        BetterViewer initialisation.
+    def view(self, images=None, **kwargs):
+        """View self with BetterViewer along with any additional images in 
+        <images>. Any **kwargs will be passed to BetterViewer initialisation.
         """
 
         from skrt.better_viewer import BetterViewer
-
-        return BetterViewer(self, **kwargs)
+        im = self
+        if images is not None:
+            im = [self] + images
+        return BetterViewer(im, **kwargs)
 
     def plot(
         self,
