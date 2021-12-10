@@ -1,7 +1,7 @@
 .*
 !.gitignore
 !.gitlab-ci.yml
-.github
+!.github
 __pycache__
 dist
 build
