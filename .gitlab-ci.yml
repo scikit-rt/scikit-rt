@@ -6,9 +6,10 @@ pages:
   image: python:3.9-slim
   before_script:
     - apt-get update && apt-get install make --no-install-recommends -y
+    - python -m pip install --upgrade pip
     - python -m pip install sphinx sphinx-rtd-theme myst-parser
   script:
-    - cd doc/sphinx && make html
+    - sphinx-build -b html doc/sphinx/source/ doc/sphinx/build/html
   after_script:
     - mv doc/sphinx/build/html/ ./public/
   artifacts:
