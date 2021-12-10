@@ -11,3 +11,4 @@ tests/tmp
 examples/*/tests/tmp
 doc/sphinx/build/*
 makefile
+!doc/sphinx/Makefile
