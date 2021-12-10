@@ -1,0 +1,18 @@
+stages:
+  - deploy
+
+pages:
+  stage: deploy
+  image: python:3.9-slim
+  before_script:
+    - apt-get update && apt-get install make --no-install-recommends -y
+    - python -m pip install sphinx sphinx-rtd-theme myst-parser
+  script:
+    - cd doc/sphinx && make html
+  after_script:
+    - mv doc/sphinx/build/html/ ./public/
+  artifacts:
+    paths:
+    - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
