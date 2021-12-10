@@ -8,4 +8,5 @@ build
 *.dcm
 tests/tmp
 examples/*/tests/tmp
+doc/sphinx/build/*
 makefile
