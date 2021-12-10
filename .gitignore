@@ -1,6 +1,7 @@
 .*
 !.gitignore
 !.gitlab-ci.yml
+.github
 __pycache__
 dist
 build
@@ -9,6 +10,6 @@ build
 *.dcm
 tests/tmp
 examples/*/tests/tmp
-doc/sphinx/build/*
+docs/build/*
 makefile
-!doc/sphinx/Makefile
+!docs/Makefile
