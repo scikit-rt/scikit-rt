@@ -218,7 +218,7 @@ class Registration:
 
         # Get output image
         if apply:
-            self.get_final_image()
+            self.get_result()
 
     def transform_image(self, im, p=-1, outfile=None):
         """Transform an image using a transform. By default, the final 

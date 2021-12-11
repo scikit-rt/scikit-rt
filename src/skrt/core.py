@@ -324,6 +324,8 @@ class Data:
                     if isinstance(attr, dtype):
                         setattr(obj, attr_name, attr.clone())
                         break
+                if not hasattr(obj, attr_name):
+                    setattr(obj, attr_name, attr)
 
             # Otherwise, copy reference to attribute
             else:

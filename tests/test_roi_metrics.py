@@ -6,6 +6,9 @@ from pytest import approx
 from skrt.simulation import SyntheticImage
 from skrt.image import _plot_axes, _slice_axes, _axes
 
+views = list(_slice_axes.keys())
+methods = ["mask", "contour"]
+
 
 # Create fake image
 centre1 = np.array([5, 4, 5])
@@ -14,8 +17,8 @@ side_length = 4
 name1 = 'cube1'
 name2 = 'cube2'
 sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
-sim.add_cube(4, centre=centre1, name=name1)
-sim.add_cube(4, centre=centre2, name=name2)
+sim.add_cuboid(side_length, centre=centre1, name=name1)
+sim.add_cube(side_length, centre=centre2, name=name2)
 cube1 = sim.get_roi(name1)
 cube2 = sim.get_roi(name2)
 
@@ -27,38 +30,62 @@ def test_mid_idx():
                        - centre1[z]) <= 1
 
 def test_get_indices():
-    assert cube1.get_indices() == [i for i in 
-                                   range(int(centre1[2] - side_length / 2),
-                                         int(centre1[2] + side_length / 2))
-                                  ]
+    for method in methods:
+        assert cube1.get_indices(method=method) == [
+            i for i in range(int(centre1[2] - side_length / 2),
+                             int(centre1[2] + side_length / 2))
+        ]
 
 def test_on_slice():
     assert cube1.on_slice(view='x-y', idx=centre1[2] - 1)
 
 def test_centroid_global():
-    assert np.all(np.array(cube1.get_centroid()) == centre1)
+    for method in methods:
+        assert np.all(np.array(cube1.get_centroid(method=method)) == centre1)
 
 def test_centroid_slice():
-    assert np.all(np.array(cube1.get_centroid(single_slice=True, view='x-y')) == centre1[:2])
+    for method in methods:
+        for view in views:
+            x, y = _plot_axes[view]
+            assert np.all(np.array(cube1.get_centroid(
+                method=method, view=view, single_slice=True)) == centre1[[x, y]])
 
 def test_centre():
-    assert np.all(np.array(cube1.get_centre()) == centre1)
+    for method in methods:
+        assert np.all(np.array(cube1.get_centre(method=method)) == centre1)
 
 def test_centre_slice():
-    assert np.all(np.array(cube1.get_centre(single_slice=True, view='x-y')) == centre1[:2])
+    for method in methods:
+        for view in views:
+            x, y = _plot_axes[view]
+            assert np.all(np.array(cube1.get_centre(
+                single_slice=True, view=view, method=method)) == centre1[[x, y]])
 
 def test_volume():
     assert cube1.get_volume() == side_length ** 3
     assert cube1.get_volume('voxels') == side_length ** 3
+    assert cube1.get_volume('ml') == side_length ** 3 / 1000
+    vol1 = cube1.get_volume(method="mask")
+    assert abs(vol1 - cube1.get_volume(method="contour")) / vol1 < 0.1
 
 def test_area():
-    assert cube1.get_area() == side_length ** 2
-    assert cube1.get_area(sl=1) is None
+    for view in views:
+        assert cube1.get_area(view=view) == side_length ** 2
+        assert cube1.get_area(sl=1, view=view) is None
+        assert cube1.get_area(units="voxels", view=view) == side_length ** 2
+        area1 = cube1.get_area(view=view, method="contour")
+        assert abs(area1 - cube1.get_area(method="contour", view=view)) \
+                / area1 < 0.1
 
 def test_length():
-    for ax in ['x', 'y', 'z']:
-        assert cube1.get_length(ax=ax) == side_length
-        assert cube1.get_length(units='voxels', ax=ax) == side_length
+    sides = [4, 2, 6]
+    sim.add_cuboid(sides, name="cuboid")
+    roi = sim.get_roi("cuboid")
+    for i, ax in enumerate(['x', 'y', 'z']):
+        for method in methods:
+            assert roi.get_length(ax=ax, method=method) == sides[i]
+            assert roi.get_length(units='voxels', ax=ax, method=method) \
+                    == sides[i]
 
 def test_centroid_distance():
     assert np.all(cube1.get_centroid_distance(cube2) == (centre2 - centre1))
@@ -76,9 +103,6 @@ def test_abs_centroid_distance():
         ((centre2 - centre1) ** 2).sum())
     assert cube1.get_abs_centroid_distance(cube2) \
             == cube2.get_abs_centroid_distance(cube1)
-
-def test_dice():
-    assert cube1.get_dice(cube2) == 0.5
 
 def test_dice_slice():
     assert cube1.get_dice(cube2, single_slice=True, view='x-y', 
@@ -126,40 +150,6 @@ def test_hausdorff_distance():
 
 def test_hausdorff_distance_flattened():
     assert cube1.get_hausdorff_distance(cube2, flatten=True) == 2
-
-def test_volume_from_contour():
-    vol1 = cube1.get_volume(method="mask")
-    vol2 = cube1.get_volume(method="contour")
-    assert abs(vol1 - vol2) / vol1 < 0.1
-
-def test_area_from_contour():
-    area1 = cube1.get_area(method="mask")
-    area2 = cube1.get_area(method="contour")
-    assert abs(area1 - area2) / area1 < 0.1
-
-def test_length_from_contour():
-    for ax in ["x", "y", "z"]:
-        len1 = cube1.get_length(ax=ax, method="mask")
-        len2 = cube1.get_length(ax=ax, method="contour")
-        assert abs(len1 - len2) / len1 < 0.1
-
-def test_get_indices_from_contour():
-    ind1 = cube1.get_indices(method="contour")
-    ind2 = cube1.get_indices(method="mask")
-    assert ind1 == ind2
-
-def test_centroid_from_contour():
-    c1 = cube1.get_centroid(method="mask")
-    c2 = cube1.get_centroid(method="contour")
-    for i in range(len(c1)):
-        assert abs((c1[i] - c2[i]) / c1[i]) < 0.1
-
-def test_2d_centroid_from_contour():
-    for view in ["x-y", "y-z", "x-z"]:
-        c1 = cube1.get_centroid(single_slice=True, method="mask", view=view)
-        c2 = cube1.get_centroid(single_slice=True, method="contour", view=view)
-        for i in range(len(c1)):
-            assert abs((c1[i] - c2[i]) / c1[i]) < 0.1
 
 def test_force_volume():
     v_mask = cube1.get_volume(method="mask")

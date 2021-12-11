@@ -114,8 +114,8 @@ class Image(skrt.core.Archive):
         self.source = path
         self.source_type = None
         self.dicom_dataset = None
-        self.voxel_size = list(voxel_size)
-        self.origin = list(origin)
+        self.voxel_size = list(voxel_size) if voxel_size is not None else None
+        self.origin = list(origin) if origin is not None else None
         self.affine = affine
         self.downsampling = downsample
         self.nifti_array = nifti_array
@@ -1080,9 +1080,9 @@ class Image(skrt.core.Archive):
             return np.sum(data, axis=2)
         else:
             # Cache the slice
-            self._current_slice = data[:, :, idx]
-            self._current_idx = idx
+            self._current_idx = int(idx)
             self._current_view = view
+            self._current_slice = data[:, :, int(idx)]
             return self._current_slice
 
     def add_structure_set(self, structure_set):
@@ -1809,6 +1809,7 @@ class Image(skrt.core.Archive):
         patient_id=None,
         modality=None,
         root_uid=None,
+        verbose=True
     ):
         """Write image data to a file. The filetype will automatically be
         set based on the extension of <outname>:
@@ -1849,7 +1850,8 @@ class Image(skrt.core.Archive):
             if data.dtype == "bool":
                 data = data.copy().astype(int)
             write_nifti(outname, data, affine)
-            print("Wrote to NIfTI file:", outname)
+            if verbose:
+                print("Wrote to NIfTI file:", outname)
 
         # Write to numpy file
         elif outname.endswith(".npy"):
@@ -1860,7 +1862,8 @@ class Image(skrt.core.Archive):
             if not write_geometry:
                 affine = None
             write_npy(outname, data, affine)
-            print("Wrote to numpy file:", outname)
+            if verbose:
+                print("Wrote to numpy file:", outname)
 
         # Write to dicom
         else:
@@ -1886,7 +1889,8 @@ class Image(skrt.core.Archive):
                 modality,
                 root_uid,
             )
-            print("Wrote dicom file(s) to directory:", outdir)
+            if verbose:
+                print("Wrote dicom file(s) to directory:", outdir)
 
     def get_coords(self):
         """Get grids of x, y, and z coordinates for each voxel in the image."""

@@ -86,7 +86,7 @@ class ROI(skrt.core.Archive):
         source=None,
         name=None,
         color=None,
-        load=None,
+        load=True,
         image=None,
         shape=None,
         affine=None,
@@ -181,6 +181,11 @@ class ROI(skrt.core.Archive):
             Image object.
 
         """
+
+        # Clone from another ROI object
+        if issubclass(type(source), ROI):
+            source.clone_attrs(self)
+            return
 
         # Process contour dictionary
         if isinstance(source, dict):
@@ -2703,7 +2708,7 @@ class ROI(skrt.core.Archive):
 
         self.image = im
         self.contours_only = False
-        if self.loaded_mask and not im.has_same_geometry(mask):
+        if self.loaded_mask and not im.has_same_geometry(self.mask):
             if not hasattr(self, "input_contours"):
                 self.input_contours = self.get_contours("x-y")
             self.mask = None
@@ -2750,19 +2755,21 @@ class ROI(skrt.core.Archive):
             if zoom > 1:
                 kwargs.setdefault("zoom", zoom)
                 kwargs.setdefault("zoom_centre", zoom_centre)
+            if "init_pos" not in kwargs and "init_slice" not in kwargs:
+                kwargs["init_pos"] = \
+                        self.get_centre()[skrt.image._slice_axes[view]]
+
+        kwargs["show"] = False
+        print(kwargs)
 
         # View with image
         if include_image and self.image is not None:
-            bv = BetterViewer(self.image, rois=self, init_roi=self.name,
-                         **kwargs)
+            bv = BetterViewer(self.image, rois=self, **kwargs)
 
         # View without image
         else:
 
             roi_tmp = self
-
-            # Get ROI extent
-            extents = [self.get_extent(ax=ax) for ax in ["x", "y", "z"]]
 
             # Make dummy image for background
             if self.contours_only:
@@ -2782,11 +2789,11 @@ class ROI(skrt.core.Archive):
                 )
 
             # Create viewer
-            kwargs["show"] = False
-            bv = BetterViewer(im, rois=roi_tmp, init_roi=self.name, **kwargs)
-            bv.make_ui(no_roi=True, no_hu=True)
-            bv.show()
+            bv = BetterViewer(im, rois=roi_tmp, **kwargs)
 
+        # Adjust UI
+        bv.make_ui(no_roi=True, no_hu=True)
+        bv.show()
         return bv
 
     def _plot_mask(
@@ -3142,6 +3149,11 @@ class StructureSet(skrt.core.Archive):
         **kwargs
     ):
         """Load structure set from source(s)."""
+
+        # Clone from another StructureSet object
+        if issubclass(type(sources), StructureSet):
+            source.clone_attrs(self)
+            return
 
         self.name = name
         self.sources = sources
