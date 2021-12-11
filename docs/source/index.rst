@@ -12,7 +12,7 @@ Scikit-rt
    :caption: Installation and usage:
 
    README.md
-   doc/image_registration.md
+   docs/image_registration.md
 
 .. toctree::
    :maxdepth: 2
