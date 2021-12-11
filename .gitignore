@@ -11,7 +11,5 @@ build
 tests/tmp
 examples/*/tests/tmp
 docs/build/*
-docs/source/*.md
-docs/source/_static/*
 makefile
 !docs/Makefile
