@@ -16,7 +16,8 @@ class Dose(Image):
         self.image = image
 
     def plot(self, include_image=False, opacity=None, **kwargs):
-        
+        '''
+        '''
 
         # Plot underlying image
         if opacity is None:

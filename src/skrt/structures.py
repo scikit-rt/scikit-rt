@@ -100,21 +100,22 @@ class ROI(skrt.core.Archive):
 
         """Load ROI from mask or contour.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         source : str/array/nifti, default=None
             Source of image data to load. Can be either:
+
                 (a) The path to a nifti file containing a binary mask;
                 (b) A numpy array containing a binary mask;
                 (c) The path to a file containing a numpy array;
                 (d) The path to a dicom structure set file.
                 (e) Dictionary of contours in the x-y orientation, where the
-                keys are z positions in mm and values are lists of lists of
-                3D contour points in order (x, y, z) or 2D contour points in
-                order (x, y) on each slice.
+                    keys are z positions in mm and values are lists of lists of
+                    3D contour points in order (x, y, z) or 2D contour points in
+                    order (x, y) on each slice.
                 (f) Dictionary of shapely polygons in the x-y orientation,
-                where the keys are z positions in  mm and values are lists
-                of polygons on each slice.
+                    where the keys are z positions in  mm and values are lists
+                    of polygons on each slice.
 
         name : str, default=None
             Name of the ROI. If <source> is a file and no name is given,
@@ -161,6 +162,7 @@ class ROI(skrt.core.Archive):
         default_geom_method : str, default="auto"
             Default method for computing geometric quantities (area, centroid, etc).
             Can be any of:
+
                 (a) "contour": geometric quantities will be calculated from 
                     Shapely polygons made from contour points.
                 (b) "mask": geometric quantities will be calculated from 
@@ -179,7 +181,6 @@ class ROI(skrt.core.Archive):
         kwargs : dict, default=None
             Extra arguments to pass to the initialisation of the parent
             Image object.
-
         """
 
         # Process contour dictionary
@@ -524,8 +525,8 @@ class ROI(skrt.core.Archive):
         If a mask has already been created, that mask will be returned unless
         force=True.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         force : bool, default=False
             If True, the mask will be recreated even if it already exists.
 
@@ -852,8 +853,8 @@ class ROI(skrt.core.Archive):
         will be cached in self._centroid[units] and returned if called again,
         unless force=True.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         single_slice : bool, default=False
             If False, the global 3D centroid of the entire ROI will be returned;
             otherwise, the 2D centroid on a single slice will be returned.
@@ -1071,8 +1072,8 @@ class ROI(skrt.core.Archive):
         """Get ROI volume. The calculated volume will be cached in 
         self._volume[units] and returned if called again, unless force=True.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         units : str, default="mm"
             Units of volume. Can be any of:
                 - "mm": return volume in millimetres cubed.
@@ -1085,9 +1086,9 @@ class ROI(skrt.core.Archive):
         method : str, default=None
             Method to use for volume calculation. Can be: 
                 - "contour": compute volume by summing areas of shapely
-                polygons on each slice and multiplying by slice thickness.
+                  polygons on each slice and multiplying by slice thickness.
                 - "mask": compute volume by summing voxels inside the ROI and
-                multiplying by the volume of one voxel.
+                  multiplying by the volume of one voxel.
                 - None: use the method set in self.default_geom_method.
 
             Note that if self.get_volume has already been called with one 
@@ -1159,8 +1160,8 @@ class ROI(skrt.core.Archive):
     ):
         """Get the area of the ROI on a given slice.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str, default="x-y"
             Orientation of slice for which to get area.
 
@@ -1178,18 +1179,20 @@ class ROI(skrt.core.Archive):
 
         units : str, default="mm"
             Units of area. Can be either of:
-                - "mm": return area in millimetres squared.
-                - "voxels": return area in number of voxels.
+
+                * "mm": return area in millimetres squared.
+                * "voxels": return area in number of voxels.
 
             If units="voxels" is requested but this ROI only has contours and no
             voxel size information, an error will be raised.
 
         method : str, default=None
             Method to use for area calculation. Can be: 
-                - "contour": compute area from shapely polygon on the slice.
-                - "mask": compute area by summing pixels on the slice and 
-                multiplying by the area of one pixel.
-                - None: use the method set in self.default_geom_method.
+
+                * "contour": compute area from shapely polygon on the slice.
+                * "mask": compute area by summing pixels on the slice and 
+                  multiplying by the area of one pixel.
+                * None: use the method set in self.default_geom_method.
 
         flatten : bool, default=False
             If True, all slices will be flattened in the given orientation and
@@ -1275,10 +1278,11 @@ class ROI(skrt.core.Archive):
 
         method : str, default=None
             Method to use for length calculation. Can be: 
-                - "contour": get extent from min/max positions of contour(s).
-                - "mask": get extent from min/max positions of voxels in the 
-                binary mask.
-                - None: use the method set in self.default_geom_method.
+
+                * "contour": get extent from min/max positions of contour(s).
+                * "mask": get extent from min/max positions of voxels in the 
+                  binary mask.
+                * None: use the method set in self.default_geom_method.
         """
 
         # Get default slice and method
@@ -1363,8 +1367,8 @@ class ROI(skrt.core.Archive):
         global length is requested), calculated length will be cached in 
         self._length[ax][units] and returned if called again, unless force=True.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         ax : str/int, default="z"
             Axis along which to return length; should be one of ["x", "y", "z"]
             or [0, 1, 2].
@@ -1404,7 +1408,7 @@ class ROI(skrt.core.Archive):
             Method to use for length calculation. Can be: 
                 - "contour": get length from min/max positions of contour(s).
                 - "mask": get length from min/max positions of voxels in the 
-                binary mask.
+                  binary mask.
                 - None: use the method set in self.default_geom_method.
 
         force : bool, default=True
@@ -1485,8 +1489,8 @@ class ROI(skrt.core.Archive):
         """Return a pandas DataFrame of the geometric properties listed in
         <metrics>.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         metrics : list, default=None
             List of metrics to include in the table. Options:
 
@@ -1765,8 +1769,8 @@ class ROI(skrt.core.Archive):
     def get_centroid_distance(self, roi, single_slice=False, **kwargs):
         """Get centroid displacement vector with respect to another ROI.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         roi : ROI
             Other ROI with which to compare centroid.
 
@@ -1799,8 +1803,8 @@ class ROI(skrt.core.Archive):
         **kwargs):
         """Get absolute centroid distance with respect to another ROI.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         roi : ROI
             Other ROI with which to compare centroid.
 
@@ -1858,8 +1862,8 @@ class ROI(skrt.core.Archive):
         """Get Dice score with respect to another ROI, either globally or on a 
         single slice.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         other : ROI
             Other ROI to compare with this ROI.
 
@@ -2145,54 +2149,54 @@ class ROI(skrt.core.Archive):
         """Return a pandas DataFrame of the comparison metrics listed in 
         <metrics> with respect to another ROI.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         roi : ROI
             Other ROI with which to compare this ROI.
 
         metrics : list, default=None
             List of metrics to include in the table. Options:
 
-                - "dice" : global Dice score.
-                - "dice_flat": Dice score of ROIs flattened in the orientation
+                * "dice" : global Dice score.
+                * "dice_flat": Dice score of ROIs flattened in the orientation
                   specified in <view>.
-                - "dice_slice": Dice score on a single slice.
+                * "dice_slice": Dice score on a single slice.
 
-                - "centroid": 3D centroid distance vector.
-                - "abs_centroid": magnitude of 3D centroid distance vector.
-                - "abs_centroid_flat": magnitude of 3D centroid distance vector
+                * "centroid": 3D centroid distance vector.
+                * "abs_centroid": magnitude of 3D centroid distance vector.
+                * "abs_centroid_flat": magnitude of 3D centroid distance vector
                   projected into the plane specified in <view>.
-                - "centroid_slice": 2D centroid distance vector on a single slice.
-                - "abs_centroid_slice": magnitude of 2D centroid distance 
-                vector on a single slice.
-                - "centroid_x": x component of 3D centroid distance vector.
-                - "centroid_y": y component of 3D centroid distance vector.
-                - "centroid_z": z component of 3D centroid distance vector.
+                * "centroid_slice": 2D centroid distance vector on a single slice.
+                * "abs_centroid_slice": magnitude of 2D centroid distance 
+                  vector on a single slice.
+                * "centroid_x": x component of 3D centroid distance vector.
+                * "centroid_y": y component of 3D centroid distance vector.
+                * "centroid_z": z component of 3D centroid distance vector.
 
-                - "volume_diff": volume difference (own volume - other volume).
-                - "rel_volume_diff": volume difference divided by own volume.
-                - "volume ratio": volume ratio (own volume / other volume).
+                * "volume_diff": volume difference (own volume - other volume).
+                * "rel_volume_diff": volume difference divided by own volume.
+                * "volume ratio": volume ratio (own volume / other volume).
 
-                - "area_diff": area difference (own area - other area) on a 
+                * "area_diff": area difference (own area - other area) on a 
                   single slice.
-                - "rel_area_diff": area difference divided by own area on a 
+                * "rel_area_diff": area difference divided by own area on a 
                   single slice.
-                - "area ratio": area ratio (own area / other area).
-                - "area_diff_flat": area difference of ROIs flattened in the
+                * "area ratio": area ratio (own area / other area).
+                * "area_diff_flat": area difference of ROIs flattened in the
                   orientation specified in <view>.
-                - "rel_area_diff_flat": relative area difference of ROIs
+                * "rel_area_diff_flat": relative area difference of ROIs
                   flattened in the orientation specified in <view>.
-                - "area_ratio_flat": area ratio of ROIs flattened in the
+                * "area_ratio_flat": area ratio of ROIs flattened in the
                   orientation specified in <view>.
 
-                - "mean_surface_distance": mean surface distance.
-                - "mean_surface_distance_flat": mean surface distance of ROIs
+                * "mean_surface_distance": mean surface distance.
+                * "mean_surface_distance_flat": mean surface distance of ROIs
                   flattened in the orientation specified in <view>.
-                - "rms_surface_distance": RMS surface distance.
-                - "rms_surface_distance_flat": RMS surface distance of ROIs
+                * "rms_surface_distance": RMS surface distance.
+                * "rms_surface_distance_flat": RMS surface distance of ROIs
                   flattened in the orientation specified in <view>.
-                - "hausdorff_distance": Hausdorff distance.
-                - "hausdorff_distance_flat": Hausdorff distance of ROIs
+                * "hausdorff_distance": Hausdorff distance.
+                * "hausdorff_distance_flat": Hausdorff distance of ROIs
                   flattened in the orientation specified in <view>.
 
 
@@ -2643,8 +2647,8 @@ class ROI(skrt.core.Archive):
         """Make a dummy image that covers the area spanned by this ROI. 
         Returns an Image object.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         voxel_size : list, default=None
             Voxel size in mm in the dummy image in the x-y plane, given as 
             [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
@@ -2676,8 +2680,8 @@ class ROI(skrt.core.Archive):
         cleared so that they will be recreated when get_mask() or get_contours()
         are next called.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         kwargs : 
             Keyword arguments to pass to self.get_dummy_image() when creating
             the dummy image. See documentation of ROI.get_dummy_image().
@@ -2719,8 +2723,8 @@ class ROI(skrt.core.Archive):
     def view(self, include_image=True, voxel_size=[1, 1], buffer=5, **kwargs):
         """View the ROI.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         include_image : bool, default=True
             If True and this ROI has an associated image (in self.image),
             the image will be displayed behind the ROI.
@@ -2933,8 +2937,8 @@ class ROI(skrt.core.Archive):
         will be plotted (even though this may not correspond to the same 
         point in space).
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         other : ROI
             Other ROI with which to plot comparison.
 
@@ -3319,8 +3323,8 @@ class StructureSet(skrt.core.Archive):
         <first_match_only> is True, only the first ROI matching the
         possible matches will be renamed.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         names : dict, default=None
             Dictionary of names for renaming ROIs, where the keys are new 
             names and values are lists of possible names of ROIs that should
@@ -3381,8 +3385,8 @@ class StructureSet(skrt.core.Archive):
         """Keep only the ROIs in the to_keep list and remove any in the
         to_remove list.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
 
         to_keep : list, default=None
             List of names of ROIs to keep in the copied StructureSet; all 
@@ -3451,8 +3455,8 @@ class StructureSet(skrt.core.Archive):
         will be fully copied, while all other attributes are copied as 
         references.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         copy_rois : bool, default=True
             If True, copies will be made of any ROIs stored in this 
             StructureSet. By default, their data attributes (contours, arrays, 
@@ -3488,8 +3492,8 @@ class StructureSet(skrt.core.Archive):
         """Create a copy of this structure set with ROIs optionally
         renamed or filtered. Returns a new StructureSet object.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         names : dict, default=None
             Dictionary of names for renaming ROIs, where the keys are new 
             names and values are lists of possible names of ROIs that should
@@ -3846,8 +3850,8 @@ class StructureSet(skrt.core.Archive):
     def view(self, include_image=True, voxel_size=[1, 1], buffer=5, **kwargs):
         """View the StructureSet.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         include_image : bool, default=True
             If True and this StructureSet has an associated image 
             (in self.image), the image will be displayed behind the ROIs.
@@ -3932,8 +3936,8 @@ class StructureSet(skrt.core.Archive):
         """Make a dummy image that covers the area spanned by all ROIs in this
         StructureSet. Returns an Image object.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         voxel_size : list, default=None
             Voxel size in mm in the dummy image in the x-y plane, given as 
             [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
@@ -4174,8 +4178,8 @@ def create_dummy_image(
     """Make a dummy image that covers the area spanned by <extents> plus a 
     buffer.
 
-    Parameters
-    ----------
+    **Parameters:**
+    
     extents : list
         List of [min, max] extents in mm along each of the three axes in 
         order [x, y, z].

@@ -62,8 +62,7 @@ class BetterViewer:
         '''
         Display one or more interactive images.
 
-        Parameters
-        ----------
+        **Parameters:**
 
         images : string/Image/np.ndarray/list, default=None
             Source(s) of image data for each plot. If multiple plots are to be
@@ -292,8 +291,7 @@ class BetterViewer:
             created. Otherwise, the plot can be displayed later via
             QuickViewer.show().
 
-        Keyword arguments
-        -----------------
+        **Keyword arguments:**
 
         timeseries : str/list/dict, default=None
             A series of image files taken at difference dates. This can be:

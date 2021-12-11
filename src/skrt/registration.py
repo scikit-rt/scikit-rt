@@ -35,18 +35,23 @@ class Registration:
     def __init__(self, fixed, moving, pfile, outdir=".", auto_reg=True, force=False):
         """Register moving image to fixed image with a given elastix parameter
         file.
-        Parameters:
-        -----------
+
+        **Parameters**:
+
         fixed : Image/str
             Fixed image; can either be an Image object or the path to a source
             for an Image object.
+
         moving : Image/str
             Moving image; can either be an Image object or the path to a source
             for an Image object.
+
         pfile : str
             Path to an elastix parameter file.
+
         outdir : str, default='.'
             Path to output directory.
+
         auto_reg : bool, default=True
             If True, registration will be performed immediately.
         """
@@ -198,12 +203,14 @@ class Registration:
         """Adjust the parameters in a parameter file.
 
         Parameters:
-        -----------
+
         params : dict
             Dictionary of parameter names and new parameter values.
+
         idx : int, default=-1
             Index of the parameter file to adjust (by default, this will be the
             last parameter file.
+
         make_copy : bool, default=True
             If True, a new parameter file will be created in self.outdir rather
             than overwriting the original parameter file.

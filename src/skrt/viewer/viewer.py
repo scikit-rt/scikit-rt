@@ -73,8 +73,7 @@ class QuickViewer:
         '''
         Display one or more interactive images.
 
-        Parameters
-        ----------
+        **Parameters:**
 
         nii : string/nifti/array/list, default=None
             Source of image data for each plot. If multiple plots are to be
@@ -288,8 +287,7 @@ class QuickViewer:
             created. Otherwise, the plot can be displayed later via
             QuickViewer.show().
 
-        Keyword arguments
-        -----------------
+        **Keyword arguments:**
 
         timeseries : str/list/dict, default=None
             A series of image files taken at difference dates. This can be:
@@ -2966,8 +2964,8 @@ def write_translation_to_file(
     version with the translation parameters either replaced or added to the
     current user-created translation in the displayed figure.
 
-    Parameters
-    ----------
+    **Parameters:**
+    
     output_file : string
         Name of the output file to produce.
 
