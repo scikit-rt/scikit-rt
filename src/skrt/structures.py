@@ -4086,7 +4086,6 @@ def get_dicom_sequence(ds=None, basename=""):
             break
     return sequence
 
-
 def contour_to_polygon(contour):
     """Convert a list of contour points to a Shapely polygon, ensuring that 
     the polygon is valid."""
@@ -4107,6 +4106,21 @@ def contour_to_polygon(contour):
 
     return polygon
 
+def polygon_to_contour(polygon):
+    '''
+    Convert a Shapely polygon to a list of contour points.
+
+    **Parameter:**
+    polygon: shapely.geometry.polygon
+        Shapely polygon.
+    z_polygon: z coordinate at which polygon is defined.
+    '''
+    contour_points = []
+    for x, y in list(polygon.exterior.coords):
+        contour_points.append([x, y])
+    contour = np.array(contour_points)
+
+    return contour
 
 def write_structure_set_dicom(
     outname, 
