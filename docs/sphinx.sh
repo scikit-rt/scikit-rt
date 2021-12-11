@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Script for auto-generating Scikit-rt html documentation, using Sphinx.
+# The script should be run from the Scikit-rt docs directory,
+# in an environment where skrt can be imported, and where
+# the following packages have been installed, e.g. via pip:
+#     sphinx
+#     sphinx-rtd-theme
+#     myst-parser
+
+# ------------------------------------------
+# In setting up the document auto-generation, the following were useful:
+#
+# Step-by-step guide for getting started with sphinx:
+# https://betterprogramming.pub/auto-documenting-a-python-project-using-sphinx-8878f9ddc6e9
+# Sphinx documentation:
+# https://www.sphinx-doc.org/en/master/
+# Built-in themes:
+# https://www.sphinx-doc.org/en/master/usage/theming.html#builtin-themes
+# Third-party themes:
+# https://sphinx-themes.org/
+# ------------------------------------------
+
 # Generate rst files with autodoc directives from code.
 # Only needed when a new module is added to the project,
 # but does no harm to run every time.
