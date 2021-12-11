@@ -1,0 +1,16 @@
+stages:
+  - deploy
+
+pages:
+  stage: deploy
+  image: python:3.9-slim
+  before_script:
+    - python -m pip install --upgrade pip
+    - python -m pip install sphinx sphinx-rtd-theme myst-parser
+  script:
+    - sphinx-build -b html docs/source/ public
+  artifacts:
+    paths:
+    - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH

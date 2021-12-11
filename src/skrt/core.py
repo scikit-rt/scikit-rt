@@ -37,7 +37,7 @@ class Defaults:
 
             out = []
             for key, value in sorted(self.__dict__.items()):
-                out_list.append(f"{key}: {value}")
+                out.append(f"{key}: {value}")
             return "\n".join(out)
 
     def __init__(self, opts: Optional[dict] = None, reset: bool = False):

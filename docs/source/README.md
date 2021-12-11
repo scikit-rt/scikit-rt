@@ -26,7 +26,7 @@ that [ipywidgets](https://ipywidgets.readthedocs.io/en/latest/) are installed.
 2) [Regions of interest (ROIs) and structure sets](#2-rois-and-structure-sets)
 3) [Patients and studies](#3-patients)
 4) [Synthetic data](#4-synthetic-data)
-5) [Image registration](docs/image_registration.md)
+5) [Image registration](image_registration.md)
 
 ## 1. Images
 
@@ -151,7 +151,7 @@ roi.plot()
 ```
 This will plot a contour in the x-y plane, e.g.:
 
-<img src="docs/images/struct_contour.png" alt="ROI contour plot" height="500"/>
+<img src="_static/struct_contour.png" alt="ROI contour plot" height="500"/>
 
 Additional options are:
 - `include_image`: boolean, set to `True` to plot the associated image (if one is assigned) in the background; 
@@ -168,11 +168,11 @@ The following plot types are available, set via the `plot_type` argument:
 
 Example contour plot with `include_image=True`:
 
-<img src="docs/images/struct_contour_with_image.png" alt="ROI contour plot with image" height="500"/>
+<img src="_static/struct_contour_with_image.png" alt="ROI contour plot with image" height="500"/>
 
 Example mask plot:
 
-<img src="docs/images/struct_mask.png" alt="ROI binary mask plot" height="500"/>
+<img src="_static/struct_mask.png" alt="ROI binary mask plot" height="500"/>
 
 
 #### Writing out an ROI
@@ -464,7 +464,7 @@ The `StructureSet` object also has an associated `image` property (`structure_se
 
 The `SyntheticImage` class enables the creation of images containing simple geometric shapes.
 
-<img src="docs/images/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
+<img src="_static/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
 
 #### Creating a synthetic image
 
