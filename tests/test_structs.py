@@ -451,10 +451,10 @@ def test_structure_set_rotation():
         rad_angle = math.radians(angle)
         rotation = [0, 0, angle]
         # Rotation using masks.
-        ss1 = ss0.clone()
+        ss1 = StructureSet(ss0)
         ss1.transform(centre=centre, rotation=rotation)
         # Rotation using contours.
-        ss2 = ss0.clone()
+        ss2 = StructureSet(ss0)
         ss2.transform(centre=centre, rotation=rotation, force_contours=True)
 
         # Calculate expected centroid, and compare with transform results.
