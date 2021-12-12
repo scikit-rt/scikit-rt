@@ -4198,8 +4198,10 @@ def polygon_to_contour(polygon):
     Convert a Shapely polygon to a list of contour points.
 
     **Parameter:**
+
     polygon: shapely.geometry.polygon
         Shapely polygon.
+
     z_polygon: z coordinate at which polygon is defined.
     '''
     contour_points = []

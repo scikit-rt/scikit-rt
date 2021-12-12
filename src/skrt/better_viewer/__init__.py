@@ -68,6 +68,7 @@ class BetterViewer:
             Source(s) of image data for each plot. If multiple plots are to be
             shown, this must be a list. Image sources can be Image objects, or 
             any of the valid sources for creating an Image object, including:
+
             (a) The path to a NIfTI or DICOM file;
             (b) The path to a file containing a NumPy array;
             (c) A NumPy array;
@@ -92,64 +93,69 @@ class BetterViewer:
             argument can be any of:
 
             1) String:
-                a) The path to a NIfTI file containing an ROI mask;
-                b) The path to a DICOM file containing ROI contours;
-                b) A wildcard matching one or more of the above file types;
-                c) The path to a directory containing NIfTI or DICOM files;
-                d) A wildcard matching one or more directories containing 
-                   NIfTI or DICOM files.
 
-                If the string is found to match a directory, the ROIs 
-                from all NIfTI or DICOM files inside that directory will 
-                be loaded.
+               a) The path to a NIfTI file containing an ROI mask;
+               b) The path to a DICOM file containing ROI contours;
+               c) A wildcard matching one or more of the above file types;
+               d) The path to a directory containing NIfTI or DICOM files;
+               e) A wildcard matching one or more directories containing
+                  NIfTI or DICOM files.
 
-                ROI names will be inferred from the filenames (NIfTI)
-                or the ROI names inside the file (DICOM) unless
-                the user indicates otherwise in the <roi_names> parameter;
-                e.g. an ROI taken from a file called
-                'right_parotid.nii.gz' would automatically be called
-                'right parotid' in QuickViewer.
+               If the string is found to match a directory, the ROIs 
+               from all NIfTI or DICOM files inside that directory will 
+               be loaded.
 
-                If multiple loaded ROIs have the same names, QuickViewer
-                will attempt to label each with a unique name in the UI:
-                    - If two ROIs named 'heart' are loaded from different
-                      directories dir1 and dir2, these will be labelled
-                      'Heart (dir1)' and 'Heart (dir2) in the UI.
-                    -  If two ROIs named 'heart' are loaded from
-                       different files, file1.nii and file2.nii, these will be
-                       labelled 'Heart (file1.nii)' and 'Heart (file2.nii)' in
-                       the UI.
-                However, if the <roi_legend> option is used, the ROIs
-                will be labelled with the same name in the figure legend. See
-                the labelling option below in part (3) or the <roi_names>
-                option for more customisation.
+               ROI names will be inferred from the filenames (NIfTI)
+               or the ROI names inside the file (DICOM) unless
+               the user indicates otherwise in the <roi_names> parameter;
+               e.g. an ROI taken from a file called
+               'right_parotid.nii.gz' would automatically be called
+               'right parotid' in QuickViewer.
+
+               If multiple loaded ROIs have the same names, QuickViewer
+               will attempt to label each with a unique name in the UI:
+
+                   - If two ROIs named 'heart' are loaded from different
+                     directories dir1 and dir2, these will be labelled
+                     'Heart (dir1)' and 'Heart (dir2) in the UI.
+                   -  If two ROIs named 'heart' are loaded from
+                      different files, file1.nii and file2.nii, these will be
+                      labelled 'Heart (file1.nii)' and 'Heart (file2.nii)' in
+                      the UI.
+
+               However, if the <roi_legend> option is used, the ROIs
+               will be labelled with the same name in the figure legend. See
+               the labelling option below in part (3) or the <roi_names>
+               option for more customisation.
 
             2) List:
-                a) A list of any of the strings described above; all ROI
-                   files found will be loaded.
-                b) A list of pairs of paths to files containing ROIs to
-                   be compared to one another (see the <roi_comparison>
-                   option).
+
+               a) A list of any of the strings described above; all ROI
+                  files found will be loaded.
+               b) A list of pairs of paths to files containing ROIs to
+                  be compared to one another (see the <roi_comparison>
+                  option).
 
             3) Dict:
-                ROI filepaths can be nested inside a dictionary, where
-                the keys are labels which the user wishes to use to refer to
-                ROIs in those files, and the values are any of the
-                options listed above (except 2b).
 
-                The label will be displayed in parentheses next to the
-                ROIs names in the QuickViewer UI and ROI legend.
+               ROI filepaths can be nested inside a dictionary, where
+               the keys are labels which the user wishes to use to refer to
+               ROIs in those files, and the values are any of the
+               options listed above (except 2b).
 
-                The <roi_names> and <roi_options> arguments can also
-                be nested inside a dictionary if the user wants to apply
-                different name and color options to the ROIs associated
-                with different labels.
+               The label will be displayed in parentheses next to the
+               ROIs names in the QuickViewer UI and ROI legend.
+
+               The <roi_names> and <roi_options> arguments can also
+               be nested inside a dictionary if the user wants to apply
+               different name and color options to the ROIs associated
+               with different labels.
 
             By default, each NIfTI file will be assumed to contain a single 
             ROI. To load multiple label masks from a single NIfTI file,
             add the string 'multi:' before the filepath, e.g.:
 
-                rois='multi:my_file.nii'
+            - rois='multi:my_file.nii'
 
             or alternatively use the multi_rois parameter.
 
@@ -203,6 +209,7 @@ class BetterViewer:
 
         match_axes : int/str, default=None
             Method for adjusting axis limits. Can either be:
+
             - An integer n, where 0 < n < number of plots, or n is -1. The axes
               of all plots will be adjusted to be the same as those of plot n.
             - 'all'/'both': axes for all plots will be adjusted to cover the
@@ -295,6 +302,7 @@ class BetterViewer:
 
         timeseries : str/list/dict, default=None
             A series of image files taken at difference dates. This can be:
+
             (a) The path to a directory containing multiple image files/
                 multiple directories each containing one image file;
             (b) A list of paths to image files;
@@ -375,8 +383,9 @@ class BetterViewer:
             for the main image.See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
             for options.
             Some useful keywords are:
-                - 'cmap': colormap (default='gray').
-                - 'interpolation': interpolation method (default='antialiased')
+
+            - 'cmap': colormap (default='gray').
+            - 'interpolation': interpolation method (default='antialiased')
 
         dose_opacity : float, default=0.5
             Initial opacity of the overlaid dose field. Can later be changed
@@ -387,8 +396,9 @@ class BetterViewer:
             for the dose image. See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
             for options.
             Some useful keywords are:
-                - 'cmap': colormap (default='jet').
-                - 'interpolation': interpolation method (default='antialiased')
+
+            - 'cmap': colormap (default='jet').
+            - 'interpolation': interpolation method (default='antialiased')
 
         dose_range : list, default=None
             Min and max dose range to plot. This can also be set via the 'vmin'
@@ -418,8 +428,9 @@ class BetterViewer:
             for the jacobian determinant. See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
             for options.
             Some useful keywords are:
-                - 'cmap': colormap (default='seismic').
-                - 'interpolation': interpolation method (default='antialiased')
+
+            - 'cmap': colormap (default='seismic').
+            - 'interpolation': interpolation method (default='antialiased')
 
         df_plot_type : str, default='grid'
             Option for initial plotting of deformation field. Can be 'grid',
@@ -438,8 +449,9 @@ class BetterViewer:
 
             For grid plotting options, see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html.
             Some useful keywords are:
-                - 'linewidth': default=2
-                - 'color': default='green'
+
+            - 'linewidth': default=2
+            - 'color': default='green'
 
             For quiver plotting options, see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.quiver.html.
 
@@ -468,23 +480,26 @@ class BetterViewer:
             Units in which to display the lengths of ROIs if
             <roi_info> if True. If None, units will be voxels if
             <scale_in_mm> is False, or mm if <scale_in_mm> is True. Options:
-                (a) 'mm'
-                (b) 'voxels'
+
+            (a) 'mm'
+            (b) 'voxels'
 
         area_units : str, default=None
             Units in which to display the areas of ROIs if
             <roi_info> if True. If None, units will be voxels if
             <scale_in_mm> is False, or mm if <scale_in_mm> is True. Options:
-                (a) 'mm'
-                (b) 'voxels'
+
+            (a) 'mm'
+            (b) 'voxels'
 
         vol_units : str, default=None
             Units in which to display the volumes of ROIs if
             <roi_info> if True. If None, units will be voxels if
             <scale_in_mm> is False, or mm^3 if <scale_in_mm> is True. Options:
-                (a) 'mm' for mm^3
-                (b) 'voxels' for voxels
-                (c) 'ml' for ml
+
+            (a) 'mm' for mm^3
+            (b) 'voxels' for voxels
+            (c) 'ml' for ml
 
         roi_legend : bool, default=False
             If True, a legend will be displayed for any plot with ROIs.
@@ -500,16 +515,18 @@ class BetterViewer:
             If only one ROI is to be loaded per file, this should be a
             dictionary where the keys are the desired custom names. The values
             of the dictionary can be either:
-                (a) A string containing the path of the file containing the 
-                    ROI to be renamed;
-                (b) A string containing the name of the ROI to be renamed 
-                    within a DICOM file;
-                (c) A string containing the automatically-generated name of the
-                    ROI to be renamed (e.g. if the ROI came from a 
-                    file right_parotid.nii, its automatically generated name
-                    would be 'right parotid';
-                (d) A wildcard matching any of the above;
-                (e) A list of any of the above.
+
+            (a) A string containing the path of the file containing the 
+                ROI to be renamed;
+            (b) A string containing the name of the ROI to be renamed 
+                within a DICOM file;
+            (c) A string containing the automatically-generated name of the
+                ROI to be renamed (e.g. if the ROI came from a 
+                file right_parotid.nii, its automatically generated name
+                would be 'right parotid';
+            (d) A wildcard matching any of the above;
+            (e) A list of any of the above.
+
             The list functionality allows the user to list multiple names
             that should be replaced by a single custom name, e.g. to handle
             cases where the same ROI may have different names in 
@@ -519,12 +536,13 @@ class BetterViewer:
             <multi_rois> parameter is set, or paths in the <rois> 
             parameter are prefixed with 'multi:') the <roi_names> parameter
             can either be:
-                (a) A list of names, where the Nth name in the list will be
-                   applied to the ROI with mask label N in the ROI
-                   array; or
-                (b) A dictionary where the keys are integers such that the
-                   name associated with key N will be applied to the ROI
-                   with mask label N in the ROI array.
+
+            (a) A list of names, where the Nth name in the list will be
+                applied to the ROI with mask label N in the ROI
+                array; or
+            (b) A dictionary where the keys are integers such that the
+                name associated with key N will be applied to the ROI
+                with mask label N in the ROI array.
 
             Any of the options described above can also be nested into a
             dictionary where the keys are labels, if a label dictionary was
@@ -561,21 +579,21 @@ class BetterViewer:
 
             The ROIs to compare can be set in three different ways:
 
-                a) The user can explicitly indicate which ROIs should be
-                   compared by giving a list of lists for the <rois>
-                   argument, where each sublist contains exactly 2 filepaths
-                   corresponding to a pair of ROIs to be compared (see
-                   option 2b for <rois>).
+            a) The user can explicitly indicate which ROIs should be
+               compared by giving a list of lists for the <rois>
+               argument, where each sublist contains exactly 2 filepaths
+               corresponding to a pair of ROIs to be compared (see
+               option 2b for <rois>).
 
-                b) If only two ROIs are found for the filepaths/wildcards
-                   given in the <rois> option, these two ROIs will
-                   be compared.
+            b) If only two ROIs are found for the filepaths/wildcards
+               given in the <rois> option, these two ROIs will
+               be compared.
 
-                c) Otherwise, QuickViewer will search for pairs of loaded
-                   ROIs with the same name (either inferred from the
-                   filenames or specified manually by the user in the
-                   <roi_names> option). If no ROIs with matching names
-                   are found, no comparisons will be performed.
+            c) Otherwise, QuickViewer will search for pairs of loaded
+               ROIs with the same name (either inferred from the
+               filenames or specified manually by the user in the
+               <roi_names> option). If no ROIs with matching names
+               are found, no comparisons will be performed.
 
         ignore_empty_rois : bool, default=False
             If True, any loaded ROIs array that only contains zeros will
@@ -2647,6 +2665,7 @@ def to_inches(size):
     """Convert a size string to a size in inches. If a float is given, it will
     be returned. If a string is given, the last two characters will be used to
     determine the units:
+
         - "in": inches
         - "cm": cm
         - "mm": mm

@@ -2618,6 +2618,7 @@ def to_inches(size):
     """Convert a size string to a size in inches. If a float is given, it will
     be returned. If a string is given, the last two characters will be used to
     determine the units:
+
         - "in": inches
         - "cm": cm
         - "mm": mm
@@ -2774,10 +2775,12 @@ class Struct(Image):
         
         nii : str/array/nifti, default=None
             Source of the image data to load. This can be either:
+
                 (a) The path to a NIfTI file;
                 (b) A nibabel.nifti1.Nifti1Image object;
                 (c) The path to a file containing a NumPy array;
                 (d) A NumPy array.
+
             This mask will be used to generate contours. If None, the
             <contours> argument must be provided instead.
 
@@ -3780,6 +3783,7 @@ class StructureSet:
 
         structs : str/list/dict
             Sources of structures files to load structures from. Can be:
+
                 (a) A string containing a filepath, directory path, or wildcard
                 to a file or directory path. If a directory is given, all
                 .nii and .nii.gz files within that directory will be loaded.
@@ -3803,6 +3807,7 @@ class StructureSet:
             exists.
 
             If using multiple structures per file, this can also be either:
+
                 (a) A list of names, where the order reflects the order of
                 structure masks in the file (i.e. the nth item in the list
                 will refer to the structure with label mask n + 1).
@@ -3824,14 +3829,15 @@ class StructureSet:
 
         comp_type : str, default="auto"
             Option for method of comparing any loaded structures. Can be:
+
             - "auto": Structures will be matched based on name if many are
               loaded, pairs if a list of pairs is given, or simply matched
               if only two structs are loaded.
             - "pairs": Every possible pair of loaded structs will be compared.
             - "other": Each structure will be compared to the consenues of all
-            of the others.
+              of the others.
             - "overlap": Each structure will be comapred to the overlapping
-            region of all of the others.
+              region of all of the others.
 
         to_keep : list, default=None
             List of structure names/wildcards to keep. If this argument is set,
