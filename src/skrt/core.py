@@ -228,7 +228,7 @@ class Data:
         out.append("}")
         return "\n".join(out)
 
-    def clone(self, data_types_to_copy=None, copy_data=True):
+    def clone(self, **kwargs):
         """
         Return a clone of the Data object. All attributes of the original
         object will be copied by reference to the new object, with some 
@@ -252,7 +252,7 @@ class Data:
         """
 
         clone = copy.copy(self)
-        self.clone_attrs(clone, data_types_to_copy, copy_data)
+        self.clone_attrs(clone, **kwargs)
         return clone
 
     def clone_attrs(self, obj, data_types_to_copy=None, copy_data=True):

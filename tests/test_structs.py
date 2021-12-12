@@ -127,11 +127,27 @@ def test_clone():
     """Test cloning; check that ROIs are fully copied."""
 
     sphere1 = structure_set.get_roi("sphere")
+    sphere1.create_mask()
     structure_set2 = structure_set.clone()
     sphere2 = structure_set2.get_roi("sphere")
     sphere1.set_color("red")
     sphere2.set_color("blue")
     assert sphere1.color != sphere2.color
+    assert sphere1 is not sphere2
+    sphere2.transform(translation=(3, 3, 0))
+    assert not np.all(sphere1.get_mask() == sphere2.get_mask())
+
+def test_init_from_structure_set():
+    sphere1 = structure_set.get_roi("sphere")
+    sphere1.create_mask()
+    structure_set2 = StructureSet(structure_set)
+    sphere2 = structure_set2.get_roi("sphere")
+    sphere1.set_color("red")
+    sphere2.set_color("blue")
+    assert sphere1.color != sphere2.color
+    assert sphere1 is not sphere2
+    sphere2.transform(translation=(3, 3, 0))
+    assert not np.all(sphere1.get_mask() == sphere2.get_mask())
 
 def test_filtered_copy_no_copy_data():
     """Test copying but using same data for ROIs."""
@@ -200,6 +216,13 @@ def test_write_dicom():
 
 def test_dicom_dataset():
     pass
+
+def test_init_from_roi():
+    sphere1 = structure_set.get_roi("sphere")
+    sphere2 = ROI(sphere1)
+    sphere1.set_color("red")
+    sphere2.set_color("blue")
+    assert sphere1.color != sphere2.color
 
 def test_roi_from_image_threshold():
     roi = ROI(sim.get_image(), mask_threshold=5)  

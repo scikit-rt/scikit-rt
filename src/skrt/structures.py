@@ -331,14 +331,13 @@ class ROI(skrt.core.Archive):
         if self.default_geom_method == "auto":
             self.default_geom_method = self.source_type
 
-    def clone(self, copy_data=True):
-        """Clone self, ensuring that own mask's data gets correctly copied if
-        <copy_data> is True."""
+    def clone_attrs(self, obj, copy_data=True):
+        """Assign all attributes of <self> to another object, <obj>,  ensuring 
+        that own mask's data gets correctly copied if <copy_data> is True."""
 
-        clone = skrt.core.Data.clone(self, copy_data=copy_data)
+        skrt.core.Data.clone_attrs(self, obj, copy_data=copy_data)
         if copy_data and self.mask is not None:
-            clone.mask = self.mask.clone(copy_data=True)
-        return clone
+            obj.mask = self.mask.clone(copy_data=True)
 
     def get_dicom_dataset(self):
         """Return pydicom.dataset.FileDataset object associated with this ROI
@@ -3513,35 +3512,15 @@ class StructureSet(skrt.core.Archive):
         roi.structure_set = self
         self.rois.append(roi)
 
-    def clone(self, copy_rois=True, copy_roi_data=True):
-        """Create a clone; by default, any lists, dicts, np.ndarrays and ROIs
-        will be fully copied, while all other attributes are copied as 
-        references.
+    def clone_attrs(self, obj, copy_rois=True, copy_roi_data=True):
+        """Assign all attributes of <self> to another object, <obj>, ensuring
+        that ROIs are copied if copy_rois=True."""
 
-        **Parameters:**
-        
-        copy_rois : bool, default=True
-            If True, copies will be made of any ROIs stored in this 
-            StructureSet. By default, their data attributes (contours, arrays, 
-            etc) will be shared with the original ROI object unless 
-            <copy_roi_data> is True.
-        
-        copy_roi_data : bool, default=True
-            If True, the ROIs in the returned StructureSet will contain
-            copies of the data from the original StructureSet. Otherwise,
-            the new ROIs will contain references to the same data, e.g. the 
-            same numpy ndarray object for the mask/same dict for the contours.
-            Only used if <copy_rois> is True
-        """
-
-        clone = skrt.core.Data.clone(self)
-
-        # Create copies of ROIs
+        skrt.core.Data.clone_attrs(self, obj)
         if copy_rois:
-            clone.rois = []
+            obj.rois = []
             for roi in self.rois:
-                clone.rois.append(roi.clone(copy_data=copy_roi_data))
-        return clone
+                obj.rois.append(roi.clone(copy_data=copy_roi_data))
 
     def filtered_copy(
         self,
