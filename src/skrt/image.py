@@ -1941,7 +1941,7 @@ class Image(skrt.core.Archive):
             If resample is a float, then the image is resampled to that
             this is the voxel size in mm along all axes.  If the
             transformation involves scaling or rotation in an image
-            projection where voxels are non-square, then:
+            projection where voxels are non-square:
             if resample is 'fine' then voxels are resampled to have
             their smallest size along all axes;
             if resample is 'coarse' then voxels are resampled to have
