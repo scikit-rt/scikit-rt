@@ -37,15 +37,15 @@ class Defaults:
 
             out = []
             for key, value in sorted(self.__dict__.items()):
-                out_list.append(f"{key}: {value}")
+                out.append(f"{key}: {value}")
             return "\n".join(out)
 
     def __init__(self, opts: Optional[dict] = None, reset: bool = False):
         """
         Constructor of Defaults singleton class.
 
-        Parameters
-        ----------
+        **Parameters:**
+
         opts: dict, default={}
             Dictionary of attribute-value pairs.
 
@@ -114,13 +114,13 @@ class Data:
         Constructor of Data class, allowing initialisation of an
         arbitrary set of attributes.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         opts: dict, default={}
             Dictionary to be used in setting instance attributes
             (dictionary keys) and their initial values.
 
-        **kwargs
+        \*\*kwargs
             Keyword-value pairs to be used in setting instance attributes
             and their initial values.
         """
@@ -135,8 +135,8 @@ class Data:
         """
         Create string recursively listing attributes and values.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
 
         depth: integer/None, default=None
             Depth to which recursion is performed.
@@ -235,8 +235,8 @@ class Data:
         exceptions (see parameters below).
 
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         data_types_to_copy : list, default=None
             List of types inherting from the Data class.
             Any objects of the types in this list that are either directly 
@@ -260,8 +260,8 @@ class Data:
         Assign all attributes of <self> to another object, <obj>.
 
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         obj : object
             Object to which attributes of <self> will be copied.
 
@@ -360,8 +360,8 @@ class Data:
         object attributes and values, with recursion
         to a specified depth.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
 
         depth: integer/None, default=None
             Depth to which recursion is performed.
@@ -375,8 +375,8 @@ class Data:
         """
         Set the object's print depth.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
 
         depth: integer/None, default=None
             Depth to which recursion is performed.
@@ -598,10 +598,11 @@ def get_logger(name="", log_level=None):
     """
     Retrieve named event logger.
 
-    Parameters
-    ----------
+    **Parameters:**
+    
     name: string, default=""
         Name of logger (see documentation of logging module)
+
     log_level: string/integer/None, default=None
         Severity level for event logging.  If the value is None,
         log_level is set to the value of Defaults().log_level.

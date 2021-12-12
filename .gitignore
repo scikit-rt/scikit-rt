@@ -1,5 +1,7 @@
 .*
 !.gitignore
+!.gitlab-ci.yml
+!.github
 __pycache__
 dist
 build
@@ -8,4 +10,6 @@ build
 *.dcm
 tests/tmp
 examples/*/tests/tmp
+docs/build/*
 makefile
+!docs/Makefile

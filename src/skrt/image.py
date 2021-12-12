@@ -56,8 +56,8 @@ class Image(skrt.core.Archive):
         """
         Initialise from a medical image source.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         path : str/array/Nifti1Image, default = ""
             Source of image data. Can be either:
                 (a) A string containing the path to a dicom or nifti file;
@@ -130,8 +130,8 @@ class Image(skrt.core.Archive):
     def get_data(self, standardise=False):
         """Return 3D image array.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         standardise : bool, default=False
             If False, the data array will be returned in the orientation in 
             which it was loaded; otherwise, it will be returned in standard
@@ -149,8 +149,8 @@ class Image(skrt.core.Archive):
         """Return path to the dicom dataset corresponding to a specific 
         slice.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         sl : int, default=None
             Slice number; used if not None.
 
@@ -181,8 +181,8 @@ class Image(skrt.core.Archive):
         to that specific slice will be returned; otherwise, the last loaded
         dataset will be returned.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         sl : int, default=None
             Slice number; used if not None.
 
@@ -228,8 +228,8 @@ class Image(skrt.core.Archive):
     def get_affine(self, standardise=False):
         """Return affine matrix.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         standardise : bool, default=False
             If False, the affine matrix will be returned in the orientation in 
             which it was loaded; otherwise, it will be returned in standard
@@ -252,8 +252,8 @@ class Image(skrt.core.Archive):
         """Load pixel array from image source. If already loaded and <force> 
         is False, nothing will happen.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         force : bool, default=True
             If True, the pixel array will be reloaded from source even if it 
             has previously been loaded.
@@ -262,13 +262,17 @@ class Image(skrt.core.Archive):
         self.data (as well as geometric properties, where relevant). The 
         parameter self.source_type is set to a string indicating the type 
         of source, which can be any of:
-            - "array": 
+
+            "array": 
                 Data loaded from a numpy array in dicom-style orientation.
-            - "nifti array": 
+
+            "nifti array": 
                 Data loaded from a numpy array in nifti-style orientation.
-            - "nifti": 
+
+            "nifti": 
                 Data loaded from a nifti file.
-            - "dicom": 
+
+            "dicom": 
                 Data loaded from one or more dicom file(s).
 
         The loading sequence is as follows: 
@@ -323,6 +327,7 @@ class Image(skrt.core.Archive):
 
             11. If self.title is None and self.source is a filepath, infer
             a title from the basename of this path.
+
         """
 
         if self.data is not None and not force:
@@ -398,8 +403,8 @@ class Image(skrt.core.Archive):
         [column, row, slice] corresponds to the [x, y, z] axes.
         standardised image array. 
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         force : bool, default=True
             If True, the standardised array will be recomputed from self.data 
             even if it has previously been computed.
@@ -414,8 +419,8 @@ class Image(skrt.core.Archive):
         [column, row, slice] corresponds to the [x, y, z] axes.
         standardised image array. 
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         force : bool, default=True
             If True, the standardised array will be recomputed from self.data 
             even if it has previously been computed.
@@ -491,8 +496,8 @@ class Image(skrt.core.Archive):
         '''
         Resample image to have particular voxel sizes.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         voxel_size: int/float/tuple/list, default =(1, 1, 1)
             Voxel size to which image is to be resampled.  If voxel_size is
             a tuple or list, then it's taken to specify voxel sizes
@@ -542,8 +547,8 @@ class Image(skrt.core.Archive):
 
         Arrays are useful for image resizing.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         image_size : tuple
             Image size in voxels, in order (x,y,z).
 
@@ -578,12 +583,12 @@ class Image(skrt.core.Archive):
         return (x_array, y_array, z_array)
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
-            fill_value=None, image_size_unit=None):
+            fill_value=None, image_size_unit=None, keep_centre=False):
         '''
         Resize image to specified image size, voxel size and origin.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         image_size : tuple/list/None, default=None
             Image sizes in order (x,y,z) to which image is to be resized.
             If None, the image's existing size is kept.  If a value
@@ -607,9 +612,13 @@ class Image(skrt.core.Archive):
             image that are outside the original image.  If set to None,
             the minimum intensity value of the original image is used.
 
-        image_size_unit : str, default=None
+        image_size_unit: str, default=None
             Unit of measurement ('voxel' or 'mm') for image_size.  If None,
             use 'voxel'.
+
+        keep_centre: bool, default=False
+            If True, make the centre of the initial image the centre of
+            the resized image, disregarding the value passed to origin.
         '''
         # Return if no resizing requested.
         if image_size is None and voxel_size is None and origin is None:
@@ -625,11 +634,11 @@ class Image(skrt.core.Archive):
         if image_size is None:
             image_size = self.get_n_voxels()
 
-        if voxel_size is None:
-            voxel_size = self.get_voxel_size()
-
         if origin is None:
             origin = self.get_origin()
+
+        if voxel_size is None:
+            voxel_size = self.get_voxel_size()
 
         if 'mm' == image_size_unit:
             for i in range(3):
@@ -655,6 +664,11 @@ class Image(skrt.core.Archive):
             if voxel_size[i] is None:
                 voxel_size[i] = self.get_voxel_size()[i]
 
+        # Redefine origin to fix centre position.
+        if keep_centre:
+            centre = self.get_centre()
+            origin = [centre[i] - (0.5 * image_size[i] - 0.5)
+                    * voxel_size[i] for i in range(3)]
 
         # Check whether image is already the requested size
         nx, ny, nz = image_size
@@ -717,8 +731,8 @@ class Image(skrt.core.Archive):
         After matching, the image voxels are in one-to-one correspondence
         with those of the reference.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         image: skrt.image.Image/None, default=None
             Reference image, with which size is to be matched.
         fill_value: float/None, default = None
@@ -736,8 +750,8 @@ class Image(skrt.core.Archive):
         """Resample to match z-axis voxel size with that of another Image
         object.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         image : Image
             Other image to which z-axis voxel size should be matched.
 
@@ -808,8 +822,8 @@ class Image(skrt.core.Archive):
             "I" = Inferior (z axis)
             "S" = Superior (z axis)
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         affine : np.ndarray, default=None
             Custom affine matrix to use when determining orientation codes.
             If None, self.affine will be used.
@@ -843,8 +857,8 @@ class Image(skrt.core.Archive):
     def get_orientation_vector(self, affine=None, source_type=None):
         """Get image orientation as a row and column vector.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         affine : np.ndarray, default=None
             Custom affine matrix to use when determining orientation vector.
             If None, self.affine will be used.
@@ -877,8 +891,8 @@ class Image(skrt.core.Archive):
         col_first is True, otherwise in order [row, column, slice]. The axis
         numbers 0, 1, and 2 correspond to x, y, and z, respectively.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         col_first : bool, default=True
             If True, return axis numbers in order [column, row, slice] instead
             of [row, column, slice].
@@ -979,8 +993,8 @@ class Image(skrt.core.Archive):
     def get_length(self, ax):
         """Get image length along a given axis.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         ax : str/int
             Axis along which to get length. Can be either "x", "y", "z" or
             0, 1, 2.
@@ -997,8 +1011,8 @@ class Image(skrt.core.Archive):
         central slice of the image in the orienation specified in <view> will 
         be returned.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation in which to compute the index. Can be "x-y", "y-z", or
             "x-z".
@@ -1034,8 +1048,8 @@ class Image(skrt.core.Archive):
         If <sl>, <pos>, and <idx> are all None, the central slice of the image
         in the orientation specified in <view> will be returned.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation; can be "x-y", "y-z", or "x-z".
 
@@ -1080,8 +1094,8 @@ class Image(skrt.core.Archive):
         """Add a structure set to be associated with this image. This Image 
         object will simultaneously be assigned to the StructureSet.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         structure_set : skrt.structures.StructureSet
             A StructureSet object to assign to this image.
         """
@@ -1110,8 +1124,8 @@ class Image(skrt.core.Archive):
                 Greyscale range to use; taken from self.default_window by 
                 default.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation (any of "x-y", "x-z", "y-z"); needed to compute
             correct aspect ratio and plot extent.
@@ -1155,7 +1169,7 @@ class Image(skrt.core.Archive):
 
     def view(self, images=None, **kwargs):
         """View self with BetterViewer along with any additional images in 
-        <images>. Any **kwargs will be passed to BetterViewer initialisation.
+        <images>. Any \*\*kwargs will be passed to BetterViewer initialisation.
         """
 
         from skrt.better_viewer import BetterViewer
@@ -1207,8 +1221,8 @@ class Image(skrt.core.Archive):
     ):
         """Plot a 2D slice of the image.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str, default='x-y'
             Orientation in which to plot the image. Can be any of 'x-y',
             'y-z', and 'x-z'.
@@ -1300,9 +1314,10 @@ class Image(skrt.core.Archive):
         rois : int/str, default=None
             Option for which structure set should be plotted (if the Image
             owns any structure sets). Can be:
+
                 - None: no structure sets will be plotted.
-                - The index in self.structure_sets of the structure set (e.g. to plot
-                the newest structure set, use structure_set=-1)
+                - The index in self.structure_sets of the structure set
+                  (e.g. to plot the newest structure set, use structure_set=-1)
                 - 'all': all structure sets will be plotted.
 
         roi_plot_type : str, default='contour'
@@ -1312,7 +1327,8 @@ class Image(skrt.core.Archive):
             If True, a legend will be drawn containing ROI names.
 
         roi_kwargs : dict, default=None
-            Extra arguments to provide to ROI plotting via the ROI.plot() method.
+            Extra arguments to provide to ROI plotting via the ROI.plot()
+            method.
 
         centre_on_roi : str, default=None
             Name of ROI on which to centre, if no idx/sl/pos is given.
@@ -1804,16 +1820,16 @@ class Image(skrt.core.Archive):
         """Write image data to a file. The filetype will automatically be
         set based on the extension of <outname>:
 
-            (a) *.nii or *.nii.gz: Will write to a nifti file with
+            (a) \*.nii or \*.nii.gz: Will write to a nifti file with
             canonical nifti array and affine matrix.
 
-            (b) *.npy: Will write the dicom-style numpy array to a binary filem
+            (b) \*.npy: Will write the dicom-style numpy array to a binary filem
             unless <nifti_array> is True, in which case the canonical
             nifti-style array will be written. If <write_geometry> is True,
             a text file containing the voxel sizes and origin position will
             also be written in the same directory.
 
-            (c) *.dcm: Will write to dicom file(s) (1 file per x-y slice) in
+            (c) \*.dcm: Will write to dicom file(s) (1 file per x-y slice) in
             the directory of the filename given, named by slice number.
 
             (d) No extension: Will create a directory at <outname> and write
@@ -1822,13 +1838,14 @@ class Image(skrt.core.Archive):
 
         If (c) or (d) (i.e. writing to dicom), the header data will be set in
         one of three ways:
-            - If the input source was not a dicom, <dicom_for_header> is None,
-            a brand new dicom with freshly generated UIDs will be created.
-            - If <dicom_for_header> is set to the path to a dicom file, that
-            dicom file will be used as the header.
-            - Otherwise, if the input source was a dicom or directory
-            containing dicoms, the header information will be taken from the
-            input dicom file.
+
+            * If the input source was not a dicom, <dicom_for_header> is None,
+              a brand new dicom with freshly generated UIDs will be created.
+            * If <dicom_for_header> is set to the path to a dicom file, that
+              dicom file will be used as the header.
+            * Otherwise, if the input source was a dicom or directory
+              containing dicoms, the header information will be taken from the
+              input dicom file.
         """
 
         outname = os.path.expanduser(outname)
@@ -1902,8 +1919,8 @@ class Image(skrt.core.Archive):
         about the centre coordinates
 
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         scale : float, default=1
             Scaling factor.
 
@@ -1924,7 +1941,7 @@ class Image(skrt.core.Archive):
             If resample is a float, then the image is resampled to that
             this is the voxel size in mm along all axes.  If the
             transformation involves scaling or rotation in an image
-            projection where voxels are non-square, then:
+            projection where voxels are non-square:
             if resample is 'fine' then voxels are resampled to have
             their smallest size along all axes;
             if resample is 'coarse' then voxels are resampled to have
@@ -2034,8 +2051,8 @@ class Image(skrt.core.Archive):
     def translate_origin(self, translation=[0, 0, 0]):
         """Translate origin, effectively changing image position.
 
-        Parameter
-        ---------
+        **Parameter:**
+
         translation : list, default=[0, 0, 0]
             Translation in mm in the [x, y, z] directions.
         """
@@ -2630,6 +2647,7 @@ def to_inches(size):
     """Convert a size string to a size in inches. If a float is given, it will
     be returned. If a string is given, the last two characters will be used to
     determine the units:
+
         - 'in': inches
         - 'cm': cm
         - 'mm': mm
@@ -2688,14 +2706,15 @@ def write_dicom(
     modality=None,
     root_uid=None,
 ):
-    """Write image data to dicom file(s) inside <outdir>. <header_source> can
-    be:
+    """Write image data to dicom file(s) inside <outdir>. <header_source>
+    can be:
+
         (a) A path to a dicom file, which will be used as the header;
         (b) A path to a directory containing dicom files; the first file
-        alphabetically will be used as the header;
+            alphabetically will be used as the header;
         (c) A pydicom FileDataset object;
         (d) None, in which case a brand new dicom file with new UIDs will be
-        created.
+            created.
     """
 
     # Create directory if it doesn't exist
@@ -2822,7 +2841,8 @@ def get_new_uid(root=None):
 
     <root> should uniquely identify the group generating the GUID. A unique
     root identifier can be obtained free of charge from Medical Connections:
-        https://www.medicalconnections.co.uk/FreeUID/
+
+        * https://www.medicalconnections.co.uk/FreeUID/
     """
 
     if root is None:

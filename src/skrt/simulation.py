@@ -26,8 +26,8 @@ class SyntheticImage(Image):
         """Create an initially blank synthetic image to which geometric 
         ROIs can be added.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         shape : int/tuple
             Dimensions of the image array to create in order (x, y, z).
             If an int is given, the image will be created with dimensions

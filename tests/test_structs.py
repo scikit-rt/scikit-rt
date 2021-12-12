@@ -11,7 +11,8 @@ from shapely.geometry import Polygon
 from shapely.validation import explain_validity
 
 from skrt.simulation import SyntheticImage
-from skrt.structures import contour_to_polygon, StructureSet, ROI
+from skrt.structures import contour_to_polygon, polygon_to_contour, \
+        StructureSet, ROI
 
 
 # Make temporary test dir
@@ -273,6 +274,17 @@ def test_contour_to_polygon():
     assert 'self-intersection' in explain_validity(p1).lower()
     p2 = contour_to_polygon(contour)
     assert 'self-intersection' not in explain_validity(p2).lower()
+
+def test_contour_to_polygon_to_contour():
+    '''Test converting from contour to polygon and back.'''
+    for key, contours in cube.get_contours().items():
+        for contour1 in contours:
+            polygon = contour_to_polygon(contour1)
+            contour2 = polygon_to_contour(polygon)
+            n_point1 = len(contour1)
+            n_point2 = len(contour2)
+            assert n_point1 == n_point2
+            assert contour1.all() == contour2.all()
 
 def test_dummy_image():
     """Test setting an ROI's image to a dummy image with a given shape."""

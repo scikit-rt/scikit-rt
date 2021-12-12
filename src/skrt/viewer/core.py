@@ -50,8 +50,8 @@ class Image:
     ):
         """Initialise from a NIfTI file, NIfTI object, or numpy array.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         im : str/array/nifti
             Source of the image data to load. This can be either:
                 (a) The path to a NIfTI or DICOM file;
@@ -369,8 +369,8 @@ class Image:
     def get_relative_width(self, view, zoom=None, n_colorbars=0, figsize=None):
         """Get width:height ratio for this plot.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation ("x-y"/"y-z"/"x-z").
 
@@ -420,8 +420,8 @@ class Image:
     def set_ax(self, view, ax=None, gs=None, figsize=None, zoom=None, n_colorbars=0):
         """Assign axes to self or create new axes if needed.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation ("x-y"/"y-z"/"x-z")
 
@@ -625,8 +625,8 @@ class Image:
         self.shift contains nonzero elements, the slice will be translated by
         the amounts in self.shift.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation ("x-y"/"y-z"/"x-z").
 
@@ -806,8 +806,8 @@ class Image:
     ):
         """Plot a 2D slice of the image.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str, default="x-y"
             Orientation in which to plot ("x-y"/"y-z"/"x-z").
 
@@ -1103,8 +1103,8 @@ class ImageComparison(Image):
 
         """Create a comparison plot of the two images.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str, default=None
             Orientation to plot ("x-y"/"y-z"/"x-z"). If <view> and <sl> are
             both None, they will be taken from the current orientation and
@@ -1427,8 +1427,8 @@ class MultiImage(Image):
     ):
         """Load a MultiImage object.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         nii : str/nifti/array
             Path to a .nii/.npy file, or an nibabel nifti object/numpy array.
 
@@ -1825,8 +1825,8 @@ class MultiImage(Image):
     ):
         """Plot a 2D slice of this image and all extra features.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation in which to plot ("x-y"/"y-z"/"x-z").
 
@@ -2188,8 +2188,8 @@ class DeformationImage(Image):
     def __init__(self, nii, spacing=_default_spacing, plot_type="grid", **kwargs):
         """Load deformation field.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         nii : str/array/nifti
             Source of the image data to load. This can be either:
                 (a) The path to a NIfTI file;
@@ -2284,8 +2284,8 @@ class DeformationImage(Image):
     ):
         """Plot deformation field.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation in which to plot ("x-y"/"y-z"/"x-z").
 
@@ -2618,6 +2618,7 @@ def to_inches(size):
     """Convert a size string to a size in inches. If a float is given, it will
     be returned. If a string is given, the last two characters will be used to
     determine the units:
+
         - "in": inches
         - "cm": cm
         - "mm": mm
@@ -2770,14 +2771,16 @@ class Struct(Image):
     ):
         """Load structure mask or contour.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         nii : str/array/nifti, default=None
             Source of the image data to load. This can be either:
+
                 (a) The path to a NIfTI file;
                 (b) A nibabel.nifti1.Nifti1Image object;
                 (c) The path to a file containing a NumPy array;
                 (d) A NumPy array.
+
             This mask will be used to generate contours. If None, the
             <contours> argument must be provided instead.
 
@@ -3149,8 +3152,8 @@ class Struct(Image):
     ):
         """Plot structure.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         view : str
             Orientation in which to plot ("x-y"/"y-z"/"x-z").
 
@@ -3776,11 +3779,11 @@ class StructureSet:
     ):
         """Load structures.
 
-        Parameters
-        ----------
+        **Parameters:**
 
         structs : str/list/dict
             Sources of structures files to load structures from. Can be:
+
                 (a) A string containing a filepath, directory path, or wildcard
                 to a file or directory path. If a directory is given, all
                 .nii and .nii.gz files within that directory will be loaded.
@@ -3804,6 +3807,7 @@ class StructureSet:
             exists.
 
             If using multiple structures per file, this can also be either:
+
                 (a) A list of names, where the order reflects the order of
                 structure masks in the file (i.e. the nth item in the list
                 will refer to the structure with label mask n + 1).
@@ -3825,14 +3829,15 @@ class StructureSet:
 
         comp_type : str, default="auto"
             Option for method of comparing any loaded structures. Can be:
+
             - "auto": Structures will be matched based on name if many are
               loaded, pairs if a list of pairs is given, or simply matched
               if only two structs are loaded.
             - "pairs": Every possible pair of loaded structs will be compared.
             - "other": Each structure will be compared to the consenues of all
-            of the others.
+              of the others.
             - "overlap": Each structure will be comapred to the overlapping
-            region of all of the others.
+              region of all of the others.
 
         to_keep : list, default=None
             List of structure names/wildcards to keep. If this argument is set,
