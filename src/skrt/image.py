@@ -114,8 +114,8 @@ class Image(skrt.core.Archive):
         self.source = path
         self.source_type = None
         self.dicom_dataset = None
-        self.voxel_size = list(voxel_size)
-        self.origin = list(origin)
+        self.voxel_size = list(voxel_size) if voxel_size is not None else None
+        self.origin = list(origin) if origin is not None else None
         self.affine = affine
         self.downsampling = downsample
         self.nifti_array = nifti_array
