@@ -120,7 +120,7 @@ class Data:
             Dictionary to be used in setting instance attributes
             (dictionary keys) and their initial values.
 
-        \*\*kwargs
+        ``**``kwargs
             Keyword-value pairs to be used in setting instance attributes
             and their initial values.
         """
