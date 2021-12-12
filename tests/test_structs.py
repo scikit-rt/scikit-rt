@@ -1,7 +1,9 @@
 """Tests for the ROI and StructureSet classes."""
 
 import fnmatch
+import math
 import os
+import random
 import shutil
 import pandas as pd
 import pytest
@@ -388,3 +390,87 @@ def test_slice_number_conversions_image():
     assert roi2.slice_to_idx(0, "z") == im.slice_to_idx(0, "z")
     assert roi2.idx_to_slice(0, "z") == im.idx_to_slice(0, "z")
 
+# Create structure set for transform tests
+sim0 = SyntheticImage((100, 100, 40))
+sim0.add_sphere(radius=5, centre=(20, 70, 30), name="sphere", intensity=10)
+sim0.add_cube(side_length=5, centre=(30, 20, 10), name="cube", intensity=1)
+ss0 = sim0.get_structure_set()
+
+# Set limits for random-number generation for transform tests
+dx_min, dx_max = (-15, 65)
+dy_min, dy_max = (-15, 25)
+xyc_min, xyc_max = (40, 60)
+zc_min, zc_max = (5, 35)
+theta_min, theta_max = (0, 360)
+
+# Set level of agreement (mm) for post-transform centroid positions
+precision = 0.5
+
+def test_structure_set_translation():
+    '''Test structure-set translation.'''
+    n_test = 10
+    random.seed(1)
+
+    for i in range(n_test):
+        # Randomly translate structure sets.
+        dx = random.uniform(dx_min, dx_max)
+        dy = random.uniform(dy_min, dy_max)
+        translation = [dx, dy, 0]
+        # Translation using masks.
+        ss1 = ss0.clone()
+        ss1.transform(translation=translation)
+        # Translation using contours.
+        ss2 = ss0.clone()
+        ss2.transform(translation=translation, force_contours=True)
+
+        # Calculate expected centroid, and compare with transform results.
+        for roi in ss0.get_rois():
+            translated_centroid = [roi.get_centroid()[i] + translation[i]
+                for i in range(3)]
+
+            roi1 = ss1.get_roi(roi.name)
+            roi2 = ss2.get_roi(roi.name)
+            for i in range(3):
+                assert roi1.get_centroid()[i] == pytest.approx(
+                        translated_centroid[i], abs=precision)
+                assert roi2.get_centroid()[i] == pytest.approx(
+                        translated_centroid[i], abs=precision)
+
+def test_structure_set_rotation():
+    '''Test structure-set rotation.'''
+    n_test = 10
+    random.seed(1)
+
+    for i in range(n_test):
+        # Randomly rotate structure sets.
+        xc = random.uniform(xyc_min, xyc_max)
+        yc = random.uniform(xyc_min, xyc_max)
+        zc = random.uniform(zc_min, zc_max)
+        centre = (xc, yc, zc)
+        angle = random.uniform(theta_min, theta_max)
+        rad_angle = math.radians(angle)
+        rotation = [0, 0, angle]
+        # Rotation using masks.
+        ss1 = ss0.clone()
+        ss1.transform(centre=centre, rotation=rotation)
+        # Rotation using contours.
+        ss2 = ss0.clone()
+        ss2.transform(centre=centre, rotation=rotation, force_contours=True)
+
+        # Calculate expected centroid, and compare with transform results.
+        for roi in ss0.get_rois():
+            x0, y0, z0 = roi.get_centroid()
+            dx = x0 - xc
+            dy = y0 - yc
+            xr = dx * math.cos(rad_angle) - dy * math.sin(rad_angle) + xc
+            yr = dx * math.sin(rad_angle) + dy * math.cos(rad_angle) + yc
+            zr = z0
+            rotated_centroid = [xr, yr, zr]
+
+            roi1 = ss1.get_roi(roi.name)
+            roi2 = ss2.get_roi(roi.name)
+            for i in range(3):
+                assert roi1.get_centroid()[i] == pytest.approx(
+                        rotated_centroid[i], abs=precision)
+                assert roi2.get_centroid()[i] == pytest.approx(
+                        rotated_centroid[i], abs=precision)
