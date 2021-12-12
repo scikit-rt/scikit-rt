@@ -368,7 +368,7 @@ class ROI(skrt.core.Archive):
         that contours will be recreated. If mask is None, contours will be 
         reset using own mask."""
 
-        if isinstance(mask, Image):
+        if isinstance(mask, skrt.image.Image):
             self.mask = mask
             self.affine = mask.get_affine()
             self.voxel_size = mask.get_voxel_size()
@@ -3161,39 +3161,31 @@ class ROI(skrt.core.Archive):
                         transform_contours = True
 
         if transform_contours:
+
             # Apply transform to roi contours
             translation_2d = (translation[0], translation[1])
             centre_2d = (centre[0], centre[1])
             angle = rotation[2]
-            view = 'x-y'
-            new_contours[view] = {}
+            new_contours = {}
             for key, contours in self.get_contours().items():
-                new_contours[view][key] = []
+                new_contours[key] = []
                 for contour in contours:
                     polygon = contour_to_polygon(contour)
                     polygon = affinity.translate(polygon, *translation_2d)
                     polygon = affinity.rotate(polygon, angle, centre_2d)
                     polygon = affinity.scale(polygon, scale, scale, scale,
                             centre_2d)
-                    new_contours[view][key].append(polygon_to_contour(polygon))
+                    new_contours[key].append(polygon_to_contour(polygon))
 
-            self.contours = new_contours
-            self.loaded_contours = False
+            self.reset_contours(new_contours)
 
-            # Set mask as unloaded
-            if self.loaded_mask:
-                self.loaded_mask = False
-                self.mask = None
         else:
             # Apply transform to roi mask
             self.create_mask()
             self.mask.transform(scale, translation, rotation,
                     centre, resample, restore, 0, fill_value)
+            self.reset_mask()
 
-            # Set contours as unloaded
-            if self.loaded_contours:
-                self.loaded_contours = False
-                self.contours = {}
 
 class StructureSet(skrt.core.Archive):
     """Structure set."""
