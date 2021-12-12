@@ -2,6 +2,7 @@
 
 from scipy import ndimage
 from skimage import draw
+from shapely import affinity
 from shapely import geometry
 import fnmatch
 import matplotlib.cm
@@ -3121,18 +3122,104 @@ class ROI(skrt.core.Archive):
         else:
             print("Warning: dicom ROI writing not currently available!")
 
-    def transform(self, **kwargs):
-        """Transform mask and ensure that contours will be remade."""
+    def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
+            centre=[0, 0, 0], resample="fine", restore=True, order=0,
+            fill_value=None):
+        """
+        Apply three-dimensional similarity transform to roi.
 
-        self.create_mask()
-        cx, cy, _ = self.get_centroid()
-        self.mask.transform(centre=(cx, cy), **kwargs)
+        If the roi source_type is "dicom" and the transform
+        only affects the "x-y" view, then the transform is
+        applied to contour points and the roi mask
+        is set as unloaded.  Otherwise the transform
+        is applied to the mask and contours are set as unloaded.
 
-        if self.loaded_contours:
+        The transform is applied in the order: translation, scaling,
+        rotation.  The latter two are about the centre coordinates.
+
+        **Parameters:**
+        
+        scale : float, default=1
+            Scaling factor.
+
+        translation : list, default=[0, 0, 0]
+            Translation in mm in the [x, y, z] directions.
+
+        rotation : float, default=0
+            Euler angles in degrees by which to rotate the roi.
+            Angles are in the order pitch (rotation about x-axis),
+            yaw (rotation about y-axis), roll (rotation about z-axis).
+
+        centre : list, default=[0, 0, 0]
+            Coordinates in mm in [x, y, z] about which to perform rotation
+            and scaling of translated roi.
+
+        resample: float/string, default='coarse'
+            Resampling to be performed before any mask transformation.
+            If resample is a float, then the mask is resampled to that
+            this is the voxel size in mm along all axes.  If the
+            transformation involves scaling or rotation in a
+            projection where voxels are non-square:
+            if resample is 'fine' then voxels are resampled to have
+            their smallest size along all axes;
+            if resample is 'coarse' then voxels are resampled to have
+            their largest size along all axes.
+
+        restore: bool, default=True
+            In case that a mask has been resampled:
+            if True, restore original voxel size for transformed mask;
+            if False, keep resampled voxel size for transformed mask.
+
+        fill_value: float/None, default = None
+            Intensity value to be assigned to any voxels in the resized
+            mask that are outside the original mask.  If set to None,
+            the minimum intensity value of the original mask is used.
+        """
+
+        # Check whether transform is to be applied to contours
+        small_number = 1.e-6
+        transform_contours = False
+        if self.source_type == 'dicom':
+            if abs(scale - 1) < small_number:
+                if abs(translation[2]) < small_number:
+                    if abs(rotation[0]) < small_number \
+                            and abs(rotation[1]) < small_number:
+                        transform_contours = True
+
+        if transform_contours:
+            # Apply transform to roi contours
+            translation_2d = (translation[0], translation[1])
+            centre_2d = (centre[0], centre[1])
+            angle = rotation[2]
+            view = 'x-y'
+            new_contours[view] = {}
+            for key, contours in self.get_contours().items():
+                new_contours[view][key] = []
+                for contour in contours:
+                    polygon = contour_to_polygon(contour)
+                    polygon = affinity.translate(polygon, *translation_2d)
+                    polygon = affinity.rotate(polygon, angle, centre_2d)
+                    polygon = affinity.scale(polygon, scale, scale, scale,
+                            centre_2d)
+                    new_contours[view][key].append(polygon_to_contour(polygon))
+
+            self.contours = new_contours
             self.loaded_contours = False
-            self.contours = {}
-            self.input_contours = None
 
+            # Set mask as unloaded
+            if self.loaded_mask:
+                self.loaded_mask = False
+                self.mask = None
+        else:
+            # Apply transform to roi mask
+            self.create_mask()
+            self.mask.transform(scale, translation, rotation,
+                    centre, resample, restore, 0, fill_value)
+
+            # Set contours as unloaded
+            if self.loaded_contours:
+                self.loaded_contours = False
+                self.contours = {}
 
 class StructureSet(skrt.core.Archive):
     """Structure set."""
