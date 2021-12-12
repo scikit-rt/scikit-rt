@@ -184,6 +184,11 @@ class ROI(skrt.core.Archive):
             Image object.
         """
 
+        # Clone from another ROI object
+        if issubclass(type(source), ROI):
+            source.clone_attrs(self)
+            return
+
         # Process contour dictionary
         if isinstance(source, dict):
             self.source = None
@@ -3203,6 +3208,11 @@ class StructureSet(skrt.core.Archive):
         **kwargs
     ):
         """Load structure set from source(s)."""
+
+        # Clone from another StructureSet object
+        if issubclass(type(sources), StructureSet):
+            sources.clone_attrs(self)
+            return
 
         self.name = name
         self.sources = sources
