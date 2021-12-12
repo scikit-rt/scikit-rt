@@ -3123,14 +3123,14 @@ class ROI(skrt.core.Archive):
             print("Warning: dicom ROI writing not currently available!")
 
     def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
-            centre=[0, 0, 0], resample="fine", restore=True, order=0,
-            fill_value=None):
+            centre=[0, 0, 0], resample="fine", restore=True, 
+            fill_value=None, force_contours=False):
         """
         Apply three-dimensional similarity transform to roi.
 
-        If the roi source_type is "dicom" and the transform
-        only affects the "x-y" view, then the transform is
-        applied to contour points and the roi mask
+        If the transform affects only the 'x-y' view and either
+        the roi source type is "dicom" of force-contours is True,
+        the transform is applied to contour points and the roi mask
         is set as unloaded.  Otherwise the transform
         is applied to the mask and contours are set as unloaded.
 
@@ -3139,47 +3139,21 @@ class ROI(skrt.core.Archive):
 
         **Parameters:**
         
-        scale : float, default=1
-            Scaling factor.
+        force_contours : bool, default=False
+            If True, and the transform affects only the 'x-y' view,
+            apply transform to contour points independently of
+            the original data source.
 
-        translation : list, default=[0, 0, 0]
-            Translation in mm in the [x, y, z] directions.
-
-        rotation : float, default=0
-            Euler angles in degrees by which to rotate the roi.
-            Angles are in the order pitch (rotation about x-axis),
-            yaw (rotation about y-axis), roll (rotation about z-axis).
-
-        centre : list, default=[0, 0, 0]
-            Coordinates in mm in [x, y, z] about which to perform rotation
-            and scaling of translated roi.
-
-        resample: float/string, default='coarse'
-            Resampling to be performed before any mask transformation.
-            If resample is a float, then the mask is resampled to that
-            this is the voxel size in mm along all axes.  If the
-            transformation involves scaling or rotation in a
-            projection where voxels are non-square:
-            if resample is 'fine' then voxels are resampled to have
-            their smallest size along all axes;
-            if resample is 'coarse' then voxels are resampled to have
-            their largest size along all axes.
-
-        restore: bool, default=True
-            In case that a mask has been resampled:
-            if True, restore original voxel size for transformed mask;
-            if False, keep resampled voxel size for transformed mask.
-
-        fill_value: float/None, default = None
-            Intensity value to be assigned to any voxels in the resized
-            mask that are outside the original mask.  If set to None,
-            the minimum intensity value of the original mask is used.
+        For other parameters, see documentation for
+        skrt.image.Image.transform().  Note that the ``order``
+        parameter isn't available for roi transforms - a value of 0
+        is used always.
         """
 
         # Check whether transform is to be applied to contours
         small_number = 1.e-6
         transform_contours = False
-        if self.source_type == 'dicom':
+        if self.source_type == 'dicom' or force_contours:
             if abs(scale - 1) < small_number:
                 if abs(translation[2]) < small_number:
                     if abs(rotation[0]) < small_number \
@@ -4077,6 +4051,37 @@ class StructureSet(skrt.core.Archive):
         # Return staple ROI
         return staple
 
+    def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
+            centre=[0, 0, 0], resample="fine", restore=True, 
+            fill_value=None, force_contours=False, names=None):
+        """
+        Apply three-dimensional similarity transform to structure-set ROIs.
+
+        The transform is applied in the order: translation, scaling,
+        rotation.  The latter two are about the centre coordinates.
+
+        **Parameters:**
+        
+        force_contours : bool, default=False
+            If True, and the transform affects only the 'x-y' view,
+            apply transform to contour points independently of
+            the original data source.
+
+        names : list/None, default=False
+            List of ROIs to which transform is to be applied.  If None,
+            transform is applied to all ROIs.
+
+        For other parameters, see documentation for
+        skrt.image.Image.transform().  Note that the ``order``
+        parameter isn't available for structure-set transforms - a value of 0
+        is used always.
+        """
+
+        for roi in self.get_rois(names):
+            roi.transform(scale, translation, rotation, centre, resample,
+                    restore, fill_value, force_contours)
+
+        return None
 
 class StructureSetIterator:
 
