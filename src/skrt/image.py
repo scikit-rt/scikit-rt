@@ -1821,17 +1821,17 @@ class Image(skrt.core.Archive):
         """Write image data to a file. The filetype will automatically be
         set based on the extension of <outname>:
 
-            (a) \*.nii or \*.nii.gz: Will write to a nifti file with
+            (a) ``*``.nii or ``*``.nii.gz: Will write to a nifti file with
             canonical nifti array and affine matrix.
 
-            (b) \*.npy: Will write the dicom-style numpy array to a binary filem
-            unless <nifti_array> is True, in which case the canonical
+            (b) ``*``.npy: Will write the dicom-style numpy array to a binary
+            filem unless <nifti_array> is True, in which case the canonical
             nifti-style array will be written. If <write_geometry> is True,
             a text file containing the voxel sizes and origin position will
             also be written in the same directory.
 
-            (c) \*.dcm: Will write to dicom file(s) (1 file per x-y slice) in
-            the directory of the filename given, named by slice number.
+            (c) ``*``.dcm: Will write to dicom file(s) (1 file per x-y slice)
+            in the directory of the filename given, named by slice number.
 
             (d) No extension: Will create a directory at <outname> and write
             to dicom file(s) in that directory (1 file per x-y slice), named
