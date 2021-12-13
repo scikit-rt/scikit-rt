@@ -446,9 +446,9 @@ class Image(skrt.core.Archive):
 
             # Transform array to be in order (row, col, slice) = (x, y, z)
             orient = np.array(self.get_orientation_vector()).reshape(2, 3)
-            axes = self.get_axes()
             axes_colrow = self.get_axes(col_first=True)
-            transpose = [axes_colrow.index(i) for i in (1, 0, 2)]
+            axes = self.get_axes(col_first=False)
+            transpose = [axes.index(i) for i in (1, 0, 2)]
             data = np.transpose(self.data, transpose).copy()
 
             # Adjust affine matrix
@@ -456,13 +456,13 @@ class Image(skrt.core.Archive):
             for i in range(3):
 
                 # Voxel sizes
-                if i != axes.index(i):
-                    voxel_size = affine[i, axes.index(i)].copy()
+                if i != axes_colrow.index(i):
+                    voxel_size = affine[i, axes_colrow.index(i)].copy()
                     affine[i, i] = voxel_size
-                    affine[i, axes.index(i)] = 0
+                    affine[i, axes_colrow.index(i)] = 0
 
                 # Invert axis direction if negative
-                if axes.index(i) < 2 and orient[axes.index(i), i] < 0:
+                if axes_colrow.index(i) < 2 and orient[axes_colrow.index(i), i] < 0:
                     affine[i, i] *= -1
                     to_flip = [1, 0, 2][i]
                     data = np.flip(data, axis=to_flip)
@@ -902,7 +902,7 @@ class Image(skrt.core.Archive):
         axes = [sum([abs(int(orient[i, j] * j)) for j in range(3)]) for i in
                 range(2)]
         axes.append(3 - sum(axes))
-        if not col_first:
+        if col_first:
             return axes
         else:
             return [axes[1], axes[0], axes[2]]
@@ -1387,6 +1387,7 @@ class Image(skrt.core.Archive):
 
         # Get image slice
         idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
+        pos = self.idx_to_pos(idx, ax=_slice_axes[view])
         image_slice = self.get_slice(view, idx=idx, flatten=flatten)
 
         # Apply HU window if given
@@ -1406,10 +1407,10 @@ class Image(skrt.core.Archive):
         for roi in rois_to_plot:
 
             # Plot the ROI on same axes
-            if roi.on_slice(view, idx=idx):
+            if roi.on_slice(view, pos=pos):
                 roi.plot(
                     view,
-                    idx=idx,
+                    pos=pos,
                     ax=self.ax,
                     plot_type=roi_plot_type,
                     show=False,
@@ -2087,6 +2088,48 @@ class Image(skrt.core.Archive):
         image will not be cropped in that direction.
         """
 
+        lims = [xlim, ylim, zlim]
+        for i_ax, lim in enumerate(lims):
+
+            if lim is None:
+                continue
+
+            # Find array indices at which to crop
+            i1 = self.pos_to_idx(lims[i_ax][0], ax=i_ax, return_int=False)
+            i2 = self.pos_to_idx(lims[i_ax][1], ax=i_ax, return_int=False)
+            i_big, i_small = i2, i1
+            if i1 > i2:
+                i_big, i_small = i_small, i_big
+            i_small = int(np.floor(i_small + 0.5))
+            i_big = int(np.floor(i_big + 0.5))
+
+            # Ensure indices are within image range
+            if i_small < 0:
+                i_small = 0
+            if i_big > self.n_voxels[i_ax]:
+                i_big = self.n_voxels[i_ax]
+
+            # Crop the data array
+            ax_to_slice = self.get_axes().index(i_ax)
+            self.data = self.data.take(indices=range(i_small, i_big),
+                                       axis=ax_to_slice)
+
+            # Reset origin position
+            if self.image_extent[i_ax][1] > self.image_extent[i_ax][0]:
+                self.origin[i_ax] = self.idx_to_pos(i_small, ax=i_ax)
+            else:
+                self.origin[i_ax] = self.idx_to_pos(i_big, ax=i_ax)
+
+        # Reset image geometry
+        self.affine = None
+        self.set_geometry()
+
+    def crop_to_roi(self, roi, **kwargs):
+        """
+        Crop image to region covered by an ROI.
+        """
+        bounds = roi.get_extents(**kwargs)
+        self.crop(*bounds)
 
 
 class ImageComparison(Image):

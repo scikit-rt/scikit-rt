@@ -817,7 +817,6 @@ class ROI(skrt.core.Archive):
         else:
             return self.image.slice_to_idx(sl, ax)
 
-
     def pos_to_slice(self, pos, ax, return_int=True, standardise=True):
         """Convert a position in mm to a slice number along a given axis."""
 
@@ -1362,7 +1361,7 @@ class ROI(skrt.core.Archive):
                 vz = self.get_slice_thickness_contours()
                 z_max = max(z_keys) +  vz / 2
                 z_min = min(z_keys) - vz / 2
-                return z_min, z_max
+                return [z_min, z_max]
 
             # Otherwise, calculate extent from min/max contour positions 
             points = []
@@ -1380,7 +1379,7 @@ class ROI(skrt.core.Archive):
                     points.extend([p[i_ax] for p in contour])
 
             # Return min and max of the points in the contour(s)
-            return min(points), max(points)
+            return [min(points), max(points)]
 
         # Otherwise, get extent from mask
         self.create_mask()
@@ -3238,6 +3237,14 @@ class ROI(skrt.core.Archive):
             self.mask.transform(scale, translation, rotation,
                     centre, resample, restore, 0, fill_value)
             self.reset_mask()
+
+    def crop_to_roi(self, roi, **kwargs):
+        """
+        Crop ROI mask to region covered by an ROI.
+        """
+        self.create_mask()
+        self.mask.crop_to_roi(roi, **kwargs)
+        self.shape = self.mask.get_data().shape
 
 
 class StructureSet(skrt.core.Archive):
