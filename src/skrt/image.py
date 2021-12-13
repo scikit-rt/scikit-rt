@@ -1169,7 +1169,8 @@ class Image(skrt.core.Archive):
 
     def view(self, images=None, **kwargs):
         """View self with BetterViewer along with any additional images in 
-        <images>. Any \*\*kwargs will be passed to BetterViewer initialisation.
+        <images>. Any ``**kwargs`` will be passed to BetterViewer
+        initialisation.
         """
 
         from skrt.better_viewer import BetterViewer
