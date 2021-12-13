@@ -797,11 +797,14 @@ class Image(skrt.core.Archive):
             "mm"
         )
 
-    def get_min(self):
+    def get_min(self, force=False):
         """Get minimum greyscale value of data array."""
 
+        if not force and hasattr(self, "_min"):
+            return self._min
         self.load()
-        return self.data.min()
+        self._min = self.data.min()
+        return self._min
 
     def get_max(self):
         """Get maximum greyscale value of data array."""
@@ -1043,7 +1046,7 @@ class Image(skrt.core.Archive):
 
     def get_slice(
         self, view="x-y", sl=None, idx=None, pos=None, flatten=False, 
-        force=True, **kwargs
+        force=True, shift=[None, None, None], **kwargs
     ):
         """Get a slice of the data in the correct orientation for plotting. 
         If <sl>, <pos>, and <idx> are all None, the central slice of the image
@@ -1067,10 +1070,19 @@ class Image(skrt.core.Archive):
         flatten : bool, default=False
             If True, the image will be summed across all slices in the 
             orientation specified in <view>; <sl>/<idx>/<pos> will be ignored.
+
+        shift : list, default=[None, None, None]
+            Translational shift in order [dx, dy, dz] to apply before returning
+            slice.
         """
 
         # Get index
         idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
+
+        # Apply slice shift if requested
+        z_ax = _slice_axes[view]
+        if shift[z_ax] is not None:
+            idx += round(shift[z_ax] / self.voxel_size[z_ax])
 
         # Check whether index and view match cached slice
         if hasattr(self, "_current_slice") and not force and not flatten:
@@ -1082,6 +1094,24 @@ class Image(skrt.core.Archive):
         transpose = transposes[view]
         list(_plot_axes[view]) + [_slice_axes[view]]
         data = np.transpose(self.get_standardised_data(force=True), transpose)
+
+        # Apply shifts in plane if requested
+        x_ax, y_ax = _plot_axes[view]
+        if shift[x_ax]:
+            shift_x = round(shift[x_ax] / self.voxel_size[x_ax])
+            data = np.roll(data, shift_x, axis=1)
+            if shift_x > 0:
+                data[:, :shift_x] = self.get_min()
+            else:
+                data[:, shift_x:] = self.get_min()
+        if shift[y_ax]:
+            shift_y = round(shift[y_ax] / self.voxel_size[y_ax])
+            data = np.roll(data, shift_y, axis=0)
+            if shift_y > 0:
+                data[:shift_y, :] = self.get_min()
+            else:
+                data[shift_y:, :] = self.get_min()
+
         if flatten:
             return np.sum(data, axis=2)
         else:
@@ -1219,7 +1249,8 @@ class Image(skrt.core.Archive):
         flatten=False,
         xlim=None,
         ylim=None,
-        zlim=None
+        zlim=None,
+        shift=[None, None, None]
     ):
         """Plot a 2D slice of the image.
 
@@ -1388,7 +1419,8 @@ class Image(skrt.core.Archive):
         # Get image slice
         idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
         pos = self.idx_to_pos(idx, ax=_slice_axes[view])
-        image_slice = self.get_slice(view, idx=idx, flatten=flatten)
+        image_slice = self.get_slice(view, idx=idx, flatten=flatten, 
+                                     shift=shift)
 
         # Apply HU window if given
         if mpl_kwargs is None:

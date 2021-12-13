@@ -10,6 +10,7 @@ import pydicom
 
 from skrt.core import File
 from skrt.image import Image
+from skrt.simulation import SyntheticImage
 
 
 # Create fake data
@@ -671,3 +672,11 @@ def test_scale_and_rotation():
     # in at least some fraction of cases.
     for i in range(3):
         assert n_good[i] >= min_fraction_good
+
+def test_crop_to_roi():
+    sim = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5), noise_std=100)
+    roi = sim.add_cuboid((4, 2, 6), name="cuboid")
+    im = sim.get_image()
+    im.crop_to_roi(roi)
+    for i in range(2):
+        assert set(roi.get_extents()[i]) == set(im.image_extent[i])

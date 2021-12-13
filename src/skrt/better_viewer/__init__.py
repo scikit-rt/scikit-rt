@@ -267,13 +267,8 @@ class BetterViewer:
 
         translation : bool, default=False
             If True, widgets will be displayed allowing the user to apply a
-            translation to the image and write this to an elastix transform
-            file or plain text file.
-
-        translation_file_to_overwrite : str, default=None
-            If not None and the <translation> option is used, this parameter
-            will be used to populate the 'Original' and 'Output' file fields in
-            the translation user interface.
+            translation to the image. Note that this will not change the Image
+            object itself, only the image displayed in the viewer.
 
         show_mse : str, default=None
             Color for annotation of mean-squared-error if using comparison
@@ -742,8 +737,7 @@ class BetterViewer:
         ):
             comparison = True
         self.load_comparison(comparison)
-        self.translation = translation
-        self.tfile = translation_file_to_overwrite
+        self.translation = [None, None, None]
         self.show_mse = show_mse
         self.dta_tolerance = dta_tolerance
         self.dta_crit = dta_crit
@@ -974,14 +968,14 @@ class BetterViewer:
         # Make extra UI elements
         self.make_lower_ui(no_roi=no_roi)
         self.make_comparison_ui()
-        #  self.make_translation_ui()
+        self.make_translation_ui()
 
         # Assemble UI boxes
         main_and_extra_box = ipyw.HBox(
             [
                 ipyw.VBox(self.main_ui),
                 ipyw.VBox(self.extra_ui),
-                #  ipyw.VBox(self.trans_ui),
+                ipyw.VBox(self.translation_ui),
                 ipyw.VBox(self.comp_ui),
             ]
         )
@@ -996,7 +990,7 @@ class BetterViewer:
             + self.extra_ui
             + list(itertools.chain.from_iterable(self.per_image_ui))
             + self.comp_ui
-            #  + self.trans_ui
+            + self.translation_ui
             + self.ui_roi_checkboxes
             + [self.trigger]
         )
@@ -1084,95 +1078,55 @@ class BetterViewer:
 
     def make_translation_ui(self):
 
-        self.trans_ui = []
+        self.translation_ui = []
         if not self.translation:
             return
 
-        self.trans_viewer = self.viewers[int(self.n > 1)]
-        self.trans_ui.append(ipyw.HTML(value='<b>Translation:</b>'))
-
-        # Get input/output filenames
-        if self.tfile is None:
-            tfile = self.find_translation_file(self.trans_viewer.image)
-            self.has_translation_input = tfile is not None
-            if self.has_translation_input:
-                tfile_out = re.sub('.0.txt', '_custom.txt', tfile)
-            else:
-                tfile_out = 'translation.txt'
-        else:
-            tfile = self.tfile
-            tfile_out = self.tfile
-            self.has_translation_input = True
+        self.translation_viewer = self.viewers[int(self.n > 1)]
+        self.translation_ui.append(ipyw.HTML(value='<b>Translation:</b>'))
 
         # Make translation file UI
-        if self.has_translation_input:
-            self.translation_input = ipyw.Text(description='Original:', value=tfile)
-            self.trans_ui.append(self.translation_input)
-        self.translation_output = ipyw.Text(description='Save as:', value=tfile_out)
+        self.translation_output = ipyw.Text(description='Save as:',
+                                            value="translation.txt")
         self.tbutton = ipyw.Button(description='Write translation')
         self.tbutton.on_click(self.write_translation_to_file)
-        self.trans_ui.extend([self.translation_output, self.tbutton])
+        self.translation_ui.extend([self.translation_output, self.tbutton])
 
         # Make translation sliders
         self.tsliders = {}
-        for ax in _axes:
-            n = self.trans_viewer.image.n_voxels[ax]
-            self.tsliders[ax] = ipyw.IntSlider(
-                min=-n,
-                max=n,
+        for i, ax in enumerate(_axes):
+            vx = abs(self.translation_viewer.image.voxel_size[i])
+            n = self.translation_viewer.image.n_voxels[i]
+            self.tsliders[ax] = ipyw.FloatSlider(
+                min=-n * vx,
+                max=n * vx,
                 value=0,
-                description=f'{ax} (0 mm)',
+                description=f'{ax} (mm)',
                 continuous_update=False,
-                #  style=_style
+                step=vx,
+                style=_style
             )
-            self.trans_ui.append(self.tsliders[ax])
-        self.current_trans = {ax: slider.value for ax, slider in self.tsliders.items()}
-
-    def find_translation_file(self, image):
-        '''Find an elastix translation file inside the directory of an image.'''
-
-        if not hasattr(image, 'path'):
-            return
-        indir = os.path.dirname(image.path)
-        tfile = indir + '/TransformParameters.0.txt'
-        if os.path.isfile(tfile):
-            return tfile
+            self.translation_ui.append(self.tsliders[ax])
+        self.translation_viewer.shift = [self.tsliders[ax].value for ax in _axes]
 
     def write_translation_to_file(self, _):
         '''Write current translation to file.'''
 
-        input_file = (
-            self.translation_input.value if self.has_translation_input else None
-        )
-        if input_file == '':
-            input_file = None
         output_file = self.translation_output.value
-        translations = {
-            f'd{ax}': -self.tsliders[ax].value
-            * abs(self.trans_viewer.image.voxel_sizes[ax])
-            for ax in self.tsliders
-        }
-        write_translation_to_file(output_file, input_file=input_file, **translations)
+        out_text = ''.join(f'{ax} {self.tsliders[ax].value}\n' for ax in _axes)
+        outfile = open(output_file, 'w')
+        outfile.write(out_text)
+        outfile.close()
+        print('Wrote translation to file:', output_file)
 
     def apply_translation(self):
         '''Update the description of translation sliders to show translation
         in mm if the translation is changed.'''
 
-        new_trans = {ax: slider.value for ax, slider in self.tsliders.items()}
-        if new_trans == self.current_trans:
+        new_shift = [self.tsliders[ax].value for ax in _axes]
+        if new_shift == self.translation_viewer.shift:
             return
-
-        # Set shift for image
-        self.current_trans = new_trans
-        self.trans_viewer.image.set_shift(
-            self.current_trans['x'], self.current_trans['y'], self.current_trans['z']
-        )
-
-        # Adjust descriptions
-        for ax, slider in self.tsliders.items():
-            slider.description = '{} ({:.0f} mm)'.format(
-                ax, self.trans_viewer.image.shift_mm[ax]
-            )
+        self.translation_viewer.shift = new_shift
 
     def set_slider_widths(self):
         '''Adjust widths of slider UI.'''
@@ -1358,8 +1312,8 @@ class BetterViewer:
                 v.jump_to_roi()
 
         # Apply any translations
-        #  if self.translation:
-            #  self.apply_translation()
+        if self.translation:
+            self.apply_translation()
 
         # Reset figure
         self.make_fig()
@@ -1586,6 +1540,7 @@ class SingleViewer:
         self.ticks_all_sides = ticks_all_sides
         self.no_axis_labels = no_axis_labels
         self.legend_loc = legend_loc
+        self.shift = [None, None, None]
 
         # ROI settings
         self.roi_plot_type = roi_plot_type
@@ -2294,7 +2249,8 @@ class SingleViewer:
             roi_plot_type=self.roi_plot_type,
             roi_kwargs=roi_kwargs,
             legend=self.roi_legend,
-            centre_on_roi=self.init_roi
+            centre_on_roi=self.init_roi,
+            shift=self.shift
         )
         self.plotting = False
         self.colorbar_drawn = True
