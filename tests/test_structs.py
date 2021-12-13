@@ -474,3 +474,16 @@ def test_structure_set_rotation():
                         rotated_centroid[i], abs=precision)
                 assert roi2.get_centroid()[i] == pytest.approx(
                         rotated_centroid[i], abs=precision)
+
+def test_get_extent():
+    sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
+    roi = sim.add_cuboid((4, 2, 6), name="cube")
+    ext = roi.get_extents()
+    assert ext[0] == [3, 7]
+    assert ext[1] == [4, 6]
+    assert ext[2] == [2, 8]
+    ext = roi.get_extents(buffer=2)
+    assert ext[0] == [1, 9]
+    assert ext[1] == [2, 8]
+    assert ext[2] == [0, 10]
+

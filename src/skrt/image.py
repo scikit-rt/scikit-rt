@@ -2081,6 +2081,12 @@ class Image(skrt.core.Archive):
         same *= vx1 == vx2
         return same
 
+    def crop(self, xlim=None, ylim=None, zlim=None):
+        """
+        Crop the image to a given x, y, z range in mm. If any are None, the 
+        image will not be cropped in that direction.
+        """
+
 
 
 class ImageComparison(Image):

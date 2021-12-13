@@ -282,6 +282,8 @@ class SyntheticImage(Image):
 
         self.min_hu = min([shape.intensity, self.min_hu])
         self.max_hu = max([shape.intensity, self.max_hu])
+        if is_roi:
+            return self.rois[shape.name]
 
     def add_sphere(
         self,
@@ -297,7 +299,7 @@ class SyntheticImage(Image):
         if centre is None:
             centre = self.get_centre()
         sphere = Sphere(self.shape, radius, centre, intensity, name)
-        self.add_shape(sphere, "sphere", is_roi, above, group)
+        return self.add_shape(sphere, "sphere", is_roi, above, group)
 
     def add_cylinder(
         self,
@@ -315,7 +317,7 @@ class SyntheticImage(Image):
         if centre is None:
             centre = self.get_centre()
         cylinder = Cylinder(self.shape, radius, length, axis, centre, intensity, name)
-        self.add_shape(cylinder, "cylinder", is_roi, above, group)
+        return self.add_shape(cylinder, "cylinder", is_roi, above, group)
 
     def add_cube(
         self,
@@ -328,7 +330,7 @@ class SyntheticImage(Image):
         group=None,
     ):
 
-        self.add_cuboid(
+        return self.add_cuboid(
             side_length, centre, intensity, is_roi, name, above, group=group
         )
 
@@ -348,7 +350,7 @@ class SyntheticImage(Image):
         side_length = skrt.core.to_list(side_length)
 
         cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
-        self.add_shape(cuboid, "cuboid", is_roi, above, group)
+        return self.add_shape(cuboid, "cuboid", is_roi, above, group)
 
     def add_grid(
         self, spacing, thickness=1, intensity=0, axis=None, name=None, above=True,

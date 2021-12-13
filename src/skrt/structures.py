@@ -733,7 +733,7 @@ class ROI(skrt.core.Archive):
 
         # Else, try to calculate from own geomtric properties
         else:
-            i_ax = skrt.image._axes.index(ax) if ax in _axes else ax
+            i_ax = skrt.image._axes.index(ax) if ax in skrt.image._axes else ax
             return self.origin[i_ax] + idx * self.voxel_size[i_ax]
 
     def pos_to_idx(self, pos, ax, return_int=True, **kwargs):
@@ -772,7 +772,7 @@ class ROI(skrt.core.Archive):
 
         # Else, try to calculate from own geomtric properties
         else:
-            i_ax = skrt.image._axes.index(ax) if ax in _axes else ax
+            i_ax = skrt.image._axes.index(ax) if ax in skrt.image._axes else ax
             idx = (pos - self.origin[i_ax]) / self.voxel_size[i_ax]
             if return_int:
                 return round(idx)
@@ -1245,6 +1245,53 @@ class ROI(skrt.core.Archive):
             area *= xy_area
         return area
 
+    def get_extents(self, buffer=None, buffer_units="mm", method=None):
+        """
+        Get minimum and maximum extent of the ROI in mm along all three axes,
+        returned in order [x, y, z]. Optionally apply a buffer to the extents
+        such that they cover more than the ROI's area.
+
+        **Parameters:**
+
+        buffer : float, default=None
+            Optional buffer to add to the extents. Units set by `buffer_units`.
+
+        buffer_units : str, default="mm"
+            Units for buffer, if using. Can be "mm", "voxels", or "frac" (which
+            applies buffer as a fraction of total length in each dimension).
+
+        method : str, default=None
+            Method to use for extent calculation. Can be: 
+
+                * "contour": get extent from min/max positions of contour(s).
+                * "mask": get extent from min/max positions of voxels in the 
+                  binary mask.
+                * None: use the method set in self.default_geom_method.
+        """
+
+        # Get extent in each direction
+        extents = []
+        for ax in skrt.image._axes:
+            extents.append(self.get_extent(ax, method=method))
+
+        # Apply buffer if requested
+        if buffer:
+            for ax in range(3):
+                if buffer_units == "mm":
+                    delta = buffer
+                elif buffer_units == "voxels":
+                    delta = abs(buffer * self.voxel_size[ax])
+                elif buffer_units == "frac":
+                    delta = buffer * abs(extents[ax][1] - extents[ax][0])
+                else:
+                    print(f"Unrecognised buffer units {buffer_units}. Should "
+                          'be "mm", "voxels", or "frac".')
+                    return
+                extents[ax][0] -= delta
+                extents[ax][1] += delta
+
+        return extents
+
     def get_extent(self, 
                    ax="z", 
                    single_slice=False,
@@ -1282,7 +1329,7 @@ class ROI(skrt.core.Archive):
             <single_slice> is True, the central slice of the ROI will be used.
 
         method : str, default=None
-            Method to use for length calculation. Can be: 
+            Method to use for extent calculation. Can be: 
 
                 * "contour": get extent from min/max positions of contour(s).
                 * "mask": get extent from min/max positions of voxels in the 
@@ -1354,7 +1401,7 @@ class ROI(skrt.core.Archive):
         max_pos = max(vals) + 0.5
 
         # Convert positions to mm
-        return self.idx_to_pos(min_pos, ax), self.idx_to_pos(max_pos, ax)
+        return [self.idx_to_pos(min_pos, ax), self.idx_to_pos(max_pos, ax)]
 
     def get_length(
         self, 
