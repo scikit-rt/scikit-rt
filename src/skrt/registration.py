@@ -27,8 +27,8 @@ class Registration(Data):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
-        Parameters
-        ----------
+        **Parameters:**
+
         path : str
             Path to directory where the data for this image registration is
             stored. Can either be a non-existing directory, in which case 
@@ -108,8 +108,8 @@ class Registration(Data):
     def set_image(self, im, category, force=True):
         """Assign a fixed or moving image.
 
-        Parameters
-        ----------
+        **Parameters:**
+
         im : Image/str
             The Image object to set, or a path that can be used to intialise
             an Image object.
@@ -321,8 +321,8 @@ class Registration(Data):
         use_previous_tfile=True, any prior steps that have not yet been
         run will be run.
 
-        Parameters
-        ----------
+        **Parameters:**
+
         step : int/str/list, default=None
             Name, number, or list of the step(s) for which the registration 
             should be performed. By default, registration will be performed 
@@ -366,8 +366,8 @@ class Registration(Data):
         """Run a single registration step. Note that if use_previous_tfile=True, 
         any prior steps that have not yet been run will be run.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         step : int/str/list, default=None
             Name or number of the step for which the registration should be 
             performed. Available steps are listed in self.steps.
@@ -428,12 +428,18 @@ class Registration(Data):
         return step in self.tfiles and os.path.exists(self.tfiles[step])
 
     def transform(self, to_transform, **kwargs):
-        """Call one of the transform functions, depending on the type of 
-        <to_transform>. Functions called depending on type are:
-            - Image: transform_image(to_transform, **kwargs)
-            - str: transform_nifti(to_transform, **kwargs)
-            - StructureSet: transform_structure_set(to_transform, **kwargs)
-            - ROI: transform_roi(to_transform, **kwargs)
+        """
+        Call one of the transform functions, depending on the type of 
+        `to_transform`. Functions called depending on type are:
+
+        Image: 
+            transform_image(to_transform, **kwargs)
+        str: 
+            transform_nifti(to_transform, **kwargs)
+        StructureSet: 
+            transform_structure_set(to_transform, **kwargs)
+        ROI: 
+            transform_roi(to_transform, **kwargs)
         """
 
         if issubclass(type(to_transform), Image):
@@ -449,14 +455,15 @@ class Registration(Data):
 
     def transform_image(self, im, step=-1, outfile=None, params=None,
                         rois=None):
-        """Transform an image using the output transform from a given
+        """
+        Transform an image using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
         will be run. Either return the transformed image or write it to 
         a file.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         im : Image/str
             Image to be transformed. Can be either an Image object or a 
             path that can be used to initialise an Image object.
@@ -566,8 +573,8 @@ class Registration(Data):
         step has not yet been performed, the step and all preceding steps 
         will be run. Either return the transformed ROI or write it to a file.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         roi : ROI/str
             ROI to be transformed. Can be either an ROI object or a 
             path that can be used to initialise an ROI object.
@@ -630,8 +637,8 @@ class Registration(Data):
         step has not yet been performed, the step and all preceding steps 
         will be run. Either return the transformed ROI or write it to a file.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         structure_set : StructureSet/str
             StructureSet to be transformed. Can be either a StructureSet 
             object or a path that can be used to initialise a StructureSet.
@@ -722,11 +729,12 @@ class Registration(Data):
         BetterViewer([self.fixed_image, self.moving_image], **kwargs)
 
     def view_result(self, step=-1, compare_with_fixed=True, **kwargs):
-        """Interactively view transformed image, optionally side-by-side
+        """
+        Interactively view transformed image, optionally side-by-side
         with fixed image.
 
-        Parameters
-        ----------
+        **Parameters:**
+        
         step : int/str, default=-1
             Name or number of step for which to view the result. By default,
             the result of the final step will be shown.
@@ -735,7 +743,7 @@ class Registration(Data):
             If True, the result will be displayed in comparison with the
             fixed image.
 
-        **kwargs :
+        `**`kwargs :
             Optional keyword arguments to pass to BetterViewer.
         """
 
@@ -780,8 +788,8 @@ def adjust_parameters(infile, outfile, params):
     output transform files), adjust its parameters, and save it to a new 
     file.
 
-    Parameters
-    ----------
+    **Parameters:**
+    
     file : str
         Path to an elastix parameter file.
 
