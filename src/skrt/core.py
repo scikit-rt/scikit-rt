@@ -2,13 +2,14 @@
 
 import copy
 import functools
-import numpy as np
 import os
+import re
 import time
-import pydicom
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 
+import numpy as np
+import pydicom
 
 class Defaults:
     """
@@ -44,8 +45,8 @@ class Defaults:
         """
         Constructor of Defaults singleton class.
 
-        Parameters
-        ----------
+        **Parameters:**
+
         opts: dict, default={}
             Dictionary of attribute-value pairs.
 
@@ -114,13 +115,13 @@ class Data:
         Constructor of Data class, allowing initialisation of an
         arbitrary set of attributes.
 
-        Parameters
-        ----------
+        **Parameters:**
+
         opts: dict, default={}
             Dictionary to be used in setting instance attributes
             (dictionary keys) and their initial values.
 
-        **kwargs
+        ``**``kwargs
             Keyword-value pairs to be used in setting instance attributes
             and their initial values.
         """
@@ -135,8 +136,7 @@ class Data:
         """
         Create string recursively listing attributes and values.
 
-        Parameters
-        ----------
+        **Parameters:**
 
         depth: integer/None, default=None
             Depth to which recursion is performed.
@@ -159,7 +159,7 @@ class Data:
         # by 1, or (depth less than 1) is the class representation.
         for key in sorted(self.__dict__):
 
-            # Ignore private attributes 
+            # Ignore private attributes
             if key.startswith("_"):
                 continue
 
@@ -228,31 +228,31 @@ class Data:
         out.append("}")
         return "\n".join(out)
 
-    def clone(self, data_types_to_copy=None, copy_data=True):
+    def clone(self, **kwargs):
         """
         Return a clone of the Data object. All attributes of the original
-        object will be copied by reference to the new object, with some 
+        object will be copied by reference to the new object, with some
         exceptions (see parameters below).
 
 
-        Parameters
-        ----------
+        **Parameters:**
+
         data_types_to_copy : list, default=None
             List of types inherting from the Data class.
-            Any objects of the types in this list that are either directly 
-            stored as an attribute or stored in a list or dict attribute will 
-            be cloned, rather than assigning the same object as to an 
+            Any objects of the types in this list that are either directly
+            stored as an attribute or stored in a list or dict attribute will
+            be cloned, rather than assigning the same object as to an
             attribute of the cloned parent object.
-            (Note that these child Data object will be copied with 
+            (Note that these child Data object will be copied with
             data_types_to_copy=None to prevent recursion.)
 
         copy_data : bool, default=True
-            If True, any lists, dicts, and numpy arrays will be shallow 
+            If True, any lists, dicts, and numpy arrays will be shallow
             copied rather than copied by reference.
         """
 
         clone = copy.copy(self)
-        self.clone_attrs(clone, data_types_to_copy, copy_data)
+        self.clone_attrs(clone, **kwargs)
         return clone
 
     def clone_attrs(self, obj, data_types_to_copy=None, copy_data=True):
@@ -260,22 +260,22 @@ class Data:
         Assign all attributes of <self> to another object, <obj>.
 
 
-        Parameters
-        ----------
+        **Parameters:**
+
         obj : object
             Object to which attributes of <self> will be copied.
 
         data_types_to_copy : list, default=None
             List of types inherting from the Data class.
-            Any objects of the types in this list that are either directly 
-            stored as an attribute or stored in a list or dict attribute will 
-            be cloned, rather than assigning the same object as to an 
+            Any objects of the types in this list that are either directly
+            stored as an attribute or stored in a list or dict attribute will
+            be cloned, rather than assigning the same object as to an
             attribute of the cloned parent object.
-            (Note that these child Data object will be copied with 
+            (Note that these child Data object will be copied with
             data_types_to_copy=None to prevent recursion.)
 
         copy_data : bool, default=True
-            If True, any lists, dicts, and numpy arrays will be shallow 
+            If True, any lists, dicts, and numpy arrays will be shallow
             copied rather than copied by reference.
         """
 
@@ -299,7 +299,7 @@ class Data:
             attr = getattr(self, attr_name)
             if callable(attr):
                 continue
-            
+
             # Make new copy of lists/dicts/arrays
             if copy_data and type(attr) in [dict, list, np.ndarray]:
                 setattr(obj, attr_name, copy.copy(attr))
@@ -309,13 +309,13 @@ class Data:
                     for i, item in enumerate(attr):
                         for dtype in dtypes_valid:
                             if isinstance(item, dtype):
-                                getattr(obj, attr_name)[i] = item.clone() 
+                                getattr(obj, attr_name)[i] = item.clone()
                                 break
                 elif isinstance(attr, dict):
                     for key, item in attr.items():
                         for dtype in dtypes_valid:
                             if isinstance(item, dtype):
-                                getattr(obj, attr_name)[key] = item.clone() 
+                                getattr(obj, attr_name)[key] = item.clone()
                                 break
 
             # Clone any owned Data objects if cloning children
@@ -338,11 +338,11 @@ class Data:
         """
 
         objects = {}
-        for key in self.__dict__:
+        for key, value in self.__dict__.items():
             try:
-                objects[key] = self.__dict__[key].get_dict()
+                objects[key] = value.get_dict()
             except AttributeError:
-                objects[key] = self.__dict__[key]
+                objects[key] = value
 
         return objects
 
@@ -362,8 +362,7 @@ class Data:
         object attributes and values, with recursion
         to a specified depth.
 
-        Parameters
-        ----------
+        **Parameters:**
 
         depth: integer/None, default=None
             Depth to which recursion is performed.
@@ -377,8 +376,7 @@ class Data:
         """
         Set the object's print depth.
 
-        Parameters
-        ----------
+        **Parameters:**
 
         depth: integer/None, default=None
             Depth to which recursion is performed.
@@ -399,9 +397,9 @@ class PathData(Data):
         self.path = fullpath(path)
         self.subdir = ""
 
-    def get_dated_objects(self, 
-                          dtype: type, 
-                          subdir: str = "", 
+    def get_dated_objects(self,
+                          dtype: type,
+                          subdir: str = "",
                           **kwargs) -> List[Any]:
         """Create list of objects of a given type, <dtype>, inside own
         directory, or inside own directory + <subdir> if given."""
@@ -434,8 +432,8 @@ class Dated(PathData):
 
     def __init__(self, path: str = "", auto_timestamp=False):
         """
-        Initialise dated object from a path and assign its timestamp. If 
-        no valid timestamp is found within the path string, it will be set 
+        Initialise dated object from a path and assign its timestamp. If
+        no valid timestamp is found within the path string, it will be set
         automatically from the current date and time if auto_timestamp is True.
         """
 
@@ -465,8 +463,8 @@ class Dated(PathData):
         else:
             self.timestamp = f"{self.date}_{self.time}"
 
-    def in_date_interval(self, 
-                         min_date: Optional[str] = None, 
+    def in_date_interval(self,
+                         min_date: Optional[str] = None,
                          max_date: Optional[str] = None) -> bool:
         """Check whether own date falls within an interval."""
 
@@ -573,8 +571,6 @@ def alphanumeric(in_str: str = "") -> List[str]:
     """Function that can be passed as value for list sort() method
     to have alphanumeric (natural) sorting"""
 
-    import re
-
     elements = []
     for substr in re.split("(-*[0-9]+)", in_str):
         try:
@@ -600,10 +596,11 @@ def get_logger(name="", log_level=None):
     """
     Retrieve named event logger.
 
-    Parameters
-    ----------
+    **Parameters:**
+
     name: string, default=""
         Name of logger (see documentation of logging module)
+
     log_level: string/integer/None, default=None
         Severity level for event logging.  If the value is None,
         log_level is set to the value of Defaults().log_level.
@@ -660,10 +657,10 @@ def is_timestamp(string: str = "") -> bool:
                 valid = False
                 break
         if valid:
-            if type(Defaults().len_date) == int:
+            if isinstance(Defaults().len_date, int):
                 if len(items[0]) != Defaults().len_date:
                     valid = False
-            if type(Defaults().len_time) == int:
+            if isinstance(Defaults().len_time, int):
                 if len(items[1]) != Defaults().len_time:
                     valid = False
 
@@ -689,8 +686,7 @@ def to_list(val: Any, n : int = 3, keep_none_single : bool = True) -> Optional[L
         if not len(val) == n:
             print(f"Warning: {val} should be a list containing {n} items!")
         return list(val)
-    elif not is_list(val):
-        return [val] * n
+    return [val] * n
 
 
 def generate_timestamp() -> str:
