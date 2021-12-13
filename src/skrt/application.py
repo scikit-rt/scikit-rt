@@ -62,8 +62,6 @@ class Algorithm():
         # Initialise algorithm attributes.
         self.set_attributes(opts)
 
-        return None
-
     def execute(self, patient=None):
         '''
         Perform tasks required for each patient.
@@ -73,6 +71,10 @@ class Algorithm():
         patient: skrt.patient.Patient/None, default=None
             Object providing access to patient information.
         '''
+
+        # Print patient identifier and path
+        print(f'{patient.id}: {patient.path}')
+
         return self.status
 
     def finalise(self):
@@ -98,7 +100,6 @@ class Algorithm():
         '''
         for key in opts:
             setattr(self, key, opts[key])
-        return None
 
 class Application():
     '''
@@ -196,8 +197,8 @@ class Application():
         if self.status.ok():
             if not paths:
                 self.logger.warning('List of paths to patient data is empty')
-            for dataPath in paths:
-                patient = Patient(path=dataPath)
+            for data_path in paths:
+                patient = Patient(path=data_path)
                 self.status = self.execute(patient=patient)
                 if not self.status.ok():
                     break
@@ -239,7 +240,6 @@ class Status():
         self.code = code
         self.name = name
         self.reason = reason
-        return None
 
     def ok(self):
         '''
