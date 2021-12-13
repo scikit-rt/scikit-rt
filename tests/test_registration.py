@@ -5,7 +5,7 @@ import shutil
 import pytest
 
 from skrt.simulation import SyntheticImage
-from skrt.reg2 import Registration
+from skrt.registration import Registration
 
 
 # Directory to store test registration data
@@ -105,7 +105,7 @@ def test_adjust_parameters():
     pfile = "pfiles/MI_Translation.txt"
     init_text = open(pfile).read()
     assert "(DefaultPixelValue 0)" in init_text
-    from skrt.reg2 import adjust_parameters
+    from skrt.registration import adjust_parameters
     new_file = "tmp/tmp_pfile.txt"
     adjust_parameters(pfile, new_file, {"DefaultPixelValue": 10})
     assert os.path.exists(new_file)
