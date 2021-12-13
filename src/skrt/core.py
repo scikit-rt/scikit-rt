@@ -2,13 +2,14 @@
 
 import copy
 import functools
-import numpy as np
 import os
+import re
 import time
-import pydicom
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 
+import numpy as np
+import pydicom
 
 class Defaults:
     """
@@ -337,11 +338,11 @@ class Data:
         """
 
         objects = {}
-        for key in self.__dict__:
+        for key, value in self.__dict__.items():
             try:
-                objects[key] = self.__dict__[key].get_dict()
+                objects[key] = value.get_dict()
             except AttributeError:
-                objects[key] = self.__dict__[key]
+                objects[key] = value
 
         return objects
 
@@ -570,8 +571,6 @@ def alphanumeric(in_str: str = "") -> List[str]:
     """Function that can be passed as value for list sort() method
     to have alphanumeric (natural) sorting"""
 
-    import re
-
     elements = []
     for substr in re.split("(-*[0-9]+)", in_str):
         try:
@@ -687,8 +686,7 @@ def to_list(val: Any, n : int = 3, keep_none_single : bool = True) -> Optional[L
         if not len(val) == n:
             print(f"Warning: {val} should be a list containing {n} items!")
         return list(val)
-    elif not is_list(val):
-        return [val] * n
+    return [val] * n
 
 
 def generate_timestamp() -> str:
