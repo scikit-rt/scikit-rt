@@ -746,6 +746,7 @@ class BetterViewer:
         self.zoom = kwargs.get('zoom', None)
         self.plots_per_row = plots_per_row
         self.suptitle = suptitle
+        self.custom_ax_lims = {view: [None, None] for view in _plot_axes}
         self.match_axes(match_axes)
         self.in_notebook = in_notebook()
         self.saved = False
@@ -831,15 +832,16 @@ class BetterViewer:
             return
 
         # Match axes in all orientations
+        all_ax_lims = {}
         for view in _slice_axes:
 
             # Calculate limits using all plots
-            z = _slice_axes[view]
+            ax_lims = []
             if match_axes in ['all', 'both', 'x', 'y', 'overlap']:
-                for i in range(2):
-                    min_lims = [v.image.plot_extent[z][i]
+                for i_ax in _plot_axes[view]:
+                    min_lims = [v.image.image_extent[i_ax][0]
                                 for v in self.viewers]
-                    max_lims = [v.image.plot_extent[z][i + 2]
+                    max_lims = [v.image.image_extent[i_ax][1]
                                 for v in self.viewers]
                     f1, f2 = min, max
                     if match_axes == 'overlap':
@@ -852,20 +854,22 @@ class BetterViewer:
             else:
                 try:
                     im = self.viewers[match_axes].image
-                    ax_lims = im.ax_lims[view]
+                    for i_ax in _plot_axes[view]:
+                        ax_lims.append(im.plot_extent[i_ax])
 
                 except TypeError:
-                    raise TypeError('Unrecognised option for <match_axes>', match_axes)
+                    raise TypeError('Unrecognised option for <match_axes>', 
+                                    match_axes)
 
-            # Set these limits for all plots
-            all_ims = [v.image for v in self.viewers] + [
-                c for c in self.comparison.values()
-            ]
-            for im in all_ims:
+            all_ax_lims[view] = ax_lims
+
+        # Set these limits for all viewers and self
+        for v in [self] + self.viewers:
+            for view in all_ax_lims:
                 if match_axes != 'y':
-                    im.ax_lims[view][0] = ax_lims[0]
+                    v.custom_ax_lims[view][0] = all_ax_lims[view][0]
                 if match_axes != 'x':
-                    im.ax_lims[view][1] = ax_lims[1]
+                    v.custom_ax_lims[view][1] = all_ax_lims[view][1]
 
     def make_ui(self, no_roi=False, no_hu=False):
 
@@ -1393,6 +1397,8 @@ class BetterViewer:
                     diff_crit=self.diff_crit,
                     show=False,
                     use_cached_slices=(not self.comparison_only),
+                    xlim=self.custom_ax_lims[self.viewers[0].view][0],
+                    ylim=self.custom_ax_lims[self.viewers[0].view][1],
                 )
 
         if self.suptitle is not None:
@@ -1549,7 +1555,11 @@ class SingleViewer:
         self.plotting = False
         self.callbacks_set = False
         self.standalone = standalone
-        self.custom_ax_lims = xlim, ylim, xlim
+        self.custom_ax_lims = {
+            'x-y': [xlim, ylim],
+            'y-z': [zlim, ylim],
+            'x-z': [zlim, xlim]
+        }
         self.zoom = zoom
         self.zoom_centre = zoom_centre
         self.zoom_ui = zoom_ui
@@ -2261,8 +2271,8 @@ class SingleViewer:
             ticks_all_sides=self.ticks_all_sides,
             no_axis_labels=self.no_axis_labels,
             show=False,
-            xlim=self.custom_ax_lims[_plot_axes[self.view][0]],
-            ylim=self.custom_ax_lims[_plot_axes[self.view][1]],
+            xlim=self.custom_ax_lims[self.view][0],
+            ylim=self.custom_ax_lims[self.view][1],
             title=self.title,
             rois=rois_to_plot,
             roi_plot_type=self.roi_plot_type,

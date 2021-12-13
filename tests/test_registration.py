@@ -35,7 +35,7 @@ def test_init_with_pfiles():
     """Test creation of a new Registration object with images and parameter
     files."""
 
-    pfiles =  ["pfiles/MI_Translation.txt", "pfiles/MSD_Rigid.txt"]
+    pfiles =  ["pfiles/MI_Translation.txt", "pfiles/MI_Affine.txt"]
     reg = Registration(reg_dir, im1, im2, pfiles=pfiles, overwrite=True)
     assert len(reg.steps) == len(pfiles)
     assert os.path.isfile(reg.steps_file)
@@ -116,7 +116,7 @@ def test_adjust_parameters():
 def test_run_registration():
     """Test running of a multi-step registration."""
 
-    pfiles = ["pfiles/MI_Translation.txt", "pfiles/MSD_Rigid.txt"]
+    pfiles = ["pfiles/MI_Translation.txt", "pfiles/MI_Affine.txt"]
     reg = Registration(
         reg_dir, 
         overwrite=True, 
@@ -149,14 +149,14 @@ def test_transform_image():
 
     reg = Registration(reg_dir)
     sim3 = SyntheticImage(sim2.shape)
-    sim4 = reg.transform_image(sim3)
+    sim4 = reg.transform(sim3)
     assert sim4.get_standardised_data().shape \
             != sim3.get_standardised_data().shape
     assert sim4.get_standardised_data().shape \
             == sim1.get_standardised_data().shape
 
     # Test transforming with an earlier step
-    sim5 = reg.transform_image(sim3, step=0)
+    sim5 = reg.transform(sim3, step=0)
     assert not(np.all(sim5.get_standardised_data() 
                       == sim4.get_standardised_data()))
     assert sim5.get_standardised_data().shape \
@@ -169,7 +169,17 @@ def test_transform_roi():
     sim3 = SyntheticImage(sim2.shape)
     sim3.add_cube(4, name="cube")
     roi = sim3.get_roi("cube")
-    roi2 = reg.transform_roi(roi)
-    assert roi.get_contours() != roi2.get_contours()
-    assert roi.get_mask().get_standardised_data().shape \
-            == sim1.get_standardised_data().shape
+    roi2 = reg.transform(roi)
+    assert roi2.get_contours() != roi.get_contours()
+    assert roi2.get_mask(standardise=True).shape \
+            == sim1.get_data(standardise=True).shape
+
+def test_transform_structure_set():
+
+    reg = Registration(reg_dir)
+    sim3 = SyntheticImage(sim2.shape)
+    sim3.add_cube(4, name="cube")
+    sim3.add_sphere(2, name="sphere")
+    ss = reg.transform(sim3.get_structure_set())
+    assert len(ss.rois) == len(sim3.get_structure_set().rois)
+

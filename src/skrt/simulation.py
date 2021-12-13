@@ -100,13 +100,14 @@ class SyntheticImage(Image):
         """Update self.data so that it contains all current shapes."""
 
         # Get background array
-        data = self.get_background(force=force_bkg).copy()
+        data = self.get_background(with_noise=False).copy()
 
         # Add shapes
         for shape in self.shapes:
             data[shape.get_data(self.get_coords())] = shape.intensity
 
-        # Recreate image with current data
+        # Apply noise
+        data = self.apply_noise(data)
         self.data = data
 
         # Assign structure set
@@ -119,26 +120,26 @@ class SyntheticImage(Image):
         self.update()
         return Image(self)
 
-    def get_data(self):
+    def get_data(self, **kwargs):
         """Get Image data."""
 
         self.update()
-        return Image.get_data(self)
+        return Image.get_data(self, **kwargs)
 
     def plot(self, **kwargs):
         """Plot the current image with ROIs overlaid."""
 
         self.update()
         self.update_rois()
-        Image.plot(self, rois=-1, **kwargs)
+        kwargs.setdefault("rois", -1)
+        Image.plot(self, **kwargs)
 
     def view(self, **kwargs):
         """View the current image with QuickViewer."""
 
         from skrt.better_viewer import BetterViewer
-        return BetterViewer(self.get_image(), 
-                            rois=self.get_structure_set(), 
-                            **kwargs)
+        kwargs.setdefault("rois", self.get_structure_set())
+        return BetterViewer(self.get_image(), **kwargs)
 
     def get_roi_data(self):
         """Get dict of ROIs and names with any transformations applied."""
@@ -210,17 +211,20 @@ class SyntheticImage(Image):
         structure_set.write(outdir=outdir, ext=ext_to_use, 
                             overwrite=overwrite_roi_dir)
 
-    def get_background(self, force=False):
+    def get_background(self, with_noise=True, force=False):
         """Make blank image array or noisy array."""
 
-        if hasattr(self, "background") and not force:
-            return self.background
-
         bkg = np.ones(self.shape) * self.bg_intensity
-        if self.noise_std is not None:
-            bkg += np.random.normal(0, self.noise_std, self.shape)
-        self.background = bkg
+        if with_noise:
+            bkg = self.apply_noise(bkg)
         return bkg
+
+    def apply_noise(self, array):
+        """Apply background noise to an array."""
+
+        if self.noise_std is not None:
+            array += np.random.normal(0, self.noise_std, array.shape)
+        return array
 
     def set_noise_std(self, std):
 

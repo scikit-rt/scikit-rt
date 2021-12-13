@@ -960,12 +960,12 @@ class Image(skrt.core.Archive):
                     shape=self.data.shape
                 )
 
-        # Set number of voxels
-        self.n_voxels = [self.data.shape[1], self.data.shape[0],
-                         self.data.shape[2]]
+        # Set number of voxels in [x, y, z] directions
+        self.standardise_data()
+        self.n_voxels = [self._sdata.shape[1], self._sdata.shape[0],
+                         self._sdata.shape[2]]
 
         # Set axis limits for standardised plotting
-        self.standardise_data()
         self.lims = [
             (
                 self._sorigin[i],
@@ -984,6 +984,7 @@ class Image(skrt.core.Archive):
             view: self.image_extent[x_ax] + self.image_extent[y_ax][::-1]
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
+
 
     def get_length(self, ax):
         """Get image length along a given axis.

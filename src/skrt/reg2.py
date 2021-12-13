@@ -360,7 +360,7 @@ class Registration(Data):
 
         # Run registration for each step
         for step in steps:
-            self.register_step(step, force=True, use_previous_tfile=True)
+            self.register_step(step, force=force, use_previous_tfile=True)
 
     def register_step(self, step, force=False, use_previous_tfile=True):
         """Run a single registration step. Note that if use_previous_tfile=True, 
@@ -427,7 +427,28 @@ class Registration(Data):
             step = self.steps[step]
         return step in self.tfiles and os.path.exists(self.tfiles[step])
 
-    def transform_image(self, im, step=-1, outfile=None, params=None):
+    def transform(self, to_transform, **kwargs):
+        """Call one of the transform functions, depending on the type of 
+        <to_transform>. Functions called depending on type are:
+            - Image: transform_image(to_transform, **kwargs)
+            - str: transform_nifti(to_transform, **kwargs)
+            - StructureSet: transform_structure_set(to_transform, **kwargs)
+            - ROI: transform_roi(to_transform, **kwargs)
+        """
+
+        if issubclass(type(to_transform), Image):
+            return self.transform_image(to_transform, **kwargs)
+        elif isinstance(to_transform, str):
+            return self.transform_nifti(to_transform, **kwargs)
+        elif isinstance(to_transform, ROI):
+            return self.transform_roi(to_transform, **kwargs)
+        elif isinstance(to_transform, StructureSet):
+            return self.transform_structure_set(to_transform, **kwargs)
+        else:
+            print(f"Unrecognised transform input type {type(to_transform)}")
+
+    def transform_image(self, im, step=-1, outfile=None, params=None,
+                        rois=None):
         """Transform an image using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -476,9 +497,21 @@ class Registration(Data):
             return
 
         # Otherwise, return Image object
-        im = Image(result_path)
+        final_im = Image(result_path)
         self.rm_tmp_dir()
-        return im
+
+        # Transform structure sets
+        if rois == "all":
+            rois_to_transform = im.structure_sets
+        elif isinstance(rois, int):
+            rois_to_transform = [im.structure_sets[rois]]
+        else:
+            rois_to_transform = []
+        for ss in rois_to_transform:
+            ss2 = self.transform_structure_set(ss, step=step)
+            final_im.add_structure_set(ss2)
+
+        return final_im
 
     def transform_nifti(self, path, step=-1, params=None):
         """Transform a nifti file at a given path for a given step, ensuring
@@ -504,13 +537,14 @@ class Registration(Data):
             adjust_parameters(self.tfiles[step], tfile, params)
 
         # Run transformix
-        cmd = (
-            f"{_transformix} -in {path} -out {self._tmp_dir} "
-            f"-tp {tfile}"
-        )
-        cmd = cmd.replace("\\", "/")
-        print("running command:", cmd)
-        code = subprocess.run(cmd.split()).returncode
+        cmd = [
+            _transformix,
+            "-in", path.replace("\\", "/"),
+            "-out", self._tmp_dir,
+            "-tp", tfile
+        ]
+        print("running command:", " ".join(cmd))
+        code = subprocess.run(cmd).returncode
 
         # If command failed, move log out from temporary dir
         if code:
@@ -632,10 +666,11 @@ class Registration(Data):
             return
 
         # Otherwise, return structure set
+        final.name = "Transformed"
         final.set_image(self.get_transformed_image(step))
         return final
 
-    def get_transformed_image(self, step=-1, force=False):
+    def get_transformed_image(self, step=-1, force=False, structure_sets=None):
         """Get the transformed moving image for a given step, by default the
         final step. If force=True, the registration will be re-run for that
         step."""
@@ -645,7 +680,9 @@ class Registration(Data):
         if not self.already_performed(step):
             self.register(step, force=force)
         if step in self.transformed_images:
-            return self.transformed_images[step]
+            im = self.transformed_images[step].clone()
+
+        return im
 
     def make_tmp_dir(self):
         """Create temporary directory."""
@@ -662,13 +699,24 @@ class Registration(Data):
         if os.path.exists(self._tmp_dir):
             shutil.rmtree(self._tmp_dir)
 
+    def adjust_pfile(self, step, params, reset=True):
+        """Adjust parameters in an input parameter file for a given step. If
+        reset=True, this will force the registration to be re-run for that step.
+        """
+
+        if isinstance(step, int):
+            step = self.steps[step]
+        adjust_parameters(self.pfiles[step], self.pfiles[step], params)
+        if reset:
+            del self.tfiles[step]
+
     def view_init(self, **kwargs):
         """Interactively view initial fixed and moving images."""
 
         from skrt.better_viewer import BetterViewer
 
         kwargs.setdefault("hu", self.fixed_image.default_window)
-        #  kwargs.setdefault("match_axes", "y")
+        kwargs.setdefault("match_axes", "y")
         kwargs.setdefault("title", ["Fixed", "Moving"])
         kwargs.setdefault("comparison", True)
         BetterViewer([self.fixed_image, self.moving_image], **kwargs)

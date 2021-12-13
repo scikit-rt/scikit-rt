@@ -444,7 +444,7 @@ class ROI(skrt.core.Archive):
         self.load()
         self.create_mask()
         if not flatten:
-            return self.mask.get_data(standardise=False)
+            return self.mask.get_data(standardise=standardise)
         return np.sum(
             self.mask.get_data(standardise=standardise), 
             axis=skrt.image._slice_axes[view]
@@ -850,7 +850,7 @@ class ROI(skrt.core.Archive):
         pos=None,
         units="mm",
         method=None,
-        force=True
+        force=True,
     ):
         """Get either 3D global centroid position or 2D centroid position on 
         a single slice. If single_slice=False, the calculated global centroid 
@@ -1950,8 +1950,8 @@ class ROI(skrt.core.Archive):
 
             # Use 3D mask
             if not single_slice:
-                data1 = self.get_mask(view, flatten)
-                data2 = other.get_mask(view, flatten)
+                data1 = self.get_mask(view, flatten, standardise=True)
+                data2 = other.get_mask(view, flatten, standardise=True)
 
             # Otherwise, use single 2D slice
             else:
@@ -2586,6 +2586,7 @@ class ROI(skrt.core.Archive):
                 zoom_centre=zoom_centre,
                 show=False,
                 include_image=include_image,
+                color=color,
                 **kwargs,
             )
 
@@ -2760,7 +2761,6 @@ class ROI(skrt.core.Archive):
                         self.get_centre()[skrt.image._slice_axes[view]]
 
         kwargs["show"] = False
-        print(kwargs)
 
         # View with image
         if include_image and self.image is not None:
@@ -3259,7 +3259,8 @@ class StructureSet(skrt.core.Archive):
                     # Ignore entries containing only a single point
                     contours = roi["contours"]
                     if len(contours) == 1:
-                        if len(contours[list(contours.keys())[0]]) == 1:
+                        single_contour = contours[list(contours.keys())[0]][0]
+                        if single_contour.shape[0] == 1:
                             continue
 
                     self.rois.append(
