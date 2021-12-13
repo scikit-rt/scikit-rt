@@ -142,7 +142,7 @@ StructureSet objects have a built-in function to calculate comparison metrics wi
 ```
 df = structs_fixed.get_comparison(structs_transformed)
 ```
-Here, `df` is a (pandas)[https://pandas.pydata.org/] DataFrame. By default, this will contain the dice scores and centroid distances for each structure in the structure sets. The desired metrics can be set via the `metrics` argument; see documentation for `skrt.ROI.get_comparison` for more details. The DataFrame is written to a .csv file by calling
+Here, `df` is a [pandas](https://pandas.pydata.org/) DataFrame. By default, this will contain the dice scores and centroid distances for each structure in the structure sets. The desired metrics can be set via the `metrics` argument; see documentation for `skrt.ROI.get_comparison` for more details. The DataFrame is written to a .csv file by calling
 ```
 df.to_csv("metrics.csv")
 ```
