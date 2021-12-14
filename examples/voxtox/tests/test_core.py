@@ -9,8 +9,8 @@ import pytest
 
 from skrt.image import Image
 
-from voxtox.core import couch_shifts_group, get_couch_shifts, \
-        rotations_element, translations_element
+from voxtox.core import COUCH_SHIFTS_GROUP, get_couch_shifts, \
+        ROTATIONS_ELEMENT, TRANSLATIONS_ELEMENT
 
 # Create fake data
 data = (np.random.rand(40, 50, 20) * 1000).astype(np.uint16)
@@ -41,10 +41,10 @@ im_dcm = Image(dcm_file)
 
 # Add couch shifts to the dicom dataset
 block = im_dcm.dicom_dataset.private_block(
-        couch_shifts_group, 'Couch translations and rotations', create=True)
-translations_offset = translations_element - 0x1000
+        COUCH_SHIFTS_GROUP, 'Couch translations and rotations', create=True)
+translations_offset = TRANSLATIONS_ELEMENT - 0x1000
 block.add_new(translations_offset, 'DS', [f'{x:.3f}' for x in translations1])
-rotations_offset = rotations_element - 0x1000
+rotations_offset = ROTATIONS_ELEMENT - 0x1000
 block.add_new(rotations_offset, 'DS', [f'{x:.3f}' for x in rotations1])
 
 def test_couch_shifts():
@@ -54,3 +54,8 @@ def test_couch_shifts():
     for i in [0, 1, 2]:
         assert(translations0[i] == pytest.approx(translations2[i], abs=1.e-3))
         assert(rotations0[i] == pytest.approx(rotations2[i], abs=1.e-3))
+
+    translations3, rotations3 = get_couch_shifts(im_dcm, reverse=True) 
+    for i in [0, 1, 2]:
+        assert(translations0[i] == pytest.approx(-translations3[i], abs=1.e-3))
+        assert(rotations0[i] == pytest.approx(-rotations3[i], abs=1.e-3))

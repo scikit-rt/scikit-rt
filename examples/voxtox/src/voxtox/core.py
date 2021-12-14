@@ -2,12 +2,12 @@
 
 import pydicom
 
-couch_shifts_group = 0x0099
-rotations_element = 0x1012
-translations_element = 0x1011
+COUCH_SHIFTS_GROUP = 0x0099
+ROTATIONS_ELEMENT = 0x1012
+TRANSLATIONS_ELEMENT = 0x1011
 
-def get_couch_rotations(
-        ds=None, group=couch_shifts_group, element=rotations_element):
+def get_couch_rotations(ds=None, group=COUCH_SHIFTS_GROUP,
+        element=ROTATIONS_ELEMENT, reverse=False):
     '''
     Retreive couch rotations stored as DICOM private data.
 
@@ -17,19 +17,26 @@ def get_couch_rotations(
     (translations + rotations) for mapping from the guidance scan
     to the planning scan.  In practice, pitch and yaw are always zero.
 
-    Parameters
-    ----------
+    **Parameters:**
+
     ds : pydicom.dataset.FileDataset/None, default=None
         Dataset containing couch shifts stored as private data.
+
     group : int, default=couch_shits_group
         Location of the private group where couch shifts are stored.
+
     element: int, default=rotations_element
         Location of the private element, within the private group,
         where couch rotations are stored (default corresponds to VoxTox).
-    '''
-    return unpack_couch_shifts(ds, group, element)
 
-def get_couch_shifts(im=None):
+    reverse : bool, default=False
+        If True, signs of couch rotations are reversed.
+    '''
+    rotations = unpack_couch_shifts(ds, group, element, reverse=reverse)
+
+    return rotations
+
+def get_couch_shifts(image=None, reverse=False):
     '''
     Retreive couch shifts for a given CT guidance scan.
 
@@ -43,24 +50,26 @@ def get_couch_shifts(im=None):
     These represent the transformation for mapping from the guidance scan
     to the planning scan.  In practice, pitch and yaw are always zero.
 
-    Parameter
-    ---------
-    im : skrt.image.Image/None, default=None
-        Image object for which couch shifts are to be retrieved.
-    '''
+    **Parameters:**
 
+    image : skrt.image.Image/None, default=None
+        Image object for which couch shifts are to be retrieved.
+
+    reverse : bool, default=False
+        If True, signs of couch shifts are reversed.
+    '''
     try:
-        ds = im.get_dicom_dataset()
+        ds = image.get_dicom_dataset()
     except AttributeError:
         ds = None
 
-    rotations = get_couch_rotations(ds)
-    translations = get_couch_translations(ds)
+    rotations = get_couch_rotations(ds, reverse=reverse)
+    translations = get_couch_translations(ds, reverse=reverse)
 
     return (translations, rotations)
 
-def get_couch_translations(
-        ds=None, group=couch_shifts_group, element=translations_element):
+def get_couch_translations(ds=None, group=COUCH_SHIFTS_GROUP,
+        element=TRANSLATIONS_ELEMENT, reverse=False):
     '''
     Retreive couch translations stored as DICOM private data.
 
@@ -72,40 +81,53 @@ def get_couch_translations(
     (translations + rotations) for mapping from the guidance scan
     to the planning scan.
 
-    Parameters
-    ----------
+    **Parameters:**
+
     ds : pydicom.dataset.FileDataset/None, default=None
         Dataset containing couch shifts stored as private data.
+
     group : int, default=couch_shifts_group
         Location of the private group where couch shifts are stored.
+
     element: int, default=translations_element
         Location of the private element, within the private group,
         where couch translations are stored (default corresponds to VoxTox).
-    '''
-    dx, dz_bar, dy = unpack_couch_shifts(ds, group, element)
-    return (dx, dy, -dz_bar)
 
-def unpack_couch_shifts(ds=None, group=None, element=None, n_shift=3):
+    reverse : bool, default=False
+        If True, signs of couch translations are reversed.
+    '''
+    dx, dz_bar, dy = unpack_couch_shifts(ds, group, element, reverse=reverse)
+    translations = [dx, dy, -dz_bar]
+
+    return translations
+
+def unpack_couch_shifts(ds=None, group=None, element=None, n_shift=3,
+        reverse=False):
     '''
     Unpack couch shifts stored as DICOM private data.
 
-    Parameters
-    ----------
+    **Parameters:**
+
     ds : pydicom.dataset.FileDataset/None, default=None
         Dataset containing couch shifts stored as private data.
+
     group : int/None, default=None
         Location of the private group where couch shifts are stored.
+
     element: int/None, default=None
         Location of the private element, within the private group,
         where couch shifts are stored.
+
     n_shift: int, default = 3
         Number of shifts stored in an element (default corresponds to VoxTox).
-    '''
 
+    reverse : bool, default=False
+        If True, signs of couch shifts are reversed.
+    '''
     shifts_ok = False
 
     # Extract element value
-    if type(ds) == pydicom.dataset.FileDataset:
+    if isinstance(ds, pydicom.dataset.FileDataset):
         try:
             element_value = ds[group, element].value
         except KeyError:
@@ -130,7 +152,10 @@ def unpack_couch_shifts(ds=None, group=None, element=None, n_shift=3):
                 except ValueError:
                     shifts_ok = False
                     break
-    if not shifts_ok:
+    if shifts_ok:
+        if reverse:
+            shifts = [-shift for shift in shifts]
+    else:
         shifts = [None, None, None]
 
-    return tuple(shifts)
+    return shifts
