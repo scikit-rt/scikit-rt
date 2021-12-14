@@ -262,9 +262,6 @@ class ROI(skrt.core.Archive):
             self.voxel_size = self.image.get_voxel_size()
             self.origin = self.image.get_origin()
 
-        if self.source is None:
-            self.loaded = True
-
         rois = []
 
         # Load from an existing Image
