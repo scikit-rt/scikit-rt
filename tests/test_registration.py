@@ -183,3 +183,9 @@ def test_transform_structure_set():
     ss = reg.transform(sim3.get_structure_set())
     assert len(ss.rois) == len(sim3.get_structure_set().rois)
 
+def test_read_parameters():
+    pass
+
+def test_write_parameters():
+    pass
+

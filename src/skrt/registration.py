@@ -4,7 +4,7 @@ import re
 import shutil
 import subprocess
 
-from skrt.image import Image
+from skrt.image import Image, _axes
 from skrt.structures import ROI, StructureSet
 from skrt.core import Data
 
@@ -763,6 +763,72 @@ class Registration(Data):
             kwargs.setdefault("title", "Transformed moving")
         BetterViewer(ims, **kwargs)
 
+    def manually_adjust_translation(self, step=None, 
+                                    reapply_transformation=True):
+        """
+        Open BetterViewer and manually adjust the translation between the 
+        fixed image and the result of a registration. If the "write translation"
+        button is clicked, the manual translation will be added to the
+        translation in the output transform file.
+
+        **Parameters:**
+
+        step : int/str, default=None
+            Name, number, or list of the step which should have its translation
+            modified. This must be provided if the registration has more than
+            one step. If the tfile for the chosen step does not contain a 
+            translation, the function will immediately return None.
+
+        reapply_transformation : bool, default=True
+            If True, upon saving a translation, transformix will be run to
+            reproduce the transformed moving image according to the new 
+            translation parameters.
+        """
+
+        # Get step name
+        if isinstance(step, int):
+            step = self.steps[step]
+        elif step is None:
+            if len(self.steps) == 1:
+                step = self.steps[0]
+            else:
+                print("This registration has more than one step. The step to "
+                      "be manually adjusted must be specified when running "
+                      "Registration.manually_adjust_transform().")
+                return
+
+        # Check registration has been run
+        if not self.already_performed(step):
+            print(f"Registration for {step} has not yet been performed.")
+            return
+
+        # Check the tfile contains a 3-parameter translation
+        pars = get_parameters(self.tfile[step])
+        init_translation = [int(t) for t in pars["TransformParameters"].split()]
+        if len(init_translation) != 3:
+            print(f"Step {step} has too many transform parameters; manual "
+                  "translation not possible for this step.")
+            return
+
+        # Create BetterViewer and modify its write_translation function
+        from skrt.better_viewer import BetterViewer
+        bv = BetterViewer(
+            [self.fixed_image, self.get_transformed_image(step=step)],
+            comparison=True,
+            translation=True,
+            show=False
+        )
+        bv.translation_output.description = self.tfile[step]
+
+        # New translation writing function
+        def new_write_translation(self, _):
+            shift_translation_parameters(
+                self.translation_output.value,
+                *[self.tsliders[ax].value for ax in _axes]
+            )
+        bv.write_translation_to_file = new_write_translation
+        bv.show()
+
 
 def set_elastix_dir(path):
 
@@ -811,3 +877,64 @@ def adjust_parameters(infile, outfile, params):
     # Write to output
     with open(outfile, "w") as file:
         file.write(txt)
+
+
+def get_parameters(infile):
+    """Get dictionary of parameters from an elastix parameter file."""
+
+    lines = [line for line in open(infile).readlines() if line.startswith("(")]
+    lines = [line.strip("()\n").split() for line in lines]
+    params = {
+        line[0]: " ".join(line[1:]) for line in lines
+    }
+    for name, param in params.items():
+        if '"' in param:
+            params[name] = param.strip('"')
+            if params[name] == "false":
+                params[name] = False
+            elif params[name] == "true":
+                params[name] = True
+        elif len(param.split()) > 1:
+            params[name] = [p for p in param.split()]
+            if "." in params[name][0]:
+                params[name] = [float(p) for p in params[name]]
+            else:
+                params[name] = [int(p) for p in params[name]]
+        else:
+            if "." in param:
+                params[name] = float(param)
+            else:
+                params[name] = int(param)
+    return params
+
+
+def write_parameters(outfile, params):
+    """Write dictionary of parameters to an elastix parameter file."""
+
+    file = open(outfile)
+    for name, param in params.items():
+        line = f"({name}"
+        if isinstance(param, str):
+            line += f' "{param}")'
+        elif isinstance(param, list):
+            for item in param:
+                line += " " + str(item)
+            line += ")"
+        elif isinstance(param, bool):
+            line += f' "str(param).lower()")'
+        else:
+            line += str(param) + ")"
+        file.write(line)
+    file.close()
+
+
+def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
+    """Add to the translation parameters in a file."""
+
+    if outfile is None:
+        outfile = infile
+    pars = get_parameters(infile)
+    init = [int(t) for t in pars["TransformParameters"].split()]
+    new_translation = "".join([init[0] + dx, init[1] + dx, init[2] + dz])
+    adjust_parameters(infile, outfile, 
+                      {"TransformParameters": new_translation})

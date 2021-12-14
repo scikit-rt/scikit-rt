@@ -262,6 +262,9 @@ class ROI(skrt.core.Archive):
             self.voxel_size = self.image.get_voxel_size()
             self.origin = self.image.get_origin()
 
+        if self.source is None:
+            self.loaded = True
+
         rois = []
 
         # Load from an existing Image
@@ -731,7 +734,7 @@ class ROI(skrt.core.Archive):
         elif self.image is not None:
             return self.image.idx_to_pos(idx, ax)
 
-        # Else, try to calculate from own geomtric properties
+        # Else, try to calculate from own geometric properties
         else:
             i_ax = skrt.image._axes.index(ax) if ax in skrt.image._axes else ax
             return self.origin[i_ax] + idx * self.voxel_size[i_ax]
