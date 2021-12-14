@@ -16,7 +16,7 @@ from voxtox.core import COUCH_SHIFTS_GROUP, get_couch_shifts, \
 random.seed(14)
 
 # Origin and voxel size for image data
-voxel_size = [2, 2, 3]
+voxel_size = [1, 1, 3]
 shape = [41, 51, 21]
 origin = [-0.5 * ((shape[i] - 1) * voxel_size[i]) for i in range(3)]
 
@@ -56,7 +56,7 @@ def test_apply_couch_shifts():
 # Translations in mm, rotations in degrees
     n_test = 100
     small_number = 750
-    big_number = 5000
+    big_number = 25000
     n_zero = 0
 
     for i in range(n_test):
@@ -79,4 +79,4 @@ def test_apply_couch_shifts():
         if abs_diff.sum() ==0:
             n_zero += 1
 
-    assert (n_zero / n_test) > 0.8
+    assert (n_zero / n_test) > 0.85
