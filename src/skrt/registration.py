@@ -803,11 +803,10 @@ class Registration(Data):
             return
 
         # Check the tfile contains a 3-parameter translation
-        pars = get_parameters(self.tfile[step])
-        init_translation = [int(t) for t in pars["TransformParameters"].split()]
-        if len(init_translation) != 3:
-            print(f"Step {step} has too many transform parameters; manual "
-                  "translation not possible for this step.")
+        pars = read_parameters(self.tfiles[step])
+        if pars["Transform"] != "TranslationTransform":
+            print(f"Can only manually adjust a translation step. Incorrect "
+                  f"transform type for step {step}: {pars['Transform']}")
             return
 
         # Create BetterViewer and modify its write_translation function
@@ -818,7 +817,7 @@ class Registration(Data):
             translation=True,
             show=False
         )
-        bv.translation_output.description = self.tfile[step]
+        bv.translation_output.value = self.tfiles[step]
 
         # New translation writing function
         def new_write_translation(self, _):
@@ -827,7 +826,32 @@ class Registration(Data):
                 *[self.tsliders[ax].value for ax in _axes]
             )
         bv.write_translation_to_file = new_write_translation
+        bv.tbutton.on_click(bv.write_translation_to_file)
         bv.show()
+        return bv
+
+    def get_input_params(self, step):
+        """
+        Get dict of input parameters for a given step.
+        """
+
+        if isinstance(step, int):
+            step = self.steps[step]
+        return read_parameters(self.pfiles[step])
+
+    def get_transform_params(self, step):
+        """
+        Get dict of output transform parameters for a given step.
+        """
+
+        if isinstance(step, int):
+            step = self.steps[step]
+
+        if not self.already_performed(step):
+            print(f"Registration step {step} has not yet been performed.")
+            return
+        return read_parameters(self.tfiles[step])
+
 
 
 def set_elastix_dir(path):
@@ -867,23 +891,16 @@ def adjust_parameters(infile, outfile, params):
     """
 
     # Read input
-    with open(infile) as file:
-        txt = file.read()
-
-    # Modify
-    for name, value in params.items():
-        txt = re.sub(fr"\({name}.*\)", fr"({name} {value})", txt)
-
-    # Write to output
-    with open(outfile, "w") as file:
-        file.write(txt)
+    original_params = read_parameters(infile)
+    original_params.update(params)
+    write_parameters(outfile, original_params)
 
 
-def get_parameters(infile):
+def read_parameters(infile):
     """Get dictionary of parameters from an elastix parameter file."""
 
     lines = [line for line in open(infile).readlines() if line.startswith("(")]
-    lines = [line.strip("()\n").split() for line in lines]
+    lines = [line[line.find("(") + 1:line.find(")")].split() for line in lines]
     params = {
         line[0]: " ".join(line[1:]) for line in lines
     }
@@ -911,7 +928,7 @@ def get_parameters(infile):
 def write_parameters(outfile, params):
     """Write dictionary of parameters to an elastix parameter file."""
 
-    file = open(outfile)
+    file = open(outfile, "w")
     for name, param in params.items():
         line = f"({name}"
         if isinstance(param, str):
@@ -921,10 +938,10 @@ def write_parameters(outfile, params):
                 line += " " + str(item)
             line += ")"
         elif isinstance(param, bool):
-            line += f' "str(param).lower()")'
+            line += f' "{str(param).lower()}")'
         else:
-            line += str(param) + ")"
-        file.write(line)
+            line += " " + str(param) + ")"
+        file.write(line + "\n")
     file.close()
 
 
@@ -933,8 +950,16 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
 
     if outfile is None:
         outfile = infile
-    pars = get_parameters(infile)
-    init = [int(t) for t in pars["TransformParameters"].split()]
-    new_translation = "".join([init[0] + dx, init[1] + dx, init[2] + dz])
-    adjust_parameters(infile, outfile, 
-                      {"TransformParameters": new_translation})
+    pars = read_parameters(infile)
+    init = pars["TransformParameters"]
+    if pars["Transform"] != "TranslationTransform":
+        print(f"Can only manually adjust a translation step. Incorrect "
+              f"transform type: {pars['Transform']}")
+        return
+
+    pars["TransformParameters"] = [
+        init[0] + dx,
+        init[1] + dy,
+        init[2] + dz
+    ]
+    write_parameters(outfile, pars)

@@ -99,20 +99,6 @@ def test_clear_registrations():
     for old in old_outdirs.values():
         assert not os.path.exists(old)
 
-def test_adjust_parameters():
-    """Test adjustment of an elastix parameter file."""
-    
-    pfile = "pfiles/MI_Translation.txt"
-    init_text = open(pfile).read()
-    assert "(DefaultPixelValue 0)" in init_text
-    from skrt.registration import adjust_parameters
-    new_file = "tmp/tmp_pfile.txt"
-    adjust_parameters(pfile, new_file, {"DefaultPixelValue": 10})
-    assert os.path.exists(new_file)
-    text = open(new_file).read()
-    assert "(DefaultPixelValue 10)" in text
-    os.remove(new_file)
-
 def test_run_registration():
     """Test running of a multi-step registration."""
 
@@ -184,8 +170,63 @@ def test_transform_structure_set():
     assert len(ss.rois) == len(sim3.get_structure_set().rois)
 
 def test_read_parameters():
-    pass
+    """Test reading elastix parameter file into dict."""
+
+    from skrt.registration import read_parameters
+    params = read_parameters("pfiles/MI_Translation.txt")
+    assert params["NumberOfResolutions"] == 4
+    assert params["UseDirectionCosines"]
+    assert isinstance(params["UseDirectionCosines"], bool)
+    assert params["HowToCombineTransforms"] == "Compose"
+    assert params["RequiredRatioOfValidSamples"] == 0.05
+    assert isinstance(params["ImagePyramidSchedule"], list)
+    assert params["ImagePyramidSchedule"][0] == 8
 
 def test_write_parameters():
-    pass
+    """Test writing dict of parameters to elastix parameter file."""
 
+    test_file = "tmp/test_params.txt"
+    params = {
+        "float": 0.4,
+        "list": [0.4, 0.2, 0.1],
+        "int": 6,
+        "int_list": [2, 5, 2],
+        "string": "test",
+        "true": True,
+        "false": False
+    }
+    from skrt.registration import write_parameters, read_parameters
+    write_parameters(test_file, params)
+    params2 = read_parameters(test_file)
+    assert params == params2
+    os.remove(test_file)
+
+def test_adjust_parameters():
+    """Test adjustment of an elastix parameter file."""
+    
+    pfile = "pfiles/MI_Translation.txt"
+    init_text = open(pfile).read()
+    assert "(DefaultPixelValue 0)" in init_text
+    from skrt.registration import adjust_parameters
+    new_file = "tmp/tmp_pfile.txt"
+    adjust_parameters(pfile, new_file, {"DefaultPixelValue": 10})
+    assert os.path.exists(new_file)
+    text = open(new_file).read()
+    assert "(DefaultPixelValue 10)" in text
+    os.remove(new_file)
+
+def test_shift_parameters():
+    """Test shifting translation parameters by a given amount."""
+
+    from skrt.registration import read_parameters, shift_translation_parameters
+    reg = Registration("tmp/reg")
+    input_file = reg.tfiles[reg.steps[0]]
+    init = read_parameters(input_file)["TransformParameters"]
+    dx, dy, dz = 5, 7, 3
+    outfile = "tmp/shifted.txt"
+    shift_translation_parameters(input_file, dx, dy, dz, outfile)
+    final = read_parameters(outfile)["TransformParameters"]
+    assert final[0] == init[0] + dx
+    assert final[1] == init[1] + dy
+    assert final[2] == init[2] + dz
+    os.remove(outfile)
