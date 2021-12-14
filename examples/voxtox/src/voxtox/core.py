@@ -11,6 +11,12 @@ def get_couch_rotations(
     '''
     Retreive couch rotations stored as DICOM private data.
 
+    Couch rotations are stored and retrieved as:
+        pitch (about x-axis), yaw (about y-axis), roll (about z-axis)
+    These represent the second part of the transformation
+    (translations + rotations) for mapping from the guidance scan
+    to the planning scan.  In practice, pitch and yaw are always zero.
+
     Parameters
     ----------
     ds : pydicom.dataset.FileDataset/None, default=None
@@ -31,9 +37,9 @@ def get_couch_shifts(im=None):
     applied by a radiographer after examining the scan, to match the position
     at planning time as closely as possible.
 
-    For historical reasons, couch shifts are stored and retrieved as follows:
-    translations: +dx, -dz, +dy
-    rotations: pitch, yaw, roll
+    Couch shifts are retrieved as:
+        translations: dx, dy, dz
+        rotations: pitch (about x-axis), yaw (about y-axis), roll (about z-axis)
     These represent the transformation for mapping from the guidance scan
     to the planning scan.  In practice, pitch and yaw are always zero.
 
@@ -58,6 +64,14 @@ def get_couch_translations(
     '''
     Retreive couch translations stored as DICOM private data.
 
+    For historical reasons, couch translations are stored as:
+        +dx, -dz, +dy
+    They are rearranged here as:
+        +dx, +dy, +dz
+    These represent the first part of the transformation
+    (translations + rotations) for mapping from the guidance scan
+    to the planning scan.
+
     Parameters
     ----------
     ds : pydicom.dataset.FileDataset/None, default=None
@@ -68,7 +82,8 @@ def get_couch_translations(
         Location of the private element, within the private group,
         where couch translations are stored (default corresponds to VoxTox).
     '''
-    return unpack_couch_shifts(ds, group, element)
+    dx, dz_bar, dy = unpack_couch_shifts(ds, group, element)
+    return (dx, dy, -dz_bar)
 
 def unpack_couch_shifts(ds=None, group=None, element=None, n_shift=3):
     '''
