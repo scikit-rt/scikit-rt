@@ -38,7 +38,7 @@ if not os.path.exists("tmp"):
 dcm_file = "tmp/tmp_dcm"
 image.write(dcm_file)
 im_dcm = Image(dcm_file)
-im_dcm.data = im_dcm.get_data().astype(np.float64)
+im_dcm.data = im_dcm.get_data()
 
 # Define private block and offsets for adding couch shifts to the dicom dataset
 block = im_dcm.dicom_dataset.private_block(
