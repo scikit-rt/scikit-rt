@@ -226,7 +226,7 @@ def test_shift_parameters():
     outfile = "tmp/shifted.txt"
     shift_translation_parameters(input_file, dx, dy, dz, outfile)
     final = read_parameters(outfile)["TransformParameters"]
-    assert final[0] == init[0] + dx
-    assert final[1] == init[1] + dy
-    assert final[2] == init[2] + dz
+    assert final[0] == init[0] - dx
+    assert final[1] == init[1] - dy
+    assert final[2] == init[2] - dz
     os.remove(outfile)

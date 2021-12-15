@@ -301,7 +301,7 @@ class ROI(skrt.core.Archive):
             self.source_type = "mask"
             self.create_mask()
 
-        # Deal with input from dicom
+        # Deal with input contours
         if self.input_contours is not None:
 
             # Create Image object
@@ -331,6 +331,9 @@ class ROI(skrt.core.Archive):
         if self.default_geom_method == "auto":
             self.default_geom_method = self.source_type
         self.loaded = True
+
+    def _load_from_file(self, filename):
+        """Attempt to load ROI from a dicom or nifti file."""
 
     def clone_attrs(self, obj, copy_data=True):
         """Assign all attributes of <self> to another object, <obj>,  ensuring 

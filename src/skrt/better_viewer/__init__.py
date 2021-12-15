@@ -50,7 +50,7 @@ class BetterViewer:
         overlay_legend=False,
         legend_loc='lower left',
         translation=False,
-        translation_file_to_overwrite=None,
+        translation_write_style=None,
         show_mse=False,
         dta_tolerance=5,
         dta_crit=1,
@@ -269,6 +269,11 @@ class BetterViewer:
             If True, widgets will be displayed allowing the user to apply a
             translation to the image. Note that this will not change the Image
             object itself, only the image displayed in the viewer.
+
+        translation_write_style : bool, default="normal"
+            Method for writing translations to a file. Can either be "normal"
+            (will write x, y, z translations) or "shift" (will shift 
+            translations in an elastix transform file).
 
         show_mse : str, default=None
             Color for annotation of mean-squared-error if using comparison
@@ -738,6 +743,7 @@ class BetterViewer:
             comparison = True
         self.load_comparison(comparison)
         self.translation = [None, None, None]
+        self.translation_write_style = translation_write_style
         self.show_mse = show_mse
         self.dta_tolerance = dta_tolerance
         self.dta_crit = dta_crit
@@ -1113,11 +1119,29 @@ class BetterViewer:
         '''Write current translation to file.'''
 
         output_file = self.translation_output.value
-        out_text = ''.join(f'{ax} {self.tsliders[ax].value}\n' for ax in _axes)
-        outfile = open(output_file, 'w')
-        outfile.write(out_text)
-        outfile.close()
+        if self.translation_write_style == "normal":
+            out_text = ''.join(f'{ax} {self.tsliders[ax].value}\n' 
+                               for ax in _axes)
+            outfile = open(output_file, 'w')
+            outfile.write(out_text)
+            outfile.close()
+        elif self.translation_write_style == "shift": 
+            from skrt.registration import shift_translation_parameters
+            shift_translation_parameters(
+                output_file, 
+                *[self.tsliders[ax].value for ax in _axes]
+            )
+        else:
+            print("Unrecognised translation writing option: " +
+                  self.translation_write_style)
+            return
         print('Wrote translation to file:', output_file)
+
+        # Reapply transformation if using a Registration object
+        if self.translation_write_style == "shift" and \
+           hasattr(self, "_registration"):
+            self._registration.transform_moving_image(
+                step=self._registration_step)
 
     def apply_translation(self):
         '''Update the description of translation sliders to show translation

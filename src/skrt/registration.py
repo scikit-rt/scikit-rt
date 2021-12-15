@@ -677,19 +677,37 @@ class Registration(Data):
         final.set_image(self.get_transformed_image(step))
         return final
 
-    def get_transformed_image(self, step=-1, force=False, structure_sets=None):
-        """Get the transformed moving image for a given step, by default the
-        final step. If force=True, the registration will be re-run for that
-        step."""
+    def transform_moving_image(self, step=-1):
+        """Transform the moving image using the output of a registration step
+        and set it to self.transformed_images[step]."""
 
         if isinstance(step, int):
             step = self.steps[step]
-        if not self.already_performed(step):
-            self.register(step, force=force)
-        if step in self.transformed_images:
-            im = self.transformed_images[step].clone()
 
-        return im
+        outfile = os.path.join(self.outdirs[step], "result.0.nii")
+        self.transform(self.moving_image, outfile=outfile)
+        self.transformed_images[step] = Image(outfile, 
+                                              title="Transformed moving")
+
+    def get_transformed_image(self, step=-1, force=False):
+        """Get the transformed moving image for a given step, by default the
+        final step. If force=True, the transform will be applied with 
+        transformix even if there is already a resultant image in the 
+        output directory for that step."""
+
+        if isinstance(step, int):
+            step = self.steps[step]
+
+        # Run registration if needed
+        if not self.already_performed(step):
+            self.register(step)
+
+        # Otherwise if forcing, re-transform the moving image
+        elif force:
+            self.transform_moving_image(step)
+
+        # Return clone of the transformed image object
+        return self.transformed_images[step].clone()
 
     def make_tmp_dir(self):
         """Create temporary directory."""
@@ -815,22 +833,17 @@ class Registration(Data):
             [self.fixed_image, self.get_transformed_image(step=step)],
             comparison=True,
             translation=True,
+            translation_write_style="shift",
             show=False
         )
         bv.translation_output.value = self.tfiles[step]
-
-        # New translation writing function
-        def new_write_translation(self, _):
-            shift_translation_parameters(
-                self.translation_output.value,
-                *[self.tsliders[ax].value for ax in _axes]
-            )
-        bv.write_translation_to_file = new_write_translation
-        bv.tbutton.on_click(bv.write_translation_to_file)
+        if reapply_transformation:
+            bv._registration = self
+            bv._registration_step = step
         bv.show()
         return bv
 
-    def get_input_params(self, step):
+    def get_input_parameters(self, step):
         """
         Get dict of input parameters for a given step.
         """
@@ -839,7 +852,7 @@ class Registration(Data):
             step = self.steps[step]
         return read_parameters(self.pfiles[step])
 
-    def get_transform_params(self, step):
+    def get_transform_parameters(self, step):
         """
         Get dict of output transform parameters for a given step.
         """
@@ -958,8 +971,8 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
         return
 
     pars["TransformParameters"] = [
-        init[0] + dx,
-        init[1] + dy,
-        init[2] + dz
+        init[0] - dx,
+        init[1] - dy,
+        init[2] - dz
     ]
     write_parameters(outfile, pars)

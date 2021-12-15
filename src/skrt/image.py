@@ -1079,6 +1079,11 @@ class Image(skrt.core.Archive):
         # Get index
         idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
 
+        # Invert x shift for nifti images
+        if "nifti" in self.source_type:
+            if shift[0] is not None:
+                shift[0] = -shift[0]
+
         # Apply slice shift if requested
         z_ax = _slice_axes[view]
         if shift[z_ax] is not None:
