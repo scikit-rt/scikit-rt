@@ -330,6 +330,7 @@ class ROI(skrt.core.Archive):
                 and not has_image and not has_geom
         if self.default_geom_method == "auto":
             self.default_geom_method = self.source_type
+        self.loaded = True
 
     def clone_attrs(self, obj, copy_data=True):
         """Assign all attributes of <self> to another object, <obj>,  ensuring 

@@ -264,7 +264,6 @@ def test_null_roi():
     assert(roi.image is None)
     assert(roi.input_contours is None)
     assert(roi.kwargs == {})
-    assert(roi.loaded is False)
     assert(roi.loaded_contours is False)
     assert(roi.loaded_mask is False)
     assert(roi.origin is None)
