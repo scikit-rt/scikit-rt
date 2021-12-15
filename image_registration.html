@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image registration with scikit-rt and elastix &mdash; Scikit-rt 0.1.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="skrt" href="modules.html" />
+    <link rel="prev" title="scikit-rt" href="README.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">scikit-rt</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Image registration with scikit-rt and elastix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-scikit-rt">1. Installing scikit-rt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-elastix">2. Installing elastix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#downloading-example-elastix-parameter-files">3. Downloading example elastix parameter files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">skrt</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Image registration with scikit-rt and elastix</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/image_registration.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="image-registration-with-scikit-rt-and-elastix">
+<h1>Image registration with scikit-rt and elastix<a class="headerlink" href="#image-registration-with-scikit-rt-and-elastix" title="Permalink to this headline"></a></h1>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline"></a></h2>
+<section id="installing-scikit-rt">
+<h3>1. Installing scikit-rt<a class="headerlink" href="#installing-scikit-rt" title="Permalink to this headline"></a></h3>
+<ol class="simple">
+<li><p>Ensure you have either <a class="reference external" href="https://pypi.org/project/pip/">pip</a> or <a class="reference external" href="https://docs.anaconda.com/anaconda/install/index.html">anaconda</a>/<a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">miniconda</a> (on Windows I would recommend Anaconda) installed on your machine.</p></li>
+<li><p>Open a terminal (if using pip on mac/linux) or a conda terminal (if using Anaconda - access by opening Anaconda-Navigator, clicking “Environments”, then clicking the play button and “Open Terminal”).</p></li>
+<li><p>Run the command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scikit-rt</span></code> to install the scikit-rt package.</p></li>
+<li><p>If on windows, also run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">shapely</span></code> to install the correct version of the shapely package.</p></li>
+</ol>
+<p>Now you should be able to launch a Jupyter server, either by:
+(a) Running <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> in the terminal, or;
+(b) If using Anaconda, clicking the play button then “Open with Jupyter Notebook”</p>
+<p>If you create a new Jupyter notebook, you should be able to import scikit-rt by running <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code>.</p>
+</section>
+<section id="installing-elastix">
+<h3>2. Installing elastix<a class="headerlink" href="#installing-elastix" title="Permalink to this headline"></a></h3>
+<ol class="simple">
+<li><p>Download the elastix binaries corresponding to your operating system from here: https://github.com/SuperElastix/elastix/releases/tag/5.0.1</p></li>
+<li><p>Extract the folder and either make a note of where you saved it, or add the <code class="docutils literal notranslate"><span class="pre">bin</span></code> folder to your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> environment variable and <code class="docutils literal notranslate"><span class="pre">lib</span></code> folder to your <code class="docutils literal notranslate"><span class="pre">$DYLDLIBRARYPATH</span></code> variable (if using mac/linux).</p></li>
+</ol>
+</section>
+<section id="downloading-example-elastix-parameter-files">
+<h3>3. Downloading example elastix parameter files<a class="headerlink" href="#downloading-example-elastix-parameter-files" title="Permalink to this headline"></a></h3>
+<p>A collection of example elastix parameter files is available at the <a class="reference external" href="https://elastix.lumc.nl/modelzoo/">elastix parameter zoo</a>.</p>
+<ul class="simple">
+<li><p>To obtain the files on your machine, download the git repo: https://github.com/SuperElastix/ElastixModelZoo.</p></li>
+<li><p>The parameter files for each example can be found inside the <code class="docutils literal notranslate"><span class="pre">models/</span></code> directory.</p></li>
+<li><p>The subdirectories <code class="docutils literal notranslate"><span class="pre">Par0001</span></code> etc refer to the parameter sets listed on the model zoo webpage (https://elastix.lumc.nl/modelzoo/).</p></li>
+</ul>
+</section>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h2>
+<p>This code is best used inside a Jupyter notebook, but can also be implemented via a python script.</p>
+<p>Here is a code snippet to perform a registration, qualitatively view the results, transform a reference structure set, and quantitatively compare it with the fixed image structure set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">Registration</span><span class="p">,</span> <span class="n">set_elastix_dir</span>
+
+<span class="c1"># Set elastix location</span>
+<span class="n">set_elastix_dir</span><span class="p">(</span><span class="s2">&quot;some/location/elastix-5.0.1-mac&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create registration object</span>
+<span class="n">reg</span> <span class="o">=</span> <span class="n">Registration</span><span class="p">(</span>
+  <span class="n">fixed</span><span class="o">=</span><span class="s2">&quot;some/location/fixed_image_dicoms&quot;</span><span class="p">,</span>
+  <span class="n">moving</span><span class="o">=</span><span class="s2">&quot;some/location/moving_image_dicoms&quot;</span><span class="p">,</span>
+  <span class="n">pfiles</span><span class="o">=</span><span class="p">[</span>
+    <span class="s2">&quot;some/location/ElastixModelZoo/models/default/Parameters_Rigid.txt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;some/location/ElastixModelZoo/models/default/Paramterers_BSpline.txt&quot;</span>
+  <span class="p">],</span>
+  <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;my_results&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Perform registration</span>
+<span class="n">reg</span><span class="o">.</span><span class="n">register</span><span class="p">()</span>
+
+<span class="c1"># View initial and final images</span>
+<span class="n">reg</span><span class="o">.</span><span class="n">view_init</span><span class="p">()</span>
+<span class="n">reg</span><span class="o">.</span><span class="n">view_result</span><span class="p">()</span>
+
+<span class="c1"># Transform moving image reference structures</span>
+<span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">StructureSet</span>
+<span class="n">structs_moving</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="s2">&quot;some/location/moving_structs.dcm&quot;</span><span class="p">)</span>
+<span class="n">structs_fixed</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="s2">&quot;some/location/fixed_structs.dcm&quot;</span><span class="p">)</span>
+<span class="n">structs_transformed</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">structs_moving</span><span class="p">)</span>
+
+<span class="c1"># Get comparison metrics for transformed vs. fixed image structures</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">structs_fixed</span><span class="o">.</span><span class="n">get_comparison</span><span class="p">(</span><span class="n">structs_transformed</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;metrics.csv&quot;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+<p>Explanation of each part of the code:</p>
+<ol class="simple">
+<li><p>Import the image registration class</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">Registration</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li><p>If you didn’t add your elastix installation to your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> variable, you’ll need to manually set the location of your elastix installation:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_elastix_dir</span>
+<span class="n">set_elastix_dir</span><span class="p">(</span><span class="s2">&quot;some/location/elastix-5.0.1-mac&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>On mac/linux, this should be the directory containing the <code class="docutils literal notranslate"><span class="pre">bin</span></code> and <code class="docutils literal notranslate"><span class="pre">lib</span></code> folders; on Windows, it should be the  directory containing <code class="docutils literal notranslate"><span class="pre">elastix.exe</span></code>.</p>
+<ol class="simple">
+<li><p>Create a Registration object.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span> <span class="o">=</span> <span class="n">Registration</span><span class="p">(</span>
+  <span class="s2">&quot;my_results&quot;</span><span class="p">,</span>
+  <span class="n">fixed</span><span class="o">=</span><span class="s2">&quot;some/location/fixed_image_dicoms&quot;</span><span class="p">,</span>
+  <span class="n">moving</span><span class="o">=</span><span class="s2">&quot;some/location/moving_image_dicoms&quot;</span><span class="p">,</span>
+  <span class="n">pfiles</span><span class="o">=</span><span class="p">[</span>
+    <span class="s2">&quot;some/location/ElastixModelZoo/models/default/Parameters_Rigid.txt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;some/location/ElastixModelZoo/models/default/Paramterers_BSpline.txt&quot;</span>
+  <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The arguments to the <code class="docutils literal notranslate"><span class="pre">Registration</span></code> class initialisation are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;my_results&quot;</span></code>: Directory in which to save the results of the registration. The registration object can later be reloaded from this directory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fixed</span></code>: Path to a directory containing the dicom files for the fixed image. Can also be a numpy array or the path to a single nifti file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">moving</span></code>: Path to a directory containing the dicom files for the moving image. Can also be a numpy array or the path to a single nifti file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pfiles</span></code>: Path or list of paths to elastix parameter file(s). If a list is given, each parameter file will be used in series, with its results passed to the next step of the registration.</p></li>
+</ul>
+<p>For each parameter file, a subdirectory will be created in <code class="docutils literal notranslate"><span class="pre">&quot;my_results&quot;</span></code> with the same name as the parameter file, minus <code class="docutils literal notranslate"><span class="pre">.txt</span></code>. If an elastix transform file is already found in that directory, the registration will not be rerun for that parameter file, and instead the existing transform will be used.  To completely overwrite <code class="docutils literal notranslate"><span class="pre">&quot;my_results&quot;</span></code> and start from scratch, set <code class="docutils literal notranslate"><span class="pre">overwrite=True</span></code> when initialising the <code class="docutils literal notranslate"><span class="pre">Registration</span></code> class.</p>
+<ol class="simple">
+<li><p>Run the registration.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span><span class="o">.</span><span class="n">register</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This step can also be performed automatically by setting <code class="docutils literal notranslate"><span class="pre">auto=True</span></code> when creating the <code class="docutils literal notranslate"><span class="pre">Registration</span></code> object. By default, registration steps will only be performed if there is no existing output transform in the directory for that step; to force rerunning of the registration, set <code class="docutils literal notranslate"><span class="pre">force=True</span></code> when running the <code class="docutils literal notranslate"><span class="pre">register()</span></code> function.</p>
+<ol class="simple">
+<li><p>Viewing the images
+A <code class="docutils literal notranslate"><span class="pre">Registration</span></code> object can be used to launch an interactive viewer showing either the initial or final images side-by-side. To view the initial fixed and moving images, run</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span><span class="o">.</span><span class="n">view_init</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To view the fixed image and transformed moving image, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span><span class="o">.</span><span class="n">view_result</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can also view an intermediate step by setting <code class="docutils literal notranslate"><span class="pre">step</span></code> to the number or name of the registration step. To view the list of steps for this registration, print
+<code class="docutils literal notranslate"><span class="pre">reg.steps</span></code>. E.g. to view the results of the first step:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span><span class="o">.</span><span class="n">view_result</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li><p>Transforming structure sets
+The transform found by the registration can be used to transform images, ROIs, and structure sets via the <code class="docutils literal notranslate"><span class="pre">transform()</span></code> function. Structure sets can be loaded from dicom with the <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> class imported from <code class="docutils literal notranslate"><span class="pre">skrt</span></code>:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">StructureSet</span>
+<span class="n">structs_moving</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="s2">&quot;some/location/moving_structs.dcm&quot;</span><span class="p">)</span>
+<span class="n">structs_fixed</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="s2">&quot;some/location/fixed_structs.dcm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A structure set can then be transformed by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structs_transformed</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">structs_moving</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which returns a new structure set object. This can be written to a file by running <code class="docutils literal notranslate"><span class="pre">structs_transformed.write()</span></code>.</p>
+<p>StructureSet objects have a built-in function to calculate comparison metrics with respect to another structure set, e.g. to compare the transformed structure set to the fixed image structure set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">structs_fixed</span><span class="o">.</span><span class="n">get_comparison</span><span class="p">(</span><span class="n">structs_transformed</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">df</span></code> is a <a class="reference external" href="https://pandas.pydata.org/">pandas</a> DataFrame. By default, this will contain the dice scores and centroid distances for each structure in the structure sets. The desired metrics can be set via the <code class="docutils literal notranslate"><span class="pre">metrics</span></code> argument; see documentation for <code class="docutils literal notranslate"><span class="pre">skrt.ROI.get_comparison</span></code> for more details. The DataFrame is written to a .csv file by calling</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;metrics.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="README.html" class="btn btn-neutral float-left" title="scikit-rt" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="skrt" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
