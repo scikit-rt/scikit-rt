@@ -154,13 +154,33 @@ class Registration(Data):
                 return
             self.set_image(path, category, force=False)
 
-    def add_pfile(self, pfile, name=None, write_file=True):
+    def add_pfile(self, pfile, name=None, params=None):
         """Add a single parameter file to the list of registration steps.
-        If write_file=True, the current registration steps file will be 
-        overwritten."""
+        This parameter file can optionally be modified by providing a dict
+        of parameter names and new values in <params>.
+
+        **Parameters:**
+
+        pfile : str/dict
+            Path to the elastix parameter file to copy into the registration
+            directory. Can also be a dict containing parameters and values,
+            which will be used to create a parameter file from scratch. In this
+            case, the <name> argument must also be provided.
+
+        name : str, default=None
+            Name for this step of the registration. If None, a name will
+            be taken from the parameter file name.
+
+        params : dict, default=None
+            Dictionary of parameter names and replacement values with which
+            the input parameter file will be modified.
+        """
 
         # Infer name from parameter file name if name is None
         if name is None:
+            if isinstance(pfile, dict):
+                print("If passing parameters from dict, <name> must be set.")
+                return
             name = os.path.basename(pfile).replace(".txt", "")
 
         # Check whether name already exists and add counter if so
@@ -180,14 +200,17 @@ class Registration(Data):
         os.mkdir(outdir)
         self.outdirs[name] = outdir
 
-        # Copy parameter file into outdir
+        # If pfile already exists, copy it into output dir
         path = f"{outdir}/InputParameters.txt"
         shutil.copy(pfile, path)
         self.pfiles[name] = path
 
-        # Rewrite steps directory
-        if write_file:
-            self.write_steps()
+        # Modify the pfile if custom parameters are given
+        if params is not None:
+            self.adjust_pfile(name, params)
+
+        # Rewrite text file containing list of steps
+        self.write_steps()
 
     def add_pfiles(self, pfiles):
         """Add multiple parameter files to the list of registration steps, 
@@ -202,6 +225,62 @@ class Registration(Data):
             self.add_pfile(p)
 
         self.write_steps()
+
+    def list_default_pfiles(self):
+        """
+        List the available default parameter files. Note that this
+        does not affect the current Registration object and is only for
+        informative purposes.
+        """
+
+        for file in get_default_params():
+            print(file)
+
+    def get_default_params(self, filename):
+        """
+        Get the contents of a default parameter file as a dict. Note that this
+        does not affect the current Registration object and is only for
+        informative purposes.
+        """
+
+        files = get_default_pfiles()
+        if not filename.endswith(".txt"): 
+            filename += ".txt"
+        if filename not in files:
+            print(f"Default file {name} not found. Available files:")
+            self.list_default_pfiles(self)
+            return
+        full_files = get_default_pfiles(False)
+        pfile = full_files[files.index(filename)]
+        return read_parameters(pfile)
+
+    def add_default_pfile(self, filename, params=None):
+        """
+        Add a default parameter file. For options, run 
+        Registration.list_default_pfiles(). You can also inspect the contents
+        of a default parameter file by running get_default_params(name).
+
+        **Parameters:**
+        filename : str
+            Name of the default parameter file to add (either with or without
+            the .txt extension). 
+
+        params : dict, default=None
+            Dictionary of parameter names and replacement values with which
+            the input parameter file will be modified.
+        """
+
+        files = get_default_pfiles()
+        if not filename.endswith(".txt"): 
+            filename += ".txt"
+        if filename not in files:
+            print(f"Default file {name} not found. Available files:")
+            self.list_default_pfiles(self)
+            return
+
+        full_files = get_default_pfiles(False)
+        pfile = full_files[files.index(filename)]
+        self.add_pfile(pfile, params=params)
 
     def write_steps(self):
         """Write list of registration steps to a file at 
@@ -732,7 +811,7 @@ class Registration(Data):
         if isinstance(step, int):
             step = self.steps[step]
         adjust_parameters(self.pfiles[step], self.pfiles[step], params)
-        if reset:
+        if reset and step in self.tfiles:
             del self.tfiles[step]
 
     def view_init(self, **kwargs):
@@ -976,3 +1055,14 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
         init[2] - dz
     ]
     write_parameters(outfile, pars)
+
+
+def get_default_pfiles(basename_only=True):
+
+    import skrt
+    pdir = os.path.join(
+        skrt.__path__[0], "../../examples/elastix/parameter_files")
+    files = [file for file in os.listdir(pdir) if file.endswith(".txt")]
+    if basename_only:
+        return files
+    return [os.path.join(pdir, file) for file in files]

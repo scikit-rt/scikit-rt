@@ -230,3 +230,25 @@ def test_shift_parameters():
     assert final[1] == init[1] - dy
     assert final[2] == init[2] - dz
     os.remove(outfile)
+
+def test_get_default_pfiles():
+    """Test getting list of default parameter files."""
+
+    from skrt.registration import get_default_pfiles
+    default = get_default_pfiles()
+    assert len(default)
+    assert "MI_Affine.txt" in default
+
+def test_add_default_pfile():
+    """Test adding a default parameter file."""
+
+    reg = Registration("tmp/reg")
+    init_len = len(reg.steps)
+    reg.add_default_pfile("MI_Affine", 
+                          params={"MaximumNumberOfIterations": 300})
+    assert len(reg.steps) == init_len + 1
+    assert reg.steps[-1] == "MI_Affine"
+    pars = reg.get_input_parameters(-1)
+    assert pars["MaximumNumberOfIterations"] == 300
+    assert pars["Transform"] == "AffineTransform"
+
