@@ -3,6 +3,7 @@ import numpy as np
 import os
 import shutil
 import pytest
+import subprocess
 
 from skrt.simulation import SyntheticImage
 from skrt.registration import Registration
@@ -20,6 +21,22 @@ im1 = sim1.get_image()
 sim2 = SyntheticImage((11, 11, 11))
 sim2.add_cube(2, centre=(6, 6, 6))
 im2 = sim2.get_image()
+
+# Check for elastix executable
+try:
+    subprocess.check_output("elastix")
+    has_elastix = True
+except:
+    has_elastix = False
+
+# Decorator for tests requiring elastix functionality
+def needs_elastix(func):
+    def wrapper():
+        if not has_elastix:
+            return
+        else:
+            func()
+    return wrapper
 
 
 def test_setup_with_images():
@@ -54,8 +71,10 @@ def test_load_existing():
     # Check fixed and moving images were loaded
     assert os.path.exists(reg.fixed_path)
     assert os.path.exists(reg.moving_path)
-    assert np.all(reg.fixed_image.get_standardised_data() == im1.get_standardised_data())
-    assert np.all(reg.moving_image.get_standardised_data() == im2.get_standardised_data())
+    assert np.all(reg.fixed_image.get_standardised_data() 
+                  == im1.get_standardised_data())
+    assert np.all(reg.moving_image.get_standardised_data() 
+                  == im2.get_standardised_data())
 
     # Check registration steps were loaded
     assert len(reg.steps) == 2
@@ -99,6 +118,7 @@ def test_clear_registrations():
     for old in old_outdirs.values():
         assert not os.path.exists(old)
 
+@needs_elastix
 def test_run_registration():
     """Test running of a multi-step registration."""
 
@@ -121,6 +141,7 @@ def test_run_registration():
             == im1.get_standardised_data().shape
     reg.view_result(show=False)
 
+@needs_elastix
 def test_load_completed_registration():
     """Test loading existing registration results."""
 
@@ -130,6 +151,7 @@ def test_load_completed_registration():
     for step in reg2.steps:
         assert reg2.already_performed(step)
 
+@needs_elastix
 def test_transform_image():
     """Test transforming an Image object using the result of a registration."""
 
@@ -148,6 +170,7 @@ def test_transform_image():
     assert sim5.get_standardised_data().shape \
             == sim1.get_standardised_data().shape
 
+@needs_elastix
 def test_transform_roi():
     """Test transforming an ROI using the result of a registration."""
 
@@ -160,6 +183,7 @@ def test_transform_roi():
     assert roi2.get_mask(standardise=True).shape \
             == sim1.get_data(standardise=True).shape
 
+@needs_elastix
 def test_transform_structure_set():
 
     reg = Registration(reg_dir)
@@ -215,6 +239,7 @@ def test_adjust_parameters():
     assert "(DefaultPixelValue 10)" in text
     os.remove(new_file)
 
+@needs_elastix
 def test_shift_parameters():
     """Test shifting translation parameters by a given amount."""
 
