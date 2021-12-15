@@ -2627,9 +2627,9 @@ def load_dicom(path):
 
             # Get rescale settings
             if rescale_slope is None:
-                rescale_slope = getattr(ds, "RescaleSlope", None)
+                rescale_slope = getattr(ds, "RescaleSlope", 1.)
             if rescale_intercept is None:
-                rescale_intercept = getattr(ds, "RescaleIntercept", None)
+                rescale_intercept = getattr(ds, "RescaleIntercept", 0.)
                 if rescale_intercept is None:
                     rescale_intercept = getattr(ds, "DoseGridScaling", None)
 
