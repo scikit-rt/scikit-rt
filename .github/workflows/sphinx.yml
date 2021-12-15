@@ -10,7 +10,7 @@ jobs:
     - name: Build HTML
       uses: ammaraskar/sphinx-action@0.4
       with:
-        build-command: 'sphinx.sh'
+        build-command: './sphinx.sh'
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
