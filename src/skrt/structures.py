@@ -250,7 +250,41 @@ class ROI(skrt.core.Archive):
         skrt.core.Archive.__init__(self, path)
 
     def load(self, force=False):
-        """Load ROI from file or source."""
+        """Load ROI from file or source. The loading sequence is as follows:
+
+        1. If self.image is not None, ensure that the image is loaded and 
+        assign its geometric properties to this ROI.
+
+        2. Attempt to load data from self.source:
+
+        (a) If this is an Image object, the ROI will be created by applying a 
+        threshold to the Image's array. Set self.mask to the thresholded image
+        and self.input_type = "mask".
+        (b) If self.source is a string, attempt to load from a dicom structure 
+        set (thus setting self.input_contours).
+        (c) If dicom loading fails, attempt to load self.source as an Image 
+        object to create an ROI mask. If this finds a valid Image, set
+        self.mask to that image and set self.input_type = "mask".
+        (d) If self.source is None, do nothing with it.
+
+        3. Check whether self.input_contours is not None. This could arise
+        in two scenarios:
+        
+        (a) The ROI was initialised from a dict of contours, which were
+        assigned to self.input_contours in self.__init(); or
+        (b) A set of contours was successfully loaded from a dicom file found 
+        at self.source in step 1(b).
+
+        If input contours are found, these are assigned to self.contours["x-y"]
+        and self.source_type is set to "contour". Additionally, if self.image
+        is not None, set self.mask to an array of zeros the same size as the 
+        image.
+
+        4. Set a flag indicating whether this ROI has contours only (i.e no
+        mask or image from which to draw origin/voxel sizes), and set
+        default geometric calculation method to self.source_type. Set
+        self.loaded to True.
+        """
 
         if self.loaded and not force:
             return
@@ -530,9 +564,9 @@ class ROI(skrt.core.Archive):
     ):
         """Create binary mask representation of this ROI. If the ROI was created
         from contours, these contours will be converted to a mask; if the ROI
-        was created from a mask, this mask will be cast to a boolean array.
-        If a mask has already been created, that mask will be returned unless
-        force=True.
+        was created from a mask, this mask will be cast to a boolean array and
+        its geoemtric properties will be assigned to this ROI. If a mask has 
+        already been created, nothing will happen unless force=True.
 
         **Parameters:**
         
@@ -571,8 +605,6 @@ class ROI(skrt.core.Archive):
         if (force and (shape is not None or voxel_size is not None)) \
            or (self.contours_only and self.image is None):
             self.set_image_to_dummy(shape=shape, voxel_size=voxel_size)
-
-        now = time.time()
 
         # Create mask from input x-y contours 
         if self.input_contours is not None:
