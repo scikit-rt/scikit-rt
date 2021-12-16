@@ -2,6 +2,7 @@
 !.gitignore
 !.gitlab-ci.yml
 !.github
+!.nojekyll
 __pycache__
 dist
 build
