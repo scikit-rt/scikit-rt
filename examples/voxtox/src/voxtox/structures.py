@@ -12,6 +12,11 @@ import skrt
 class ROI(skrt.structures.ROI):
     '''VoxTox-specific extensions to Scikit-rt ROI class.'''
 
+    def __init__(self, key_precision=0.1, **kwargs):
+
+        self.key_precision = key_precision
+        skrt.structures.ROI.__init__(self, **kwargs)
+
     def load(self, force=False):
         '''
         Load ROI from file or source.
@@ -31,14 +36,6 @@ class ROI(skrt.structures.ROI):
         '''
         if self.loaded and not force:
             return
-
-        # Ensure that key_precision and ext are definedi, removing
-        # if necessary from self.kwargs, which will be used to initialise
-        # an Image instance.
-        if not hasattr(self, 'key_precision'):
-            self.key_precision = 0.1
-        self.key_precision = self.kwargs.pop(
-                'key_precision', self.key_precision)
 
         if isinstance(self.source, str):
             if self.source.endswith('.txt'):
@@ -61,15 +58,10 @@ class ROI(skrt.structures.ROI):
                         contours_3d[key] = []
                     contours_3d[key].append((x_point, y_point, z_point))
 
-                contours = contours_mean_z(contours_3d)
-                self.__init__(contours, self.name, self.color, self.load,
-                        self.image, self.shape, self.affine, self.voxel_size,
-                        self.origin, self.mask_threshold,
-                        self.default_geom_method, self.overlap_level,
-                        **self.kwargs)
+                self.input_contours = contours_mean_z(contours_3d)
+                self.source = None
 
-        if not self.loaded:
-            skrt.structures.ROI.load(self)
+        skrt.structures.ROI.load(self)
 
     def write(self, outname=None, outdir=".", ext=None, **kwargs):
         '''
@@ -88,27 +80,23 @@ class ROI(skrt.structures.ROI):
         ext : str, default=None
             Extension to be added to the name of the output file.
 
+        point_cloud : bool, default=False
+            If True, write ROI data in VoxTox point-cloud format.
+            Each file contains contour data for a single ROI.
+            Each line gives (column, row, slice) coordinates
+            for a single point.  Points are ordered sequentially
+            around a slice.  Slice numbers are inverted with respect
+            to the usual DICOM numbering.
+
         kwargs : dict, default={}
-            Dictionary containing arbitrary parameter-value pairs
-            passed in the function call:
-
-            - point_cloud : bool, default=False
-                  If True, write ROI data in VoxTox point-cloud format.
-                  Each file contains contour data for a single ROI.
-                  Each line gives (column, row, slice) coordinates
-                  for a single point.  Points are ordered sequentially
-                  around a slice.  Slice numbers are inverted with respect
-                  to the usual DICOM numbering.
-
-            - all other values are passed to the contstructor of the
-              associated skrt.image.Image object.  See skrt.image.Image
-              documentation for details of available parameters.
+            Dictionary containing keyword arguments to pass to the constructor
+            of the associated skrt.image.Image object. See skrt.image.Image
+            documentation for details of available parameters.
         '''
         self.load()
 
         # When point-cloud format not requested,
         # format using write() method of base class.
-        point_cloud = kwargs.get('point_cloud', False)
         if not point_cloud:
             skrt.structures.ROI.write(self, outname, outdir, ext, **kwargs)
             return
