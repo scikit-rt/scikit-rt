@@ -18,7 +18,7 @@ structure_set = StructureSet(sim.get_structure_set())
 def test_structure_set_write_point_file():
 
     # Write structure set as point cloud.
-    structure_set.write_point_cloud(outdir='tmp')
+    structure_set.write(outdir='tmp', point_cloud=True)
 
     for name in structure_set.get_roi_names():
         # Check that the ROI point cloud was written.
@@ -26,7 +26,7 @@ def test_structure_set_write_point_file():
 
         # Load the point-cloud data,
         # then check that the contours obtain are the same as the originals.
-        ss1 = StructureSet().load_point_cloud(indir='tmp', image=sim)
+        ss1 = StructureSet('tmp', image=sim)
 
         # Check centroids.
         assert structure_set.get_roi(name).get_centroid().all() == \
