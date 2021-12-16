@@ -2111,12 +2111,8 @@ class Image(skrt.core.Archive):
         another Image <im> (i.e. same origin, voxel sizes, and shape)."""
 
         same = self.get_data().shape == im.get_data().shape
-        origin1 = [f"{x:.2f}" for x in self.origin]
-        origin2 = [f"{x:.2f}" for x in im.origin]
-        same *= origin1 == origin2
-        vx1 = [f"{x:.2f}" for x in self.voxel_size]
-        vx2 = [f"{x:.2f}" for x in im.voxel_size]
-        same *= vx1 == vx2
+        same *= all([self.origin[i] == im.origin[i] for i in range(2)])
+        same *= all([self.voxel_size[i] == im.voxel_size[i] for i in range(2)])
         return same
 
     def crop(self, xlim=None, ylim=None, zlim=None):

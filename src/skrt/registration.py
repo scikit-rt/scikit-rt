@@ -1,28 +1,20 @@
 """Tools for performing image registration."""
 import os
-import re
 import shutil
 import subprocess
 
-from skrt.image import Image, _axes
+from skrt.image import Image
 from skrt.structures import ROI, StructureSet
 from skrt.core import Data
 
-_elastix_dir = None
-_elastix = "elastix"
+_ELASTIX_DIR = None
+_ELASTIX = "elastix"
 _transformix = "transformix"
 
 
 class Registration(Data):
-
     def __init__(
-        self,
-        path,
-        fixed=None,
-        moving=None,
-        pfiles=None,
-        auto=False,
-        overwrite=False
+        self, path, fixed=None, moving=None, pfiles=None, auto=False, overwrite=False
     ):
         """Load data for an image registration and run the registration if
         auto_seg=True.
@@ -31,37 +23,37 @@ class Registration(Data):
 
         path : str
             Path to directory where the data for this image registration is
-            stored. Can either be a non-existing directory, in which case 
+            stored. Can either be a non-existing directory, in which case
             registration will be performed from scratch, or a directory already
             containing a fixed and moving image and optionally some registration
             steps.
 
         fixed : Image/str, default=None
             Image object representing the fixed image, or a source from which
-            an Image object can be initialised. Must be set if the directory 
+            an Image object can be initialised. Must be set if the directory
             at <path> does not already contain a fixed image file called
             "fixed.nii.gz".
 
         moving : Image/str, default=None
             Image object representing the fixed image, or a source from which
-            an Image object can be initialised. Must be set if the directory 
+            an Image object can be initialised. Must be set if the directory
             at <path> does not already contain a moving image file called
             "moving.nii.gz".
-            
+
         pfiles : str/list/dict, default=None
             Path(s) to elastix parameter file(s) to be used in each step of the
-            registration. If a list of more than one path, the parameter files 
-            will be used to apply registrations in series, which the output of 
-            each step being used as an initial transformation for the following 
-            step. If None, the Registration will be initialised with no 
+            registration. If a list of more than one path, the parameter files
+            will be used to apply registrations in series, which the output of
+            each step being used as an initial transformation for the following
+            step. If None, the Registration will be initialised with no
             registration steps and no registration will be performed. If a dict,
-            the keys will be taken as names for the registration steps and 
+            the keys will be taken as names for the registration steps and
             the values should be the path to the parameter file for that step;
             otherwise, the name of the step will be taken from the parameter
             filename.
 
         auto : bool, default=True
-            If True, the registration will be performed immediately for all 
+            If True, the registration will be performed immediately for all
             steps.
 
         overwrite : bool, default=False
@@ -123,8 +115,10 @@ class Registration(Data):
         """
 
         if category not in ["fixed", "moving"]:
-            raise RuntimeError(f"Unrecognised image category {category}; "
-                               "should be either fixed or moving")
+            raise RuntimeError(
+                f"Unrecognised image category {category}; "
+                "should be either fixed or moving"
+            )
 
         if not isinstance(im, Image):
             im = Image(im)
@@ -148,9 +142,11 @@ class Registration(Data):
         for category in ["fixed", "moving"]:
             path = getattr(self, f"{category}_path")
             if not os.path.exists(path):
-                print(f"Warning: no {category} image found at {path}! "
-                      f"Make sure you run Registration.set_{category}_image"
-                      " before running a registration.")
+                print(
+                    f"Warning: no {category} image found at {path}! "
+                    f"Make sure you run Registration.set_{category}_image"
+                    " before running a registration."
+                )
                 return
             self.set_image(path, category, force=False)
 
@@ -191,8 +187,8 @@ class Registration(Data):
             i += 1
 
         # Add to list of registration steps
-        self.steps.append(name)    
-        
+        self.steps.append(name)
+
         # Make output directory, overwriting if it already exists
         outdir = os.path.join(self.path, name)
         if os.path.exists(outdir):
@@ -213,7 +209,7 @@ class Registration(Data):
         self.write_steps()
 
     def add_pfiles(self, pfiles):
-        """Add multiple parameter files to the list of registration steps, 
+        """Add multiple parameter files to the list of registration steps,
         then write list of registration steps to a file."""
 
         for p in pfiles:
@@ -244,7 +240,7 @@ class Registration(Data):
         """
 
         files = get_default_pfiles()
-        if not filename.endswith(".txt"): 
+        if not filename.endswith(".txt"):
             filename += ".txt"
         if filename not in files:
             print(f"Default file {name} not found. Available files:")
@@ -256,14 +252,14 @@ class Registration(Data):
 
     def add_default_pfile(self, filename, params=None):
         """
-        Add a default parameter file. For options, run 
+        Add a default parameter file. For options, run
         Registration.list_default_pfiles(). You can also inspect the contents
         of a default parameter file by running get_default_params(name).
 
         **Parameters:**
         filename : str
             Name of the default parameter file to add (either with or without
-            the .txt extension). 
+            the .txt extension).
 
         params : dict, default=None
             Dictionary of parameter names and replacement values with which
@@ -271,7 +267,7 @@ class Registration(Data):
         """
 
         files = get_default_pfiles()
-        if not filename.endswith(".txt"): 
+        if not filename.endswith(".txt"):
             filename += ".txt"
         if filename not in files:
             print(f"Default file {name} not found. Available files:")
@@ -283,7 +279,7 @@ class Registration(Data):
         self.add_pfile(pfile, params=params)
 
     def write_steps(self):
-        """Write list of registration steps to a file at 
+        """Write list of registration steps to a file at
         self.path/registration_steps.txt."""
 
         with open(self.steps_file, "w") as file:
@@ -291,7 +287,7 @@ class Registration(Data):
                 file.write(step + "\n")
 
     def load_pfiles(self):
-        """Attempt to load registration steps from a registration step 
+        """Attempt to load registration steps from a registration step
         file."""
 
         # No steps file: don't load anything
@@ -312,18 +308,22 @@ class Registration(Data):
         for step in steps:
             outdir = os.path.join(self.path, step)
             if not os.path.exists(outdir):
-                print(f"Warning: no output directory ({self.path}/{step}) "
-                      f"found for registration step {step} listed in "
-                      f"{self.steps_file}. This step will be ignored.")
+                print(
+                    f"Warning: no output directory ({self.path}/{step}) "
+                    f"found for registration step {step} listed in "
+                    f"{self.steps_file}. This step will be ignored."
+                )
                 continue
 
             pfile = os.path.join(outdir, "InputParameters.txt")
             if not os.path.exists(pfile):
-                print(f"Warning: no parameter file ({outdir}/InputParameters.txt) "
-                      f"found for registration step {step} listed in "
-                      f"{self.steps_file}. This step will be ignored.")
+                print(
+                    f"Warning: no parameter file ({outdir}/InputParameters.txt) "
+                    f"found for registration step {step} listed in "
+                    f"{self.steps_file}. This step will be ignored."
+                )
                 continue
-            
+
             self.steps.append(step)
             self.outdirs[step] = outdir
             self.pfiles[step] = pfile
@@ -337,7 +337,8 @@ class Registration(Data):
             im_path = os.path.join(outdir, "result.0.nii")
             if os.path.exists(im_path):
                 self.transformed_images[step] = Image(
-                    im_path, title="Transformed moving")
+                    im_path, title="Transformed moving"
+                )
 
     def clear(self):
         """Remove all registration steps and their output directories."""
@@ -359,7 +360,7 @@ class Registration(Data):
         self.tfiles = {}
         self.transformed_images = {}
 
-    def get_elastix_cmd(self, step, use_previous_tfile=True):
+    def get_ELASTIX_cmd(self, step, use_previous_tfile=True):
         """Get elastix registration command for a given step."""
 
         # Get step number
@@ -374,15 +375,17 @@ class Registration(Data):
         if use_previous_tfile and i > 0:
             prev_step = self.steps[i - 1]
             if prev_step not in self.tfiles:
-                print(f"Warning: previous step {prev_step} has not yet "
-                      f"been performed! Input transform file for step {step}"
-                      " will not be used.")
+                print(
+                    f"Warning: previous step {prev_step} has not yet "
+                    f"been performed! Input transform file for step {step}"
+                    " will not be used."
+                )
             else:
                 tfile = self.tfiles[prev_step]
 
         # Construct command
         cmd = (
-            f"{_elastix} -f {self.fixed_path} -m {self.moving_path} "
+            f"{_ELASTIX} -f {self.fixed_path} -m {self.moving_path} "
             f"-p {self.pfiles[step]} -out {self.outdirs[step]}"
         )
         if tfile is not None:
@@ -396,25 +399,25 @@ class Registration(Data):
     def register(self, step=None, force=False, use_previous_tfile=True):
         """Run a registration. By default the registration will be run for
         all steps in self.steps, but can optionally be run for just one step
-        by setting <step> to a step name or number. Note that if 
+        by setting <step> to a step name or number. Note that if
         use_previous_tfile=True, any prior steps that have not yet been
         run will be run.
 
         **Parameters:**
 
         step : int/str/list, default=None
-            Name, number, or list of the step(s) for which the registration 
-            should be performed. By default, registration will be performed 
-            for all steps in series, using the previous steps's output 
-            transform as input for the next. Available steps are listed in 
+            Name, number, or list of the step(s) for which the registration
+            should be performed. By default, registration will be performed
+            for all steps in series, using the previous steps's output
+            transform as input for the next. Available steps are listed in
             self.steps.
 
         force : bool, default=None
-            If False and a registration has already been performed for the 
+            If False and a registration has already been performed for the
             given step(s), the registration will not be re-run.
 
         use_previous_tfile : bool, default=True
-            If True, each step will use the transform file from the previous 
+            If True, each step will use the transform file from the previous
             step as an initial transform.
         """
 
@@ -442,25 +445,25 @@ class Registration(Data):
             self.register_step(step, force=force, use_previous_tfile=True)
 
     def register_step(self, step, force=False, use_previous_tfile=True):
-        """Run a single registration step. Note that if use_previous_tfile=True, 
+        """Run a single registration step. Note that if use_previous_tfile=True,
         any prior steps that have not yet been run will be run.
 
         **Parameters:**
-        
+
         step : int/str/list, default=None
-            Name or number of the step for which the registration should be 
+            Name or number of the step for which the registration should be
             performed. Available steps are listed in self.steps.
 
         force : bool, default=None
-            If False and a registration has already been performed for the 
+            If False and a registration has already been performed for the
             given step, the registration will not be re-run. Note that setting
             force=True will only force rerunning of the chosen step, not of
             any preceding steps needed for the input transform file. To enforce
-            rerunning of multiple steps, call self.register(step, force=True) 
+            rerunning of multiple steps, call self.register(step, force=True)
             where <steps> is a list of steps to run.
 
         use_previous_tfile : bool, default=True
-            If True, this step will use the transform file from the previous 
+            If True, this step will use the transform file from the previous
             step as an initial transform, unless it is the first step. Note
             that this will cause any prior steps that have not yet been run
             to be run.
@@ -481,21 +484,25 @@ class Registration(Data):
                 self.register(i, use_previous_tfile=True)
 
         # Run
-        cmd = self.get_elastix_cmd(step, use_previous_tfile)
+        cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
         print("Running command:\n", cmd)
         code = subprocess.run(cmd.split()).returncode
 
         # Check whether registration succeeded
         if code:
             logfile = os.path.join(self.outdirs[step], "elastix.log")
-            print(f"Warning: registration step {step} failed! See "
-                  f"{logfile} for more info.")
+            print(
+                f"Warning: registration step {step} failed! See "
+                f"{logfile} or run Registration.print_log({step}) for "
+                " more info."
+            )
         else:
-            self.tfiles[step] = os.path.join(self.outdirs[step], 
-                                             "TransformParameters.0.txt")
+            self.tfiles[step] = os.path.join(
+                self.outdirs[step], "TransformParameters.0.txt"
+            )
             self.transformed_images[step] = Image(
                 os.path.join(self.outdirs[step], "result.0.nii"),
-                title="Transformed moving"
+                title="Transformed moving",
             )
 
     def already_performed(self, step):
@@ -506,18 +513,34 @@ class Registration(Data):
             step = self.steps[step]
         return step in self.tfiles and os.path.exists(self.tfiles[step])
 
+    def print_log(self, step=-1):
+        """Print elastix output log for a given step (by default, the 
+        last step)."""
+
+        if isinstance(step, int):
+            step = self.steps[step]
+
+        logfile = os.path.join(self.outdirs[step], "elastix.log")
+        if not os.path.exists(logfile):
+            print(f"No log found - try running registration step {step}.")
+            return
+
+        with open(logfile) as file:
+            for line in file.readlines():
+                print(line)
+
     def transform(self, to_transform, **kwargs):
         """
-        Call one of the transform functions, depending on the type of 
+        Call one of the transform functions, depending on the type of
         `to_transform`. Functions called depending on type are:
 
-        Image: 
+        Image:
             transform_image(to_transform, **kwargs)
-        str: 
+        str:
             transform_nifti(to_transform, **kwargs)
-        StructureSet: 
+        StructureSet:
             transform_structure_set(to_transform, **kwargs)
-        ROI: 
+        ROI:
             transform_roi(to_transform, **kwargs)
         """
 
@@ -532,23 +555,22 @@ class Registration(Data):
         else:
             print(f"Unrecognised transform input type {type(to_transform)}")
 
-    def transform_image(self, im, step=-1, outfile=None, params=None,
-                        rois=None):
+    def transform_image(self, im, step=-1, outfile=None, params=None, rois=None):
         """
         Transform an image using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
-        will be run. Either return the transformed image or write it to 
+        will be run. Either return the transformed image or write it to
         a file.
 
         **Parameters:**
-        
+
         im : Image/str
-            Image to be transformed. Can be either an Image object or a 
+            Image to be transformed. Can be either an Image object or a
             path that can be used to initialise an Image object.
 
         step : int/str, default=-1
-            Name or number of step for which to apply the transform; by 
+            Name or number of step for which to apply the transform; by
             default, the final step will be used.
 
         outfile : str, default=None
@@ -556,10 +578,10 @@ class Registration(Data):
             it will be written to the path specified in <outfile>.
 
         params : dict, default=None
-            Optional list of parameters to temporarily overwrite in the 
+            Optional list of parameters to temporarily overwrite in the
             transform file before applying the transform. Should be a dict,
             where keys are parameter names and desired values are values.
-            Note that strings in the parameter file, need to include quotes, 
+            Note that strings in the parameter file, need to include quotes,
             so you will need to use double quotes.
         """
 
@@ -612,7 +634,7 @@ class Registration(Data):
 
         # Check registration has been performed, and run it if not
         if not self.already_performed(step):
-            self.register(self.steps[:i + 1])
+            self.register(self.steps[: i + 1])
 
         # Make temporary modified parameter file if needed
         self.make_tmp_dir()
@@ -625,9 +647,12 @@ class Registration(Data):
         # Run transformix
         cmd = [
             _transformix,
-            "-in", path.replace("\\", "/"),
-            "-out", self._tmp_dir,
-            "-tp", tfile
+            "-in",
+            path.replace("\\", "/"),
+            "-out",
+            self._tmp_dir,
+            "-tp",
+            tfile,
         ]
         print("running command:", " ".join(cmd))
         code = subprocess.run(cmd).returncode
@@ -637,10 +662,11 @@ class Registration(Data):
             logfile = os.path.join(self.path, "transformix.log")
             if os.path.exists(logfile):
                 os.remove(logfile)
-            shutil.move(os.path.join(self._tmp_dir, "transformix.log"),
-                        self.path)
-            print(f"Warning: image transformation failed! See "
-                  f"{logfile} for more info.")
+            shutil.move(os.path.join(self._tmp_dir, "transformix.log"), self.path)
+            print(
+                f"Warning: image transformation failed! See "
+                f"{logfile} for more info."
+            )
             return
 
         # Return path to result
@@ -649,17 +675,17 @@ class Registration(Data):
     def transform_roi(self, roi, step=-1, outfile=None, params=None):
         """Transform a single ROI using the output transform from a given
         registration step (by default, the final step). If the registration
-        step has not yet been performed, the step and all preceding steps 
+        step has not yet been performed, the step and all preceding steps
         will be run. Either return the transformed ROI or write it to a file.
 
         **Parameters:**
-        
+
         roi : ROI/str
-            ROI to be transformed. Can be either an ROI object or a 
+            ROI to be transformed. Can be either an ROI object or a
             path that can be used to initialise an ROI object.
 
         step : int/str, default=-1
-            Name or number of step for which to apply the transform; by 
+            Name or number of step for which to apply the transform; by
             default, the final step will be used.
 
         outfile : str, default=None
@@ -667,12 +693,12 @@ class Registration(Data):
             it will be written to the path specified in <outfile>.
 
         params : dict, default=None
-            Optional list of parameters to temporarily overwrite in the 
+            Optional list of parameters to temporarily overwrite in the
             transform file before applying the transform. Should be a dict,
             where keys are parameter names and desired values are values.
-            Note that strings in the parameter file, need to include quotes, 
+            Note that strings in the parameter file, need to include quotes,
             so you will need to use double quotes.
-            By default, "ResampleInterpolator" will be set to 
+            By default, "ResampleInterpolator" will be set to
             "FinalNearestNeighborInterpolator".
         """
 
@@ -687,9 +713,7 @@ class Registration(Data):
             roi.write(roi_path, verbose=False)
 
         # Set default parameters
-        default_params = {
-            "ResampleInterpolator": '"FinalNearestNeighborInterpolator"'
-        }
+        default_params = {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
         if params is not None:
             default_params.update(params)
 
@@ -709,34 +733,35 @@ class Registration(Data):
         roi.set_image(self.get_transformed_image(step))
         return roi
 
-    def transform_structure_set(self, structure_set, step=-1, outfile=None,
-                                params=None):
+    def transform_structure_set(
+        self, structure_set, step=-1, outfile=None, params=None
+    ):
         """Transform a structure set using the output transform from a given
         registration step (by default, the final step). If the registration
-        step has not yet been performed, the step and all preceding steps 
+        step has not yet been performed, the step and all preceding steps
         will be run. Either return the transformed ROI or write it to a file.
 
         **Parameters:**
-        
+
         structure_set : StructureSet/str
-            StructureSet to be transformed. Can be either a StructureSet 
+            StructureSet to be transformed. Can be either a StructureSet
             object or a path that can be used to initialise a StructureSet.
 
         step : int/str, default=-1
-            Name or number of step for which to apply the transform; by 
+            Name or number of step for which to apply the transform; by
             default, the final step will be used.
 
         outfile : str, default=None
-            If None, the transformed StructureSet object will be returned; 
+            If None, the transformed StructureSet object will be returned;
             otherwise, it will be written to the path specified in <outfile>.
 
         params : dict, default=None
-            Optional list of parameters to temporarily overwrite in the 
+            Optional list of parameters to temporarily overwrite in the
             transform file before applying the transform. Should be a dict,
             where keys are parameter names and desired values are values.
-            Note that strings in the parameter file, need to include quotes, 
+            Note that strings in the parameter file, need to include quotes,
             so you will need to use double quotes.
-            By default, "ResampleInterpolator" will be set to 
+            By default, "ResampleInterpolator" will be set to
             "FinalNearestNeighborInterpolator".
         """
 
@@ -765,13 +790,12 @@ class Registration(Data):
 
         outfile = os.path.join(self.outdirs[step], "result.0.nii")
         self.transform(self.moving_image, outfile=outfile)
-        self.transformed_images[step] = Image(outfile, 
-                                              title="Transformed moving")
+        self.transformed_images[step] = Image(outfile, title="Transformed moving")
 
     def get_transformed_image(self, step=-1, force=False):
         """Get the transformed moving image for a given step, by default the
-        final step. If force=True, the transform will be applied with 
-        transformix even if there is already a resultant image in the 
+        final step. If force=True, the transform will be applied with
+        transformix even if there is already a resultant image in the
         output directory for that step."""
 
         if isinstance(step, int):
@@ -831,7 +855,7 @@ class Registration(Data):
         with fixed image.
 
         **Parameters:**
-        
+
         step : int/str, default=-1
             Name or number of step for which to view the result. By default,
             the result of the final step will be shown.
@@ -860,10 +884,9 @@ class Registration(Data):
             kwargs.setdefault("title", "Transformed moving")
         BetterViewer(ims, **kwargs)
 
-    def manually_adjust_translation(self, step=None, 
-                                    reapply_transformation=True):
+    def manually_adjust_translation(self, step=None, reapply_transformation=True):
         """
-        Open BetterViewer and manually adjust the translation between the 
+        Open BetterViewer and manually adjust the translation between the
         fixed image and the result of a registration. If the "write translation"
         button is clicked, the manual translation will be added to the
         translation in the output transform file.
@@ -873,12 +896,12 @@ class Registration(Data):
         step : int/str, default=None
             Name, number, or list of the step which should have its translation
             modified. This must be provided if the registration has more than
-            one step. If the tfile for the chosen step does not contain a 
+            one step. If the tfile for the chosen step does not contain a
             translation, the function will immediately return None.
 
         reapply_transformation : bool, default=True
             If True, upon saving a translation, transformix will be run to
-            reproduce the transformed moving image according to the new 
+            reproduce the transformed moving image according to the new
             translation parameters.
         """
 
@@ -889,9 +912,11 @@ class Registration(Data):
             if len(self.steps) == 1:
                 step = self.steps[0]
             else:
-                print("This registration has more than one step. The step to "
-                      "be manually adjusted must be specified when running "
-                      "Registration.manually_adjust_transform().")
+                print(
+                    "This registration has more than one step. The step to "
+                    "be manually adjusted must be specified when running "
+                    "Registration.manually_adjust_transform()."
+                )
                 return
 
         # Check registration has been run
@@ -902,18 +927,21 @@ class Registration(Data):
         # Check the tfile contains a 3-parameter translation
         pars = read_parameters(self.tfiles[step])
         if pars["Transform"] != "TranslationTransform":
-            print(f"Can only manually adjust a translation step. Incorrect "
-                  f"transform type for step {step}: {pars['Transform']}")
+            print(
+                f"Can only manually adjust a translation step. Incorrect "
+                f"transform type for step {step}: {pars['Transform']}"
+            )
             return
 
         # Create BetterViewer and modify its write_translation function
         from skrt.better_viewer import BetterViewer
+
         bv = BetterViewer(
             [self.fixed_image, self.get_transformed_image(step=step)],
             comparison=True,
             translation=True,
             translation_write_style="shift",
-            show=False
+            show=False,
         )
         bv.translation_output.value = self.tfiles[step]
         if reapply_transformation:
@@ -945,33 +973,32 @@ class Registration(Data):
         return read_parameters(self.tfiles[step])
 
 
-
 def set_elastix_dir(path):
 
     # Set directory
-    global _elastix_dir
-    _elastix_dir = path
+    global _ELASTIX_DIR
+    _ELASTIX_DIR = path
 
     # Find elastix exectuable
-    global _elastix
+    global _ELASTIX
     global _transformix
-    if os.path.exists(os.path.join(_elastix_dir, "bin/elastix")):
-        _elastix = os.path.join(_elastix_dir, "bin/elastix")
-        _transformix = os.path.join(_elastix_dir, "bin/transformix")
-    elif os.path.exists(os.path.join(_elastix_dir, "elastix.exe")):
-        _elastix = os.path.join(_elastix_dir, "elastix.exe")
-        _transformix = os.path.join(_elastix_dir, "transformix.exe")
+    if os.path.exists(os.path.join(_ELASTIX_DIR, "bin/elastix")):
+        _ELASTIX = os.path.join(_ELASTIX_DIR, "bin/elastix")
+        _transformix = os.path.join(_ELASTIX_DIR, "bin/transformix")
+    elif os.path.exists(os.path.join(_ELASTIX_DIR, "elastix.exe")):
+        _ELASTIX = os.path.join(_ELASTIX_DIR, "elastix.exe")
+        _transformix = os.path.join(_ELASTIX_DIR, "transformix.exe")
     else:
-        raise RuntimeError(f"No elastix executable found in {_elastix_dir}!")
+        raise RuntimeError(f"No elastix executable found in {_ELASTIX_DIR}!")
 
 
 def adjust_parameters(infile, outfile, params):
-    """Open an elastix parameter file (works for both input parameter and 
-    output transform files), adjust its parameters, and save it to a new 
+    """Open an elastix parameter file (works for both input parameter and
+    output transform files), adjust its parameters, and save it to a new
     file.
 
     **Parameters:**
-    
+
     file : str
         Path to an elastix parameter file.
 
@@ -992,10 +1019,8 @@ def read_parameters(infile):
     """Get dictionary of parameters from an elastix parameter file."""
 
     lines = [line for line in open(infile).readlines() if line.startswith("(")]
-    lines = [line[line.find("(") + 1:line.find(")")].split() for line in lines]
-    params = {
-        line[0]: " ".join(line[1:]) for line in lines
-    }
+    lines = [line[line.find("(") + 1 : line.find(")")].split() for line in lines]
+    params = {line[0]: " ".join(line[1:]) for line in lines}
     for name, param in params.items():
         if '"' in param:
             params[name] = param.strip('"')
@@ -1045,23 +1070,21 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
     pars = read_parameters(infile)
     init = pars["TransformParameters"]
     if pars["Transform"] != "TranslationTransform":
-        print(f"Can only manually adjust a translation step. Incorrect "
-              f"transform type: {pars['Transform']}")
+        print(
+            f"Can only manually adjust a translation step. Incorrect "
+            f"transform type: {pars['Transform']}"
+        )
         return
 
-    pars["TransformParameters"] = [
-        init[0] - dx,
-        init[1] - dy,
-        init[2] - dz
-    ]
+    pars["TransformParameters"] = [init[0] - dx, init[1] - dy, init[2] - dz]
     write_parameters(outfile, pars)
 
 
 def get_default_pfiles(basename_only=True):
 
     import skrt
-    pdir = os.path.join(
-        skrt.__path__[0], "../../examples/elastix/parameter_files")
+
+    pdir = os.path.join(skrt.__path__[0], "../../examples/elastix/parameter_files")
     files = [file for file in os.listdir(pdir) if file.endswith(".txt")]
     if basename_only:
         return files

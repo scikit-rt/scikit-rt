@@ -742,7 +742,7 @@ class BetterViewer:
         ):
             comparison = True
         self.load_comparison(comparison)
-        self.translation = [None, None, None]
+        self.translation = translation
         self.translation_write_style = translation_write_style
         self.show_mse = show_mse
         self.dta_tolerance = dta_tolerance
