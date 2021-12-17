@@ -1,32 +1,36 @@
 """Tests of VoxTox extensions to ROI and StructureSet classes."""
 
 import os
+from pathlib import Path
 
 from skrt.simulation import SyntheticImage
 from voxtox.structures import StructureSet
 
 # Make temporary test dir.
-if not os.path.exists("tmp"):
-    os.mkdir("tmp")
+tmp_dir = Path('tmp')
+tmp_dir.mkdir(exist_ok=True)
 
 # Create synthetic structure set.
 sim = SyntheticImage((100, 100, 40))
 sim.add_cube(side_length=40, name="cube", intensity=1)
 sim.add_sphere(radius=20, name="sphere", intensity=10)
 structure_set = StructureSet(sim.get_structure_set())
+for name in structure_set.get_roi_names():
+    roi_path = tmp_dir / f'{name}.txt'
+    roi_path.unlink(missing_ok=True)
 
 def test_structure_set_write_point_file():
 
     # Write structure set as point cloud.
-    structure_set.write(outdir='tmp', point_cloud=True)
+    structure_set.write(outdir=str(tmp_dir), point_cloud=True)
 
     for name in structure_set.get_roi_names():
         # Check that the ROI point cloud was written.
-        assert os.path.exists(f'tmp/{name}.txt')
+        assert (tmp_dir / f'{name}.txt').exists()
 
         # Load the point-cloud data,
         # then check that the contours obtain are the same as the originals.
-        ss1 = StructureSet('tmp', image=sim)
+        ss1 = StructureSet(sources=str(tmp_dir), image=sim)
 
         # Check centroids.
         assert structure_set.get_roi(name).get_centroid().all() == \

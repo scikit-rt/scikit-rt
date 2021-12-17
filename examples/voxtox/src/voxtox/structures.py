@@ -1,7 +1,6 @@
 '''VoxTox extenstions to Scikit-rt for ROIs and StructureSets'''
 
-import glob
-import os
+from pathlib import Path
 import shutil
 import statistics
 
@@ -12,22 +11,37 @@ import skrt
 class ROI(skrt.structures.ROI):
     '''VoxTox-specific extensions to Scikit-rt ROI class.'''
 
-    def __init__(self, key_precision=0.1, **kwargs):
+    def __init__(self, source=None, name=None, color=None, load=True,
+            image=None, shape=None, affine=None, voxel_size=None,
+            origin=None, mask_threshold=0.25, default_geom_method='auto',
+            overlap_level=None, point_cloud=False, key_precision=0.1, **kwargs):
+        '''
+        Constructor for ROI object.
 
+        **Parameters :**
+
+        point_cloud : bool, default=False
+            If True, write ROI data in VoxTox point-cloud format.
+            Each file contains contour data for a single ROI.
+            Each line gives (column, row, slice) coordinates
+            for a single point.  Points are ordered sequentially
+            around a slice.  Slice numbers are inverted with respect
+            to the usual DICOM numbering.
+
+        key_precision : float, default=0.1
+            Precision with which z-coordinate should match z-plane
+            when loading point-cloud data.
+
+        For details of other parameters, see
+        documentation for skrt.structures.ROI.
+        '''
+        self.point_cloud = point_cloud
         self.key_precision = key_precision
         skrt.structures.ROI.__init__(self, **kwargs)
 
     def load(self, force=False):
         '''
         Load ROI from file or source.
-
-        When loading an ROI from a point cloud, the default precision with
-        which z-coordinates are matched to z-planes is key_value=0.1.
-        If a different value is wanted, this should be specified when
-        creating the ROI instance.
-
-        For details of loading from sources other than point-cloud files,
-        see documnetation for skrt.structures.ROI.load().
 
         **Parameter:**
 
@@ -63,7 +77,8 @@ class ROI(skrt.structures.ROI):
 
         skrt.structures.ROI.load(self)
 
-    def write(self, outname=None, outdir=".", ext=None, **kwargs):
+    def write(self, outname=None, outdir=".", ext=None, point_cloud=False,
+            **kwargs):
         '''
         Write ROI data.
 
@@ -131,6 +146,34 @@ class ROI(skrt.structures.ROI):
 class StructureSet(skrt.structures.StructureSet):
     '''VoxTox-specific extensions to Scikit-rt StructureSet class.'''
 
+    def __init__(self, sources=None, name=None, image=None, load=True,
+            names=None, to_keep=None, to_remove=None, multi_label=False,
+            point_cloud=False, key_precision=0.1, **kwargs):
+
+        '''
+        Constructor for StructureSet object.
+
+        **Parameters:**
+
+        point_cloud : bool, default=False
+            If True, write StructureSet data in VoxTox point-cloud format.
+            Each file contains contour data for a single ROI.
+            Each line gives (column, row, slice) coordinates
+            for a single point.  Points are ordered sequentially
+            around a slice.  Slice numbers are inverted with respect
+            to the usual DICOM numbering.
+
+        key_precision : float, default=0.1
+            Precision with which z-coordinate should match z-plane
+            when loading point-cloud data.
+
+        For details of parameters, see documentation for
+        skrt.structures.StructureSet.
+        '''
+        self.point_cloud = point_cloud
+        self.key_precision = key_precision
+        skrt.structures.StructureSet.__init__(self, **kwargs)
+
     def load(self, sources=None, force=False):
 
         '''
@@ -171,15 +214,18 @@ class StructureSet(skrt.structures.StructureSet):
         sources_expanded = []
         for source in sources:
             if isinstance(source, str):
-                if os.path.isdir(source):
-                    sources_expanded.extend(glob.glob(f'{source}/*.txt'))
+                source_path = Path(source)
+                if source_path.is_dir():
+                    sources_expanded.extend(list(source_path.glob('**/*.txt')))
                 elif source.endswith('.txt'):
-                    sources_expanded.extend(glob.glob(f'{source}'))
+                    sources_expanded.extend(list(Path().glob(source)))
 
         # Load structure set from point-cloud files.
         if sources_expanded:
             for source in sources_expanded:
-                roi = ROI(source=source, image=self.image, **self.roi_kwargs)
+                roi = ROI(point_cloud=self.point_cloud,
+                        key_precision=self.key_precision, source=str(source),
+                        image=self.image, **self.roi_kwargs)
                 self.rois.append(roi)
             self.loaded = True
 
@@ -188,73 +234,69 @@ class StructureSet(skrt.structures.StructureSet):
             skrt.structures.StructureSet(self)
 
     def write(self, outname=None, outdir=".", ext=None, overwrite=False,
-            **kwargs):
+            point_cloud=False, names={}, **kwargs):
         '''
-        Write ROI data.
+        Write StructureSet data.
 
         **Parameters:**
 
-        outdir : str, default='.'
-            Directory where point-cloud files are to be written.
-
         outname : str, default=None
-            Not used when writing point-cloud files.  The names of
-            output point-cloud files match the corresponding ROI names.
+            Filename when a single output file is produced.  Disregarded
+            when set to None, or when multiple output files are produced,
+            in which case filenames match the corresponding ROI names.
+
+        outdir : str, default='.'
+            Directory where output files are be written.
 
         ext : str, default=None
-            Not used when writing point-cloud files.  The filename
-            extension for point-cloud files is '.txt'.
+            The filename extension.  For point-cloud files this is
+            disregarded, and the extension is '.txt'.
 
         overwrite: bool, default=True
             If True, overwrite any pre-existing point files.
 
+        point_cloud : bool, default=False
+            If True, write ROI data in VoxTox point-cloud format.
+            Each file contains contour data for a single ROI.
+            Each line gives (column, row, slice) coordinates
+            for a single point.  Points are ordered sequentially
+            around a slice.  Slice numbers are inverted with respect
+            to the usual DICOM numbering.
+
+        names : dict, default={}
+            Dictionary mapping between possible ROI names within
+            a structure set (dictionary values) and names to be used
+            for point-cloud files (dictionary keys).  The possible names
+            names can contain wildcards with the '*' symbol.
+
         kwargs : dict, default={}
             Dictionary containing arbitrary parameter-value pairs
-            passed in the function call:
-
-            - names : dict, default={}
-                  Dictionary mapping between possible ROI names within
-                  a structure set (dictionary values) and names to be used
-                  for point-cloud files (dictionary keys).  The possible names
-                  names can contain wildcards with the '*' symbol.
-
-            - point_cloud : bool, default=False
-                  If True, write ROI data in VoxTox point-cloud format.
-                  Each file contains contour data for a single ROI.
-                  Each line gives (column, row, slice) coordinates
-                  for a single point.  Points are ordered sequentially
-                  around a slice.  Slice numbers are inverted with respect
-                  to the usual DICOM numbering.
-
-            - all other values are passed to the contstructors of ROI
-              objects loaded as part of the structure set.  See
-              skrt.structures.ROI documentation for details of available
-              parameters.
+            passed in the function call.  For point-cloud files
+            this dictionary is disregarded.  Otherwise it's
+            passed in a call to skrt.structures.StructureSet.write().
         '''
 
         # When point-cloud format not requested,
         # format using write() method of base class.
-        point_cloud = kwargs.get('point_cloud', False)
         if not point_cloud:
             skrt.structures.StructureSet.write(self, outname, outdir, ext,
                     **kwargs)
             return
 
         # Create temporary StructureSet, with ROIs filtered/renamed.
-        names = self.roi_kwargs.pop('names', None)
         ss_tmp = self.filtered_copy(names=names, keep_renamed_only=True)
 
         # Ensure output directory exists.
-        if os.path.exists(outdir):
+        outpath = Path(outdir)
+        if outpath.exists():
             if overwrite:
                 shutil.rmtree(outdir)
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
+        outpath.mkdir(parents=True, exist_ok=True)
 
         # Write point clouds.
         for skrt_roi in ss_tmp.get_rois():
-            voxtox_roi = ROI(skrt_roi)
-            voxtox_roi.write(outdir=outdir, **kwargs)
+            voxtox_roi = ROI(source=skrt_roi)
+            voxtox_roi.write(outdir=outdir, point_cloud=point_cloud, **kwargs)
 
 def contours_mean_z(contours_3d={}):
     '''
@@ -262,7 +304,7 @@ def contours_mean_z(contours_3d={}):
 
     **Parameter:**
 
-    point_cloud : dict, default={}
+    contours_3d : dict, default={}
         Dictionary of point-cloud data, where the keys are plane
         z-coordinates, as strings, and the value for a given key
         is a list of (x, y, z) point coordinates.
