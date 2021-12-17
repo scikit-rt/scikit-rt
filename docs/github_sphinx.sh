@@ -36,8 +36,8 @@ rm -rf "source/_static"
 cp -rp "images" "source/_static"
 
 # Change relative paths to linked files.
-sed -i '' 's/docs\/image_registration/image_registration/' 'source/README.md'
-sed -i '' 's/docs\/images/_static/' 'source/README.md'
+sed -i 's/docs\/image_registration/image_registration/' 'source/README.md'
+sed -i 's/docs\/images/_static/' 'source/README.md'
 
 # Delete and recreate html-format documentation
 make clean
