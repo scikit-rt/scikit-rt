@@ -257,8 +257,9 @@ class Registration(Data):
         of a default parameter file by running get_default_params(name).
 
         **Parameters:**
+
         filename : str
-            Name of the default parameter file to add (either with or without
+            Name of the default parameter file to add (with or without
             the .txt extension).
 
         params : dict, default=None
@@ -535,13 +536,13 @@ class Registration(Data):
         `to_transform`. Functions called depending on type are:
 
         Image:
-            transform_image(to_transform, **kwargs)
+            transform_image(to_transform, \*\*kwargs)
         str:
-            transform_nifti(to_transform, **kwargs)
+            transform_nifti(to_transform, \*\*kwargs)
         StructureSet:
-            transform_structure_set(to_transform, **kwargs)
+            transform_structure_set(to_transform, \*\*kwargs)
         ROI:
-            transform_roi(to_transform, **kwargs)
+            transform_roi(to_transform, \*\*kwargs)
         """
 
         if issubclass(type(to_transform), Image):
@@ -864,7 +865,7 @@ class Registration(Data):
             If True, the result will be displayed in comparison with the
             fixed image.
 
-        `**`kwargs :
+        \*\*kwargs :
             Optional keyword arguments to pass to BetterViewer.
         """
 
