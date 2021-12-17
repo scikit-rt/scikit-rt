@@ -21,6 +21,8 @@
 # https://sphinx-themes.org/
 # ------------------------------------------
 
+cd docs
+
 # Ensure that package is installed
 pip install -e ..
 
@@ -42,3 +44,5 @@ sed -i 's/docs\/images/_static/' 'source/README.md'
 # Delete and recreate html-format documentation
 make clean
 #make html
+
+cd ..
