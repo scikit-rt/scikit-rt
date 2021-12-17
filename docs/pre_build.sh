@@ -21,6 +21,8 @@
 # https://sphinx-themes.org/
 # ------------------------------------------
 
+$CONDA/bin/conda env update --file environment.yml --name base
+
 # Generate rst files with autodoc directives from code.
 # Only needed when a new module is added to the project,
 # but does no harm to run every time.
