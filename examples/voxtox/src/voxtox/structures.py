@@ -57,15 +57,19 @@ class ROI(skrt.structures.ROI):
                 with open(self.source, "r", encoding='ascii') as in_file:
                     lines = in_file.readlines()
 
+                # This will fail if no image has been defined,
+                # but that's probably a good thing.
+                self.set_image(self.image)
+
                 # Extract dictionary of contours from point-cloud data.
                 contours_3d = {}
                 for line in lines:
                     i_point, j_point, k_point = [
                             float(value) for value in line.split()]
-                    k_point = self.image.shape[2] - k_point
-                    x_point = self.image.idx_to_pos(i_point, 'x')
-                    y_point = self.image.idx_to_pos(j_point, 'y')
-                    z_point = self.image.idx_to_pos(k_point, 'z')
+                    k_point = self.shape[2] - k_point
+                    x_point = self.idx_to_pos(i_point, 'x')
+                    y_point = self.idx_to_pos(j_point, 'y')
+                    z_point = self.idx_to_pos(k_point, 'z')
 
                     key = get_key(z_point, contours_3d, self.key_precision)
                     if not key in contours_3d:
