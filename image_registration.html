@@ -86,7 +86,7 @@
 <h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline"></a></h2>
 <section id="installing-scikit-rt">
 <h3>1. Installing scikit-rt<a class="headerlink" href="#installing-scikit-rt" title="Permalink to this headline"></a></h3>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>Ensure you have either <a class="reference external" href="https://pypi.org/project/pip/">pip</a> or <a class="reference external" href="https://docs.anaconda.com/anaconda/install/index.html">anaconda</a>/<a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">miniconda</a> (on Windows I would recommend Anaconda) installed on your machine.</p></li>
 <li><p>Open a terminal (if using pip on mac/linux) or a conda terminal (if using Anaconda - access by opening Anaconda-Navigator, clicking “Environments”, then clicking the play button and “Open Terminal”).</p></li>
 <li><p>Run the command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scikit-rt</span></code> to install the scikit-rt package.</p></li>
@@ -99,7 +99,7 @@
 </section>
 <section id="installing-elastix">
 <h3>2. Installing elastix<a class="headerlink" href="#installing-elastix" title="Permalink to this headline"></a></h3>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>Download the elastix binaries corresponding to your operating system from here: https://github.com/SuperElastix/elastix/releases/tag/5.0.1</p></li>
 <li><p>Extract the folder and either make a note of where you saved it, or add the <code class="docutils literal notranslate"><span class="pre">bin</span></code> folder to your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> environment variable and <code class="docutils literal notranslate"><span class="pre">lib</span></code> folder to your <code class="docutils literal notranslate"><span class="pre">$DYLDLIBRARYPATH</span></code> variable (if using mac/linux).</p></li>
 </ol>
@@ -154,13 +154,13 @@
 </pre></div>
 </div>
 <p>Explanation of each part of the code:</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>Import the image registration class</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">Registration</span>
 </pre></div>
 </div>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>If you didn’t add your elastix installation to your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> variable, you’ll need to manually set the location of your elastix installation:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_elastix_dir</span>
@@ -168,7 +168,7 @@
 </pre></div>
 </div>
 <p>On mac/linux, this should be the directory containing the <code class="docutils literal notranslate"><span class="pre">bin</span></code> and <code class="docutils literal notranslate"><span class="pre">lib</span></code> folders; on Windows, it should be the  directory containing <code class="docutils literal notranslate"><span class="pre">elastix.exe</span></code>.</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>Create a Registration object.</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span> <span class="o">=</span> <span class="n">Registration</span><span class="p">(</span>
@@ -190,14 +190,14 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">pfiles</span></code>: Path or list of paths to elastix parameter file(s). If a list is given, each parameter file will be used in series, with its results passed to the next step of the registration.</p></li>
 </ul>
 <p>For each parameter file, a subdirectory will be created in <code class="docutils literal notranslate"><span class="pre">&quot;my_results&quot;</span></code> with the same name as the parameter file, minus <code class="docutils literal notranslate"><span class="pre">.txt</span></code>. If an elastix transform file is already found in that directory, the registration will not be rerun for that parameter file, and instead the existing transform will be used.  To completely overwrite <code class="docutils literal notranslate"><span class="pre">&quot;my_results&quot;</span></code> and start from scratch, set <code class="docutils literal notranslate"><span class="pre">overwrite=True</span></code> when initialising the <code class="docutils literal notranslate"><span class="pre">Registration</span></code> class.</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>Run the registration.</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span><span class="o">.</span><span class="n">register</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>This step can also be performed automatically by setting <code class="docutils literal notranslate"><span class="pre">auto=True</span></code> when creating the <code class="docutils literal notranslate"><span class="pre">Registration</span></code> object. By default, registration steps will only be performed if there is no existing output transform in the directory for that step; to force rerunning of the registration, set <code class="docutils literal notranslate"><span class="pre">force=True</span></code> when running the <code class="docutils literal notranslate"><span class="pre">register()</span></code> function.</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>Viewing the images
 A <code class="docutils literal notranslate"><span class="pre">Registration</span></code> object can be used to launch an interactive viewer showing either the initial or final images side-by-side. To view the initial fixed and moving images, run</p></li>
 </ol>
@@ -213,7 +213,7 @@ A <code class="docutils literal notranslate"><span class="pre">Registration</spa
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reg</span><span class="o">.</span><span class="n">view_result</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>Transforming structure sets
 The transform found by the registration can be used to transform images, ROIs, and structure sets via the <code class="docutils literal notranslate"><span class="pre">transform()</span></code> function. Structure sets can be loaded from dicom with the <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> class imported from <code class="docutils literal notranslate"><span class="pre">skrt</span></code>:</p></li>
 </ol>
