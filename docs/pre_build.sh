@@ -21,12 +21,13 @@
 # https://sphinx-themes.org/
 # ------------------------------------------
 
+# Ensure that package is installed
 pip install -e ..
 
 # Generate rst files with autodoc directives from code.
 # Only needed when a new module is added to the project,
 # but does no harm to run every time.
-sphinx-apidoc -o source ../src/skrt
+sphinx-apidoc -f -o source ../src/skrt
 
 # Copy markdown files and images to be used in creating documentation.
 cp "../README.md" "source"
