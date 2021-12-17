@@ -37,5 +37,5 @@ sed -i '' 's/docs\/image_registration/image_registration/' 'source/README.md'
 sed -i '' 's/docs\/images/_static/' 'source/README.md'
 
 # Delete and recreate html-format documentation
-#make clean
+make clean
 #make html

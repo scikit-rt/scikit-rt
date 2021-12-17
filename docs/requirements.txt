@@ -1,2 +1,16 @@
-sphinx-rtd-theme==1.0.0
-myst-parser==0.15.2
+# Sphinx dependencies
+sphinx-rtd-theme
+myst-parser
+
+# Scikit-rt dependencies
+ipywidgets
+jupyter
+matplotlib
+nibabel
+numpy
+pandas
+pydicom>=2.1.2
+python-gdcm
+pytest
+scikit-image>=0.19.0
+shapely
