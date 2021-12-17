@@ -41,4 +41,4 @@ sed -i '' 's/docs\/images/_static/' 'source/README.md'
 
 # Delete and recreate html-format documentation
 make clean
-#make html
+make html
