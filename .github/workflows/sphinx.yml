@@ -10,7 +10,7 @@ jobs:
     - name: Build HTML
       uses: ammaraskar/sphinx-action@0.4
       with:
-        pre-build-command: 'pwd'
+        pre-build-command: 'ls -R `pwd`'
         build-command: 'make html'
         docs-folder: 'docs/'
     - name: Upload artifacts
