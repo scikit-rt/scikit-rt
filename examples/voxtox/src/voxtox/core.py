@@ -12,7 +12,9 @@ def get_couch_rotations(ds=None, group=COUCH_SHIFTS_GROUP,
     Retreive couch rotations stored as DICOM private data.
 
     Couch rotations are stored and retrieved as:
-        pitch (about x-axis), yaw (about y-axis), roll (about z-axis)
+
+    - pitch (about x-axis), yaw (about y-axis), roll (about z-axis)
+
     These represent the second part of the transformation
     (translations + rotations) for mapping from the guidance scan
     to the planning scan.  In practice, pitch and yaw are always zero.
@@ -45,8 +47,11 @@ def get_couch_shifts(image=None, reverse=False):
     at planning time as closely as possible.
 
     Couch shifts are retrieved as:
-        translations: dx, dy, dz
-        rotations: pitch (about x-axis), yaw (about y-axis), roll (about z-axis)
+
+        - translations: dx, dy, dz
+        - rotations: pitch (about x-axis), yaw (about y-axis),
+          roll (about z-axis)
+
     These represent the transformation for mapping from the guidance scan
     to the planning scan.  In practice, pitch and yaw are always zero.
 
@@ -74,9 +79,13 @@ def get_couch_translations(ds=None, group=COUCH_SHIFTS_GROUP,
     Retreive couch translations stored as DICOM private data.
 
     For historical reasons, couch translations are stored as:
-        +dx, -dz, +dy
+
+    - +dx, -dz, +dy
+
     They are rearranged here as:
-        +dx, +dy, +dz
+
+    - +dx, +dy, +dz
+
     These represent the first part of the transformation
     (translations + rotations) for mapping from the guidance scan
     to the planning scan.
