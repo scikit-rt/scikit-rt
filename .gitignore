@@ -12,5 +12,7 @@ build
 tests/tmp
 examples/*/tests/tmp
 docs/build/*
+docs/source/skrt*
+docs/source/voxtox*
 makefile
 !docs/Makefile

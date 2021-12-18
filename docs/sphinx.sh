@@ -21,10 +21,12 @@
 # https://sphinx-themes.org/
 # ------------------------------------------
 
-# Generate rst files with autodoc directives from code.
-# Only needed when a new module is added to the project,
-# but does no harm to run every time.
-sphinx-apidoc -o source ../src/skrt
+# Delete package rst files, and recreate
+EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
+rm -f source/skrt*.rst
+rm -f source/voxtox*.rst
+sphinx-apidoc -e -f --tocfile skrt_modules -o source ../src/skrt ${EXCLUDE_PATTERN}
+sphinx-apidoc -e -f --tocfile voxtox_modules -o source ../examples/voxtox/src/voxtox ${EXCLUDE_PATTERN}
 
 # Copy markdown files and images to be used in creating documentation.
 cp "../README.md" "source"
