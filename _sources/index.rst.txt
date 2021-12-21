@@ -15,10 +15,11 @@ Scikit-rt
    image_registration.md
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Code documentation:
 
-   modules
+   skrt_modules
+   voxtox_modules
 
 Indices and tables
 ------------------
