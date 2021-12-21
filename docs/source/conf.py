@@ -12,8 +12,12 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, os.path.abspath('.'))
+# sys.path.insert(0, os.path.abspath('../src'))
+# sys.path.insert(0, os.path.abspath('../src/skrt'))
+# sys.path.insert(0, os.path.abspath('../src/skrt/better_viewer'))
+# sys.path.insert(0, os.path.abspath('../src/skrt/viewer'))
 
+import skrt
 
 # -- Project information -----------------------------------------------------
 
