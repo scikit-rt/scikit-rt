@@ -23,24 +23,15 @@
 
 cd docs
 
-<<<<<<< HEAD
 # Install scikit-rt and voxtox
 pip install -e ..
 pip install -e ../examples/voxtox
 `
-=======
-# Ensure that package is installed
-pip install -e ..
-
->>>>>>> 74f1c019f7e7e5da6e820965610197f5cde78073
 # Generate rst files with autodoc directives from code.
 # Only needed when a new module is added to the project,
 # but does no harm to run every time.
 sphinx-apidoc -f -o source ../src/skrt
-<<<<<<< HEAD
 sphinx-apidoc -f -o source ../examples/voxtox/src/voxtox
-=======
->>>>>>> 74f1c019f7e7e5da6e820965610197f5cde78073
 
 # Copy markdown files and images to be used in creating documentation.
 cp "../README.md" "source"
