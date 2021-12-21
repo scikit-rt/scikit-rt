@@ -522,7 +522,7 @@ class ROI(skrt.core.Archive):
 
             # Make new contours from mask
             self.contours[view] = {}
-            for iz in range(self.mask.n_voxels[z_ax]):
+            for iz in self.get_indices(view):
 
                 # Get slice of mask array
                 mask_slice = self.get_slice(view, idx=iz).T
@@ -2620,7 +2620,7 @@ class ROI(skrt.core.Archive):
     def plot(
         self,
         view="x-y",
-        plot_type="contour",
+        plot_type=None,
         sl=None,
         idx=None,
         pos=None,
@@ -2639,7 +2639,93 @@ class ROI(skrt.core.Archive):
         include_image=False,
         **kwargs,
     ):
-        """Plot this ROI as either a mask or a contour."""
+        """Plot this ROI as either a mask or a contour.
+
+        **Parameters:**
+
+        view : str, default="x-y"
+            Orientation in which to plot. Can be "x-y", "y-z", or "x-z".
+
+        plot_type : str, default=None
+            Plotting type. If None, will be either "contour" or "mask" 
+            depending on the input type of the ROI. Options:
+
+                - "contour"
+                - "mask"
+                - "centroid" (contour with marker at centroid)
+                - "filled" (transparent mask + contour)
+                - "filled centroid" (filled with marker at centroid)
+
+        sl : int, default=None
+            Slice number to plot. If none of <sl>, <idx> or <pos> are supplied, 
+            the central slice of the ROI will be 
+            used.
+
+        idx : int, default=None
+            Array index of slice to plot. If none of <sl>, <idx> or <pos> are 
+            supplied, the central slice of the ROI will be used.
+
+        pos : float, default=None
+            Position in mm of slice to plot. If none of <sl>, <idx> or <pos> 
+            are supplied, the central slice of the ROI will be used.
+
+        ax : matplotlib.pyplot.Axes, default=None
+            Axes on which to plot. If None, new axes will be created.
+
+        gs : matplotlib.gridspec.GridSpec, default=None
+            If not None and <ax> is None, new axes will be created on the
+            current matplotlib figure with this gridspec.
+
+        figsize : float, default=skrt.image._default_figsize
+            Figure height in inches; only used if <ax> and <gs> are None.
+
+        opacity : float, default=None
+            Opacity to use if plotting mask (i.e. plot types "mask", "filled", 
+            or "filled centroid"). If None, opacity will be 1 by default for 
+            solid mask plots and 0.3 by default for filled plots.
+
+        linewidth : float, default=None
+            Width of contour lines. If None, the matplotlib default setting 
+            will be used.
+
+        contour_kwargs : dict, default=None
+            Extra keyword arguments to pass to matplotlib contour plotting.
+
+        mask_kwargs : dict, default=None
+            Extra keyword arguments to pass to matplotlib mask plotting.
+
+        zoom : int/float/tuple, default=None
+            Factor by which to zoom in. If a single int or float is given,
+            the same zoom factor will be applied in all directions. If a tuple
+            of three values is given, these will be used as the zoom factors
+            in each direction in the order (x, y, z). If None, the image will
+            not be zoomed in.
+
+        zoom_centre : tuple, default=None
+            Position around which zooming is applied. If None, the centre of
+            the image will be used.
+
+        color : matplotlib color, default=None
+            Color with which to plot the ROI; overrides the ROI's own color. If 
+            None, self.color will be used.
+
+        show : bool, default=True
+            If True, the plot will be displayed immediately.
+
+        save_as : str, default=None
+            If set to a string, the plot will be saved to the filename in the 
+            string.
+
+        include_image : bool, default=False
+            If True and self.image is not None, the ROI's image will be plotted
+            in the background.
+
+        `**`kwargs :
+            Extra keyword arguments to pass to the relevant plot function.
+        """
+
+        if plot_type is None:
+            plot_type = self.default_geom_method
 
         show_centroid = "centroid" in plot_type
         if zoom and zoom_centre is None:
@@ -3866,7 +3952,7 @@ class StructureSet(skrt.core.Archive):
     def plot(
         self,
         view="x-y",
-        plot_type="contour",
+        plot_type=None,
         sl=None,
         idx=None,
         pos=None,
@@ -4097,8 +4183,6 @@ class StructureSet(skrt.core.Archive):
         extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
         slice_thickness = self.get_rois()[0].get_slice_thickness_contours()
         return create_dummy_image(extents, slice_thickness, **kwargs)
-
-    def 
 
     def get_staple(self, force=False, exclude=None, **kwargs):
         """Apply STAPLE to all ROIs in this structure set and return
