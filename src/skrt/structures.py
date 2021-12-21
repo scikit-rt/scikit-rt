@@ -4098,31 +4098,77 @@ class StructureSet(skrt.core.Archive):
         slice_thickness = self.get_rois()[0].get_slice_thickness_contours()
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
-    def get_staple(self, **kwargs):
-        """Apply STAPLE to all ROIs in this structure set and return
-        STAPLE contour as an ROI."""
+    def 
 
-        # Get staple mask
+    def get_staple(self, force=False, exclude=None, **kwargs):
+        """Apply STAPLE to all ROIs in this structure set and return
+        STAPLE contour as an ROI. If <exclude> is set to a string, the ROI
+        with that name will be excluded.
+
+        **Parameters:**
+
+        force : bool, default=False
+            If False and STAPLE contour has already been computed, the 
+            previously computed contour will be returned. If Force=True, the 
+            STAPLE contour will be recomputed.
+
+        exclude : str, default=None
+            If set to a string, the ROI with that name will be excluded from
+            the STAPLE contour; this may be useful if comparison of a single
+            ROI with the consensus of all others is desired.
+
+        `**`kwargs :
+            Extra keyword arguments to pass to the creation of the ROI object
+            representing the STAPLE contour.
+        """
+
+        # Return cached result
+        if not force:
+            if exclude is None and hasattr(self, "staple"):
+                return self.staple
+            else:
+                if hasattr(self, "_staple_excluded") and exclude in \
+                        self._staple_excluded:
+                    return self._staple_excluded[exclude]
+
+        # Get list of ROIs to include in this STAPLE contour
+        if exclude is not None:
+            if exclude not in self.get_roi_names():
+                print(f"ROI to exclude {exclude} not found.")
+                return
+            rois_to_include = [roi for roi in self.rois if roi.name != exclude]
+            self._staple_excluded = {}
+        else:
+            rois_to_include = self.rois
+
+        # Get STAPLE mask
         import SimpleITK as sitk
         rois = []
-        for s in self.rois:
+        for s in rois_to_include:
             s.create_mask()
             rois.append(sitk.GetImageFromArray(s.sdata.astype(int)))
         probs = sitk.GetArrayFromImage(sitk.STAPLE(rois, 1))
         mask = probs > 0.95
 
-        # Create staple ROI
+        # Create STAPLE ROI object
         roi_kwargs = self.roi_kwargs.copy()
         roi_kwargs.update(kwargs)
+        staple_name = "staple"
+        if exclude is not None:
+            staple_name += f"_no_{exclude}"
         staple = ROI(
             mask, 
-            name="staple", 
+            name=staple_name,
             image=self.image,
             affine=self.rois[0].saffine,
             **roi_kwargs
         )
 
-        # Return staple ROI
+        # Cache and return staple ROI
+        if exclude is None:
+            self.staple = staple
+        else:
+            self._staple_excluded[exclude] = staple
         return staple
 
     def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
