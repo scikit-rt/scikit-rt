@@ -14,7 +14,7 @@ pip install scikit-rt
 
 On windows (if using conda), you will also need to run:
 ```
-conda install conda-forge shapely
+conda install -c conda-forge shapely
 ```
 
 When using the image viewer in a [Jupyter notebook](https://jupyter-notebook.readthedocs.io/en/stable/) or in [JupyterLab](https://jupyterlab.readthedocs.io/en/latest/),
