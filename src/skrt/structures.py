@@ -4228,9 +4228,9 @@ class StructureSet(skrt.core.Archive):
         # Get STAPLE mask
         import SimpleITK as sitk
         rois = []
-        for s in rois_to_include:
-            s.create_mask()
-            rois.append(sitk.GetImageFromArray(s.sdata.astype(int)))
+        for roi in rois_to_include:
+            rois.append(sitk.GetImageFromArray(roi.get_mask(
+                standardise=True).astype(int)))
         probs = sitk.GetArrayFromImage(sitk.STAPLE(rois, 1))
         mask = probs > 0.95
 
@@ -4244,7 +4244,7 @@ class StructureSet(skrt.core.Archive):
             mask, 
             name=staple_name,
             image=self.image,
-            affine=self.rois[0].saffine,
+            affine=self.rois[0].mask.get_affine(standardise=True),
             **roi_kwargs
         )
 
