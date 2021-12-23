@@ -31,9 +31,9 @@ pip install -e ../examples/voxtox
 # Only needed when a new module is added to the project,
 # but does no harm to run every time.
 sphinx-apidoc -f -o source ../src/skrt
-mv source/modules source/skrt_modules
+mv source/modules.rst source/skrt_modules.rst
 sphinx-apidoc -f -o source ../examples/voxtox/src/voxtox
-mv source/modules source/voxtox_modules
+mv source/modules.rst source/voxtox_modules.rst
 
 # Copy markdown files and images to be used in creating documentation.
 cp "../README.md" "source"
