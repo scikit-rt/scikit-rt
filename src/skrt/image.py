@@ -1918,7 +1918,7 @@ class Image(skrt.core.Archive):
 
             # Get name of dicom directory
             if outname.endswith(".dcm"):
-                outdir = os.path.dirname(outname)
+                outdir = os.path.abspath(os.path.dirname(outname))
             else:
                 outdir = outname
 

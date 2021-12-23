@@ -1393,6 +1393,7 @@ class BetterViewer:
                     use_cached_slices=(not self.comparison_only),
                     xlim=self.custom_ax_lims[self.viewers[0].view][0],
                     ylim=self.custom_ax_lims[self.viewers[0].view][1],
+                    scale_in_mm=self.scale_in_mm
                 )
 
         if self.suptitle is not None:
@@ -2274,7 +2275,8 @@ class SingleViewer:
             roi_kwargs=roi_kwargs,
             legend=self.roi_legend,
             centre_on_roi=self.init_roi,
-            shift=self.shift
+            shift=self.shift,
+            scale_in_mm=self.scale_in_mm
         )
         self.plotting = False
         self.colorbar_drawn = True
