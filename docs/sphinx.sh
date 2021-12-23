@@ -26,7 +26,9 @@ EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
 rm -f source/skrt*.rst
 rm -f source/voxtox*.rst
 sphinx-apidoc -e -f --tocfile skrt_modules -o source ../src/skrt ${EXCLUDE_PATTERN}
+mv source/modules.rst source/skrt_modules.rst
 sphinx-apidoc -e -f --tocfile voxtox_modules -o source ../examples/voxtox/src/voxtox ${EXCLUDE_PATTERN}
+mv source/modules.rst source/voxtox_modules.rst
 
 # Copy markdown files and images to be used in creating documentation.
 cp "../README.md" "source"
