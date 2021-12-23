@@ -37,6 +37,7 @@ sphinx-apidoc -e -f --tocfile voxtox_modules -o source ../examples/voxtox/src/vo
 mv source/modules.rst source/voxtox_modules.rst
 
 # Copy markdown files and images to be used in creating documentation.
+rm -rf source/*.md
 cp "../README.md" "source"
 cp "image_registration.md" "source"
 rm -rf "source/_static"
