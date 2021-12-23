@@ -1,0 +1,33 @@
+skrt package
+============
+
+Subpackages
+-----------
+
+.. toctree::
+
+   skrt.better_viewer
+   skrt.viewer
+
+Submodules
+----------
+
+.. toctree::
+
+   skrt.application
+   skrt.core
+   skrt.dose
+   skrt.image
+   skrt.multi
+   skrt.patient
+   skrt.registration
+   skrt.simulation
+   skrt.structures
+
+Module contents
+---------------
+
+.. automodule:: skrt
+   :members:
+   :undoc-members:
+   :show-inheritance:

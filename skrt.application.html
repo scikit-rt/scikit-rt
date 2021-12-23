@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>skrt.application module &mdash; Scikit-rt 0.1.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="skrt.core module" href="skrt.core.html" />
+    <link rel="prev" title="skrt.viewer.viewer module" href="skrt.viewer.viewer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">scikit-rt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_registration.html">Image registration with scikit-rt and elastix</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="skrt_modules.html">skrt</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="skrt.html">skrt package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="skrt.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">skrt.application module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html">skrt.core module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html">skrt.dose module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html">skrt.image module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.multi.html">skrt.multi module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.patient.html">skrt.patient module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html">skrt.registration module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html">skrt.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html">skrt.structures module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#module-skrt">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
+          <li><a href="skrt.html">skrt package</a> &raquo;</li>
+      <li>skrt.application module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/skrt.application.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-skrt.application">
+<span id="skrt-application-module"></span><h1>skrt.application module<a class="headerlink" href="#module-skrt.application" title="Permalink to this headline"></a></h1>
+<p>Framework for running analysis over patient data.</p>
+<p>This module provides for construction of an analysis application
+as a sequence of algorithms, each of which inherits from the
+Algorithm class.  This defines three methods relating to execution:</p>
+<ul class="simple">
+<li><p><strong>initialise()</strong> - run before any patient data are read;</p></li>
+<li><p><strong>execute()</strong> - run once for each patient;</p></li>
+<li><p><strong>finalise()</strong> - run after all patient data have been read.</p></li>
+</ul>
+<p>Each method returns an instance of the Status class,
+providing information on whether execution problems were encountered.
+Running of algorithm methods is handled by the Application class.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.application.Algorithm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for analysis algorithms.</p>
+<p>Each analysis algorithm should inherit from Algorithm,
+overwriting as needed the methods initialise, execute, finalise,
+to implement analysis-specific functionality.</p>
+<p><strong>Methods:</strong></p>
+<ul class="simple">
+<li><p><strong>__init__()</strong>: Create instance of Algorithm class.</p></li>
+<li><p><strong>initialise()</strong>: Perform tasks required before considering any patients.</p></li>
+<li><p><strong>execute()</strong>: Perform tasks required for each patient.</p></li>
+<li><p><strong>finalise()</strong>: Perform tasks required after considering all patients.</p></li>
+<li><p><strong>set_attributes()</strong>: Set values for algorithm attributes.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Algorithm.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Create instance of Algorithm class.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>opts: dict, default={}</dt><dd><p>Dictionary for setting algorithm attributes.</p>
+</dd>
+<dt>name: str, default=’’</dt><dd><p>Name for identifying algorithm instance.</p>
+</dd>
+<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Algorithm.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm.execute" title="Permalink to this definition"></a></dt>
+<dd><p>Perform tasks required for each patient.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>patient: skrt.patient.Patient/None, default=None</dt><dd><p>Object providing access to patient information.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Algorithm.finalise">
+<span class="sig-name descname"><span class="pre">finalise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm.finalise" title="Permalink to this definition"></a></dt>
+<dd><p>Perform tasks required after considering all patients.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Algorithm.initialise">
+<span class="sig-name descname"><span class="pre">initialise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm.initialise" title="Permalink to this definition"></a></dt>
+<dd><p>Perform tasks required before considering any patients.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Algorithm.set_attributes">
+<span class="sig-name descname"><span class="pre">set_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm.set_attributes" title="Permalink to this definition"></a></dt>
+<dd><p>Set values for algorithm attributes.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>opts: dict, default={}</dt><dd><p>Dictionary for setting algorithm attributes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.application.Application">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Application</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represent application as sequence of algorithm, and manage execution.</p>
+<p><strong>Methods:</strong></p>
+<ul class="simple">
+<li><p><strong>__init__()</strong>: Create instance of Application class.</p></li>
+<li><p><strong>initialise()</strong>: Call each algorithm’s initialise method.</p></li>
+<li><p><strong>execute()</strong>: For each patient, call each algorithm’s execute method.</p></li>
+<li><p><strong>finalise()</strong>: Call each algorithm’s finalise method.</p></li>
+<li><p><strong>run()</strong>: Initialise analysis, process patient data, finalise analysis.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Application.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Create instance of Application class.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>algs: list, default=[]</dt><dd><p>List of algorithms to be managed.  Algorithms are processed
+in the order in which they are specified in the list.</p>
+</dd>
+<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Application.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.execute" title="Permalink to this definition"></a></dt>
+<dd><p>For each patient, call each algorithm’s execute method.</p>
+<p><strong>Parameter:</strong></p>
+<p>patient: skrt.patient.Patient/None, default=None</p>
+<blockquote>
+<div><p>Object providing access to patient information.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Application.finalise">
+<span class="sig-name descname"><span class="pre">finalise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.finalise" title="Permalink to this definition"></a></dt>
+<dd><p>Call each algorithm’s finalise method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Application.initialise">
+<span class="sig-name descname"><span class="pre">initialise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.initialise" title="Permalink to this definition"></a></dt>
+<dd><p>Call each algorithm’s initialise method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Application.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.run" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise analysis, process patient data, finalise analysis.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>paths: list, default = []</dt><dd><p>List of paths to folders containing patient data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.application.Status">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represent an exit status.</p>
+<p><strong>Methods:</strong></p>
+<ul class="simple">
+<li><p><strong>__init__()</strong>: Create instance of Status class.</p></li>
+<li><p><strong>ok()</strong>: Return boolean, indicating whether status is okay.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Status.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Create instance of Status class.</p>
+<p>Instances of the Status class are intended to be returned by
+algorithm methods, with attributes set to indicate exit status.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>code: int, default=0</dt><dd><p>Value for exit status.</p>
+</dd>
+<dt>name: str, default=’’</dt><dd><p>Name for exit status.</p>
+</dd>
+<dt>reason: str, default=’’</dt><dd><p>Reason for exit status.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Status.ok">
+<span class="sig-name descname"><span class="pre">ok</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status.ok" title="Permalink to this definition"></a></dt>
+<dd><p>Return boolean indicating whether status is okay (exit code non-zero).</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="skrt.viewer.viewer.html" class="btn btn-neutral float-left" title="skrt.viewer.viewer module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="skrt.core.html" class="btn btn-neutral float-right" title="skrt.core module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

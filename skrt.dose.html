@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>skrt.dose module &mdash; Scikit-rt 0.1.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="skrt.image module" href="skrt.image.html" />
+    <link rel="prev" title="skrt.core module" href="skrt.core.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">scikit-rt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_registration.html">Image registration with scikit-rt and elastix</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="skrt_modules.html">skrt</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="skrt.html">skrt package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="skrt.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="skrt.application.html">skrt.application module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html">skrt.core module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">skrt.dose module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html">skrt.image module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.multi.html">skrt.multi module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.patient.html">skrt.patient module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html">skrt.registration module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html">skrt.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html">skrt.structures module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#module-skrt">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
+          <li><a href="skrt.html">skrt package</a> &raquo;</li>
+      <li>skrt.dose module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/skrt.dose.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-skrt.dose">
+<span id="skrt-dose-module"></span><h1>skrt.dose module<a class="headerlink" href="#module-skrt.dose" title="Permalink to this headline"></a></h1>
+<p>Classes related to doses and plans.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.dose.Dose">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.image.html#skrt.image.Image" title="skrt.image.Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.image.Image</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise from a medical image source.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><dl class="simple">
+<dt>Source of image data. Can be either:</dt><dd><ol class="loweralpha simple">
+<li><p>A string containing the path to a dicom or nifti file;</p></li>
+<li><p>A string containing the path to a numpy file containing a
+2D or 3D array;</p></li>
+<li><p>A 2D or 3D numpy array;</p></li>
+<li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
+<li><p>An existing Image object to be cloned; in this case, all 
+other input args except &lt;title&gt; will be ignored, as these 
+will be taken from the existing Image.</p></li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
+can be loaded later with the load() method.</p>
+</dd>
+<dt>title<span class="classifier">str, default=None</span></dt><dd><p>Title to use when plotting the image. If None and &lt;source&gt; is a
+path, a title will be automatically generated from the filename.</p>
+</dd>
+<dt>affine<span class="classifier">4x4 array, default=None</span></dt><dd><p>Array containing the affine matrix to use if &lt;source&gt; is a numpy
+array or path to a numpy file. If not None, this takes precendence
+over &lt;voxel_size&gt; and &lt;origin&gt;.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=(1, 1, 1)</span></dt><dd><p>Voxel sizes in mm in order (x, y, z) to use if &lt;source&gt; is a numpy
+array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>origin<span class="classifier">tuple, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z) to use if &lt;source&gt; is a
+numpy array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>nifti_array<span class="classifier">bool, default=False</span></dt><dd><p>If True and &lt;source&gt; is a numpy array or numpy file, the array
+will be treated as a nifti-style array, i.e. (x, y, z) in
+(row, column, slice), as opposed to dicom style.</p>
+</dd>
+<dt>downsample<span class="classifier">int/list, default=None</span></dt><dd><p>Amount by which to downsample the image. Can be a single value for
+all axes, or a list containing downsampling amounts in order
+(x, y, z).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_mean_dose">
+<span class="sig-name descname"><span class="pre">get_mean_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_mean_dose" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="skrt.dose.Dose.max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max</span></span><a class="headerlink" href="#skrt.dose.Dose.max" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.plot_DVH">
+<span class="sig-name descname"><span class="pre">plot_DVH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot_DVH" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.dose.RtDose">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">RtDose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtDose" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.MachineData" title="skrt.core.MachineData"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.MachineData</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.RtDose.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtDose.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise dated object from a path and assign its timestamp. If
+no valid timestamp is found within the path string, it will be set
+automatically from the current date and time if auto_timestamp is True.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.RtDose.get_image_stack">
+<span class="sig-name descname"><span class="pre">get_image_stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtDose.get_image_stack" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.dose.RtPlan">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">RtPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtPlan" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.MachineData" title="skrt.core.MachineData"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.MachineData</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.RtPlan.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtPlan.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise dated object from a path and assign its timestamp. If
+no valid timestamp is found within the path string, it will be set
+automatically from the current date and time if auto_timestamp is True.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="skrt.core.html" class="btn btn-neutral float-left" title="skrt.core module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="skrt.image.html" class="btn btn-neutral float-right" title="skrt.image module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

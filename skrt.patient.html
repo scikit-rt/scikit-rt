@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>skrt.patient module &mdash; Scikit-rt 0.1.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="skrt.registration module" href="skrt.registration.html" />
+    <link rel="prev" title="skrt.multi module" href="skrt.multi.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">scikit-rt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_registration.html">Image registration with scikit-rt and elastix</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="skrt_modules.html">skrt</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="skrt.html">skrt package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="skrt.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="skrt.application.html">skrt.application module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html">skrt.core module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html">skrt.dose module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html">skrt.image module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.multi.html">skrt.multi module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">skrt.patient module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html">skrt.registration module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html">skrt.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html">skrt.structures module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#module-skrt">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
+          <li><a href="skrt.html">skrt package</a> &raquo;</li>
+      <li>skrt.patient module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/skrt.patient.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-skrt.patient">
+<span id="skrt-patient-module"></span><h1>skrt.patient module<a class="headerlink" href="#module-skrt.patient" title="Permalink to this headline"></a></h1>
+<p>Classes related to Patients and Studies.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.patient.Patient">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.patient.</span></span><span class="sig-name descname"><span class="pre">Patient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['logfiles']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.PathData" title="skrt.core.PathData"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.PathData</span></code></a></p>
+<p>Object associated with a top-level directory whose name corresponds to
+a patient ID, and whose subdirectories contain studies.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['logfiles']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of Data class, allowing initialisation of an
+arbitrary set of attributes.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
+(dictionary keys) and their initial values.</p>
+</dd>
+<dt>**kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
+and their initial values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.add_study">
+<span class="sig-name descname"><span class="pre">add_study</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CT'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.add_study" title="Permalink to this definition"></a></dt>
+<dd><p>Add a new study.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.combined_files">
+<span class="sig-name descname"><span class="pre">combined_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_files" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of all files of a given data type &lt;attr&gt; associated with
+this patient, within a given date range if specified.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.combined_files_by_dir">
+<span class="sig-name descname"><span class="pre">combined_files_by_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_files_by_dir" title="Permalink to this definition"></a></dt>
+<dd><p>Get dict of all files of a given data type &lt;attr&gt; associated with
+this patient, within a given date range if specified. The dict keys
+will be the directories that the files are in.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.combined_objs">
+<span class="sig-name descname"><span class="pre">combined_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_objs" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of all objects of a given attribute &lt;attr&gt; associated
+with this patient.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_age">
+<span class="sig-name descname"><span class="pre">get_age</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_age" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_birth_date">
+<span class="sig-name descname"><span class="pre">get_birth_date</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_birth_date" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_sex">
+<span class="sig-name descname"><span class="pre">get_sex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_sex" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_subdir_studies">
+<span class="sig-name descname"><span class="pre">get_subdir_studies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_subdir_studies" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of studies within a given subdirectory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.last_in_interval">
+<span class="sig-name descname"><span class="pre">last_in_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.last_in_interval" title="Permalink to this definition"></a></dt>
+<dd><p>Get the last object of a given attribute &lt;attr&gt; in a given
+date interval.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.load_demographics">
+<span class="sig-name descname"><span class="pre">load_demographics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.load_demographics" title="Permalink to this definition"></a></dt>
+<dd><p>Load a patient’s birth date, age, and sex.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.dcm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_ignore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write files tree.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.patient.Study">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.patient.</span></span><span class="sig-name descname"><span class="pre">Study</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Archive</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise dated object from a path and assign its timestamp. If
+no valid timestamp is found within the path string, it will be set
+automatically from the current date and time if auto_timestamp is True.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.add_image">
+<span class="sig-name descname"><span class="pre">add_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CT'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.add_image" title="Permalink to this definition"></a></dt>
+<dd><p>Add a new image of a given image type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.correct_dose_image_position">
+<span class="sig-name descname"><span class="pre">correct_dose_image_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.correct_dose_image_position" title="Permalink to this definition"></a></dt>
+<dd><p>Correct for image positions from CheckTomo being offset by one slice
+relative to image positions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.get_description">
+<span class="sig-name descname"><span class="pre">get_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_description" title="Permalink to this definition"></a></dt>
+<dd><p>Load a study description.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.get_machine_sublist">
+<span class="sig-name descname"><span class="pre">get_machine_sublist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">machine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_machine_sublist" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of doses or treatment plans corresponding to a specific
+machine.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.get_mvct_selection">
+<span class="sig-name descname"><span class="pre">get_mvct_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mvct_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta_hours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_mvct_selection" title="Permalink to this definition"></a></dt>
+<dd><p>Get a selection of MVCT images which were taken at least
+&lt;min_delta_hours&gt; apart. &lt;mvct_dict&gt; is a dict where the keys are
+patient IDs, and the paths are directory paths from which to load images
+for that patient.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.get_patient_id">
+<span class="sig-name descname"><span class="pre">get_patient_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_patient_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.get_plan_data">
+<span class="sig-name descname"><span class="pre">get_plan_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RtPlan'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RTPLAN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_plan_data" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of RT dose or plan objects specified by dtype=’RtDose’ or
+‘RtPlan’ &lt;dtype&gt;, respectively) by searching within a given directory,
+&lt;subdir&gt; (or within the top level directory of this Study, if
+&lt;subdir&gt; is not provided).</p>
+<p>Subdirectories with names in &lt;exclude&gt; will be ignored.</p>
+<p>Each dose-like object will be matched by timestamp to one of the images
+in &lt;images&gt; (which should be a list of DatedStores), if provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.get_plan_dose">
+<span class="sig-name descname"><span class="pre">get_plan_dose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_plan_dose" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.get_structure_sets">
+<span class="sig-name descname"><span class="pre">get_structure_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_structure_sets" title="Permalink to this definition"></a></dt>
+<dd><p>Make list of StructureSet objects found within a given subdir and
+set their associated image objects.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.sum_dose_plans">
+<span class="sig-name descname"><span class="pre">sum_dose_plans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dose_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.sum_dose_plans" title="Permalink to this definition"></a></dt>
+<dd><p>Sum over doses using a given summation type.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="skrt.multi.html" class="btn btn-neutral float-left" title="skrt.multi module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="skrt.registration.html" class="btn btn-neutral float-right" title="skrt.registration module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

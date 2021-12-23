@@ -1,0 +1,7 @@
+skrt.viewer.viewer module
+=========================
+
+.. automodule:: skrt.viewer.viewer
+   :members:
+   :undoc-members:
+   :show-inheritance:

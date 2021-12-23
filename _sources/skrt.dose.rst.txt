@@ -1,0 +1,7 @@
+skrt.dose module
+================
+
+.. automodule:: skrt.dose
+   :members:
+   :undoc-members:
+   :show-inheritance:
