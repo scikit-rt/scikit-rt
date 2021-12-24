@@ -14,5 +14,6 @@ examples/*/tests/tmp
 docs/build/*
 docs/source/skrt*
 docs/source/voxtox*
+docs/source/*.md
 makefile
 !docs/Makefile
