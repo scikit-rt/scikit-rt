@@ -1236,18 +1236,18 @@ the dummy image. See documentation of ROI.get_dummy_image().</p>
 <dt class="sig sig-object py" id="skrt.structures.ROI.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fine'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Apply three-dimensional similarity transform to roi.</p>
-<p>If the transform affects only the ‘x-y’ view and either
-the roi source type is “dicom” of force-contours is True,
-the transform is applied to contour points and the roi mask
-is set as unloaded.  Otherwise the transform
+<p>If the transform corresponds to a translation and/or rotation
+about the z-axis, and either the roi source type is “dicom”
+or force-contours is True, the transform is applied to contour
+points and the roi mask is set as unloaded.  Otherwise the transform
 is applied to the mask and contours are set as unloaded.</p>
 <p>The transform is applied in the order: translation, scaling,
 rotation.  The latter two are about the centre coordinates.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force_contours<span class="classifier">bool, default=False</span></dt><dd><p>If True, and the transform affects only the ‘x-y’ view,
-apply transform to contour points independently of
-the original data source.</p>
+<dt>force_contours<span class="classifier">bool, default=False</span></dt><dd><p>If True, and the transform corresponds to a translation
+and/or rotation about the z-axis, apply transform to contour
+points independently of the original data source.</p>
 </dd>
 </dl>
 <p>For other parameters, see documentation for
@@ -1608,13 +1608,18 @@ the StructureSet.</p>
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fine'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Apply three-dimensional similarity transform to structure-set ROIs.</p>
+<p>If the transform corresponds to a translation and/or rotation
+about the z-axis, and either the roi source type is “dicom”
+or force-contours is True, the transform is applied to contour
+points and the roi mask is set as unloaded.  Otherwise the transform
+is applied to the mask and contours are set as unloaded.</p>
 <p>The transform is applied in the order: translation, scaling,
 rotation.  The latter two are about the centre coordinates.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force_contours<span class="classifier">bool, default=False</span></dt><dd><p>If True, and the transform affects only the ‘x-y’ view,
-apply transform to contour points independently of
-the original data source.</p>
+<dt>force_contours<span class="classifier">bool, default=False</span></dt><dd><p>If True, and the transform corresponds to a translation
+and/or rotation about the z-axis, apply transform to contour
+points independently of the original data source.</p>
 </dd>
 <dt>names<span class="classifier">list/None, default=False</span></dt><dd><p>List of ROIs to which transform is to be applied.  If None,
 transform is applied to all ROIs.</p>
