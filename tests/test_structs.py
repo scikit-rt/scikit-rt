@@ -399,7 +399,8 @@ ss0 = sim0.get_structure_set()
 dx_min, dx_max = (-15, 65)
 dy_min, dy_max = (-15, 25)
 xyc_min, xyc_max = (40, 60)
-zc_min, zc_max = (5, 35)
+zc_min, zc_max = (15, 25)
+dz_min, dz_max = (-5, 5)
 theta_min, theta_max = (0, 360)
 
 # Set level of agreement (mm) for post-transform centroid positions
@@ -414,7 +415,8 @@ def test_structure_set_translation():
         # Randomly translate structure sets.
         dx = random.uniform(dx_min, dx_max)
         dy = random.uniform(dy_min, dy_max)
-        translation = [dx, dy, 0]
+        dz = random.uniform(dz_min, dz_max)
+        translation = [dx, dy, dz]
         # Translation using masks.
         ss1 = ss0.clone()
         ss1.transform(translation=translation)

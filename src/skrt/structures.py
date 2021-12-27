@@ -3302,10 +3302,10 @@ class ROI(skrt.core.Archive):
         """
         Apply three-dimensional similarity transform to roi.
 
-        If the transform affects only the 'x-y' view and either
-        the roi source type is "dicom" of force-contours is True,
-        the transform is applied to contour points and the roi mask
-        is set as unloaded.  Otherwise the transform
+        If the transform corresponds to a translation and/or rotation
+        about the z-axis, and either the roi source type is "dicom"
+        or force-contours is True, the transform is applied to contour
+        points and the roi mask is set as unloaded.  Otherwise the transform
         is applied to the mask and contours are set as unloaded.
 
         The transform is applied in the order: translation, scaling,
@@ -3314,9 +3314,9 @@ class ROI(skrt.core.Archive):
         **Parameters:**
         
         force_contours : bool, default=False
-            If True, and the transform affects only the 'x-y' view,
-            apply transform to contour points independently of
-            the original data source.
+            If True, and the transform corresponds to a translation
+            and/or rotation about the z-axis, apply transform to contour
+            points independently of the original data source.
 
         For other parameters, see documentation for
         skrt.image.Image.transform().  Note that the ``order``
@@ -3329,10 +3329,9 @@ class ROI(skrt.core.Archive):
         transform_contours = False
         if self.source_type == 'dicom' or force_contours:
             if abs(scale - 1) < small_number:
-                if abs(translation[2]) < small_number:
-                    if abs(rotation[0]) < small_number \
-                            and abs(rotation[1]) < small_number:
-                        transform_contours = True
+                if abs(rotation[0]) < small_number \
+                        and abs(rotation[1]) < small_number:
+                    transform_contours = True
 
         if transform_contours:
 
@@ -3342,14 +3341,15 @@ class ROI(skrt.core.Archive):
             angle = rotation[2]
             new_contours = {}
             for key, contours in self.get_contours().items():
-                new_contours[key] = []
+                new_key = key + translation[2]
+                new_contours[new_key] = []
                 for contour in contours:
                     polygon = contour_to_polygon(contour)
                     polygon = affinity.translate(polygon, *translation_2d)
                     polygon = affinity.rotate(polygon, angle, centre_2d)
                     polygon = affinity.scale(polygon, scale, scale, scale,
                             centre_2d)
-                    new_contours[key].append(polygon_to_contour(polygon))
+                    new_contours[new_key].append(polygon_to_contour(polygon))
 
             self.reset_contours(new_contours)
 
@@ -4261,15 +4261,21 @@ class StructureSet(skrt.core.Archive):
         """
         Apply three-dimensional similarity transform to structure-set ROIs.
 
+        If the transform corresponds to a translation and/or rotation
+        about the z-axis, and either the roi source type is "dicom"
+        or force-contours is True, the transform is applied to contour
+        points and the roi mask is set as unloaded.  Otherwise the transform
+        is applied to the mask and contours are set as unloaded.
+
         The transform is applied in the order: translation, scaling,
         rotation.  The latter two are about the centre coordinates.
 
         **Parameters:**
         
         force_contours : bool, default=False
-            If True, and the transform affects only the 'x-y' view,
-            apply transform to contour points independently of
-            the original data source.
+            If True, and the transform corresponds to a translation
+            and/or rotation about the z-axis, apply transform to contour
+            points independently of the original data source.
 
         names : list/None, default=False
             List of ROIs to which transform is to be applied.  If None,
