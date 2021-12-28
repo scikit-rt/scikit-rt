@@ -8,6 +8,8 @@ import numpy as np
 
 import skrt
 
+from voxtox.core import get_couch_shifts
+
 class ROI(skrt.structures.ROI):
     '''VoxTox-specific extensions to Scikit-rt ROI class.'''
 
@@ -35,9 +37,54 @@ class ROI(skrt.structures.ROI):
         For details of other parameters, see
         documentation for skrt.structures.ROI.
         '''
+
+        # Clone from another ROI object
+        if issubclass(type(source), ROI):
+            source.clone_attrs(self)
+            return
+
         self.point_cloud = point_cloud
         self.key_precision = key_precision
-        skrt.structures.ROI.__init__(self, **kwargs)
+        skrt.structures.ROI.__init__(self, source=source, name=name,
+                color=color, load=load, image=image, shape=shape,
+                affine=affine, voxel_size=voxel_size, origin=origin,
+                mask_threshold=mask_threshold,
+                default_geom_method=default_geom_method,
+                overlap_level=overlap_level, **kwargs)
+
+    def apply_couch_shifts(self, reverse=False, force_contours=True):
+        '''
+        Apply couch shifts to ROI.
+
+        Couch shifts - applied in the order translation, rotation - represent
+        the transformation for mapping from guidance scan to planning scan.
+
+        Reverse shifts - applied in the order rotation, translation - represent
+        the transformation for mapping from planning scan to guidance scan.
+
+        **Parameters:**
+
+        reverse: bool, default=False
+            If True, reverse couch shifts are applied.
+
+        force_contours : bool, default=True
+            If True, and the transform corresponds to a translation
+            and/or rotation about the z-axis, apply transform to contour
+            points independently of the original data source.  Otherwise
+            apply transform to mask.
+        '''
+        translation, rotation = get_couch_shifts(self.image, reverse)
+
+        if reverse:
+            self.transform(rotation=rotation,
+                    force_contours=force_contours)
+            self.transform(translation=translation,
+                    force_contours=force_contours)
+        else:
+            self.transform(translation=translation,
+                    force_contours=force_contours)
+            self.transform(rotation=rotation,
+                    force_contours=force_contours)
 
     def load(self, force=False):
         '''
@@ -66,10 +113,10 @@ class ROI(skrt.structures.ROI):
                 for line in lines:
                     i_point, j_point, k_point = [
                             float(value) for value in line.split()]
-                    k_point = self.shape[2] - k_point
-                    x_point = self.idx_to_pos(i_point, 'x')
-                    y_point = self.idx_to_pos(j_point, 'y')
-                    z_point = self.idx_to_pos(k_point, 'z')
+                    k_point = self.image.shape[2] - k_point
+                    x_point = self.image.idx_to_pos(i_point, 'x')
+                    y_point = self.image.idx_to_pos(j_point, 'y')
+                    z_point = self.image.idx_to_pos(k_point, 'z')
 
                     key = get_key(z_point, contours_3d, self.key_precision)
                     if not key in contours_3d:
@@ -174,9 +221,41 @@ class StructureSet(skrt.structures.StructureSet):
         For details of parameters, see documentation for
         skrt.structures.StructureSet.
         '''
+
+        # Clone from another StructureSet object
+        if issubclass(type(sources), StructureSet):
+            sources.clone_attrs(self)
+            return
+
         self.point_cloud = point_cloud
         self.key_precision = key_precision
-        skrt.structures.StructureSet.__init__(self, **kwargs)
+        skrt.structures.StructureSet.__init__(self, sources=sources,
+                name=name, image=image, load=load, names=names,
+                to_keep=to_keep, to_remove=to_remove, multi_label=multi_label,
+                **kwargs)
+
+    def apply_couch_shifts(self, reverse=False, names=None):
+        '''
+        Apply couch shifts to structure-set ROIs.
+
+        Couch shifts - applied in the order translation, rotation - represent
+        the transformation for mapping from guidance scan to planning scan.
+
+        Reverse shifts - applied in the order rotation, translation - represent
+        the transformation for mapping from planning scan to guidance scan.
+
+        **Parameters:**
+
+        reverse: bool, default=False
+            If True, reverse couch shifts are applied.
+
+        names : list/None, default=False
+            List of ROIs to which transform is to be applied.  If None,
+            transform is applied to all ROIs.
+        '''
+
+        for roi in self.get_rois(names):
+            roi.apply_couch_shifts(reverse)
 
     def load(self, sources=None, force=False):
 
