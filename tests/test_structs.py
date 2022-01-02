@@ -62,6 +62,8 @@ def test_get_dict():
 def test_get_roi():
     assert isinstance(cube, ROI)
     assert cube.name == "cube"
+    # ROI from non-DICOM source
+    assert cube.number == None
 
 def test_structure_set_from_rois():
     """Test creation of structure set from ROIs."""

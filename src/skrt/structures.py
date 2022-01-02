@@ -238,6 +238,10 @@ class ROI(skrt.core.Archive):
         self.original_name = name
         self.title = None
 
+        # ROI number as defined in DICOM RTSTRUCT file.
+        # Left to None for ROI loaded from non-DICOM source.
+        self.number = None
+
         # Load ROI data
         self.loaded = False
         self.loaded_contours = False
@@ -315,8 +319,10 @@ class ROI(skrt.core.Archive):
 
             rois, ds = load_rois_dicom(self.source, names=self.name)
             if len(rois):
-                roi = rois[list(rois.keys())[0]]
+                number = list(rois.keys())[0]
+                roi = rois[number]
                 self.name = roi["name"]
+                self.number = number
                 self.input_contours = roi["contours"]
                 if not self.custom_color:
                     self.set_color(roi["color"])
@@ -3486,7 +3492,7 @@ class StructureSet(skrt.core.Archive):
             if isinstance(source, str):
                 rois, ds = load_rois_dicom(source)
             if len(rois):
-                for roi in rois.values():
+                for number, roi in rois.items():
 
                     # Ignore entries with no contours
                     if "contours" not in roi:
@@ -3509,6 +3515,7 @@ class StructureSet(skrt.core.Archive):
                         )
                     )
                     self.rois[-1].dicom_dataset = ds
+                    self.rois[-1].number = number
                 self.dicom_dataset = ds
 
                 # Auto-assign name from dicom filename
