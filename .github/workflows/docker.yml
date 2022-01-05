@@ -1,5 +1,5 @@
 # Workflow for building docker image and pushing to GitHub Container Registry
-# taken from:
+# based on:
 #     https://codesalad.dev/blog/push-to-github-container-registry-using-github-actions-7
 # Patterns for tag matching taken from:
 #     https://birtony.medium.com/setting-up-automated-release-workflow-with-github-actions-628dbca2446e
@@ -29,5 +29,5 @@ jobs:
         with:
           push: true # Will only build if this is not here
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.ref }}
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}:latest
