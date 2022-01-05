@@ -1,6 +1,10 @@
 name: Sphinx build
 
-on: push
+# Run workflow on tags corresponding to version numbers
+on:
+  push:
+    tags:        
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build:
