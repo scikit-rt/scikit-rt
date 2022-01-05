@@ -1,0 +1,33 @@
+# Workflow for building docker image and pushing to GitHub Container Registry
+# taken from:
+#     https://codesalad.dev/blog/push-to-github-container-registry-using-github-actions-7
+# Patterns for tag matching taken from:
+#     https://birtony.medium.com/setting-up-automated-release-workflow-with-github-actions-628dbca2446e
+
+name: Docker
+
+# Run workflow on tags corresponding to version numbers
+on:
+  push:
+    tags:        
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_REGISTRY_TOKEN }}
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          push: true # Will only build if this is not here
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.ref }}
+            ghcr.io/${{ github.repository }}:latest
