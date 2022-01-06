@@ -3381,7 +3381,7 @@ class StructureSet(skrt.core.Archive):
 
     def __init__(
         self,
-        sources=None,
+        path=None,
         name=None,
         image=None,
         load=True,
@@ -3391,19 +3391,73 @@ class StructureSet(skrt.core.Archive):
         multi_label=False,
         **kwargs
     ):
-        """Load structure set from source(s)."""
+        """Load structure set from the source(s) given in <path>.
+
+        **Parameters**:
+
+        path : str/list, default=None
+            Source(s) of ROIs to load into this structure set. Can be:
+
+            - The path to a single dicom structure set file;
+            - The path to a single nifti file containing an ROI mask;
+            - A list of paths to nifti files containing ROI masks;
+            - The path to a directory containing multiple nifti files 
+            containing ROI masks;
+            - A list of ROI objects;
+            - A list of objects that could be used to initialise an ROI object
+            (e.g. a numpy array).
+
+        name : str, default=None
+            Optional name to assign to this structure set. If None, will 
+            attempt to infer from input filename.
+
+        image : skrt.image.Image, default=None
+            Image associated with this structure set. If the input source is a
+            dicom file containing ROI contours, this image will be used when
+            creating ROI binary masks.
+
+        load : bool, default=True
+            If True, ROIs will immediately be loaded from sources. Otherwise,
+            loading will not occur until StructureSet.load() is called.
+        
+        names : dict, default=None
+            Optional dict of ROI names to use when renaming loaded ROIs. Keys 
+            should be desired names, and values should be lists of possible
+            input names or wildcards matching input names.
+
+        to_keep : list, default=None
+            Optional list of ROI names or wildcards matching ROI names of ROIs
+            to keep in this StructureSet during loading. ROIs not matching will
+            be discarded. Note that the names should reflect those after 
+            renaming via the <names> dict. If None, all ROIs will be kept.
+
+        to_remove : list, default=None
+            Optional list of ROI names or wildcards matching ROI names of ROIs
+            to remove from this StructureSet during loading. ROIs matching will
+            be discarded. Note that the names should reflect those after 
+            renaming via the <names> dict, and removal occurs after filtering
+            with the <to_keep> list. If None, no ROIs will be removed.
+
+        multi_label : bool, default=False
+            If True and input is a numpy array, will look for multiple ROI 
+            masks with different labels inside the array and create a separate
+            ROI from each.
+
+        `**`kwargs :
+            Additional keyword args to use when initialising new ROI objects.
+        """
 
         # Clone from another StructureSet object
-        if issubclass(type(sources), StructureSet):
-            sources.clone_attrs(self)
+        if issubclass(type(path), StructureSet):
+            path.clone_attrs(self)
             return
 
         self.name = name
-        self.sources = sources
+        self.sources = path
         if self.sources is None:
             self.sources = []
-        elif not skrt.core.is_list(sources):
-            self.sources = [sources]
+        elif not skrt.core.is_list(path):
+            self.sources = [path]
         self.rois = []
         self.set_image(image)
         self.to_keep = to_keep
@@ -3413,7 +3467,7 @@ class StructureSet(skrt.core.Archive):
         self.dicom_dataset = None
         self.roi_kwargs = kwargs
 
-        path = sources if isinstance(sources, str) else ""
+        path = path if isinstance(path, str) else ""
         skrt.core.Archive.__init__(self, path)
 
         self.loaded = False

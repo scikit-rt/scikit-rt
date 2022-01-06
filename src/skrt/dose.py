@@ -32,12 +32,14 @@ class Dose(skrt.image.Image):
         self._default_vmax = self.max
 
     def set_image(self, image):
-        """Set associated image."""
+        """Set associated image. Image.add_dose(self) will also be called."""
 
         if image and not isinstance(image, skrt.image.Image):
             image = skrt.image.Image(image)
 
         self.image = image
+        if image is not None:
+            image.add_dose(self)
 
     def plot(
         self, 
@@ -95,11 +97,28 @@ class Dose(skrt.image.Image):
             **kwargs
         )
 
+    def get_dose_in_roi(self, roi):
+        """Return 1D numpy array containing all of the dose values for the 
+        voxels inside an ROI. Fails if the ROI and dose arrays are not the 
+        same size."""
+
+        roi.create_mask()
+        if not self.has_same_geometry(roi.mask):
+            raise RuntimeError("Dose field and ROI mask must have same geometry")
+
+        dose_in_roi = self.get_data(standardise=True) \
+                * roi.get_mask(standardise=True)
+        return dose_in_roi[dose_in_roi > 0]
+
     def plot_DVH(self, roi):
+        """Plot dose-volume histogram for a given ROI."""
+
         pass
 
     def get_mean_dose(self, roi):
-        pass
+        """Get mean dose inside an ROI."""
+
+        return np.mean(self.get_dose_in_roi(roi))
 
     @functools.cached_property
     def max(self):
