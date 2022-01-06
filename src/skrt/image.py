@@ -7,6 +7,7 @@ import copy
 import datetime
 import glob
 import functools
+import logging
 import math
 import matplotlib as mpl
 import matplotlib.cm
@@ -2532,25 +2533,51 @@ def load_nifti(path):
         return None, None
 
 
-def load_dicom(path):
-    """Load a dicom image from one or more dicom files."""
+def get_dicom_paths(path):
+    """Get list of dicom files correpsonding to a single dicom image. 
 
-    # Try loading single dicom file
+    **Parameters**:
+
+    path : str
+        Path to either a single dicom file, or a directory containing multiple
+        dicom files.
+
+        If path is a directory, a list of dicom files within that directory will
+        be returned.
+
+        If path is a single file, that file will be opened and its 
+        ImagesInAcquisition property will be checked. 
+
+            - If ImagesInAcquisition == 1, a list containing the single input 
+            path will be returned. 
+            - Otherwise, a list containing all the dicom files in the same 
+            directory as the input file will be returned.
+
+    **Returns**:
+
+    paths : list of strs
+        List of strings, each pointing to a single dicom file. If no valid
+        dicom files are found, returns an empty list.
+    """
+
     paths = []
+
+    # Case where path points to a single file
     if os.path.isfile(path):
         try:
             ds = pydicom.dcmread(path, force=True)
         except pydicom.errors.InvalidDicomError:
-            return None, None, None, None, None, None
+            return paths
 
-        # Discard if not a valid dicom file
+        # Return empty list if this is not a valid dicom file
         if not hasattr(ds, "SOPClassUID"):
-            return None, None, None, None, None, None
+            return paths
 
         # Assign TransferSyntaxUID if missing
         if not hasattr(ds, "TransferSyntaxUID"):
             ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
+        # Check whether there are multiple files for this image
         if ds.get("ImagesInAcquisition", None) == 1:
             paths = [path]
 
@@ -2566,145 +2593,355 @@ def load_dicom(path):
         if path in paths:
             paths.insert(0, paths.pop(paths.index(path)))
 
-    # Load image arrays from all files
-    study_uid = None
-    series_num = None
-    modality = None
+    return paths
+
+
+def load_dicom(path, debug=False):
+    """Load a dicom image from one or more dicom files.
+
+    **Parameters**:
+
+    path : str
+        Path to a single dicom file or a directory containing multiple dicom
+        files. If path points to a single file that is found to be part of a 
+        series of multiple dicom files corresponding to one image,  the image 
+        will be loaded from all dicom files in the same directory
+        as the first that match its StudyInstanceUID and SeriesNumber.
+
+    **Returns**:
+
+    data : np.ndarray
+        Numpy array containing the voxel intensities for the image.
+
+    affine : np.ndarray
+        3x3 numpy array containing the affine matrix.
+
+    window_centre : float
+        Default intensity window centre for viewing this image.
+
+    window_width : float
+        Default intensity window width for viewing this image.
+
+    ds : pydicom.FileDataset
+        Dicom dataset corresponding to the last file loaded.
+
+    z_paths : dict / None
+        Dictionary mapping z slice positions in mm to the file corresponding to 
+        that slice. If image was loaded from a single file, this will be None.
+    """
+
+    # Get list of paths corresponding to this image
+    paths = get_dicom_paths(path)
+    if not len(paths):
+        return tuple([None] * 5)
+
+    # Load image array and pydicom FileDataset object from file(s)
+    if len(paths) > 1:
+        data, affine, ds, z_paths = load_dicom_many_files(paths)
+    else:
+        data, affine, ds = load_dicom_single_file(paths[0])
+        z_paths = None
+
+    # Load other properties
+    window_centre, window_width = get_dicom_window(ds)
+
+    # Rescale the data
+    rescale_dicom_data(ds, data)
+
+    return data, affine, window_centre, window_width, ds, z_paths
+
+
+def load_dicom_many_files(paths):
+    """Load an image array from multiple dicom files and use the spacing 
+    between slices to determine the slice thickness.
+
+    **Parameters**:
+
+    paths : list of strs
+        List of paths to the dicom files from which the image should be loaded.
+
+    **Returns**:
+
+    image : np.ndarray
+        Numpy array containing image data.
+
+    affine : np.ndarray
+        3x3 numpy array containing affine matrix.
+
+    ds : pydicom.FileDataset
+        Dataset object corresponding to the last file loaded.
+
+    z_paths : dict
+        Dict mapping z slice positions in mm  to the filepath 
+        from which that slice of the image was read.
+    """
+
+    # Set attributes to check for consistency between files
+    attrs_to_check = [
+        "StudyInstanceUID", 
+        "SeriesNumber",
+        "Modality",
+        "ImageOrientationPatient"
+    ]
+    attr_vals = {name: None for name in attrs_to_check}
+
+    # Load 2D image arrays from all files
     orientation = None
-    slice_thickness = None
-    pixel_size = None
-    rescale_slope = None
-    rescale_intercept = None
-    window_centre = None
-    window_width = None
+    axes = None
     data_slices = {}
-    image_position = {}
+    image_positions = {}
     z_paths = {}
-    for dcm in paths:
+    for path in paths:
+        
+        # Load dataset from this file
         try:
-
-            # Load file and check it matches the others
-            ds = pydicom.dcmread(dcm, force=True)
-            if study_uid is None:
-                study_uid = ds.StudyInstanceUID
-            if series_num is None:
-                series_num = ds.SeriesNumber
-            if modality is None:
-                modality = ds.Modality
-            if orientation is None:
-                orientation = ds.ImageOrientationPatient
-                orient = np.array(orientation).reshape(2, 3)
-                axes = [
-                    sum([abs(int(orient[i, j] * j)) for j in range(3)])
-                    for i in range(2)
-                ]
-                axes.append(3 - sum(axes))
-            if (
-                ds.StudyInstanceUID != study_uid
-                or ds.SeriesNumber != series_num
-                or ds.Modality != modality
-                or ds.ImageOrientationPatient != orientation
-            ):
-                continue
-            if not hasattr(ds, "TransferSyntaxUID"):
-                ds.file_meta.TransferSyntaxUID = \
-                    pydicom.uid.ImplicitVRLittleEndian
-
-            # Get data
-            pos = getattr(ds, "ImagePositionPatient", [0, 0, 0])
-            z = pos[axes[2]]
-            z_paths[z] = dcm
-            data_slices[z] = ds.pixel_array
-            image_position[z] = pos
-
-            # Get voxel spacings
-            if pixel_size is None:
-                for attr in ["PixelSpacing", "ImagerPixelSpacing"]:
-                    pixel_size = getattr(ds, attr, None)
-                    if pixel_size:
-                        break
-            if slice_thickness is None:
-                slice_thickness = getattr(ds, "SliceThickness", None)
-
-            # Get rescale settings
-            if rescale_slope is None:
-                rescale_slope = getattr(ds, "RescaleSlope", 1.)
-            if rescale_intercept is None:
-                rescale_intercept = getattr(ds, "RescaleIntercept", 0.)
-                if rescale_intercept is None:
-                    rescale_intercept = getattr(ds, "DoseGridScaling", None)
-
-            # Get HU window defaults
-            if window_centre is None:
-                window_centre = getattr(ds, "WindowCenter", None)
-                if isinstance(window_centre, pydicom.multival.MultiValue):
-                    window_centre = window_centre[0]
-            if window_width is None:
-                window_width = getattr(ds, "WindowWidth", None)
-                if isinstance(window_width, pydicom.multival.MultiValue):
-                    window_width = window_width[0]
-
-        # Skip any invalid dicom files
+            ds = pydicom.dcmread(path, force=True)
         except pydicom.errors.InvalidDicomError:
             continue
 
-    # Case where no data was found
-    if not data_slices:
-        print(f"Warning: no valid dicom files found in {path}")
-        return None, None, None, None, None, None
+        # Get orientation info from first file
+        if orientation is None:
+            orientation, axes = get_dicom_orientation(ds)
 
-    # Case with single image array
-    if len(data_slices) == 1:
-        data = list(data_slices.values())[0]
+        # Check attributes are consistent with others
+        for attr in attrs_to_check:
+            own_attr = getattr(ds, attr)
+            if attr_vals[attr] is None:
+                attr_vals[attr] = own_attr
+            elif attr_vals[attr] != own_attr:
+                continue
 
-    # Combine arrays
+        # Fill empty TransferSyntaxUID 
+        if not hasattr(ds, "TransferSyntaxUID"):
+            ds.file_meta.TransferSyntaxUID = \
+                pydicom.uid.ImplicitVRLittleEndian
+
+        # Get data
+        pos = getattr(ds, "ImagePositionPatient", [0, 0, 0])
+        z = pos[axes[2]]
+        z_paths[z] = path
+        data_slices[z] = ds.pixel_array
+        image_positions[z] = pos
+
+    # Stack the 2D arrays into one 3D array
+    # Sort by slice position
+    sorted_slices = sorted(list(data_slices.keys()))
+    sorted_data = [data_slices[z] for z in sorted_slices]
+    data = np.stack(sorted_data, axis=-1)
+    z_paths = {z : z_paths[z] for z in sorted_slices}
+
+    # Get affine matrix
+    affine = get_dicom_affine(ds, image_positions)
+
+    return data, affine, ds, z_paths
+
+
+def load_dicom_single_file(path):
+    """Load an image array from a single dicom file.
+
+    **Parameters**:
+
+    path : str
+        Path to the dicom file from which the image should be loaded.
+
+    **Returns**:
+
+    image : np.ndarray
+        Numpy array containing image data.
+
+    affine : np.ndarray
+        3x3 numpy array containing affine matrix.
+
+    ds : pydicom.FileDataset
+        Dataset object corresponding to the dicom file.
+    """
+
+    ds = pydicom.dcmread(path, force=True)
+
+    # Get data and transpose such that it's a 3D array with slice in last
+    data = ds.pixel_array
+    if data.ndim == 2:
+        data = data[..., np.newaxis]
+    elif data.ndim == 3:
+        data = data.transpose((1, 2, 0))
     else:
+        raise RuntimeError(f"Unrecognised number of image dimensions: {data.ndim}")
 
-        # Sort by slice position
-        sorted_slices = sorted(list(data_slices.keys()))
-        sorted_data = [data_slices[z] for z in sorted_slices]
-        data = np.stack(sorted_data, axis=-1)
+    affine = get_dicom_affine(ds)
+    return data, affine, ds
 
-        # Recalculate slice thickness from spacing
-        slice_thickness = (sorted_slices[-1] - sorted_slices[0]) / (
-            len(sorted_slices) - 1
-        )
+
+def get_dicom_orientation(ds):
+    """Extract and parse image orientation from a dicom file.
+
+    **Parameters**:
+
+    ds : pydicom.FileDataset
+        Dicom dataset object from which the orientation vector should be read.
+
+    **Returns**:
+
+    orientation: np.ndarray
+        Direction cosines of the first row and first column, reshaped to (2, 3)
+        such that the top row of the array contains the row direction cosine,
+        and the bottom row contains the column direction cosine.
+
+    axes : list
+        List of the axes (x = 0, y = 1, z = 2) corresponding to each image
+        array axis in order [row, column, slice].
+    """
+
+    orientation = np.array(ds.ImageOrientationPatient).reshape(2, 3)
+    axes = [
+        sum([abs(int(orientation[i, j] * j)) for j in range(3)])
+        for i in range(2)
+    ]
+    axes.append(3 - sum(axes))
+    return orientation, axes
+
+
+def get_dicom_voxel_size(ds):
+    """Get voxel sizes from a dicom file.
+
+    **Parameters**:
+    
+    ds : pydicom.FileDataset
+        Dicom dataset from which to load voxel sizes.
+
+    **Returns**:
+
+    voxel_size : list
+        List of voxel sizes in order [row, column, slice].
+    """
+
+    # Get voxel spacings
+    for attr in ["PixelSpacing", "ImagerPixelSpacing"]:
+        pixel_size = getattr(ds, attr, None)
+        if pixel_size:
+            break
+
+    # Get slice thickness
+    slice_thickness = getattr(ds, "SliceThickness", 1)
+
+    return pixel_size[0], pixel_size[1], slice_thickness
+
+
+def get_dicom_affine(ds, image_positions=None):
+    """Assemble affine matrix from a dicom file. Optionally infer slice 
+    thickness from the positions of different slices and origin from the 
+    minimum slice; otherwise, extract slice thickness and origin directly from 
+    the dicom dataset.
+
+    **Parameters**:
+    
+    ds : pydicom.FileDataset
+        Dicom dataset from which to load voxel sizes.
+
+    image_positions : dict, default=None
+        Dict of 3D origins for each slice, where keys are slice positions
+        and values are origins.
+
+    **Returns**:
+        
+    affine : np.ndarray
+        3x3 array containing the affine matrix for this image.
+    """
+
+    # Get voxel sizes and orientation
+    voxel_size = get_dicom_voxel_size(ds)
+    orientation, axes = get_dicom_orientation(ds)
+
+    # Get slice-related matrix elements
+    if image_positions is not None:
+        sorted_slices = sorted(list(image_positions.keys()))
+        zmin = sorted_slices[0]
+        zmax = sorted_slices[-1]
+        n = len(sorted_slices)
+        slice_elements = [
+            (image_positions[zmax][i] - image_positions[zmin][i]) / (n - 1)
+            for i in range(3)
+        ]
+        origin = image_positions[zmin]
+    else:
+        slice_elements = [0] * 3
+        slice_elements[axes[2]] = voxel_size[2]
+        origin = ds.ImagePositionPatient
+        n_slices = getattr(ds, "NumberOfFrames", 1)
+        origin[2] -= (n_slices - 1) * voxel_size[2]
 
     # Make affine matrix
-    zmin = sorted_slices[0]
-    zmax = sorted_slices[-1]
-    n = len(sorted_slices)
     affine = np.array(
         [
             [
-                orient[0, 0] * pixel_size[0],
-                orient[1, 0] * pixel_size[1],
-                (image_position[zmax][0] - image_position[zmin][0]) / (n - 1),
-                image_position[zmin][0],
+                orientation[0, 0] * voxel_size[0],
+                orientation[1, 0] * voxel_size[1],
+                slice_elements[0],
+                origin[0]
             ],
             [
-                orient[0, 1] * pixel_size[0],
-                orient[1, 1] * pixel_size[1],
-                (image_position[zmax][1] - image_position[zmin][1]) / (n - 1),
-                image_position[zmin][1],
+                orientation[0, 1] * voxel_size[0],
+                orientation[1, 1] * voxel_size[1],
+                slice_elements[1],
+                origin[1]
             ],
             [
-                orient[0, 2] * pixel_size[0],
-                orient[1, 2] * pixel_size[1],
-                (image_position[zmax][2] - image_position[zmin][2]) / (n - 1),
-                image_position[zmin][2],
+                orientation[0, 2] * voxel_size[0],
+                orientation[1, 2] * voxel_size[1],
+                slice_elements[2],
+                origin[2]
             ],
             [0, 0, 0, 1],
         ]
     )
+    return affine
+
+
+def rescale_dicom_data(ds, data):
+    """Rescale an array according to rescaling info in a dicom dataset.
+
+    **Parameters**:
+
+    ds : pydicom.FileDataset
+        Dicom dataset from which to read rescaling info.
+
+    data : np.ndarray
+        Image array to be rescaled.
+    """
+
+    # Get rescale settings
+    rescale_slope = getattr(ds, "RescaleSlope", 1.)
+    rescale_intercept = getattr(ds, "RescaleIntercept", None)
+    if rescale_intercept is None:
+        rescale_intercept = getattr(ds, "DoseGridScaling", 0.)
 
     # Apply rescaling
-    if rescale_slope:
-        data = data * rescale_slope
-    if rescale_intercept:
-        data = data + rescale_intercept
+    data = data * float(rescale_slope) + float(rescale_intercept)
 
-    return data, affine, window_centre, window_width, ds, z_paths
+
+def get_dicom_window(ds):
+    """Get HU window defaults from a dicom file.
+
+    **Parameters**:
+    ds : pydicom.FileDataset
+        Dicom dataset from which to read HU window info.
+
+    **Returns**:
+
+    window_centre : float
+        Default window centre.
+
+    window_width : float
+        Default window width.
+    """
+
+    window_centre = getattr(ds, "WindowCenter", None)
+    if isinstance(window_centre, pydicom.multival.MultiValue):
+        window_centre = window_centre[0]
+    window_width = getattr(ds, "WindowWidth", None)
+    if isinstance(window_width, pydicom.multival.MultiValue):
+        window_width = window_width[0]
+
+    return window_centre, window_width
 
 
 def load_npy(path):
