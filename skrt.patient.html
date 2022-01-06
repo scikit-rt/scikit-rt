@@ -112,7 +112,7 @@ arbitrary set of attributes.</p>
 <dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
 (dictionary keys) and their initial values.</p>
 </dd>
-<dt>**kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
+<dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
 and their initial values.</p>
 </dd>
 </dl>
@@ -192,12 +192,13 @@ date interval.</p>
 <dt class="sig sig-object py" id="skrt.patient.Study">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.patient.</span></span><span class="sig-name descname"><span class="pre">Study</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Archive</span></code></a></p>
+<p>Class representing a single study; can contain images, dose fields,
+and structure sets.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise dated object from a path and assign its timestamp. If
-no valid timestamp is found within the path string, it will be set
-automatically from the current date and time if auto_timestamp is True.</p>
+<dd><p>Initialise a Study object from a given directory. Find any images,
+dose fields, and structure sets within this directory.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -258,10 +259,30 @@ in &lt;images&gt; (which should be a list of DatedStores), if provided.</p>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.patient.Study.get_structure_sets">
-<span class="sig-name descname"><span class="pre">get_structure_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_structure_sets" title="Permalink to this definition"></a></dt>
-<dd><p>Make list of StructureSet objects found within a given subdir and
-set their associated image objects.</p>
+<dt class="sig sig-object py" id="skrt.patient.Study.load_from_subdir">
+<span class="sig-name descname"><span class="pre">load_from_subdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.load_from_subdir" title="Permalink to this definition"></a></dt>
+<dd><p>Create objects of type &lt;dtype&gt; from each directory in &lt;subdir&gt; and 
+attempt to assign the corresponding image. The created objects will
+be assign to self.&lt;IMAGE_TYPE&gt;_&lt;attr_name&gt;, where &lt;image_type&gt; is 
+inferred from the subdirectory from which the objects were created.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>dtype<span class="classifier">type</span></dt><dd><p>Data type to use when creating objects.</p>
+</dd>
+<dt>subdir<span class="classifier">str</span></dt><dd><p>Subdirectory in which to search for objects.</p>
+</dd>
+<dt>attr_name<span class="classifier">str</span></dt><dd><p>Name of attribute to which loaded objects should be assigned.</p>
+</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to object initialisation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.load_images">
+<span class="sig-name descname"><span class="pre">load_images</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.load_images" title="Permalink to this definition"></a></dt>
+<dd><p>Load images of various types by attempting to load from all
+files in subdirectories not named RTDOSE, RTSTRUCT, or RTPLAN.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -270,6 +291,14 @@ set their associated image objects.</p>
 <dd><p>Sum over doses using a given summation type.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.patient.find_matching_object">
+<span class="sig-prename descclassname"><span class="pre">skrt.patient.</span></span><span class="sig-name descname"><span class="pre">find_matching_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_matches</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.find_matching_object" title="Permalink to this definition"></a></dt>
+<dd><p>For a given object &lt;obj&gt; and a list of potential matching objects
+&lt;possible_matches&gt;, find an object that matches either &lt;obj&gt;’s path,
+or &lt;obj&gt;’s date and time.</p>
 </dd></dl>
 
 </section>

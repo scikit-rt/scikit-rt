@@ -98,11 +98,13 @@
 <p>Classes related to doses and plans.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.dose.Dose">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.image.html#skrt.image.Image" title="skrt.image.Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.image.Image</span></code></a></p>
+<p>Class representing a dose map. The same as an Image but with overridden
+plotting behaviour and extra functionality relating to ROIs.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise from a medical image source.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -152,6 +154,13 @@ all axes, or a list containing downsampling amounts in order
 <span class="sig-name descname"><span class="pre">get_mean_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_mean_dose" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load self and set default maximum plotting intensity from max of
+data array.</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="skrt.dose.Dose.max">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max</span></span><a class="headerlink" href="#skrt.dose.Dose.max" title="Permalink to this definition"></a></dt>
@@ -159,32 +168,37 @@ all axes, or a list containing downsampling amounts in order
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot" title="Permalink to this definition"></a></dt>
+<dd><p>Plot this dose map, optionally overlaid on its associated image.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True and this Dose has an associate image, the dose map will
+be plotted overlaid on the image.</p>
+</dd>
+<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>If plotting on top of an image, this sets the opacity of the dose
+map (0 = fully transparent, 1 = fully opaque).</p>
+</dd>
+<dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>
+</dd>
+<dt>colorbar<span class="classifier">bool, default=True</span></dt><dd><p>If True, a colorbar of dose level will be drawn alongside the plot.</p>
+</dd>
+<dt>show<span class="classifier">bool, default = True</span></dt><dd><p>If True, the plot will be displayed immediately.</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs:</dt><dd><p>Keyword args to pass to skrt.image.Image.plot().</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.plot_DVH">
 <span class="sig-name descname"><span class="pre">plot_DVH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot_DVH" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="skrt.dose.RtDose">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">RtDose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtDose" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.MachineData" title="skrt.core.MachineData"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.MachineData</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.dose.RtDose.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtDose.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise dated object from a path and assign its timestamp. If
-no valid timestamp is found within the path string, it will be set
-automatically from the current date and time if auto_timestamp is True.</p>
+<dt class="sig sig-object py" id="skrt.dose.Dose.set_image">
+<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.set_image" title="Permalink to this definition"></a></dt>
+<dd><p>Set associated image.</p>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.dose.RtDose.get_image_stack">
-<span class="sig-name descname"><span class="pre">get_image_stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtDose.get_image_stack" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 

@@ -150,15 +150,33 @@ all axes, or a list containing downsampling amounts in order
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.add_dose">
+<span class="sig-name descname"><span class="pre">add_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dose</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_dose" title="Permalink to this definition"></a></dt>
+<dd><p>Add a Dose object to be associated with this image. This does not
+affect the image associated with the Dose object.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>dose<span class="classifier">skrt.dose.Dose</span></dt><dd><p>A Dose object to assign to this image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.add_structure_set">
 <span class="sig-name descname"><span class="pre">add_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_structure_set" title="Permalink to this definition"></a></dt>
-<dd><p>Add a structure set to be associated with this image. This Image 
-object will simultaneously be assigned to the StructureSet.</p>
+<dd><p>Add a structure set to be associated with this image. This does
+not affect the image associated with the structure set.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>structure_set<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>A StructureSet object to assign to this image.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.clear_doses">
+<span class="sig-name descname"><span class="pre">clear_doses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clear_doses" title="Permalink to this definition"></a></dt>
+<dd><p>Clear all dose maps associated with this image.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -302,6 +320,12 @@ None.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_doses">
+<span class="sig-name descname"><span class="pre">get_doses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_doses" title="Permalink to this definition"></a></dt>
+<dd><p>Return list of Dose objects associated with this Image.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_idx">
 <span class="sig-name descname"><span class="pre">get_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_idx" title="Permalink to this definition"></a></dt>
 <dd><p>Get an array index from either a slice number, index, or
@@ -367,13 +391,13 @@ contained in &lt;mpl_kwargs&gt;.</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>“cmap”:</dt><dd><p>Colormap, “gray” by default.</p>
+<dt>“cmap”:</dt><dd><p>Colormap, self._default_cmap by default.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>“vmin”/”vmax”</dt><dd><p>Greyscale range to use; taken from self.default_window by 
-default.</p>
+<dt>“vmin”/”vmax”</dt><dd><p>Greyscale range to use; taken from self._default_vmin and
+self._default_vmax by default.</p>
 </dd>
 </dl>
 </li>
@@ -699,7 +723,7 @@ that of the image with smaller z voxels.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HU'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotate_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">major_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minor_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks_all_sides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_axis_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'contour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_on_roi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.plot" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotate_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">major_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minor_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks_all_sides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_axis_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'contour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_on_roi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Plot a 2D slice of the image.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -742,8 +766,8 @@ the image will be used.</p>
 </dd>
 <dt>colorbar_label<span class="classifier">str, default=’HU’</span></dt><dd><p>Label for the colorbar, if drawn.</p>
 </dd>
-<dt>hu<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max HU for plotting. Supercedes
-‘vmin’ and ‘vmax’ in &lt;mpl_kwargs&gt;.</p>
+<dt>intensity<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max intensity for plotting. 
+Supercedes ‘vmin’ and ‘vmax’ in &lt;mpl_kwargs&gt;.</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>
 </dd>
@@ -1105,7 +1129,7 @@ all axes, or a list containing downsampling amounts in order
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.ImageComparison.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cb_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HU'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diff_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cached_slices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.ImageComparison.plot" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cb_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diff_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cached_slices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.ImageComparison.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Plot a 2D slice of the image.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -1148,8 +1172,8 @@ the image will be used.</p>
 </dd>
 <dt>colorbar_label<span class="classifier">str, default=’HU’</span></dt><dd><p>Label for the colorbar, if drawn.</p>
 </dd>
-<dt>hu<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max HU for plotting. Supercedes
-‘vmin’ and ‘vmax’ in &lt;mpl_kwargs&gt;.</p>
+<dt>intensity<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max intensity for plotting. 
+Supercedes ‘vmin’ and ‘vmax’ in &lt;mpl_kwargs&gt;.</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>
 </dd>
@@ -1236,6 +1260,113 @@ on this ROI.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_dicom_affine">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_dicom_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_dicom_affine" title="Permalink to this definition"></a></dt>
+<dd><p>Assemble affine matrix from a dicom file. Optionally infer slice 
+thickness from the positions of different slices and origin from the 
+minimum slice; otherwise, extract slice thickness and origin directly from 
+the dicom dataset.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dicom dataset from which to load voxel sizes.</p>
+</dd>
+<dt>image_positions<span class="classifier">dict, default=None</span></dt><dd><p>Dict of 3D origins for each slice, where keys are slice positions
+and values are origins.</p>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>affine<span class="classifier">np.ndarray</span></dt><dd><p>3x3 array containing the affine matrix for this image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_dicom_orientation">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_dicom_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_dicom_orientation" title="Permalink to this definition"></a></dt>
+<dd><p>Extract and parse image orientation from a dicom file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dicom dataset object from which the orientation vector should be read.</p>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>orientation: np.ndarray</dt><dd><p>Direction cosines of the first row and first column, reshaped to (2, 3)
+such that the top row of the array contains the row direction cosine,
+and the bottom row contains the column direction cosine.</p>
+</dd>
+<dt>axes<span class="classifier">list</span></dt><dd><p>List of the axes (x = 0, y = 1, z = 2) corresponding to each image
+array axis in order [row, column, slice].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_dicom_paths">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_dicom_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_dicom_paths" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of dicom files correpsonding to a single dicom image.</p>
+<p><strong>Parameters</strong>:</p>
+<dl>
+<dt>path<span class="classifier">str</span></dt><dd><p>Path to either a single dicom file, or a directory containing multiple
+dicom files.</p>
+<p>If path is a directory, a list of dicom files within that directory will
+be returned.</p>
+<p>If path is a single file, that file will be opened and its 
+ImagesInAcquisition property will be checked.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If ImagesInAcquisition == 1, a list containing the single input</p></li>
+</ul>
+<p>path will be returned. 
+- Otherwise, a list containing all the dicom files in the same 
+directory as the input file will be returned.</p>
+</div></blockquote>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>paths<span class="classifier">list of strs</span></dt><dd><p>List of strings, each pointing to a single dicom file. If no valid
+dicom files are found, returns an empty list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_dicom_voxel_size">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_dicom_voxel_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_dicom_voxel_size" title="Permalink to this definition"></a></dt>
+<dd><p>Get voxel sizes from a dicom file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dicom dataset from which to load voxel sizes.</p>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>voxel_size<span class="classifier">list</span></dt><dd><p>List of voxel sizes in order [row, column, slice].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_dicom_window">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_dicom_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_dicom_window" title="Permalink to this definition"></a></dt>
+<dd><p>Get intensity window defaults from a dicom file.</p>
+<p><strong>Parameters</strong>:
+ds : pydicom.FileDataset</p>
+<blockquote>
+<div><p>Dicom dataset from which to read intensity window info.</p>
+</div></blockquote>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>window_centre<span class="classifier">float</span></dt><dd><p>Default window centre.</p>
+</dd>
+<dt>window_width<span class="classifier">float</span></dt><dd><p>Default window width.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.get_geometry">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_nifti</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_geometry" title="Permalink to this definition"></a></dt>
 <dd><p>Get an affine matrix, voxel size list, and origin list from 
@@ -1257,8 +1388,77 @@ root identifier can be obtained free of charge from Medical Connections:</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.load_dicom">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom" title="Permalink to this definition"></a></dt>
 <dd><p>Load a dicom image from one or more dicom files.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>path<span class="classifier">str</span></dt><dd><p>Path to a single dicom file or a directory containing multiple dicom
+files. If path points to a single file that is found to be part of a 
+series of multiple dicom files corresponding to one image,  the image 
+will be loaded from all dicom files in the same directory
+as the first that match its StudyInstanceUID and SeriesNumber.</p>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>data<span class="classifier">np.ndarray</span></dt><dd><p>Numpy array containing the voxel intensities for the image.</p>
+</dd>
+<dt>affine<span class="classifier">np.ndarray</span></dt><dd><p>3x3 numpy array containing the affine matrix.</p>
+</dd>
+<dt>window_centre<span class="classifier">float</span></dt><dd><p>Default intensity window centre for viewing this image.</p>
+</dd>
+<dt>window_width<span class="classifier">float</span></dt><dd><p>Default intensity window width for viewing this image.</p>
+</dd>
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dicom dataset corresponding to the last file loaded.</p>
+</dd>
+<dt>z_paths<span class="classifier">dict / None</span></dt><dd><p>Dictionary mapping z slice positions in mm to the file corresponding to 
+that slice. If image was loaded from a single file, this will be None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.load_dicom_many_files">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom_many_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom_many_files" title="Permalink to this definition"></a></dt>
+<dd><p>Load an image array from multiple dicom files and use the spacing 
+between slices to determine the slice thickness.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>paths<span class="classifier">list of strs</span></dt><dd><p>List of paths to the dicom files from which the image should be loaded.</p>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>image<span class="classifier">np.ndarray</span></dt><dd><p>Numpy array containing image data.</p>
+</dd>
+<dt>affine<span class="classifier">np.ndarray</span></dt><dd><p>3x3 numpy array containing affine matrix.</p>
+</dd>
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dataset object corresponding to the last file loaded.</p>
+</dd>
+<dt>z_paths<span class="classifier">dict</span></dt><dd><p>Dict mapping z slice positions in mm  to the filepath 
+from which that slice of the image was read.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.load_dicom_single_file">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom_single_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom_single_file" title="Permalink to this definition"></a></dt>
+<dd><p>Load an image array from a single dicom file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>path<span class="classifier">str</span></dt><dd><p>Path to the dicom file from which the image should be loaded.</p>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>image<span class="classifier">np.ndarray</span></dt><dd><p>Numpy array containing image data.</p>
+</dd>
+<dt>affine<span class="classifier">np.ndarray</span></dt><dd><p>3x3 numpy array containing affine matrix.</p>
+</dd>
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dataset object corresponding to the dicom file.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1271,6 +1471,24 @@ root identifier can be obtained free of charge from Medical Connections:</p>
 <dt class="sig sig-object py" id="skrt.image.load_npy">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_npy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_npy" title="Permalink to this definition"></a></dt>
 <dd><p>Load a numpy array from a .npy file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.rescale_dicom_data">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">rescale_dicom_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.rescale_dicom_data" title="Permalink to this definition"></a></dt>
+<dd><p>Rescale an array according to rescaling info in a dicom dataset.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dicom dataset from which to read rescaling info.</p>
+</dd>
+<dt>data<span class="classifier">np.ndarray</span></dt><dd><p>Image array to be rescaled.</p>
+</dd>
+</dl>
+<p><strong>Returns</strong>:</p>
+<dl class="simple">
+<dt>data<span class="classifier">np.ndarray</span></dt><dd><p>Rescaled version of the input array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
