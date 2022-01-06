@@ -1,13 +1,9 @@
-ARG BASE_CONTAINER=jupyter/minimal-notebook
-FROM $BASE_CONTAINER
-
-USER ${NB_UID}
+FROM jupyter/minimal-notebook
 
 RUN git clone https://github.com/hpullen/scikit-rt && \
-    cd scikit-rt && \
-    pip install -e . && \
-    mkdir ${HOME}/notebooks
+    pip install -e scikit-rt && \
+    mkdir ${HOME}/workdir
 
 ENV JUPYTER_ENABLE_LAB=yes
 
-WORKDIR "${HOME}/notebooks"
+WORKDIR "${HOME}/workdir"
