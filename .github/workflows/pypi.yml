@@ -7,7 +7,7 @@ name: Build distribution
 on: [push, pull_request]
 
 jobs:
-  test:
+  pypi_build:
     runs-on: "ubuntu-latest"
 
     steps:
