@@ -10,35 +10,80 @@ from skrt.image import Image
 
 
 class Dose(Image):
+    """Class representing a dose map. The same as an Image but with overridden
+    plotting behaviour and extra functionality relating to ROIs."""
 
-    def __init__(self, path, image=None, *args, **kwargs):
+    def __init__(self, path, load=True, image=None, *args, **kwargs):
+
         Image.__init__(self, path, *args, **kwargs)
         self.image = image
 
-    def plot(self, include_image=False, opacity=None, **kwargs):
-        '''
-        '''
+        # Default dose plotting settings
+        self._default_cmap = "jet"
+        self._default_colorbar_label = "Dose (Gy)"
+        self._default_vmin = 0
+        self._default_vmax = None
+
+    def load(self, *args, **kwargs):
+        """Load self and set default maximum plotting intensity from max of
+        data array."""
+
+        Image.load(self, *args, **kwargs)
+        self._default_vmax = self.max
+
+    def set_image(self, image):
+        """Set associated image."""
+
+        if image and not isinstance(image, Image):
+            image = Image(image)
+
+        self.image = image
+
+    def plot(
+        self, 
+        include_image=False, 
+        opacity=None, 
+        mpl_kwargs=None, 
+        **kwargs
+    ):
+        """Plot this dose map, optionally overlaid on its associated image.
+
+        **Parameters**:
+
+        include_image : bool, default=False
+            If True and this Dose has an associate image, the dose map will
+            be plotted overlaid on the image.
+        
+        opacity : float, default=None
+            If plotting on top of an image, this sets the opacity of the dose
+            map (0 = fully transparent, 1 = fully opaque).
+
+        intensity : list, default=None
+            Two-item list containing min and max intensity for plotting. 
+            Supercedes 'vmin' and 'vmax' in <mpl_kwargs>.
+
+        mpl_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to matplotlib.imshow().
+
+        `**`kwargs:
+            Keyword args to pass to skrt.image.Image.plot().
+        """
 
         # Plot underlying image
-        if opacity is None:
-            opacity = 1 if not include_image else 0.5
         if include_image and self.image is not None:
             self.image.plot(show=False)
             kwargs["ax"] = self.image.ax
 
-        # Set default plotting kwargs
-        dose_kwargs = {
-            "cmap": "jet",
-            "vmin": 0,
-            "vmax": self.max,
-            "alpha": opacity
-        }
-        mpl_kwargs = kwargs.get("mpl_kwargs", {})
-        mpl_kwargs.update(dose_kwargs)
-        kwargs["mpl_kwargs"] = mpl_kwargs
+        # Add opacity to mpl_kwargs
+        if include_image and self.image is not None:
+            if opacity is None:
+                opacity = 0.5
+            if mpl_kwargs is None:
+                mpl_kwargs = {}
+            mpl_kwargs["alpha"] = opacity
 
         # Plot dose field
-        Image.plot(self, **kwargs)
+        Image.plot(self, mpl_kwargs=mpl_kwargs, **kwargs)
 
     def plot_DVH(self, roi):
         pass
@@ -49,76 +94,6 @@ class Dose(Image):
     @functools.cached_property
     def max(self):
         return self.get_data().max()
-
-
-class RtDose(MachineData):
-    def __init__(self, path=""):
-
-        MachineData.__init__(self, path)
-
-        if not os.path.exists(path):
-            return
-
-        ds = pydicom.read_file(path, force=True)
-
-        # Get dose summation type
-        try:
-            self.summation_type = ds.DoseSummationType
-        except AttributeError:
-            self.summation_type = None
-
-        # Get slice thickness
-        if ds.SliceThickness:
-            slice_thickness = float(ds.SliceThickness)
-        else:
-            slice_thickness = None
-
-        # Get image position and voxel sizes
-        if ds.GridFrameOffsetVector[-1] > ds.GridFrameOffsetVector[0]:
-            self.reverse = False
-            self.image_position = (
-                float(ds.ImagePositionPatient[0]),
-                float(ds.ImagePositionPatient[1]),
-                float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[0]),
-            )
-        else:
-            self.reverse = True
-            self.image_position = (
-                float(ds.ImagePositionPatient[0]),
-                float(ds.ImagePositionPatient[1]),
-                float(ds.ImagePositionPatient[2] + ds.GridFrameOffsetVector[-1]),
-            )
-        self.voxel_size = (
-            float(ds.PixelSpacing[0]),
-            float(ds.PixelSpacing[1]),
-            slice_thickness,
-        )
-        self.transform_ijk_to_xyz = get_transform_ijk_to_xyz(self)
-        self.image_stack = None
-
-    def get_image_stack(self, rescale=True, renew=False):
-
-        if self.image_stack is not None and not renew:
-            return self.image_stack
-
-        # Load dose array from dicom
-        ds = pydicom.read_file(self.path, force=True)
-        self.image_stack = np.transpose(ds.pixel_array, (1, 2, 0))
-
-        # Rescale voxel values
-        if rescale:
-            try:
-                rescale_intercept = ds.RescaleIntercept
-            except AttributeError:
-                rescale_intercept = 0
-                self.image_stack = self.image_stack * float(ds.DoseGridScaling) + float(
-                    rescale_intercept
-                )
-
-        if self.reverse:
-            self.image_stack[:, :, :] = self.image_stack[:, :, ::-1]
-
-        return self.image_stack
 
 
 class RtPlan(MachineData):

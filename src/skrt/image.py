@@ -121,6 +121,11 @@ class Image(skrt.core.Archive):
         self.downsampling = downsample
         self.nifti_array = nifti_array
         self.structure_sets = []
+        self.doses = []
+
+        # Default image plotting settings
+        self._default_colorbar_label = "HU"
+        self._default_cmap = "gray"
 
         path = self.source if isinstance(self.source, str) else ""
         skrt.core.Archive.__init__(self, path)
@@ -248,6 +253,11 @@ class Image(skrt.core.Archive):
         """Return list of StructureSet objects associated with this Image."""
 
         return self.structure_sets
+
+    def get_doses(self):
+        """Return list of Dose objects associated with this Image."""
+
+        return self.doses
 
     def load(self, force=False):
         """Load pixel array from image source. If already loaded and <force> 
@@ -387,12 +397,11 @@ class Image(skrt.core.Archive):
 
         # Set default grayscale range
         if window_width and window_centre:
-            self.default_window = [
-                window_centre - window_width / 2,
-                window_centre + window_width / 2,
-            ]
+            self._default_vmin = window_centre - window_width / 2,
+            self._default_vmax = window_centre + window_width / 2,
         else:
-            self.default_window = [-300, 200]
+            self._default_vmin = -300
+            self._default_vmax = 200
 
         # Set title from filename
         if self.title is None:
@@ -1145,6 +1154,24 @@ class Image(skrt.core.Archive):
 
         self.structure_sets = []
 
+    def add_dose(self, dose):
+        """Add a Dose object to be associated with this image. This Image 
+        object will simultaneousl be assigned to the Dose.
+
+        **Parameters:**
+
+        dose : skrt.dose.Dose
+            A Dose object to assign to this image.
+        """
+
+        self.doses.append(dose)
+        dose.set_image(self)
+
+    def clear_doses(self):
+        """Clear all dose maps associated with this image."""
+
+        self.doses = []
+
     def get_mpl_kwargs(self, view, mpl_kwargs=None, scale_in_mm=True):
         """Get a dict of kwargs for plotting this image in matplotlib. This
         will create a default dict, which is updated to contain any kwargs
@@ -1156,10 +1183,10 @@ class Image(skrt.core.Archive):
             - "extent": 
                 Plot extent determined from image geometry.
             - "cmap":
-                Colormap, "gray" by default.
+                Colormap, self._default_cmap by default.
             - "vmin"/"vmax"
-                Greyscale range to use; taken from self.default_window by 
-                default.
+                Greyscale range to use; taken from self._default_vmin and
+                self._default_vmax by default.
 
         **Parameters:**
         
@@ -1178,14 +1205,10 @@ class Image(skrt.core.Archive):
         if mpl_kwargs is None:
             mpl_kwargs = {}
 
-        # Set colormap
-        if "cmap" not in mpl_kwargs:
-            mpl_kwargs["cmap"] = "gray"
-
         # Set colour range
-        for i, name in enumerate(["vmin", "vmax"]):
+        for name in ["vmin", "vmax", "cmap"]:
             if name not in mpl_kwargs:
-                mpl_kwargs[name] = self.default_window[i]
+                mpl_kwargs[name] = getattr(self, f"_default_{name}")
 
         # Set image extent and aspect ratio
         extent = self.plot_extent[view]
@@ -1233,11 +1256,11 @@ class Image(skrt.core.Archive):
         save_as=None,
         zoom=None,
         zoom_centre=None,
-        hu=None,
+        intensity=None,
         mpl_kwargs=None,
         show=True,
         colorbar=False,
-        colorbar_label="HU",
+        colorbar_label=None,
         title=None,
         no_ylabel=False,
         annotate_slice=False,
@@ -1314,9 +1337,9 @@ class Image(skrt.core.Archive):
         colorbar_label : str, default='HU'
             Label for the colorbar, if drawn.
 
-        hu : list, default=None
-            Two-item list containing min and max HU for plotting. Supercedes
-            'vmin' and 'vmax' in <mpl_kwargs>.
+        intensity : list, default=None
+            Two-item list containing min and max intensity for plotting. 
+            Supercedes 'vmin' and 'vmax' in <mpl_kwargs>.
 
         mpl_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.imshow().
@@ -1428,12 +1451,12 @@ class Image(skrt.core.Archive):
         image_slice = self.get_slice(view, idx=idx, flatten=flatten, 
                                      shift=shift)
 
-        # Apply HU window if given
+        # Apply intensity window if given
         if mpl_kwargs is None:
             mpl_kwargs = {}
-        if hu is not None:
-            mpl_kwargs["vmin"] = hu[0]
-            mpl_kwargs["vmax"] = hu[1]
+        if intensity is not None:
+            mpl_kwargs["vmin"] = intensity[0]
+            mpl_kwargs["vmax"] = intensity[1]
 
         # Plot the slice
         mesh = self.ax.imshow(
@@ -1496,8 +1519,10 @@ class Image(skrt.core.Archive):
             self.ax.set_ylim(ylim)
 
         # Add colorbar
+        clb_label = colorbar_label if colorbar_label is not None \
+                else self._default_colorbar_label
         if colorbar and mpl_kwargs.get("alpha", 1) > 0:
-            clb = self.fig.colorbar(mesh, ax=self.ax, label=colorbar_label)
+            clb = self.fig.colorbar(mesh, ax=self.ax, label=clb_label)
             clb.solids.set_edgecolor("face")
 
         # Display image
@@ -2195,7 +2220,6 @@ class ImageComparison(Image):
 
         BetterViewer(self.ims, **kwargs)
 
-
     def plot(
         self,
         view="x-y",
@@ -2216,7 +2240,7 @@ class ImageComparison(Image):
         overlay_legend=False,
         overlay_legend_loc=None,
         colorbar=False,
-        colorbar_label="HU",
+        colorbar_label=None,
         show_mse=False,
         dta_tolerance=None,
         dta_crit=None,
@@ -2285,7 +2309,8 @@ class ImageComparison(Image):
 
         # Draw colorbar
         if colorbar:
-            clb_label = colorbar_label
+            clb_label = colorbar_label if colorbar_label is not None \
+                    else self.ims[0]._default_colorbar_label
             if plot_type in ["difference", "absolute difference"]:
                 clb_label += " difference"
             elif plot_type == "distance to agreement":
@@ -2646,7 +2671,7 @@ def load_dicom(path, debug=False):
     window_centre, window_width = get_dicom_window(ds)
 
     # Rescale the data
-    rescale_dicom_data(ds, data)
+    data = rescale_dicom_data(ds, data)
 
     return data, affine, window_centre, window_width, ds, z_paths
 
@@ -2906,24 +2931,29 @@ def rescale_dicom_data(ds, data):
 
     data : np.ndarray
         Image array to be rescaled.
+
+    **Returns**:
+
+    data : np.ndarray
+        Rescaled version of the input array
     """
 
     # Get rescale settings
-    rescale_slope = getattr(ds, "RescaleSlope", 1.)
-    rescale_intercept = getattr(ds, "RescaleIntercept", None)
-    if rescale_intercept is None:
-        rescale_intercept = getattr(ds, "DoseGridScaling", 0.)
+    rescale_slope = getattr(ds, "RescaleSlope", None)
+    if rescale_slope is None:
+        rescale_slope = getattr(ds, "DoseGridScaling", 1.)
+    rescale_intercept = getattr(ds, "RescaleIntercept", 0.)
 
     # Apply rescaling
-    data = data * float(rescale_slope) + float(rescale_intercept)
+    return data * float(rescale_slope) + float(rescale_intercept)
 
 
 def get_dicom_window(ds):
-    """Get HU window defaults from a dicom file.
+    """Get intensity window defaults from a dicom file.
 
     **Parameters**:
     ds : pydicom.FileDataset
-        Dicom dataset from which to read HU window info.
+        Dicom dataset from which to read intensity window info.
 
     **Returns**:
 
