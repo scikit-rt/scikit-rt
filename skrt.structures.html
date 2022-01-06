@@ -1321,13 +1321,59 @@ by contours, this will be the number of buffer voxels
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">StructureSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">StructureSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Archive</span></code></a></p>
 <p>Structure set.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Load structure set from source(s).</p>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Load structure set from the source(s) given in &lt;path&gt;.</p>
+<p><strong>Parameters</strong>:</p>
+<dl>
+<dt>path<span class="classifier">str/list, default=None</span></dt><dd><p>Source(s) of ROIs to load into this structure set. Can be:</p>
+<ul class="simple">
+<li><p>The path to a single dicom structure set file;</p></li>
+<li><p>The path to a single nifti file containing an ROI mask;</p></li>
+<li><p>A list of paths to nifti files containing ROI masks;</p></li>
+<li><p>The path to a directory containing multiple nifti files</p></li>
+</ul>
+<p>containing ROI masks;
+- A list of ROI objects;
+- A list of objects that could be used to initialise an ROI object
+(e.g. a numpy array).</p>
+</dd>
+<dt>name<span class="classifier">str, default=None</span></dt><dd><p>Optional name to assign to this structure set. If None, will 
+attempt to infer from input filename.</p>
+</dd>
+<dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image associated with this structure set. If the input source is a
+dicom file containing ROI contours, this image will be used when
+creating ROI binary masks.</p>
+</dd>
+<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, ROIs will immediately be loaded from sources. Otherwise,
+loading will not occur until StructureSet.load() is called.</p>
+</dd>
+<dt>names<span class="classifier">dict, default=None</span></dt><dd><p>Optional dict of ROI names to use when renaming loaded ROIs. Keys 
+should be desired names, and values should be lists of possible
+input names or wildcards matching input names.</p>
+</dd>
+<dt>to_keep<span class="classifier">list, default=None</span></dt><dd><p>Optional list of ROI names or wildcards matching ROI names of ROIs
+to keep in this StructureSet during loading. ROIs not matching will
+be discarded. Note that the names should reflect those after 
+renaming via the &lt;names&gt; dict. If None, all ROIs will be kept.</p>
+</dd>
+<dt>to_remove<span class="classifier">list, default=None</span></dt><dd><p>Optional list of ROI names or wildcards matching ROI names of ROIs
+to remove from this StructureSet during loading. ROIs matching will
+be discarded. Note that the names should reflect those after 
+renaming via the &lt;names&gt; dict, and removal occurs after filtering
+with the &lt;to_keep&gt; list. If None, no ROIs will be removed.</p>
+</dd>
+<dt>multi_label<span class="classifier">bool, default=False</span></dt><dd><p>If True and input is a numpy array, will look for multiple ROI 
+masks with different labels inside the array and create a separate
+ROI from each.</p>
+</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs :</dt><dd><p>Additional keyword args to use when initialising new ROI objects.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1533,7 +1579,7 @@ STAPLE contour will be recomputed.</p>
 the STAPLE contour; this may be useful if comparison of a single
 ROI with the consensus of all others is desired.</p>
 </dd>
-<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the creation of the ROI object
+<dt><a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the creation of the ROI object
 representing the STAPLE contour.</p>
 </dd>
 </dl>
