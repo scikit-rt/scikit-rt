@@ -2726,7 +2726,7 @@ class ROI(skrt.core.Archive):
             If True and self.image is not None, the ROI's image will be plotted
             in the background.
 
-        \*\*kwargs :
+        `**`kwargs :
             Extra keyword arguments to pass to the relevant plot function.
         """
 
@@ -4208,7 +4208,7 @@ class StructureSet(skrt.core.Archive):
             the STAPLE contour; this may be useful if comparison of a single
             ROI with the consensus of all others is desired.
 
-        \*\*kwargs :
+        `**`kwargs :
             Extra keyword arguments to pass to the creation of the ROI object
             representing the STAPLE contour.
         """
