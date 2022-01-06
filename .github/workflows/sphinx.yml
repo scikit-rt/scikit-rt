@@ -1,13 +1,9 @@
 name: Sphinx build
 
-# Run workflow on tags corresponding to version numbers
-on:
-  push:
-    tags:        
-      - '[0-9]+.[0-9]+.[0-9]+'
+on: push
 
 jobs:
-  build:
+  sphinx_build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

@@ -2,7 +2,8 @@ name: skrt
 dependencies:
   - ipython
   - jupyter
+  - jupyterlab
   - pip
-  - python >=3.8.0,<3.9
+  - python
   - pip:
     - -e .
