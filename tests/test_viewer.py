@@ -87,10 +87,10 @@ def test_init_idx():
 
 
 @close_after
-def test_custom_hu():
+def test_custom_intensity():
     v = (-500, 100)
-    qv = BetterViewer(im, hu=v, show=False)
-    assert qv.viewers[0].ui_hu.value == v
+    qv = BetterViewer(im, intensity=v, show=False)
+    assert qv.viewers[0].ui_intensity.value == v
 
 
 @close_after

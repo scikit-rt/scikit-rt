@@ -9,7 +9,6 @@ import os
 import pandas as pd
 import re
 
-
 from skrt.core import is_list
 from skrt.image import (
     Image, 
@@ -19,6 +18,7 @@ from skrt.image import (
     _plot_axes,
     _default_figsize
 )
+from skrt.dose import Dose
 from skrt.structures import StructureSet, ROI
 
 # ipywidgets settings
@@ -327,24 +327,25 @@ class BetterViewer:
             to the nearest slice. If <init_pos> and <init_idx> are both given,
             <init_pos> will override <init_idx> only if <scale_in_mm> is True.
 
-        hu : float/tuple, default=(-300, 200)
-            HU central value or range thresholds at which to display the image.
+        intensity : float/tuple, default=None
+            Intensity central value or range thresholds at which to display the image.
             Can later be changed interactively. If a single value is given, the
-            HU range will be centred at this value with width given by
-            <hu_width>. If a tuple is given, the HU range will be set to the
-            two values in the tuple.
+            Intensity range will be centred at this value with width given by
+            <intensity_width>. If a tuple is given, the intensity range will be set to the
+            two values in the tuple. If None, default intensity will be taken
+            from the image itself.
 
-        hu_width : float, default=500
-            Initial width of the HU window. Only used if <hu> is a single
+        intensity_width : float, default=500
+            Initial width of the intensity window. Only used if <intensity> is a single
             value.
 
-        hu_limits : tuple, default=None
-            Full range to use for the HU slider. Can also set to 'auto' to
-            detect min and max HU in the image. Defaults to (-2000, 2000).
+        intensity_limits : tuple, default=None
+            Full range to use for the intensity slider. Can also set to 'auto' to
+            detect min and max intensity in the image. Defaults to (-2000, 2000).
 
-        hu_step : float, default=None
-            Step size to use for the HU slider. Defaults to 1 if the maximum
-            HU is >= 10, otherwise 0.1.
+        intensity_step : float, default=None
+            Step size to use for the intensity slider. Defaults to 1 if the maximum
+            intensity is >= 10, otherwise 0.1.
 
         figsize : float/tuple, default=5
             Height of the displayed figure in inches; figure width will be 
@@ -370,12 +371,12 @@ class BetterViewer:
             cmap included in <mpl_kwargs>.
 
         colorbar : bool, default=False
-            If True, colorbars will be displayed for HU, dose and Jacobian
+            If True, colorbars will be displayed for intensity, dose and Jacobian
             determinant.
 
         colorbar_label : str, default=None
             Label for the colorbar and range slider. If None, will default to
-            either 'HU' if an image file is given, or 'Dose (Gy)' if a dose
+            either 'intensity' if an image file is given, or 'Dose (Gy)' if a dose
             file is given without an image.
 
         mpl_kwargs : dict, default=None
@@ -887,7 +888,7 @@ class BetterViewer:
                 if match_axes != 'x':
                     v.custom_ax_lims[view][1] = all_ax_lims[view][1]
 
-    def make_ui(self, no_roi=False, no_hu=False):
+    def make_ui(self, no_roi=False, no_intensity=False):
 
         # Only allow share_slider if images have same frame of reference
         if self.share_slider:
@@ -897,7 +898,7 @@ class BetterViewer:
 
         # Make UI for first image
         v0 = self.viewers[0]
-        v0.make_ui(no_roi=no_roi, no_hu=no_hu)
+        v0.make_ui(no_roi=no_roi, no_intensity=no_intensity)
 
         # Store needed UIs
         self.ui_view = v0.ui_view
@@ -908,7 +909,7 @@ class BetterViewer:
         self.roi_plot_type = self.ui_roi_plot_type.value
         #  self.roi_plot_type2 = self.ui_roi_plot_type2.value
 
-        # Make main upper UI list (= view radio + single HU/slice slider)
+        # Make main upper UI list (= view radio + single intensity/slice slider)
         many_sliders = not self.share_slider and self.n > 1
         if not many_sliders:
             self.main_ui = v0.main_ui
@@ -920,11 +921,11 @@ class BetterViewer:
         # Make UI for other images
         for v in self.viewers[1:]:
             v.make_ui(other_viewer=v0, share_slider=self.share_slider,
-                      no_roi=no_roi, no_hu=no_hu)
+                      no_roi=no_roi, no_intensity=no_intensity)
             v0.rois_for_jump.update(v.rois_for_jump)
         v0.ui_roi_jump.options = list(v0.rois_for_jump.keys())
 
-        # Make UI for each image (= unique HU/slice sliders and ROI jump)
+        # Make UI for each image (= unique intensity/slice sliders and ROI jump)
         self.per_image_ui = []
         if many_sliders:
             for v in self.viewers:
@@ -937,12 +938,12 @@ class BetterViewer:
                     if self.any_attr('rois'):
                         sliders.append(ipyw.Label())
 
-                # HU sliders
-                if not no_hu:
-                    if v.hu_from_width:
-                        sliders.extend([v.ui_hu_centre, v.ui_hu_width])
+                # Intensity sliders
+                if not no_intensity:
+                    if v.intensity_from_width:
+                        sliders.extend([v.ui_intensity_centre, v.ui_intensity_width])
                     else:
-                        sliders.append(v.ui_hu)
+                        sliders.append(v.ui_intensity)
 
                 # Zoom sliders
                 if v.zoom_ui:
@@ -1423,10 +1424,10 @@ class SingleViewer:
         init_view="x-y",
         init_slice=None,
         init_pos=None,
-        hu=[-300, 200],
-        hu_width=500,
-        hu_limits=None,
-        hu_step=None,
+        intensity=None,
+        intensity_width=500,
+        intensity_limits=None,
+        intensity_step=None,
         figsize=_default_figsize,
         xlim=None,
         ylim=None,
@@ -1510,30 +1511,40 @@ class SingleViewer:
             self.set_slice(init_view, init_slice)
 
         # Assign plot settings
-        # HU range settings
-        self.hu = hu
-        self.hu_width = hu_width
-        self.hu_limits = hu_limits
-        self.hu_step = hu_step
-        self.hu_from_width = isinstance(hu, float) or isinstance(hu, int)
-        if hu_limits is None:
-            #  if self.image.dose_as_im:
-                #  if dose_range:
-                    #  self.hu_limits = dose_range
-                #  else:
-                    #  self.hu_limits = (self.image.data.min(), self.image.data.max())
-            #  else:
-            self.hu_limits = [-2000, 2000]
-        elif hu_limits == "auto":
-            self.hu_limits = (self.image.data.min(), self.image.data.max())
-        if hu_step is None:
-            self.hu_step = (
-                1 if abs(self.hu_limits[1] - self.hu_limits[0]) >= 10 else 0.1
+        # Intensity range settings
+        # Set initial intensity range from range or window
+        self.intensity = intensity
+        if intensity is None:
+            self.intensity = [
+                self.image._default_vmin,
+                self.image._default_vmax
+            ]
+        self.intensity_from_width = isinstance(intensity, float) \
+                or isinstance(intensity, int)
+        self.intensity_width = intensity_width
+
+        # Set upper and lower limits of the intensity slider
+        self.intensity_limits = intensity_limits
+        if intensity_limits is None:
+            if isinstance(self.image, Image):
+                self.intensity_limits = [-2000, 2000]
+            else:
+                self.intensity_limits = [self.image.data.min(), 
+                                         self.image.data.max()]
+
+        # Ensure limits extend to the initial intensity range
+        if self.intensity[0] < self.intensity_limits[0]:
+            self.intensity_limits[0] = self.intensity[0]
+        if self.intensity[1] > self.intensity_limits[1]:
+            self.intensity_limits[1] = self.intensity[1]
+
+        # Get step size for intensity slider
+        self.intensity_step = intensity_step
+        if intensity_step is None:
+            self.intensity_step = (
+                1 if abs(self.intensity_limits[1] - self.intensity_limits[0]) 
+                >= 10 else 0.1
             )
-        if self.hu[0] < self.hu_limits[0]:
-            self.hu_limits[0] = self.hu[0]
-        if self.hu[1] > self.hu_limits[1]:
-            self.hu_limits[1] = self.hu[1]
 
         # Other settings
         self.in_notebook = in_notebook()
@@ -1542,7 +1553,7 @@ class SingleViewer:
         self.continuous_update = continuous_update
         self.colorbar = colorbar
         self.colorbar_drawn = False
-        self.colorbar_label = colorbar_label if colorbar_label is not None else "HU"
+        self.colorbar_label = colorbar_label
         self.annotate_slice = annotate_slice
         if self.annotate_slice is None and not self.in_notebook:
             self.annotate_slice = True
@@ -1680,10 +1691,10 @@ class SingleViewer:
         self.set_slice(view, sl)
 
     def make_ui(self, other_viewer=None, share_slider=True, no_roi=False,
-                no_hu=False):
+                no_intensity=False):
         '''Make Jupyter notebook UI. If other_viewer contains another SingleViewer
         instance, the UI will be taken from that image. If share_slider is
-        False, independent HU and slice sliders will be created.'''
+        False, independent intensity and slice sliders will be created.'''
 
         shared_ui = isinstance(other_viewer, SingleViewer)
         self.main_ui = []
@@ -1725,57 +1736,57 @@ class SingleViewer:
         if self.has_rois and not no_roi:
             self.main_ui.append(self.ui_roi_jump)
 
-        # HU and slice sliders
+        # intensity and slice sliders
         if not share_slider or not shared_ui:
 
-            # Make HU slider
-            if self.hu_limits == 'auto':
-                hu_limits = (self.image.data.min(), self.image.data.max())
+            # Make intensity slider
+            if self.intensity_limits == 'auto':
+                intensity_limits = (self.image.data.min(), self.image.data.max())
             else:
-                hu_limits = self.hu_limits
+                intensity_limits = self.intensity_limits
 
             # Single range slider
-            if not self.hu_from_width:
-                vmin = max([self.hu[0], hu_limits[0]])
-                vmax = min([self.hu[1], hu_limits[1]])
-                ui_hu_kwargs = {
-                    'min': hu_limits[0],
-                    'max': hu_limits[1],
+            if not self.intensity_from_width:
+                vmin = max([self.intensity[0], intensity_limits[0]])
+                vmax = min([self.intensity[1], intensity_limits[1]])
+                ui_intensity_kwargs = {
+                    'min': intensity_limits[0],
+                    'max': intensity_limits[1],
                     'value': (vmin, vmax),
-                    'description': self.colorbar_label,
+                    'description': "Intensity range",
                     'continuous_update': False,
                     'style': _style,
-                    'step': self.hu_step,
+                    'step': self.intensity_step,
                 }
                 slider_kind = (
-                    ipyw.FloatRangeSlider if self.hu_step < 1 else ipyw.IntRangeSlider
+                    ipyw.FloatRangeSlider if self.intensity_step < 1 else ipyw.IntRangeSlider
                 )
-                self.ui_hu = slider_kind(**ui_hu_kwargs)
-                if not no_hu:
-                    self.main_ui.append(self.ui_hu)
+                self.ui_intensity = slider_kind(**ui_intensity_kwargs)
+                if not no_intensity:
+                    self.main_ui.append(self.ui_intensity)
 
             # Centre and window sliders
             else:
-                self.ui_hu_centre = ipyw.IntSlider(
-                    min=hu_limits[0],
-                    max=hu_limits[1],
-                    value=self.hu,
-                    description='HU centre',
+                self.ui_intensity_centre = ipyw.IntSlider(
+                    min=intensity_limits[0],
+                    max=intensity_limits[1],
+                    value=self.intensity,
+                    description='Intensity centre',
                     continuous_update=False,
                     style=_style,
                 )
-                self.ui_hu_width = ipyw.IntSlider(
+                self.ui_intensity_width = ipyw.IntSlider(
                     min=0,
-                    max=abs(hu_limits[1] - hu_limits[0]),
-                    value=self.hu_width,
-                    description='HU width',
+                    max=abs(intensity_limits[1] - intensity_limits[0]),
+                    value=self.intensity_width,
+                    description='Intensity width',
                     continuous_update=False,
                     style=_style,
                 )
-                self.ui_hu_list = [self.ui_hu_centre, self.ui_hu_width]
-                if not no_hu:
-                    self.main_ui.extend(self.ui_hu_list)
-                self.ui_hu = ipyw.VBox(self.ui_hu_list)
+                self.ui_intensity_list = [self.ui_intensity_centre, self.ui_intensity_width]
+                if not no_intensity:
+                    self.main_ui.extend(self.ui_intensity_list)
+                self.ui_intensity = ipyw.VBox(self.ui_intensity_list)
 
             # Make zoom UI
             if self.zoom_ui:
@@ -1852,11 +1863,11 @@ class SingleViewer:
             self.main_ui.append(self.ui_slice)
 
         else:
-            if self.hu_from_width:
-                self.ui_hu_width = other_viewer.ui_hu_width
-                self.ui_hu_centre = other_viewer.ui_hu_centre
+            if self.intensity_from_width:
+                self.ui_intensity_width = other_viewer.ui_intensity_width
+                self.ui_intensity_centre = other_viewer.ui_intensity_centre
             else:
-                self.ui_hu = other_viewer.ui_hu
+                self.ui_intensity = other_viewer.ui_intensity
             self.ui_slice = other_viewer.ui_slice
             self.slice[self.view] = self.ui_slice.value
             if self.zoom_ui:
@@ -2337,8 +2348,8 @@ class SingleViewer:
         if not self.scale_in_mm:
             self.update_slice_slider_desc()
 
-        # Get HU range
-        self.v_min_max = self.get_hu_range()
+        # Get intensity range
+        self.v_min_max = self.get_intensity_range()
 
         # Get zoom settings
         if self.zoom_ui:
@@ -2378,15 +2389,16 @@ class SingleViewer:
         self.current_centre[self.view] = centre
         self.update_zoom_sliders()
 
-    def get_hu_range(self):
-        '''Get vmin and vmax from HU sliders.'''
+    def get_intensity_range(self):
+        '''Get vmin and vmax from intensity sliders.'''
 
-        if self.hu_from_width:
-            w = self.ui_hu_width.value / 2
-            centre = self.ui_hu_centre.value
+        if self.intensity_from_width:
+            w = self.ui_intensity_width.value / 2
+            centre = self.ui_intensity_centre.value
             return {'vmin': centre - w, 'vmax': centre + w}
         else:
-            return {'vmin': self.ui_hu.value[0], 'vmax': self.ui_hu.value[1]}
+            return {'vmin': self.ui_intensity.value[0], 
+                    'vmax': self.ui_intensity.value[1]}
 
     def update_roi_sliders(self):
         '''Update ROI sliders depending on current plot type.'''

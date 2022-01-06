@@ -536,13 +536,13 @@ class Registration(Data):
         `to_transform`. Functions called depending on type are:
 
         Image:
-            transform_image(to_transform, \*\*kwargs)
+            transform_image(to_transform, `**`kwargs)
         str:
-            transform_nifti(to_transform, \*\*kwargs)
+            transform_nifti(to_transform, `**`kwargs)
         StructureSet:
-            transform_structure_set(to_transform, \*\*kwargs)
+            transform_structure_set(to_transform, `**`kwargs)
         ROI:
-            transform_roi(to_transform, \*\*kwargs)
+            transform_roi(to_transform, `**`kwargs)
         """
 
         if issubclass(type(to_transform), Image):
@@ -844,7 +844,10 @@ class Registration(Data):
 
         from skrt.better_viewer import BetterViewer
 
-        kwargs.setdefault("hu", self.fixed_image.default_window)
+        kwargs.setdefault(
+            "intensity", 
+            [self.fixed_image._default_vmin, self.fixed_image._default_vmax]
+        )
         kwargs.setdefault("match_axes", "y")
         kwargs.setdefault("title", ["Fixed", "Moving"])
         kwargs.setdefault("comparison", True)
@@ -865,7 +868,7 @@ class Registration(Data):
             If True, the result will be displayed in comparison with the
             fixed image.
 
-        \*\*kwargs :
+        `**`kwargs :
             Optional keyword arguments to pass to BetterViewer.
         """
 
@@ -878,7 +881,10 @@ class Registration(Data):
         if compare_with_fixed:
             ims = [self.fixed_image, self.transformed_images[step]]
             kwargs.setdefault("comparison", True)
-            kwargs.setdefault("hu", self.fixed_image.default_window)
+            kwargs.setdefault(
+                "intensity", 
+                [self.fixed_image._default_vmin, self.fixed_image._default_vmax]
+            )
             kwargs.setdefault("title", ["Fixed", "Transformed moving"])
         else:
             ims = self.transformed_images[step]
