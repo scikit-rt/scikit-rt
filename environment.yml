@@ -1,4 +1,4 @@
-name: skrt2
+name: skrt
 dependencies:
   - ipython
   - jupyter
