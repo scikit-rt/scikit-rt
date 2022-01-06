@@ -1137,8 +1137,8 @@ class Image(skrt.core.Archive):
             return self._current_slice
 
     def add_structure_set(self, structure_set):
-        """Add a structure set to be associated with this image. This Image 
-        object will simultaneously be assigned to the StructureSet.
+        """Add a structure set to be associated with this image. This does
+        not affect the image associated with the structure set.
 
         **Parameters:**
         
@@ -1147,7 +1147,6 @@ class Image(skrt.core.Archive):
         """
 
         self.structure_sets.append(structure_set)
-        structure_set.set_image(self)
 
     def clear_structure_sets(self):
         """Clear all structure sets associated with this image."""
@@ -1155,8 +1154,8 @@ class Image(skrt.core.Archive):
         self.structure_sets = []
 
     def add_dose(self, dose):
-        """Add a Dose object to be associated with this image. This Image 
-        object will simultaneousl be assigned to the Dose.
+        """Add a Dose object to be associated with this image. This does not
+        affect the image associated with the Dose object.
 
         **Parameters:**
 
@@ -1165,7 +1164,6 @@ class Image(skrt.core.Archive):
         """
 
         self.doses.append(dose)
-        dose.set_image(self)
 
     def clear_doses(self):
         """Clear all dose maps associated with this image."""

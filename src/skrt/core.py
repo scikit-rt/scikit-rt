@@ -121,7 +121,7 @@ class Data:
             Dictionary to be used in setting instance attributes
             (dictionary keys) and their initial values.
 
-        \*\*kwargs
+        `**`kwargs
             Keyword-value pairs to be used in setting instance attributes
             and their initial values.
         """
@@ -397,24 +397,57 @@ class PathData(Data):
         self.path = fullpath(path)
         self.subdir = ""
 
-    def get_dated_objects(self,
-                          dtype: type,
-                          subdir: str = "",
-                          **kwargs) -> List[Any]:
-        """Create list of objects of a given type, <dtype>, inside own
-        directory, or inside own directory + <subdir> if given."""
+    def create_objects(
+        self, 
+        dtype: type, 
+        subdir: str = "", 
+        timestamp_only=True,
+        **kwargs
+    ) -> List[Any]:
+        """
+        For all the files inside own directory, or own directory + <subdir>
+        if <subdir> is given, create an object of given data type <dtype> if
+        the filename corresponds to a timestamp. Return the created objects in 
+        a list.
 
-        # Create object for each file in the subdir
+        **Parameters**:
+
+        dtype : type
+            Type of object to create from files in the specified directory.
+
+        subdir : str, default=""
+            Subdirectory from which to take files. If empty, own top-level
+            directory will be used.
+        
+        timestamp_only : bool, default=True
+            If True, only files whose names correspond to a timestamp will
+            be used to initialise objects.
+
+        `**`kwargs :
+            Keyword arguments to pass to object creation.
+
+        **Returns**:
+
+        objs : list
+            List of created objects of type <dtype>.
+        """
+
+        # Attempt to create object for each file in the subdir
         objs = []
         path = os.path.join(self.path, subdir)
         if os.path.isdir(path):
             for filename in os.listdir(path):
-                if is_timestamp(filename):
-                    filepath = os.path.join(path, filename)
-                    try:
-                        objs.append(dtype(path=filepath, **kwargs))
-                    except RuntimeError:
-                        pass
+
+                # Ignore files with no timestamp in name
+                if timestamp_only and not is_timestamp(filename):
+                    continue
+
+                # Attempt to initialise object of type <dtype>
+                filepath = os.path.join(path, filename)
+                try:
+                    objs.append(dtype(path=filepath, **kwargs))
+                except RuntimeError:
+                    pass
 
         # Sort and assign subdir to the created objects
         objs.sort()

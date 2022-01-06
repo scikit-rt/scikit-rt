@@ -25,7 +25,7 @@ def test_data():
 def test_pathdata():
     pdata = skrt.core.PathData('.')
     assert pdata.path == skrt.core.fullpath('.')
-    assert pdata.get_dated_objects(None) == []
+    assert pdata.create_objects(None) == []
 
 def test_dated():
     dated = skrt.core.Dated(path='.')

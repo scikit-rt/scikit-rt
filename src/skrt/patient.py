@@ -8,59 +8,121 @@ import time
 import skrt.core
 from skrt.image import Image
 from skrt.structures import StructureSet
+from skrt.dose import Dose
 
 
 class Study(skrt.core.Archive):
-    def __init__(self, path=""):
+    """Class representing a single study; can contain images, dose fields,
+    and structure sets."""
 
+    def __init__(self, path=""):
+        """Initialise a Study object from a given directory. Find any images,
+        dose fields, and structure sets within this directory."""
+
+        # Intialise as an Archive object
         skrt.core.Archive.__init__(self, path, allow_dirs=True)
 
+        # Load data
+        self.load_images()
+
+        # Load structure sets
+        self.load_from_subdir(
+            dtype=StructureSet,
+            subdir="RTSTRUCT",
+            attr_name="structure_sets",
+            load=False
+        )
+
+        # Load dose maps
+        self.load_from_subdir(
+            dtype=Dose,
+            subdir="RTDOSE",
+            attr_name="doses",
+            load=False
+        )
+
+        #  self.load_dose_or_plan()
+
+    def load_images(self):
+        """Load images of various types by attempting to load from all
+        files in subdirectories not named RTDOSE, RTSTRUCT, or RTPLAN."""
+
+        # Find image subdirs by looking at all subdirs and ignoring those
+        # with special names
         special_dirs = ["RTPLAN", "RTSTRUCT", "RTDOSE"]
-        self.image_types = []
+        self.image_types = {}
         for file in self.files:
 
             subdir = os.path.basename(file.path)
             if subdir in special_dirs:
                 continue
-            self.image_types.append(subdir)
+            self.image_types[subdir] = {}
 
-            # Get images
-            im_name = f"{subdir.lower()}_images"
-            setattr(
-                self,
-                im_name,
-                self.get_dated_objects(dtype=Image, subdir=subdir, load=False),
-            )
-
-            # Assign the original subdir name to the images
-            for im in getattr(self, im_name):
+            # Get Image objects in this subdir
+            attr = f"{subdir.lower()}_images"
+            images = self.create_objects(dtype=Image, subdir=subdir, load=False)
+            for im in images:
                 im.image_type = subdir
 
-            # Get associated structure sets
-            struct_subdir = f"RTSTRUCT/{subdir}"
-            if os.path.exists(os.path.join(self.path, struct_subdir)):
-                setattr(
-                    self,
-                    f"{subdir.lower()}_structure_sets",
-                    self.get_structure_sets(
-                        subdir=struct_subdir, images=getattr(self, im_name)
-                    ),
-                )
+            # Store the images
+            setattr(self, attr, images)
+            self.image_types[subdir] = images
 
-        # Plans, dose etc: leave commented for now
-        #  self.plans = self.get_plan_data(dtype='RtPlan', subdir='RTPLAN')
-        #  self.doses = self.get_plan_data(
-        #  dtype='RtDose',
-        #  subdir='RTDOSE',
-        #  exclude=['MVCT', 'CT'],
-        #  images=self.ct_images    
-        #  )
+    def load_from_subdir(self, dtype, subdir, attr_name, **kwargs):
+        """Create objects of type <dtype> from each directory in <subdir> and 
+        attempt to assign the corresponding image. The created objects will
+        be assign to self.<IMAGE_TYPE>_<attr_name>, where <image_type> is 
+        inferred from the subdirectory from which the objects were created.
 
-        # Load CT-specific RT doses
-        #  self.ct_doses = self.get_plan_data(
-        #  dtype='RtDose', subdir='RTDOSE/CT', images=self.ct_images    
-        #  )
-        #  self.ct_doses = self.correct_dose_image_position(self.ct_doses)
+        **Parameters**:
+
+        dtype : type
+            Data type to use when creating objects.
+
+        subdir : str
+            Subdirectory in which to search for objects.
+
+        attr_name : str
+            Name of attribute to which loaded objects should be assigned.
+
+        `**`kwargs :
+            Keyword args to pass to object initialisation.
+        """
+
+        obj_dir = os.path.join(self.path, subdir)
+        if not os.path.exists(obj_dir):
+            return
+
+        # Search subdirectories (each corresponds to an image type)
+        for im_type_dir in os.listdir(obj_dir):
+
+            all_objs = []
+
+            # Create archive object for each subdir (each corresponds to 
+            # an image)
+            archives = self.create_objects(dtype=skrt.core.Archive,
+                                           subdir=f"{subdir}/{im_type_dir}")
+            for archive in archives:
+
+                # Create objects within this archive
+                objs = archive.create_objects(
+                    dtype=dtype, timestamp_only=False, **kwargs)
+
+                # Look for an image matching the timestamp of this archive
+                if im_type_dir in self.image_types:
+                    image = find_matching_object(
+                        archive, self.image_types[im_type_dir])
+                    if image is not None:
+                        for obj in objs:
+                            if hasattr(obj, "set_image"):
+                                obj.set_image(image)
+
+                # Add to list of all objects for this image type
+                all_objs.extend(objs)
+
+            # Create attribute for objects of this type
+            if len(all_objs):
+                setattr(self, f"{im_type_dir.lower()}_{attr_name}", all_objs)
 
     def add_image(self, im, image_type="CT"):
         '''Add a new image of a given image type.'''
@@ -69,8 +131,6 @@ class Study(skrt.core.Archive):
         im_name = f"{image_type.lower()}_images"
         if not hasattr(self, im_name):
             setattr(self, im_name, [])
-        if image_type not in self.image_types:
-            self.image_types.append(image_type)
 
         # Add image to the list
         images = getattr(self, im_name)
@@ -79,6 +139,12 @@ class Study(skrt.core.Archive):
         else:
             im_to_add = Image(im)
         images.append(im)
+
+        # Also add to dict of images of each type
+        if image_type not in self.image_types:
+            self.image_types[image_type] = [im]
+        else:
+            self.image_types[image_type].append(im)
 
         # Ensure image has a timestamp
         if not im.timestamp:
@@ -219,7 +285,7 @@ class Study(skrt.core.Archive):
 
                 for subdir_item in subdirs:
                     doses.extend(
-                        self.get_dated_objects(dtype=dtype, subdir=subdir_item)
+                        self.create_objects(dtype=dtype, subdir=subdir_item)
                     )
 
         # Assign dose-specific properties
@@ -232,7 +298,7 @@ class Study(skrt.core.Archive):
                 if images:
                     try:
                         dose.date, dose.time = timestamp.split("_")
-                        image = get_dated_obj(images, dose)
+                        image = create_objects(images, dose)
                         dose.machine = image.machine
                     except BaseException:
                         image = images[-1]
@@ -307,57 +373,6 @@ class Study(skrt.core.Archive):
 
         return plan_dose
 
-    def get_structure_sets(self, subdir="", images=[]):
-        """Make list of StructureSet objects found within a given subdir and
-        set their associated image objects."""
-
-        # Find structure set directories associated with each image
-        groups = self.get_dated_objects(dtype=skrt.core.Archive, subdir=subdir)
-
-        # Load structure set files for each
-        structure_sets = []
-        for group in groups:
-
-            # Find the matching Image for this group
-            image = None
-            image_dir = os.path.basename(group.path)
-            image_found = False
-
-            # Try matching on path
-            for im in images:
-                if image_dir == os.path.basename(im.path):
-                    image = im
-                    image_found = True
-                    break
-
-            # If no path match, try matching on timestamp
-            if not image_found:
-                for im in images:
-                    if (group.date == im.date) and (group.time == im.time):
-                        image = im
-                        break
-
-            # Find all structure set files inside the dir
-            for file in group.files:
-
-                # Create StructureSet
-                structure_set = StructureSet(
-                    file.path, 
-                    image=image,
-                    name=None,
-                    load=False
-                )
-
-                # Add to Image
-                if image is not None:
-                    image.add_structure_set(structure_set)
-                    structure_set.name = f'Structure set {len(image.structure_sets)}'
-
-                # Add to list of all structure sets
-                structure_sets.append(structure_set)
-
-        return structure_sets
-
     def get_description(self):
         """Load a study description."""
 
@@ -415,7 +430,7 @@ class Patient(skrt.core.PathData):
         self.id = os.path.basename(self.path)
 
         # Find studies
-        self.studies = self.get_dated_objects(dtype=Study)
+        self.studies = self.create_objects(dtype=Study)
         if not self.studies:
             if os.path.isdir(self.path):
                 if os.access(self.path, os.R_OK):
@@ -423,7 +438,7 @@ class Patient(skrt.core.PathData):
                     for subdir in subdirs:
                         if subdir not in exclude:
                             self.studies.extend(
-                                self.get_dated_objects(dtype=Study, subdir=subdir)
+                                self.create_objects(dtype=Study, subdir=subdir)
                             )
 
     def add_study(self, subdir='', timestamp=None, images=None, 
@@ -664,4 +679,20 @@ class Patient(skrt.core.PathData):
                         # Write ROIs to individual files
                         else:
                             ss.write(outdir=ss_dir, ext=ext)
+
+
+def find_matching_object(obj, possible_matches):
+    """For a given object <obj> and a list of potential matching objects
+    <possible_matches>, find an object that matches either <obj>'s path,
+    or <obj>'s date and time."""
+
+    # Try matching on path
+    for match in possible_matches:
+        if os.path.basename(obj.path) == os.path.basename(match.path):
+            return match
+
+    # If no path match, try matching on timestamp
+    for match in possible_matches:
+        if (match.date == obj.date) and (match.time == obj.time):
+            return match
 

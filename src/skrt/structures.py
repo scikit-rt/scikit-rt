@@ -2883,7 +2883,8 @@ class ROI(skrt.core.Archive):
     def set_image(self, im):
         """Set self.image to a given image and adjust geometric properties
         accordingly. Note that self.mask will be removed if the current mask's 
-        shape doesn't match the image."""
+        shape doesn't match the image. 
+        """
 
         self.image = im
         self.contours_only = False
@@ -3555,14 +3556,21 @@ class StructureSet(skrt.core.Archive):
         self.load(force=True)
 
     def set_image(self, image):
-        """Set image for self and all ROIs."""
+        """Set image for self and all ROIs. Image.add_structure_set(self) will
+        also be called."""
 
+        # Convert to Image object if needed
         if image and not isinstance(image, skrt.image.Image):
             image = skrt.image.Image(image)
 
+        # Assign to self and all ROIs
         self.image = image
         for s in self.rois:
             s.image = image
+
+        # Assign self to the image
+        if image is not None:
+            image.add_structure_set(self)
 
     def rename_rois(
         self, names=None, first_match_only=True, keep_renamed_only=False
