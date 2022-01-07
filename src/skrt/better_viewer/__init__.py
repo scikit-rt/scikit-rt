@@ -956,9 +956,9 @@ class BetterViewer:
 
         # Make extra UI list
         self.extra_ui = []
-        #  for attr in ['mask', 'dose', 'df']:
-            #  if self.any_attr(attr):
-                #  self.extra_ui.append(getattr(v0, 'ui_' + attr))
+        for attr in ["dose"]:#['mask', 'dose', 'df']:
+            if self.any_attr(attr):
+                self.extra_ui.append(getattr(v0, 'ui_' + attr))
         #  if self.any_attr('jacobian'):
             #  self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
         if self.any_attr('rois'):
@@ -1489,7 +1489,8 @@ class SingleViewer:
         self.scale_in_mm = scale_in_mm
         self.title = title
 
-        # Set up ROIs
+        # Set up dose and ROIs
+        self.load_dose(dose)
         self.load_rois(rois, roi_names=roi_names, rois_to_keep=rois_to_keep,
                        rois_to_remove=rois_to_remove)
 
@@ -1577,6 +1578,7 @@ class SingleViewer:
         self.no_axis_labels = no_axis_labels
         self.legend_loc = legend_loc
         self.shift = [None, None, None]
+        self.init_dose_opacity = dose_opacity
 
         # ROI settings
         self.roi_plot_type = roi_plot_type
@@ -1618,6 +1620,20 @@ class SingleViewer:
             image = Image(im, *args, **kwargs)
         image.load()
         return image
+
+    def load_dose(self, dose):
+        """Load dose field."""
+
+        if dose is None:
+            self.dose = None
+        elif isinstance(dose, Dose):
+            self.dose = dose
+        elif isinstance(dose, int):
+            self.dose = self.image.doses[dose]
+        else:
+            self.dose = Dose(dose)
+
+        self.has_dose = self.dose is not None
 
     def load_rois(
         self, 
@@ -1889,19 +1905,19 @@ class SingleViewer:
             #  if self.image.has_mask:
                 #  self.extra_ui.append(self.ui_mask)
 
-            # Dose opacity
-            #  self.ui_dose = ipyw.FloatSlider(
-                #  value=self.init_dose_opacity,
-                #  min=0,
-                #  max=1,
-                #  step=0.05,
-                #  description='Dose opacity',
-                #  continuous_update=self.continuous_update,
-                #  readout_format='.2f',
-                #  style=_style,
-            #  )
-            #  if self.image.has_dose:
-                #  self.extra_ui.append(self.ui_dose)
+            #  Dose opacity
+            self.ui_dose = ipyw.FloatSlider(
+                value=self.init_dose_opacity,
+                min=0,
+                max=1,
+                step=0.05,
+                description='Dose opacity',
+                continuous_update=self.continuous_update,
+                readout_format='.2f',
+                style=_style,
+            )
+            if self.has_dose:
+                self.extra_ui.append(self.ui_dose)
 
             # Jacobian opacity and range
             #  self.ui_jac_opacity = ipyw.FloatSlider(
@@ -1999,7 +2015,7 @@ class SingleViewer:
         else:
             to_share = [
                 #  'ui_mask',
-                #  'ui_dose',
+                'ui_dose',
                 #  'ui_jac_opacity',
                 #  'ui_jac_range',
                 #  'ui_df',
@@ -2284,6 +2300,8 @@ class SingleViewer:
             rois=rois_to_plot,
             roi_plot_type=self.roi_plot_type,
             roi_kwargs=roi_kwargs,
+            dose=self.dose,
+            dose_opacity=self.ui_dose.value,
             legend=self.roi_legend,
             centre_on_roi=self.init_roi,
             shift=self.shift,
@@ -2443,7 +2461,7 @@ class SingleViewer:
 
         # Press d to change dose opacity
         elif event.key == 'd':
-            if self.image.has_dose:
+            if self.has_dose:
                 doses = [0, 0.15, 0.35, 0.5, 1]
                 next_dose = {
                     doses[i]: doses[i + 1] if i + 1 < len(doses) else doses[0]
@@ -2455,7 +2473,7 @@ class SingleViewer:
 
         # Press m to switch mask on and off
         elif event.key == 'm':
-            if self.image.has_mask:
+            if self.has_mask:
                 self.ui_mask.value = not self.ui_mask.value
 
         # Press c to change ROI plot type
