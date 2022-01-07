@@ -6,6 +6,7 @@ import subprocess
 from skrt.image import Image
 from skrt.structures import ROI, StructureSet
 from skrt.core import Data
+from skrt.dose import ImageOverlay
 
 _ELASTIX_DIR = None
 _ELASTIX = "elastix"
@@ -86,6 +87,7 @@ class Registration(Data):
         self.pfiles = {}
         self.tfiles = {}
         self.transformed_images = {}
+        self.jacobians = {}
         if isinstance(pfiles, str):
             pfiles = [pfiles]
         if pfiles is not None:
@@ -229,7 +231,7 @@ class Registration(Data):
         informative purposes.
         """
 
-        for file in get_default_params():
+        for file in get_default_pfiles():
             print(file)
 
     def get_default_params(self, filename):
@@ -339,6 +341,14 @@ class Registration(Data):
             if os.path.exists(im_path):
                 self.transformed_images[step] = Image(
                     im_path, title="Transformed moving"
+                )
+
+            # Check for Jacobian determinant
+            jac_path = os.path.join(outdir, "spatialJacobian.nii")
+            if os.path.exists(jac_path):
+                self.jacobians[step] = Jacobian(
+                    jac_path, title="Jacobian determinant",
+                    image=self.transformed_images[step]
                 )
 
     def clear(self):
@@ -655,7 +665,7 @@ class Registration(Data):
             "-tp",
             tfile,
         ]
-        print("running command:", " ".join(cmd))
+        print("Running command:\n", " ".join(cmd))
         code = subprocess.run(cmd).returncode
 
         # If command failed, move log out from temporary dir
@@ -804,7 +814,7 @@ class Registration(Data):
 
         # Run registration if needed
         if not self.already_performed(step):
-            self.register(step)
+            self.register_step(step)
 
         # Otherwise if forcing, re-transform the moving image
         elif force:
@@ -877,7 +887,7 @@ class Registration(Data):
         if isinstance(step, int):
             step = self.steps[step]
         if step not in self.transformed_images:
-            self.register(step)
+            self.register_step(step)
         if compare_with_fixed:
             ims = [self.fixed_image, self.transformed_images[step]]
             kwargs.setdefault("comparison", True)
@@ -978,6 +988,62 @@ class Registration(Data):
             print(f"Registration step {step} has not yet been performed.")
             return
         return read_parameters(self.tfiles[step])
+
+    def get_jacobian(self, step=-1, force=False):
+        """Generate Jacobian determinant file using transformix for a 
+        given registration step."""
+
+        # If jacobian already exists, return it unless forcing
+        if isinstance(step, int):
+            step = self.steps[step]
+        if step in self.jacobians and not force:
+            return self.jacobians[step]
+
+        # Ensure registration has been performed for this step
+        if not self.already_performed(step):
+            self.register_step(step)
+
+        # Run transformix
+        cmd = [
+            _transformix,
+            "-jac",
+            "all",
+            "-out",
+            self.outdirs[step],
+            "-tp",
+            self.tfiles[step]
+        ]
+        print("Running command:\n", " ".join(cmd))
+        code = subprocess.run(cmd).returncode
+        if code:
+            logfile = os.path.join(self.outdirs[step], 'transformix.log')
+            raise RuntimeError(f"Jacobian created failed. See {logfile} for "
+                               " more info.")
+
+        # Add output to dict of jacobian files and return
+        jac_file = os.path.join(self.outdirs[step], "spatialJacobian.nii")
+        assert os.path.exists(jac_file)
+        self.jacobians[step] = Jacobian(
+            jac_file, image=self.transformed_images[step],
+            name="Jacobian determinant"
+        )
+        return self.jacobians[step]
+
+
+class Jacobian(ImageOverlay):
+
+    def __init__(self, *args, **kwargs):
+
+        ImageOverlay.__init__(self, *args, **kwargs)
+
+        # Plot settings specific to Jacobian determinant
+        self._default_cmap = "seismic"
+        self._default_colorbar_label = "Jacobian"
+        self._default_vmin = -0.5
+        self._default_vmax = 2.5
+
+    def view(self, **kwargs):
+        return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
 
 
 def set_elastix_dir(path):

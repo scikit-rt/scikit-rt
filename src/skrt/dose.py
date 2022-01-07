@@ -17,20 +17,22 @@ class ImageOverlay(skrt.image.Image):
     def __init__(self, path, load=True, image=None, *args, **kwargs):
 
         skrt.image.Image.__init__(self, path, *args, **kwargs)
-        self.image = image
+        self.set_image(image)
 
         # Default dose plotting settings
         self._default_cmap = "jet"
         self._default_colorbar_label = "Intensity"
         self._default_vmin = 0
-        self._default_vmax = None
+        if not hasattr(self, "_default_vmax"):
+            self._default_vmax = None
 
     def load(self, *args, **kwargs):
         """Load self and set default maximum plotting intensity from max of
-        data array."""
+        data array if not yet set."""
 
         skrt.image.Image.load(self, *args, **kwargs)
-        self._default_vmax = self.max
+        if not hasattr(self, "_default_vmax") or self._default_vmax is None:
+            self._default_vmax = self.max
 
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
@@ -108,7 +110,8 @@ class ImageOverlay(skrt.image.Image):
         # Add opacity to mpl_kwargs
         if mpl_kwargs is None:
             mpl_kwargs = {}
-        mpl_kwargs["alpha"] = opacity
+        if opacity is not None:
+            mpl_kwargs["alpha"] = opacity
 
         # Plot self
         skrt.image.Image.plot(
@@ -151,15 +154,19 @@ class ImageOverlay(skrt.image.Image):
 
         return skrt.image.Image.view(self, **kwargs)
 
+    @functools.cached_property
+    def max(self):
+        return self.get_data().max()
+
+
 
 class Dose(ImageOverlay):
     """Class representing a dose map. The same as an Image but with overridden
     plotting behaviour and extra functionality relating to ROIs."""
 
-    def __init__(self, path, load=True, image=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
 
-        ImageOverlay.__init__(self, path, *args, **kwargs)
-        self.set_image(image)
+        ImageOverlay.__init__(self, *args, **kwargs)
 
         # Plot settings specific to dose map
         self._default_cmap = "jet"
@@ -198,10 +205,6 @@ class Dose(ImageOverlay):
         """Get mean dose inside an ROI."""
 
         return np.mean(self.get_dose_in_roi(roi))
-
-    @functools.cached_property
-    def max(self):
-        return self.get_data().max()
 
 
 class RtPlan(MachineData):
