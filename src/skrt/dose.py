@@ -9,9 +9,10 @@ from skrt.core import MachineData
 import skrt.image
 
 
-class Dose(skrt.image.Image):
-    """Class representing a dose map. The same as an Image but with overridden
-    plotting behaviour and extra functionality relating to ROIs."""
+class ImageOverlay(skrt.image.Image):
+    """Image that can be associated with another Image, and whose plotting
+    functionality includes the ability to plot overlaid on its associated 
+    Image."""
 
     def __init__(self, path, load=True, image=None, *args, **kwargs):
 
@@ -20,7 +21,7 @@ class Dose(skrt.image.Image):
 
         # Default dose plotting settings
         self._default_cmap = "jet"
-        self._default_colorbar_label = "Dose (Gy)"
+        self._default_colorbar_label = "Intensity"
         self._default_vmin = 0
         self._default_vmax = None
 
@@ -32,14 +33,11 @@ class Dose(skrt.image.Image):
         self._default_vmax = self.max
 
     def set_image(self, image):
-        """Set associated image. Image.add_dose(self) will also be called."""
+        """Set associated image, initialising it if needed."""
 
         if image and not isinstance(image, skrt.image.Image):
             image = skrt.image.Image(image)
-
         self.image = image
-        if image is not None:
-            image.add_dose(self)
 
     def plot(
         self, 
@@ -55,7 +53,7 @@ class Dose(skrt.image.Image):
         show=True,
         **kwargs
     ):
-        """Plot this dose map, optionally overlaid on its associated image.
+        """Plot this overlay, optionally overlaid on its associated Image.
 
         **Parameters**:
 
@@ -75,18 +73,18 @@ class Dose(skrt.image.Image):
 
 
         include_image : bool, default=False
-            If True and this Dose has an associate image, the dose map will
-            be plotted overlaid on the image.
+            If True and this ImageOverlay has an associate image, it will be 
+            plotted overlaid on the image.
         
         opacity : float, default=None
-            If plotting on top of an image, this sets the opacity of the dose
-            map (0 = fully transparent, 1 = fully opaque).
+            If plotting on top of an image, this sets the opacity of the 
+            overlay (0 = fully transparent, 1 = fully opaque).
 
         mpl_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.imshow().
 
         colorbar : bool, default=True
-            If True, a colorbar of dose level will be drawn alongside the plot.
+            If True, a colorbar will be drawn alongside the plot.
 
         show : bool, default = True
             If True, the plot will be displayed immediately.
@@ -125,14 +123,58 @@ class Dose(skrt.image.Image):
         )
 
 
-    def view(self, include_image=False, **kwargs):
-        """View with BetterViewer, optionally overlaying on image."""
+    def view(self, include_image=False, kwarg_name=None, **kwargs):
+        """View with BetterViewer, optionally overlaying on image.
+
+        **Parameters**:
+
+        include_image : bool, default=False
+            If True, this ImageOverlay will be displayed overlaid on its
+            underlying Image.
+
+        kwarg_name : str, default=None
+            Name of kwarg under which to provide self to the call to
+            self.image.Image.view() if include_image=True. By default,
+            self will be passed to the "dose" parameter.
+
+        `**`kwargs :
+            Keyword args to pass to BetterViewer initialisation.
+        """
 
         from skrt.better_viewer import BetterViewer
 
         if include_image and self.image is not None:
-            return self.image.view(dose=self, **kwargs)
+            if kwarg_name is None:
+                kwarg_name = "dose"
+            kwargs[kwarg_name] = self
+            return self.image.view(**kwargs)
+
         return skrt.image.Image.view(self, **kwargs)
+
+
+class Dose(ImageOverlay):
+    """Class representing a dose map. The same as an Image but with overridden
+    plotting behaviour and extra functionality relating to ROIs."""
+
+    def __init__(self, path, load=True, image=None, *args, **kwargs):
+
+        ImageOverlay.__init__(self, path, *args, **kwargs)
+        self.set_image(image)
+
+        # Plot settings specific to dose map
+        self._default_cmap = "jet"
+        self._default_colorbar_label = "Dose (Gy)"
+
+    def set_image(self, image):
+        """Set associated image. Image.add_dose(self) will also be called."""
+
+        ImageOverlay.set_image(self, image)
+        if image is not None:
+            image.add_dose(self)
+
+    def view(self, **kwargs):
+
+        return ImageOverlay.view(self, kwarg_name="dose", **kwargs)
 
     def get_dose_in_roi(self, roi):
         """Return 1D numpy array containing all of the dose values for the 
