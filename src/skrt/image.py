@@ -1406,7 +1406,6 @@ class Image(skrt.core.Archive):
 
         # Set up axes
         self.set_ax(view, ax, gs, figsize, zoom, colorbar)
-        self.ax.clear()
         self.load()
 
         # Get list of input ROI sources

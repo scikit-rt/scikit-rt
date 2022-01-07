@@ -43,21 +43,36 @@ class Dose(skrt.image.Image):
 
     def plot(
         self, 
-        include_image=False, 
-        opacity=None, 
-        mpl_kwargs=None,
-        view=None,
+        view="x-y",
         ax=None,
         gs=None,
         figsize=None,
         zoom=None,
         colorbar=False,
+        include_image=False, 
+        opacity=None, 
+        mpl_kwargs=None,
         show=True,
         **kwargs
     ):
         """Plot this dose map, optionally overlaid on its associated image.
 
         **Parameters**:
+
+        view : str
+            Orientation in which to compute the index. Can be "x-y", "y-z", or
+            "x-z".
+
+        ax : matplotlib.pyplot.Axes, default=None
+            Axes on which to plot. If None, new axes will be created.
+
+        gs : matplotlib.gridspec.GridSpec, default=None
+            If not None and <ax> is None, new axes will be created on the
+            current matplotlib figure with this gridspec.
+
+        figsize : float, default=None
+            Figure height in inches; only used if <ax> and <gs> are None.
+
 
         include_image : bool, default=False
             If True and this Dose has an associate image, the dose map will
@@ -82,30 +97,37 @@ class Dose(skrt.image.Image):
 
         # Set up axes
         self.set_ax(view, ax, gs, figsize, zoom, colorbar)
-        self.ax.clear()
         self.load()
 
         # Plot underlying image
         if include_image and self.image is not None:
             self.image.plot(view, ax=self.ax, show=False)
 
-        # Add opacity to mpl_kwargs
-        if include_image and self.image is not None:
+            # Add opacity to mpl_kwargs
             if opacity is None:
                 opacity = 0.5
             if mpl_kwargs is None:
                 mpl_kwargs = {}
             mpl_kwargs["alpha"] = opacity
 
-        # Plot dose field
+        # Plot self
         skrt.image.Image.plot(
             self, 
+            view=view,
+            ax=self.ax,
             zoom=zoom,
             colorbar=colorbar,
             mpl_kwargs=mpl_kwargs, 
             show=show, 
             **kwargs
         )
+
+    #  def view(self, include_image=True, **kwargs):
+
+        #  from skrt.better_viewer import BetterViewer
+        #  self.load()
+
+
 
     def get_dose_in_roi(self, roi):
         """Return 1D numpy array containing all of the dose values for the 

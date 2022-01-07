@@ -1526,7 +1526,7 @@ class SingleViewer:
         # Set upper and lower limits of the intensity slider
         self.intensity_limits = intensity_limits
         if intensity_limits is None:
-            if isinstance(self.image, Image):
+            if type(self.image) == Image:
                 self.intensity_limits = [-2000, 2000]
             else:
                 self.intensity_limits = [self.image.data.min(), 
