@@ -124,12 +124,15 @@ class Dose(skrt.image.Image):
             **kwargs
         )
 
-    #  def view(self, include_image=True, **kwargs):
 
-        #  from skrt.better_viewer import BetterViewer
-        #  self.load()
+    def view(self, include_image=False, **kwargs):
+        """View with BetterViewer, optionally overlaying on image."""
 
+        from skrt.better_viewer import BetterViewer
 
+        if include_image and self.image is not None:
+            return self.image.view(dose=self, **kwargs)
+        return skrt.image.Image.view(self, **kwargs)
 
     def get_dose_in_roi(self, roi):
         """Return 1D numpy array containing all of the dose values for the 
