@@ -1731,11 +1731,14 @@ class Image(skrt.core.Archive):
         view=None,
         ax=None,
         gs=None,
-        figsize=_default_figsize,
+        figsize=None,
         zoom=None,
         colorbar=False
     ):
         """Set up axes for this Image."""
+
+        if figsize is None:
+            figsize = _default_figsize
 
         skrt.image.set_ax(
             self, 
@@ -1749,7 +1752,7 @@ class Image(skrt.core.Archive):
         )
 
     def get_plot_aspect_ratio(
-        self, view, zoom=None, n_colorbars=0, figsize=_default_figsize
+        self, view, zoom=None, n_colorbars=0, figsize=None
     ):
         """Estimate the ideal width/height ratio for a plot of this image
         in a given orientation.
@@ -1764,6 +1767,9 @@ class Image(skrt.core.Archive):
         n_colorbars : int, default=0
             Number of colorbars to make space for.
         """
+
+        if figsize is None:
+            figsize = _default_figsize
 
         # Get length of the image in the plot axis directions
         self.load()
@@ -2786,7 +2792,7 @@ def load_dicom_single_file(path):
     if data.ndim == 2:
         data = data[..., np.newaxis]
     elif data.ndim == 3:
-        data = data.transpose((1, 2, 0))
+        data = data.transpose((1, 2, 0))[:, :, ::-1]
     else:
         raise RuntimeError(f"Unrecognised number of image dimensions: {data.ndim}")
 
@@ -3228,7 +3234,7 @@ def set_ax(
     view=None,
     ax=None,
     gs=None,
-    figsize=_default_figsize,
+    figsize=None,
     zoom=None,
     colorbar=False,
     aspect_getter=default_aspect,

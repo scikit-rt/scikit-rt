@@ -2791,7 +2791,7 @@ class ROI(skrt.core.Archive):
             if opacity is None:
                 opacity = 0.3
             self._plot_mask(view, sl, idx, pos, mask_kwargs, opacity, 
-                           show=False, **kwargs)
+                           show=False, include_image=include_image, **kwargs)
             kwargs["ax"] = self.ax
             self._plot_contour(
                 view,

@@ -46,6 +46,11 @@ class Dose(skrt.image.Image):
         include_image=False, 
         opacity=None, 
         mpl_kwargs=None,
+        view=None,
+        ax=None,
+        gs=None,
+        figsize=None,
+        zoom=None,
         colorbar=False,
         show=True,
         **kwargs
@@ -75,10 +80,14 @@ class Dose(skrt.image.Image):
             Keyword args to pass to skrt.image.Image.plot().
         """
 
+        # Set up axes
+        self.set_ax(view, ax, gs, figsize, zoom, colorbar)
+        self.ax.clear()
+        self.load()
+
         # Plot underlying image
         if include_image and self.image is not None:
-            self.image.plot(show=False, **kwargs)
-            kwargs["ax"] = self.image.ax
+            self.image.plot(view, ax=self.ax, show=False)
 
         # Add opacity to mpl_kwargs
         if include_image and self.image is not None:
@@ -91,6 +100,7 @@ class Dose(skrt.image.Image):
         # Plot dose field
         skrt.image.Image.plot(
             self, 
+            zoom=zoom,
             colorbar=colorbar,
             mpl_kwargs=mpl_kwargs, 
             show=show, 
