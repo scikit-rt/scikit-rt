@@ -103,12 +103,14 @@ class Dose(skrt.image.Image):
         if include_image and self.image is not None:
             self.image.plot(view, ax=self.ax, show=False)
 
-            # Add opacity to mpl_kwargs
+            # Use default transprency if plotting image and opacity is None
             if opacity is None:
                 opacity = 0.5
-            if mpl_kwargs is None:
-                mpl_kwargs = {}
-            mpl_kwargs["alpha"] = opacity
+
+        # Add opacity to mpl_kwargs
+        if mpl_kwargs is None:
+            mpl_kwargs = {}
+        mpl_kwargs["alpha"] = opacity
 
         # Plot self
         skrt.image.Image.plot(

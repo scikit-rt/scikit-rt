@@ -528,7 +528,7 @@ class ROI(skrt.core.Archive):
 
             # Make new contours from mask
             self.contours[view] = {}
-            for iz in self.get_indices(view):
+            for iz in self.get_indices(view, method="mask"):
 
                 # Get slice of mask array
                 mask_slice = self.get_slice(view, idx=iz).T
@@ -2643,6 +2643,7 @@ class ROI(skrt.core.Archive):
         show=True,
         save_as=None,
         include_image=False,
+        no_invert=False,
         **kwargs,
     ):
         """Plot this ROI as either a mask or a contour.
@@ -2725,6 +2726,12 @@ class ROI(skrt.core.Archive):
         include_image : bool, default=False
             If True and self.image is not None, the ROI's image will be plotted
             in the background.
+
+        no_invert : bool, default=False
+            If False, contour plots will be automatically inverted when plotting
+            without an underlying image to account for the y axis increasing 
+            in the opposite direction. Otherwise, the plot will be left as
+            it appeared when drawn by matplotlib.
 
         `**`kwargs :
             Extra keyword arguments to pass to the relevant plot function.
@@ -2811,7 +2818,7 @@ class ROI(skrt.core.Archive):
 
         # Check whether y axis needs to be inverted
         if not include_image and view == "x-y" \
-           and plot_type in ["contour", "centroid"]:
+           and plot_type in ["contour", "centroid"] and not no_invert:
             self.ax.invert_yaxis()
 
         plt.tight_layout()

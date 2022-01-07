@@ -1266,13 +1266,14 @@ class Image(skrt.core.Archive):
         minor_ticks=None,
         ticks_all_sides=False,
         no_axis_labels=False,
-        structure_set=None,
         rois=None,
         roi_plot_type="contour",
         legend=False,
         roi_kwargs={},
         centre_on_roi=None,
         legend_loc="lower left",
+        dose=None,
+        dose_opacity=0.5,
         flatten=False,
         xlim=None,
         ylim=None,
@@ -1377,7 +1378,7 @@ class Image(skrt.core.Archive):
 
                 - None: no structure sets will be plotted.
                 - The index in self.structure_sets of the structure set
-                  (e.g. to plot the newest structure set, use structure_set=-1)
+                  (e.g. to plot the newest structure set, use rois=-1)
                 - 'all': all structure sets will be plotted.
 
         roi_plot_type : str, default='contour'
@@ -1398,6 +1399,15 @@ class Image(skrt.core.Archive):
         legend_loc : str, default='lower left'
             Legend location for ROI legend.
 
+        dose : skrt.dose.Dose / int, default=None
+            Dose field to overlay on the image. Can be either a skrt.dose.Dose
+            object or an integer referring to the 
+            dose at a given index in self.doses (e.g. to plot the last dose 
+            assigned to this Image, set dose=-1).
+
+        dose_opacity : float, default=0.5
+            Opacity of overlaid dose field, if <dose> is not None.
+
         xlim, ylim : tuples, default=None
             Custom limits on the x and y axes of the plot.
         """
@@ -1407,6 +1417,12 @@ class Image(skrt.core.Archive):
         # Set up axes
         self.set_ax(view, ax, gs, figsize, zoom, colorbar)
         self.load()
+
+        # Get dose object to plot
+        if isinstance(dose, int):
+            dose_to_plot = self.doses[dose]
+        else:
+            dose_to_plot = dose
 
         # Get list of input ROI sources
         if rois is None:
@@ -1460,6 +1476,17 @@ class Image(skrt.core.Archive):
             image_slice, **self.get_mpl_kwargs(view, mpl_kwargs, scale_in_mm)
         )
 
+        # Plot the dose 
+        if dose is not None:
+            dose_to_plot.plot(
+                view=view,
+                idx=idx,
+                ax=self.ax,
+                show=False,
+                include_image=False, 
+                opacity=dose_opacity, 
+            )
+
         # Plot ROIs
         roi_handles = []
         for roi in rois_to_plot:
@@ -1473,6 +1500,7 @@ class Image(skrt.core.Archive):
                     plot_type=roi_plot_type,
                     show=False,
                     include_image=False,
+                    no_invert=True,
                     **roi_kwargs
                 )
 
