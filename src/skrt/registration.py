@@ -88,6 +88,7 @@ class Registration(Data):
         self.tfiles = {}
         self.transformed_images = {}
         self.jacobians = {}
+        self.deformation_fields = {}
         if isinstance(pfiles, str):
             pfiles = [pfiles]
         if pfiles is not None:
@@ -472,14 +473,14 @@ class Registration(Data):
         """
 
         # Check if the registration has already been performed
-        if self.already_performed(step) and not force:
+        if self.is_registered(step) and not force:
             return
 
         # Check that previous step has been run if needed
         i = self.get_step_number(step)
         step = self.get_step_name(step)
         if use_previous_tfile and i > 0:
-            if not self.already_performed(i - 1):
+            if not self.is_registered(i - 1):
                 self.register(i, use_previous_tfile=True)
 
         # Run
@@ -504,9 +505,9 @@ class Registration(Data):
                 title="Transformed moving",
             )
 
-    def already_performed(self, step):
-        """Check whether a registration step has already performed (i.e. has
-        a valid output transform file)."""
+    def is_registered(self, step):
+        """Check whether a registration step has already been performed (i.e. 
+        has a valid output transform file)."""
 
         step = self.get_step_name(step)
         return step in self.tfiles and os.path.exists(self.tfiles[step])
@@ -625,8 +626,7 @@ class Registration(Data):
         # Check registration has been performed, and run it if not
         i = self.get_step_number(step)
         step = self.get_step_name(step)
-        if not self.already_performed(step):
-            self.register(self.steps[: i + 1])
+        self.ensure_registered(step)
 
         # Make temporary modified parameter file if needed
         self.make_tmp_dir()
@@ -790,15 +790,26 @@ class Registration(Data):
 
         # Run registration if needed
         step = self.get_step_name(step)
-        if not self.already_performed(step):
-            self.register_step(step)
+        was_registered = self.ensure_registered(step)
 
-        # Otherwise if forcing, re-transform the moving image
-        elif force:
+        # If forcing and registration had already been done, re-transform the 
+        # moving image (otherwise, moving image will have just been recreated
+        # anyway by running registration)
+        if force and was_registered:
             self.transform_moving_image(step)
 
         # Return clone of the transformed image object
         return self.transformed_images[step].clone()
+
+    def ensure_registered(self, step):
+        """If a step has not already been registered, perform registration
+        for this step and any preceding steps. Return True if registration
+        had already been performed."""
+
+        if not self.is_registered(step):
+            self.register_step(step)
+            return False
+        return True
 
     def make_tmp_dir(self):
         """Create temporary directory."""
@@ -911,7 +922,7 @@ class Registration(Data):
         step = self.get_step_name(step)
 
         # Check registration has been run
-        if not self.already_performed(step):
+        if not self.is_registered(step):
             print(f"Registration for {step} has not yet been performed.")
             return
 
@@ -955,7 +966,7 @@ class Registration(Data):
         """
 
         step = self.get_step_name(step)
-        if not self.already_performed(step):
+        if not self.is_registered(step):
             print(f"Registration step {step} has not yet been performed.")
             return
         return read_parameters(self.tfiles[step])
@@ -991,86 +1002,42 @@ class Registration(Data):
         except ValueError:
             raise ValueError(f"Step {step} not found")
 
-    def get_jacobian(self, step=-1, force=False):
+    def _get_jac_or_def(self, step, is_jac, force):
+
+        # Settings for jacobian or deformation field
+        if is_jac:
+            storage = self.jacobians
+        else:
+            storage = self.deformation_fields
+
+        # If object already exists, return it unless forcing
+        step = self.get_step_name(step)
+        if step in storage and not force:
+            return storage[step]
+
+        # Ensure registration has been performed for this step
+        self.ensure_registered(step)
+
+        # Create new object
+        storage[step] = run_transformix_on_all(
+            is_jac, outdir=self.outdirs[step], tfile=self.tfiles[step], 
+            image=self.transformed_images[step]
+        )
+        return storage[step]
+
+    def get_jacobian(self, step=-1):
         """Generate Jacobian determinant using transformix for a given 
         registration step (or return existing Jacobian object, unless 
         force=True).
         """
 
-        # If jacobian already exists, return it unless forcing
-        step = self.get_step_name(step)
-        if step in self.jacobians and not force:
-            return self.jacobians[step]
-
-        # Ensure registration has been performed for this step
-        if not self.already_performed(step):
-            self.register_step(step)
-
-        # Run transformix
-        cmd = [
-            _transformix,
-            "-jac",
-            "all",
-            "-out",
-            self.outdirs[step],
-            "-tp",
-            self.tfiles[step]
-        ]
-        print("Running command:\n", " ".join(cmd))
-        code = subprocess.run(cmd).returncode
-        if code:
-            logfile = os.path.join(self.outdirs[step], 'transformix.log')
-            raise RuntimeError(f"Jacobian created failed. See {logfile} for "
-                               " more info.")
-
-        # Add output to dict of jacobian files and return
-        jac_file = os.path.join(self.outdirs[step], "spatialJacobian.nii")
-        assert os.path.exists(jac_file)
-        self.jacobians[step] = Jacobian(
-            jac_file, image=self.transformed_images[step],
-            name="Jacobian determinant"
-        )
-        return self.jacobians[step]
+        return self._get_jac_or_def(step, True, force)
 
     def get_deformation_field(self, step=-1, force=False):
         """Generate deformation field using transformix for a given 
         registration step."""
-
-        # If jacobian already exists, return it unless forcing
-        step = self.get_step_name(step)
-        if step in self.jacobians and not force:
-            return self.jacobians[step]
-
-        # Ensure registration has been performed for this step
-        if not self.already_performed(step):
-            self.register_step(step)
-
-        # Run transformix
-        cmd = [
-            _transformix,
-            "-jac",
-            "all",
-            "-out",
-            self.outdirs[step],
-            "-tp",
-            self.tfiles[step]
-        ]
-        print("Running command:\n", " ".join(cmd))
-        code = subprocess.run(cmd).returncode
-        if code:
-            logfile = os.path.join(self.outdirs[step], 'transformix.log')
-            raise RuntimeError(f"Jacobian created failed. See {logfile} for "
-                               " more info.")
-
-        # Add output to dict of jacobian files and return
-        jac_file = os.path.join(self.outdirs[step], "spatialJacobian.nii")
-        assert os.path.exists(jac_file)
-        self.jacobians[step] = Jacobian(
-            jac_file, image=self.transformed_images[step],
-            name="Jacobian determinant"
-        )
-        return self.jacobians[step]
-
+        
+        return self._get_jac_or_def(step, False, force)
 
 
 class Jacobian(ImageOverlay):
@@ -1087,6 +1054,54 @@ class Jacobian(ImageOverlay):
 
     def view(self, **kwargs):
         return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
+
+
+class DeformationField:
+    """Class representing a vector field loaded from a nifti file."""
+
+    def __init__(self, path, **kwargs):
+        self.path = path
+
+
+def run_transformix_on_all(is_jac, outdir, tfile, image=None):
+    """Run transformix with either `-jac all` or `-def all` to create a
+    Jacobian determinant or deformation field file, and return either
+    a Jacobian or DeformationField object initialised from the output file.
+    """
+
+    # Settings
+    if is_jac:
+        opt = "-jac"
+        dtype = Jacobian
+        expected_outname = "spatialJacobian.nii"
+        name = "Jacobian determinant"
+    else:
+        opt = "-def"
+        dtype = DeformationField
+        expected_outname = "deformationField.nii"
+        name = "Deformation field"
+
+    # Run transformix
+    cmd = [
+        _transformix,
+        opt,
+        "all",
+        "-out",
+        outdir,
+        "-tp",
+        tfile
+    ]
+    print("Running command:\n", " ".join(cmd))
+    code = subprocess.run(cmd).returncode
+    if code:
+        logfile = os.path.join(outdir, 'transformix.log')
+        raise RuntimeError(f"Jacobian creation failed. See {logfile} for "
+                           " more info.")
+
+    # Create output object
+    output_file = os.path.join(outdir, expected_outname)
+    assert os.path.exists(output_file)
+    return dtype(output_file, image=image, name=name)
 
 
 def set_elastix_dir(path):

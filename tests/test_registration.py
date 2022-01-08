@@ -136,7 +136,7 @@ def test_run_registration():
     assert len(reg.tfiles) == len(pfiles)
     assert len(reg.transformed_images) == len(pfiles)
     for step in reg.steps:
-        assert reg.already_performed(step)
+        assert reg.is_registered(step)
     assert reg.get_transformed_image().get_standardised_data().shape \
             == im1.get_standardised_data().shape
     reg.view_result(show=False)
@@ -149,7 +149,7 @@ def test_load_completed_registration():
     assert len(reg2.tfiles) == 2
     assert len(reg2.transformed_images) == 2
     for step in reg2.steps:
-        assert reg2.already_performed(step)
+        assert reg2.is_registered(step)
 
 @needs_elastix
 def test_transform_image():
