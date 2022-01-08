@@ -26,14 +26,6 @@ class ImageOverlay(skrt.image.Image):
         if not hasattr(self, "_default_vmax"):
             self._default_vmax = None
 
-    def load(self, *args, **kwargs):
-        """Load self and set default maximum plotting intensity from max of
-        data array if not yet set."""
-
-        skrt.image.Image.load(self, *args, **kwargs)
-        if not hasattr(self, "_default_vmax") or self._default_vmax is None:
-            self._default_vmax = self.max
-
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
 
@@ -171,6 +163,13 @@ class Dose(ImageOverlay):
         # Plot settings specific to dose map
         self._default_cmap = "jet"
         self._default_colorbar_label = "Dose (Gy)"
+
+    def load(self, *args, **kwargs):
+        """Load self and set default maximum plotting intensity from max of
+        data array if not yet set."""
+
+        skrt.image.Image.load(self, *args, **kwargs)
+        self._default_vmax = self.max
 
     def set_image(self, image):
         """Set associated image. Image.add_dose(self) will also be called."""

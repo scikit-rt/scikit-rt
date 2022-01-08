@@ -19,6 +19,7 @@ from skrt.image import (
     _default_figsize
 )
 from skrt.dose import Dose
+from skrt.registration import Jacobian
 from skrt.structures import StructureSet, ROI
 
 # ipywidgets settings
@@ -959,8 +960,8 @@ class BetterViewer:
         for attr in ["dose"]:#['mask', 'dose', 'df']:
             if self.any_attr(attr):
                 self.extra_ui.append(getattr(v0, 'ui_' + attr))
-        #  if self.any_attr('jacobian'):
-            #  self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
+        if self.any_attr('jacobian'):
+            self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
         if self.any_attr('rois'):
             to_add = [
                 v0.ui_roi_plot_type,
@@ -1450,6 +1451,7 @@ class SingleViewer:
         jacobian=None,
         jacobian_opacity=0.5,
         jacobian_kwargs=None,
+        jacobian_range=[0.8, 1.2],
         df=None,
         df_plot_type="grid",
         df_spacing=30,
@@ -1463,6 +1465,7 @@ class SingleViewer:
         roi_linewidth=2,
         roi_info=False,
         roi_info_dp=1,
+        roi_kwargs=None,
         length_units="mm",
         area_units="mm",
         vol_units="mm",
@@ -1489,10 +1492,11 @@ class SingleViewer:
         self.scale_in_mm = scale_in_mm
         self.title = title
 
-        # Set up dose and ROIs
+        # Load additional overlays
         self.load_dose(dose)
         self.load_rois(rois, roi_names=roi_names, rois_to_keep=rois_to_keep,
                        rois_to_remove=rois_to_remove)
+        self.load_jacobian(jacobian)
 
         # Set initial orientation
         view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
@@ -1578,7 +1582,18 @@ class SingleViewer:
         self.no_axis_labels = no_axis_labels
         self.legend_loc = legend_loc
         self.shift = [None, None, None]
+
+        # Overlay plot settings
         self.init_dose_opacity = dose_opacity
+        self.dose_kwargs = dose_kwargs if dose_kwargs is not None else {}
+        if dose_range is not None:
+            self.dose_kwargs["vmin"] = dose_range[0]
+            self.dose_kwargs["vmax"] = dose_range[1]
+        if dose_cmap is not None:
+            self.dose_kwargs["cmap"] = dose_cmap
+        self.init_jacobian_opacity = jacobian_opacity
+        self.init_jacobian_range = jacobian_range
+        self.jacobian_kwargs = jacobian_kwargs if jacobian_kwargs is not None else {}
 
         # ROI settings
         self.roi_plot_type = roi_plot_type
@@ -1599,6 +1614,7 @@ class SingleViewer:
         self.roi_vol_units = vol_units
         self.roi_area_units = area_units
         self.roi_length_units = length_units
+        self.roi_kwargs = roi_kwargs if roi_kwargs is not None else {}
 
         # Colormap
         if cmap:
@@ -1684,6 +1700,25 @@ class SingleViewer:
 
         # Set boolean to indicate whether this viewer has any ROIs
         self.has_rois = bool(len(self.rois))
+
+    def load_jacobian(self, jacobian):
+        """Load jacobian determinant."""
+
+        # Can't plot both jacobian and dose
+        if self.has_dose and jacobian is not None:
+            print("Warning: can't overlay both dose map and Jacobian "
+                  "determinant on same image. Overlaying dose map only.")
+            self.has_jacobian = False
+            return
+
+        if jacobian is None:
+            self.jacobian = None
+        elif isinstance(jacobian, Jacobian):
+            self.jacobian = jacobian
+        else:
+            self.jacobian = Jacobian(jacobian)
+
+        self.has_jacobian = self.jacobian is not None
 
     def set_slice(self, view, sl):
         """Set the current slice number in a specific orientation."""
@@ -1919,29 +1954,29 @@ class SingleViewer:
             if self.has_dose:
                 self.extra_ui.append(self.ui_dose)
 
-            # Jacobian opacity and range
-            #  self.ui_jac_opacity = ipyw.FloatSlider(
-                #  value=self.init_jac_opacity,
-                #  min=0,
-                #  max=1,
-                #  step=0.05,
-                #  description='Jacobian opacity',
-                #  continuous_update=self.continuous_update,
-                #  readout_format='.2f',
-                #  style=_style,
-            #  )
-            #  self.ui_jac_range = ipyw.FloatRangeSlider(
-                #  min=-0.5,
-                #  max=2.5,
-                #  step=0.1,
-                #  value=[0.8, 1.2],
-                #  description='Jacobian range',
-                #  continuous_update=False,
-                #  style=_style,
-                #  readout_format='.1f',
-            #  )
-            #  if self.image.has_jacobian:
-                #  self.extra_ui.extend([self.ui_jac_opacity, self.ui_jac_range])
+            #  Jacobian opacity and range
+            self.ui_jac_opacity = ipyw.FloatSlider(
+                value=self.init_jacobian_opacity,
+                min=0,
+                max=1,
+                step=0.05,
+                description='Jacobian opacity',
+                continuous_update=self.continuous_update,
+                readout_format='.2f',
+                style=_style,
+            )
+            self.ui_jac_range = ipyw.FloatRangeSlider(
+                min=-0.5,
+                max=2.5,
+                step=0.1,
+                value=self.init_jacobian_range,
+                description='Jacobian range',
+                continuous_update=False,
+                style=_style,
+                readout_format='.1f',
+            )
+            if self.has_jacobian:
+                self.extra_ui.extend([self.ui_jac_opacity, self.ui_jac_range])
 
             # Deformation field plot type
             #  self.ui_df = ipyw.Dropdown(
@@ -2254,7 +2289,7 @@ class SingleViewer:
                         self.visible_rois]
         self.update_roi_info()
         #  self.update_roi_comparisons()
-        roi_kwargs = {}
+        roi_kwargs = self.roi_kwargs
         if self.ui_roi_plot_type.value != self.roi_plot_type:
             self.update_roi_sliders()
         if self.roi_plot_type in [
@@ -2271,9 +2306,26 @@ class SingleViewer:
         elif self.roi_plot_type in ['filled', 'filled centroid']:
             self.roi_filled_opacity = self.ui_roi_opacity.value
             roi_kwargs['opacity'] = self.roi_filled_opacity
+
         #  roi_plot_grouping = self.ui_roi_plot_type2.value
         #  if struct_plot_grouping == 'group others' and not self.current_struct:
             #  self.current_struct = self.image.structs[0].name_unique
+
+        # Settings for overlay (dose map or jacobian)
+        if self.has_jacobian:
+            overlay = self.jacobian
+            overlay_opacity = self.ui_jac_opacity.value
+            overlay_kwargs = self.jacobian_kwargs
+            overlay_kwargs["vmin"] = self.ui_jac_range.value[0]
+            overlay_kwargs["vmax"] = self.ui_jac_range.value[1]
+        elif self.has_dose:
+            overlay = self.dose
+            overlay_opacity = self.ui_dose.value
+            overlay_kwargs = self.dose_kwargs
+        else:
+            overlay = None
+            overlay_opacity = None
+            overlay_kwargs = None
 
         # Make plot
         self.plot_image(
@@ -2300,8 +2352,9 @@ class SingleViewer:
             rois=rois_to_plot,
             roi_plot_type=self.roi_plot_type,
             roi_kwargs=roi_kwargs,
-            dose=self.dose,
-            dose_opacity=self.ui_dose.value,
+            dose=overlay,
+            dose_opacity=overlay_opacity,
+            dose_kwargs=overlay_kwargs,
             legend=self.roi_legend,
             centre_on_roi=self.init_roi,
             shift=self.shift,

@@ -1269,11 +1269,12 @@ class Image(skrt.core.Archive):
         rois=None,
         roi_plot_type="contour",
         legend=False,
-        roi_kwargs={},
+        roi_kwargs=None,
         centre_on_roi=None,
         legend_loc="lower left",
         dose=None,
         dose_opacity=0.5,
+        dose_kwargs=None,
         flatten=False,
         xlim=None,
         ylim=None,
@@ -1408,6 +1409,10 @@ class Image(skrt.core.Archive):
         dose_opacity : float, default=0.5
             Opacity of overlaid dose field, if <dose> is not None.
 
+        dose_kwargs : dict, default=None
+            Extra arguments to provide to the mpl_kwargs argument in the dose 
+            plotting method.
+
         xlim, ylim : tuples, default=None
             Custom limits on the x and y axes of the plot.
         """
@@ -1464,9 +1469,15 @@ class Image(skrt.core.Archive):
         image_slice = self.get_slice(view, idx=idx, flatten=flatten, 
                                      shift=shift)
 
-        # Apply intensity window if given
+        # Initialise kwargs dicts
         if mpl_kwargs is None:
             mpl_kwargs = {}
+        if roi_kwargs is None:
+            roi_kwargs = {}
+        if dose_kwargs is None:
+            dose_kwargs = {}
+
+        # Apply intensity window if given
         if intensity is not None:
             mpl_kwargs["vmin"] = intensity[0]
             mpl_kwargs["vmax"] = intensity[1]
@@ -1485,6 +1496,7 @@ class Image(skrt.core.Archive):
                 show=False,
                 include_image=False, 
                 opacity=dose_opacity, 
+                mpl_kwargs=dose_kwargs
             )
 
         # Plot ROIs
