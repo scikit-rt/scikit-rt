@@ -1,11 +1,13 @@
 """Tools for performing image registration."""
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 import shutil
 import subprocess
 
-from skrt.image import Image
+import skrt.image
 from skrt.structures import ROI, StructureSet
-from skrt.core import Data
+from skrt.core import Data, to_list
 from skrt.dose import ImageOverlay
 
 _ELASTIX_DIR = None
@@ -123,12 +125,12 @@ class Registration(Data):
                 "should be either fixed or moving"
             )
 
-        if not isinstance(im, Image):
-            im = Image(im)
+        if not isinstance(im, skrt.image.Image):
+            im = skrt.image.Image(im)
         path = getattr(self, f"{category}_path")
         if not os.path.exists(path) or force:
-            Image.write(im, path)
-        setattr(self, f"{category}_image", Image(path))
+            skrt.image.Image.write(im, path)
+        setattr(self, f"{category}_image", skrt.image.Image(path))
 
     def set_fixed_image(self, im):
         """Assign a fixed image."""
@@ -340,7 +342,7 @@ class Registration(Data):
             # Check for transformed moving images
             im_path = os.path.join(outdir, "result.0.nii")
             if os.path.exists(im_path):
-                self.transformed_images[step] = Image(
+                self.transformed_images[step] = skrt.image.Image(
                     im_path, title="Transformed moving"
                 )
 
@@ -349,6 +351,14 @@ class Registration(Data):
             if os.path.exists(jac_path):
                 self.jacobians[step] = Jacobian(
                     jac_path, title="Jacobian determinant",
+                    image=self.transformed_images[step]
+                )
+
+            # Check for deformation field
+            df_path = os.path.join(outdir, "deformationField.nii")
+            if os.path.exists(df_path):
+                self.deformation_fields[step] = DeformationField(
+                    df_path, title="Deformation field",
                     image=self.transformed_images[step]
                 )
 
@@ -500,7 +510,7 @@ class Registration(Data):
             self.tfiles[step] = os.path.join(
                 self.outdirs[step], "TransformParameters.0.txt"
             )
-            self.transformed_images[step] = Image(
+            self.transformed_images[step] = skrt.image.Image(
                 os.path.join(self.outdirs[step], "result.0.nii"),
                 title="Transformed moving",
             )
@@ -541,7 +551,7 @@ class Registration(Data):
             transform_roi(to_transform, `**`kwargs)
         """
 
-        if issubclass(type(to_transform), Image):
+        if issubclass(type(to_transform), skrt.image.Image):
             return self.transform_image(to_transform, **kwargs)
         elif isinstance(to_transform, str):
             return self.transform_nifti(to_transform, **kwargs)
@@ -583,7 +593,7 @@ class Registration(Data):
         """
 
         # Save image temporarily as nifti if needed
-        im = Image(im)
+        im = skrt.image.Image(im)
         self.make_tmp_dir()
         if im.source_type == "nifti":
             im_path = im.path
@@ -602,7 +612,7 @@ class Registration(Data):
             return
 
         # Otherwise, return Image object
-        final_im = Image(result_path)
+        final_im = skrt.image.Image(result_path)
         self.rm_tmp_dir()
 
         # Transform structure sets
@@ -780,7 +790,8 @@ class Registration(Data):
         step = self.get_step_name(step)
         outfile = os.path.join(self.outdirs[step], "result.0.nii")
         self.transform(self.moving_image, outfile=outfile)
-        self.transformed_images[step] = Image(outfile, title="Transformed moving")
+        self.transformed_images[step] = skrt.image.Image(
+            outfile, title="Transformed moving")
 
     def get_transformed_image(self, step=-1, force=False):
         """Get the transformed moving image for a given step, by default the
@@ -1057,10 +1068,191 @@ class Jacobian(ImageOverlay):
 
 
 class DeformationField:
-    """Class representing a vector field loaded from a nifti file."""
+    """Class representing a vector field."""
 
-    def __init__(self, path, **kwargs):
-        self.path = path
+    def __init__(self, path, image=None, **kwargs):
+        """Load vector field."""
+
+        # Initialise own image object
+        self._image = skrt.image.Image(path, **kwargs)
+
+        # Assign an associated Image
+        self.image = image
+
+    def load(self, force=False):
+
+        self._image.load()
+        assert self._image.get_data().ndim == 4
+
+    def get_slice(self, view, sl=None, idx=None, pos=None, scale_in_mm=True):
+        """Get voxel positions and displacement vectors on a 2D slice."""
+
+        data = self._image.get_slice(view, sl=sl, idx=idx, pos=pos)
+        x_ax, y_ax = skrt.image._plot_axes[view]
+
+        # Get x/y displacement vectors
+        df_x = np.squeeze(data[:, :, x_ax])
+        df_y = np.squeeze(data[:, :, y_ax])
+        if not scale_in_mm:
+            df_x /= self._image.voxel_size[x_ax]
+            df_y /= self._image.voxel_size[y_ax]
+
+        # Get x/y coordinates of each point on the slice
+        xs = np.arange(0, data.shape[1])
+        ys = np.arange(0, data.shape[0])
+        if scale_in_mm:
+            xs = self._image.origin[x_ax] + xs * self._image.voxel_size[x_ax]
+            ys = self._image.origin[y_ax] + ys * self._image.voxel_size[y_ax]
+        y, x = np.meshgrid(ys, xs)
+        x = x.T
+        y = y.T
+        return x, y, df_x, df_y
+
+    def plot(
+        self,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        plot_type="quiver",
+        include_image=False,
+        spacing=30,
+        ax=None,
+        gs=None,
+        figsize=None,
+        zoom=None,
+        zoom_centre=None,
+        show=True,
+        save_as=None,
+        scale_in_mm=True,
+        **kwargs
+    ):
+
+        # Set up axes
+        self._image.set_ax(view, ax, gs, figsize, zoom)
+        self.ax = self._image.ax
+        self.fig = self._image.fig
+
+        # Plot the underlying image
+        if include_image and self.image is not None:
+            self.image.plot(view, ax=self.ax, show=False)
+
+        # Get spacing in each direction in number of voxels
+        spacing = self.convert_spacing(spacing, scale_in_mm)
+
+        # Get vectors and positions on this slice
+        data_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos, 
+                                    scale_in_mm=scale_in_mm)
+
+        # Create plot
+        if plot_type == "quiver":
+            self._plot_quiver(view, data_slice, spacing, **kwargs)
+        elif plot_type == "grid":
+            self._plot_grid(view, data_slice, spacing, **kwargs)
+        else:
+            raise ValueError(f"Unrecognised plot type {plot_type}")
+
+        # Label and zoom axes
+        idx = self._image.get_idx(view, sl=sl, idx=idx, pos=pos)
+        self._image.label_ax(view, idx=idx, scale_in_mm=scale_in_mm, **kwargs)
+        self._image.zoom_ax(view, zoom, zoom_centre)
+
+        # Display image
+        plt.tight_layout()
+        if show:
+            plt.show()
+
+        # Save to file
+        if save_as:
+            self.fig.savefig(save_as)
+            plt.close()
+
+    def _plot_quiver(
+        self, 
+        view, 
+        data_slice,
+        spacing,
+        mpl_kwargs=None, 
+    ):
+        """Draw a quiver plot."""
+
+        # Get arrow positions and lengths
+        x_ax, y_ax = skrt.image._plot_axes[view]
+        x, y, df_x, df_y = data_slice
+        arrows_x = df_x[:: spacing[y_ax], :: spacing[x_ax]]
+        arrows_y = -df_y[:: spacing[y_ax], :: spacing[x_ax]]
+        plot_x = x[:: spacing[y_ax], :: spacing[x_ax]]
+        plot_y = y[:: spacing[y_ax], :: spacing[x_ax]]
+
+        # Make plotting kwargs
+        default_kwargs = {"cmap": "jet"}
+        if mpl_kwargs is not None:
+            default_kwargs.update(mpl_kwargs)
+
+        # Plot arrows
+        if arrows_x.any() or arrows_y.any():
+            M = np.hypot(arrows_x, arrows_y)
+            self.ax.quiver(
+                plot_x,
+                plot_y,
+                arrows_x,
+                arrows_y,
+                M,
+                **default_kwargs
+            )
+        else:
+            # If arrow lengths are zero, plot dots
+            ax.scatter(plot_x, plot_y, c="navy", marker=".")
+
+    def _plot_grid(
+        self, 
+        view, 
+        data_slice,
+        spacing,
+        ax, 
+        mpl_kwargs=None, 
+        zoom=None, 
+        zoom_centre=None
+    ):
+        """Draw a grid plot on a set of axes."""
+
+        # Get gridline positions
+        self.set_ax(view, ax, zoom=zoom)
+        self.ax.autoscale(False)
+        x_ax, y_ax = _plot_axes[view]
+        x, y, df_x, df_y = self.get_deformation_slice(view, sl, pos)
+        grid_x = x + df_x
+        grid_y = y + df_y
+
+        # Plot gridlines
+        kwargs = self.get_kwargs(mpl_kwargs, default=self.grid_kwargs)
+        for i in np.arange(0, x.shape[0], spacing[y_ax]):
+            self.ax.plot(grid_x[i, :], grid_y[i, :], **kwargs)
+        for j in np.arange(0, x.shape[1], spacing[x_ax]):
+            self.ax.plot(grid_x[:, j], grid_y[:, j], **kwargs)
+        self.adjust_ax(view, zoom, zoom_centre)
+
+    def convert_spacing(self, spacing, scale_in_mm):
+        """Convert grid spacing in mm or voxels to list containing grid spacing 
+        in voxels in each dimension."""
+
+        self.load()
+
+        spacing = to_list(spacing)
+        output = []
+        if scale_in_mm:
+            output = [abs(round(spacing[i] / self._image.voxel_size[i])) 
+                      for i in range(3)]
+        else:
+            output = spacing
+
+        # Ensure spacing is at least 2 voxels
+        for i, sp in enumerate(output):
+            if sp < 2:
+                output[i] = 2
+
+        return output
+
 
 
 def run_transformix_on_all(is_jac, outdir, tfile, image=None):

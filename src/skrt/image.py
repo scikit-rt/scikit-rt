@@ -486,8 +486,11 @@ class Image(skrt.core.Archive):
             nii = nibabel.as_closest_canonical(
                 nibabel.Nifti1Image(self.data.astype(np.float64), self.affine)
             )
-            data = nii.get_fdata().transpose(1, 0, 2)[::-1, ::-1, :].astype(
-                init_dtype)
+            transpose = pad_transpose([1, 0, 2], data.ndim)
+            data = nii.get_fdata().astype(init_dtype)
+            data = data.transpose(*transpose).astype(init_dtype)
+            data = np.flip(data, axis=0)
+            data = np.flip(data, axis=1)
             affine = nii.affine
 
             # Reverse x and y directions
@@ -1105,8 +1108,8 @@ class Image(skrt.core.Archive):
                 return self._current_slice
 
         # Create slice
-        transposes = {"x-y": (0, 1, 2), "y-z": (0, 2, 1), "x-z": (1, 2, 0)}
-        transpose = transposes[view]
+        transposes = {"x-y": [0, 1, 2], "y-z": [0, 2, 1], "x-z": [1, 2, 0]}
+        transpose = pad_transpose(transposes[view], self.data.ndim)
         list(_plot_axes[view]) + [_slice_axes[view]]
         data = np.transpose(self.get_standardised_data(force=True), transpose)
 
@@ -2591,6 +2594,8 @@ def load_nifti(path):
         nii = nibabel.load(path)
         data = nii.get_fdata()
         affine = nii.affine
+        if data.ndim > 3:
+            data = np.squeeze(data)
         return data, affine
 
     except FileNotFoundError:
@@ -3339,3 +3344,12 @@ def get_geometry(affine, voxel_size, origin, is_nifti=False, shape=None):
 
     return affine, voxel_size, origin
 
+
+def pad_transpose(transpose, ndim):
+    """Pad a transpose vector to match a given number of dimensions."""
+
+    nt = len(transpose)
+    if ndim > nt:
+        for i in range(ndim - nt):
+            transpose.append(i + nt)
+    return transpose
