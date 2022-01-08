@@ -375,11 +375,8 @@ class Registration(Data):
         """Get elastix registration command for a given step."""
 
         # Get step number
-        if isinstance(step, int):
-            i = step
-            step = self.steps[step]
-        else:
-            i = self.steps.index(step)
+        i = self.get_step_number(step)
+        step = self.get_step_name(step)
 
         # Check for input transform file
         tfile = None
@@ -443,13 +440,7 @@ class Registration(Data):
         # Check all steps exist and convert numbers to names
         steps = []
         for step in steps_input:
-            if isinstance(step, int):
-                if step >= len(self.steps):
-                    raise RuntimeError(f"Step {step} not found!")
-                step = self.steps[step]
-            if step not in self.steps:
-                raise RuntimeError(f"Step {step} not found!")
-            steps.append(step)
+            steps.append(self.get_step_name(step))
 
         # Run registration for each step
         for step in steps:
@@ -485,11 +476,8 @@ class Registration(Data):
             return
 
         # Check that previous step has been run if needed
-        if isinstance(step, int):
-            i = step
-            step = self.steps[i]
-        else:
-            i = self.steps.index(step)
+        i = self.get_step_number(step)
+        step = self.get_step_name(step)
         if use_previous_tfile and i > 0:
             if not self.already_performed(i - 1):
                 self.register(i, use_previous_tfile=True)
@@ -520,17 +508,14 @@ class Registration(Data):
         """Check whether a registration step has already performed (i.e. has
         a valid output transform file)."""
 
-        if isinstance(step, int):
-            step = self.steps[step]
+        step = self.get_step_name(step)
         return step in self.tfiles and os.path.exists(self.tfiles[step])
 
     def print_log(self, step=-1):
         """Print elastix output log for a given step (by default, the 
         last step)."""
 
-        if isinstance(step, int):
-            step = self.steps[step]
-
+        step = self.get_step_name(step)
         logfile = os.path.join(self.outdirs[step], "elastix.log")
         if not os.path.exists(logfile):
             print(f"No log found - try running registration step {step}.")
@@ -637,13 +622,9 @@ class Registration(Data):
         that the step has been run. Return the path to the transformed file
         inside self._tmp_dir."""
 
-        if isinstance(step, int):
-            i = step
-            step = self.steps[i]
-        else:
-            i = self.steps.index(step)
-
         # Check registration has been performed, and run it if not
+        i = self.get_step_number(step)
+        step = self.get_step_name(step)
         if not self.already_performed(step):
             self.register(self.steps[: i + 1])
 
@@ -796,9 +777,7 @@ class Registration(Data):
         """Transform the moving image using the output of a registration step
         and set it to self.transformed_images[step]."""
 
-        if isinstance(step, int):
-            step = self.steps[step]
-
+        step = self.get_step_name(step)
         outfile = os.path.join(self.outdirs[step], "result.0.nii")
         self.transform(self.moving_image, outfile=outfile)
         self.transformed_images[step] = Image(outfile, title="Transformed moving")
@@ -809,10 +788,8 @@ class Registration(Data):
         transformix even if there is already a resultant image in the
         output directory for that step."""
 
-        if isinstance(step, int):
-            step = self.steps[step]
-
         # Run registration if needed
+        step = self.get_step_name(step)
         if not self.already_performed(step):
             self.register_step(step)
 
@@ -843,8 +820,7 @@ class Registration(Data):
         reset=True, this will force the registration to be re-run for that step.
         """
 
-        if isinstance(step, int):
-            step = self.steps[step]
+        step = self.get_step_name(step)
         adjust_parameters(self.pfiles[step], self.pfiles[step], params)
         if reset and step in self.tfiles:
             del self.tfiles[step]
@@ -884,8 +860,7 @@ class Registration(Data):
 
         from skrt.better_viewer import BetterViewer
 
-        if isinstance(step, int):
-            step = self.steps[step]
+        step = self.get_step_name(step)
         if step not in self.transformed_images:
             self.register_step(step)
         if compare_with_fixed:
@@ -923,9 +898,7 @@ class Registration(Data):
         """
 
         # Get step name
-        if isinstance(step, int):
-            step = self.steps[step]
-        elif step is None:
+        if step is None:
             if len(self.steps) == 1:
                 step = self.steps[0]
             else:
@@ -935,6 +908,7 @@ class Registration(Data):
                     "Registration.manually_adjust_transform()."
                 )
                 return
+        step = self.get_step_name(step)
 
         # Check registration has been run
         if not self.already_performed(step):
@@ -972,8 +946,7 @@ class Registration(Data):
         Get dict of input parameters for a given step.
         """
 
-        if isinstance(step, int):
-            step = self.steps[step]
+        step = self.get_step_name(step)
         return read_parameters(self.pfiles[step])
 
     def get_transform_parameters(self, step):
@@ -981,21 +954,51 @@ class Registration(Data):
         Get dict of output transform parameters for a given step.
         """
 
-        if isinstance(step, int):
-            step = self.steps[step]
-
+        step = self.get_step_name(step)
         if not self.already_performed(step):
             print(f"Registration step {step} has not yet been performed.")
             return
         return read_parameters(self.tfiles[step])
 
+    def get_step_name(self, step):
+        """Convert <step> to a string containing a step name. If <step> is
+        already a string, check it's a valid step and return it; otherwise
+        if <step> is an integer, return the corresponding step name."""
+
+        if isinstance(step, str):
+            if step not in self.steps:
+                raise RuntimeError(f"Step {step} not a valid registration step")
+            return step
+        
+        return self.steps[step]
+
+    def get_step_number(self, step):
+        """Convert <step> to an int containing the number of a given step.
+        If <step> is an int, check it corresponds to a step number, ensure it 
+        is positive, and return it. Otherwise if it's a string, return the 
+        index of that step name in self.steps."""
+
+        if isinstance(step, int):
+            if step >= len(self.steps) or step < -len(self.steps):
+                raise IndexError(f"Step {step} not a valid index number for "
+                                 f"step list of length {len(self.steps)}")
+            if step < 0:
+                return len(self.steps) + step
+            return step
+
+        try:
+            return self.steps.index(step)
+        except ValueError:
+            raise ValueError(f"Step {step} not found")
+
     def get_jacobian(self, step=-1, force=False):
-        """Generate Jacobian determinant file using transformix for a 
-        given registration step."""
+        """Generate Jacobian determinant using transformix for a given 
+        registration step (or return existing Jacobian object, unless 
+        force=True).
+        """
 
         # If jacobian already exists, return it unless forcing
-        if isinstance(step, int):
-            step = self.steps[step]
+        step = self.get_step_name(step)
         if step in self.jacobians and not force:
             return self.jacobians[step]
 
@@ -1028,6 +1031,46 @@ class Registration(Data):
             name="Jacobian determinant"
         )
         return self.jacobians[step]
+
+    def get_deformation_field(self, step=-1, force=False):
+        """Generate deformation field using transformix for a given 
+        registration step."""
+
+        # If jacobian already exists, return it unless forcing
+        step = self.get_step_name(step)
+        if step in self.jacobians and not force:
+            return self.jacobians[step]
+
+        # Ensure registration has been performed for this step
+        if not self.already_performed(step):
+            self.register_step(step)
+
+        # Run transformix
+        cmd = [
+            _transformix,
+            "-jac",
+            "all",
+            "-out",
+            self.outdirs[step],
+            "-tp",
+            self.tfiles[step]
+        ]
+        print("Running command:\n", " ".join(cmd))
+        code = subprocess.run(cmd).returncode
+        if code:
+            logfile = os.path.join(self.outdirs[step], 'transformix.log')
+            raise RuntimeError(f"Jacobian created failed. See {logfile} for "
+                               " more info.")
+
+        # Add output to dict of jacobian files and return
+        jac_file = os.path.join(self.outdirs[step], "spatialJacobian.nii")
+        assert os.path.exists(jac_file)
+        self.jacobians[step] = Jacobian(
+            jac_file, image=self.transformed_images[step],
+            name="Jacobian determinant"
+        )
+        return self.jacobians[step]
+
 
 
 class Jacobian(ImageOverlay):
