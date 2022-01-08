@@ -465,10 +465,14 @@ class ROI(skrt.core.Archive):
         except KeyError:
             return []
 
-    def get_affine(self):
+    def get_affine(self, **kwargs):
         """Load self and get affine matrix."""
 
         self.load()
+        if self.loaded_mask:
+            return self.mask.get_affine(**kwargs)
+        elif self.image is not None:
+            return self.image.get_affine(**kwargs)
         return self.affine
 
     def get_voxel_size(self):
@@ -2978,7 +2982,7 @@ class ROI(skrt.core.Archive):
             bv = BetterViewer(im, rois=roi_tmp, **kwargs)
 
         # Adjust UI
-        bv.make_ui(no_roi=True, no_hu=True)
+        bv.make_ui(no_roi=True, no_intensity=True)
         bv.show()
         return bv
 
@@ -4216,7 +4220,7 @@ class StructureSet(skrt.core.Archive):
             # Create viewer
             kwargs["show"] = False
             bv = BetterViewer(im, rois=structure_set_tmp, **kwargs)
-            bv.make_ui(no_hu=True)
+            bv.make_ui(no_intensity=True)
             bv.show()
 
         return bv
@@ -4260,76 +4264,149 @@ class StructureSet(skrt.core.Archive):
         slice_thickness = self.get_rois()[0].get_slice_thickness_contours()
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
-    def get_staple(self, force=False, exclude=None, **kwargs):
-        """Apply STAPLE to all ROIs in this structure set and return
-        STAPLE contour as an ROI. If <exclude> is set to a string, the ROI
-        with that name will be excluded.
+    def _get_combination(self, name, force, exclude, combo_maker, **kwargs):
+        """Either get an already calculated combination from the cache
+        or create it, cache it, and return it."""
 
-        **Parameters:**
-
-        force : bool, default=False
-            If False and STAPLE contour has already been computed, the 
-            previously computed contour will be returned. If Force=True, the 
-            STAPLE contour will be recomputed.
-
-        exclude : str, default=None
-            If set to a string, the ROI with that name will be excluded from
-            the STAPLE contour; this may be useful if comparison of a single
-            ROI with the consensus of all others is desired.
-
-        `**`kwargs :
-            Extra keyword arguments to pass to the creation of the ROI object
-            representing the STAPLE contour.
-        """
-
-        # Return cached result
+        # Return cached result if it exists and not forcing
+        attr = f"_{name}"
+        if exclude:
+            attr += f"_excluded"
         if not force:
-            if exclude is None and hasattr(self, "staple"):
-                return self.staple
+            if exclude is None and hasattr(self, attr):
+                return getattr(self, attr)
             else:
-                if hasattr(self, "_staple_excluded") and exclude in \
-                        self._staple_excluded:
-                    return self._staple_excluded[exclude]
+                if hasattr(self, attr) and exclude in getattr(self, attr):
+                    return getattr(self, attr)[exclude]
 
-        # Get list of ROIs to include in this STAPLE contour
+        # Get list of ROIs to include in this combination ROI
         if exclude is not None:
             if exclude not in self.get_roi_names():
                 print(f"ROI to exclude {exclude} not found.")
                 return
             rois_to_include = [roi for roi in self.rois if roi.name != exclude]
-            self._staple_excluded = {}
+            if not hasattr(self, attr):
+                setattr(self, attr, {})
         else:
             rois_to_include = self.rois
 
-        # Get STAPLE mask
-        import SimpleITK as sitk
-        rois = []
-        for roi in rois_to_include:
-            rois.append(sitk.GetImageFromArray(roi.get_mask(
-                standardise=True).astype(int)))
-        probs = sitk.GetArrayFromImage(sitk.STAPLE(rois, 1))
-        mask = probs > 0.95
-
-        # Create STAPLE ROI object
+        # Make kwargs for ROI creation
         roi_kwargs = self.roi_kwargs.copy()
         roi_kwargs.update(kwargs)
-        staple_name = "staple"
-        if exclude is not None:
-            staple_name += f"_no_{exclude}"
-        staple = ROI(
-            mask, 
-            name=staple_name,
-            image=self.image,
-            affine=self.rois[0].mask.get_affine(standardise=True),
-            **roi_kwargs
-        )
+        full_name = name if exclude is None else f"{name}_no_{exclude}"
+        roi_kwargs["name"] = full_name
+        roi_kwargs["image"] = self.image
+        roi_kwargs["affine"] = rois_to_include[0].get_affine(standardise=True)
 
-        # Cache and return staple ROI
+        # Create the ROI
+        roi = combo_maker(rois_to_include, **roi_kwargs)
+
+        # Add it to the cache and return
         if exclude is None:
-            self.staple = staple
+            setattr(self, attr, roi)
         else:
-            self._staple_excluded[exclude] = staple
-        return staple
+            getattr(self, attr)[exclude] = roi
+        return roi
+
+    def get_staple(self, force=False, exclude=None, **kwargs):
+        """Get ROI object representing the STAPLE combination of ROIs in this 
+        structure set. If <exclude> is set to a string, the ROI with that name 
+        will be excluded from the calculation.
+
+        **Parameters:**
+
+        force : bool, default=False
+            If False and STAPLE ROI has already been created, the 
+            previously computed ROI will be returned. If Force=True, the 
+            STAPLE ROI will be recreated.
+
+        exclude : str, default=None
+            If set to a string, the ROI with that name will be excluded from
+            the combination; this may be useful if comparison of a single
+            ROI with the consensus of all others is desired.
+
+        `**`kwargs :
+            Extra keyword arguments to pass to the creation of the ROI object
+            representing the combination.
+        """
+
+        return self._get_combination("staple", force, exclude, create_staple,
+                                     **kwargs)
+
+    def get_majority_vote(self, force=False, exclude=None, **kwargs):
+        """Get ROI object representing the majority vote combination of ROIs in 
+        this structure set. If <exclude> is set to a string, the ROI with that 
+        name will be excluded from the calculation.
+
+        **Parameters:**
+
+        force : bool, default=False
+            If False and majority vote ROI has already been created, the 
+            previously computed ROI will be returned. If Force=True, the 
+            majority vote ROI will be recreated.
+
+        exclude : str, default=None
+            If set to a string, the ROI with that name will be excluded from
+            the combination; this may be useful if comparison of a single
+            ROI with the consensus of all others is desired.
+
+        `**`kwargs :
+            Extra keyword arguments to pass to the creation of the ROI object
+            representing the combination.
+        """
+
+        return self._get_combination("majority_vote", force, exclude, 
+                                     create_majority_vote, **kwargs)
+
+    def get_sum(self, force=False, exclude=None, **kwargs):
+        """Get ROI object representing the sum of ROIs in this structure set. 
+        If <exclude> is set to a string, the ROI with that name will be 
+        excluded from the calculation.
+
+        **Parameters:**
+
+        force : bool, default=False
+            If False and sum ROI has already been created, the 
+            previously computed ROI will be returned. If Force=True, the 
+            sum ROI will be recreated.
+
+        exclude : str, default=None
+            If set to a string, the ROI with that name will be excluded from
+            the combination; this may be useful if comparison of a single
+            ROI with the consensus of all others is desired.
+
+        `**`kwargs :
+            Extra keyword arguments to pass to the creation of the ROI object
+            representing the combination.
+        """
+
+        return self._get_combination("sum", force, exclude, 
+                                     create_roi_sum, **kwargs)
+
+    def get_overlap(self, force=False, exclude=None, **kwargs):
+        """Get ROI object representing the overlap of ROIs in this 
+        structure set. If <exclude> is set to a string, the ROI with that name 
+        will be excluded from the calculation.
+
+        **Parameters:**
+
+        force : bool, default=False
+            If False and overlap ROI has already been created, the 
+            previously computed ROI will be returned. If Force=True, the 
+            overlap ROI will be recreated.
+
+        exclude : str, default=None
+            If set to a string, the ROI with that name will be excluded from
+            the combination; this may be useful if comparison of a single
+            ROI with the consensus of all others is desired.
+
+        `**`kwargs :
+            Extra keyword arguments to pass to the creation of the ROI object
+            representing the combination.
+        """
+
+        return self._get_combination("overlap", force, exclude, 
+                                     create_roi_overlap, **kwargs)
 
     def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
             centre=[0, 0, 0], resample="fine", restore=True, 
@@ -4650,3 +4727,42 @@ def create_dummy_image(
         origin=origin
     )
 
+def create_staple(rois, **kwargs):
+    """Create STAPLE ROI from list of ROIs."""
+
+    # Get STAPLE mask
+    import SimpleITK as sitk
+    roi_arrays = []
+    for roi in rois:
+        roi_arrays.append(sitk.GetImageFromArray(roi.get_mask(
+            standardise=True).astype(int)))
+    probs = sitk.GetArrayFromImage(sitk.STAPLE(roi_arrays, 1))
+    mask = probs > 0.95
+
+    # Create STAPLE ROI object
+    return ROI(mask, **kwargs)
+
+def create_majority_vote(rois, **kwargs):
+    """Create majority vote ROI from list of ROIs."""
+
+    mask = rois[0].get_mask().astype(int)
+    for roi in rois[1:]:
+        mask += roi.get_mask()
+    mask = mask >= len(rois) / 2
+    return ROI(mask, **kwargs)
+
+def create_roi_sum(rois, **kwargs):
+    """Create ROI from sum of list of ROIs."""
+
+    mask = rois[0].get_mask().copy()
+    for roi in rois[1:]:
+        mask += roi.get_mask()
+    return ROI(mask, **kwargs)
+
+def create_roi_overlap(rois, **kwargs):
+    """Create ROI from overlap of list of ROIs."""
+
+    mask = rois[0].get_mask().copy()
+    for roi in rois[1:]:
+        mask *= roi.get_mask()
+    return ROI(mask, **kwargs)
