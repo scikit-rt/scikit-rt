@@ -1209,28 +1209,27 @@ class DeformationField:
         view, 
         data_slice,
         spacing,
-        ax, 
         mpl_kwargs=None, 
-        zoom=None, 
-        zoom_centre=None
     ):
-        """Draw a grid plot on a set of axes."""
+        """Draw a grid plot."""
 
         # Get gridline positions
-        self.set_ax(view, ax, zoom=zoom)
-        self.ax.autoscale(False)
-        x_ax, y_ax = _plot_axes[view]
-        x, y, df_x, df_y = self.get_deformation_slice(view, sl, pos)
+        #  self.ax.autoscale(False)
+        x_ax, y_ax = skrt.image._plot_axes[view]
+        x, y, df_x, df_y = data_slice
         grid_x = x + df_x
         grid_y = y + df_y
 
+        # Make plotting kwargs
+        default_kwargs = {"color": "green", "linewidth": 2}
+        if mpl_kwargs is not None:
+            default_kwargs.update(mpl_kwargs)
+
         # Plot gridlines
-        kwargs = self.get_kwargs(mpl_kwargs, default=self.grid_kwargs)
         for i in np.arange(0, x.shape[0], spacing[y_ax]):
-            self.ax.plot(grid_x[i, :], grid_y[i, :], **kwargs)
+            self.ax.plot(grid_x[i, :], grid_y[i, :], **default_kwargs)
         for j in np.arange(0, x.shape[1], spacing[x_ax]):
-            self.ax.plot(grid_x[:, j], grid_y[:, j], **kwargs)
-        self.adjust_ax(view, zoom, zoom_centre)
+            self.ax.plot(grid_x[:, j], grid_y[:, j], **default_kwargs)
 
     def convert_spacing(self, spacing, scale_in_mm):
         """Convert grid spacing in mm or voxels to list containing grid spacing 
