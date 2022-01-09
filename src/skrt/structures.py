@@ -3904,16 +3904,64 @@ class StructureSet(skrt.core.Archive):
 
         return df
 
-    def get_comparison(self, other=None, method=None, **kwargs):
+    def get_comparison(self, other=None, comp_type="auto", 
+                       consensus_type="majority", **kwargs):
         """Get pandas DataFrame of comparison metrics vs a single ROI or
-        another StructureSet."""
+        another StructureSet.
+
+        **Parameters**:
+
+        other : ROI/StructureSet, default=None
+            Object to compare own ROIs with. Can either be a single ROI, which
+            will be compared to every ROI in this structure set, or another
+            structure set. If None, a comparison will be performed between the 
+            ROIs of this structure set.
+
+        comp_type : str, default="auto"
+            Method for selecting which ROIs should be compared if other=None
+            or other is a StructureSet. Options are:
+
+                - "all" : compare every ROI in one structure set to every ROI
+                in the other (removing comparisons of an ROI to itself).
+                - "by_name" : compare every ROI in one structure set
+                to every ROI in the other with the same name. Useful when
+                comparing two structure sets containing ROIs with the same
+                names.
+                - "consensus" : if other=None, compare each ROI in this 
+                structure set to the consensus of all other ROIs; otherwise,
+                compare each ROI in this structure set to the consensus of
+                all ROIs in the other structure set. Consensus type is set via
+                the consensus_type argument.
+                - "auto" : if other=None, use "all" comparison. Otherwise, 
+                first look for any ROIs with matching names; if at least one 
+                matching pair is found, compare via the "by_name" comparison 
+                type. If no matches are found, compare via the "all" comparison 
+                type.
+
+        consensus_type : str, default="majority vote"
+            Method for calculating consensus of ROIs if using the "consensus"
+            comparison type. Options are:
+
+                - "majority" : use majority vote of ROIs (i.e. voxels where
+                at least half of the ROIs exist).
+                - "overlap" : use overlap of ROIs.
+                - "sum" : use sum of ROIs.
+                - "staple" : use the STAPLE algorithm to calculate consensus.
+
+        `**`kwargs : 
+            Keyword args to pass to ROI.get_comparison(). See 
+            ROI.get_comparison() documentation for details.
+        """
 
         dfs = []
+
+        # Comparison with a single ROI
         if isinstance(other, ROI):
             dfs = [s.get_comparison(other, **kwargs) for s in self.get_rois()]
 
+        # Comparison with self or another StructureSet
         elif isinstance(other, StructureSet) or other is None:
-            pairs = self.get_comparison_pairs(other, method)
+            pairs = self.get_comparison_pairs(other, comp_type)
             dfs = []
             for roi1, roi2 in pairs:
                 dfs.append(roi1.get_comparison(roi2, **kwargs))
@@ -3923,36 +3971,66 @@ class StructureSet(skrt.core.Archive):
 
         return pd.concat(dfs)
 
-    def get_comparison_pairs(self, other=None, method=None):
+    def get_comparison_pairs(self, other=None, comp_type="auto", 
+                             consensus_type="majority"):
         """Get list of ROIs to compare with one another."""
 
+        # Check comp_type is valid
+        valid_comp_types = ["all", "by_name", "consensus", "auto"]
+        if comp_type not in valid_comp_types:
+            raise ValueError(f"Unrecognised comparison type {comp_type}")
+
+        # Consensus comparison
+        if comp_type == "consensus":
+            
+            # Get consensus calculation function
+            if consensus_type == "majority":
+                consensus_func = StructureSet.get_majority_vote
+            elif consensus_type == "sum":
+                consensus_func = StructureSet.get_sum
+            elif consensus_type == "overlap":
+                consensus_func = StructureSet.get_overlap
+            elif consensus_type == "staple":
+                consensus_func = StructureSet.get_staple
+            else:
+                raise ValueError(f"Unrecognised consensus type: {consensus_type}")
+            
+            # If comparing to another StructureSet, take consensus of that 
+            # entire StructureSet
+            if other is not None:
+                consensus = consensus_func(other)
+                return [(roi, consensus) for roi in self.get_rois()]
+
+            # Otherwise, compare each ROI to consensus of others
+            pairs = []
+            for roi in self.get_rois():
+                pairs.append((roi, consensus_func(self, exclude=roi.name)))
+            return pairs
+
+        # Set default behaviour to "all" if other is None
         if other is None:
             other = self
-            if method is None:
-                method = "diff"
-        elif method is None:
-            method = "auto"
+            if comp_type == "auto":
+                comp_type = "all"
 
-        # Check for name matches
+        # Check for ROIs with matching names if using "auto" or "by_name"
         matches = []
-        if method in ["auto", "named"]:
+        if comp_type in ["auto", "by_name"]:
             matches = [
                 s for s in self.get_roi_names() if s in other.get_roi_names()
             ]
-            if len(matches) or method == "named":
+            if len(matches) or comp_type == "by_name":
                 return [
                     (self.get_roi(name), other.get_roi(name)) for name in matches
                 ]
 
-        # Otherwise, pair each ROI with every other
+        # Otherwise, pair each ROI with every other (exlcuding pairs of the same
+        # ROI)
         pairs = []
         for roi1 in self.get_rois():
             for roi2 in other.get_rois():
-                pairs.append((roi1, roi2))
-
-        # Remove matching names if needed
-        if method == "diff":
-            pairs = [p for p in pairs if p[0].name != p[1].name]
+                if roi1 is not roi2:
+                    pairs.append((roi1, roi2))
 
         return pairs
 
@@ -3965,15 +4043,15 @@ class StructureSet(skrt.core.Archive):
         return np.bincount(indices).argmax()
 
     def plot_comparisons(
-        self, other=None, method=None, outdir=None, legend=True, names=None, 
-        **kwargs
+        self, other=None, comp_type="auto", outdir=None, legend=True, 
+        names=None, **kwargs
     ):
         """Plot comparison pairs."""
 
         if outdir and not os.path.exists(outdir):
             os.makedirs(outdir)
 
-        for roi1, roi2 in self.get_comparison_pairs(other, method):
+        for roi1, roi2 in self.get_comparison_pairs(other, comp_type):
 
             outname = None
             if outdir:
@@ -3988,14 +4066,14 @@ class StructureSet(skrt.core.Archive):
             )
 
     def plot_surface_distances(
-        self, other, outdir=None, signed=False, method="auto", **kwargs
+        self, other, outdir=None, signed=False, comp_type="auto", **kwargs
     ):
         """Plot surface distances for all ROI pairs."""
 
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
-        for roi1, roi2 in self.get_comparison_pairs(other, method):
+        for roi1, roi2 in self.get_comparison_pairs(other, comp_type):
             comp_name = roi1.get_comparison_name(roi2, True)
             if outdir:
                 outname = os.path.join(outdir, f"{comp_name}.png")
@@ -4281,10 +4359,13 @@ class StructureSet(skrt.core.Archive):
 
         # Get list of ROIs to include in this combination ROI
         if exclude is not None:
+
             if exclude not in self.get_roi_names():
                 print(f"ROI to exclude {exclude} not found.")
                 return
+
             rois_to_include = [roi for roi in self.rois if roi.name != exclude]
+
             if not hasattr(self, attr):
                 setattr(self, attr, {})
         else:
@@ -4321,9 +4402,9 @@ class StructureSet(skrt.core.Archive):
             STAPLE ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the ROI with that name will be excluded from
-            the combination; this may be useful if comparison of a single
-            ROI with the consensus of all others is desired.
+            If set to a string, the first ROI in self.rois with that name will 
+            be excluded from the combination. This may be useful if comparison 
+            of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
             Extra keyword arguments to pass to the creation of the ROI object
@@ -4346,9 +4427,9 @@ class StructureSet(skrt.core.Archive):
             majority vote ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the ROI with that name will be excluded from
-            the combination; this may be useful if comparison of a single
-            ROI with the consensus of all others is desired.
+            If set to a string, the first ROI in self.rois with that name will 
+            be excluded from the combination. This may be useful if comparison 
+            of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
             Extra keyword arguments to pass to the creation of the ROI object
@@ -4371,9 +4452,9 @@ class StructureSet(skrt.core.Archive):
             sum ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the ROI with that name will be excluded from
-            the combination; this may be useful if comparison of a single
-            ROI with the consensus of all others is desired.
+            If set to a string, the first ROI in self.rois with that name will 
+            be excluded from the combination. This may be useful if comparison 
+            of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
             Extra keyword arguments to pass to the creation of the ROI object
@@ -4396,9 +4477,9 @@ class StructureSet(skrt.core.Archive):
             overlap ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the ROI with that name will be excluded from
-            the combination; this may be useful if comparison of a single
-            ROI with the consensus of all others is desired.
+            If set to a string, the first ROI in self.rois with that name will 
+            be excluded from the combination. This may be useful if comparison 
+            of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
             Extra keyword arguments to pass to the creation of the ROI object

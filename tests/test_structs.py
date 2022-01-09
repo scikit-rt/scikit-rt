@@ -192,16 +192,52 @@ def test_get_geometry():
     assert geom.shape[0] == 2
 
 def test_get_comparison_pairs():
+    """Get comparison pairs with self; should return each ROI paired with every
+    other except itself."""
+
     pairs = structure_set.get_comparison_pairs()
-    assert len(pairs) == 2
+    n_rois = len(structure_set.get_rois())
+    assert len(pairs) == n_rois ** 2 - n_rois
     assert len(pairs[0]) == 2
 
 def test_get_comparison_pairs_with_other():
+    """Get comparison pairs with another StructureSet; should return each ROI 
+    paired with each ROI with a matching names."""
+
     structure_set2 = StructureSet("tmp/nii_structs")
     pairs = structure_set.get_comparison_pairs(structure_set2)
     assert len(pairs) == 2
     assert pairs[0][0].name == pairs[0][1].name
     assert pairs[1][0].name == pairs[1][1].name
+
+def test_get_comparison_pairs_all():
+    """Get comparison pairs with another StructureSet using the 'all' method; 
+    should return every ROI in one set paired with every ROI in the other, 
+    regardless of name match."""
+
+    structure_set2 = StructureSet("tmp/nii_structs")
+    pairs = structure_set.get_comparison_pairs(structure_set2, "all")
+    assert len(pairs) == len(structure_set.get_rois()) \
+            * len(structure_set2.get_rois())
+
+def test_compare_with_own_consensus():
+    """Get comparison of each ROI with consensus of all others."""
+
+    pairs = structure_set.get_comparison_pairs(comp_type="consensus",
+                                               consensus_type="sum")
+    assert len(pairs) == len(structure_set.get_rois())
+    assert pairs[0][1] == structure_set.get_sum(exclude=pairs[0][0].name)
+
+def test_compare_with_other_consensus():
+    """Get comparison of each ROI with consensus of another structure set."""
+
+    structure_set2 = StructureSet("tmp/nii_structs")
+    pairs = structure_set.get_comparison_pairs(structure_set2,
+                                               comp_type="consensus",
+                                               consensus_type="sum")
+    assert len(pairs) == len(structure_set.get_rois())
+    assert pairs[0][1] == structure_set2.get_sum()
+    assert pairs[1][1] == structure_set2.get_sum()
 
 def test_get_comparison():
     comp = structure_set.get_comparison()
@@ -489,4 +525,32 @@ def test_get_extent():
     assert ext[0] == [1, 9]
     assert ext[1] == [2, 8]
     assert ext[2] == [0, 10]
+
+# Make structure set with nearby structs for consensus calculation
+sim2 = SyntheticImage((50, 50, 10))
+sim2.add_sphere(radius=5, centre=(25, 25, 5), name="sphere1")
+sim2.add_sphere(radius=5, centre=(26, 26, 5), name="sphere2")
+ss2 = sim.get_structure_set()
+
+def test_get_staple():
+    staple = ss2.get_staple()
+    assert 0 < staple.get_volume() < sum([roi.get_volume() 
+                                          for roi in ss2.get_rois()])
+def test_get_majority_vote():
+    mv = ss2.get_majority_vote()
+    assert 0 < mv.get_volume() < sum([roi.get_volume() 
+                                          for roi in ss2.get_rois()])
+
+def test_get_overlap():
+    overlap = ss2.get_overlap()
+    overlap_mask = ss2.get_rois()[0].get_mask()
+    for roi in ss2.get_rois()[1:]:
+        overlap_mask *= roi.get_mask()
+    assert overlap_mask.sum() == overlap.get_volume(units="voxels")
+
+def test_get_sum():
+    overlap = ss2.get_overlap()
+    roi_sum = ss2.get_sum()
+    all_vol = sum([roi.get_volume() for roi in ss2.get_rois()])
+    assert roi_sum.get_volume() == all_vol  - overlap.get_volume()
 
