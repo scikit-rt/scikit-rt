@@ -24,6 +24,7 @@ import uuid
 import skimage.transform
 
 import skrt.core
+from skrt.dicom_writer import DicomWriter
 
 
 _axes = ["x", "y", "z"]
@@ -1928,7 +1929,8 @@ class Image(skrt.core.Archive):
         patient_id=None,
         modality=None,
         root_uid=None,
-        verbose=True
+        verbose=True,
+        header_extra={},
     ):
         """Write image data to a file. The filetype will automatically be
         set based on the extension of <outname>:
@@ -1959,6 +1961,10 @@ class Image(skrt.core.Archive):
             * Otherwise, if the input source was a dicom or directory
               containing dicoms, the header information will be taken from the
               input dicom file.
+
+        In addition, when writing to dicom, the header obtained as outlined
+        above will be updated via attribute-value pairs passed
+        via the dictionary header_extras.
         """
 
         outname = os.path.expanduser(outname)
@@ -1999,7 +2005,7 @@ class Image(skrt.core.Archive):
                 header_source = self.source
             data, affine = self.get_dicom_array_and_affine(standardise)
             orientation = self.get_orientation_vector(affine, "dicom")
-            self.dicom_dataset = write_dicom(
+            dicom_writer = DicomWriter(
                 outdir,
                 data,
                 affine,
@@ -2008,7 +2014,10 @@ class Image(skrt.core.Archive):
                 patient_id,
                 modality,
                 root_uid,
+                header_extra,
+                type(self).__name__,
             )
+            self.dicom_dataset = dicom_writer.write()
             if verbose:
                 print("Wrote dicom file(s) to directory:", outdir)
 
@@ -3097,176 +3106,6 @@ def write_npy(outname, data, affine=None):
             for p in origin:
                 f.write(" " + str(p))
             f.write("\n")
-
-
-def write_dicom(
-    outdir,
-    data,
-    affine,
-    header_source=None,
-    orientation=None,
-    patient_id=None,
-    modality=None,
-    root_uid=None,
-):
-    """Write image data to dicom file(s) inside <outdir>. <header_source>
-    can be:
-
-        (a) A path to a dicom file, which will be used as the header;
-        (b) A path to a directory containing dicom files; the first file
-            alphabetically will be used as the header;
-        (c) A pydicom FileDataset object;
-        (d) None, in which case a brand new dicom file with new UIDs will be
-            created.
-    """
-
-    # Create directory if it doesn't exist
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    else:
-        # Clear out any dicoms in the directory
-        dcms = glob.glob(f"{outdir}/*.dcm")
-        for dcm in dcms:
-            os.remove(dcm)
-
-    # Try loading from header
-    ds = None
-    if header_source:
-        if isinstance(header_source, FileDataset):
-            ds = header_source
-        else:
-            dcm_path = None
-            if os.path.isfile(header_source):
-                dcm_path = header_source
-            elif os.path.isdir(header_source):
-                dcms = glob.glob(f"{header_source}/*.dcm")
-                if dcms:
-                    dcm_path = dcms[0]
-            if dcm_path:
-                try:
-                    ds = pydicom.dcmread(dcm_path, force=True)
-                except pydicom.errors.InvalidDicomError:
-                    pass
-
-    # Make fresh header if needed
-    fresh_header = ds is None
-    if fresh_header:
-        ds = create_dicom(patient_id, modality, root_uid)
-
-    # Assign shared geometric properties
-    set_dicom_geometry(ds, affine, data.shape, orientation)
-
-    # Rescale data
-    slope = getattr(ds, "RescaleSlope", 1)
-    if hasattr(ds, "DoseGridScaling"):
-        slope = ds.DoseGridScaling
-    intercept = getattr(ds, "RescaleIntercept", 0)
-    if fresh_header:
-        intercept = np.min(data)
-        ds.RescaleIntercept = intercept
-
-    # Save each x-y slice to a dicom file
-    for i in range(data.shape[2]):
-        sl = data.shape[2] - i
-        pos = affine[2, 3] + i * affine[2, 2]
-        xy_slice = data[:, :, i].copy()
-        xy_slice = (xy_slice - intercept) / slope
-        xy_slice = xy_slice.astype(np.uint16)
-        ds.PixelData = xy_slice.tobytes()
-        ds.SliceLocation = pos
-        ds.ImagePositionPatient[2] = pos
-        outname = f"{outdir}/{sl}.dcm"
-        ds.save_as(outname)
-
-    return ds
-
-
-def set_dicom_geometry(ds, affine, shape, orientation=None):
-
-    # Set voxel sizes etc from affine matrix
-    if orientation is None:
-        ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-    else:
-        ds.ImageOrientationPatient = orientation
-    ds.PixelSpacing = [affine[0, 0], affine[1, 1]]
-    ds.SliceThickness = affine[2, 2]
-    ds.ImagePositionPatient = list(affine[:-1, 3])
-    ds.Columns = shape[1]
-    ds.Rows = shape[0]
-
-
-def create_dicom(patient_id=None, modality=None, root_uid=None):
-    """Create a fresh dicom dataset. Taken from https://pydicom.github.io/pydicom/dev/auto_examples/input_output/plot_write_dicom.html#sphx-glr-auto-examples-input-output-plot-write-dicom-py."""
-
-    # Create some temporary filenames
-    suffix = ".dcm"
-    filename = tempfile.NamedTemporaryFile(suffix=suffix).name
-
-    # Populate required values for file meta information
-    file_meta = FileMetaDataset()
-    file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.2"
-    file_meta.MediaStorageSOPInstanceUID = "1.2.3"
-    file_meta.ImplementationClassUID = "1.2.3.4"
-    file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
-
-    # Create the FileDataset instance
-    ds = FileDataset(filename, {}, file_meta=file_meta, preamble=b"\x00" * 128)
-
-    # Add data elements
-    ds.PatientID = patient_id if patient_id is not None else "123456"
-    ds.PatientName = ds.PatientID
-    ds.Modality = modality if modality is not None else "CT"
-    ds.SeriesInstanceUID = get_new_uid(root_uid)
-    ds.StudyInstanceUID = get_new_uid(root_uid)
-    ds.SeriesNumber = "123456"
-    ds.SamplesPerPixel = 1
-    ds.PhotometricInterpretation = "MONOCHROME2"
-    ds.PixelRepresentation = 0
-
-    # Set creation date/time
-    dt = datetime.datetime.now()
-    ds.ContentDate = dt.strftime("%Y%m%d")
-    timeStr = dt.strftime("%H%M%S.%f")  # long format with micro seconds
-    ds.ContentTime = timeStr
-
-    # Data storage
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
-    ds.BitsAllocated = 16
-    ds.BitsStored = 16
-    ds.HighBit = 15
-
-    return ds
-
-
-def get_new_uid(root=None):
-    """Generate a globally unique identifier (GUID). Credit: Karl Harrison.
-
-    <root> should uniquely identify the group generating the GUID. A unique
-    root identifier can be obtained free of charge from Medical Connections:
-
-        * https://www.medicalconnections.co.uk/FreeUID/
-    """
-
-    if root is None:
-        print(
-            "Warning: using generic root UID 1.2.3.4. You should use a root "
-            "UID unique to your institution. A unique root ID can be "
-            "obtained free of charge from: "
-            "https://www.medicalconnections.co.uk/FreeUID/"
-        )
-        root = "1.2.3.4"
-
-    id1 = uuid.uuid1()
-    id2 = uuid.uuid4().int & (1 << 24) - 1
-    date = time.strftime("%Y%m%d")
-    new_id = f"{root}.{date}.{id1.time_low}.{id2}"
-
-    if not len(new_id) % 2:
-        new_id = ".".join([new_id, str(np.random.randint(1, 9))])
-    else:
-        new_id = ".".join([new_id, str(np.random.randint(10, 99))])
-    return new_id
 
 
 def default_aspect():
