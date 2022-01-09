@@ -50,6 +50,7 @@
 <li class="toctree-l3 current"><a class="reference internal" href="skrt.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="skrt.application.html">skrt.application module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="skrt.core.html">skrt.core module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dicom_writer.html">skrt.dicom_writer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="skrt.dose.html">skrt.dose module</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">skrt.image module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="skrt.multi.html">skrt.multi module</a></li>
@@ -1021,7 +1022,7 @@ initialisation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_geometry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.write" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_geometry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.write" title="Permalink to this definition"></a></dt>
 <dd><p>Write image data to a file. The filetype will automatically be
 set based on the extension of &lt;outname&gt;:</p>
 <blockquote>
@@ -1051,6 +1052,9 @@ containing dicoms, the header information will be taken from the
 input dicom file.</p></li>
 </ul>
 </div></blockquote>
+<p>In addition, when writing to dicom, the header obtained as outlined
+above will be updated via attribute-value pairs passed
+via the dictionary header_extras.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1263,12 +1267,6 @@ plotting method.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.image.create_dicom">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">create_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.create_dicom" title="Permalink to this definition"></a></dt>
-<dd><p>Create a fresh dicom dataset. Taken from <a class="reference external" href="https://pydicom.github.io/pydicom/dev/auto_examples/input_output/plot_write_dicom.html#sphx-glr-auto-examples-input-output-plot-write-dicom-py">https://pydicom.github.io/pydicom/dev/auto_examples/input_output/plot_write_dicom.html#sphx-glr-auto-examples-input-output-plot-write-dicom-py</a>.</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.default_aspect">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">default_aspect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.default_aspect" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -1394,19 +1392,6 @@ a combination of these inputs.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.image.get_new_uid">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_new_uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_new_uid" title="Permalink to this definition"></a></dt>
-<dd><p>Generate a globally unique identifier (GUID). Credit: Karl Harrison.</p>
-<p>&lt;root&gt; should uniquely identify the group generating the GUID. A unique
-root identifier can be obtained free of charge from Medical Connections:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><a class="reference external" href="https://www.medicalconnections.co.uk/FreeUID/">https://www.medicalconnections.co.uk/FreeUID/</a></p></li>
-</ul>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.load_dicom">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom" title="Permalink to this definition"></a></dt>
 <dd><p>Load a dicom image from one or more dicom files.</p>
@@ -1525,11 +1510,6 @@ gridspec, or by creating new axes.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.image.set_dicom_geometry">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">set_dicom_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.set_dicom_geometry" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.to_inches">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">to_inches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.to_inches" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a size string to a size in inches. If a float is given, it will
@@ -1542,23 +1522,6 @@ determine the units:</p>
 <li><p>‘mm’: mm</p></li>
 <li><p>‘px’: pixels</p></li>
 </ul>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.image.write_dicom">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">write_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.write_dicom" title="Permalink to this definition"></a></dt>
-<dd><p>Write image data to dicom file(s) inside &lt;outdir&gt;. &lt;header_source&gt;
-can be:</p>
-<blockquote>
-<div><ol class="loweralpha simple">
-<li><p>A path to a dicom file, which will be used as the header;</p></li>
-<li><p>A path to a directory containing dicom files; the first file
-alphabetically will be used as the header;</p></li>
-<li><p>A pydicom FileDataset object;</p></li>
-<li><p>None, in which case a brand new dicom file with new UIDs will be
-created.</p></li>
-</ol>
 </div></blockquote>
 </dd></dl>
 

@@ -16,6 +16,7 @@ Submodules
 
    skrt.application
    skrt.core
+   skrt.dicom_writer
    skrt.dose
    skrt.image
    skrt.multi

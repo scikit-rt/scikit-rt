@@ -126,6 +126,8 @@
 </li>
         <li><a href="skrt.core.html#skrt.core.PathData.__init__">(skrt.core.PathData method)</a>
 </li>
+        <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.__init__">(skrt.dicom_writer.DicomWriter method)</a>
+</li>
         <li><a href="skrt.dose.html#skrt.dose.Dose.__init__">(skrt.dose.Dose method)</a>
 </li>
         <li><a href="skrt.dose.html#skrt.dose.ImageOverlay.__init__">(skrt.dose.ImageOverlay method)</a>
@@ -247,11 +249,13 @@
 </li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.StructureSet.add_struct_file">add_struct_file() (skrt.viewer.core.StructureSet method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.image.html#skrt.image.Image.add_structure_set">add_structure_set() (skrt.image.Image method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.patient.html#skrt.patient.Patient.add_study">add_study() (skrt.patient.Patient method)</a>
+</li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.add_to_image_dataset">add_to_image_dataset() (skrt.dicom_writer.DicomWriter method)</a>
 </li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.Image.adjust_ax">adjust_ax() (skrt.viewer.core.Image method)</a>
 </li>
@@ -357,9 +361,9 @@
 </li>
       <li><a href="skrt.structures.html#skrt.structures.ROI.create_contours">create_contours() (skrt.structures.ROI method)</a>
 </li>
-      <li><a href="skrt.image.html#skrt.image.create_dicom">create_dicom() (in module skrt.image)</a>
-</li>
       <li><a href="skrt.structures.html#skrt.structures.create_dummy_image">create_dummy_image() (in module skrt.structures)</a>
+</li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.create_file_dataset">create_file_dataset() (skrt.dicom_writer.DicomWriter method)</a>
 </li>
       <li><a href="skrt.structures.html#skrt.structures.ROI.create_mask">create_mask() (skrt.structures.ROI method)</a>
 </li>
@@ -399,13 +403,15 @@
 </li>
       <li><a href="skrt.registration.html#skrt.registration.DeformationField">DeformationField (class in skrt.registration)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.DeformationImage">DeformationImage (class in skrt.viewer.core)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.StructComparison.dice">dice() (skrt.viewer.core.StructComparison method)</a>
 </li>
       <li><a href="skrt.structures.html#skrt.structures.dicom_dataset_to_structure_set">dicom_dataset_to_structure_set() (in module skrt.structures)</a>
+</li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter">DicomWriter (class in skrt.dicom_writer)</a>
 </li>
       <li><a href="skrt.dose.html#skrt.dose.Dose">Dose (class in skrt.dose)</a>
 </li>
@@ -657,6 +663,8 @@
       </ul></li>
       <li><a href="skrt.structures.html#skrt.structures.ROI.get_extents">get_extents() (skrt.structures.ROI method)</a>
 </li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.get_file_dataset">get_file_dataset() (skrt.dicom_writer.DicomWriter method)</a>
+</li>
       <li><a href="skrt.image.html#skrt.image.ImageComparison.get_gamma">get_gamma() (skrt.image.ImageComparison method)</a>
 
       <ul>
@@ -733,6 +741,8 @@
 </li>
       <li><a href="skrt.structures.html#skrt.structures.ROI.get_mean_surface_distance">get_mean_surface_distance() (skrt.structures.ROI method)</a>
 </li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.get_media_storage_sop_class_uid">get_media_storage_sop_class_uid() (skrt.dicom_writer.DicomWriter method)</a>
+</li>
       <li><a href="skrt.structures.html#skrt.structures.ROI.get_mid_idx">get_mid_idx() (skrt.structures.ROI method)</a>
 
       <ul>
@@ -754,8 +764,6 @@
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.MultiImage.get_n_colorbars">get_n_colorbars() (skrt.viewer.core.MultiImage method)</a>
 </li>
       <li><a href="skrt.image.html#skrt.image.Image.get_n_voxels">get_n_voxels() (skrt.image.Image method)</a>
-</li>
-      <li><a href="skrt.image.html#skrt.image.get_new_uid">get_new_uid() (in module skrt.image)</a>
 </li>
       <li><a href="skrt.image.html#skrt.image.Image.get_nifti_array_and_affine">get_nifti_array_and_affine() (skrt.image.Image method)</a>
 </li>
@@ -989,6 +997,8 @@
         <li><a href="skrt.application.html#skrt.application.Application.initialise">(skrt.application.Application method)</a>
 </li>
       </ul></li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.initialise_outdir">initialise_outdir() (skrt.dicom_writer.DicomWriter method)</a>
+</li>
       <li><a href="skrt.core.html#skrt.core.Defaults.instance">instance (skrt.core.Defaults attribute)</a>
 
       <ul>
@@ -1250,6 +1260,8 @@
         <li><a href="skrt.better_viewer.html#module-skrt.better_viewer">skrt.better_viewer</a>
 </li>
         <li><a href="skrt.core.html#module-skrt.core">skrt.core</a>
+</li>
+        <li><a href="skrt.dicom_writer.html#module-skrt.dicom_writer">skrt.dicom_writer</a>
 </li>
         <li><a href="skrt.dose.html#module-skrt.dose">skrt.dose</a>
 </li>
@@ -1594,7 +1606,7 @@
 </li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.MultiImage.set_date">set_date() (skrt.viewer.core.MultiImage method)</a>
 </li>
-      <li><a href="skrt.image.html#skrt.image.set_dicom_geometry">set_dicom_geometry() (in module skrt.image)</a>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.set_date_and_time">set_date_and_time() (skrt.dicom_writer.DicomWriter method)</a>
 </li>
       <li><a href="skrt.registration.html#skrt.registration.set_elastix_dir">set_elastix_dir() (in module skrt.registration)</a>
 </li>
@@ -1604,9 +1616,13 @@
 </li>
       <li><a href="skrt.image.html#skrt.image.Image.set_geometry">set_geometry() (skrt.image.Image method)</a>
 </li>
-      <li><a href="skrt.dose.html#skrt.dose.Dose.set_image">set_image() (skrt.dose.Dose method)</a>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.set_geometry_and_scaling">set_geometry_and_scaling() (skrt.dicom_writer.DicomWriter method)</a>
+</li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.set_image">set_image() (skrt.dicom_writer.DicomWriter method)</a>
 
       <ul>
+        <li><a href="skrt.dose.html#skrt.dose.Dose.set_image">(skrt.dose.Dose method)</a>
+</li>
         <li><a href="skrt.dose.html#skrt.dose.ImageOverlay.set_image">(skrt.dose.ImageOverlay method)</a>
 </li>
         <li><a href="skrt.registration.html#skrt.registration.Registration.set_image">(skrt.registration.Registration method)</a>
@@ -1616,6 +1632,8 @@
         <li><a href="skrt.structures.html#skrt.structures.StructureSet.set_image">(skrt.structures.StructureSet method)</a>
 </li>
       </ul></li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.set_image_slice">set_image_slice() (skrt.dicom_writer.DicomWriter method)</a>
+</li>
       <li><a href="skrt.structures.html#skrt.structures.ROI.set_image_to_dummy">set_image_to_dummy() (skrt.structures.ROI method)</a>
 </li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.Struct.set_label">set_label() (skrt.viewer.core.Struct method)</a>
@@ -1734,6 +1752,13 @@
 
       <ul>
         <li><a href="skrt.core.html#module-skrt.core">module</a>
+</li>
+      </ul></li>
+      <li>
+    skrt.dicom_writer
+
+      <ul>
+        <li><a href="skrt.dicom_writer.html#module-skrt.dicom_writer">module</a>
 </li>
       </ul></li>
       <li>
@@ -1922,6 +1947,8 @@
 </li>
       <li><a href="skrt.simulation.html#skrt.simulation.SyntheticImage.update">update() (skrt.simulation.SyntheticImage method)</a>
 </li>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.update_dataset">update_dataset() (skrt.dicom_writer.DicomWriter method)</a>
+</li>
       <li><a href="skrt.simulation.html#skrt.simulation.SyntheticImage.update_roi">update_roi() (skrt.simulation.SyntheticImage method)</a>
 </li>
       <li><a href="skrt.better_viewer.html#skrt.better_viewer.SingleViewer.update_roi_info">update_roi_info() (skrt.better_viewer.SingleViewer method)</a>
@@ -2030,9 +2057,11 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="skrt.image.html#skrt.image.Image.write">write() (skrt.image.Image method)</a>
+      <li><a href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.write">write() (skrt.dicom_writer.DicomWriter method)</a>
 
       <ul>
+        <li><a href="skrt.image.html#skrt.image.Image.write">(skrt.image.Image method)</a>
+</li>
         <li><a href="skrt.patient.html#skrt.patient.Patient.write">(skrt.patient.Patient method)</a>
 </li>
         <li><a href="skrt.simulation.html#skrt.simulation.SyntheticImage.write">(skrt.simulation.SyntheticImage method)</a>
@@ -2046,8 +2075,6 @@
         <li><a href="voxtox.structures.html#voxtox.structures.StructureSet.write">(voxtox.structures.StructureSet method)</a>
 </li>
       </ul></li>
-      <li><a href="skrt.image.html#skrt.image.write_dicom">write_dicom() (in module skrt.image)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.image.html#skrt.image.write_nifti">write_nifti() (in module skrt.image)</a>
