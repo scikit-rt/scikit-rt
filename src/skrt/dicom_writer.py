@@ -30,6 +30,7 @@ class DicomWriter:
     - skrt.dose.Dose.
 
     ** Methods:**
+
     - **_Init__()** : Create instance of DicomWriter class.
     - **add_to_image_dataset()** : Add to dataset image-specific information.
     - **create_file_dataset()** : Create new pydicom.dataset.FileDataset object.
