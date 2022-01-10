@@ -2673,9 +2673,10 @@ def get_dicom_paths(path):
 
         for filename in sorted(os.listdir(dirname)):
             p = os.path.join(dirname, filename)
-            ds = pydicom.dcmread(p, force=True)
-            if hasattr(ds, "SOPClassUID"):
-                paths.append(p)
+            if not os.path.isdir(p):
+                ds = pydicom.dcmread(p, force=True)
+                if hasattr(ds, "SOPClassUID"):
+                    paths.append(p)
 
         # Ensure user-specified file is loaded first
         if path in paths:

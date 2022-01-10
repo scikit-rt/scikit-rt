@@ -323,7 +323,7 @@ class DicomWriter:
         self.ds.ImagePositionPatient = list(self.affine[:-1, 3])
         self.ds.ImagePositionPatient[2] += (
                 (self.data.shape[2] - 1) * self.affine[2, 2])
-        self.ds.SliceLocation = list(self.ds.ImagePositionPatient)
+        self.ds.SliceLocation = self.affine[2, 3]
         self.ds.Rows = self.data.shape[0]
         self.ds.Columns = self.data.shape[1]
         self.ds.RescaleIntercept = min(
@@ -346,7 +346,7 @@ class DicomWriter:
             self.ds.DoseSummationType = None
             self.ds.GridFrameOffsetVector = []
             for idx in range(self.data.shape[2]):
-                self.ds.GridFrameOffsetVector.append(-idx * self.affine[2,2])
+                self.ds.GridFrameOffsetVector.append(idx * self.affine[2,2])
 
     def set_image(self):
         '''
@@ -360,6 +360,8 @@ class DicomWriter:
         pixel_array = (pixel_array - intercept) / slope
         pixel_array = np.rint(pixel_array).astype(np.uint16)
         pixel_array = pixel_array[:, :, :: -1].transpose(2, 0, 1)
+        if not uid.UID(self.ds.file_meta.TransferSyntaxUID).is_little_endian:
+            pixel_array = pixel_array.byteswap()
         self.ds.PixelData = pixel_array.tobytes()
 
     def set_image_slice(self, idx=0):
@@ -381,6 +383,8 @@ class DicomWriter:
         xy_slice = self.data[:, :, idx].copy()
         xy_slice = (xy_slice - intercept) / slope
         xy_slice = xy_slice.astype(np.uint16)
+        if not uid.UID(self.ds.file_meta.TransferSyntaxUID).is_little_endian:
+            xy_slice = xy_slice.byteswap()
         self.ds.PixelData = xy_slice.tobytes()
         self.ds.SliceLocation = pos
         self.ds.ImagePositionPatient[2] = pos
