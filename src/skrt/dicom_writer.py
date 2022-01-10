@@ -29,7 +29,7 @@ class DicomWriter:
     - skrt.image.Image;
     - skrt.dose.Dose.
 
-    ** Methods:**
+    **Methods:**
 
     - **_Init__()** : Create instance of DicomWriter class.
     - **add_to_image_dataset()** : Add to dataset image-specific information.
