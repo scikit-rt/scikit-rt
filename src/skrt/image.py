@@ -133,7 +133,7 @@ class Image(skrt.core.Archive):
         if load and (not isinstance(self.source, str) or self.source):
             self.load()
 
-    def get_data(self, standardise=False):
+    def get_data(self, standardise=False, force_standardise=True):
         """Return 3D image array.
 
         **Parameters:**
@@ -148,7 +148,7 @@ class Image(skrt.core.Archive):
         if self.data is None:
             self.load()
         if standardise:
-            return self.get_standardised_data(force=True)
+            return self.get_standardised_data(force=force_standardise)
         return self.data
 
     def get_dicom_filepath(self, sl=None, idx=None, pos=None):
@@ -447,12 +447,12 @@ class Image(skrt.core.Archive):
         Standardised voxel sizes (self._svoxel_size) and origin position
         (self._sorigin) will also be inferred from self._affine.
         """
-
-        data = self.get_data()
-        affine = self.get_affine()
-
+        
         # Adjust dicom
         if self.source_type == "dicom":
+
+            data = self.get_data()
+            affine = self.get_affine()
 
             # Transform array to be in order (row, col, slice) = (x, y, z)
             orient = np.array(self.get_orientation_vector()).reshape(2, 3)
@@ -482,20 +482,29 @@ class Image(skrt.core.Archive):
         # Adjust nifti
         elif "nifti" in self.source_type:
 
-            init_dtype = self.get_data().dtype
-            nii = nibabel.as_closest_canonical(
-                nibabel.Nifti1Image(self.data.astype(np.float64), self.affine)
-            )
+            # Load and cache canonical data array
+            if not hasattr(self, "_data_canonical"):
+                init_dtype = self.get_data().dtype
+                nii = nibabel.as_closest_canonical(
+                    nibabel.Nifti1Image(self.data.astype(np.float64), self.affine)
+                )
+                setattr(self, "_data_canonical", nii.get_fdata().astype(init_dtype))
+                setattr(self, "_affine_canonical", nii.affine)
+
+            data = self._data_canonical.copy()
             transpose = pad_transpose([1, 0, 2], data.ndim)
-            data = nii.get_fdata().astype(init_dtype)
-            data = data.transpose(*transpose).astype(init_dtype)
+            data = data.transpose(*transpose)
             data = np.flip(data, axis=0)
             data = np.flip(data, axis=1)
-            affine = nii.affine
+            affine = self._affine_canonical.copy()
 
             # Reverse x and y directions
             affine[0, 3] = -(affine[0, 3] + (data.shape[1] - 1) * affine[0, 0])
             affine[1, 3] = -(affine[1, 3] + (data.shape[0] - 1) * affine[1, 1])
+
+        else:
+            data = self.get_data()
+            affine = self.get_affine()
 
         # Assign standardised image array and affine matrix
         self._sdata = data
@@ -1059,7 +1068,7 @@ class Image(skrt.core.Archive):
 
     def get_slice(
         self, view="x-y", sl=None, idx=None, pos=None, flatten=False, 
-        force=True, shift=[None, None, None], **kwargs
+        force=True, shift=[None, None, None], force_standardise=True, **kwargs
     ):
         """Get a slice of the data in the correct orientation for plotting. 
         If <sl>, <pos>, and <idx> are all None, the central slice of the image
@@ -1111,7 +1120,8 @@ class Image(skrt.core.Archive):
         transposes = {"x-y": [0, 1, 2], "y-z": [0, 2, 1], "x-z": [1, 2, 0]}
         transpose = pad_transpose(transposes[view], self.data.ndim)
         list(_plot_axes[view]) + [_slice_axes[view]]
-        data = np.transpose(self.get_standardised_data(force=True), transpose)
+        data = np.transpose(self.get_standardised_data(force=force_standardise), 
+                            transpose)
 
         # Apply shifts in plane if requested
         x_ax, y_ax = _plot_axes[view]
@@ -1967,7 +1977,7 @@ class Image(skrt.core.Archive):
         # Write to nifti file
         if outname.endswith(".nii") or outname.endswith(".nii.gz"):
             data, affine = self.get_nifti_array_and_affine(standardise)
-            if data.dtype == "bool":
+            if data.dtype == bool:
                 data = data.copy().astype(int)
             write_nifti(outname, data, affine)
             if verbose:
@@ -2161,6 +2171,11 @@ class Image(skrt.core.Archive):
         # Revert to original voxel size
         if image_resample and restore:
             self.resample(voxel_size=voxel_size, order=order)
+
+        # Remove prior standardised data
+        if hasattr(self, "_sdata"):
+            del self._sdata
+            del self._saffine
 
         return None
 

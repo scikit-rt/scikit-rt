@@ -190,9 +190,9 @@ class ROI(skrt.core.Archive):
             return
 
         # Process contour dictionary
+        self.input_contours = {}
         if isinstance(source, dict):
             self.source = None
-            self.input_contours = {}
             for z, contours in source.items():
                 self.input_contours[z] = []
                 for contour in contours:
@@ -204,7 +204,6 @@ class ROI(skrt.core.Archive):
                         self.input_contours[z].append(contour)
         else:
             self.source = source
-            self.input_contours = None
 
         # Assign other properties
         self.custom_color = color is not None
@@ -244,7 +243,6 @@ class ROI(skrt.core.Archive):
 
         # Load ROI data
         self.loaded = False
-        self.loaded_contours = False
         self.loaded_mask = False
         if load:
             self.load()
@@ -271,7 +269,7 @@ class ROI(skrt.core.Archive):
         self.mask to that image and set self.input_type = "mask".
         (d) If self.source is None, do nothing with it.
 
-        3. Check whether self.input_contours is not None. This could arise
+        3. Check whether self.input_contours contains data. This could arise
         in two scenarios:
         
         (a) The ROI was initialised from a dict of contours, which were
@@ -342,7 +340,7 @@ class ROI(skrt.core.Archive):
             self.create_mask()
 
         # Deal with input contours
-        if self.input_contours is not None:
+        if self.input_contours:
 
             # Create Image object
             if self.image is not None:
@@ -408,7 +406,6 @@ class ROI(skrt.core.Archive):
         self.input_contours = contours
         self.contours = {"x-y": contours}
         self.loaded_mask = False
-        self.loaded_contours = False
         self.mask = None
 
     def reset_mask(self, mask=None):
@@ -435,7 +432,6 @@ class ROI(skrt.core.Archive):
             raise TypeError("mask should be an Image or a numpy array")
 
         self.loaded_mask = True
-        self.loaded_contours = False
         self.contours = {}
         self.input_contours = None
 
@@ -444,7 +440,7 @@ class ROI(skrt.core.Archive):
 
         self.load()
         if view not in self.contours:
-            self.create_contours()
+            self.create_contours(view)
         contours = self.contours[view]
 
         # Convert keys to indices rather than positions
@@ -487,15 +483,18 @@ class ROI(skrt.core.Archive):
         self.load()
         return self.origin
 
-    def get_mask(self, view="x-y", flatten=False, standardise=False):
+    def get_mask(self, view="x-y", flatten=False, standardise=False, 
+                 force_standardise=False):
         """Get binary mask, optionally flattened in a given orientation."""
 
         self.load()
         self.create_mask()
         if not flatten:
-            return self.mask.get_data(standardise=standardise)
+            return self.mask.get_data(standardise=standardise, 
+                                      force_standardise=force_standardise)
         return np.sum(
-            self.mask.get_data(standardise=standardise), 
+            self.mask.get_data(standardise=standardise, 
+                               force_standardise=force_standardise),
             axis=skrt.image._slice_axes[view]
         ).astype(bool)
 
@@ -513,11 +512,16 @@ class ROI(skrt.core.Archive):
         contours = self.get_contours_on_slice(view, sl, idx, pos)
         return [contour_to_polygon(c) for c in contours]
 
-    def create_contours(self, force=False):
+    def create_contours(self, view="all", force=False):
         """Create contours in all orientations."""
 
-        if self.loaded_contours and not force:
-            return
+        if not force:
+            if view == "all" and all([v in self.contours for v in 
+                                      skrt.image._plot_axes]):
+                return
+            if view in self.contours:
+                return
+
         if not self.loaded:
             self.load()
 
@@ -526,24 +530,25 @@ class ROI(skrt.core.Archive):
             self.contours = {}
 
         # Create contours in every orientation
-        for view, z_ax in skrt.image._slice_axes.items():
-            if view in self.contours:
+        views = list(skrt.image._plot_axes.keys()) if view == "all" else [view]
+        for v in views:
+
+            if v in self.contours:
                 continue
 
             # Make new contours from mask
-            self.contours[view] = {}
-            for iz in self.get_indices(view, method="mask"):
+            z_ax = skrt.image._slice_axes[v]
+            self.contours[v] = {}
+            for iz in self.get_indices(v, method="mask"):
 
                 # Get slice of mask array
-                mask_slice = self.get_slice(view, idx=iz).T
+                mask_slice = self.get_slice(v, idx=iz).T
                 if mask_slice.max() < 0.5:
                     continue
 
-                points = self.mask_to_contours(mask_slice, view)
+                points = self.mask_to_contours(mask_slice, v)
                 if points:
-                    self.contours[view][self.idx_to_pos(iz, z_ax)] = points
-
-        self.loaded_contours = True
+                    self.contours[v][self.idx_to_pos(iz, z_ax)] = points
 
     def mask_to_contours(self, mask, view, invert=False):
         """Create contours from a mask."""
@@ -606,6 +611,7 @@ class ROI(skrt.core.Archive):
 
         if self.loaded_mask and not force:
             return
+
         if not self.loaded:
             self.load()
         if overlap_level is not None:
@@ -617,7 +623,7 @@ class ROI(skrt.core.Archive):
             self.set_image_to_dummy(shape=shape, voxel_size=voxel_size)
 
         # Create mask from input x-y contours 
-        if self.input_contours is not None:
+        if self.input_contours:
 
             # Initialise self.mask as image
             self.mask = skrt.image.Image(
@@ -682,7 +688,7 @@ class ROI(skrt.core.Archive):
 
         # Convert to boolean mask
         if hasattr(self.mask, "data"):
-            if not self.mask.data.dtype == "bool":
+            if not self.mask.data.dtype == bool:
                 self.mask.data = self.mask.data.astype(bool)
             self.loaded_mask = True
 
@@ -715,10 +721,14 @@ class ROI(skrt.core.Archive):
         self.create_mask()
         self.mask.match_voxel_size(mask, *args, **kwargs)
 
-    def get_slice(self, *args, **kwargs):
+    def get_slice(self, *args, force_standardise=False, **kwargs):
 
         self.create_mask()
-        return self.mask.get_slice(*args, **kwargs).astype(bool)
+        data = self.mask.get_slice(*args, force_standardise=force_standardise, 
+                                   **kwargs)
+        if data.dtype != bool:
+            data = data.astype(bool)
+        return data
 
     def get_indices(self, view="x-y", method=None):
         """Get list of slice indices on which this ROI exists."""
@@ -734,13 +744,10 @@ class ROI(skrt.core.Archive):
             mask = self.get_mask(standardise=True).transpose(1, 0, 2)
             return list(np.unique(np.argwhere(mask)[:, ax]))
 
-    def get_mid_idx(self, view="x-y", method=None):
+    def get_mid_idx(self, view="x-y", **kwargs):
         """Get central slice index of this ROI in a given orientation."""
 
-        if method is None:
-            method = self.default_geom_method
-
-        indices = self.get_indices(view, method=method)
+        indices = self.get_indices(view, **kwargs)
         if not len(indices):
             return None
         mid = int(len(indices) / 2)
@@ -1028,7 +1035,7 @@ class ROI(skrt.core.Archive):
                 axes = skrt.image._plot_axes[view]
             else:
                 self.create_mask()
-                data = self.mask.get_data(standardise=True)
+                data = self.get_mask(standardise=True)
                 axes = skrt.image._axes
 
             # Compute centroid from 2D or 3D binary mask
@@ -1434,7 +1441,7 @@ class ROI(skrt.core.Archive):
 
         # Get positions of voxels inside the mask
         if not single_slice:
-            nonzero = np.argwhere(self.mask.get_data(standardise=True))
+            nonzero = np.argwhere(self.get_mask(standardise=True))
         else:
             nonzero = np.argwhere(self.get_slice(
                 view, sl=sl, idx=idx, pos=pos))
@@ -2744,6 +2751,11 @@ class ROI(skrt.core.Archive):
         if plot_type is None:
             plot_type = self.default_geom_method
 
+        if sl is None and idx is None and pos is None:
+            idx = self.get_mid_idx(view)
+        else:
+            idx = self.get_idx(view, sl, idx, pos)
+
         show_centroid = "centroid" in plot_type
         if zoom and zoom_centre is None:
             zoom_centre = self.get_zoom_centre(view)
@@ -2766,9 +2778,7 @@ class ROI(skrt.core.Archive):
         if plot_type == "mask":
             self._plot_mask(
                 view,
-                sl,
                 idx,
-                pos,
                 mask_kwargs,
                 opacity,
                 zoom=zoom,
@@ -2783,9 +2793,7 @@ class ROI(skrt.core.Archive):
         elif plot_type in ["contour", "centroid"]:
             self._plot_contour(
                 view,
-                sl,
                 idx,
-                pos,
                 contour_kwargs,
                 linewidth,
                 centroid=show_centroid,
@@ -2801,14 +2809,12 @@ class ROI(skrt.core.Archive):
         elif "filled" in plot_type:
             if opacity is None:
                 opacity = 0.3
-            self._plot_mask(view, sl, idx, pos, mask_kwargs, opacity, 
+            self._plot_mask(view, idx, mask_kwargs, opacity, 
                            show=False, include_image=include_image, **kwargs)
             kwargs["ax"] = self.ax
             self._plot_contour(
                 view,
-                sl,
                 idx,
-                pos,
                 contour_kwargs,
                 linewidth,
                 centroid=show_centroid,
@@ -2884,7 +2890,6 @@ class ROI(skrt.core.Archive):
         # Clear mask and contours
         self.input_contours = self.contours["x-y"]
         self.contours = {"x-y": self.input_contours}
-        self.loaded_contours = False
         self.loaded_mask = False
         self.mask = None
 
@@ -2988,10 +2993,8 @@ class ROI(skrt.core.Archive):
 
     def _plot_mask(
         self,
-        view="x-y",
-        sl=None,
-        idx=None,
-        pos=None,
+        view,
+        idx,
         mask_kwargs=None,
         opacity=None,
         include_image=False,
@@ -3004,10 +3007,6 @@ class ROI(skrt.core.Archive):
     ):
         """Plot the ROI as a mask."""
 
-        if sl is None and idx is None and pos is None:
-            idx = self.get_mid_idx(view)
-        else:
-            idx = self.get_idx(view, sl, idx, pos)
         self.create_mask()
         mask_slice = self.get_slice(view, idx=idx, flatten=flatten)
 
@@ -3040,10 +3039,8 @@ class ROI(skrt.core.Archive):
 
     def _plot_contour(
         self,
-        view="x-y",
-        sl=None,
-        idx=None,
-        pos=None,
+        view,
+        idx,
         contour_kwargs=None,
         linewidth=None,
         centroid=False,
@@ -3058,10 +3055,6 @@ class ROI(skrt.core.Archive):
         """Plot the ROI as a contour."""
 
         self.load()
-        if sl is None and idx is None and pos is None:
-            idx = self.get_mid_idx(view)
-        else:
-            idx = self.get_idx(view, sl, idx, pos)
         if not self.on_slice(view, idx=idx):
             return
 
@@ -3092,7 +3085,7 @@ class ROI(skrt.core.Archive):
         if centroid:
             if not flatten:
                 centroid_points = self.get_centroid(
-                    view, single_slice=True, sl=sl, idx=idx, pos=pos)
+                    view, single_slice=True, idx=idx)
             else:
                 centroid_3d = self.get_centroid()
                 x_ax, y_ax = skrt.image._plot_axes[view]
@@ -3318,7 +3311,7 @@ class ROI(skrt.core.Archive):
             centre=[0, 0, 0], resample="fine", restore=True, 
             fill_value=None, force_contours=False):
         """
-        Apply three-dimensional similarity transform to roi.
+        Apply three-dimensional similarity transform to ROI.
 
         If the transform corresponds to a translation and/or rotation
         about the z-axis, and either the roi source type is "dicom"
@@ -3345,7 +3338,7 @@ class ROI(skrt.core.Archive):
         # Check whether transform is to be applied to contours
         small_number = 1.e-6
         transform_contours = False
-        if self.source_type == 'dicom' or force_contours:
+        if self.source_type == 'contour' or force_contours:
             if abs(scale - 1) < small_number:
                 if abs(rotation[0]) < small_number \
                         and abs(rotation[1]) < small_number:
@@ -3384,7 +3377,7 @@ class ROI(skrt.core.Archive):
         """
         self.create_mask()
         self.mask.crop_to_roi(roi, **kwargs)
-        self.shape = self.mask.get_data().shape
+        self.shape = self.get_mask().shape
 
 
 class StructureSet(skrt.core.Archive):
@@ -4163,6 +4156,7 @@ class StructureSet(skrt.core.Archive):
             first_roi = central
         else:
             central = self.get_rois()[0]
+
         central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                      opacity=opacity, linewidth=linewidth, show=False)
         self.fig = central.fig

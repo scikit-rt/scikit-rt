@@ -248,7 +248,8 @@ def test_plot_comparisons():
     plot_dir = "tmp/struct_plots"
     if os.path.exists(plot_dir):
         shutil.rmtree(plot_dir)
-    structure_set.plot_comparisons(outdir=plot_dir, show=False)
+    structure_set2 = StructureSet("tmp/nii_structs")
+    structure_set2.plot_comparisons(outdir=plot_dir, show=False)
     assert len(os.listdir(plot_dir)) == 2
     
 def test_write_dicom():
@@ -300,9 +301,9 @@ def test_null_roi():
     assert(roi.contours == {})
     assert(roi.custom_color is False)
     assert(roi.image is None)
-    assert(roi.input_contours is None)
+    assert(roi.input_contours == {})
     assert(roi.kwargs == {})
-    assert(roi.loaded_contours is False)
+    assert(roi.contours == {})
     assert(roi.loaded_mask is False)
     assert(roi.origin is None)
     assert(roi.original_name is None)
