@@ -1930,7 +1930,7 @@ class Image(skrt.core.Archive):
         modality=None,
         root_uid=None,
         verbose=True,
-        header_extra={},
+        header_extras={},
     ):
         """Write image data to a file. The filetype will automatically be
         set based on the extension of <outname>:
@@ -2014,7 +2014,7 @@ class Image(skrt.core.Archive):
                 patient_id,
                 modality,
                 root_uid,
-                header_extra,
+                header_extras,
                 type(self).__name__,
             )
             self.dicom_dataset = dicom_writer.write()
