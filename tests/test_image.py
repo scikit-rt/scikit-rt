@@ -175,8 +175,11 @@ def test_dcm_to_dcm():
 
     # Write to dicom
     dcm = "tmp/tmp_dcm2"
-    im_dcm.write(dcm)
+    series_description = 'Image study'
+    header_extras = {'SeriesDescription' : series_description}
+    im_dcm.write(dcm, header_extras=header_extras)
     im_dcm2 = Image(dcm)
+    assert im_dcm2.get_dicom_dataset().SeriesDescription == series_description
 
     assert im_dcm.data.shape == im_dcm2.data.shape
     assert np.all(im_dcm.affine == im_dcm2.affine)
