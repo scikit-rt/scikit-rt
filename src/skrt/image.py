@@ -2642,6 +2642,7 @@ def get_dicom_paths(path):
         dicom files are found, returns an empty list.
     """
 
+    path = skrt.core.fullpath(path)
     paths = []
 
     # Case where path points to a single file
@@ -2669,7 +2670,12 @@ def get_dicom_paths(path):
             dirname = path
         else:
             dirname = os.path.dirname(path)
-        paths = sorted([os.path.join(dirname, p) for p in os.listdir(dirname)])
+
+        for filename in sorted(os.listdir(dirname)):
+            p = os.path.join(dirname, filename)
+            ds = pydicom.dcmread(p, force=True)
+            if hasattr(ds, "SOPClassUID"):
+                paths.append(p)
 
         # Ensure user-specified file is loaded first
         if path in paths:
@@ -2904,6 +2910,10 @@ def get_dicom_voxel_size(ds):
 
     # Get slice thickness
     slice_thickness = getattr(ds, "SliceThickness", 1)
+    if not slice_thickness and hasattr(ds, 'GridFrameOffsetVector'):
+        if len(ds.GridFrameOffsetVector) > 1:
+            slice_thickness = abs(
+                    ds.GridFrameOffsetVector[1] - ds.GridFrameOffsetVector[0])
 
     return pixel_size[0], pixel_size[1], slice_thickness
 
