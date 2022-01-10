@@ -333,6 +333,7 @@ class ROI(skrt.core.Archive):
                 affine=self.affine, 
                 voxel_size=self.voxel_size, 
                 origin=self.origin, 
+                dtype=bool,
                 **self.kwargs
             )
             self.loaded = True
@@ -461,14 +462,16 @@ class ROI(skrt.core.Archive):
         except KeyError:
             return []
 
-    def get_affine(self, **kwargs):
+    def get_affine(self, force_standardise=False, **kwargs):
         """Load self and get affine matrix."""
 
         self.load()
         if self.loaded_mask:
-            return self.mask.get_affine(**kwargs)
+            return self.mask.get_affine(force_standardise=force_standardise, 
+                                        **kwargs)
         elif self.image is not None:
-            return self.image.get_affine(**kwargs)
+            return self.image.get_affine(force_standardise=force_standardise,
+                                         **kwargs)
         return self.affine
 
     def get_voxel_size(self):
@@ -2761,6 +2764,8 @@ class ROI(skrt.core.Archive):
             zoom_centre = self.get_zoom_centre(view)
         if color is None:
             color = self.color
+        else:
+            color = matplotlib.colors.to_rgba(color)
 
         # Set up axes
         self.set_ax(plot_type, include_image, view, ax, gs, figsize)
@@ -2827,8 +2832,7 @@ class ROI(skrt.core.Archive):
             )
 
         # Check whether y axis needs to be inverted
-        if not include_image and view == "x-y" \
-           and plot_type in ["contour", "centroid"] and not no_invert:
+        if view == "x-y" and self.ax.get_ylim()[1] > self.ax.get_ylim()[0]:
             self.ax.invert_yaxis()
 
         plt.tight_layout()
@@ -3976,28 +3980,17 @@ class StructureSet(skrt.core.Archive):
         # Consensus comparison
         if comp_type == "consensus":
             
-            # Get consensus calculation function
-            if consensus_type == "majority":
-                consensus_func = StructureSet.get_majority_vote
-            elif consensus_type == "sum":
-                consensus_func = StructureSet.get_sum
-            elif consensus_type == "overlap":
-                consensus_func = StructureSet.get_overlap
-            elif consensus_type == "staple":
-                consensus_func = StructureSet.get_staple
-            else:
-                raise ValueError(f"Unrecognised consensus type: {consensus_type}")
-            
             # If comparing to another StructureSet, take consensus of that 
             # entire StructureSet
             if other is not None:
-                consensus = consensus_func(other)
+                consensus = other.get_consensus(consensus_type)
                 return [(roi, consensus) for roi in self.get_rois()]
 
             # Otherwise, compare each ROI to consensus of others
             pairs = []
             for roi in self.get_rois():
-                pairs.append((roi, consensus_func(self, exclude=roi.name)))
+                pairs.append((roi, self.get_consensus(consensus_type, 
+                                                      exclude=roi.name)))
             return pairs
 
         # Set default behaviour to "all" if other is None
@@ -4115,21 +4108,31 @@ class StructureSet(skrt.core.Archive):
         save_as=None,
         legend=False,
         legend_loc="lower left",
+        consensus_type=None,
+        exclude_from_consensus=None,
         **kwargs,
     ):
-        """Plot the ROIs in this structure set."""
+        """Plot the ROIs in this structure set. 
+       
+        If consensus_type is set to any of 'majority', 'sum', 'overlap', or 'staple',
+        the conensus contour will be plotted rather than individual ROIs. If
+        'exclude_from_consensus' is set to the name of an ROI, that ROI will
+        be excluded from the consensus calculation and plotted individually.
+        """
 
         # If no sl/idx/pos given, use the slice with the most ROIs
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
 
         # Plot with image
-        roi_kwargs = {}
-        if opacity is not None:
-            roi_kwargs["opacity"] = opacity
-        if linewidth is not None:
-            roi_kwargs["linewidth"] = opacity
-        if include_image:
+        if include_image and self.image is not None:
+
+            roi_kwargs = {}
+            if opacity is not None:
+                roi_kwargs["opacity"] = opacity
+            if linewidth is not None:
+                roi_kwargs["linewidth"] = opacity
+
             self.image.plot(
                 view,
                 sl=sl, 
@@ -4147,40 +4150,76 @@ class StructureSet(skrt.core.Archive):
             )
             return
 
-        # Otherwise, plot first ROI and get axes
-        if centre_on_roi is not None:
-            central = self.get_roi(centre_on_roi)
-            idx = central.get_mid_idx(view)
-            sl = None
-            pos = None
-            first_roi = central
-        else:
-            central = self.get_rois()[0]
-
-        central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
-                     opacity=opacity, linewidth=linewidth, show=False)
-        self.fig = central.fig
-        self.ax = central.ax
-
-        # Make patches for legend
+        # Plot consensus
         roi_handles = []
-        if legend:
-            roi_handles.append(mpatches.Patch(color=central.color,
-                                              label=central.name))
+        if consensus_type is not None:
 
-        # Plot other ROIs
-        for roi in self.get_rois():
-            if roi is central:
-                continue
-            roi.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
-                     opacity=opacity, linewidth=linewidth, show=False,
-                     ax=self.ax)
+            # Plot consensus contour
+            consensus = self.get_consensus(consensus_type, 
+                                           exclude=exclude_from_consensus)
+            consensus_color = "black"
+            consensus_kwargs = {} if exclude_from_consensus is not None \
+                    else kwargs
+            consensus.plot(
+                view, sl=sl, idx=idx, pos=pos, plot_type=plot_type, 
+                color=consensus_color, linewidth=linewidth, opacity=opacity, 
+                show=False, **consensus_kwargs)
+
+            self.ax = consensus.ax
+            self.fig = consensus.fig
+
             if legend:
-                if (idx is None and pos is None and sl is None) or \
-                   roi.on_slice(view, sl=sl, idx=idx, pos=pos):
-                    roi_handles.append(mpatches.Patch(
-                        color=roi.color,
-                        label=roi.name))
+                roi_handles.append(
+                    mpatches.Patch(color=consensus_color, label=consensus.name))
+
+            # Plot excluded ROI on top
+            if exclude_from_consensus is not None:
+                excluded = self.get_roi(exclude_from_consensus)
+                excluded.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
+                              opacity=opacity, linewidth=linewidth, show=False,
+                              ax=self.ax, **kwargs)
+                if legend:
+                    roi_handles.append(
+                        mpatches.Patch(color=excluded.color, label=excluded.name))
+
+        # Otherwise, plot first ROI and get axes
+        else:
+            if centre_on_roi is not None:
+                central = self.get_roi(centre_on_roi)
+                idx = central.get_mid_idx(view)
+                sl = None
+                pos = None
+                first_roi = central
+            else:
+                central = self.get_rois()[0]
+
+            central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
+                         opacity=opacity, linewidth=linewidth, show=False)
+
+            self.fig = central.fig
+            self.ax = central.ax
+
+            if legend:
+                roi_handles.append(
+                    mpatches.Patch(color=central.color, label=central.name))
+
+            # Plot other ROIs
+            for i, roi in len(self.get_rois()):
+
+                if roi is central:
+                    continue
+
+                plot_kwargs = {} if i < len(self.rois - 1) else kwargs
+                roi.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
+                         opacity=opacity, linewidth=linewidth, show=False,
+                         ax=self.ax, **kwargs)
+
+                if legend:
+                    if (idx is None and pos is None and sl is None) or \
+                       roi.on_slice(view, sl=sl, idx=idx, pos=pos):
+                        roi_handles.append(mpatches.Patch(
+                            color=roi.color,
+                            label=roi.name))
 
         # Draw legend
         if legend and len(roi_handles):
@@ -4368,8 +4407,7 @@ class StructureSet(skrt.core.Archive):
         # Make kwargs for ROI creation
         roi_kwargs = self.roi_kwargs.copy()
         roi_kwargs.update(kwargs)
-        full_name = name if exclude is None else f"{name}_no_{exclude}"
-        roi_kwargs["name"] = full_name
+        roi_kwargs["name"] = name
         roi_kwargs["image"] = self.image
         roi_kwargs["affine"] = rois_to_include[0].get_affine(standardise=True)
 
@@ -4382,6 +4420,22 @@ class StructureSet(skrt.core.Archive):
         else:
             getattr(self, attr)[exclude] = roi
         return roi
+
+    def get_consensus(self, consensus_type, **kwargs):
+
+        # Get consensus calculation function
+        if consensus_type == "majority":
+            consensus_func = StructureSet.get_majority_vote
+        elif consensus_type == "sum":
+            consensus_func = StructureSet.get_sum
+        elif consensus_type == "overlap":
+            consensus_func = StructureSet.get_overlap
+        elif consensus_type == "staple":
+            consensus_func = StructureSet.get_staple
+        else:
+            raise ValueError(f"Unrecognised consensus type: {consensus_type}")
+
+        return consensus_func(self, **kwargs)
 
     def get_staple(self, force=False, exclude=None, **kwargs):
         """Get ROI object representing the STAPLE combination of ROIs in this 
@@ -4820,18 +4874,18 @@ def create_staple(rois, **kwargs):
 def create_majority_vote(rois, **kwargs):
     """Create majority vote ROI from list of ROIs."""
 
-    mask = rois[0].get_mask().astype(int)
+    mask = rois[0].get_mask(standardise=True).astype(int)
     for roi in rois[1:]:
-        mask += roi.get_mask()
+        mask += roi.get_mask(standardise=True)
     mask = mask >= len(rois) / 2
     return ROI(mask, **kwargs)
 
 def create_roi_sum(rois, **kwargs):
     """Create ROI from sum of list of ROIs."""
 
-    mask = rois[0].get_mask().copy()
+    mask = rois[0].get_mask(standardise=True).copy()
     for roi in rois[1:]:
-        mask += roi.get_mask()
+        mask += roi.get_mask(standardise=True)
     return ROI(mask, **kwargs)
 
 def create_roi_overlap(rois, **kwargs):
@@ -4839,5 +4893,5 @@ def create_roi_overlap(rois, **kwargs):
 
     mask = rois[0].get_mask().copy()
     for roi in rois[1:]:
-        mask *= roi.get_mask()
+        mask *= roi.get_mask(standardise=True)
     return ROI(mask, **kwargs)

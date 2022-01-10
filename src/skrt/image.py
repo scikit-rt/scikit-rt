@@ -54,6 +54,7 @@ class Image(skrt.core.Archive):
         origin=(0, 0, 0),
         nifti_array=False,
         downsample=None,
+        dtype=None
     ):
         """
         Initialise from a medical image source.
@@ -101,6 +102,9 @@ class Image(skrt.core.Archive):
             Amount by which to downsample the image. Can be a single value for
             all axes, or a list containing downsampling amounts in order
             (x, y, z).
+
+        dtype : type, default=None
+            Type to which loaded data should be cast.
         """
 
         # Clone from another Image object
@@ -123,6 +127,7 @@ class Image(skrt.core.Archive):
         self.nifti_array = nifti_array
         self.structure_sets = []
         self.doses = []
+        self._custom_dtype = dtype
 
         # Default image plotting settings
         self._default_colorbar_label = "HU"
@@ -232,7 +237,7 @@ class Image(skrt.core.Archive):
         self.load()
         return self.n_voxels
 
-    def get_affine(self, standardise=False):
+    def get_affine(self, standardise=False, force_standardise=True):
         """Return affine matrix.
 
         **Parameters:**
@@ -248,7 +253,7 @@ class Image(skrt.core.Archive):
         if not standardise:
             return self.affine
         else:
-            return self.get_standardised_affine(force=True)
+            return self.get_standardised_affine(force=force_standardise)
 
     def get_structure_sets(self):
         """Return list of StructureSet objects associated with this Image."""
@@ -385,6 +390,10 @@ class Image(skrt.core.Archive):
         # If still None, raise exception
         if self.data is None:
             raise RuntimeError(f"{self.source} not a valid image source!")
+
+        # Cast to custom type
+        if self._custom_dtype is not None:
+            self.data = self.data.astype(self._custom_dtype)
 
         # Ensure array is 3D
         if self.data.ndim == 2:
