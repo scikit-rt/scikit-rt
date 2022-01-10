@@ -683,3 +683,11 @@ def test_crop_to_roi():
     im.crop_to_roi(roi)
     for i in range(2):
         assert set(roi.get_extents()[i]) == set(im.image_extent[i])
+
+def test_dicom_dicom_slice():
+    shape_single = (shape[0], shape[1], 1)
+    im = create_test_image(shape_single, voxel_size, origin)
+    dcm_file = "tmp/single_dcm"
+    im.write(dcm_file)
+    im_dcm = Image(f'{dcm_file}/1.dcm')
+    assert im_dcm.get_data().shape == shape_single
