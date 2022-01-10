@@ -112,19 +112,21 @@
 <li><p>skrt.image.Image;</p></li>
 <li><p>skrt.dose.Dose.</p></li>
 </ul>
-<p>** Methods:**
-- <strong>_Init__()</strong> : Create instance of DicomWriter class.
-- <strong>add_to_image_dataset()</strong> : Add to dataset image-specific information.
-- <strong>create_file_dataset()</strong> : Create new pydicom.dataset.FileDataset object.
-- <strong>get_file_dataset()</strong> : Retrive pydicom.dataset.FileDataset from source.
-- <strong>get_media_storage_sop_class_uid()</strong> : Determine uid given modality.
-- <strong>initialise_outdir()</strong> : Initialis directory for writing output.
-- <strong>set_data_and_time()</strong> : Set current date and time.
-- <strong>set_geometry_and_scaling()</strong> : Add geometry and scaling to dataset.
-- <strong>set_image()</strong> : Add to dataset information for full (3d) image.
-- <strong>set_image_slice()</strong> : Add to dataset information for (2d) image slice.
-- <strong>update_dataset()</strong> : Make arbitrary updates to dataset.
-- <strong>write()</strong> : Write data in DICOM format.</p>
+<p>** Methods:**</p>
+<ul class="simple">
+<li><p><strong>_Init__()</strong> : Create instance of DicomWriter class.</p></li>
+<li><p><strong>add_to_image_dataset()</strong> : Add to dataset image-specific information.</p></li>
+<li><p><strong>create_file_dataset()</strong> : Create new pydicom.dataset.FileDataset object.</p></li>
+<li><p><strong>get_file_dataset()</strong> : Retrive pydicom.dataset.FileDataset from source.</p></li>
+<li><p><strong>get_media_storage_sop_class_uid()</strong> : Determine uid given modality.</p></li>
+<li><p><strong>initialise_outdir()</strong> : Initialis directory for writing output.</p></li>
+<li><p><strong>set_data_and_time()</strong> : Set current date and time.</p></li>
+<li><p><strong>set_geometry_and_scaling()</strong> : Add geometry and scaling to dataset.</p></li>
+<li><p><strong>set_image()</strong> : Add to dataset information for full (3d) image.</p></li>
+<li><p><strong>set_image_slice()</strong> : Add to dataset information for (2d) image slice.</p></li>
+<li><p><strong>update_dataset()</strong> : Make arbitrary updates to dataset.</p></li>
+<li><p><strong>write()</strong> : Write data in DICOM format.</p></li>
+</ul>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extras</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.__init__" title="Permalink to this definition"></a></dt>
