@@ -1,5 +1,8 @@
 """Test functionality of the Dose class."""
 
+from pathlib import Path
+import pytest
+
 import numpy as np
 
 from skrt import Dose, Image
@@ -8,6 +11,10 @@ from skrt import Dose, Image
 im_array = np.random.rand(100, 150, 30)
 dose_array = np.random.rand(100, 150, 30)
 
+# Make temporary test dir
+tmp_path = Path('tmp')
+if not tmp_path.exists():
+    tmp_path.mkdir()
 
 def test_create_dose_from_array():
     dose = Dose(dose_array)
@@ -52,3 +59,27 @@ def test_view_from_image():
     dose = Dose(dose_array)
     bv = im.view(dose=dose, show=False)
     assert bv.viewers[0].dose == dose
+
+def test_array_to_dcm():
+    dose = Dose(dose_array)
+    dcm_dir = str(tmp_path / 'dose_dcm')
+    dose.write(dcm_dir, modality='RTDOSE')
+    dose_dcm = Dose(dcm_dir)
+    assert dose.data.shape == dose_dcm.data.shape
+    assert np.all(dose.affine == dose_dcm.affine)
+    assert np.abs(dose.get_data() - dose_dcm.get_data()).max() < 0.005
+
+def test_dcm_to_dcm():
+    dose = Dose(dose_array)
+    dcm1_dir = str(tmp_path / 'dose_dcm1')
+    dose.write(dcm1_dir, modality='RTDOSE')
+    dose_dcm1 = Dose(dcm1_dir)
+    dcm2_dir = str(tmp_path / 'dose_dcm2')
+    series_description = 'Dose study'
+    header_extras = {'SeriesDescription' : series_description}
+    dose_dcm1.write(dcm2_dir, modality='RTDOSE', header_extras=header_extras)
+    dose_dcm2 = Dose(dcm2_dir)
+    assert dose_dcm1.data.shape == dose_dcm2.data.shape
+    assert np.all(dose_dcm1.affine == dose_dcm2.affine)
+    assert np.abs(dose_dcm1.get_data() - dose_dcm2.get_data()).max() < 0.005
+    assert dose_dcm2.get_dicom_dataset().SeriesDescription == series_description
