@@ -407,8 +407,8 @@ class Image(skrt.core.Archive):
 
         # Set default grayscale range
         if window_width and window_centre:
-            self._default_vmin = window_centre - window_width / 2,
-            self._default_vmax = window_centre + window_width / 2,
+            self._default_vmin = window_centre - window_width / 2
+            self._default_vmax = window_centre + window_width / 2
         else:
             self._default_vmin = -300
             self._default_vmax = 200
