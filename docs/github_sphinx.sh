@@ -23,9 +23,15 @@
 
 cd docs
 
-env
-ls /opt/hostedtoolcache/Python/3.8.12/x64
-pwd
+# Upgrade pip
+pip install --upgrade pip
+
+# Workaround for having SimpleITK installation with Python 3.10
+pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
+
+# Install scikit-rt and voxtox
+pip install -e ..
+pip install -e ../examples/voxtox
 
 # Delete package rst files, and recreate
 EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
