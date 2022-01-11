@@ -23,13 +23,6 @@
 
 cd docs
 
-# Upgrade pip
-pip install --upgrade pip
-
-# Install scikit-rt and voxtox
-pip install -e ..
-pip install -e ../examples/voxtox
-
 # Delete package rst files, and recreate
 EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
 rm -f source/skrt*.rst
