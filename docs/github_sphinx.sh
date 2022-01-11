@@ -23,6 +23,10 @@
 
 cd docs
 
+env
+ls /opt/hostedtoolcache/Python/3.8.12/x64
+pwd
+
 # Delete package rst files, and recreate
 EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
 rm -f source/skrt*.rst
