@@ -115,7 +115,8 @@
 <p><strong>Methods:</strong></p>
 <ul class="simple">
 <li><p><strong>_Init__()</strong> : Create instance of DicomWriter class.</p></li>
-<li><p><strong>add_to_image_dataset()</strong> : Add to dataset image-specific information.</p></li>
+<li><p><strong>add_to_image_dataset()</strong> : Add to dataset image information.</p></li>
+<li><p><strong>add_to_struct_dataset()</strong> : Add to dataset structure-set information.</p></li>
 <li><p><strong>create_file_dataset()</strong> : Create new pydicom.dataset.FileDataset object.</p></li>
 <li><p><strong>get_file_dataset()</strong> : Retrive pydicom.dataset.FileDataset from source.</p></li>
 <li><p><strong>get_media_storage_sop_class_uid()</strong> : Determine uid given modality.</p></li>
@@ -124,6 +125,7 @@
 <li><p><strong>set_geometry_and_scaling()</strong> : Add geometry and scaling to dataset.</p></li>
 <li><p><strong>set_image()</strong> : Add to dataset information for full (3d) image.</p></li>
 <li><p><strong>set_image_slice()</strong> : Add to dataset information for (2d) image slice.</p></li>
+<li><p><strong>set_structure_set()</strong> : Add to dataset information for structure set.</p></li>
 <li><p><strong>update_dataset()</strong> : Make arbitrary updates to dataset.</p></li>
 <li><p><strong>write()</strong> : Write data in DICOM format.</p></li>
 </ul>
@@ -196,6 +198,17 @@ source_type for which relevant behaviour is implemented are:</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.add_to_struct_dataset">
+<span class="sig-name descname"><span class="pre">add_to_struct_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_to_struct_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Add structure-set-specfic information to pydicom.dataset.FileDataset.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>ds<span class="classifier">pydicom.dataset.FileDataset</span></dt><dd><p>FileDataset to which data are to be added.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.create_file_dataset">
 <span class="sig-name descname"><span class="pre">create_file_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.create_file_dataset" title="Permalink to this definition"></a></dt>
 <dd><p>Create new pydicom.dataset.FileDataset object.</p>
@@ -250,6 +263,15 @@ If the output directory contains DICOM files, these are deleted.</p>
 <dt>idx<span class="classifier">int, default=0</span></dt><dd><p>Slice array index.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_structure_set">
+<span class="sig-name descname"><span class="pre">set_structure_set</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_structure_set" title="Permalink to this definition"></a></dt>
+<dd><p>Add to dataset information for structure set.</p>
+<p>The contour data saved is all that’s needed for Scikit-rt.
+Several DICOM sequences are left empty, or partially populated,
+which outside of Scikit-rt may sometimes cause problems.</p>
 </dd></dl>
 
 <dl class="py method">
