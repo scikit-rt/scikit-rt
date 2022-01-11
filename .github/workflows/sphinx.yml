@@ -6,25 +6,25 @@ jobs:
   sphinx_build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.8
-    - name: Build HTML
-      uses: ammaraskar/sphinx-action@0.4
-      with:
-        pre-build-command: '`pwd`/docs/github_sphinx.sh'
-        build-command: 'make html'
-        docs-folder: 'docs/'
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: html-docs
-        path: docs/build/html/
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: docs/build/html
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Build HTML
+        uses: ammaraskar/sphinx-action@0.4
+        with:
+          pre-build-command: '`pwd`/docs/github_sphinx.sh'
+          build-command: 'make html'
+          docs-folder: 'docs/'
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: html-docs
+          path: docs/build/html/
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build/html
