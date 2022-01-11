@@ -342,7 +342,7 @@ def test_resize_and_match_size():
         assert image1.origin == image2.origin
         image_diff = np.absolute(image1.data - image2.data)
         assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
-                0.5 * image_diff.size, rel=0.01)
+                0.5 * image_diff.size, rel=0.02)
 
 def test_clone():
     """Test cloning an image."""
