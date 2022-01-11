@@ -14,7 +14,7 @@ import random
 import numpy as np
 import pydicom
 from pydicom import uid
-from pydicom.dataset import FileDataset, FileMetaDataset
+from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
 from pydicom.sequence import Sequence
 from pydicom.uid import generate_uid
 import pydicom._storage_sopclass_uids as sop
@@ -183,10 +183,12 @@ class DicomWriter:
         ds : pydicom.dataset.FileDataset
             FileDataset to which data are to be added.
         '''
-        ds.OperatorName = None
+        ds.OperatorsName = None
         ds.StructureSetDate = self.date
         ds.StructureSetLabel = ''
         ds.StructureSetTime = self.time
+
+        return ds
 
     def create_file_dataset(self):
         '''
@@ -252,7 +254,7 @@ class DicomWriter:
         if self.source_type in ['Dose', 'Image']:
             ds = self.add_to_image_dataset(ds)
         elif self.source_type == 'StructureSet':
-            ds = self.add_to_structure_set_dataset(ds)
+            ds = self.add_to_struct_dataset(ds)
 
         return ds
 
@@ -420,16 +422,16 @@ class DicomWriter:
         which outside of Scikit-rt may sometimes cause problems.
         '''
         # Initialise sequences.
-        self.ds.ReferencedFrameofReferenceSequence = Sequence()
+        self.ds.ReferencedFrameOfReferenceSequence = Sequence()
         self.ds.StructureSetROISequence = Sequence()
         self.ds.RTROIObservationsSequence = Sequence()
         self.ds.ROIContourSequence = Sequence()
 
-        roi_dict = self.data.get_roi_dict()
-        numbers = [roi.number for roi in roi_dict if roi.number is not None]
+        rois = self.data.get_rois()
+        numbers = [roi.number for roi in rois if roi.number is not None]
         index = max(numbers or [0])
 
-        for name, roi in sorted(self.get_rois().items()):
+        for name, roi in sorted(self.data.get_roi_dict().items()):
             if roi.number is not None:
                 number = roi.number
             else:
@@ -440,7 +442,7 @@ class DicomWriter:
             structure_set_roi.ROINumber = number
             structure_set_roi.ROIName = name
             structure_set_roi.ReferencedFrameOfReferenceUID = None
-            structure_set_roi.ROIGenerationAlgoirthm = None
+            structure_set_roi.ROIGenerationAlgorithm = None
             self.ds.StructureSetROISequence.append(structure_set_roi)
 
             rt_roi_observation = Dataset()
@@ -449,10 +451,12 @@ class DicomWriter:
             rt_roi_observation.ROIObservationLabel = name
             rt_roi_observation.RTROIInterpretedType = None
             rt_roi_observation.ROIInterpreter = None
-            self.ds.RTROIObservationSequence.append(rt_roi_observation)
+            self.ds.RTROIObservationsSequence.append(rt_roi_observation)
 
             roi_contour = Dataset()
-            roi_contour.ROIDisplayColor = list(map(str, roi.color))
+#            roi_contour.ROIDisplayColor = list(map(str, roi.color))
+            roi_contour.ROIDisplayColor = [f'{255 * rgb}'
+                    for rgb in roi.color[0 : 3]]
             roi_contour.ReferencedROINumber = number
             roi_contour.ContourSequence = Sequence()
 

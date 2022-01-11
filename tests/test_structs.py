@@ -253,7 +253,11 @@ def test_plot_comparisons():
     assert len(os.listdir(plot_dir)) == 2
     
 def test_write_dicom():
-    pass
+    dcm_dir = "tmp/dcm_structs"
+    if os.path.exists(dcm_dir):
+        shutil.rmtree(dcm_dir)
+    structure_set.write(outdir="tmp/dcm_structs", ext='dcm')
+    assert len(os.listdir(dcm_dir)) == 1
 
 def test_dicom_dataset():
     pass
