@@ -23,8 +23,8 @@
 
 cd docs
 
-# Install scikit-build (needed on some platforms for install of SimpleITK)
-pip install scikit-build
+# Upgrade pip
+pip install --upgrade pip
 
 # Install scikit-rt and voxtox
 pip install -e ..
