@@ -15,6 +15,7 @@ import numpy as np
 import pydicom
 from pydicom import uid
 from pydicom.dataset import FileDataset, FileMetaDataset
+from pydicom.sequence import Sequence
 from pydicom.uid import generate_uid
 import pydicom._storage_sopclass_uids as sop
 
@@ -32,7 +33,8 @@ class DicomWriter:
     **Methods:**
 
     - **_Init__()** : Create instance of DicomWriter class.
-    - **add_to_image_dataset()** : Add to dataset image-specific information.
+    - **add_to_image_dataset()** : Add to dataset image information.
+    - **add_to_struct_dataset()** : Add to dataset structure-set information.
     - **create_file_dataset()** : Create new pydicom.dataset.FileDataset object.
     - **get_file_dataset()** : Retrive pydicom.dataset.FileDataset from source.
     - **get_media_storage_sop_class_uid()** : Determine uid given modality.
@@ -41,6 +43,7 @@ class DicomWriter:
     - **set_geometry_and_scaling()** : Add geometry and scaling to dataset.
     - **set_image()** : Add to dataset information for full (3d) image.
     - **set_image_slice()** : Add to dataset information for (2d) image slice.
+    - **set_structure_set()** : Add to dataset information for structure set.
     - **update_dataset()** : Make arbitrary updates to dataset.
     - **write()** : Write data in DICOM format.
     '''
@@ -160,8 +163,6 @@ class DicomWriter:
         ds.BitsStored = 16
         ds.HighBit = 15
         ds.ImageType = ['ORIGINAL', 'PRIMARY', 'AXIAL']
-        ds.InstanceCreationDate = self.date
-        ds.InstanceCreationTime = self.time
         ds.InstanceNumber = None
         ds.KVP = None
         ds.PhotometricInterpretation = 'MONOCHROME2'
@@ -172,6 +173,20 @@ class DicomWriter:
         ds.FrameOfReferenceUID = f'{ds.SeriesInstanceUID}.1.1'
 
         return ds
+
+    def add_to_struct_dataset(self, ds):
+        '''
+        Add structure-set-specfic information to pydicom.dataset.FileDataset.
+
+        **Parameters:**
+
+        ds : pydicom.dataset.FileDataset
+            FileDataset to which data are to be added.
+        '''
+        ds.OperatorName = None
+        ds.StructureSetDate = self.date
+        ds.StructureSetLabel = ''
+        ds.StructureSetTime = self.time
 
     def create_file_dataset(self):
         '''
@@ -206,6 +221,8 @@ class DicomWriter:
         ds.ContentDate = self.date
         ds.ContentTime = self.time
         ds.DerivationDescription = None
+        ds.InstanceCreationDate = self.date
+        ds.InstanceCreationTime = self.time
         ds.InstitutionName = None
         ds.Manufacturer = None
         ds.ManufacturerModelName = None
@@ -222,7 +239,7 @@ class DicomWriter:
         ds.SeriesInstanceUID = generate_uid(self.root_uid)
         ds.SeriesNumber = None
         ds.SeriesTime = self.time
-        ds.SoftwareVersions = None
+        ds.SoftwareVersions = f'pydicom-{version}'
         ds.SOPClassUID = file_meta.MediaStorageSOPClassUID
         ds.SOPInstanceUID = file_meta.MediaStorageSOPInstanceUID
         ds.StationName = None
@@ -234,6 +251,8 @@ class DicomWriter:
 
         if self.source_type in ['Dose', 'Image']:
             ds = self.add_to_image_dataset(ds)
+        elif self.source_type == 'StructureSet':
+            ds = self.add_to_structure_set_dataset(ds)
 
         return ds
 
@@ -392,6 +411,71 @@ class DicomWriter:
         self.ds.file_meta.MediaStorageSOPInstanceUID = (
                 f'{self.mediaStorageSOPInstanceUID}.{sl}')
 
+    def set_structure_set(self):
+        '''
+        Add to dataset information for structure set.
+
+        The contour data saved is all that's needed for Scikit-rt.
+        Several DICOM sequences are left empty, or partially populated,
+        which outside of Scikit-rt may sometimes cause problems.
+        '''
+        # Initialise sequences.
+        self.ds.ReferencedFrameofReferenceSequence = Sequence()
+        self.ds.StructureSetROISequence = Sequence()
+        self.ds.RTROIObservationsSequence = Sequence()
+        self.ds.ROIContourSequence = Sequence()
+
+        roi_dict = self.data.get_roi_dict()
+        numbers = [roi.number for roi in roi_dict if roi.number is not None]
+        index = max(numbers or [0])
+
+        for name, roi in sorted(self.get_rois().items()):
+            if roi.number is not None:
+                number = roi.number
+            else:
+                index += 1
+                number = index
+
+            structure_set_roi = Dataset()
+            structure_set_roi.ROINumber = number
+            structure_set_roi.ROIName = name
+            structure_set_roi.ReferencedFrameOfReferenceUID = None
+            structure_set_roi.ROIGenerationAlgoirthm = None
+            self.ds.StructureSetROISequence.append(structure_set_roi)
+
+            rt_roi_observation = Dataset()
+            rt_roi_observation.ObservationNumber = number
+            rt_roi_observation.ReferencedROINumber = number
+            rt_roi_observation.ROIObservationLabel = name
+            rt_roi_observation.RTROIInterpretedType = None
+            rt_roi_observation.ROIInterpreter = None
+            self.ds.RTROIObservationSequence.append(rt_roi_observation)
+
+            roi_contour = Dataset()
+            roi_contour.ROIDisplayColor = list(map(str, roi.color))
+            roi_contour.ReferencedROINumber = number
+            roi_contour.ContourSequence = Sequence()
+
+            for z_point, contours in sorted(roi.get_contours().items()):
+                for xy_points in contours:
+                    xyz_points = [[x_point, y_point, z_point]
+                            for x_point, y_point in xy_points]
+
+                    contour = Dataset()
+                    contour.ContourGeometricType = 'CLOSED_PLANAR'
+                    contour_data = [item for sublist in xyz_points
+                            for item in sublist]
+                    contour.ContourData = list(map(str, contour_data))
+                    contour.NumberOfContourPoints = len(xyz_points)
+                    contour.ContourImageSequence = Sequence()
+                    contour_image = Dataset()
+                    contour_image.ReferencedSOPClassUID = None
+                    contour_image.ReferencedSOPInstanceUID = None
+                    contour.ContourImageSequence.append(contour_image)
+                    roi_contour.ContourSequence.append(contour)
+
+            self.ds.ROIContourSequence.append(roi_contour)
+
     def update_dataset(self):
         '''
         Make arbitary updates to dataset, based on self.header_extras.
@@ -410,7 +494,18 @@ class DicomWriter:
         
 
         # Write image as single slice per file.
-        if self.source_type == 'Image':
+        # Write dose as single file for all slices.
+        if self.source_type == 'Dose':
+            # Obtain rescale parameters.
+            slope = getattr(self.ds, 'DoseGridScaling', 1)
+            intercept = getattr(self.ds, 'RescaleIntercept', 0)
+            # Write single file.
+            self.set_image()
+            outname = f'{self.ds.Modality}_{self.date}_{self.time}.dcm'
+            outpath = self.outdir / outname
+            self.ds.save_as(outpath)
+
+        elif self.source_type == 'Image':
             # Obtain rescale parameters.
             slope = getattr(self.ds, 'RescaleSlope', 1)
             intercept = getattr(self.ds, 'RescaleIntercept', 0)
@@ -421,13 +516,8 @@ class DicomWriter:
                 outpath = self.outdir / outname
                 self.ds.save_as(outpath)
 
-        # Write dose as single file for all slices.
-        elif self.source_type == 'Dose':
-            # Obtain rescale parameters.
-            slope = getattr(self.ds, 'DoseGridScaling', 1)
-            intercept = getattr(self.ds, 'RescaleIntercept', 0)
-            # Write single file.
-            self.set_image()
+        elif self.source_type == 'StructureSet':
+            self.set_structure_set()
             outname = f'{self.ds.Modality}_{self.date}_{self.time}.dcm'
             outpath = self.outdir / outname
             self.ds.save_as(outpath)
