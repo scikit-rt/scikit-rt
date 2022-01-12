@@ -10,4 +10,4 @@ WORKDIR "${HOME}/workdir"
 
 LABEL "org.opencontainers.image.description"="Toolkit for radiotherapy image analysis"
 LABEL "org.opencontainers.image.documentation"="https://scikit-rt.github.io/scikit-rt/"
-
+LABEL "org.opencontainers.image.source"="https://github.com/scikit-rt/scikit-rt"
