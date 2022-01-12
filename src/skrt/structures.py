@@ -3317,7 +3317,7 @@ class ROI(skrt.core.Archive):
                 structure_set = StructureSet(header_source)
             else:
                 structure_set = StructureSet()
-                structure_set.add_roi(self)
+            structure_set.add_roi(self)
             structure_set.write(outdir=outdir, ext=ext, overwrite=overwrite,
                     header_source=header_source, patient_id=patient_id,
                     root_uid=root_uid, verbose=verbose,
