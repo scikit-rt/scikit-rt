@@ -4100,6 +4100,7 @@ class StructureSet(skrt.core.Archive):
         sl=None,
         idx=None,
         pos=None,
+        ax=None,
         opacity=None,
         linewidth=None,
         include_image=False,
@@ -4110,6 +4111,8 @@ class StructureSet(skrt.core.Archive):
         legend_loc="lower left",
         consensus_type=None,
         exclude_from_consensus=None,
+        consensus_color="black",
+        consensus_linewidth=None,
         **kwargs,
     ):
         """Plot the ROIs in this structure set. 
@@ -4146,6 +4149,9 @@ class StructureSet(skrt.core.Archive):
                 save_as=save_as,
                 legend=legend,
                 legend_loc=legend_loc,
+                consensus_type=consensus_type,
+                exclude_from_consensus=exclude_from_consensus,
+                ax=ax,
                 **kwargs
             )
             return
@@ -4157,13 +4163,14 @@ class StructureSet(skrt.core.Archive):
             # Plot consensus contour
             consensus = self.get_consensus(consensus_type, 
                                            exclude=exclude_from_consensus)
-            consensus_color = "black"
             consensus_kwargs = {} if exclude_from_consensus is not None \
                     else kwargs
+            if consensus_linewidth is None:
+                consensus_linewidth = defaultParams["lines.linewidth"][0] + 1
             consensus.plot(
                 view, sl=sl, idx=idx, pos=pos, plot_type=plot_type, 
-                color=consensus_color, linewidth=linewidth, opacity=opacity, 
-                show=False, **consensus_kwargs)
+                color=consensus_color, linewidth=consensus_linewidth, 
+                opacity=opacity, show=False, ax=ax, **consensus_kwargs)
 
             self.ax = consensus.ax
             self.fig = consensus.fig
@@ -4194,7 +4201,8 @@ class StructureSet(skrt.core.Archive):
                 central = self.get_rois()[0]
 
             central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
-                         opacity=opacity, linewidth=linewidth, show=False)
+                         opacity=opacity, linewidth=linewidth, show=False,
+                         ax=ax)
 
             self.fig = central.fig
             self.ax = central.ax

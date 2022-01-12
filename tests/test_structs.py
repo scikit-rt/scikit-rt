@@ -239,6 +239,14 @@ def test_compare_with_other_consensus():
     assert pairs[0][1] == structure_set2.get_sum()
     assert pairs[1][1] == structure_set2.get_sum()
 
+def test_plot_consensus():
+    to_exclude = structure_set.get_rois()[-1].name
+    for include_image in [True, False]:
+        structure_set.plot(consensus_type="overlap", 
+                           exclude_from_consensus=to_exclude,
+                           show=False,
+                           include_image=include_image)
+
 def test_get_comparison():
     comp = structure_set.get_comparison()
     assert isinstance(comp, pd.DataFrame)

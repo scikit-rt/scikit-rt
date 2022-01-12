@@ -258,10 +258,7 @@ class Image(skrt.core.Archive):
     def get_structure_sets(self):
         """Return list of StructureSet objects associated with this Image."""
 
-        im = self.get_image()
-        ss = self.structure_sets[-1] 
-        ss.set_image(im)
-        return ss
+        return self.structure_sets
 
     def get_doses(self):
         """Return list of Dose objects associated with this Image."""
@@ -1296,6 +1293,8 @@ class Image(skrt.core.Archive):
         roi_plot_type="contour",
         consensus_type=None,
         exclude_from_consensus=None,
+        consensus_color="white",
+        consensus_linewidth=None,
         legend=False,
         roi_kwargs=None,
         centre_on_roi=None,
@@ -1423,6 +1422,14 @@ class Image(skrt.core.Archive):
             consensus type, this ROI will be excluded from the consensus 
             calculation and plotted separately on top of the consensus ROI.
 
+        consensus_color : matplotlib color, default="white"
+            Color in which to plot consensus contour.
+
+        consensus_linewidth : float, default=None
+            Linewidth of consensus contour. If None, the default matplotlib
+            linewidth + 1 will be used (such that consensus contours are 
+            thicker than standard contours).
+
         legend : bool, default=False
             If True, a legend will be drawn containing ROI names.
 
@@ -1472,6 +1479,8 @@ class Image(skrt.core.Archive):
             roi_input = []
         elif isinstance(rois, str) and rois == "all":
             roi_input = self.structure_sets
+        elif isinstance(rois, int):
+            roi_input = [self.structure_sets[rois]]
         elif not skrt.core.is_list(rois):
             roi_input = [rois]
         else:
@@ -1494,9 +1503,10 @@ class Image(skrt.core.Archive):
                     except IndexError:
                         raise IndexError(f"Index {roi} not found in Image.structure_sets!")
         else:
-            if not isinstance(roi_input, StructureSet):
+            if len(roi_input) != 1 \
+               or type(roi_input[0]).__name__ != "StructureSet":
                 raise TypeError("Consensus plots require a single StructureSet.")
-            rois_to_plot = roi_input.get_rois()
+            rois_to_plot = roi_input[0].get_rois()
 
         # If centering on an ROI, find index of its central slice
         roi_names = [roi.name for roi in rois_to_plot]
@@ -1580,7 +1590,7 @@ class Image(skrt.core.Archive):
 
         # Consensus plot
         else:
-            roi_input.plot(
+            roi_input[0].plot(
                 view,
                 pos=pos,
                 ax=self.ax,
@@ -1591,6 +1601,8 @@ class Image(skrt.core.Archive):
                 consensus_type=consensus_type,
                 exclude_from_consensus=exclude_from_consensus,
                 legend=legend,
+                consensus_color=consensus_color,
+                consensus_linewidth=consensus_linewidth,
                 **roi_kwargs
             )
 

@@ -116,6 +116,7 @@ class SyntheticImage(Image):
         self._image = Image(self)
         self._structure_set = StructureSet(list(self.rois.values()),
                                           image=self._image)
+        self.structure_sets = [self._structure_set]
 
     def get_image(self):
         """Get self as an Image object."""
