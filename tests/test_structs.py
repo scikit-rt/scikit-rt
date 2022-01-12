@@ -260,7 +260,38 @@ def test_plot_comparisons():
     structure_set2.plot_comparisons(outdir=plot_dir, show=False)
     assert len(os.listdir(plot_dir)) == 2
     
+def compare_rois(roi0, roi1):
+    '''Compare two rois.'''
+
+    # Check basic characteristics
+    assert roi0 is not roi1
+    assert roi0.color == roi1.color
+    assert roi0.get_centroid().all() == roi1.get_centroid().all()
+
+    # Check number of planes.
+    roi0_keys = list(roi0.get_contours().keys())
+    roi1_keys = list(roi1.get_contours().keys())
+    assert len(roi0_keys) == len(roi1_keys)
+
+    roi0_keys.sort()
+    roi1_keys.sort()
+
+    for i in range(len(roi0_keys)):
+
+        # Check plane z-coordinates.
+        assert roi0_keys[i] == roi1_keys[i]
+
+        # Check number of contours in plane.
+        contours0 = roi0.get_contours()[roi0_keys[i]]
+        contours1 = roi1.get_contours()[roi1_keys[i]]
+        assert len(contours0) == len(contours1)
+
+        # Check contour points.
+        for j in range(len(contours0)):
+            assert contours0[j].all() == contours1[j].all()
+
 def test_write_dicom():
+    '''Test writing of structure set to dicom.'''
     dcm_dir = "tmp/dcm_structs"
     if os.path.exists(dcm_dir):
         shutil.rmtree(dcm_dir)
@@ -268,6 +299,7 @@ def test_write_dicom():
     assert len(os.listdir(dcm_dir)) == 1
 
 def test_dicom_dataset():
+    '''Check that structure set written to dicom matches original.'''
     dcm_dir = "tmp/dcm_structs1"
     if os.path.exists(dcm_dir):
         shutil.rmtree(dcm_dir)
@@ -281,32 +313,55 @@ def test_dicom_dataset():
     for name in structure_set.get_roi_names():
         roi0 = structure_set.get_roi(name)
         roi1 = structure_set_dcm.get_roi(name)
+        compare_rois(roi0, roi1)
 
-        assert roi0 is not roi1
-        assert roi0.color == roi1.color
-        assert roi0.get_centroid().all() == roi1.get_centroid().all()
+def test_write_roi_to_dicom():
+    '''Check that individual rois written to dicom match originals.'''
+    dcm_dir = "tmp/dcm_structs2"
+    if os.path.exists(dcm_dir):
+        shutil.rmtree(dcm_dir)
+    rois = list(structure_set.get_rois())
+    assert len(rois) == 2
 
-        # Check number of planes.
-        roi0_keys = list(roi0.get_contours().keys())
-        roi1_keys = list(roi1.get_contours().keys())
-        assert len(roi0_keys) == len(roi1_keys)
+    for i in range(len(rois)):
+        rois[i].write(outdir=dcm_dir, ext='dcm', overwrite=True)
+        assert len(os.listdir(dcm_dir)) == 1
 
-        roi0_keys.sort()
-        roi1_keys.sort()
+        structure_set_dcm = StructureSet(dcm_dir)
+        rois_dcm = list(structure_set_dcm.get_rois())
 
-        for i in range(len(roi0_keys)):
+        assert len(rois_dcm) == 1
+        assert [rois[i]] == rois_dcm
 
-            # Check plane z-coordinates.
-            assert roi0_keys[i] == roi1_keys[i]
+        compare_rois(rois[i], rois_dcm[0])
 
-            # Check number of contours in plane.
-            contours0 = roi0.get_contours()[roi0_keys[i]]
-            contours1 = roi1.get_contours()[roi1_keys[i]]
-            assert len(contours0) == len(contours1)
+def test_write_roi_with_source_to_dicom():
+    '''Check that adding rois to dicom file gives original structure set.'''
+    dcm_dir = "tmp/dcm_structs3"
+    if os.path.exists(dcm_dir):
+        shutil.rmtree(dcm_dir)
+    rois = list(structure_set.get_rois())
+    assert len(rois) == 2
 
-            # Check contour points.
-            for j in range(len(contours0)):
-                assert contours0[j].all() == contours1[j].all()
+    rois[0].write(outdir=dcm_dir, ext='dcm', overwrite=True)
+    assert len(os.listdir(dcm_dir)) == 1
+    rois[1].write(outdir=dcm_dir, ext='dcm', header_source=dcm_dir,
+            overwrite=False)
+    filenames = os.listdir(dcm_dir)
+    filenames.sort()
+    assert len(filenames) == 2
+
+    dcm_path = os.path.join(dcm_dir, filenames[-1])
+    structure_set_dcm = StructureSet(dcm_path)
+    rois_dcm = list(structure_set_dcm.get_rois())
+
+    assert len(rois_dcm) == 2
+    assert rois == rois_dcm
+
+    for name in structure_set.get_roi_names():
+        roi0 = structure_set.get_roi(name)
+        roi1 = structure_set_dcm.get_roi(name)
+        compare_rois(roi0, roi1)
 
 def test_init_from_roi():
     sphere1 = structure_set.get_roi("sphere")
