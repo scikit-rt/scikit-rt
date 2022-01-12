@@ -4088,7 +4088,7 @@ class StructureSet(skrt.core.Archive):
                 header_source=header_source,
                 orientation=None,
                 patient_id=patient_id,
-                modality=modality,
+                modality='RTSTRUCT',
                 root_uid=root_uid,
                 header_extras=header_extras,
                 source_type=type(self).__name__,

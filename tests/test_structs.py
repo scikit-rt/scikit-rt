@@ -256,11 +256,49 @@ def test_write_dicom():
     dcm_dir = "tmp/dcm_structs"
     if os.path.exists(dcm_dir):
         shutil.rmtree(dcm_dir)
-    structure_set.write(outdir="tmp/dcm_structs", ext='dcm')
+    structure_set.write(outdir=dcm_dir, ext='dcm')
     assert len(os.listdir(dcm_dir)) == 1
 
 def test_dicom_dataset():
-    pass
+    dcm_dir = "tmp/dcm_structs1"
+    if os.path.exists(dcm_dir):
+        shutil.rmtree(dcm_dir)
+    structure_set.write(outdir=dcm_dir, ext='dcm')
+    structure_set_dcm = StructureSet(dcm_dir)
+    rois = list(structure_set.get_rois())
+    rois_dcm = list(structure_set_dcm.get_rois())
+    assert len(rois) == 2
+    assert rois == rois_dcm
+
+    for name in structure_set.get_roi_names():
+        roi0 = structure_set.get_roi(name)
+        roi1 = structure_set_dcm.get_roi(name)
+
+        assert roi0 is not roi1
+        assert roi0.color == roi1.color
+        assert roi0.get_centroid().all() == roi1.get_centroid().all()
+
+        # Check number of planes.
+        roi0_keys = list(roi0.get_contours().keys())
+        roi1_keys = list(roi1.get_contours().keys())
+        assert len(roi0_keys) == len(roi1_keys)
+
+        roi0_keys.sort()
+        roi1_keys.sort()
+
+        for i in range(len(roi0_keys)):
+
+            # Check plane z-coordinates.
+            assert roi0_keys[i] == roi1_keys[i]
+
+            # Check number of contours in plane.
+            contours0 = roi0.get_contours()[roi0_keys[i]]
+            contours1 = roi1.get_contours()[roi1_keys[i]]
+            assert len(contours0) == len(contours1)
+
+            # Check contour points.
+            for j in range(len(contours0)):
+                assert contours0[j].all() == contours1[j].all()
 
 def test_init_from_roi():
     sphere1 = structure_set.get_roi("sphere")

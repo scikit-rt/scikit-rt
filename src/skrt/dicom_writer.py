@@ -108,7 +108,8 @@ class DicomWriter:
             source_type for which relevant behaviour is implemented are:
             
             - 'Dose';
-            - 'Image'.
+            - 'Image';
+            - 'StructureSet'.
         '''
         # Set attribute values from input parameters.
         self.outdir = Path(fullpath(str(outdir)))
@@ -295,9 +296,9 @@ class DicomWriter:
         '''
 
         storage_classes = {
-                'RTDOSE' : 'RTDose',
-                'RTPLAN' : 'RTPlan',
-                'RTSTRUCT' : 'RTStructureSet',
+                'RTDOSE' : 'RTDoseStorage',
+                'RTPLAN' : 'RTPlanStorage',
+                'RTSTRUCT' : 'RTStructureSetStorage',
                 'CT' : 'CTImageStorage',
                 'MR' : 'MRImageStorage',
                 }
