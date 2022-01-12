@@ -112,13 +112,16 @@ class SyntheticImage(Image):
 
         # Assign structure set
         self.clear_structure_sets()
-        self.add_structure_set(self.get_structure_set())
+        self.update_rois()
+        self._image = Image(self)
+        self._structure_set = StructureSet(list(self.rois.values()),
+                                          image=self._image)
 
     def get_image(self):
         """Get self as an Image object."""
 
         self.update()
-        return Image(self)
+        return self._image
 
     def get_data(self, **kwargs):
         """Get Image data."""
@@ -153,8 +156,8 @@ class SyntheticImage(Image):
     def get_structure_set(self):
         """Return StructureSet containing own structures."""
 
-        self.update_rois()
-        return StructureSet(list(self.rois.values()))
+        self.update()
+        return self._structure_set
 
     def update_roi(self, name):
         """Update an ROI to ensure it has the correct data."""

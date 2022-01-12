@@ -258,7 +258,10 @@ class Image(skrt.core.Archive):
     def get_structure_sets(self):
         """Return list of StructureSet objects associated with this Image."""
 
-        return self.structure_sets
+        im = self.get_image()
+        ss = self.structure_sets[-1] 
+        ss.set_image(im)
+        return ss
 
     def get_doses(self):
         """Return list of Dose objects associated with this Image."""
@@ -1291,6 +1294,8 @@ class Image(skrt.core.Archive):
         no_axis_labels=False,
         rois=None,
         roi_plot_type="contour",
+        consensus_type=None,
+        exclude_from_consensus=None,
         legend=False,
         roi_kwargs=None,
         centre_on_roi=None,
@@ -1408,6 +1413,16 @@ class Image(skrt.core.Archive):
         roi_plot_type : str, default='contour'
             ROI plotting type (see ROI.plot() for options).
 
+        consensus_type : str, default=None
+            If not None, the consensus of all ROIs will be plotting rather than
+            plotting ROIs individually. Requires <rois> to be a single
+            StructureSet. Options are "majority", "sum", "overlap", "staple".
+
+        exclude_from_consensus : str, default=None
+            If set to the name of an ROI and consensus_type is a valid 
+            consensus type, this ROI will be excluded from the consensus 
+            calculation and plotted separately on top of the consensus ROI.
+
         legend : bool, default=False
             If True, a legend will be drawn containing ROI names.
 
@@ -1465,18 +1480,23 @@ class Image(skrt.core.Archive):
         # Get list of ROI objects to plot
         rois_to_plot = []
         n_structure_sets = 0
-        for roi in roi_input:
-            if type(roi).__name__ == "ROI":
-                rois_to_plot.append(roi)
-            elif type(roi).__name__ == "StructureSet":
-                rois_to_plot.extend(roi.get_rois())
-                n_structure_sets += 1
-            elif isinstance(roi, int):
-                try:
-                    rois_to_plot.extend(self.structure_sets[roi].get_rois())
+        if consensus_type is None:
+            for roi in roi_input:
+                if type(roi).__name__ == "ROI":
+                    rois_to_plot.append(roi)
+                elif type(roi).__name__ == "StructureSet":
+                    rois_to_plot.extend(roi.get_rois())
                     n_structure_sets += 1
-                except IndexError:
-                    raise IndexError(f"Index {roi} not found in Image.structure_sets!")
+                elif isinstance(roi, int):
+                    try:
+                        rois_to_plot.extend(self.structure_sets[roi].get_rois())
+                        n_structure_sets += 1
+                    except IndexError:
+                        raise IndexError(f"Index {roi} not found in Image.structure_sets!")
+        else:
+            if not isinstance(roi_input, StructureSet):
+                raise TypeError("Consensus plots require a single StructureSet.")
+            rois_to_plot = roi_input.get_rois()
 
         # If centering on an ROI, find index of its central slice
         roi_names = [roi.name for roi in rois_to_plot]
@@ -1523,38 +1543,55 @@ class Image(skrt.core.Archive):
             )
 
         # Plot ROIs
-        roi_handles = []
-        for roi in rois_to_plot:
+        if consensus_type is None:
+            roi_handles = []
+            for roi in rois_to_plot:
 
-            # Plot the ROI on same axes
-            if roi.on_slice(view, pos=pos):
-                roi.plot(
-                    view,
-                    pos=pos,
-                    ax=self.ax,
-                    plot_type=roi_plot_type,
-                    show=False,
-                    include_image=False,
-                    no_invert=True,
-                    **roi_kwargs
+                # Plot the ROI on same axes
+                if roi.on_slice(view, pos=pos):
+                    roi.plot(
+                        view,
+                        pos=pos,
+                        ax=self.ax,
+                        plot_type=roi_plot_type,
+                        show=False,
+                        include_image=False,
+                        no_invert=True,
+                        **roi_kwargs
+                    )
+
+                    # Add patch to list of handles for legend creation
+                    if legend:
+
+                        # Get ROI name and append structure set name if multiple
+                        # structure sets are being plotted
+                        name = roi.name
+                        if n_structure_sets > 1 and hasattr(roi, "structure_set"):
+                            name += f" ({roi.structure_set.name})"
+                        roi_handles.append(mpatches.Patch(color=roi.color,
+                                                          label=name))
+
+             # Draw ROI legend
+            if legend and len(roi_handles):
+                self.ax.legend(
+                    handles=roi_handles, loc=legend_loc, facecolor="white",
+                    framealpha=1
                 )
 
-                # Add patch to list of handles for legend creation
-                if legend:
-
-                    # Get ROI name and append structure set name if multiple
-                    # structure sets are being plotted
-                    name = roi.name
-                    if n_structure_sets > 1 and hasattr(roi, "structure_set"):
-                        name += f" ({roi.structure_set.name})"
-                    roi_handles.append(mpatches.Patch(color=roi.color,
-                                                      label=name))
-
-         # Draw ROI legend
-        if legend and len(roi_handles):
-            self.ax.legend(
-                handles=roi_handles, loc=legend_loc, facecolor="white",
-                framealpha=1
+        # Consensus plot
+        else:
+            roi_input.plot(
+                view,
+                pos=pos,
+                ax=self.ax,
+                plot_type=roi_plot_type,
+                show=False,
+                include_image=False,
+                no_invert=True,
+                consensus_type=consensus_type,
+                exclude_from_consensus=exclude_from_consensus,
+                legend=legend,
+                **roi_kwargs
             )
 
         # Label axes

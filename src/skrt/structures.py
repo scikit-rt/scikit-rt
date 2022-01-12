@@ -4204,12 +4204,12 @@ class StructureSet(skrt.core.Archive):
                     mpatches.Patch(color=central.color, label=central.name))
 
             # Plot other ROIs
-            for i, roi in len(self.get_rois()):
+            for i, roi in enumerate(self.get_rois()):
 
                 if roi is central:
                     continue
 
-                plot_kwargs = {} if i < len(self.rois - 1) else kwargs
+                plot_kwargs = {} if i < len(self.rois) - 1 else kwargs
                 roi.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                          opacity=opacity, linewidth=linewidth, show=False,
                          ax=self.ax, **kwargs)
