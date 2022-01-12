@@ -186,6 +186,11 @@ class BetterViewer:
             This can be used in conjunction with <rois> to load single masks
             from some files and multiple masks from others.
 
+        roi_consensus : bool, default=False
+            If True, add the option to plot the consensus of ROIs rather than
+            plotting individually. Only works if a single StructureSet is
+            provided for each image.
+
         jacobian : string/nifti/array/list, default=None
             Source(s) of jacobian determinant array(s) to overlay on each plot
             (see valid image sources for <images>).
@@ -905,10 +910,9 @@ class BetterViewer:
         self.ui_view = v0.ui_view
         self.view = self.ui_view.value
         self.ui_roi_plot_type = v0.ui_roi_plot_type
-        #  self.ui_roi_plot_type2 = v0.ui_roi_plot_type2
-        #  self.ui_roi_comp_type = v0.ui_roi_comp_type
+        self.ui_roi_consensus_switch = v0.ui_roi_consensus_switch
+        self.ui_roi_consensus_type = v0.ui_roi_consensus_type
         self.roi_plot_type = self.ui_roi_plot_type.value
-        #  self.roi_plot_type2 = self.ui_roi_plot_type2.value
 
         # Make main upper UI list (= view radio + single intensity/slice slider)
         many_sliders = not self.share_slider and self.n > 1
@@ -968,9 +972,9 @@ class BetterViewer:
                 v0.ui_roi_linewidth,
                 v0.ui_roi_opacity,
             ]
-            #  if any([v.image.comp_type == 'others' for v in self.viewers]):
-                #  to_add.insert(1, v0.ui_roi_plot_type2)
-                #  to_add.insert(2, v0.ui_roi_comp_type)
+            if any([v.roi_consensus for v in self.viewers]):
+                to_add.append(v0.ui_roi_consensus_switch)
+                to_add.append(v0.ui_roi_consensus_type)
             self.extra_ui.extend(to_add)
 
         # Make extra UI elements
@@ -1472,6 +1476,7 @@ class SingleViewer:
         roi_legend=False,
         legend_loc="lower left",
         init_roi=None,
+        roi_consensus=False,
         standalone=True,
         continuous_update=False,
         annotate_slice=None,
@@ -1615,6 +1620,7 @@ class SingleViewer:
         self.roi_area_units = area_units
         self.roi_length_units = length_units
         self.roi_kwargs = roi_kwargs if roi_kwargs is not None else {}
+        self.roi_consensus = roi_consensus
 
         # Colormap
         if cmap:
@@ -2003,17 +2009,18 @@ class SingleViewer:
                 description='ROI plotting',
                 style=_style,
             )
-            #  self.ui_roi_plot_type2 = ipyw.Dropdown(
-                #  options=['individual', 'group others'],
-                #  description='Comparison plotting',
-                #  style=_style,
-            #  )
-            #  self.ui_struct_comp_type = ipyw.Dropdown(
-                #  options=['majority vote', 'sum', 'overlap', 'staple'],
-                #  description='Comparison type',
-                #  style=_style,
-            #  )
-            #  self.struct_comp_type = self.ui_struct_comp_type.value
+            self.ui_roi_consensus_switch = ipyw.Checkbox(
+                description="Plot consensus", value=True)
+            self.ui_roi_consensus_type = ipyw.Dropdown(
+                options=['majority', 'sum', 'overlap', 'staple'],
+                description='Consensus type',
+                style=_style,
+            )
+            self.roi_consensus_type = self.ui_roi_consensus_type.value
+            if self.init_roi is not None:
+                self.roi_to_exclude = self.init_roi
+            else:
+                self.roi_to_exclude = self.rois[0].name
 
             # Opacity/linewidth sliders
             self.ui_roi_linewidth = ipyw.IntSlider(
@@ -2042,29 +2049,26 @@ class SingleViewer:
                     self.ui_roi_linewidth,
                     self.ui_roi_opacity,
                 ]
-                #  if self.image.comp_type == 'others':
-                    #  to_add.insert(1, self.ui_roi_plot_type2)
-                    #  to_add.insert(2, self.ui_roi_comp_type)
+                if self.roi_consensus:
+                    to_add.append(self.ui_roi_consensus_switch)
+                    to_add.append(self.ui_roi_consensus_type)
                 self.extra_ui.extend(to_add)
 
         else:
             to_share = [
                 #  'ui_mask',
                 'ui_dose',
-                #  'ui_jac_opacity',
-                #  'ui_jac_range',
+                'ui_jac_opacity',
+                'ui_jac_range',
                 #  'ui_df',
                 'ui_roi_plot_type',
-                #  'ui_roi_plot_type2',
-                #  'ui_roi_comp_type',
-                'ui_roi_linewidth',
+                'ui_roi_consensus_switch',
+                'ui_roi_consensus_type',
                 'ui_roi_linewidth',
                 'ui_roi_opacity',
-                #  'roi_comp_type',
             ]
             for ts in to_share:
                 setattr(self, ts, getattr(other_viewer, ts))
-
 
         # Make lower
         self.make_lower_ui(no_roi=no_roi)
@@ -2307,9 +2311,11 @@ class SingleViewer:
             self.roi_filled_opacity = self.ui_roi_opacity.value
             roi_kwargs['opacity'] = self.roi_filled_opacity
 
-        #  roi_plot_grouping = self.ui_roi_plot_type2.value
-        #  if struct_plot_grouping == 'group others' and not self.current_struct:
-            #  self.current_struct = self.image.structs[0].name_unique
+        # Get ROI consensus settings
+        if self.roi_consensus and self.ui_roi_consensus_switch.value:
+            consensus_type = self.ui_roi_consensus_type.value
+        else:
+            consensus_type = None
 
         # Settings for overlay (dose map or jacobian)
         if self.has_jacobian:
@@ -2349,7 +2355,7 @@ class SingleViewer:
             xlim=self.custom_ax_lims[self.view][0],
             ylim=self.custom_ax_lims[self.view][1],
             title=self.title,
-            rois=rois_to_plot,
+            rois=StructureSet(rois_to_plot),
             roi_plot_type=self.roi_plot_type,
             roi_kwargs=roi_kwargs,
             dose=overlay,
@@ -2358,7 +2364,9 @@ class SingleViewer:
             legend=self.roi_legend,
             centre_on_roi=self.init_roi,
             shift=self.shift,
-            scale_in_mm=self.scale_in_mm
+            scale_in_mm=self.scale_in_mm,
+            consensus_type=consensus_type,
+            exclude_from_consensus=self.roi_to_exclude
         )
         self.plotting = False
         self.colorbar_drawn = True
@@ -2446,6 +2454,7 @@ class SingleViewer:
                 self.slice[self.view] = mid_slice
             self.centre_on_roi(roi)
         self.ui_roi_jump.value = ''
+        self.roi_to_exclude = self.current_roi
 
     def centre_on_roi(self, roi):
         '''Set the current zoom centre to be the centre of an ROI.'''
