@@ -10,6 +10,7 @@ DICOM writing is supported for instances of:
 import datetime
 from pathlib import Path
 import random
+import time
 
 import numpy as np
 import pydicom
@@ -38,6 +39,7 @@ class DicomWriter:
     - **create_file_dataset()** : Create new pydicom.dataset.FileDataset object.
     - **get_file_dataset()** : Retrive pydicom.dataset.FileDataset from source.
     - **get_media_storage_sop_class_uid()** : Determine uid given modality.
+    - **get_path_with_timestamp()** : Obtain path to file with timestamped name.
     - **initialise_outdir()** : Initialis directory for writing output.
     - **set_data_and_time()** : Set current date and time.
     - **set_geometry_and_scaling()** : Add geometry and scaling to dataset.
@@ -48,9 +50,10 @@ class DicomWriter:
     - **write()** : Write data in DICOM format.
     '''
 
-    def __init__(self, outdir=None, data=None, affine=None, header_source=None,
-            orientation=None, patient_id=None, modality=None, root_uid=None,
-            header_extras={}, source_type=None):
+    def __init__(self, outdir=None, data=None, affine=None,
+            overwrite=True, header_source=None, orientation=None,
+            patient_id=None, modality=None, root_uid=None, header_extras={},
+            source_type=None):
         '''
         Create instance of DicomWriter class.
 
@@ -65,6 +68,10 @@ class DicomWriter:
 
         affine : 4x4 array, default=None
             Array containing the affine matrix associated with image-type data.
+
+        overwrite : bool, default=True
+            If True, delete any pre-existing DICOM files from output
+            directory before writing.
 
         header_source : str/pydicom.dataset.FileDataset/None, default=None
             Source from which to create DICOM header.  This can be:
@@ -115,6 +122,7 @@ class DicomWriter:
         self.outdir = Path(fullpath(str(outdir)))
         self.data = data
         self.affine = affine
+        self.overwrite = overwrite
         self.header_source = header_source
         self.orientation = orientation if orientation is not None \
                 else [1, 0, 0, 0, 1, 0]
@@ -309,19 +317,44 @@ class DicomWriter:
 
         return media_storage_sop_class_uid
 
+    def get_path_with_timestamp(self, check_interval=0.5):
+        '''
+        Obtain path to file with timestamped name.
+
+        The timestamp is iteratively updated to ensure that any
+        existing file isn't overwritten.
+
+        **Parameter:**
+
+        check_interval: float, default=0.5
+            Interval in seconds to pause before updating timestamp.
+        '''
+        file_exists = True
+        while file_exists:
+            outname = f'{self.ds.Modality}_{self.date}_{self.time}.dcm'
+            outpath = self.outdir / outname
+            file_exists = Path(outpath).exists()
+            if file_exists:
+                time.sleep(0.5)
+                self.set_date_and_time()
+
+        return outpath
+
     def initialise_outdir(self):
         '''
         Prepare directory where output data are to be written.
 
-        If the output directory doesn't exist then it is created.i
-        If the output directory contains DICOM files, these are deleted.
+        If the output directory doesn't exist then it is created.
+        If overwrite is True and the output directory contains DICOM files,
+        these are deleted.
         '''
         # Create directory if it doesn't exist.
         self.outdir.mkdir(parents=True, exist_ok=True)
 
         # Delete any pre-existing dicom files.
-        for dcm in self.outdir.glob('**/*.dcm'):
-            dcm.unlink()
+        if self.overwrite:
+            for dcm in self.outdir.glob('**/*.dcm'):
+                dcm.unlink()
 
     def set_date_and_time(self):
         '''
@@ -497,7 +530,6 @@ class DicomWriter:
         # Prepare output directory for writing.
         self.initialise_outdir()
         
-
         # Write image as single slice per file.
         # Write dose as single file for all slices.
         if self.source_type == 'Dose':
@@ -506,8 +538,7 @@ class DicomWriter:
             intercept = getattr(self.ds, 'RescaleIntercept', 0)
             # Write single file.
             self.set_image()
-            outname = f'{self.ds.Modality}_{self.date}_{self.time}.dcm'
-            outpath = self.outdir / outname
+            outpath = self.get_path_with_timestamp()
             self.ds.save_as(outpath)
 
         elif self.source_type == 'Image':
@@ -523,8 +554,7 @@ class DicomWriter:
 
         elif self.source_type == 'StructureSet':
             self.set_structure_set()
-            outname = f'{self.ds.Modality}_{self.date}_{self.time}.dcm'
-            outpath = self.outdir / outname
+            outpath = self.get_path_with_timestamp()
             self.ds.save_as(outpath)
 
         return self.ds

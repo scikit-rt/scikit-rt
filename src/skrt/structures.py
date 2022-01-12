@@ -3259,12 +3259,16 @@ class ROI(skrt.core.Archive):
         zoom_centre[y_ax] = y
         return zoom_centre
 
-    def write(self, outname=None, outdir=".", ext=None, **kwargs):
+    def write(self, outname=None, outdir=".", ext=None, overwrite=False,
+            header_source=None, patient_id=None, root_uid=None,
+            verbose=True, header_extras={}, keep_source_rois=True, **kwargs):
 
         self.load()
 
         # Generate output name if not given
         possible_ext = [".dcm", ".nii.gz", ".nii", ".npy", ".txt"]
+        if ext is not None and not ext.startswith("."):
+            ext = f".{ext}"
         if outname is None:
             if ext is None:
                 ext = ".nii"
@@ -3309,7 +3313,15 @@ class ROI(skrt.core.Archive):
             self.create_mask()
             self.mask.write(outname, **kwargs)
         else:
-            print("Warning: dicom ROI writing not currently available!")
+            if header_source and keep_source_rois:
+                structure_set = StructureSet(header_source)
+            else:
+                structure_set = StructureSet()
+                structure_set.add_roi(self)
+            structure_set.write(outdir=outdir, ext=ext, overwrite=overwrite,
+                    header_source=header_source, patient_id=patient_id,
+                    root_uid=root_uid, verbose=verbose,
+                    header_extras=header_extras)
 
     def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
             centre=[0, 0, 0], resample="fine", restore=True, 
@@ -4085,6 +4097,7 @@ class StructureSet(skrt.core.Archive):
                 outdir=outdir,
                 data=self,
                 affine=None,
+                overwrite=overwrite,
                 header_source=header_source,
                 orientation=None,
                 patient_id=patient_id,
