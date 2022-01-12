@@ -23,6 +23,12 @@
 
 cd docs
 
+# Upgrade pip
+pip install --upgrade pip
+
+# Workaround for having SimpleITK installation with Python 3.10
+pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
+
 # Install scikit-rt and voxtox
 pip install -e ..
 pip install -e ../examples/voxtox
@@ -32,9 +38,7 @@ EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
 rm -f source/skrt*.rst
 rm -f source/voxtox*.rst
 sphinx-apidoc -e -f --tocfile skrt_modules -o source ../src/skrt ${EXCLUDE_PATTERN}
-mv source/modules.rst source/skrt_modules.rst
 sphinx-apidoc -e -f --tocfile voxtox_modules -o source ../examples/voxtox/src/voxtox ${EXCLUDE_PATTERN}
-mv source/modules.rst source/voxtox_modules.rst
 
 # Copy markdown files and images to be used in creating documentation.
 rm -rf source/*.md

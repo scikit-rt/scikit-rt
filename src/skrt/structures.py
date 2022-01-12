@@ -21,7 +21,7 @@ import time
 
 import skrt.core
 import skrt.image
-
+from skrt.dicom_writer import DicomWriter
 
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""
@@ -4067,7 +4067,9 @@ class StructureSet(skrt.core.Archive):
                 outname = None
             roi1.plot_surface_distances(roi2, signed=signed, save_as=outname, **kwargs)
 
-    def write(self, outname=None, outdir=".", ext=None, overwrite=False, **kwargs):
+    def write(self, outname=None, outdir=".", ext=None, overwrite=False,
+            header_source=None, patient_id=None, modality=None,
+            root_uid=None, verbose=True, header_extras={}, **kwargs):
         """Write to a dicom StructureSet file or directory of nifti files."""
 
         if ext is not None and not ext.startswith("."):
@@ -4079,9 +4081,22 @@ class StructureSet(skrt.core.Archive):
             outname = os.path.join(outdir, outname)
 
         if ext == ".dcm":
-            if outname is None:
-                outname = f"{outdir}/{self.name}.dcm"
-            print("Warning: dicom writing not yet available!")
+            dicom_writer = DicomWriter(
+                outdir=outdir,
+                data=self,
+                affine=None,
+                header_source=header_source,
+                orientation=None,
+                patient_id=patient_id,
+                modality='RTSTRUCT',
+                root_uid=root_uid,
+                header_extras=header_extras,
+                source_type=type(self).__name__,
+            )
+            self.dicom_dataset = dicom_writer.write()
+
+            if verbose:
+                print("Wrote dicom file to directory:", outdir)
             return
 
         # Otherwise, write to individual ROI files
