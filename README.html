@@ -40,7 +40,11 @@
               <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">scikit-rt</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#package-installation">Package installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-installation">Docker installation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#images">1. Images</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#loading-from-a-file">Loading from a file</a></li>
@@ -139,6 +143,10 @@
 <p>This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].</p>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
+<p>Package installation provides full code access.  Docker installation
+allows for scikit-rt code to be used from a jupyter notebook.</p>
+<section id="package-installation">
+<h3>Package installation<a class="headerlink" href="#package-installation" title="Permalink to this headline"></a></h3>
 <p>Ensure you have either <a class="reference external" href="https://pypi.org/project/pip/">pip</a> or <a class="reference external" href="https://docs.anaconda.com/anaconda/install/index.html">anaconda</a>/<a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">miniconda</a>.
 Inside a terminal, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
@@ -151,6 +159,31 @@ Inside a terminal, run:</p>
 <p>When using the image viewer in a <a class="reference external" href="https://jupyter-notebook.readthedocs.io/en/stable/">Jupyter notebook</a> or in <a class="reference external" href="https://jupyterlab.readthedocs.io/en/latest/">JupyterLab</a>,
 if image scrolling or other interactive features don’t seem to be working, check
 that <a class="reference external" href="https://ipywidgets.readthedocs.io/en/latest/">ipywidgets</a> are installed.</p>
+</section>
+<section id="docker-installation">
+<h3>Docker installation<a class="headerlink" href="#docker-installation" title="Permalink to this headline"></a></h3>
+<p>You need to have an installation of <a class="reference external" href="https://www.docker.com/">Docker</a>.</p>
+<p>Download the Scikit-rt docker image with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">pull</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="p">:</span><span class="n">latest</span>
+</pre></div>
+</div>
+<p>Choose a work directory, copy here any data that you would want to be able to
+access with Scikit-rt, then start a docker container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">v</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">directory</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">jovyan</span><span class="o">/</span><span class="n">workdir</span> <span class="o">-</span><span class="n">p</span> <span class="mi">8888</span><span class="p">:</span><span class="mi">8888</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+</pre></div>
+</div>
+<p>Copy the last URL listed (starting: http://127.0.0.1:8888), and point a browser to this URL.  This should open a jupyter lab session, where you import
+Scikit-rt modules.</p>
+<p>Notes on arguments passed to <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code>:</p>
+<ul class="simple">
+<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-v</span></code> maps a local work directory (/path/to/work/directory) to
+the work directory of the docker container (/home/jovyan/workdir).  The former
+is chosen by the user; the latter is fixed.  Paths should always be absolute
+(not relative).</p></li>
+<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-p</span></code> maps the server port (8888) on the local machine to the
+server port (8888) on the container side.</p></li>
+</ul>
+</section>
 </section>
 <section id="table-of-contents">
 <h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline"></a></h2>

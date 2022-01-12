@@ -6,6 +6,11 @@ This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
 ## Installation
 
+Package installation provides full code access.  Docker installation
+allows for scikit-rt code to be used from a jupyter notebook.
+
+### Package installation
+
 Ensure you have either [pip](https://pypi.org/project/pip/) or [anaconda](https://docs.anaconda.com/anaconda/install/index.html)/[miniconda](https://docs.conda.io/en/latest/miniconda.html).
 Inside a terminal, run:
 ```
@@ -20,6 +25,34 @@ conda install -c conda-forge shapely
 When using the image viewer in a [Jupyter notebook](https://jupyter-notebook.readthedocs.io/en/stable/) or in [JupyterLab](https://jupyterlab.readthedocs.io/en/latest/),
 if image scrolling or other interactive features don't seem to be working, check
 that [ipywidgets](https://ipywidgets.readthedocs.io/en/latest/) are installed.
+
+### Docker installation
+
+You need to have an installation of [Docker](https://www.docker.com/).
+
+Download the Scikit-rt docker image with:
+
+```
+docker pull ghcr.io/scikit-rt/scikit-rt:latest
+```
+
+Choose a work directory, copy here any data that you would want to be able to
+access with Scikit-rt, then start a docker container:
+
+```
+docker run -v /path/to/work/directory:/home/jovyan/workdir -p 8888:8888 ghcr.io/scikit-rt/scikit-rt
+```
+
+Copy the last URL listed (starting: http://127.0.0.1:8888), and point a browser to this URL.  This should open a jupyter lab session, where you import
+Scikit-rt modules.
+
+Notes on arguments passed to `docker run`:
+- The argument to `-v` maps a local work directory (/path/to/work/directory) to 
+the work directory of the docker container (/home/jovyan/workdir).  The former
+is chosen by the user; the latter is fixed.  Paths should always be absolute
+ (not relative).
+- The argument to `-p` maps the server port (8888) on the local machine to the
+server port (8888) on the container side.
 
 ## Table of contents
 1) [Images](#1-images)
