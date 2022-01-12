@@ -2019,8 +2019,10 @@ class SingleViewer:
             self.roi_consensus_type = self.ui_roi_consensus_type.value
             if self.init_roi is not None:
                 self.roi_to_exclude = self.init_roi
-            else:
+            elif self.rois is not None and len(self.rois):
                 self.roi_to_exclude = self.rois[0].name
+            else:
+                self.roi_to_exclude = None
 
             # Opacity/linewidth sliders
             self.ui_roi_linewidth = ipyw.IntSlider(
@@ -2066,6 +2068,7 @@ class SingleViewer:
                 'ui_roi_consensus_type',
                 'ui_roi_linewidth',
                 'ui_roi_opacity',
+                'roi_to_exclude',
             ]
             for ts in to_share:
                 setattr(self, ts, getattr(other_viewer, ts))
@@ -2316,6 +2319,10 @@ class SingleViewer:
             consensus_type = self.ui_roi_consensus_type.value
         else:
             consensus_type = None
+        if self.roi_to_exclude in [roi.name for roi in rois_to_plot]:
+            exclude_from_consensus = self.roi_to_exclude
+        else:
+            exclude_from_consensus = None
 
         # Settings for overlay (dose map or jacobian)
         if self.has_jacobian:
@@ -2366,7 +2373,7 @@ class SingleViewer:
             shift=self.shift,
             scale_in_mm=self.scale_in_mm,
             consensus_type=consensus_type,
-            exclude_from_consensus=self.roi_to_exclude
+            exclude_from_consensus=exclude_from_consensus
         )
         self.plotting = False
         self.colorbar_drawn = True
