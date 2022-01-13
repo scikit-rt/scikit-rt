@@ -262,11 +262,13 @@ class ROI(skrt.core.Archive):
         (a) If this is an Image object, the ROI will be created by applying a 
         threshold to the Image's array. Set self.mask to the thresholded image
         and self.input_type = "mask".
-        (b) If self.source is a string, attempt to load from a dicom structure 
-        set (thus setting self.input_contours).
-        (c) If dicom loading fails, attempt to load self.source as an Image 
-        object to create an ROI mask. If this finds a valid Image, set
-        self.mask to that image and set self.input_type = "mask".
+        (b) If self.source is a string, attempt to load from a file
+        conforming to transformix output (.txt extension) or from a
+        dicom structure set (in both cases setting self.input_contours).
+        (c) If transformix or dicom loading fails, attempt to load
+        self.source as an Image object to create an ROI mask. If this
+        finds a valid Image, set self.mask to that image and set
+        self.input_type = "mask".
         (d) If self.source is None, do nothing with it.
 
         3. Check whether self.input_contours contains data. This could arise
@@ -274,8 +276,8 @@ class ROI(skrt.core.Archive):
         
         (a) The ROI was initialised from a dict of contours, which were
         assigned to self.input_contours in self.__init(); or
-        (b) A set of contours was successfully loaded from a dicom file found 
-        at self.source in step 1(b).
+        (b) A set of contours was successfully loaded from a transformix or
+        dicom file found at self.source in step 1(b).
 
         If input contours are found, these are assigned to self.contours["x-y"]
         and self.source_type is set to "contour". Additionally, if self.image
@@ -312,19 +314,37 @@ class ROI(skrt.core.Archive):
             self.loaded = True
             self.create_mask()
 
-        # Try loading from dicom structure set
         elif isinstance(self.source, str):
+            if self.source.endswith('.txt'):
+                # Try loading from transformix-compatible point cloud
+                points = load_transformix_points(self)
 
-            rois, ds = load_rois_dicom(self.source, names=self.name)
-            if len(rois):
-                number = list(rois.keys())[0]
-                roi = rois[number]
-                self.name = roi["name"]
-                self.number = number
-                self.input_contours = roi["contours"]
-                if not self.custom_color:
-                    self.set_color(roi["color"])
-                self.dicom_dataset = ds
+                # Extract slice-by-slice dictionary of (x, y) points
+                contours = {}
+                for point in sorted(points):
+                    x_point, y_point, z_point = points[point]['OutputPoint']
+                    key = f'{z_point:.2f}'
+                    if not key in contours:
+                        contours[key] = []
+                    contours[key].append([x_point, y_point])
+
+                # Store the list of contours (one contour per slice per roi).
+                self.input_contours = {}
+                for key in sorted(contours):
+                    self.input_contours[float(key)] = [np.array(contours[key])]
+
+            else:
+                # Try loading from dicom structure set
+                rois, ds = load_rois_dicom(self.source, names=self.name)
+                if len(rois):
+                    number = list(rois.keys())[0]
+                    roi = rois[number]
+                    self.name = roi["name"]
+                    self.number = number
+                    self.input_contours = roi["contours"]
+                    if not self.custom_color:
+                        self.set_color(roi["color"])
+                    self.dicom_dataset = ds
 
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
@@ -373,6 +393,64 @@ class ROI(skrt.core.Archive):
 
     def _load_from_file(self, filename):
         """Attempt to load ROI from a dicom or nifti file."""
+
+    def load_transformix_points(self):
+        '''
+        Load point coordinates from file of the format produced by Transformix.
+        '''
+        def get_coordinates(in_data=''):
+            '''
+            Helper function, to unpack string of data into list of coordinates. 
+            '''
+            coordinates = [eval(s)
+                    for s in re.findall(r'[-\d\.]+', in_data)]
+            return coordinates
+
+        # Read file.
+        with open(self.source, 'r', encoding='ascii') as in_file:
+            data_rows = in_file.readlines()
+
+        # Extract point data to dictionary.
+        points = {}
+        for row in data_rows:
+            point, input_index, input_point, output_index_fixed, \
+                    output_point, deformation = row.split(';')
+
+            point = int(point.split()[-1])
+            points[point] = {}
+            points[point]['InputIndex'] = get_coordinates(input_index)
+            points[point]['InputPoint'] = get_coordinates(input_point)
+            points[point]['OutputIndexFixed'] = get_coordinates(
+                    output_index_fixed)
+            points[point]['OutputPoint'] = get_coordinates(output_point)
+            points[point]['Deformation'] = get_coordinates(deformation)
+
+        # After application of a registration transform, points originally
+        # in the same may end up with slightly different z-coordinates.
+        # For most purposes (and slice thicknesses) it's probably
+        # a reasonable approximation to map all points to the mean
+        # z-coordinate of all points originally in the same plane.
+        keep_original_planes = getattr(self, keep_original_planes, True)
+        if keep_original_palnes:
+            # Sort points by slice z-coordinate,
+            # keeping relative order within a slice.
+            slices = {}
+            for point in sorted(points):
+                i, j, k = points[point]["InputIndex"]
+                x, y, z = points[point]["OutputPoint"]
+                if k not in slices:
+                    slices[k] = {'points': [], 'z_points': []}
+                slices[k]["points"].append(point)
+                slices[k]["z_points"].append(z)
+
+            # For points in each slice, reset z-coordinates to mean value.
+            for k in sorted(slices):
+                z_mean = np.mean(slices[k]["z_points"])
+                for point in slices[k]["points"]:
+                    x, y, z = points[point]["OutputPoint"]
+                    points[point]["OutputPoint"] = (x, y, z_mean)
+
+        return points
 
     def clone_attrs(self, obj, copy_data=True):
         """Assign all attributes of <self> to another object, <obj>,  ensuring 
