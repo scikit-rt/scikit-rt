@@ -993,18 +993,20 @@ assign its geometric properties to this ROI.</p>
 <p>(a) If this is an Image object, the ROI will be created by applying a 
 threshold to the Image’s array. Set self.mask to the thresholded image
 and self.input_type = “mask”.
-(b) If self.source is a string, attempt to load from a dicom structure 
-set (thus setting self.input_contours).
-(c) If dicom loading fails, attempt to load self.source as an Image 
-object to create an ROI mask. If this finds a valid Image, set
-self.mask to that image and set self.input_type = “mask”.
+(b) If self.source is a string, attempt to load from a file
+conforming to transformix output (.txt extension) or from a
+dicom structure set (in both cases setting self.input_contours).
+(c) If transformix or dicom loading fails, attempt to load
+self.source as an Image object to create an ROI mask. If this
+finds a valid Image, set self.mask to that image and set
+self.input_type = “mask”.
 (d) If self.source is None, do nothing with it.</p>
 <p>3. Check whether self.input_contours contains data. This could arise
 in two scenarios:</p>
 <p>(a) The ROI was initialised from a dict of contours, which were
 assigned to self.input_contours in self.__init(); or
-(b) A set of contours was successfully loaded from a dicom file found 
-at self.source in step 1(b).</p>
+(b) A set of contours was successfully loaded from a transformix or
+dicom file found at self.source in step 1(b).</p>
 <p>If input contours are found, these are assigned to self.contours[“x-y”]
 and self.source_type is set to “contour”. Additionally, if self.image
 is not None, set self.mask to an array of zeros the same size as the 
@@ -1013,6 +1015,12 @@ image.</p>
 mask or image from which to draw origin/voxel sizes), and set
 default geometric calculation method to self.source_type. Set
 self.loaded to True.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.load_transformix_points">
+<span class="sig-name descname"><span class="pre">load_transformix_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.load_transformix_points" title="Permalink to this definition"></a></dt>
+<dd><p>Load point coordinates from file of the format produced by Transformix.</p>
 </dd></dl>
 
 <dl class="py method">
