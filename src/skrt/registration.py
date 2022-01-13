@@ -1315,8 +1315,37 @@ def set_elastix_dir(path):
     else:
         raise RuntimeError(f"No elastix executable found in {_ELASTIX_DIR}!")
 
-    if os.path.exists(lib_dir):
-        os.environ['DYLD_FALLBACK_LIBRARY_PATH'] = lib_dir
+
+    # Cover Linux and MacOS
+    prepend_path('DYLD_FALLBACK_LIBRARY_PATH', lib_dir)
+    prepend_path('LD_LIBRARY_PATH', lib_dir)
+
+def prepend_path(variable, path, path_must_exist=True):
+    '''
+    Prepend path to environment variable.
+
+    **Parameters:**
+
+    variable : str
+        Environment variable to which path is to be prepended.
+
+    path : str
+        Path to be prepended.
+
+    path_must_exist : bool, default=True
+        If True, only append path if it exists.
+    '''
+    path_ok = True
+    if path_must_exist:
+        if not os.path.exists(path):
+            path_ok = False
+
+    if path_ok:
+        if variable in os.environ:
+            if os.environ[variable]:
+                os.environ[variable] = f'{path}:{os.environ[variable]}'
+        else:
+            os.environ[variable] = path
 
 def adjust_parameters(infile, outfile, params):
     """Open an elastix parameter file (works for both input parameter and
