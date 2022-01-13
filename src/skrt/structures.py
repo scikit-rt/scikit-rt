@@ -251,6 +251,9 @@ class ROI(skrt.core.Archive):
         path = self.source if isinstance(self.source, str) else ""
         skrt.core.Archive.__init__(self, path)
 
+    def __eq__(self, other):
+        return other is self
+
     def load(self, force=False):
         """Load ROI from file or source. The loading sequence is as follows:
 
@@ -2695,15 +2698,16 @@ class ROI(skrt.core.Archive):
 
         return df
 
-    def get_comparison_name(self, roi, camelcase=False, colored=False):
+    def get_comparison_name(self, roi, camelcase=False, colored=False,
+                            grey=False):
         """Get name of comparison between this ROI and another."""
 
         own_name = self.name
         other_name = roi.name
 
         if colored:
-            own_name = get_colored_roi_string(self)
-            other_name = get_colored_roi_string(roi)
+            own_name = get_colored_roi_string(self, grey)
+            other_name = get_colored_roi_string(roi, grey)
 
         if self.name == roi.name:
             if camelcase:
@@ -4038,7 +4042,12 @@ class StructureSet(skrt.core.Archive):
         self.load()
         print("\n".join(self.get_roi_names()))
 
-    def get_geometry(self, name_as_index=True, html=False, **kwargs):
+    def get_geometry(
+        self, 
+        name_as_index=True, 
+        html=False, 
+        greyed_out=None,
+        **kwargs):
         """Get pandas DataFrame of geometric properties for all ROIs.
         If no sl/idx/pos is given, the central slice of each ROI will be used.
 
@@ -4055,12 +4064,21 @@ class StructureSet(skrt.core.Archive):
 
         if html:
             name_as_index = False
+        if greyed_out is None:
+            greyed_out = []
 
         rows = []
         for roi in self.get_rois():
             df_row = roi.get_geometry(name_as_index=name_as_index, **kwargs)
             if html:
-                df_row.iloc[0, 0] = get_colored_roi_string(roi)
+                grey = False
+                if roi in greyed_out:
+                    for col in df_row.columns:
+                        if col == "ROI": 
+                            continue
+                        df_row[col] = "--"
+                    grey = True
+                df_row.iloc[0, 0] = get_colored_roi_string(roi, grey)
             rows.append(df_row)
 
         df = pd.concat(rows)
@@ -4081,6 +4099,7 @@ class StructureSet(skrt.core.Archive):
         consensus_type="majority", 
         html=False,
         name_as_index=True,
+        greyed_out=None,
         **kwargs
     ):
         """Get pandas DataFrame of comparison metrics vs a single ROI or
@@ -4129,6 +4148,10 @@ class StructureSet(skrt.core.Archive):
             If True, the table will be converted to HTML text color-coded based
             on ROI colors.
 
+        greyed_out : bool, default=None
+            List of ROIs that should be greyed out (given a grey background
+            to their text) if returning an HTML string.
+
         `**`kwargs : 
             Keyword args to pass to ROI.get_comparison(). See 
             ROI.get_comparison() documentation for details.
@@ -4137,6 +4160,8 @@ class StructureSet(skrt.core.Archive):
         dfs = []
         if html:
             name_as_index = False
+        if greyed_out is None:
+            greyed_out = []
 
         if isinstance(other, ROI):
             pairs = [(roi, other) for roi in self.get_rois()]
@@ -4151,7 +4176,11 @@ class StructureSet(skrt.core.Archive):
             df_row = roi1.get_comparison(roi2, name_as_index=name_as_index,
                                          **kwargs)
             if not name_as_index:
-                df_row.iloc[0, 0] = roi1.get_comparison_name(roi2, colored=html)
+                df_row.iloc[0, 0] = roi1.get_comparison_name(
+                    roi2, 
+                    colored=html,
+                    grey=(roi1 in greyed_out or roi2 in greyed_out)
+                )
             dfs.append(df_row)
 
         df = pd.concat(dfs)
@@ -5145,10 +5174,14 @@ def best_text_color(red, green, blue):
         return "black"
     return "white"
 
-def get_colored_roi_string(roi):
-    """Get ROI name in HTML with background color from ROI color."""
+def get_colored_roi_string(roi, grey=False):
+    """Get ROI name in HTML with background color from roi.color. If grey=True,
+    the background color will be grey."""
 
-    red, green, blue = [c * 255 for c in roi.color[:3]]
+    if grey:
+        red, green, blue = 200, 200, 200
+    else:
+        red, green, blue = [c * 255 for c in roi.color[:3]]
     text_col = best_text_color(red, green, blue)
     return (
         '<p style="background-color: rgb({}, {}, {}); '

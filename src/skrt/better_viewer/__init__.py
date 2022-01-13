@@ -20,7 +20,7 @@ from skrt.image import (
 )
 from skrt.dose import Dose
 from skrt.registration import Jacobian
-from skrt.structures import StructureSet, ROI
+from skrt.structures import StructureSet, ROI, get_colored_roi_string
 
 # ipywidgets settings
 _style = {'description_width': 'initial'}
@@ -2136,11 +2136,18 @@ class SingleViewer:
             )
         self.ui_roi_lower = ipyw.HBox(ui_roi_lower)
 
+        # Add ROI comparison table
+        if self.compare_rois:
+            self.ui_roi_comp_table = ipyw.HTML()
+            self.ui_roi_lower = ipyw.VBox([self.ui_roi_lower, 
+                                           self.ui_roi_comp_table])
+
         # Add to lower UI
-        if not no_roi or self.roi_info:
+        if not no_roi or self.roi_info or self.compare_rois:
             self.lower_ui.append(self.ui_roi_lower)
-            self.update_roi_info()
-        if not no_roi or self.compare_rois:
+        if not no_roi or self.roi_info:
+            self.update_roi_info_table()
+        if self.compare_rois:
             self.update_roi_comparison()
 
         if self.standalone:
@@ -2156,13 +2163,17 @@ class SingleViewer:
 
         return [roi.name for roi in self.rois if self.roi_is_visible(roi)]
 
-    def update_roi_info(self):
+    def update_roi_info_table(self):
         '''Update lower ROI info UI to reflect current view/slice/ROI 
         visibility.'''
 
+
         # Make list of coloured ROI names if not showing geometric info
         if not self.roi_info:
-            rows = [{'ROI': self.get_roi_html(roi)} for roi in self.rois]
+            rows = []
+            for roi in self.rois:
+                grey = not self.roi_is_visible(roi)
+                rows.append({'ROI': get_colored_roi_string(roi, grey)})
             df_roi_info = pd.DataFrame(rows)
 
         # Otherwise, make ROI geometry table
@@ -2171,7 +2182,9 @@ class SingleViewer:
             # Get table for all currently visible ROIs
             metrics = self.roi_info if is_list(self.roi_info) \
                     else ["volume", "centroid", "area"]
-            df_roi_info = self.structure_set.get_geometry( 
+            non_visible = [roi for roi in self.rois 
+                           if not self.roi_is_visible(roi)]
+            self.ui_roi_table.value = self.structure_set.get_geometry( 
                 metrics=metrics,
                 view=self.view,
                 sl=self.slice[self.view],
@@ -2183,44 +2196,14 @@ class SingleViewer:
                 vol_units=self.roi_vol_units,
                 area_units=self.roi_area_units,
                 length_units=self.roi_length_units,
-                force=self.force_roi_geometry_calc
+                force=self.force_roi_geometry_calc,
+                html=True,
+                greyed_out=non_visible
             )
 
             # Only force recalculation of global ROI metrics once
             if self.force_roi_geometry_calc:
                 self.force_roi_geometry_calc = False
-
-            # Make ROI names coloured
-            for i, roi in enumerate(self.rois):
-                df_roi_info.at[i, ("", "ROI")] = self.get_roi_html(roi)
-
-        # Convert dataframe to HTML
-        x_ax, y_ax = _plot_axes[self.view]
-        html = df_roi_info.fillna('—').to_html(index=False)
-        html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
-
-        # Add header with style details
-        header = """
-            <head>
-                <style>
-                    th, td {
-                        padding: 2px 10px;
-                    }
-                    th {
-                        background-color: rgb(225, 225, 225);
-                        text-align: center;
-                    }
-                </style>
-            </head>
-        """
-        #  white-space: nowrap;
-        table_html = (
-            (header + html)
-            .replace("&gt;", ">")
-            .replace("&lt;", "<")
-            .replace("&amp;", "&")
-        )
-        self.ui_roi_table.value = table_html
 
     def update_roi_comparison(self):
         '''Update lower ROI comparison UI to reflect current view/slice/ROI 
@@ -2287,28 +2270,6 @@ class SingleViewer:
         )
         self.ui_roi_table.value = table_html
 
-    def get_roi_html(self, roi):
-        '''Get HTML string containing name and colour for an ROI.'''
-
-        # If ROI is not currently visible, return greyed-out string
-        if not self.roi_is_visible(roi):
-            return '<p style="color: rgb(100, 100, 100)">' f'{roi.name}</p>'
-
-        # Otherwise, set backgroun to ROI colour
-        red, green, blue = [c * 255 for c in roi.color[:3]]
-
-        # Find best text colour based on background colour
-        if (red * 0.299 + green * 0.587 + blue * 0.114) > 186:
-            text_col = "black"
-        else:
-            text_col = "white"
-
-        # Return formatted HTML string
-        return (
-            '<p style="background-color: rgb({}, {}, {}); '
-            'color: {};">&nbsp;{}&nbsp;</p>'
-        ).format(red, green, blue, text_col, roi.name)
-
     def show(self, show=True):
         '''Display plot and UI.'''
 
@@ -2368,7 +2329,7 @@ class SingleViewer:
         self.visible_rois = self.get_visible_rois()
         rois_to_plot = [roi for roi in self.rois if roi.name in 
                         self.visible_rois]
-        self.update_roi_info()
+        self.update_roi_info_table()
         #  self.update_roi_comparisons()
         roi_kwargs = self.roi_kwargs
         if self.ui_roi_plot_type.value != self.roi_plot_type:
