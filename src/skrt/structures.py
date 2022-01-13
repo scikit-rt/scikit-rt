@@ -1669,10 +1669,11 @@ class ROI(skrt.core.Archive):
         name_as_index=True,
         nice_columns=False,
         decimal_places=None,
-        force=True
+        force=True,
+        html=False
     ):
-        """Return a pandas DataFrame of the geometric properties listed in
-        <metrics>.
+        """Return a pandas DataFrame or html table of the geometric properties 
+        listed in <metrics>.
 
         **Parameters:**
         
@@ -1949,6 +1950,8 @@ class ROI(skrt.core.Archive):
             # Add MultiIndex
             df.columns = pd.MultiIndex.from_tuples(headers)
 
+        if html:
+            return df_to_html(df)
         return df
 
     def get_centroid_distance(self, roi, single_slice=False, **kwargs):
@@ -2692,18 +2695,24 @@ class ROI(skrt.core.Archive):
 
         return df
 
-    def get_comparison_name(self, roi, camelcase=False):
+    def get_comparison_name(self, roi, camelcase=False, colored=False):
         """Get name of comparison between this ROI and another."""
 
+        own_name = self.name
+        other_name = roi.name
+
+        if colored:
+            own_name = get_colored_roi_string(self)
+            other_name = get_colored_roi_string(roi)
+
         if self.name == roi.name:
-            name = self.name
             if camelcase:
-                return name.replace(" ", "_")
-            return name
+                return own_name.replace(" ", "_")
+            return own_name
         else:
             if camelcase:
-                return f"{self.name}_vs_{roi.name}".replace(" ", "_")
-            return f"{self.name} vs. {roi.name}"
+                return f"{own_name}_vs_{other_name}".replace(" ", "_")
+            return f"{own_name} vs. {other_name}"
 
     def set_color(self, color):
         """Set plotting color."""
@@ -4002,24 +4011,51 @@ class StructureSet(skrt.core.Archive):
         self.load()
         print("\n".join(self.get_roi_names()))
 
-    def get_geometry(self, name_as_index=True, **kwargs):
+    def get_geometry(self, name_as_index=True, html=False, **kwargs):
         """Get pandas DataFrame of geometric properties for all ROIs.
         If no sl/idx/pos is given, the central slice of each ROI will be used.
+
+        **Parameters**:
+
+        name_as_index : bool, default=True
+            If True, the ROI names will be used as row indices; otherwise, they
+            will be given their own column.
+
+        html : bool, default=False
+            If True, the table will be converted to HTML text color-coded based
+            on ROI colors.
         """
 
-        df = pd.concat([
-            roi.get_geometry(name_as_index=name_as_index, **kwargs) 
-            for roi in self.get_rois()
-        ])
+        if html:
+            name_as_index = False
+
+        rows = []
+        for roi in self.get_rois():
+            df_row = roi.get_geometry(name_as_index=name_as_index, **kwargs)
+            if html:
+                df_row.iloc[0, 0] = get_colored_roi_string(roi)
+            rows.append(df_row)
+
+        df = pd.concat(rows)
 
         # Reset index if not using ROI names as index
         if not name_as_index:
             df = df.reset_index(drop=True)
 
+        # Convert to HTML if needed
+        if html:
+            return df_to_html(df)
         return df
 
-    def get_comparison(self, other=None, comp_type="auto", 
-                       consensus_type="majority", **kwargs):
+    def get_comparison(
+        self, 
+        other=None, 
+        comp_type="auto", 
+        consensus_type="majority", 
+        html=False,
+        name_as_index=True,
+        **kwargs
+    ):
         """Get pandas DataFrame of comparison metrics vs a single ROI or
         another StructureSet.
 
@@ -4062,28 +4098,39 @@ class StructureSet(skrt.core.Archive):
                 - "sum" : use sum of ROIs.
                 - "staple" : use the STAPLE algorithm to calculate consensus.
 
+        html : bool, default=False
+            If True, the table will be converted to HTML text color-coded based
+            on ROI colors.
+
         `**`kwargs : 
             Keyword args to pass to ROI.get_comparison(). See 
             ROI.get_comparison() documentation for details.
         """
 
         dfs = []
+        if html:
+            name_as_index = False
 
-        # Comparison with a single ROI
         if isinstance(other, ROI):
-            dfs = [s.get_comparison(other, **kwargs) for s in self.get_rois()]
-
-        # Comparison with self or another StructureSet
+            pairs = [(roi, other) for roi in self.get_rois()]
         elif isinstance(other, StructureSet) or other is None:
             pairs = self.get_comparison_pairs(other, comp_type)
-            dfs = []
-            for roi1, roi2 in pairs:
-                dfs.append(roi1.get_comparison(roi2, **kwargs))
-
         else:
             raise TypeError("<other> must be ROI or StructureSet!")
 
-        return pd.concat(dfs)
+        # Create DataFrame
+        dfs = []
+        for roi1, roi2 in pairs:
+            df_row = roi1.get_comparison(roi2, name_as_index=name_as_index,
+                                         **kwargs)
+            if not name_as_index:
+                df_row.iloc[0, 0] = roi1.get_comparison_name(roi2, colored=html)
+            dfs.append(df_row)
+
+        df = pd.concat(dfs)
+        if html:
+            return df_to_html(df)
+        return df
 
     def get_comparison_pairs(self, other=None, comp_type="auto", 
                              consensus_type="majority"):
@@ -5036,3 +5083,47 @@ def create_roi_overlap(rois, **kwargs):
     for roi in rois[1:]:
         mask *= roi.get_mask(standardise=True)
     return ROI(mask, **kwargs)
+
+def df_to_html(df):
+    """Convert a pandas DataFrame to html."""
+
+    # Convert dataframe to HTML
+    html = df.fillna('—').to_html(index=False)
+    html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
+
+    # Add header with style details
+    header = """
+        <head>
+            <style>
+                th, td {
+                    padding: 2px 10px;
+                }
+                th {
+                    background-color: rgb(225, 225, 225);
+                    text-align: center;
+                }
+            </style>
+        </head>
+    """
+    table_html = (
+        (header + html)
+        .replace("&gt;", ">")
+        .replace("&lt;", "<")
+        .replace("&amp;", "&")
+    )
+    return table_html
+
+def best_text_color(red, green, blue):
+    if (red * 0.299 + green * 0.587 + blue * 0.114) > 186:
+        return "black"
+    return "white"
+
+def get_colored_roi_string(roi):
+    """Get ROI name in HTML with background color from ROI color."""
+
+    red, green, blue = [c * 255 for c in roi.color[:3]]
+    text_col = best_text_color(red, green, blue)
+    return (
+        '<p style="background-color: rgb({}, {}, {}); '
+        'color: {};">&nbsp;{}&nbsp;</p>'
+    ).format(red, green, blue, text_col, roi.name)

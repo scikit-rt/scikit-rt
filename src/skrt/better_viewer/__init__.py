@@ -2261,7 +2261,6 @@ class SingleViewer:
             df_roi_info.at[i, ("", "ROI")] = self.get_roi_html(roi)
 
         # Convert dataframe to HTML
-        x_ax, y_ax = _plot_axes[self.view]
         html = df_roi_info.fillna('—').to_html(index=False)
         html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
 

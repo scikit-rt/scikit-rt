@@ -157,3 +157,13 @@ def test_force_volume():
     assert cube1.get_volume(method="contour", force=True) != v_mask
     v_contour = cube1.get_volume(method="contour")
     assert cube1.get_volume(method="mask", force=False) == v_contour
+
+def test_geometry_table_html():
+    ss = sim.get_structure_set()
+    html = ss.get_geometry(html=True)
+    assert isinstance(html, str)
+
+def test_comparison_table_html():
+    ss = sim.get_structure_set()
+    html = ss.get_comparison(html=True)
+    assert isinstance(html, str)
