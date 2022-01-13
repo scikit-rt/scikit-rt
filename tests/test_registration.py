@@ -52,7 +52,7 @@ def test_init_with_pfiles():
     """Test creation of a new Registration object with images and parameter
     files."""
 
-    pfiles =  ["pfiles/MI_Translation.txt", "pfiles/MI_Affine.txt"]
+    pfiles = ["pfiles/MI_Translation.txt", "pfiles/MI_Affine.txt"]
     reg = Registration(reg_dir, im1, im2, pfiles=pfiles, overwrite=True)
     assert len(reg.steps) == len(pfiles)
     assert os.path.isfile(reg.steps_file)
@@ -61,6 +61,18 @@ def test_init_with_pfiles():
         assert os.path.isdir(outdir)
     for pfile in reg.pfiles.values():
         assert os.path.isfile(pfile)
+
+def test_init_pfiles_custom_names():
+    """Test loading of parameter files with a dict containing custom names."""
+
+    pfiles = {
+        "translation": "pfiles/MI_Translation.txt", 
+        "affine": "pfiles/MI_Affine.txt"
+    }
+    reg = Registration(reg_dir, im1, im2, pfiles=pfiles, overwrite=True)
+    assert reg.steps == list(pfiles.keys())
+    for step in pfiles:
+        assert os.path.isdir(os.path.join(reg.path, step))
 
 def test_load_existing():
     """Test loading an existing registration object that has a fixed and 
