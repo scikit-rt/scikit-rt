@@ -302,8 +302,21 @@ then write list of registration steps to a file.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.adjust_pfile">
 <span class="sig-name descname"><span class="pre">adjust_pfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.adjust_pfile" title="Permalink to this definition"></a></dt>
-<dd><p>Adjust parameters in an input parameter file for a given step. If
-reset=True, this will force the registration to be re-run for that step.</p>
+<dd><p>Adjust parameters in an input parameter file for a given step.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>step<span class="classifier">str/int</span></dt><dd><p>Name or number of step for which the parameter file should be 
+adjusted.</p>
+</dd>
+<dt>params<span class="classifier">dict</span></dt><dd><p>Dict of parameter names and desired parameter values. Any parameters
+matching those in the existing file will be overwritten with the
+new values. Any parameters not in the existing file will be added.
+Parameters in the existing file but not in &lt;params&gt; will remain
+unchanged.</p>
+</dd>
+<dt>reset<span class="classifier">bool, default=True</span></dt><dd><p>If True, this will remove existing registration results.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -452,7 +465,7 @@ last step).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.register">
-<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register" title="Permalink to this definition"></a></dt>
 <dd><p>Run a registration. By default the registration will be run for
 all steps in self.steps, but can optionally be run for just one step
 by setting &lt;step&gt; to a step name or number. Note that if
@@ -472,12 +485,16 @@ given step(s), the registration will not be re-run.</p>
 <dt>use_previous_tfile<span class="classifier">bool, default=True</span></dt><dd><p>If True, each step will use the transform file from the previous
 step as an initial transform.</p>
 </dd>
+<dt>capture_output<span class="classifier">bool, default=False</span></dt><dd><p>If True, capture registration messages to stdout.  This suppresses
+informational messages to screen, but doesn’t suppress error
+messages.</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.register_step">
-<span class="sig-name descname"><span class="pre">register_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register_step" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">register_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register_step" title="Permalink to this definition"></a></dt>
 <dd><p>Run a single registration step. Note that if use_previous_tfile=True,
 any prior steps that have not yet been run will be run.</p>
 <p><strong>Parameters:</strong></p>
@@ -496,6 +513,10 @@ where &lt;steps&gt; is a list of steps to run.</p>
 step as an initial transform, unless it is the first step. Note
 that this will cause any prior steps that have not yet been run
 to be run.</p>
+</dd>
+<dt>capture_output<span class="classifier">bool, default=False</span></dt><dd><p>If True, capture registration messages to stdout.  This suppresses
+informational messages to screen, but doesn’t suppress error
+messages.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -589,7 +610,7 @@ and set it to self.transformed_images[step].</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_nifti">
-<span class="sig-name descname"><span class="pre">transform_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_nifti" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_nifti" title="Permalink to this definition"></a></dt>
 <dd><p>Transform a nifti file at a given path for a given step, ensuring
 that the step has been run. Return the path to the transformed file
 inside self._tmp_dir.</p>
@@ -731,7 +752,7 @@ file.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.run_transformix_on_all">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">run_transformix_on_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.run_transformix_on_all" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">run_transformix_on_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.run_transformix_on_all" title="Permalink to this definition"></a></dt>
 <dd><p>Run transformix with either <cite>-jac all</cite> or <cite>-def all</cite> to create a
 Jacobian determinant or deformation field file, and return either
 a Jacobian or DeformationField object initialised from the output file.</p>
