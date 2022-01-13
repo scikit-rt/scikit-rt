@@ -1307,12 +1307,16 @@ def set_elastix_dir(path):
     if os.path.exists(os.path.join(_ELASTIX_DIR, "bin/elastix")):
         _ELASTIX = os.path.join(_ELASTIX_DIR, "bin/elastix")
         _transformix = os.path.join(_ELASTIX_DIR, "bin/transformix")
+        lib_dir = os.path.join(_ELASTIX_DIR, 'lib')
     elif os.path.exists(os.path.join(_ELASTIX_DIR, "elastix.exe")):
         _ELASTIX = os.path.join(_ELASTIX_DIR, "elastix.exe")
         _transformix = os.path.join(_ELASTIX_DIR, "transformix.exe")
+        lib_dir = os.path.join(os.path.dirname(_ELASTIX_DIR), 'lib')
     else:
         raise RuntimeError(f"No elastix executable found in {_ELASTIX_DIR}!")
 
+    if os.path.exists(lib_dir):
+        os.environ['DYLD_FALLBACK_LIBRARY_PATH'] = lib_dir
 
 def adjust_parameters(infile, outfile, params):
     """Open an elastix parameter file (works for both input parameter and
