@@ -3408,6 +3408,7 @@ class StructureSet(skrt.core.Archive):
         names=None,
         to_keep=None,
         to_remove=None,
+        colors=None,
         multi_label=False,
         **kwargs
     ):
@@ -3440,10 +3441,13 @@ class StructureSet(skrt.core.Archive):
             If True, ROIs will immediately be loaded from sources. Otherwise,
             loading will not occur until StructureSet.load() is called.
         
-        names : dict, default=None
+        names : dict/list, default=None
             Optional dict of ROI names to use when renaming loaded ROIs. Keys 
             should be desired names, and values should be lists of possible
             input names or wildcards matching input names.
+
+            If multi_label=True, names can also be a list of names to assign
+            to each label found in order, from smallest to largest.
 
         to_keep : list, default=None
             Optional list of ROI names or wildcards matching ROI names of ROIs
@@ -3459,9 +3463,8 @@ class StructureSet(skrt.core.Archive):
             with the <to_keep> list. If None, no ROIs will be removed.
 
         multi_label : bool, default=False
-            If True and input is a numpy array, will look for multiple ROI 
-            masks with different labels inside the array and create a separate
-            ROI from each.
+            If True, will look for multiple ROI masks with different labels 
+            inside the array and create a separate ROI from each.
 
         `**`kwargs :
             Additional keyword args to use when initialising new ROI objects.
@@ -3496,7 +3499,7 @@ class StructureSet(skrt.core.Archive):
 
     def __getitem__(self, roi):
         if isinstance(roi, int):
-            return self.get_rois()[roi]
+            return self.get_rois()[roi] 
         elif isinstance(roi, str):
             return self.get_roi_dict()[roi]
 
@@ -3514,21 +3517,36 @@ class StructureSet(skrt.core.Archive):
             sources = self.sources
 
         # Laod from multi-label array
-        if self.multi_label and isinstance(sources, np.ndarray):
+        if self.multi_label:
 
-            n = sources.max()
+            if not isinstance(sources, str) and not isinstance(sources, np.ndarray):
+                raise TypeError("Input for a multi-label image must be filepath "
+                                f"or numpy array. Type found: {type(sources)}.")
+
+            # Put affine matrix into kwargs
+            if self.image is not None:
+                self.roi_kwargs["affine"] = self.image.get_affine()
+
+            # Load input array into image
+            array = skrt.image.Image(sources).get_data().astype(int)
+            n = array.max()
+            i_name = 0
             for i in range(0, n):
+                if self.names is not None and i_name < len(self.names):
+                    name = self.names[i_name]
+                    i_name += 1
+                else:
+                    name = f"ROI {i}"
                 self.rois.append(ROI(
-                    sources == i, 
+                    array == i + 1, 
                     image=self.image,
-                    name=f"ROI_{i}", 
-                    affine=self.image.affine,
+                    name=name,
                     **self.roi_kwargs
                 ))
             self.loaded = True
 
         else:
-            if not skrt.core.is_list(sources):
+            if not skrt.core.is_list(sources) or isinstance(sources, np.ndarray):
                 sources = [sources]
                 single_source = True
             else:
@@ -3673,7 +3691,7 @@ class StructureSet(skrt.core.Archive):
 
         if names is None:
             names = self.names
-        if not names:
+        if not names or not isinstance(names, dict):
             return
 
         # Loop through each new name
@@ -3742,22 +3760,31 @@ class StructureSet(skrt.core.Archive):
         # Keep only the ROIs in to_keep
         if to_keep is not None:
             keep = []
-            for s in self.rois:
-                if any([fnmatch.fnmatch(s.name.lower(), k.lower()) 
+            for roi in self.rois:
+                if any([fnmatch.fnmatch(roi.name.lower(), k.lower()) 
                         for k in to_keep]):
-                    keep.append(s)
+                    keep.append(roi)
             self.rois = keep
 
         # Remove the ROIs in to_remove
         if to_remove is not None:
             keep = []
-            for s in self.rois:
+            for roi in self.rois:
                 if not any(
-                    [fnmatch.fnmatch(s.name.lower(), r.lower()) 
+                    [fnmatch.fnmatch(roi.name.lower(), r.lower()) 
                      for r in to_remove]
                 ):
-                    keep.append(s)
+                    keep.append(roi)
             self.rois = keep
+
+    def recolor_rois(self, colors):
+        """Set colors of ROIs using dict given in <colors>, where keys are 
+        ROI names or wildcards matching ROI names, and values are colors."""
+
+        for name, color in colors.items():
+            for roi in self.get_rois():
+                if fnmatch.fnmatch(roi.name.lower(), name.lower()):
+                    roi.set_color(color)
 
     def add_rois(self, sources):
         """Add additional ROIs from source(s)."""

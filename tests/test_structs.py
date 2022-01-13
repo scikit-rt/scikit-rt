@@ -660,3 +660,13 @@ def test_get_sum():
     all_vol = sum([roi.get_volume() for roi in ss2.get_rois()])
     assert roi_sum.get_volume() == all_vol  - overlap.get_volume()
 
+def test_multi_label():
+    """Test reading a StructureSet from a single multi-label array."""
+
+    array = np.zeros(structure_set.get_rois()[0].get_mask().shape)
+    for i, roi in enumerate(structure_set):
+        array[roi.get_mask()] = i + 1
+    ss_multi = StructureSet(array, multi_label=True, 
+                            names=structure_set.get_roi_names())
+    assert len(ss_multi.get_rois()) == len(structure_set.get_rois())
+    assert ss_multi.get_roi_names() == structure_set.get_roi_names()

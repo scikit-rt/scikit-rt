@@ -174,6 +174,13 @@ class BetterViewer:
             for list of available metrics. If roi_info=True, metrics will be
             set to ["volume", "centroid", "area"].
 
+        compare_rois : bool/list, default=False
+
+            If True, a table containg the dice scores and centroid distances
+            between ROIs will be displayed below the plot. Can also be set to a list
+            of ROI comparison metrics - see skrt.structures.ROI.get_comparison() 
+            documentation for list of available metrics. 
+
         multi_rois : str/list/dict, default=None
 
             Path(s) to file(s) from which to load multiple ROI label 
@@ -1027,7 +1034,7 @@ class BetterViewer:
                 self.lower_ui.append(ipyw.HTML(value=title))
 
             # Add to overall lower UI
-            if not no_roi or v.roi_info:
+            if not no_roi or v.roi_info or v.compare_rois:
                 self.lower_ui.extend(v.lower_ui)
                 self.ui_roi_checkboxes.extend(v.ui_roi_checkboxes)
 
@@ -1470,6 +1477,7 @@ class SingleViewer:
         roi_info=False,
         roi_info_dp=1,
         roi_kwargs=None,
+        compare_rois=False,
         length_units="mm",
         area_units="mm",
         vol_units="mm",
@@ -1615,7 +1623,9 @@ class SingleViewer:
         self.init_roi = init_roi
         self.roi_info = roi_info
         self.roi_info_dp = roi_info_dp
+        self.compare_rois = compare_rois
         self.force_roi_geometry_calc = True
+        self.force_roi_comp_calc = True
         self.roi_vol_units = vol_units
         self.roi_area_units = area_units
         self.roi_length_units = length_units
@@ -2130,6 +2140,8 @@ class SingleViewer:
         if not no_roi or self.roi_info:
             self.lower_ui.append(self.ui_roi_lower)
             self.update_roi_info()
+        if not no_roi or self.compare_rois:
+            self.update_roi_comparison()
 
         if self.standalone:
             self.lower_ui.extend([self.save_name, self.save_button])
@@ -2143,9 +2155,6 @@ class SingleViewer:
         '''Get list of names of currently visible ROIs from checkboxes.'''
 
         return [roi.name for roi in self.rois if self.roi_is_visible(roi)]
-
-    def get_roi_info_table(self):
-        """Get ROI geometric info table for current view/slice."""
 
     def update_roi_info(self):
         '''Update lower ROI info UI to reflect current view/slice/ROI 
@@ -2184,6 +2193,72 @@ class SingleViewer:
             # Make ROI names coloured
             for i, roi in enumerate(self.rois):
                 df_roi_info.at[i, ("", "ROI")] = self.get_roi_html(roi)
+
+        # Convert dataframe to HTML
+        x_ax, y_ax = _plot_axes[self.view]
+        html = df_roi_info.fillna('—').to_html(index=False)
+        html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
+
+        # Add header with style details
+        header = """
+            <head>
+                <style>
+                    th, td {
+                        padding: 2px 10px;
+                    }
+                    th {
+                        background-color: rgb(225, 225, 225);
+                        text-align: center;
+                    }
+                </style>
+            </head>
+        """
+        #  white-space: nowrap;
+        table_html = (
+            (header + html)
+            .replace("&gt;", ">")
+            .replace("&lt;", "<")
+            .replace("&amp;", "&")
+        )
+        self.ui_roi_table.value = table_html
+
+    def update_roi_comparison(self):
+        '''Update lower ROI comparison UI to reflect current view/slice/ROI 
+        visibility.'''
+        
+        if not self.compare_rois:
+            return
+
+        # Get table for all currently visible ROIs
+        metrics = self.roi_info if is_list(self.roi_info) else None
+        if self.roi_consensus:
+            comp_type = "consensus"
+            consensus_type = self.ui_roi_consensus_type.value
+        else:
+            comp_type = "auto"
+            consensus_type = None
+        df_roi_comp = self.structure_set.get_comparison( 
+            metrics=metrics,
+            view=self.view,
+            sl=self.slice[self.view],
+            global_vs_slice_header=True,
+            units_in_header=True,
+            name_as_index=False,
+            nice_columns=True,
+            decimal_places=self.roi_info_dp,
+            vol_units=self.roi_vol_units,
+            area_units=self.roi_area_units,
+            length_units=self.roi_length_units,
+            force=self.force_roi_comp_calc
+        )
+
+        # Only force recalculation of global ROI metrics once
+        if self.force_roi_comp_calc:
+            self.force_roi_comp_calc = False
+
+        # Make ROI names coloured
+        for i, roi in enumerate(self.rois):
+            df_roi_info.at[i, ("", "ROI")] = self.get_roi_html(roi)
 
         # Convert dataframe to HTML
         x_ax, y_ax = _plot_axes[self.view]

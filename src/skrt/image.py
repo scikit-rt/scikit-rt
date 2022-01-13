@@ -457,7 +457,7 @@ class Image(skrt.core.Archive):
         Standardised voxel sizes (self._svoxel_size) and origin position
         (self._sorigin) will also be inferred from self._affine.
         """
-        
+
         # Adjust dicom
         if self.source_type == "dicom":
 
@@ -546,7 +546,6 @@ class Image(skrt.core.Archive):
 
         # Fill in None values with own voxel size
         voxel_size2 = []
-        print(voxel_size)
         for i, v in enumerate(voxel_size):
             if v is not None:
                 voxel_size2.append(v)
@@ -991,6 +990,13 @@ class Image(skrt.core.Archive):
                 of a list [x1, x2, y1, y2], which is the format needed for 
                 the <extent> argument for matplotlib plotting.
         """
+
+        # Ensure either affine or voxel sizes + origin are set
+        if self.affine is None:
+            if self.voxel_size is None:
+                self.voxel_size = [1, 1, 1]
+            if self.origin is None:
+                self.origin = [0, 0, 0]
 
         # Set affine matrix, voxel sizes, and origin
         self.affine, self.voxel_size, self.origin = \
