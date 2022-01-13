@@ -416,7 +416,8 @@ class Registration(Data):
 
         return cmd
 
-    def register(self, step=None, force=False, use_previous_tfile=True):
+    def register(self, step=None, force=False, use_previous_tfile=True,
+            capture_output=False):
         """Run a registration. By default the registration will be run for
         all steps in self.steps, but can optionally be run for just one step
         by setting <step> to a step name or number. Note that if
@@ -439,6 +440,11 @@ class Registration(Data):
         use_previous_tfile : bool, default=True
             If True, each step will use the transform file from the previous
             step as an initial transform.
+
+        capture_output : bool, default=False
+            If True, capture registration messages to stdout.  This suppresses
+            informational messages to screen, but doesn't suppress error
+            messages.
         """
 
         # Make list of steps to run
@@ -456,9 +462,11 @@ class Registration(Data):
 
         # Run registration for each step
         for step in steps:
-            self.register_step(step, force=force, use_previous_tfile=True)
+            self.register_step(step, force=force, use_previous_tfile=True,
+                    capture_output=capture_output)
 
-    def register_step(self, step, force=False, use_previous_tfile=True):
+    def register_step(self, step, force=False, use_previous_tfile=True,
+            capture_output=False):
         """Run a single registration step. Note that if use_previous_tfile=True,
         any prior steps that have not yet been run will be run.
 
@@ -481,6 +489,11 @@ class Registration(Data):
             step as an initial transform, unless it is the first step. Note
             that this will cause any prior steps that have not yet been run
             to be run.
+
+        capture_output : bool, default=False
+            If True, capture registration messages to stdout.  This suppresses
+            informational messages to screen, but doesn't suppress error
+            messages.
         """
 
         # Check if the registration has already been performed
@@ -497,7 +510,8 @@ class Registration(Data):
         # Run
         cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
         print("Running command:\n", cmd)
-        code = subprocess.run(cmd.split()).returncode
+        code = subprocess.run(
+                cmd.split(), capture_output=capture_output).returncode
 
         # Check whether registration succeeded
         if code:
@@ -629,7 +643,8 @@ class Registration(Data):
 
         return final_im
 
-    def transform_nifti(self, path, step=-1, params=None):
+    def transform_nifti(self, path, step=-1, params=None,
+            capture_output=False):
         """Transform a nifti file at a given path for a given step, ensuring
         that the step has been run. Return the path to the transformed file
         inside self._tmp_dir."""
@@ -658,7 +673,7 @@ class Registration(Data):
             tfile,
         ]
         print("Running command:\n", " ".join(cmd))
-        code = subprocess.run(cmd).returncode
+        code = subprocess.run(cmd, capture_output=capture_output).returncode
 
         # If command failed, move log out from temporary dir
         if code:
@@ -1270,7 +1285,8 @@ class DeformationField:
 
 
 
-def run_transformix_on_all(is_jac, outdir, tfile, image=None):
+def run_transformix_on_all(is_jac, outdir, tfile, image=None,
+        capture_output=False):
     """Run transformix with either `-jac all` or `-def all` to create a
     Jacobian determinant or deformation field file, and return either
     a Jacobian or DeformationField object initialised from the output file.
@@ -1299,7 +1315,7 @@ def run_transformix_on_all(is_jac, outdir, tfile, image=None):
         tfile
     ]
     print("Running command:\n", " ".join(cmd))
-    code = subprocess.run(cmd).returncode
+    code = subprocess.run(cmd, capture_output=capture_output).returncode
     if code:
         logfile = os.path.join(outdir, 'transformix.log')
         raise RuntimeError(f"Jacobian creation failed. See {logfile} for "
