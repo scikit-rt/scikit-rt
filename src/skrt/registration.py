@@ -16,6 +16,7 @@ _transformix = "transformix"
 
 
 class Registration(Data):
+
     def __init__(
         self, path, fixed=None, moving=None, pfiles=None, auto=False, overwrite=False
     ):
@@ -223,7 +224,7 @@ class Registration(Data):
                 p = pfiles[p]
             else:
                 name = None
-            self.add_pfile(p)
+            self.add_pfile(p, name=name)
 
         self.write_steps()
 
@@ -838,8 +839,23 @@ class Registration(Data):
             shutil.rmtree(self._tmp_dir)
 
     def adjust_pfile(self, step, params, reset=True):
-        """Adjust parameters in an input parameter file for a given step. If
-        reset=True, this will force the registration to be re-run for that step.
+        """Adjust parameters in an input parameter file for a given step. 
+
+        **Parameters:**
+
+        step : str/int
+            Name or number of step for which the parameter file should be 
+            adjusted.
+
+        params : dict
+            Dict of parameter names and desired parameter values. Any parameters
+            matching those in the existing file will be overwritten with the
+            new values. Any parameters not in the existing file will be added.
+            Parameters in the existing file but not in <params> will remain
+            unchanged.
+
+        reset : bool, default=True
+            If True, this will remove existing registration results.
         """
 
         step = self.get_step_name(step)
