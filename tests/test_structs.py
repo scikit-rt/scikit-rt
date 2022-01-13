@@ -8,6 +8,7 @@ import shutil
 import pandas as pd
 import pytest
 import numpy as np
+import matplotlib.colors
 
 from shapely.geometry import Polygon
 from shapely.validation import explain_validity
@@ -670,3 +671,23 @@ def test_multi_label():
                             names=structure_set.get_roi_names())
     assert len(ss_multi.get_rois()) == len(structure_set.get_rois())
     assert ss_multi.get_roi_names() == structure_set.get_roi_names()
+
+#  def test_recolor():
+    #  """Test recoloring ROIs with a list as they are loaded in."""
+
+    #  colors = ["lime", "blue", "orange", "purple", "red"]
+    #  ss = StructureSet("tmp/nii_structs", colors=colors)
+    #  for i, roi in enumerate(ss.get_rois()):
+        #  assert roi.color == matplotlib.colors.to_rbga(colors[i])
+
+#  def test_recolor_from_dict():
+    #  """Test recolor based on ROI names."""
+
+    #  sim = SyntheticImage((50, 50, 10))
+    #  sim.add_sphere(5, name="sphere1")
+    #  sim.add_sphere(10, name="sphere2")
+    #  colors = {"*1": "blue", "*2": "red"}
+    #  ss = sim.get_structure_set()
+    #  ss.recolor_rois(colors)
+    #  assert ss.get_roi("sphere1").color == matplotlib.colors.to_rgba("blue")
+    #  assert ss.get_roi("sphere2").color == matplotlib.colors.to_rgba("red")

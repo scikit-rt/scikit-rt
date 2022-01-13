@@ -3495,8 +3495,8 @@ class StructureSet(skrt.core.Archive):
         names=None,
         to_keep=None,
         to_remove=None,
-        colors=None,
         multi_label=False,
+        colors=None,
         **kwargs
     ):
         """Load structure set from the source(s) given in <path>.
@@ -3553,6 +3553,12 @@ class StructureSet(skrt.core.Archive):
             If True, will look for multiple ROI masks with different labels 
             inside the array and create a separate ROI from each.
 
+        colors : list/dict
+            List or dict of colors. If a dict, the keys should be ROI names or
+            wildcards matching ROI names, and the values should be desired 
+            colors for ROIs matching that name. If a list, should contain
+            colors which will be applied to loaded ROIs in order.
+
         `**`kwargs :
             Additional keyword args to use when initialising new ROI objects.
         """
@@ -3574,6 +3580,7 @@ class StructureSet(skrt.core.Archive):
         self.to_remove = to_remove
         self.names = names
         self.multi_label = multi_label
+        self.colors = colors
         self.dicom_dataset = None
         self.roi_kwargs = kwargs
 
@@ -3715,6 +3722,7 @@ class StructureSet(skrt.core.Archive):
 
         self.rename_rois()
         self.filter_rois()
+        self.recolor_rois(self.colors)
         for roi in self.rois:
             roi.structure_set = self
 
@@ -3865,13 +3873,32 @@ class StructureSet(skrt.core.Archive):
             self.rois = keep
 
     def recolor_rois(self, colors):
-        """Set colors of ROIs using dict given in <colors>, where keys are 
-        ROI names or wildcards matching ROI names, and values are colors."""
+        """Set colors of ROIs using a list or dict given in <colors>.
 
-        for name, color in colors.items():
-            for roi in self.get_rois():
-                if fnmatch.fnmatch(roi.name.lower(), name.lower()):
-                    roi.set_color(color)
+        **Parameters**:
+
+        colors : list/dict
+            List or dict of colors. If a dict, the keys should be ROI names or
+            wildcards matching ROI names, and the values should be desired 
+            colors for ROIs matching that name. If a list, should contain
+            colors which will be applied to loaded ROIs in order.
+        """
+
+        if colors is None:
+            return
+
+        if isinstance(colors, dict):
+            for name, color in colors.items():
+                for roi in self.rois:
+                    if fnmatch.fnmatch(roi.name.lower(), name.lower()):
+                        roi.set_color(color)
+        elif isinstance(colors, list):
+            for i, color in enumerate(colors):
+                if i >= len(self.rois):
+                    return
+                self.rois[i].set_color(color)
+        else:
+            raise TypeError("<colors> must be list or dict.")
 
     def add_rois(self, sources):
         """Add additional ROIs from source(s)."""
