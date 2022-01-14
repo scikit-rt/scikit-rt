@@ -3125,8 +3125,9 @@ class ROI(skrt.core.Archive):
         mask_kwargs.setdefault("interpolation", "none")
 
         # Make plot
-        if include_image:
+        if include_image and self.image is not None:
             self.image.plot(view, idx=idx, ax=self.ax, show=False)
+
         self.ax.imshow(s_colors, extent=self.mask.plot_extent[view], 
                        **mask_kwargs)
 
@@ -3162,7 +3163,7 @@ class ROI(skrt.core.Archive):
         contour_kwargs.setdefault("linewidth", linewidth)
 
         # Plot underlying image
-        if include_image:
+        if include_image and self.image is not None:
             self.image.plot(view, idx=idx, ax=self.ax, show=False)
 
         # Get contour points

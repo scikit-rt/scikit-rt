@@ -198,6 +198,7 @@ class Dose(ImageOverlay):
     def plot_DVH(self, roi):
         """Plot dose-volume histogram for a given ROI."""
 
+        values = self.get_dose_in_roi(roi)
         pass
 
     def get_mean_dose(self, roi):

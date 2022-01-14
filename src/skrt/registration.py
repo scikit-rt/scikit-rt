@@ -253,7 +253,7 @@ class Registration(Data):
         """
 
         for file in get_default_pfiles():
-            print(file)
+            print(file.replace(".txt", ""))
 
     def get_default_params(self, filename):
         """
@@ -1507,7 +1507,8 @@ def get_default_pfiles(basename_only=True):
 
     import skrt
 
-    pdir = os.path.join(skrt.__path__[0], "../../examples/elastix/parameter_files")
+    rel_path = "../../examples/elastix/parameter_files".split("/")
+    pdir = os.path.join(skrt.__path__[0], *rel_path)
     files = [file for file in os.listdir(pdir) if file.endswith(".txt")]
     if basename_only:
         return files

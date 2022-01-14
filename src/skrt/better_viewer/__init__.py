@@ -2091,6 +2091,8 @@ class SingleViewer:
         self.upper_ui_box = ipyw.HBox(self.upper_ui)
         self.lower_ui_box = ipyw.VBox(self.lower_ui)
         self.trigger = ipyw.Checkbox(value=True)
+
+        # Create list of widgets that trigger self.plot()
         self.all_ui = (
             self.main_ui + self.extra_ui + self.ui_roi_checkboxes 
             + [self.trigger]
@@ -2166,7 +2168,6 @@ class SingleViewer:
     def update_roi_info_table(self):
         '''Update lower ROI info UI to reflect current view/slice/ROI 
         visibility.'''
-
 
         # Make list of coloured ROI names if not showing geometric info
         if not self.roi_info:

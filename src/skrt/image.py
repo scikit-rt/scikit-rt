@@ -2421,10 +2421,10 @@ class ImageComparison(Image):
             mesh = self._plot_difference(invert)
         elif plot_type == "absolute difference":
             mesh = self._plot_difference(invert, ab=True)
-        elif plot_type == "distance to agreement":
-            mesh = self._plot_dta(view, idx, dta_tolerance)
+        elif plot_type in ["distance to agreement", "dta", "DTA"]:
+            mesh = self._plot_dta(view, idx[0], dta_tolerance)
         elif plot_type == "gamma index":
-            mesh = self._plot_gamma(view, idx, invert, dta_crit, diff_crit)
+            mesh = self._plot_gamma(view, idx[0], invert, dta_crit, diff_crit)
         elif plot_type == "image 1":
             self.title = self.ims[0].title
             mesh = self.ax.imshow(
@@ -2668,7 +2668,7 @@ class ImageComparison(Image):
             diff_crit = 15
 
         diff = im2 - im1
-        dta = self.get_dta(view, reset_slices=False)
+        dta = self.get_dta(view, sl=sl, pos=pos, idx=idx, reset_slices=False)
         return np.sqrt((dta / dta_crit) ** 2 + (diff / diff_crit) ** 2)
 
     def get_plot_aspect_ratio(self, *args, **kwargs):
