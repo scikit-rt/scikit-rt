@@ -564,7 +564,7 @@ this image even if it already exists.</p>
 <dl class="simple">
 <dt>Image:</dt><dd><p>transform_image(to_transform, <a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs)</p>
 </dd>
-<dt>str:</dt><dd><p>transform_nifti(to_transform, <a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs)</p>
+<dt>str:</dt><dd><p>transform_data(to_transform, <a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs)</p>
 </dd>
 <dt>StructureSet:</dt><dd><p>transform_structure_set(to_transform, <a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs)</p>
 </dd>
@@ -574,8 +574,16 @@ this image even if it already exists.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.transform_data">
+<span class="sig-name descname"><span class="pre">transform_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_data" title="Permalink to this definition"></a></dt>
+<dd><p>Transform a nifti file or point cloud at a given path
+for a given step, ensuring that the step has been run. Return
+the path to the transformed file inside self._tmp_dir.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_image">
-<span class="sig-name descname"><span class="pre">transform_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_image" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_image" title="Permalink to this definition"></a></dt>
 <dd><p>Transform an image using the output transform from a given
 registration step (by default, the final step). If the registration
 step has not yet been performed, the step and all preceding steps
@@ -598,6 +606,10 @@ where keys are parameter names and desired values are values.
 Note that strings in the parameter file, need to include quotes,
 so you will need to use double quotes.</p>
 </dd>
+<dt>capture_output<span class="classifier">bool, default=False</span></dt><dd><p>If True, capture registration messages to stdout.  This suppresses
+informational messages to screen, but doesn’t suppress error
+messages.</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -609,16 +621,8 @@ and set it to self.transformed_images[step].</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Registration.transform_nifti">
-<span class="sig-name descname"><span class="pre">transform_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_nifti" title="Permalink to this definition"></a></dt>
-<dd><p>Transform a nifti file at a given path for a given step, ensuring
-that the step has been run. Return the path to the transformed file
-inside self._tmp_dir.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_roi">
-<span class="sig-name descname"><span class="pre">transform_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_roi" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Transform a single ROI using the output transform from a given
 registration step (by default, the final step). If the registration
 step has not yet been performed, the step and all preceding steps
@@ -642,12 +646,22 @@ so you will need to use double quotes.
 By default, “ResampleInterpolator” will be set to
 “FinalNearestNeighborInterpolator”.</p>
 </dd>
+<dt>transform_points<span class="classifier">bool, default=False</span></dt><dd><p>If False, the transform is applied to pull the ROI mask
+from the reference frame of the moving image to the reference
+frame of the fixed image.  If True, the transform is applied
+to push ROI contour points from the reference frame of the
+fixed image to the reference frame of the moving image.</p>
+</dd>
+<dt>capture_output<span class="classifier">bool, default=False</span></dt><dd><p>If True, capture registration messages to stdout.  This suppresses
+informational messages to screen, but doesn’t suppress error
+messages.</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_structure_set">
-<span class="sig-name descname"><span class="pre">transform_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_structure_set" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_structure_set" title="Permalink to this definition"></a></dt>
 <dd><p>Transform a structure set using the output transform from a given
 registration step (by default, the final step). If the registration
 step has not yet been performed, the step and all preceding steps
@@ -670,6 +684,16 @@ Note that strings in the parameter file, need to include quotes,
 so you will need to use double quotes.
 By default, “ResampleInterpolator” will be set to
 “FinalNearestNeighborInterpolator”.</p>
+</dd>
+<dt>transform_points<span class="classifier">bool, default=False</span></dt><dd><p>If False, the transform is applied to pull ROI masks
+from the reference frame of the moving image to the reference
+frame of the fixed image.  If True, the transform is applied
+to push ROI contour points from the reference frame of the
+fixed image to the reference frame of the moving image.</p>
+</dd>
+<dt>capture_output<span class="classifier">bool, default=False</span></dt><dd><p>If True, capture registration messages to stdout.  This suppresses
+informational messages to screen, but doesn’t suppress error
+messages.</p>
 </dd>
 </dl>
 </dd></dl>
