@@ -7,7 +7,7 @@ import subprocess
 
 import skrt.image
 from skrt.structures import ROI, StructureSet
-from skrt.core import get_logger, Data, to_list
+from skrt.core import get_logger, Data, to_list, Defaults
 from skrt.dose import ImageOverlay
 
 _ELASTIX_DIR = None
@@ -672,7 +672,7 @@ class Registration(Data):
             outfile = 'outputpoints.txt' 
         else:
             option = '-in'
-            outfile = 'results.nii'
+            outfile = 'result.nii'
 
         # Run transformix
         cmd = [
