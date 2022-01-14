@@ -559,7 +559,7 @@ class Registration(Data):
         Image:
             transform_image(to_transform, `**`kwargs)
         str:
-            transform_nifti(to_transform, `**`kwargs)
+            transform_data(to_transform, `**`kwargs)
         StructureSet:
             transform_structure_set(to_transform, `**`kwargs)
         ROI:
@@ -569,7 +569,7 @@ class Registration(Data):
         if issubclass(type(to_transform), skrt.image.Image):
             return self.transform_image(to_transform, **kwargs)
         elif isinstance(to_transform, str):
-            return self.transform_nifti(to_transform, **kwargs)
+            return self.transform_data(to_transform, **kwargs)
         elif isinstance(to_transform, ROI):
             return self.transform_roi(to_transform, **kwargs)
         elif isinstance(to_transform, StructureSet):
@@ -577,7 +577,8 @@ class Registration(Data):
         else:
             print(f"Unrecognised transform input type {type(to_transform)}")
 
-    def transform_image(self, im, step=-1, outfile=None, params=None, rois=None):
+    def transform_image(self, im, step=-1, outfile=None, params=None, rois=None,
+            capture_output=False):
         """
         Transform an image using the output transform from a given
         registration step (by default, the final step). If the registration
@@ -605,6 +606,11 @@ class Registration(Data):
             where keys are parameter names and desired values are values.
             Note that strings in the parameter file, need to include quotes,
             so you will need to use double quotes.
+
+        capture_output : bool, default=False
+            If True, capture registration messages to stdout.  This suppresses
+            informational messages to screen, but doesn't suppress error
+            messages.
         """
 
         # Save image temporarily as nifti if needed
@@ -617,7 +623,7 @@ class Registration(Data):
             im.write(im_path, verbose=False)
 
         # Transform the nifti file
-        result_path = self.transform_nifti(im_path, step, params)
+        result_path = self.transform_data(im_path, step, params, capture_output)
         if result_path is None:
             return
 
@@ -638,16 +644,17 @@ class Registration(Data):
         else:
             rois_to_transform = []
         for ss in rois_to_transform:
-            ss2 = self.transform_structure_set(ss, step=step)
+            ss2 = self.transform_structure_set(ss, step=step,
+                    capture_output=capture_output)
             final_im.add_structure_set(ss2)
 
         return final_im
 
-    def transform_nifti(self, path, step=-1, params=None,
+    def transform_data(self, path, step=-1, params=None,
             capture_output=False):
-        """Transform a nifti file at a given path for a given step, ensuring
-        that the step has been run. Return the path to the transformed file
-        inside self._tmp_dir."""
+        """Transform a nifti file or point cloud at a given path
+        for a given step, ensuring that the step has been run. Return
+        the path to the transformed file inside self._tmp_dir."""
 
         # Check registration has been performed, and run it if not
         i = self.get_step_number(step)
@@ -662,10 +669,18 @@ class Registration(Data):
             tfile = os.path.join(self._tmp_dir, "TransformParameters.txt")
             adjust_parameters(self.tfiles[step], tfile, params)
 
+        # Define parameters specific to data type.
+        if '.txt' == os.path.splitext(path)[1]:
+            option = '-def'
+            outfile = 'outputpoints.txt' 
+        else:
+            option = '-in'
+            outfile = 'results.nii'
+
         # Run transformix
         cmd = [
             _transformix,
-            "-in",
+            option,
             path.replace("\\", "/"),
             "-out",
             self._tmp_dir,
@@ -688,9 +703,10 @@ class Registration(Data):
             return
 
         # Return path to result
-        return os.path.join(self._tmp_dir, "result.nii")
+        return os.path.join(self._tmp_dir, outfile)
 
-    def transform_roi(self, roi, step=-1, outfile=None, params=None):
+    def transform_roi(self, roi, step=-1, outfile=None, params=None,
+            transform_points=False, capture_output=False):
         """Transform a single ROI using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -718,16 +734,30 @@ class Registration(Data):
             so you will need to use double quotes.
             By default, "ResampleInterpolator" will be set to
             "FinalNearestNeighborInterpolator".
+
+        transform_points : bool, default=False
+           If False, the transform is applied to pull the ROI mask
+           from the reference frame of the moving image to the reference
+           frame of the fixed image.  If True, the transform is applied
+           to push ROI contour points from the reference frame of the
+           fixed image to the reference frame of the moving image.
+
+        capture_output : bool, default=False
+            If True, capture registration messages to stdout.  This suppresses
+            informational messages to screen, but doesn't suppress error
+            messages.
         """
 
         # Save ROI temporarily as nifti if needed
         roi = ROI(roi)
         roi.load()
         self.make_tmp_dir()
-        if roi.source_type == "mask" and roi.mask.source_type == "nifti":
+        if (roi.source_type == "mask" and roi.mask.source_type == "nifti"
+                and not transform_points):
             roi_path = roi.mask.path
         else:
-            roi_path = os.path.join(self._tmp_dir, f"{roi.name}.nii.gz")
+            ext = 'txt' if transform_points else 'nii.gz'
+            roi_path = os.path.join(self._tmp_dir, f"{roi.name}.{ext}")
             roi.write(roi_path, verbose=False)
 
         # Set default parameters
@@ -735,8 +765,9 @@ class Registration(Data):
         if params is not None:
             default_params.update(params)
 
-        # Transform the nifti file
-        result_path = self.transform_nifti(roi_path, step, default_params)
+        # Transform the nifti file or point cloud
+        result_path = self.transform_data(roi_path, step, default_params,
+                capture_output)
         if result_path is None:
             return result_path
 
@@ -752,8 +783,8 @@ class Registration(Data):
         return roi
 
     def transform_structure_set(
-        self, structure_set, step=-1, outfile=None, params=None
-    ):
+        self, structure_set, step=-1, outfile=None, params=None,
+        transform_points=False, capture_output=False):
         """Transform a structure set using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -781,11 +812,25 @@ class Registration(Data):
             so you will need to use double quotes.
             By default, "ResampleInterpolator" will be set to
             "FinalNearestNeighborInterpolator".
+
+        transform_points : bool, default=False
+           If False, the transform is applied to pull ROI masks
+           from the reference frame of the moving image to the reference
+           frame of the fixed image.  If True, the transform is applied
+           to push ROI contour points from the reference frame of the
+           fixed image to the reference frame of the moving image.
+
+        capture_output : bool, default=False
+            If True, capture registration messages to stdout.  This suppresses
+            informational messages to screen, but doesn't suppress error
+            messages.
         """
 
         final = StructureSet()
         for roi in structure_set:
-            transformed_roi = self.transform_roi(roi, step, params=params)
+            transformed_roi = self.transform_roi(roi, step, params=params,
+                    transform_points=transform_points,
+                    capture_output=capture_output)
             if transformed_roi is not None:
                 final.add_roi(transformed_roi)
 

@@ -317,7 +317,7 @@ class ROI(skrt.core.Archive):
         elif isinstance(self.source, str):
             if self.source.endswith('.txt'):
                 # Try loading from transformix-compatible point cloud
-                points = load_transformix_points(self)
+                points = self.load_transformix_points()
 
                 # Extract slice-by-slice dictionary of (x, y) points
                 contours = {}
@@ -430,8 +430,8 @@ class ROI(skrt.core.Archive):
         # For most purposes (and slice thicknesses) it's probably
         # a reasonable approximation to map all points to the mean
         # z-coordinate of all points originally in the same plane.
-        keep_original_planes = getattr(self, keep_original_planes, True)
-        if keep_original_palnes:
+        keep_original_planes = getattr(self, 'keep_original_planes', True)
+        if keep_original_planes:
             # Sort points by slice z-coordinate,
             # keeping relative order within a slice.
             slices = {}
