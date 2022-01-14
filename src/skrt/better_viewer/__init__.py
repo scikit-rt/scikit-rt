@@ -20,7 +20,7 @@ from skrt.image import (
 )
 from skrt.dose import Dose
 from skrt.registration import Jacobian
-from skrt.structures import StructureSet, ROI, get_colored_roi_string
+from skrt.structures import StructureSet, ROI, get_colored_roi_string, df_to_html
 
 # ipywidgets settings
 _style = {'description_width': 'initial'}
@@ -2175,6 +2175,7 @@ class SingleViewer:
                 grey = not self.roi_is_visible(roi)
                 rows.append({'ROI': get_colored_roi_string(roi, grey)})
             df_roi_info = pd.DataFrame(rows)
+            self.ui_roi_table.value = df_to_html(df_roi_info)
 
         # Otherwise, make ROI geometry table
         else:
