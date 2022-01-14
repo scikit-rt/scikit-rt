@@ -39,6 +39,7 @@ pip install scikit-rt
 conda install -c conda-forge shapely
 ```
 
+
 #### 3. Using scikit-rt in code
 
 - If using miniconda, ensure you have opened Anaconda Prompt/a terminal and activated your environment (step 1.4).
@@ -47,6 +48,28 @@ conda install -c conda-forge shapely
     - Launch an iPython session by typing `ipython`.
     - Create a python script and run it by typing `python my_script.py`.
 - To check that scikit-rt is correctly installed, trying running the command `import skrt` via any of the three methods above.
+
+#### 4. Elastix installation (optional -- needed for image registration functionality)
+
+1. Download the version of elastix matching your operating system from https://github.com/SuperElastix/elastix/releases/tag/5.0.1
+2. Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.
+3. On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your `~.zshrc` or `.bashrc`:
+
+On Mac:
+```
+export PATH=${PATH}:/path/to/elastix/directory/bin
+export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:/path/to/elastix/directory/lib
+```
+On Linux:
+```
+export PATH=${PATH}:/path/to/elastix/directory/bin
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
+```
+4. If you are on Windows or didn't do step 3, any time you want to use image registration in scikit-rt, you will need to run:
+```
+from skrt.registration import set_elastix_dir
+set_elastix_dir('path/to/elastix/directory')
+```
 
 ### Docker installation
 
