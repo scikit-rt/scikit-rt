@@ -7,7 +7,7 @@ import subprocess
 
 import skrt.image
 from skrt.structures import ROI, StructureSet
-from skrt.core import Data, to_list
+from skrt.core import get_logger, Data, to_list
 from skrt.dose import ImageOverlay
 
 _ELASTIX_DIR = None
@@ -18,8 +18,8 @@ _transformix = "transformix"
 class Registration(Data):
 
     def __init__(
-        self, path, fixed=None, moving=None, pfiles=None, auto=False, overwrite=False
-    ):
+        self, path, fixed=None, moving=None, pfiles=None, auto=False,
+        overwrite=False, capture_output=False, log_level=None):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -63,7 +63,24 @@ class Registration(Data):
         overwrite : bool, default=False
             If True and <path> already contains files, these will be deleted,
             meaning that no prior registration results will be loaded.
+
+        capture_output : bool, default=False
+            If True, capture to stdout messages from performing
+            registration and transformation.  This suppresses
+            informational messages to screen, but doesn't suppress error
+            messages.
+
+        log_level: str/int/None, default=None
+            Severity level for event logging.  If the value is None,
+            log_level is set to the value of skrt.core.Defaults().log_level.
         """
+
+        # Set up event logging and output capture
+        self.log_level = \
+                Defaults().log_level if log_level is None else log_level
+        self.logger = get_logger(
+                name=type(self).__name__, log_level=self.log_level)
+        self.capture_output = capture_output
 
         # Set up directory
         self.path = path
@@ -496,8 +513,9 @@ class Registration(Data):
 
         # Run
         cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
-        print("Running command:\n", cmd)
-        code = subprocess.run(cmd.split()).returncode
+        self.logger.info(f"Running command:\n {cmd}")
+        code = subprocess.run(
+                cmd.split(), capture_output=self.capture_output).returncode
 
         # Check whether registration succeeded
         if code:
@@ -545,7 +563,7 @@ class Registration(Data):
         Image:
             transform_image(to_transform, `**`kwargs)
         str:
-            transform_nifti(to_transform, `**`kwargs)
+            transform_data(to_transform, `**`kwargs)
         StructureSet:
             transform_structure_set(to_transform, `**`kwargs)
         ROI:
@@ -555,7 +573,7 @@ class Registration(Data):
         if issubclass(type(to_transform), skrt.image.Image):
             return self.transform_image(to_transform, **kwargs)
         elif isinstance(to_transform, str):
-            return self.transform_nifti(to_transform, **kwargs)
+            return self.transform_data(to_transform, **kwargs)
         elif isinstance(to_transform, ROI):
             return self.transform_roi(to_transform, **kwargs)
         elif isinstance(to_transform, StructureSet):
@@ -563,7 +581,8 @@ class Registration(Data):
         else:
             print(f"Unrecognised transform input type {type(to_transform)}")
 
-    def transform_image(self, im, step=-1, outfile=None, params=None, rois=None):
+    def transform_image(self, im, step=-1, outfile=None, params=None, rois=None,
+            ):
         """
         Transform an image using the output transform from a given
         registration step (by default, the final step). If the registration
@@ -603,7 +622,7 @@ class Registration(Data):
             im.write(im_path, verbose=False)
 
         # Transform the nifti file
-        result_path = self.transform_nifti(im_path, step, params)
+        result_path = self.transform_data(im_path, step, params)
         if result_path is None:
             return
 
@@ -629,10 +648,10 @@ class Registration(Data):
 
         return final_im
 
-    def transform_nifti(self, path, step=-1, params=None):
-        """Transform a nifti file at a given path for a given step, ensuring
-        that the step has been run. Return the path to the transformed file
-        inside self._tmp_dir."""
+    def transform_data(self, path, step=-1, params=None):
+        """Transform a nifti file or point cloud at a given path
+        for a given step, ensuring that the step has been run. Return
+        the path to the transformed file inside self._tmp_dir."""
 
         # Check registration has been performed, and run it if not
         i = self.get_step_number(step)
@@ -647,18 +666,27 @@ class Registration(Data):
             tfile = os.path.join(self._tmp_dir, "TransformParameters.txt")
             adjust_parameters(self.tfiles[step], tfile, params)
 
+        # Define parameters specific to data type.
+        if '.txt' == os.path.splitext(path)[1]:
+            option = '-def'
+            outfile = 'outputpoints.txt' 
+        else:
+            option = '-in'
+            outfile = 'results.nii'
+
         # Run transformix
         cmd = [
             _transformix,
-            "-in",
+            option,
             path.replace("\\", "/"),
             "-out",
             self._tmp_dir,
             "-tp",
             tfile,
         ]
-        print("Running command:\n", " ".join(cmd))
-        code = subprocess.run(cmd).returncode
+        self.logger.info(f'Running command:\n {" ".join(cmd)}')
+        code = subprocess.run(
+                cmd, capture_output=self.capture_output).returncode
 
         # If command failed, move log out from temporary dir
         if code:
@@ -673,9 +701,10 @@ class Registration(Data):
             return
 
         # Return path to result
-        return os.path.join(self._tmp_dir, "result.nii")
+        return os.path.join(self._tmp_dir, outfile)
 
-    def transform_roi(self, roi, step=-1, outfile=None, params=None):
+    def transform_roi(self, roi, step=-1, outfile=None, params=None,
+            transform_points=False):
         """Transform a single ROI using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -703,16 +732,25 @@ class Registration(Data):
             so you will need to use double quotes.
             By default, "ResampleInterpolator" will be set to
             "FinalNearestNeighborInterpolator".
+
+        transform_points : bool, default=False
+           If False, the transform is applied to pull the ROI mask
+           from the reference frame of the moving image to the reference
+           frame of the fixed image.  If True, the transform is applied
+           to push ROI contour points from the reference frame of the
+           fixed image to the reference frame of the moving image.
         """
 
         # Save ROI temporarily as nifti if needed
         roi = ROI(roi)
         roi.load()
         self.make_tmp_dir()
-        if roi.source_type == "mask" and roi.mask.source_type == "nifti":
+        if (roi.source_type == "mask" and roi.mask.source_type == "nifti"
+                and not transform_points):
             roi_path = roi.mask.path
         else:
-            roi_path = os.path.join(self._tmp_dir, f"{roi.name}.nii.gz")
+            ext = 'txt' if transform_points else 'nii.gz'
+            roi_path = os.path.join(self._tmp_dir, f"{roi.name}.{ext}")
             roi.write(roi_path, verbose=False)
 
         # Set default parameters
@@ -720,8 +758,8 @@ class Registration(Data):
         if params is not None:
             default_params.update(params)
 
-        # Transform the nifti file
-        result_path = self.transform_nifti(roi_path, step, default_params)
+        # Transform the nifti file or point cloud
+        result_path = self.transform_data(roi_path, step, default_params)
         if result_path is None:
             return result_path
 
@@ -733,12 +771,15 @@ class Registration(Data):
         # Otherwise, return ROI object
         roi = ROI(result_path, name=roi.name, color=roi.color)
         self.rm_tmp_dir()
-        roi.set_image(self.get_transformed_image(step))
+        if transform_points:
+            roi.set_image(self.moving_image)
+        else:
+            roi.set_image(self.get_transformed_image(step))
         return roi
 
     def transform_structure_set(
-        self, structure_set, step=-1, outfile=None, params=None
-    ):
+        self, structure_set, step=-1, outfile=None, params=None,
+        transform_points=False):
         """Transform a structure set using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -766,22 +807,33 @@ class Registration(Data):
             so you will need to use double quotes.
             By default, "ResampleInterpolator" will be set to
             "FinalNearestNeighborInterpolator".
+
+        transform_points : bool, default=False
+           If False, the transform is applied to pull ROI masks
+           from the reference frame of the moving image to the reference
+           frame of the fixed image.  If True, the transform is applied
+           to push ROI contour points from the reference frame of the
+           fixed image to the reference frame of the moving image.
         """
 
         final = StructureSet()
         for roi in structure_set:
-            transformed_roi = self.transform_roi(roi, step, params=params)
+            transformed_roi = self.transform_roi(roi, step, params=params,
+                    transform_points=transform_points)
             if transformed_roi is not None:
                 final.add_roi(transformed_roi)
 
         # Write structure set if outname is given
         if outfile is not None:
-            final.write(outname)
+            final.write(outfile)
             return
 
         # Otherwise, return structure set
         final.name = "Transformed"
-        final.set_image(self.get_transformed_image(step))
+        if transform_points:
+            final.set_image(self.moving_image)
+        else:
+            final.set_image(self.get_transformed_image(step))
         return final
 
     def transform_moving_image(self, step=-1):
@@ -1298,8 +1350,8 @@ def run_transformix_on_all(is_jac, outdir, tfile, image=None):
         "-tp",
         tfile
     ]
-    print("Running command:\n", " ".join(cmd))
-    code = subprocess.run(cmd).returncode
+    self.logger.info('Running command:\n {" ".join(cmd)}')
+    code = subprocess.run(cmd, capture_output=self.capture_output).returncode
     if code:
         logfile = os.path.join(outdir, 'transformix.log')
         raise RuntimeError(f"Jacobian creation failed. See {logfile} for "
