@@ -779,7 +779,10 @@ class Registration(Data):
         # Otherwise, return ROI object
         roi = ROI(result_path, name=roi.name, color=roi.color)
         self.rm_tmp_dir()
-        roi.set_image(self.get_transformed_image(step))
+        if transform_points:
+            roi.set_image(self.moving_image)
+        else:
+            roi.set_image(self.get_transformed_image(step))
         return roi
 
     def transform_structure_set(
@@ -841,7 +844,10 @@ class Registration(Data):
 
         # Otherwise, return structure set
         final.name = "Transformed"
-        final.set_image(self.get_transformed_image(step))
+        if transform_points:
+            final.set_image(self.moving_image)
+        else:
+            final.set_image(self.get_transformed_image(step))
         return final
 
     def transform_moving_image(self, step=-1):
