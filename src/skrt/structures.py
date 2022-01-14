@@ -332,6 +332,7 @@ class ROI(skrt.core.Archive):
                 self.input_contours = {}
                 for key in sorted(contours):
                     self.input_contours[float(key)] = [np.array(contours[key])]
+                rois.append(self.name)
 
             else:
                 # Try loading from dicom structure set
