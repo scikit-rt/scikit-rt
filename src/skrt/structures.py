@@ -722,6 +722,9 @@ class ROI(skrt.core.Archive):
 
                 # Loop over each contour on the z slice
                 iz = int(self.pos_to_idx(z, "z"))
+                if iz >= self.mask.data.shape[2]:  # Ignore slices outside mask range
+                    continue
+
                 pos_to_idx_vec = np.vectorize(self.pos_to_idx)
                 for points in contours:
 
@@ -4069,16 +4072,22 @@ class StructureSet(skrt.core.Archive):
 
         rows = []
         for roi in self.get_rois():
+
+            # Get DataFrame for this ROI
             df_row = roi.get_geometry(name_as_index=name_as_index, **kwargs)
+
+            # Replace all values with "--" if greying out this ROI
+            if roi in greyed_out:
+                for col in df_row.columns:
+                    if col == "ROI": 
+                        continue
+                    df_row[col] = "--"
+
+            # Set ROI name to have colored background if returning HTML
             if html:
-                grey = False
-                if roi in greyed_out:
-                    for col in df_row.columns:
-                        if col == "ROI": 
-                            continue
-                        df_row[col] = "--"
-                    grey = True
-                df_row.iloc[0, 0] = get_colored_roi_string(roi, grey)
+                df_row.iloc[0, 0] = get_colored_roi_string(
+                    roi, grey=(roi in greyed_out))
+
             rows.append(df_row)
 
         df = pd.concat(rows)
@@ -4173,14 +4182,27 @@ class StructureSet(skrt.core.Archive):
         # Create DataFrame
         dfs = []
         for roi1, roi2 in pairs:
+
+            # Get DataFrame for this pair
             df_row = roi1.get_comparison(roi2, name_as_index=name_as_index,
                                          **kwargs)
+
+            # Replace values with "--" if either ROI is greyed out
+            grey = roi1 in greyed_out or roi2 in greyed_out
+            if grey:
+                for col in df_row.columns:
+                    if col == "ROI": 
+                        continue
+                    df_row[col] = "--"
+
+            # Set name to have colored background
             if not name_as_index:
                 df_row.iloc[0, 0] = roi1.get_comparison_name(
                     roi2, 
                     colored=html,
-                    grey=(roi1 in greyed_out or roi2 in greyed_out)
+                    grey=grey
                 )
+
             dfs.append(df_row)
 
         df = pd.concat(dfs)

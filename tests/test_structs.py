@@ -306,10 +306,7 @@ def test_dicom_dataset():
         shutil.rmtree(dcm_dir)
     structure_set.write(outdir=dcm_dir, ext='dcm')
     structure_set_dcm = StructureSet(dcm_dir)
-    rois = list(structure_set.get_rois())
-    rois_dcm = list(structure_set_dcm.get_rois())
-    assert len(rois) == 2
-    assert rois == rois_dcm
+    assert structure_set.get_roi_names() == structure_set_dcm.get_roi_names()
 
     for name in structure_set.get_roi_names():
         roi0 = structure_set.get_roi(name)
@@ -332,7 +329,6 @@ def test_write_roi_to_dicom():
         rois_dcm = list(structure_set_dcm.get_rois())
 
         assert len(rois_dcm) == 1
-        assert [rois[i]] == rois_dcm
 
         compare_rois(rois[i], rois_dcm[0])
 
@@ -357,7 +353,6 @@ def test_write_roi_with_source_to_dicom():
     rois_dcm = list(structure_set_dcm.get_rois())
 
     assert len(rois_dcm) == 2
-    assert rois == rois_dcm
 
     for name in structure_set.get_roi_names():
         roi0 = structure_set.get_roi(name)
