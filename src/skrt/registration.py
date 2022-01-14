@@ -839,7 +839,7 @@ class Registration(Data):
 
         # Write structure set if outname is given
         if outfile is not None:
-            final.write(outname)
+            final.write(outfile)
             return
 
         # Otherwise, return structure set
