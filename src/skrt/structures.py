@@ -2735,7 +2735,7 @@ class ROI(skrt.core.Archive):
     def plot(
         self,
         view="x-y",
-        plot_type=None,
+        plot_type='contour',
         sl=None,
         idx=None,
         pos=None,
@@ -2909,7 +2909,7 @@ class ROI(skrt.core.Archive):
         elif "filled" in plot_type:
             if opacity is None:
                 opacity = 0.3
-            self._plot_mask(view, idx, mask_kwargs, opacity, 
+            self._plot_mask(view, idx, mask_kwargs, opacity, color=color,
                            show=False, include_image=include_image, **kwargs)
             kwargs["ax"] = self.ax
             self._plot_contour(
@@ -3502,6 +3502,7 @@ class StructureSet(skrt.core.Archive):
         image=None,
         load=True,
         names=None,
+        keep_renamed_only=False,
         to_keep=None,
         to_remove=None,
         multi_label=False,
@@ -3588,6 +3589,7 @@ class StructureSet(skrt.core.Archive):
         self.to_keep = to_keep
         self.to_remove = to_remove
         self.names = names
+        self.keep_renamed_only = keep_renamed_only
         self.multi_label = multi_label
         self.colors = colors
         self.dicom_dataset = None
@@ -3729,7 +3731,7 @@ class StructureSet(skrt.core.Archive):
                 except RuntimeError:
                     continue
 
-        self.rename_rois()
+        self.rename_rois(keep_renamed_only=self.keep_renamed_only)
         self.filter_rois()
         self.recolor_rois(self.colors)
         for roi in self.rois:
@@ -4505,6 +4507,32 @@ class StructureSet(skrt.core.Archive):
         if save_as:
             self.fig.savefig(save_as)
             plt.close()
+
+    def plot_consensus(self, consensus_type, view="x-y", sl=None, idx=None,
+                       pos=None, rois_in_background=False, color=None, 
+                       show=True, **kwargs):
+        """Plot the consensus contour, with all ROIs in grey behind it if
+        rois_in_background=True."""
+
+        consensus = self.get_consensus(consensus_type)
+
+        if idx is None and sl is None and pos is None:
+            idx = self.get_mid_idx(view)
+            ax = skrt.image._slice_axes[view]
+            pos = consensus.idx_to_pos(idx, ax)
+
+        consensus.plot(color=color, pos=pos, view=view, show=False, **kwargs)
+
+        if rois_in_background:
+            kwargs["ax"] = consensus.ax
+            for roi in self.get_rois():
+                roi.plot(color="lightgrey", view=view, pos=pos, show=False, **kwargs)
+            consensus.plot(color=color, view=view, pos=pos, show=False, **kwargs)
+
+        consensus.ax.set_aspect("equal")
+
+        if show:
+            plt.show()
 
     def get_length(self, ax):
         """Get length covered by ROIs along an axis."""
