@@ -1582,7 +1582,9 @@ class Image(skrt.core.Archive):
                         # Get ROI name and append structure set name if multiple
                         # structure sets are being plotted
                         name = roi.name
-                        if n_structure_sets > 1 and hasattr(roi, "structure_set"):
+                        if roi._unique_name is not None:
+                            name = roi._unique_name
+                        elif n_structure_sets > 1 and hasattr(roi, "structure_set"):
                             name += f" ({roi.structure_set.name})"
                         roi_handles.append(mpatches.Patch(color=roi.color,
                                                           label=name))

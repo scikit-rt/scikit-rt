@@ -235,6 +235,7 @@ class ROI(skrt.core.Archive):
             else:
                 self.name = ROIDefaults().get_default_roi_name()
         self.original_name = name
+        self._unique_name = None
         self.title = None
 
         # ROI number as defined in DICOM RTSTRUCT file.
@@ -5152,6 +5153,7 @@ def create_dummy_image(
         origin=origin
     )
 
+
 def create_staple(rois, **kwargs):
     """Create STAPLE ROI from list of ROIs."""
 
@@ -5167,6 +5169,7 @@ def create_staple(rois, **kwargs):
     # Create STAPLE ROI object
     return ROI(mask, **kwargs)
 
+
 def create_majority_vote(rois, **kwargs):
     """Create majority vote ROI from list of ROIs."""
 
@@ -5176,6 +5179,7 @@ def create_majority_vote(rois, **kwargs):
     mask = mask >= len(rois) / 2
     return ROI(mask, **kwargs)
 
+
 def create_roi_sum(rois, **kwargs):
     """Create ROI from sum of list of ROIs."""
 
@@ -5184,6 +5188,7 @@ def create_roi_sum(rois, **kwargs):
         mask += roi.get_mask(standardise=True)
     return ROI(mask, **kwargs)
 
+
 def create_roi_overlap(rois, **kwargs):
     """Create ROI from overlap of list of ROIs."""
 
@@ -5191,6 +5196,7 @@ def create_roi_overlap(rois, **kwargs):
     for roi in rois[1:]:
         mask *= roi.get_mask(standardise=True)
     return ROI(mask, **kwargs)
+
 
 def df_to_html(df):
     """Convert a pandas DataFrame to html."""
@@ -5221,10 +5227,12 @@ def df_to_html(df):
     )
     return table_html
 
+
 def best_text_color(red, green, blue):
     if (red * 0.299 + green * 0.587 + blue * 0.114) > 186:
         return "black"
     return "white"
+
 
 def get_colored_roi_string(roi, grey=False):
     """Get ROI name in HTML with background color from roi.color. If grey=True,

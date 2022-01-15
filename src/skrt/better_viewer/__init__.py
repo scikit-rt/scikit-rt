@@ -1788,7 +1788,8 @@ class SingleViewer:
         # Get list of ROIs
         self.rois_for_jump = {
             '': None,
-            **{s.name: s for s in self.rois},
+            **{s._unique_name if s._unique_name is not None else s.name: s 
+               for s in self.rois},
         }
         if self.init_roi in self.roi_names:
             self.current_roi = self.init_roi
@@ -2117,7 +2118,6 @@ class SingleViewer:
         self.roi_checkboxes = {
             s: ipyw.Checkbox(value=True, indent=False)
             for s in self.rois_for_jump.keys()
-            if s
         }
         self.ui_roi_checkboxes.extend(list(self.roi_checkboxes.values()))
         for s in self.rois:
