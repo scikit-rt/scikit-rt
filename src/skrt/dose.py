@@ -5,6 +5,8 @@ import os
 import pydicom
 import functools
 
+import matplotlib
+
 from skrt.core import MachineData
 import skrt.image
 
@@ -195,10 +197,111 @@ class Dose(ImageOverlay):
                 * roi.get_mask(standardise=True)
         return dose_in_roi[dose_in_roi > 0]
 
-    def plot_DVH(self, roi):
-        """Plot dose-volume histogram for a given ROI."""
+    def plot_DVH(self, rois=[], bins=50, dose_min=0, dose_max=None,
+            figsize=(8, 4), lw=2, n_colour=10, cmap='turbo', grid=True,
+            fname=None):
+        '''
+        Plot dose-volume histogram for specified ROI(s).
 
-        pass
+        **Parameters:**
+
+        rois : ROI/StructureSet/list, default=[]
+            ROI(s) for which dose-volume histogram is to be plotted.  This
+            can be a single skrt.structures.ROI object, a single
+            skrt.structures.StructureSet object, or a list containing any
+            combination of ROI and StructureSet objects.
+
+        bins : int, default=50
+            Number of bins in the dose-volume histogram.
+
+        dose_min : float, default=0
+            Minimum dose value to be included.
+
+        dose_max : float, default=None
+            Maximum dose value to be included.  If None, this is set to
+            the maximum dose for the ROI(s) considered.
+
+        figsize : tuple of floats, default=(8, 5)
+            Dimensions (inches) of the matplotlib figure
+
+        lw : float, default=2
+            Width (relative to matplotlib default) of line used in drawing
+            histogram outlines.
+
+        n_colour : int, default=10
+            Number of colours over which to cycle when drawing histograms.
+
+        cmap : str, default='turbo'
+            Name of a matplotlib colour map from which to define set of
+            colours over which to cycle when drawing histograms.
+
+            For predfined names see:
+
+            https://matplotlib.org/stable/gallery/color/colormap_reference.html
+
+        grid : bool, default=True
+            If True, overlay a grid on the dose-volume histogram.
+
+        fname : str, default=None
+            Name of file for saving output.
+        '''
+
+        # Create figure and define the list of colours.
+        fig, ax = matplotlib.pyplot.subplots(figsize=figsize)
+        colours = matplotlib.cm.get_cmap(cmap)(np.linspace(0, 1,n_colour))
+        ax.set_prop_cycle(color=colours)
+
+        # Ensure that rois is a list.
+        if issubclass(type(rois),
+                (skrt.structures.ROI, skrt.structures.StructureSet)):
+            rois = [rois]
+
+        # Create a list containing all unique rois.
+        all_rois = []
+        for item in rois:
+            if issubclass(type(item), skrt.structures.ROI):
+                candidate_rois = [item]
+            elif issubclass(type(item), skrt.structures.StructureSet):
+                candidate_rois = item.get_rois()
+            for roi in candidate_rois:
+                if not roi in all_rois:
+                    all_rois.append(roi)
+
+        # Determine the maximum dose for the input roi(s).
+        if dose_max is None:
+            dose_max = 0
+            for roi in all_rois:
+                doses = list(self.get_dose_in_roi(roi))
+                doses.append(dose_max)
+                dose_max=max(doses)
+
+
+        # Plot the dose-volume histograms, and extract information for legend.
+        lines= []
+        labels= []
+        for roi in all_rois:
+            doses = self.get_dose_in_roi(roi)
+            n, bins, patches = ax.hist(doses, bins=bins,
+                    range=(dose_min,dose_max), lw=lw, histtype='step',
+                    density=True, cumulative=-1)
+            colour = patches[0].get_edgecolor()
+            lines.append(matplotlib.lines.Line2D([0], [0], color=colour, lw=lw))
+            labels.append(roi.name)
+
+        # Label the axes, add grid and legend, tighten layout.
+        ax.set_xlabel('Dose (Gy)')
+        ax.set_ylabel('Volume fraction')
+        ax.grid(grid)
+        ax.legend(handles=lines, labels=labels, loc='center left',
+                bbox_to_anchor=(1.01, 0.5))
+        matplotlib.pyplot.tight_layout()
+
+        # Show figure or save to file.
+        if fname is not None:
+            matplotlib.pyplot.savefig(fname)
+        else:
+            matplotlib.pyplot.show()
+
 
     def get_mean_dose(self, roi):
         """Get mean dose inside an ROI."""
