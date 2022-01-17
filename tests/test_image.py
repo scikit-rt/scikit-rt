@@ -678,7 +678,8 @@ def test_scale_and_rotation():
 
 def test_crop_to_roi():
     sim = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5), noise_std=100)
-    roi = sim.add_cuboid((4, 2, 6), name="cuboid")
+    sim.add_cuboid((4, 2, 6), name="cuboid")
+    roi = sim.get_roi("cuboid")
     im = sim.get_image()
     im.crop_to_roi(roi)
     for i in range(2):

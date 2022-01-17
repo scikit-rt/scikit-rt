@@ -190,9 +190,10 @@ class ROI(skrt.core.Archive):
             return
 
         # Process contour dictionary
-        self.input_contours = {}
+        self.input_contours = None
         if isinstance(source, dict):
             self.source = None
+            self.input_contours = {}
             for z, contours in source.items():
                 self.input_contours[z] = []
                 for contour in contours:
@@ -366,7 +367,7 @@ class ROI(skrt.core.Archive):
             self.create_mask()
 
         # Deal with input contours
-        if self.input_contours:
+        if self.input_contours is not None:
 
             # Create Image object
             if self.image is not None:
@@ -394,6 +395,15 @@ class ROI(skrt.core.Archive):
                 and not has_image and not has_geom
         if self.default_geom_method == "auto":
             self.default_geom_method = self.source_type
+
+        # Store flag for emptiness
+        if self.source_type == "contour":
+            self.empty = not len(self.input_contours)
+        elif self.source_type == "mask":
+            self.empty = not np.any(self.mask.get_data())
+        else:
+            self.empty = True
+
         self.loaded = True
 
     def _load_from_file(self, filename):
@@ -488,6 +498,7 @@ class ROI(skrt.core.Archive):
                                 f"on slice {z}")
 
         self.input_contours = contours
+        self.empty = not len(self.input_contours)
         self.contours = {"x-y": contours}
         self.loaded_mask = False
         self.mask = None
@@ -517,6 +528,7 @@ class ROI(skrt.core.Archive):
 
         self.loaded_mask = True
         self.contours = {}
+        self.empty = not np.any(self.mask.get_data())
         self.input_contours = None
 
     def get_contours(self, view="x-y", idx_as_key=False):
@@ -823,6 +835,9 @@ class ROI(skrt.core.Archive):
         """Get list of slice indices on which this ROI exists."""
 
         self.load()
+        if self.empty:
+            return []
+
         if method is None:
             method = self.default_geom_method
 
@@ -3508,6 +3523,7 @@ class StructureSet(skrt.core.Archive):
         to_remove=None,
         multi_label=False,
         colors=None,
+        ignore_dicom_colors=False,
         **kwargs
     ):
         """Load structure set from the source(s) given in <path>.
@@ -3593,6 +3609,7 @@ class StructureSet(skrt.core.Archive):
         self.keep_renamed_only = keep_renamed_only
         self.multi_label = multi_label
         self.colors = colors
+        self.ignore_dicom_colors = ignore_dicom_colors
         self.dicom_dataset = None
         self.roi_kwargs = kwargs
 
@@ -3704,11 +3721,12 @@ class StructureSet(skrt.core.Archive):
                         if single_contour.shape[0] == 1:
                             continue
 
+                    color = roi["color"] if not self.ignore_dicom_colors else None
                     self.rois.append(
                         ROI(
                             roi["contours"],
                             name=roi["name"],
-                            color=roi["color"],
+                            color=color,
                             image=self.image,
                             **self.roi_kwargs
                         )
@@ -3996,19 +4014,22 @@ class StructureSet(skrt.core.Archive):
         ss.filter_rois(to_keep, to_remove)
         return ss
 
-    def get_rois(self, names=None):
+    def get_rois(self, names=None, ignore_empty=False):
         """Get list of ROI objects If <names> is given, only the ROIs with
         those names will be returned."""
 
         self.load()
         if names is None:
+            if ignore_empty:
+                return [roi for roi in self.rois if not roi.empty]
             return self.rois
 
         rois = []
         for name in names:
             roi = self.get_roi(name)
             if roi is not None:
-                rois.append(roi)
+                if not ignore_empty or not roi.empty:
+                    rois.append(roi)
         return rois
 
     def get_rois_wildcard(self, wildcard):
@@ -4076,7 +4097,7 @@ class StructureSet(skrt.core.Archive):
             greyed_out = []
 
         rows = []
-        for roi in self.get_rois():
+        for roi in self.get_rois(ignore_empty=True):
 
             # Get DataFrame for this ROI
             df_row = roi.get_geometry(name_as_index=name_as_index, **kwargs)
@@ -4178,7 +4199,7 @@ class StructureSet(skrt.core.Archive):
             greyed_out = []
 
         if isinstance(other, ROI):
-            pairs = [(roi, other) for roi in self.get_rois()]
+            pairs = [(roi, other) for roi in self.get_rois(ignore_empty=True)]
         elif isinstance(other, StructureSet) or other is None:
             pairs = self.get_comparison_pairs(other, comp_type)
         else:
@@ -4231,11 +4252,11 @@ class StructureSet(skrt.core.Archive):
             # entire StructureSet
             if other is not None:
                 consensus = other.get_consensus(consensus_type)
-                return [(roi, consensus) for roi in self.get_rois()]
+                return [(roi, consensus) for roi in self.get_rois(ignore_empty=True)]
 
             # Otherwise, compare each ROI to consensus of others
             pairs = []
-            for roi in self.get_rois():
+            for roi in self.get_rois(ignore_empty=True):
                 pairs.append((roi, self.get_consensus(consensus_type, 
                                                       exclude=roi.name)))
             return pairs
@@ -4260,8 +4281,8 @@ class StructureSet(skrt.core.Archive):
         # Otherwise, pair each ROI with every other (exlcuding pairs of the same
         # ROI)
         pairs = []
-        for roi1 in self.get_rois():
-            for roi2 in other.get_rois():
+        for roi1 in self.get_rois(ignore_empty=True):
+            for roi2 in other.get_rois(ignore_empty=True):
                 if roi1 is not roi2:
                     pairs.append((roi1, roi2))
 
@@ -4271,7 +4292,7 @@ class StructureSet(skrt.core.Archive):
         """Return the array index of the slice that contains the most ROIs."""
 
         indices = []
-        for roi in self.get_rois():
+        for roi in self.get_rois(ignore_empty=True):
             indices.extend(roi.get_indices(view))
         return np.bincount(indices).argmax()
 
@@ -4378,7 +4399,7 @@ class StructureSet(skrt.core.Archive):
         consensus_linewidth=None,
         **kwargs,
     ):
-        """Plot the ROIs in this structure set. 
+        """Plot the ROIs in this structure set.
        
         If consensus_type is set to any of 'majority', 'sum', 'overlap', or 'staple',
         the conensus contour will be plotted rather than individual ROIs. If
@@ -4461,7 +4482,7 @@ class StructureSet(skrt.core.Archive):
                 pos = None
                 first_roi = central
             else:
-                central = self.get_rois()[0]
+                central = self.get_rois(ignore_empty=True)[0]
 
             central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                          opacity=opacity, linewidth=linewidth, show=False,
@@ -4475,7 +4496,7 @@ class StructureSet(skrt.core.Archive):
                     mpatches.Patch(color=central.color, label=central.name))
 
             # Plot other ROIs
-            for i, roi in enumerate(self.get_rois()):
+            for i, roi in enumerate(self.get_rois(ignore_empty=True)):
 
                 if roi is central:
                     continue
@@ -4526,7 +4547,7 @@ class StructureSet(skrt.core.Archive):
 
         if rois_in_background:
             kwargs["ax"] = consensus.ax
-            for roi in self.get_rois():
+            for roi in self.get_rois(ignore_empty=True):
                 roi.plot(color="lightgrey", view=view, pos=pos, show=False, **kwargs)
             consensus.plot(color=color, view=view, pos=pos, show=False, **kwargs)
 
@@ -4551,7 +4572,7 @@ class StructureSet(skrt.core.Archive):
         """Find the index of the slice with the most ROIs on it."""
 
         indices = []
-        for roi in self.get_rois():
+        for roi in self.get_rois(ignore_empty=True):
             indices.extend(roi.get_indices(view))
         vals, counts = np.unique(indices, return_counts=True)
         return vals[np.argmax(counts)]
@@ -4582,7 +4603,7 @@ class StructureSet(skrt.core.Archive):
 
         # Set initial zoom amount and centre
         self.rois[0].load()
-        if self.image is not None and not self.get_rois()[0].contours_only:
+        if self.image is not None and not self.get_rois(ignore_empty=True)[0].contours_only:
             view = kwargs.get("init_view", "x-y")
             axes = skrt.image._plot_axes[view]
             extents = [self.get_length(ax=ax) for ax in axes]
@@ -4637,7 +4658,7 @@ class StructureSet(skrt.core.Archive):
         """Get min and max extent of all ROIs in the StructureSet."""
 
         all_extents = []
-        for roi in self.get_rois():
+        for roi in self.get_rois(ignore_empty=True):
             all_extents.extend(roi.get_extent(**kwargs))
         return min(all_extents), max(all_extents)
 
@@ -4669,7 +4690,7 @@ class StructureSet(skrt.core.Archive):
         """
 
         extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
-        slice_thickness = self.get_rois()[0].get_slice_thickness_contours()
+        slice_thickness = self.get_rois(ignore_empty=True)[0].get_slice_thickness_contours()
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
     def _get_combination(self, name, force, exclude, combo_maker, **kwargs):

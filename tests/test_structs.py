@@ -402,7 +402,7 @@ def test_null_roi():
     assert(roi.contours == {})
     assert(roi.custom_color is False)
     assert(roi.image is None)
-    assert(roi.input_contours == {})
+    assert(roi.input_contours == None)
     assert(roi.kwargs == {})
     assert(roi.contours == {})
     assert(roi.loaded_mask is False)
@@ -618,7 +618,8 @@ def test_structure_set_rotation():
 
 def test_get_extent():
     sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
-    roi = sim.add_cuboid((4, 2, 6), name="cube")
+    sim.add_cuboid((4, 2, 6), name="cube")
+    roi = sim.get_roi("cube")
     ext = roi.get_extents()
     assert ext[0] == [3, 7]
     assert ext[1] == [4, 6]
@@ -686,3 +687,40 @@ def test_multi_label():
     #  ss.recolor_rois(colors)
     #  assert ss.get_roi("sphere1").color == matplotlib.colors.to_rgba("blue")
     #  assert ss.get_roi("sphere2").color == matplotlib.colors.to_rgba("red")
+
+def test_emptiness():
+
+    # test emptiness of ROI created from mask
+    empty_array = np.zeros((10, 10, 2))
+    empty_roi = ROI(empty_array)
+    assert empty_roi.empty
+
+    # test non-empty array
+    non_empty_array = empty_array.copy()
+    non_empty_array[4:6, 4:6, :] = 1
+    non_empty_roi = ROI(non_empty_array, mask_threshold=0.9)
+    assert not non_empty_roi.empty
+
+    # test empty ROI from contours
+    empty_roi_contours = ROI(empty_roi.get_contours())
+    assert empty_roi_contours.empty
+    
+    # test non-empty ROI from contours
+    non_empty_roi_contours = ROI(non_empty_roi.get_contours())
+    assert not non_empty_roi_contours.empty
+
+def test_get_rois_ignore_empty():
+    """Test ROI getting from StructureSet with and without empty ROIs"""
+
+    empty_array = np.zeros((10, 10, 2))
+    empty_roi = ROI(empty_array)
+    non_empty_array = empty_array.copy()
+    non_empty_array[4:6, 4:6, :] = 1
+    non_empty_roi = ROI(non_empty_array, mask_threshold=0.9)
+    ss = StructureSet([empty_roi, non_empty_roi])
+
+    rois = ss.get_rois()
+    assert len(rois) == 2
+
+    rois = ss.get_rois(ignore_empty=True)
+    assert len(rois) == 1
