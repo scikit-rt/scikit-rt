@@ -19,7 +19,7 @@ class Registration(Data):
 
     def __init__(
         self, path, fixed=None, moving=None, pfiles=None, auto=False,
-        overwrite=False, capture_output=False, log_level=None):
+        overwrite=False, tfiles={}, capture_output=False, log_level=None):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -63,6 +63,12 @@ class Registration(Data):
         overwrite : bool, default=False
             If True and <path> already contains files, these will be deleted,
             meaning that no prior registration results will be loaded.
+
+        tfiles: dict, default={}
+            Dictionary of pre-defined transforms, where a keys is a
+            registration step and the associated value is the path to
+            a pre-defined registration transform.  This parameter is
+            considered only if pfiles is null.
 
         capture_output : bool, default=False
             If True, capture to stdout messages from performing
@@ -115,6 +121,11 @@ class Registration(Data):
             self.add_pfiles(pfiles)
         else:
             self.load_pfiles()
+
+        if not self.pfiles:
+            self.tfiles = tfiles
+            for step in sorted(tfiles):
+                self.steps.append(step)
 
         # Perform registration
         if auto:
