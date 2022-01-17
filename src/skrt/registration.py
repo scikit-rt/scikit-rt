@@ -772,7 +772,8 @@ class Registration(Data):
         roi = ROI(result_path, name=roi.name, color=roi.color)
         self.rm_tmp_dir()
         if transform_points:
-            roi.set_image(self.moving_image)
+            if hasattr(self, 'moving_image'):
+                roi.set_image(self.moving_image)
         else:
             roi.set_image(self.get_transformed_image(step))
         return roi
@@ -831,7 +832,8 @@ class Registration(Data):
         # Otherwise, return structure set
         final.name = "Transformed"
         if transform_points:
-            final.set_image(self.moving_image)
+            if hasattr(self, 'moving_image'):
+                final.set_image(self.moving_image)
         else:
             final.set_image(self.get_transformed_image(step))
         return final
