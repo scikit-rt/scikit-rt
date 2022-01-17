@@ -786,7 +786,9 @@ class Registration(Data):
             if hasattr(self, 'moving_image'):
                 roi.set_image(self.moving_image)
         else:
-            roi.set_image(self.get_transformed_image(step))
+            transformed_image = self.get_transformed_image(step)
+            if transformed_image is not None:
+                roi.set_image(transformed_image)
         return roi
 
     def transform_structure_set(
@@ -846,7 +848,9 @@ class Registration(Data):
             if hasattr(self, 'moving_image'):
                 final.set_image(self.moving_image)
         else:
-            final.set_image(self.get_transformed_image(step))
+            transformed_image = self.get_transformed_image(step)
+            if transformed_image is not None:
+                final.set_image(transformed_image)
         return final
 
     def transform_moving_image(self, step=-1):
@@ -876,7 +880,10 @@ class Registration(Data):
             self.transform_moving_image(step)
 
         # Return clone of the transformed image object
-        return self.transformed_images[step].clone()
+        if step in self.transformed_images:
+            return self.transformed_images[step].clone()
+        else:
+            return None
 
     def ensure_registered(self, step):
         """If a step has not already been registered, perform registration
