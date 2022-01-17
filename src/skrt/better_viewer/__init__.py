@@ -1709,7 +1709,8 @@ class SingleViewer:
         self.rois = []
         for ss in structure_sets_filtered:
             self.rois.extend(ss.get_rois())
-        self.roi_names = [roi.name for roi in self.rois]
+        self.roi_names = [roi._unique_name if roi._unique_name is not None
+                          else roi.name for roi in self.rois]
 
         # Store ROIs in single StructureSet
         self.structure_set = StructureSet(self.rois)
@@ -1788,8 +1789,7 @@ class SingleViewer:
         # Get list of ROIs
         self.rois_for_jump = {
             '': None,
-            **{s._unique_name if s._unique_name is not None else s.name: s 
-               for s in self.rois},
+            **{self.roi_names[i]: self.rois[i] for i in range(len(self.rois))}
         }
         if self.init_roi in self.roi_names:
             self.current_roi = self.init_roi
@@ -2116,8 +2116,7 @@ class SingleViewer:
 
         # Make visibility checkbox for each ROI
         self.roi_checkboxes = {
-            s: ipyw.Checkbox(value=True, indent=False)
-            for s in self.rois_for_jump.keys()
+            s: ipyw.Checkbox(value=True, indent=False) for s in self.roi_names
         }
         self.ui_roi_checkboxes.extend(list(self.roi_checkboxes.values()))
         for s in self.rois:
