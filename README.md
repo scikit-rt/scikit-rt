@@ -71,6 +71,13 @@ from skrt.registration import set_elastix_dir
 set_elastix_dir('path/to/elastix/directory')
 ```
 
+### Updating scikit-rt
+
+Scikit-rt is in active development. To install the lastest version, run:
+```
+pip install --upgrade scikit-rt
+```
+
 ### Docker installation
 
 You need to have an installation of [Docker](https://www.docker.com/).
