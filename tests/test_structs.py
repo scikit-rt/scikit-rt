@@ -636,9 +636,14 @@ sim2.add_sphere(radius=5, centre=(26, 26, 5), name="sphere2")
 ss2 = sim.get_structure_set()
 
 def test_get_staple():
-    staple = ss2.get_staple()
-    assert 0 < staple.get_volume() < sum([roi.get_volume() 
-                                          for roi in ss2.get_rois()])
+    """Test STAPLE function (only runs if SimpleITK is installed)"""
+    try:
+        staple = ss2.get_staple()
+        assert 0 < staple.get_volume() < sum([roi.get_volume() 
+                                              for roi in ss2.get_rois()])
+    except ModuleNotFoundError:
+        pass
+
 def test_get_majority_vote():
     mv = ss2.get_majority_vote()
     assert 0 < mv.get_volume() < sum([roi.get_volume() 

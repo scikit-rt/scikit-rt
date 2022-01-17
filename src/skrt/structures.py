@@ -5181,9 +5181,9 @@ def create_staple(rois, **kwargs):
     # Try import SimpleITK
     try:
         import SimpleITK as sitk
-    except ImportError:
-        raise ImportError("SimpleITK is required to calculate STAPLE contour. "
-                          "Try installing via: pip install simpleitk")
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError("SimpleITK is required to calculate STAPLE contour. "
+                                  "Try installing via: pip install simpleitk")
 
     # Get STAPLE mask
     roi_arrays = []
