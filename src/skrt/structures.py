@@ -5178,8 +5178,14 @@ def create_dummy_image(
 def create_staple(rois, **kwargs):
     """Create STAPLE ROI from list of ROIs."""
 
+    # Try import SimpleITK
+    try:
+        import SimpleITK as sitk
+    except ImportError:
+        raise ImportError("SimpleITK is required to calculate STAPLE contour. "
+                          "Try installing via: pip install simpleitk")
+
     # Get STAPLE mask
-    import SimpleITK as sitk
     roi_arrays = []
     for roi in rois:
         roi_arrays.append(sitk.GetImageFromArray(roi.get_mask(
