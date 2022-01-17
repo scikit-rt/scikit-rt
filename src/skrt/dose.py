@@ -197,6 +197,23 @@ class Dose(ImageOverlay):
                 * roi.get_mask(standardise=True)
         return dose_in_roi[dose_in_roi > 0]
 
+    def get_max_dose_in_rois(self, rois=[]):
+        '''
+        Return maximum dose in a set of rois.
+
+        **Parameter:**
+
+        rois : list, default=[]
+            List of ROI objects, for which maximum dose is to be determined.
+        '''
+        # Determine the maximum dose for the input roi(s).
+        dose_max = 0
+        for roi in rois:
+            doses = list(self.get_dose_in_roi(roi))
+            doses.append(dose_max)
+            dose_max=max(doses)
+        return dose_max
+
     def plot_DVH(self, rois=[], bins=50, dose_min=0, dose_max=None,
             figsize=(8, 4), lw=2, n_colour=10, cmap='turbo', grid=True,
             fname=None):
@@ -269,12 +286,7 @@ class Dose(ImageOverlay):
 
         # Determine the maximum dose for the input roi(s).
         if dose_max is None:
-            dose_max = 0
-            for roi in all_rois:
-                doses = list(self.get_dose_in_roi(roi))
-                doses.append(dose_max)
-                dose_max=max(doses)
-
+            dose_max = self.get_max_dose_in_rois(all_rois)
 
         # Plot the dose-volume histograms, and extract information for legend.
         lines= []
@@ -301,6 +313,8 @@ class Dose(ImageOverlay):
             matplotlib.pyplot.savefig(fname)
         else:
             matplotlib.pyplot.show()
+
+        return ax
 
     def get_mean_dose(self, roi):
         """Get mean dose inside an ROI."""
