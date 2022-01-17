@@ -1,6 +1,7 @@
 """Test the skrt.registration.Registration class."""
 import numpy as np
 import os
+from pathlib import Path
 import shutil
 import pytest
 import subprocess
@@ -8,6 +9,7 @@ import subprocess
 from skrt.simulation import SyntheticImage
 from skrt.registration import Registration
 
+from test_structs import compare_rois
 
 # Directory to store test registration data
 reg_dir = "tmp/reg"
@@ -204,6 +206,45 @@ def test_transform_structure_set():
     sim3.add_sphere(2, name="sphere")
     ss = reg.transform(sim3.get_structure_set())
     assert len(ss.rois) == len(sim3.get_structure_set().rois)
+
+@needs_elastix
+def test_transform_points_structure_set():
+
+    tfile_lines = [
+            '(Transform "TranslationTransform")',
+            '(NumberOfParameters 3)',
+            '(TransformParameters 0 0 0)',
+            '(InitialTransformParametersFileName "NoInitialTransform")',
+            '(HowToCombineTransforms "Compose")',
+            '(FixedImageDimension 3)',
+            '(MovingImageDimension 3)',
+            ]
+
+    reg_dir = Path('tmp/transform')
+    if reg_dir.exists():
+        shutil.rmtree(str(reg_dir))
+    reg_dir.mkdir()
+
+    tfile_path = reg_dir / 'zero_translation.txt'
+    tfile_path.unlink(missing_ok=True)
+    with open(tfile_path, 'w') as tfile:
+        for line in tfile_lines:
+            tfile.write(f'{line}\n')
+
+    reg = Registration(reg_dir, tfiles={'zero_translation': str(tfile_path)})
+    sim3 = SyntheticImage(sim2.shape)
+    sim3.add_cube(4, name="cube")
+    sim3.add_sphere(2, name="sphere")
+    ss1 = sim3.get_structure_set()
+    ss2 = reg.transform(ss1, transform_points=True)
+    assert len(ss1.rois) == 2
+    assert len(ss1.rois) == len(ss2.rois)
+    assert ss1.get_roi_names() == ss2.get_roi_names()
+
+    for name in ss1.get_roi_names():
+        roi1 = ss1.get_roi(name)
+        roi2 = ss2.get_roi(name)
+        compare_rois(roi1, roi2)
 
 def test_read_parameters():
     """Test reading elastix parameter file into dict."""
