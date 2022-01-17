@@ -175,8 +175,39 @@ data array if not yet set.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.plot_DVH">
-<span class="sig-name descname"><span class="pre">plot_DVH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot_DVH" title="Permalink to this definition"></a></dt>
-<dd><p>Plot dose-volume histogram for a given ROI.</p>
+<span class="sig-name descname"><span class="pre">plot_DVH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'turbo'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot_DVH" title="Permalink to this definition"></a></dt>
+<dd><p>Plot dose-volume histogram for specified ROI(s).</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>rois<span class="classifier">ROI/StructureSet/list, default=[]</span></dt><dd><p>ROI(s) for which dose-volume histogram is to be plotted.  This
+can be a single skrt.structures.ROI object, a single
+skrt.structures.StructureSet object, or a list containing any
+combination of ROI and StructureSet objects.</p>
+</dd>
+<dt>bins<span class="classifier">int, default=50</span></dt><dd><p>Number of bins in the dose-volume histogram.</p>
+</dd>
+<dt>dose_min<span class="classifier">float, default=0</span></dt><dd><p>Minimum dose value to be included.</p>
+</dd>
+<dt>dose_max<span class="classifier">float, default=None</span></dt><dd><p>Maximum dose value to be included.  If None, this is set to
+the maximum dose for the ROI(s) considered.</p>
+</dd>
+<dt>figsize<span class="classifier">tuple of floats, default=(8, 5)</span></dt><dd><p>Dimensions (inches) of the matplotlib figure</p>
+</dd>
+<dt>lw<span class="classifier">float, default=2</span></dt><dd><p>Width (relative to matplotlib default) of line used in drawing
+histogram outlines.</p>
+</dd>
+<dt>n_colour<span class="classifier">int, default=10</span></dt><dd><p>Number of colours over which to cycle when drawing histograms.</p>
+</dd>
+<dt>cmap<span class="classifier">str, default=’turbo’</span></dt><dd><p>Name of a matplotlib colour map from which to define set of
+colours over which to cycle when drawing histograms.</p>
+<p>For predfined names see:</p>
+<p><a class="reference external" href="https://matplotlib.org/stable/gallery/color/colormap_reference.html">https://matplotlib.org/stable/gallery/color/colormap_reference.html</a></p>
+</dd>
+<dt>grid<span class="classifier">bool, default=True</span></dt><dd><p>If True, overlay a grid on the dose-volume histogram.</p>
+</dd>
+<dt>fname<span class="classifier">str, default=None</span></dt><dd><p>Name of file for saving output.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

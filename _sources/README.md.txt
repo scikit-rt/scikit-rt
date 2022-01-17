@@ -11,20 +11,65 @@ allows for scikit-rt code to be used from a jupyter notebook.
 
 ### Package installation
 
-Ensure you have either [pip](https://pypi.org/project/pip/) or [anaconda](https://docs.anaconda.com/anaconda/install/index.html)/[miniconda](https://docs.conda.io/en/latest/miniconda.html).
-Inside a terminal, run:
+Installation via a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and [pip](https://pypi.org/project/pip/).
+
+#### 1. Miniconda setup (recommended)
+
+1. Install miniconda by downloading from https://docs.conda.io/en/latest/miniconda.html .
+2. Open the Anaconda Prompt app (indows) or a terminal (Mac/Linux).
+3. Create a new environment called `skrt` (can replace this with a name of your choice) with python 3.9 by running:
+```
+conda create --name skrt python=3.9
+```
+4. Activate the environment by running:
+```
+conda activate skrt
+```
+
+#### 2. Package installation via `pip`
+
+1. Open Anaconda Prompt/a terminal, if not already open.
+2. If using miniconda, ensure that you have first activated your environment by running step 1.4 from above.
+3. Install scikit-rt by running:
 ```
 pip install scikit-rt
 ```
-
-On windows (if using conda), you will also need to run:
+4. If using Windows, you will also need to install shapely by running:
 ```
 conda install -c conda-forge shapely
 ```
 
-When using the image viewer in a [Jupyter notebook](https://jupyter-notebook.readthedocs.io/en/stable/) or in [JupyterLab](https://jupyterlab.readthedocs.io/en/latest/),
-if image scrolling or other interactive features don't seem to be working, check
-that [ipywidgets](https://ipywidgets.readthedocs.io/en/latest/) are installed.
+
+#### 3. Using scikit-rt in code
+
+- If using miniconda, ensure you have opened Anaconda Prompt/a terminal and activated your environment (step 1.4).
+- Options for running python are:
+    - Launch a jupyter notebook server by typing `jupyter notebook`.
+    - Launch an iPython session by typing `ipython`.
+    - Create a python script and run it by typing `python my_script.py`.
+- To check that scikit-rt is correctly installed, trying running the command `import skrt` via any of the three methods above.
+
+#### 4. Elastix installation (optional -- needed for image registration functionality)
+
+1. Download the version of elastix matching your operating system from https://github.com/SuperElastix/elastix/releases/tag/5.0.1
+2. Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.
+3. On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your `~.zshrc` or `.bashrc`:
+
+On Mac:
+```
+export PATH=${PATH}:/path/to/elastix/directory/bin
+export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:/path/to/elastix/directory/lib
+```
+On Linux:
+```
+export PATH=${PATH}:/path/to/elastix/directory/bin
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
+```
+4. If you are on Windows or didn't do step 3, any time you want to use image registration in scikit-rt, you will need to run:
+```
+from skrt.registration import set_elastix_dir
+set_elastix_dir('path/to/elastix/directory')
+```
 
 ### Docker installation
 
