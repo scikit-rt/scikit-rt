@@ -1643,12 +1643,16 @@ class SingleViewer:
         self.legend_loc = legend_loc
         self.roi_info = roi_info
         self.roi_info_dp = roi_info_dp
+        self.roi_metrics = roi_info if is_list(roi_info) \
+            else ["volume", "centroid", "area"]
         self.force_roi_geometry_calc = True
         self.force_roi_comp_calc = True
         self.roi_vol_units = vol_units
         self.roi_area_units = area_units
         self.roi_length_units = length_units
         self.roi_kwargs = roi_kwargs if roi_kwargs is not None else {}
+        self.roi_comp_metrics = compare_rois if is_list(compare_rois) \
+                else None
 
         # Colormap
         if cmap:
@@ -2181,8 +2185,14 @@ class SingleViewer:
 
         # Saving UI
         self.lower_ui = []
-        self.save_name = ipyw.Text(description='Save plot as:', value=self.save_as)
-        self.save_button = ipyw.Button(description='Save')
+        self.save_name = ipyw.Text(description='Save plot as:', 
+                                   value=self.save_as,
+                                   style=_style)
+        self.save_button = ipyw.Button(
+            description='Save',
+            tooltip=("Save figure to a file. Filetype automatically "
+                     "determined from filename.")
+        )
         self.save_button.on_click(self.save_fig)
 
         # ROI checkboxes and info table
@@ -2206,19 +2216,51 @@ class SingleViewer:
         # Make widget for ROI table and checkboxes
         self.ui_roi_table = ipyw.HTML()
         ui_roi_lower = [self.ui_roi_table]
-        if not no_roi:
+        if not no_roi or self.roi_info:
             ui_roi_lower.append(
                 ipyw.VBox(
                     self.ui_roi_checkboxes, 
                     layout=ipyw.Layout(width='30px', grid_gap='1.5px')
                 ),
             )
+
         self.ui_roi_lower = ipyw.HBox(ui_roi_lower)
+
+        # Add UI for saving ROI info table to a file
+        if self.roi_info:
+            self.roi_info_save_name = ipyw.Text(
+                description="Save table as:", value="", style=_style)
+            self.roi_info_save_button = ipyw.Button(
+                description="Save",
+                tooltip=("Save ROI geometry table to a file. Filetype will "
+                         'be CSV unless filename ends in ".tex"')
+            )
+            self.roi_info_save_button.on_click(self.save_roi_info_table)
+            self.ui_roi_info_save = ipyw.HBox([
+                self.roi_info_save_name,
+                self.roi_info_save_button])
+            self.ui_roi_lower = ipyw.VBox([self.ui_roi_lower,
+                                           self.ui_roi_info_save])
 
         # Add ROI comparison table
         if self.compare_rois:
             self.ui_roi_comp_table = ipyw.HTML()
+
+            # Save button
+            self.roi_comp_save_name = ipyw.Text(
+                description="Save table as:", value="", style=_style)
+            self.roi_comp_save_button = ipyw.Button(
+                description="Save",
+                tooltip=("Save ROI comparison table to a file. Filetype will "
+                         'be CSV unless filename ends in ".tex"')
+            )
+            self.roi_comp_save_button.on_click(self.save_roi_comparison_table)
+            self.ui_roi_comp_save = ipyw.HBox([
+                self.roi_comp_save_name,
+                self.roi_comp_save_button])
+
             self.ui_roi_lower = ipyw.VBox([self.ui_roi_comp_table,
+                                           self.ui_roi_comp_save,
                                            self.ui_roi_lower])
 
         # Add to lower UI
@@ -2266,12 +2308,10 @@ class SingleViewer:
         else:
 
             # Get table for all currently visible ROIs
-            metrics = self.roi_info if is_list(self.roi_info) \
-                    else ["volume", "centroid", "area"]
             non_visible = [roi for roi in self.rois 
                            if not self.roi_is_visible(roi)]
             self.ui_roi_table.value = self.structure_set.get_geometry( 
-                metrics=metrics,
+                metrics=self.roi_metrics,
                 view=self.view,
                 sl=self.slice[self.view],
                 global_vs_slice_header=True,
@@ -2283,8 +2323,9 @@ class SingleViewer:
                 area_units=self.roi_area_units,
                 length_units=self.roi_length_units,
                 force=self.force_roi_geometry_calc,
-                html=True,
-                greyed_out=non_visible
+                greyed_out=non_visible,
+                colored=True,
+                html=True
             )
 
             # Only force recalculation of global ROI metrics once
@@ -2298,7 +2339,7 @@ class SingleViewer:
         if not self.compare_rois:
             return
 
-        current_pairs = []
+        self.current_pairs = []
 
         # Update pairs list if using consensus
         if self.roi_consensus:
@@ -2309,20 +2350,18 @@ class SingleViewer:
             consensus = StructureSet(rois_for_consensus).get_consensus(
                 self.ui_roi_consensus_type.value, color="white")
             excluded = self.structure_set.get_roi(self.roi_to_exclude)
-            current_pairs = [(excluded, consensus)]
+            self.current_pairs = [(excluded, consensus)]
 
         # Get list of pairs where both ROIs are currently visible
         else:
             for roi1, roi2 in self.comparison_pairs:
                 if self.roi_is_visible(roi1) and self.roi_is_visible(roi2):
-                    current_pairs.append((roi1, roi2))
+                    self.current_pairs.append((roi1, roi2))
 
         # Get table for all currently visible ROIs
-        metrics = self.roi_info if is_list(self.roi_info) else None
         self.ui_roi_comp_table.value = compare_roi_pairs(
-            current_pairs,
-            html=True,
-            metrics=metrics,
+            self.current_pairs,
+            metrics=self.roi_comp_metrics,
             view=self.view,
             sl=self.slice[self.view],
             global_vs_slice_header=True,
@@ -2333,7 +2372,9 @@ class SingleViewer:
             vol_units=self.roi_vol_units,
             area_units=self.roi_area_units,
             centroid_units=self.roi_length_units,
-            force=self.force_roi_comp_calc
+            force=self.force_roi_comp_calc,
+            colored=True,
+            html=True
         )
 
         # Only force recalculation of global ROI metrics once
@@ -2517,7 +2558,86 @@ class SingleViewer:
     def save_fig(self, _=None):
         '''Save figure to a file.'''
 
-        self.image.fig.savefig(self.save_name.value)
+        outname = self.save_name.value
+        if outname is None:
+            print("Please provide a filename")
+            return
+        self.image.fig.savefig(outname)
+
+    def save_roi_info_table(self, _=None):
+        '''Save ROI geometric info table to a file.'''
+
+        outname = self.roi_info_save_name.value
+        if outname is None:
+            print("Please provide a filename")
+            return
+
+        # Get pandas DataFrame, ignoring invisible ROIs
+        visible_rois = [roi for roi in self.rois if self.roi_is_visible(roi)]
+        ss = StructureSet(visible_rois)
+        df = ss.get_geometry( 
+            metrics=self.roi_metrics,
+            view=self.view,
+            sl=self.slice[self.view],
+            global_vs_slice_header=True,
+            units_in_header=True,
+            name_as_index=False,
+            nice_columns=True,
+            decimal_places=self.roi_info_dp,
+            vol_units=self.roi_vol_units,
+            area_units=self.roi_area_units,
+            length_units=self.roi_length_units,
+            force=self.force_roi_geometry_calc,
+            colored=False
+        )
+
+        # Write to latex or CSV
+        if outname.endswith(".tex"):
+            df.fillna('--', inplace=True)
+            with open(outname, 'w') as file:
+                tex = df.to_latex(index=False, multicolumn_format='c')
+                file.write(tex)
+        else:
+            if '.' not in outname:
+                outname += '.csv'
+            df.to_csv(outname, index=False)
+
+    def save_roi_comparison_table(self, _=None):
+        '''Save ROI comparison table to a file.'''
+
+        outname = self.roi_comp_save_name.value
+        if outname is None:
+            print("Please provide a filename")
+            return
+
+        # Get pandas DataFrame
+        df = compare_roi_pairs(
+            self.current_pairs,
+            metrics=self.roi_comp_metrics,
+            view=self.view,
+            sl=self.slice[self.view],
+            global_vs_slice_header=True,
+            units_in_header=True,
+            name_as_index=False,
+            nice_columns=True,
+            decimal_places=self.roi_info_dp,
+            vol_units=self.roi_vol_units,
+            area_units=self.roi_area_units,
+            centroid_units=self.roi_length_units,
+            force=self.force_roi_comp_calc,
+            colored=False,
+        )
+
+        # Write to latex or CSV
+        if outname.endswith(".tex"):
+            df.fillna('--', inplace=True)
+            with open(outname, 'w') as file:
+                tex = df.to_latex(index=False, multicolumn_format='c')
+                file.write(tex)
+        else:
+            if '.' not in outname:
+                outname += '.csv'
+            df.to_csv(outname, index=False)
 
     def on_view_change(self):
         '''Deal with a view change.'''

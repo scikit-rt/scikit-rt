@@ -4086,6 +4086,7 @@ class StructureSet(skrt.core.Archive):
         self, 
         name_as_index=True, 
         html=False, 
+        colored=False,
         greyed_out=None,
         **kwargs):
         """Get pandas DataFrame of geometric properties for all ROIs.
@@ -4120,10 +4121,13 @@ class StructureSet(skrt.core.Archive):
                         continue
                     df_row[col] = "--"
 
-            # Set ROI name to have colored background if returning HTML
-            if html:
-                df_row.iloc[0, 0] = get_colored_roi_string(
-                    roi, grey=(roi in greyed_out))
+            # Set ROI name to have colored background if requested
+            if colored:
+                col_str = get_colored_roi_string(roi, grey=(roi in greyed_out))
+                if name_as_index:
+                    df_row.rename({df_row.index[0]: col_str}, inplace=True)
+                else:
+                    df_row.iloc[0, 0] = col_str
 
             rows.append(df_row)
 
@@ -5258,6 +5262,7 @@ def compare_roi_pairs(
     html=False,
     name_as_index=True,
     greyed_out=None,
+    colored=False,
     **kwargs
 ):
     if html:
@@ -5280,7 +5285,7 @@ def compare_roi_pairs(
                 df_row[col] = "--"
 
         # Adjust comparison name
-        comp_name = roi1.get_comparison_name(roi2, colored=html, grey=grey)
+        comp_name = roi1.get_comparison_name(roi2, colored=colored, grey=grey)
         if name_as_index:
             df_row.rename({df_row.index[0]: comp_name}, inplace=True)
         else:
