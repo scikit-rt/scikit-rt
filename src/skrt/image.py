@@ -1299,7 +1299,7 @@ class Image(skrt.core.Archive):
         roi_plot_type="contour",
         consensus_type=None,
         exclude_from_consensus=None,
-        consensus_color="white",
+        consensus_color="blue",
         consensus_linewidth=None,
         legend=False,
         roi_kwargs=None,

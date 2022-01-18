@@ -1500,6 +1500,7 @@ class SingleViewer:
         legend_loc="lower left",
         init_roi=None,
         roi_consensus=False,
+        consensus_color="blue",
         standalone=True,
         continuous_update=False,
         annotate_slice=None,
@@ -1529,6 +1530,7 @@ class SingleViewer:
         self.compare_rois = compare_rois
         self.show_compared_rois_only = show_compared_rois_only
         self.roi_consensus = roi_consensus
+        self.consensus_color = consensus_color
         self.load_rois(rois, roi_names=roi_names, rois_to_keep=rois_to_keep,
                        rois_to_remove=rois_to_remove)
 
@@ -2104,8 +2106,14 @@ class SingleViewer:
             )
             self.ui_roi_consensus_switch = ipyw.Checkbox(
                 description="Plot consensus", value=True)
+            consensus_opts = ['majority', 'sum', 'overlap']
+            try:
+                import SimpleITK
+                consensus_opts.append('staple')
+            except ModuleNotFoundError:
+                pass
             self.ui_roi_consensus_type = ipyw.Dropdown(
-                options=['majority', 'sum', 'overlap', 'staple'],
+                options=consensus_opts,
                 description='Consensus type',
                 style=_style,
             )
@@ -2348,7 +2356,7 @@ class SingleViewer:
                                   if roi.name != self.roi_to_exclude
                                   and self.roi_is_visible(roi)]
             consensus = StructureSet(rois_for_consensus).get_consensus(
-                self.ui_roi_consensus_type.value, color="white")
+                self.ui_roi_consensus_type.value, color=self.consensus_color)
             excluded = self.structure_set.get_roi(self.roi_to_exclude)
             self.current_pairs = [(excluded, consensus)]
 

@@ -2876,6 +2876,10 @@ class ROI(skrt.core.Archive):
             Extra keyword arguments to pass to the relevant plot function.
         """
 
+        self.load()
+        if self.empty:
+            return
+
         if plot_type is None:
             plot_type = self.default_geom_method
 
@@ -3137,6 +3141,8 @@ class ROI(skrt.core.Archive):
         """Plot the ROI as a mask."""
 
         self.create_mask()
+        if self.empty:
+            return
         mask_slice = self.get_slice(view, idx=idx, flatten=flatten)
 
         # Make colormap
@@ -3185,7 +3191,7 @@ class ROI(skrt.core.Archive):
         """Plot the ROI as a contour."""
 
         self.load()
-        if not self.on_slice(view, idx=idx):
+        if not self.on_slice(view, idx=idx) or self.empty:
             return
 
         contour_kwargs = {} if contour_kwargs is None else contour_kwargs
@@ -3798,8 +3804,8 @@ class StructureSet(skrt.core.Archive):
 
         # Assign to self and all ROIs
         self.image = image
-        for s in self.rois:
-            s.image = image
+        for roi in self.rois:
+            roi.set_image(image)
 
         # Assign self to the image
         if image is not None:
@@ -3917,6 +3923,11 @@ class StructureSet(skrt.core.Archive):
                 ):
                     keep.append(roi)
             self.rois = keep
+
+    def get_colors(self):
+        """Get dict of ROI colors for each name."""
+
+        return {roi.name: roi.color for roi in self.get_rois()}
 
     def recolor_rois(self, colors):
         """Set colors of ROIs using a list or dict given in <colors>.
@@ -4214,7 +4225,7 @@ class StructureSet(skrt.core.Archive):
         if isinstance(other, ROI):
             pairs = [(roi, other) for roi in self.get_rois(ignore_empty=True)]
         elif isinstance(other, StructureSet) or other is None:
-            pairs = self.get_comparison_pairs(other, comp_type)
+            pairs = self.get_comparison_pairs(other, comp_type, consensus_type)
         else:
             raise TypeError("<other> must be ROI or StructureSet!")
 
@@ -4222,7 +4233,7 @@ class StructureSet(skrt.core.Archive):
 
     def get_comparison_pairs(self, other=None, comp_type="auto", 
                              consensus_type="majority", 
-                             consensus_color="black"):
+                             consensus_color="blue"):
         """Get list of ROIs to compare with one another."""
 
         # Check comp_type is valid
@@ -4381,7 +4392,7 @@ class StructureSet(skrt.core.Archive):
         legend_loc="lower left",
         consensus_type=None,
         exclude_from_consensus=None,
-        consensus_color="black",
+        consensus_color="blue",
         consensus_linewidth=None,
         **kwargs,
     ):
@@ -4432,11 +4443,13 @@ class StructureSet(skrt.core.Archive):
 
             # Plot consensus contour
             consensus = self.get_consensus(consensus_type, 
+                                           color=consensus_color,
                                            exclude=exclude_from_consensus)
             consensus_kwargs = {} if exclude_from_consensus is not None \
                     else kwargs
             if consensus_linewidth is None:
                 consensus_linewidth = defaultParams["lines.linewidth"][0] + 1
+
             consensus.plot(
                 view, sl=sl, idx=idx, pos=pos, plot_type=plot_type, 
                 color=consensus_color, linewidth=consensus_linewidth, 
@@ -4451,6 +4464,7 @@ class StructureSet(skrt.core.Archive):
 
             # Plot excluded ROI on top
             if exclude_from_consensus is not None:
+                kwargs["include_image"] = False
                 excluded = self.get_roi(exclude_from_consensus)
                 excluded.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                               opacity=opacity, linewidth=linewidth, show=False,
@@ -4526,9 +4540,14 @@ class StructureSet(skrt.core.Archive):
 
         if idx is None and sl is None and pos is None:
             idx = self.get_mid_idx(view)
-            ax = skrt.image._slice_axes[view]
-            pos = consensus.idx_to_pos(idx, ax)
+        else:
+            idx = consensus.get_idx(view, sl, idx, pos)
+        ax = skrt.image._slice_axes[view]
+        pos = consensus.idx_to_pos(idx, ax)
 
+        if consensus.empty:
+            print(f"{consensus_type} contour is empty")
+            return
         consensus.plot(color=color, pos=pos, view=view, show=False, **kwargs)
 
         if rois_in_background:
@@ -4741,7 +4760,7 @@ class StructureSet(skrt.core.Archive):
             getattr(self, attr)[exclude] = roi
         return roi
 
-    def get_consensus(self, consensus_type, color="black", **kwargs):
+    def get_consensus(self, consensus_type, color="blue", **kwargs):
 
         # Get consensus calculation function
         if consensus_type == "majority":
@@ -5221,7 +5240,7 @@ def create_roi_sum(rois, **kwargs):
 def create_roi_overlap(rois, **kwargs):
     """Create ROI from overlap of list of ROIs."""
 
-    mask = rois[0].get_mask().copy()
+    mask = rois[0].get_mask(standardise=True).copy()
     for roi in rois[1:]:
         mask *= roi.get_mask(standardise=True)
     return ROI(mask, **kwargs)
