@@ -2181,7 +2181,10 @@ class ROI(skrt.core.Archive):
             area1 = data1.sum()
             area2 = data2.sum()
 
-        return intersection / np.mean([area1, area2])
+        mean_area = np.mean([area1, area2])
+        if mean_area == 0:
+            return None
+        return intersection / mean_area
 
     def get_volume_ratio(self, other, **kwargs):
         """Get ratio of another ROI's volume with respect to own volume."""
@@ -2778,7 +2781,7 @@ class ROI(skrt.core.Archive):
         color=None,
         show=True,
         save_as=None,
-        include_image=True,
+        include_image=False,
         no_invert=False,
         **kwargs,
     ):
@@ -3043,7 +3046,7 @@ class ROI(skrt.core.Archive):
         self.origin = im.get_origin()
         self.affine = im.get_affine()
 
-    def view(self, include_image=True, voxel_size=[1, 1], buffer=5, **kwargs):
+    def view(self, include_image=False, voxel_size=[1, 1], buffer=5, **kwargs):
         """View the ROI.
 
         **Parameters:**
@@ -3242,6 +3245,7 @@ class ROI(skrt.core.Archive):
         save_as=None, 
         names=None, 
         show=True, 
+        include_image=False,
         **kwargs
     ):
         """Plot comparison with another ROI. If no sl/idx/pos are given,
@@ -3317,13 +3321,14 @@ class ROI(skrt.core.Archive):
             pos2 = other.idx_to_pos(other.get_mid_idx(view), z_ax)
 
         # Plot self
-        self.plot(show=False, view=view, pos=pos1, **kwargs)
+        self.plot(show=False, view=view, pos=pos1, include_image=include_image, 
+                  **kwargs)
 
         # Adjust kwargs for plotting second ROI
         kwargs["ax"] = self.ax
         kwargs["color"] = roi2_color
-        kwargs["include_image"] = False
-        other.plot(show=False, view=view, pos=pos2, **kwargs)
+        other.plot(show=False, view=view, pos=pos2, include_image=False, 
+                   **kwargs)
         self.ax.set_title(self.get_comparison_name(other))
 
         # Create legend
