@@ -1243,7 +1243,7 @@ class BetterViewer:
             height = self.figsize
             width = self.figwidth
 
-        # Outside notebook, just resize figure
+        # Outside notebook, just resize figure if it's not the first call
         if not self.in_notebook and hasattr(self, 'fig'):
             self.fig.set_size_inches(width, height)
             return
@@ -1667,6 +1667,12 @@ class SingleViewer:
         else:
             image = Image(im, *args, **kwargs)
         image.load()
+
+        # Ensure fig and ax are clear
+        for attr in ['ax', 'fig']:
+            if hasattr(image, attr):
+                delattr(image, attr)
+
         return image
 
     def load_dose(self, dose):
@@ -2656,10 +2662,7 @@ class SingleViewer:
                 next_type = {
                     'mask': 'contour',
                     'contour': 'filled',
-                    'filled': 'centroid',
-                    'centroid': 'filled centroid',
-                    'filled centroid': 'none',
-                    'none': 'mask',
+                    'filled': 'mask',
                 }
                 self.ui_roi_plot_type.value = next_type[
                     self.ui_roi_plot_type.value
@@ -2667,15 +2670,14 @@ class SingleViewer:
 
         # Press j to jump between ROIs
         elif event.key == 'j' and self.has_rois:
-            rois = self.ui_roi_jump.options[1:]
-            if not hasattr(self, 'current_roi'):
+            if self.current_roi == '':
                 current_idx = 0
             else:
-                current_idx = rois.index(self.current_roi)
+                current_idx = self.roi_names.index(self.current_roi)
             new_idx = current_idx + 1
-            if new_idx == len(rois):
+            if new_idx == len(self.roi_names):
                 new_idx = 0
-            new_roi = rois[new_idx]
+            new_roi = self.roi_names[new_idx]
             self.ui_roi_jump.value = new_roi
 
         # Press arrow keys to scroll through many slices

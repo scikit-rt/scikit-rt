@@ -1623,10 +1623,11 @@ class Image(skrt.core.Archive):
             for roi in plotted_rois:
 
                 # Check whether this ROI is currently visible
-                roi_xlim = roi.get_extent(ax=x_ax, single_slice=True, pos=pos)
+                roi_xlim = roi.get_extent(view=view, ax=x_ax, 
+                                          single_slice=True, pos=pos)
                 if max(roi_xlim) < min(xlim) or min(roi_xlim) > max(xlim):
                     continue
-                roi_ylim = roi.get_extent(ax=y_ax, single_slice=True, pos=pos)
+                roi_ylim = roi.get_extent(view=view, ax=y_ax, single_slice=True, pos=pos)
                 if max(roi_ylim) < min(ylim) or min(roi_ylim) > max(ylim):
                     continue
 
