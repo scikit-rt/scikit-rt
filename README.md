@@ -38,6 +38,10 @@ pip install scikit-rt
 ```
 conda install -c conda-forge shapely
 ```
+5. If you want to be able to calculate the STAPLE consensus of contours, you must also install SimpleITK:
+```
+pip install simpleitk
+```
 
 
 #### 3. Using scikit-rt in code
