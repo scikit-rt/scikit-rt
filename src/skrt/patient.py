@@ -96,22 +96,33 @@ class Study(skrt.core.Archive):
         # Search subdirectories (each corresponds to an image type)
         for im_type_dir in os.listdir(obj_dir):
 
+            im_type = im_type_dir
+            if subdir in ['RTDOSE'] and im_type not in self.image_types:
+                im_type = 'CT'
+            subpath = f"{subdir}/{im_type_dir}"
+
             all_objs = []
 
             # Create archive object for each subdir (each corresponds to 
             # an image)
             archives = self.create_objects(dtype=skrt.core.Archive,
-                                           subdir=f"{subdir}/{im_type_dir}")
+                                           subdir=subpath)
             for archive in archives:
+                if os.path.isfile(archive.path):
+                    archive.path = os.path.dirname(archive.path)
 
                 # Create objects within this archive
                 objs = archive.create_objects(
                     dtype=dtype, timestamp_only=False, **kwargs)
 
                 # Look for an image matching the timestamp of this archive
-                if im_type_dir in self.image_types:
-                    image = find_matching_object(
-                        archive, self.image_types[im_type_dir])
+                if im_type in self.image_types:
+                    image_types = self.image_types[im_type]
+                    if im_type != im_type_dir:
+                        obj_to_match = objs[0]
+                    else:
+                        obj_to_match = archive
+                    image = find_matching_object(obj_to_match, image_types)
                     if image is not None:
                         for obj in objs:
                             if hasattr(obj, "set_image"):
@@ -696,3 +707,19 @@ def find_matching_object(obj, possible_matches):
         if (match.date == obj.date) and (match.time == obj.time):
             return match
 
+    # If no timestamp match, try matching on SOP Instance UID
+    if issubclass(type(obj), Dose):
+        ds_obj = obj.get_dicom_dataset()
+        if hasattr(ds_obj, 'ReferencedImageSequence'):
+            # Omit part of UID after final dot,
+            # to be insenstive to slice/frame considered.
+            referenced_sop_instance_uid = '.'.join(
+                    ds_obj.ReferencedImageSequence[-1]
+                    .ReferencedSOPInstanceUID.split('.')[:-1])
+            for match in possible_matches:
+                ds_match = match.get_dicom_dataset()
+                if hasattr(ds_match, 'SOPInstanceUID'):
+                    sop_instance_uid = '.'.join(
+                            ds_match.SOPInstanceUID.split('.')[:-1])
+                    if sop_instance_uid == referenced_sop_instance_uid:
+                        return match
