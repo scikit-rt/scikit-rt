@@ -236,7 +236,6 @@ class ROI(skrt.core.Archive):
             else:
                 self.name = ROIDefaults().get_default_roi_name()
         self.original_name = name
-        self._unique_name = None
         self.title = None
 
         # ROI number as defined in DICOM RTSTRUCT file.
@@ -1211,8 +1210,9 @@ class ROI(skrt.core.Archive):
             axes = skrt.image._axes
 
         # Get centre in mm
-        centre = [
-            np.mean(self.get_extent(
+        centre = []
+        for ax in axes:
+            extent = self.get_extent(
                 ax=ax,
                 single_slice=single_slice,
                 view=view,
@@ -1220,8 +1220,12 @@ class ROI(skrt.core.Archive):
                 idx=idx,
                 pos=pos,
                 method=method,
-            )) for ax in axes
-        ]
+            )
+            if None in extent:
+                centre.append(None)
+            else:
+                centre.append(np.mean(extent))
+
         return np.array(centre)
 
     def get_volume(
@@ -1536,7 +1540,10 @@ class ROI(skrt.core.Archive):
                     points.extend([p[i_ax] for p in contour])
 
             # Return min and max of the points in the contour(s)
-            return [min(points), max(points)]
+            if len(points):
+                return [min(points), max(points)]
+            else:
+                return [None, None]
 
         # Otherwise, get extent from mask
         self.create_mask()
@@ -1550,6 +1557,8 @@ class ROI(skrt.core.Archive):
             nonzero = np.argwhere(self.get_slice(
                 view, sl=sl, idx=idx, pos=pos))
         vals = nonzero[:, i_ax]
+        if not len(vals):
+            return [None, None]
 
         # Find min and max voxels; add half a voxel either side to get 
         # full extent
@@ -5266,10 +5275,11 @@ def get_colored_roi_string(roi, grey=False):
     the background color will be grey."""
 
     if grey:
-        red, green, blue = 200, 200, 200
+        red, green, blue = 255, 255, 255
+        text_col = 200, 200, 200
     else:
         red, green, blue = [c * 255 for c in roi.color[:3]]
-    text_col = best_text_color(red, green, blue)
+        text_col = best_text_color(red, green, blue)
     return (
         '<p style="background-color: rgb({}, {}, {}); '
         'color: {};">&nbsp;{}&nbsp;</p>'

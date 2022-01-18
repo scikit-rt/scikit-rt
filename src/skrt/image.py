@@ -1559,11 +1559,9 @@ class Image(skrt.core.Archive):
             )
 
         # Plot ROIs
+        plotted_rois = []
         if consensus_type is None:
-            roi_handles = []
             for roi in rois_to_plot:
-
-                # Plot the ROI on same axes
                 if roi.on_slice(view, pos=pos):
                     roi.plot(
                         view,
@@ -1575,26 +1573,7 @@ class Image(skrt.core.Archive):
                         no_invert=True,
                         **roi_kwargs
                     )
-
-                    # Add patch to list of handles for legend creation
-                    if legend:
-
-                        # Get ROI name and append structure set name if multiple
-                        # structure sets are being plotted
-                        name = roi.name
-                        if roi._unique_name is not None:
-                            name = roi._unique_name
-                        elif n_structure_sets > 1 and hasattr(roi, "structure_set"):
-                            name += f" ({roi.structure_set.name})"
-                        roi_handles.append(mpatches.Patch(color=roi.color,
-                                                          label=name))
-
-             # Draw ROI legend
-            if legend and len(roi_handles):
-                self.ax.legend(
-                    handles=roi_handles, loc=legend_loc, facecolor="white",
-                    framealpha=1
-                )
+                    plotted_rois.append(roi)
 
         # Consensus plot
         else:
@@ -1634,6 +1613,32 @@ class Image(skrt.core.Archive):
             self.ax.set_xlim(xlim)
         if ylim is not None:
             self.ax.set_ylim(ylim)
+
+        # Add ROI legend
+        xlim = self.ax.get_xlim()
+        ylim = self.ax.get_ylim()
+        x_ax, y_ax = _plot_axes[view] 
+        roi_handles = []
+        if legend and consensus_type is None:
+            for roi in plotted_rois:
+
+                # Check whether this ROI is currently visible
+                roi_xlim = roi.get_extent(ax=x_ax, single_slice=True, pos=pos)
+                if max(roi_xlim) < min(xlim) or min(roi_xlim) > max(xlim):
+                    continue
+                roi_ylim = roi.get_extent(ax=y_ax, single_slice=True, pos=pos)
+                if max(roi_ylim) < min(ylim) or min(roi_ylim) > max(ylim):
+                    continue
+
+                roi_handles.append(
+                    mpatches.Patch(color=roi.color, label=roi.name))
+
+            # Draw ROI legend
+            if legend and len(roi_handles):
+                self.ax.legend(
+                    handles=roi_handles, loc=legend_loc, facecolor="white",
+                    framealpha=1
+                )
 
         # Add colorbar
         clb_label = colorbar_label if colorbar_label is not None \

@@ -124,7 +124,7 @@ class BetterViewer:
                       labelled 'Heart (file1.nii)' and 'Heart (file2.nii)' in
                       the UI.
 
-               However, if the <roi_legend> option is used, the ROIs
+               However, if the <legend> option is used, the ROIs
                will be labelled with the same name in the figure legend. See
                the labelling option below in part (3) or the <roi_names>
                option for more customisation.
@@ -515,7 +515,7 @@ class BetterViewer:
             (b) 'voxels' for voxels
             (c) 'ml' for ml
 
-        roi_legend : bool, default=False
+        legend : bool, default=False
             If True, a legend will be displayed for any plot with ROIs.
 
         init_roi : str, default=None
@@ -1481,7 +1481,7 @@ class SingleViewer:
         length_units="mm",
         area_units="mm",
         vol_units="mm",
-        roi_legend=False,
+        legend=False,
         legend_loc="lower left",
         init_roi=None,
         roi_consensus=False,
@@ -1507,6 +1507,7 @@ class SingleViewer:
 
         # Load additional overlays
         self.load_dose(dose)
+        self.init_roi = init_roi
         self.load_rois(rois, roi_names=roi_names, rois_to_keep=rois_to_keep,
                        rois_to_remove=rois_to_remove)
         self.load_jacobian(jacobian)
@@ -1618,9 +1619,8 @@ class SingleViewer:
             elif roi_plot_type in ['filled', 'filled centroid']:
                 self.roi_filled_opacity = roi_opacity
         self.roi_linewidth = roi_linewidth
-        self.roi_legend = roi_legend
+        self.legend = legend
         self.legend_loc = legend_loc
-        self.init_roi = init_roi
         self.roi_info = roi_info
         self.roi_info_dp = roi_info_dp
         self.compare_rois = compare_rois
@@ -1678,6 +1678,9 @@ class SingleViewer:
         Load ROIs, apply names/filters, and assign to a single StructureSet.
         """
 
+        # Current ROI attribute (used for ROI centering/jumping)
+        self.current_roi = ''
+
         # Load all ROIs into structure sets
         structure_sets = []
         standalone_rois = StructureSet()  # Extra structure set for single ROIs
@@ -1705,17 +1708,41 @@ class SingleViewer:
                                  to_remove=rois_to_remove, copy_roi_data=False)
             )
 
-        # Put ROIs and their names into a list
-        self.rois = []
+        # Get list of all ROI names and StructureSet names
+        all_names = []
+        ss_names = []
         for ss in structure_sets_filtered:
-            self.rois.extend(ss.get_rois())
-        self.roi_names = [roi._unique_name if roi._unique_name is not None
-                          else roi.name for roi in self.rois]
+            all_names.extend(ss.get_roi_names())
+            ss_names.append(ss.name)
 
-        # Store ROIs in single StructureSet
+        # Make list of all ROIs and assign unique names
+        self.rois = [] 
+        name_counts = {name: 0 for name in all_names}
+        for ss in structure_sets_filtered:
+            for roi in ss.get_rois(ignore_empty=True):
+
+                # Check whether this is the user-specified initial ROI
+                is_current = (self.init_roi == roi.name) and not self.current_roi
+
+                # Ensure ROI name is unique
+                if all_names.count(roi.name) > 1:
+
+                    # Use structure set's name if unique and not None
+                    if ss.name is not None and ss_names.count(ss.name) == 1:
+                        roi.name = f"{roi.name} ({ss.name})"
+
+                    # Otherwise, use count
+                    else:
+                        name_counts[roi.name] += 1
+                        roi.name = f"{roi.name} {name_counts[roi.name]}"
+
+                self.rois.append(roi)
+                if is_current:
+                    self.current_roi = roi.name
+                    self.init_roi = roi.name
+
         self.structure_set = StructureSet(self.rois)
-
-        # Set boolean to indicate whether this viewer has any ROIs
+        self.roi_names = [roi.name for roi in self.rois]
         self.has_rois = bool(len(self.rois))
 
     def load_jacobian(self, jacobian):
@@ -1789,12 +1816,8 @@ class SingleViewer:
         # Get list of ROIs
         self.rois_for_jump = {
             '': None,
-            **{self.roi_names[i]: self.rois[i] for i in range(len(self.rois))}
+            **{roi.name: roi for roi in self.rois}
         }
-        if self.init_roi in self.roi_names:
-            self.current_roi = self.init_roi
-        else:
-            self.current_roi = ''
         self.ui_roi_jump = ipyw.Dropdown(
             options=self.rois_for_jump.keys(),
             value=self.current_roi,
@@ -2404,7 +2427,7 @@ class SingleViewer:
             dose=overlay,
             dose_opacity=overlay_opacity,
             dose_kwargs=overlay_kwargs,
-            legend=self.roi_legend,
+            legend=self.legend,
             centre_on_roi=self.init_roi,
             shift=self.shift,
             scale_in_mm=self.scale_in_mm,
@@ -2489,12 +2512,12 @@ class SingleViewer:
         roi = self.rois_for_jump[self.current_roi]
         if not roi.is_empty():
             if not roi.on_slice(self.view, sl=self.slice[self.view]):
-                mid_slice = roi.idx_to_slice(roi.get_mid_idx(self.view), 
-                                             ax=_slice_axes[self.view])
-                self.ui_slice.value = self.slice_to_slider(
-                    mid_slice, _slice_axes[self.view]
-                )
-                self.slice[self.view] = mid_slice
+                mid = roi.idx_to_pos(roi.get_mid_idx(self.view), 
+                                         ax=_slice_axes[self.view])
+                if not self.scale_in_mm:
+                    mid = self.image.pos_to_slice(mid, ax=_slice_axes[self.view])
+                self.ui_slice.value = mid
+                self.slice[self.view] = mid
             self.centre_on_roi(roi)
         self.ui_roi_jump.value = ''
         self.roi_to_exclude = self.current_roi
@@ -2505,10 +2528,17 @@ class SingleViewer:
         if not self.zoom_ui or self.ui_zoom.value == 1:
             return
 
-        centre = roi.get_centre(self.view, single_slice=True, 
-                                sl=self.slice[self.view])
+        if self.scale_in_mm:
+            sl = None
+            pos = self.slice[self.view]
+        else:
+            sl = self.slice[self.view]
+            pos = None
+        centre = roi.get_centre(self.view, single_slice=True, sl=sl, pos=pos)
+
         if None in centre:
             return
+
         self.current_centre[self.view] = centre
         self.update_zoom_sliders()
 
