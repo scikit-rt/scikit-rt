@@ -2811,7 +2811,7 @@ def load_dicom(path, debug=False):
     # Get list of paths corresponding to this image
     paths = get_dicom_paths(path)
     if not len(paths):
-        return tuple([None] * 5)
+        return tuple([None] * 6)
 
     # Load image array and pydicom FileDataset object from file(s)
     if len(paths) > 1:

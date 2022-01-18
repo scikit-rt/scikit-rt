@@ -3664,16 +3664,19 @@ class StructureSet(skrt.core.Archive):
         # Laod from multi-label array
         if self.multi_label:
 
+            if isinstance(sources, list) and len(sources) == 1:
+                sources = sources[0]
             if not isinstance(sources, str) and not isinstance(sources, np.ndarray):
                 raise TypeError("Input for a multi-label image must be filepath "
                                 f"or numpy array. Type found: {type(sources)}.")
+            single_source = True
 
             # Put affine matrix into kwargs
             if self.image is not None:
                 self.roi_kwargs["affine"] = self.image.get_affine()
 
             # Load input array into image
-            array = skrt.image.Image(sources).get_data().astype(int)
+            array = skrt.image.Image(sources).get_data(standardise=True).astype(int)
             n = array.max()
             i_name = 0
             for i in range(0, n):
@@ -3688,6 +3691,7 @@ class StructureSet(skrt.core.Archive):
                     name=name,
                     **self.roi_kwargs
                 ))
+            sources = []
             self.loaded = True
 
         else:
