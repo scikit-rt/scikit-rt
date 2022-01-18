@@ -2420,10 +2420,10 @@ class ImageComparison(Image):
 
         # Make plot
         if plot_type in ["chequerboard", "cb"]:
-            mesh = self._plot_chequerboard(invert, cb_splits)
+            mesh = self._plot_chequerboard(view, invert, cb_splits)
         elif plot_type == "overlay":
             mesh = self._plot_overlay(
-                invert, overlay_opacity, overlay_legend, overlay_legend_loc
+                view, invert, overlay_opacity, overlay_legend, overlay_legend_loc
             )
         elif plot_type in ["difference", "diff"]:
             mesh = self._plot_difference(invert)
@@ -2435,17 +2435,23 @@ class ImageComparison(Image):
             mesh = self._plot_gamma(view, idx[0], invert, dta_crit, diff_crit)
         elif plot_type == "image 1":
             self.title = self.ims[0].title
+            kwargs = self.ims[0].get_mpl_kwargs(view)
+            kwargs["vmin"] = self.mpl_kwargs["vmin"]
+            kwargs["vmax"] = self.mpl_kwargs["vmax"]
             mesh = self.ax.imshow(
                 self.slices[0],
                 cmap=self.cmap,
-                **self.mpl_kwargs,
+                **kwargs
             )
         elif plot_type == "image 2":
             self.title = self.ims[1].title
+            kwargs = self.ims[1].get_mpl_kwargs(view)
+            kwargs["vmin"] = self.mpl_kwargs["vmin"]
+            kwargs["vmax"] = self.mpl_kwargs["vmax"]
             mesh = self.ax.imshow(
                 self.slices[1],
                 cmap=self.cmap,
-                **self.mpl_kwargs,
+                **kwargs
             )
         else:
             print("Unrecognised plotting option:", plot_type)
@@ -2502,6 +2508,7 @@ class ImageComparison(Image):
 
     def _plot_chequerboard(
         self,
+        view,
         invert=False,
         cb_splits=2,
     ):
@@ -2522,15 +2529,19 @@ class ImageComparison(Image):
 
         # Plot
         for i in [i1, i2]:
+            kwargs = self.ims[i].get_mpl_kwargs(view)
+            kwargs["vmin"] = self.mpl_kwargs["vmin"]
+            kwargs["vmax"] = self.mpl_kwargs["vmax"]
+            kwargs["cmap"] = self.cmap
             mesh = self.ax.imshow(
                 to_show[i],
-                cmap=self.cmap,
-                **self.mpl_kwargs,
+                **kwargs
             )
         return mesh
 
     def _plot_overlay(
         self,
+        view,
         invert=False,
         opacity=0.5,
         legend=False,
@@ -2545,11 +2556,14 @@ class ImageComparison(Image):
         for n, i in enumerate(order):
 
             # Show image
+            kwargs = self.ims[i].get_mpl_kwargs(view)
+            kwargs["vmin"] = self.mpl_kwargs["vmin"]
+            kwargs["vmax"] = self.mpl_kwargs["vmax"]
+            kwargs["cmap"] = cmaps[n]
+            kwargs["alpha"] = alphas[n]
             mesh = self.ax.imshow(
                 self.slices[i],
-                cmap=cmaps[n],
-                alpha=alphas[n],
-                **self.mpl_kwargs,
+                **kwargs
             )
 
             # Make handle for legend
