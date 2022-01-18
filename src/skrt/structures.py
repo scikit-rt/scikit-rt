@@ -4563,7 +4563,7 @@ class StructureSet(skrt.core.Archive):
         vals, counts = np.unique(indices, return_counts=True)
         return vals[np.argmax(counts)]
 
-    def view(self, include_image=True, voxel_size=[1, 1], buffer=5, **kwargs):
+    def view(self, include_image=True, rois=None, voxel_size=[1, 1], buffer=5, **kwargs):
         """View the StructureSet.
 
         **Parameters:**
@@ -4571,6 +4571,9 @@ class StructureSet(skrt.core.Archive):
         include_image : bool, default=True
             If True and this StructureSet has an associated image 
             (in self.image), the image will be displayed behind the ROIs.
+
+        rois : StructureSet/list, default=None
+            Any other ROIs or StructureSets to include in the plot.
 
         voxel_size : list, default=[1, 1]
             If the StructureSet does not have an associated image and has ROIs 
@@ -4608,7 +4611,14 @@ class StructureSet(skrt.core.Archive):
 
         # View with image
         if include_image and self.image is not None:
-            bv = BetterViewer(self.image, rois=self, **kwargs)
+            if rois is None:
+                rois = self
+            else:
+                if skrt.core.is_list(rois):
+                    rois = [self] + rois
+                else:
+                    rois = [self, rois]
+            bv = BetterViewer(self.image, rois=rois, **kwargs)
 
         # View without image
         else:
@@ -4632,9 +4642,15 @@ class StructureSet(skrt.core.Archive):
                     affine=self.rois[0].affine,
                 )
 
-            # Create viewer
+            if rois is None:
+                rois = structure_set_tmp
+            else:
+                if skrt.core.is_list(rois):
+                    rois = [structure_set_tmp] + rois
+                else:
+                    rois = [structure_set_tmp, rois]
             kwargs["show"] = False
-            bv = BetterViewer(im, rois=structure_set_tmp, **kwargs)
+            bv = BetterViewer(im, rois=rois, **kwargs)
             bv.make_ui(no_intensity=True)
             bv.show()
 
