@@ -1050,7 +1050,7 @@ class BetterViewer:
                 self.lower_ui.extend(v.lower_ui)
                 self.ui_roi_checkboxes.extend(v.ui_roi_checkboxes)
 
-        self.lower_ui.extend([self.viewers[0].save_name, self.viewers[0].save_button])
+        self.lower_ui.append(self.viewers[0].ui_save_plot)
 
     def make_comparison_ui(self):
 
@@ -2181,7 +2181,7 @@ class SingleViewer:
 
         # Saving UI
         self.lower_ui = []
-        self.save_name = ipyw.Text(description='Output file:', value=self.save_as)
+        self.save_name = ipyw.Text(description='Save plot as:', value=self.save_as)
         self.save_button = ipyw.Button(description='Save')
         self.save_button.on_click(self.save_fig)
 
@@ -2210,7 +2210,7 @@ class SingleViewer:
             ui_roi_lower.append(
                 ipyw.VBox(
                     self.ui_roi_checkboxes, 
-                    layout=ipyw.Layout(width='30px')
+                    layout=ipyw.Layout(width='30px', grid_gap='1.5px')
                 ),
             )
         self.ui_roi_lower = ipyw.HBox(ui_roi_lower)
@@ -2230,9 +2230,10 @@ class SingleViewer:
             self.update_roi_info_table()
         if self.compare_rois:
             self.update_roi_comparison()
-
+        
+        self.ui_save_plot = ipyw.HBox([self.save_name, self.save_button])
         if self.standalone:
-            self.lower_ui.extend([self.save_name, self.save_button])
+            self.lower_ui.append(self.ui_save_plot)
 
     def roi_is_visible(self, roi):
         """Check whether a given ROI is currently visible. If the ROI isn't 
