@@ -2685,7 +2685,6 @@ class SingleViewer:
             return
 
         self.current_roi = self.ui_roi_jump.value
-        print("jumping to:", self.current_roi)
         roi = self.rois_for_jump[self.current_roi]
         if not roi.is_empty():
             if not roi.on_slice(self.view, sl=self.slice[self.view]):
@@ -2704,9 +2703,7 @@ class SingleViewer:
             return
 
         sl = self.slice[self.view]
-        print("slice:", sl)
         centre = roi.get_centre(self.view, single_slice=True, sl=sl)
-        print("new centre:", centre)
 
         if None in centre:
             return
