@@ -19,7 +19,7 @@ class Registration(Data):
 
     def __init__(
         self, path, fixed=None, moving=None, pfiles=None, auto=False,
-        overwrite=False, capture_output=False, log_level=None):
+        overwrite=False, tfiles={}, capture_output=False, log_level=None):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -63,6 +63,12 @@ class Registration(Data):
         overwrite : bool, default=False
             If True and <path> already contains files, these will be deleted,
             meaning that no prior registration results will be loaded.
+
+        tfiles: dict, default={}
+            Dictionary of pre-defined transforms, where a keys is a
+            registration step and the associated value is the path to
+            a pre-defined registration transform.  This parameter is
+            considered only if pfiles is null.
 
         capture_output : bool, default=False
             If True, capture to stdout messages from performing
@@ -115,6 +121,11 @@ class Registration(Data):
             self.add_pfiles(pfiles)
         else:
             self.load_pfiles()
+
+        if not self.pfiles:
+            self.tfiles = tfiles
+            for step in sorted(tfiles):
+                self.steps.append(step)
 
         # Perform registration
         if auto:
@@ -772,9 +783,12 @@ class Registration(Data):
         roi = ROI(result_path, name=roi.name, color=roi.color)
         self.rm_tmp_dir()
         if transform_points:
-            roi.set_image(self.moving_image)
+            if hasattr(self, 'moving_image'):
+                roi.set_image(self.moving_image)
         else:
-            roi.set_image(self.get_transformed_image(step))
+            transformed_image = self.get_transformed_image(step)
+            if transformed_image is not None:
+                roi.set_image(transformed_image)
         return roi
 
     def transform_structure_set(
@@ -831,9 +845,12 @@ class Registration(Data):
         # Otherwise, return structure set
         final.name = "Transformed"
         if transform_points:
-            final.set_image(self.moving_image)
+            if hasattr(self, 'moving_image'):
+                final.set_image(self.moving_image)
         else:
-            final.set_image(self.get_transformed_image(step))
+            transformed_image = self.get_transformed_image(step)
+            if transformed_image is not None:
+                final.set_image(transformed_image)
         return final
 
     def transform_moving_image(self, step=-1):
@@ -863,7 +880,10 @@ class Registration(Data):
             self.transform_moving_image(step)
 
         # Return clone of the transformed image object
-        return self.transformed_images[step].clone()
+        if step in self.transformed_images:
+            return self.transformed_images[step].clone()
+        else:
+            return None
 
     def ensure_registered(self, step):
         """If a step has not already been registered, perform registration
