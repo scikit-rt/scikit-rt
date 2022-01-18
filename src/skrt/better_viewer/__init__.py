@@ -1204,7 +1204,7 @@ class BetterViewer:
 
         return reset_zoom
 
-    def make_fig(self):
+    def make_fig(self, view_changed):
 
         # Get relative width of each subplot
         width_ratios = [
@@ -1243,9 +1243,10 @@ class BetterViewer:
             height = self.figsize
             width = self.figwidth
 
-        # Outside notebook, just resize figure if it's not the first call
+        # Outside notebook, just resize figure if orientation has changed
         if not self.in_notebook and hasattr(self, 'fig'):
-            self.fig.set_size_inches(width, height)
+            if view_changed:
+                self.fig.set_size_inches(width, height)
             return
 
         # Make new figure
@@ -1343,7 +1344,8 @@ class BetterViewer:
         self.plotting = True
 
         # Deal with view change
-        if self.ui_view.value != self.view:
+        view_changed = self.ui_view.value != self.view
+        if view_changed:
             self.view = self.ui_view.value
             for v in self.viewers:
                 v.view = self.ui_view.value
@@ -1365,7 +1367,7 @@ class BetterViewer:
             self.apply_translation()
 
         # Reset figure
-        self.make_fig()
+        self.make_fig(view_changed)
 
         # Plot all images
         for v in self.viewers:
@@ -2554,14 +2556,13 @@ class SingleViewer:
             return
 
         self.current_roi = self.ui_roi_jump.value
+        print("jumping to:", self.current_roi)
         roi = self.rois_for_jump[self.current_roi]
         if not roi.is_empty():
             if not roi.on_slice(self.view, sl=self.slice[self.view]):
-                mid = roi.idx_to_pos(roi.get_mid_idx(self.view), 
-                                         ax=_slice_axes[self.view])
-                if not self.scale_in_mm:
-                    mid = self.image.pos_to_slice(mid, ax=_slice_axes[self.view])
-                self.ui_slice.value = mid
+                z_ax = _slice_axes[self.view]
+                mid = roi.idx_to_slice(roi.get_mid_idx(self.view), ax=z_ax)
+                self.ui_slice.value = self.slice_to_slider(mid, ax=z_ax)
                 self.slice[self.view] = mid
             self.centre_on_roi(roi)
         self.ui_roi_jump.value = ''
@@ -2573,13 +2574,10 @@ class SingleViewer:
         if not self.zoom_ui or self.ui_zoom.value == 1:
             return
 
-        if self.scale_in_mm:
-            sl = None
-            pos = self.slice[self.view]
-        else:
-            sl = self.slice[self.view]
-            pos = None
-        centre = roi.get_centre(self.view, single_slice=True, sl=sl, pos=pos)
+        sl = self.slice[self.view]
+        print("slice:", sl)
+        centre = roi.get_centre(self.view, single_slice=True, sl=sl)
+        print("new centre:", centre)
 
         if None in centre:
             return

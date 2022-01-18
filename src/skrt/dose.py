@@ -43,7 +43,7 @@ class ImageOverlay(skrt.image.Image):
         figsize=None,
         zoom=None,
         colorbar=False,
-        include_image=False, 
+        include_image=True, 
         opacity=None, 
         mpl_kwargs=None,
         show=True,
@@ -120,7 +120,7 @@ class ImageOverlay(skrt.image.Image):
         )
 
 
-    def view(self, include_image=False, kwarg_name=None, **kwargs):
+    def view(self, include_image=True, kwarg_name=None, **kwargs):
         """View with BetterViewer, optionally overlaying on image.
 
         **Parameters**:

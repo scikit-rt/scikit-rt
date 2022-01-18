@@ -2778,7 +2778,7 @@ class ROI(skrt.core.Archive):
         color=None,
         show=True,
         save_as=None,
-        include_image=False,
+        include_image=True,
         no_invert=False,
         **kwargs,
     ):
@@ -4364,7 +4364,7 @@ class StructureSet(skrt.core.Archive):
         ax=None,
         opacity=None,
         linewidth=None,
-        include_image=False,
+        include_image=True,
         centre_on_roi=None,
         show=True,
         save_as=None,
