@@ -194,11 +194,11 @@ def test_get_geometry():
 
 def test_get_comparison_pairs():
     """Get comparison pairs with self; should return each ROI paired with every
-    other except itself."""
+    other without duplicates."""
 
     pairs = structure_set.get_comparison_pairs()
     n_rois = len(structure_set.get_rois())
-    assert len(pairs) == n_rois ** 2 - n_rois
+    assert len(pairs) == (n_rois ** 2 - n_rois) / 2
     assert len(pairs[0]) == 2
 
 def test_get_comparison_pairs_with_other():
@@ -251,7 +251,7 @@ def test_plot_consensus():
 def test_get_comparison():
     comp = structure_set.get_comparison()
     assert isinstance(comp, pd.DataFrame)
-    assert comp.shape[0] == 2
+    assert comp.shape[0] == len(structure_set.get_comparison_pairs())
 
 def test_plot_comparisons():
     plot_dir = "tmp/struct_plots"
@@ -259,7 +259,7 @@ def test_plot_comparisons():
         shutil.rmtree(plot_dir)
     structure_set2 = StructureSet("tmp/nii_structs")
     structure_set2.plot_comparisons(outdir=plot_dir, show=False)
-    assert len(os.listdir(plot_dir)) == 2
+    assert len(os.listdir(plot_dir)) == len(structure_set2.get_comparison_pairs())
     
 def compare_rois(roi0, roi1):
     '''Compare two rois.'''

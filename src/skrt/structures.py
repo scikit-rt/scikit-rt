@@ -2743,9 +2743,11 @@ class ROI(skrt.core.Archive):
                 return own_name.replace(" ", "_")
             return own_name
         else:
-            if camelcase:
-                return f"{own_name}_vs_{other_name}".replace(" ", "_")
-            return f"{own_name} vs. {other_name}"
+            if not colored:
+                if camelcase:
+                    return f"{own_name}_vs_{other_name}".replace(" ", "_")
+                return f"{own_name} vs. {other_name}"
+            return f"{own_name}{other_name}"
 
     def set_color(self, color):
         """Set plotting color."""
@@ -4141,9 +4143,6 @@ class StructureSet(skrt.core.Archive):
         other=None, 
         comp_type="auto", 
         consensus_type="majority", 
-        html=False,
-        name_as_index=True,
-        greyed_out=None,
         **kwargs
     ):
         """Get pandas DataFrame of comparison metrics vs a single ROI or
@@ -4202,10 +4201,6 @@ class StructureSet(skrt.core.Archive):
         """
 
         dfs = []
-        if html:
-            name_as_index = False
-        if greyed_out is None:
-            greyed_out = []
 
         if isinstance(other, ROI):
             pairs = [(roi, other) for roi in self.get_rois(ignore_empty=True)]
@@ -4214,39 +4209,11 @@ class StructureSet(skrt.core.Archive):
         else:
             raise TypeError("<other> must be ROI or StructureSet!")
 
-        # Create DataFrame
-        dfs = []
-        for roi1, roi2 in pairs:
-
-            # Get DataFrame for this pair
-            df_row = roi1.get_comparison(roi2, name_as_index=name_as_index,
-                                         **kwargs)
-
-            # Replace values with "--" if either ROI is greyed out
-            grey = roi1 in greyed_out or roi2 in greyed_out
-            if grey:
-                for col in df_row.columns:
-                    if col == "ROI": 
-                        continue
-                    df_row[col] = "--"
-
-            # Set name to have colored background
-            if not name_as_index:
-                df_row.iloc[0, 0] = roi1.get_comparison_name(
-                    roi2, 
-                    colored=html,
-                    grey=grey
-                )
-
-            dfs.append(df_row)
-
-        df = pd.concat(dfs)
-        if html:
-            return df_to_html(df)
-        return df
+        return compare_roi_pairs(pairs, **kwargs)
 
     def get_comparison_pairs(self, other=None, comp_type="auto", 
-                             consensus_type="majority"):
+                             consensus_type="majority", 
+                             consensus_color="black"):
         """Get list of ROIs to compare with one another."""
 
         # Check comp_type is valid
@@ -4260,13 +4227,14 @@ class StructureSet(skrt.core.Archive):
             # If comparing to another StructureSet, take consensus of that 
             # entire StructureSet
             if other is not None:
-                consensus = other.get_consensus(consensus_type)
+                consensus = other.get_consensus(consensus_type, color=consensus_color)
                 return [(roi, consensus) for roi in self.get_rois(ignore_empty=True)]
 
             # Otherwise, compare each ROI to consensus of others
             pairs = []
             for roi in self.get_rois(ignore_empty=True):
                 pairs.append((roi, self.get_consensus(consensus_type, 
+                                                      color=consensus_color,
                                                       exclude=roi.name)))
             return pairs
 
@@ -4292,7 +4260,7 @@ class StructureSet(skrt.core.Archive):
         pairs = []
         for roi1 in self.get_rois(ignore_empty=True):
             for roi2 in other.get_rois(ignore_empty=True):
-                if roi1 is not roi2:
+                if roi1 is not roi2 and (roi2, roi1) not in pairs:
                     pairs.append((roi1, roi2))
 
         return pairs
@@ -4748,7 +4716,7 @@ class StructureSet(skrt.core.Archive):
             getattr(self, attr)[exclude] = roi
         return roi
 
-    def get_consensus(self, consensus_type, **kwargs):
+    def get_consensus(self, consensus_type, color="black", **kwargs):
 
         # Get consensus calculation function
         if consensus_type == "majority":
@@ -4762,7 +4730,7 @@ class StructureSet(skrt.core.Archive):
         else:
             raise ValueError(f"Unrecognised consensus type: {consensus_type}")
 
-        return consensus_func(self, **kwargs)
+        return consensus_func(self, color=color, **kwargs)
 
     def get_staple(self, force=False, exclude=None, **kwargs):
         """Get ROI object representing the STAPLE combination of ROIs in this 
@@ -5284,3 +5252,43 @@ def get_colored_roi_string(roi, grey=False):
         '<p style="background-color: rgb({}, {}, {}); '
         'color: {};">&nbsp;{}&nbsp;</p>'
     ).format(red, green, blue, text_col, roi.name)
+
+def compare_roi_pairs(
+    pairs, 
+    html=False,
+    name_as_index=True,
+    greyed_out=None,
+    **kwargs
+):
+    if html:
+        name_as_index = False
+    if greyed_out is None:
+        greyed_out = []
+    dfs = []
+    for roi1, roi2 in pairs:
+
+        # Get DataFrame for this pair
+        df_row = roi1.get_comparison(roi2, name_as_index=name_as_index,
+                                     **kwargs)
+
+        # Replace values with "--" if either ROI is greyed out
+        grey = roi1 in greyed_out or roi2 in greyed_out
+        if grey:
+            for col in df_row.columns:
+                if col == "ROI": 
+                    continue
+                df_row[col] = "--"
+
+        # Adjust comparison name
+        comp_name = roi1.get_comparison_name(roi2, colored=html, grey=grey)
+        if name_as_index:
+            df_row.rename({df_row.index[0]: comp_name}, inplace=True)
+        else:
+            df_row.iloc[0, 0] = comp_name
+
+        dfs.append(df_row)
+
+    df = pd.concat(dfs)
+    if html:
+        return df_to_html(df)
+    return df

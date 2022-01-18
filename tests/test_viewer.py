@@ -187,12 +187,18 @@ def test_titles():
     assert qv.viewers[0].image.ax.title.get_text() == title[0]
     assert qv.viewers[1].image.ax.title.get_text() == title[1]
 
-def make_structure_set():
-    """Make a structure set containing two ROIs."""
+def make_sim():
+    """Make synthetic image containing two ROIs."""
 
     sim = SyntheticImage((100, 100, 10))
     sim.add_sphere(20, name="sphere")
     sim.add_cube(10, name="cube")
+    return sim
+
+def make_structure_set():
+    """Make a structure set containing two ROIs."""
+
+    sim = make_sim()
     return sim.get_structure_set()
 
 @close_after
@@ -225,3 +231,41 @@ def test_unique_naming_from_structure_set():
     for ss in [ss1, ss2]:
         for name in ss.get_roi_names():
             assert f"{name} ({ss.name})" in roi_names
+
+@close_after
+def test_roi_comparison():
+    """Test comparison two StructureSets with some overlapping ROI names."""
+
+    sim1 = make_sim()
+    sim2 = make_sim()
+    sim1.add_sphere(10, name="1")
+    sim2.add_sphere(10, name="2")
+    ss1 = sim1.get_structure_set()
+    ss2 = sim2.get_structure_set()
+
+    bv = ss1.image.view(rois=[ss1, ss2], compare_rois=True, show=False)
+    viewer = bv.viewers[0]
+    assert viewer.ui_roi_comp_table.value
+    assert len(viewer.comparison_pairs) == 2
+    assert len(viewer.rois) == 4   # Non-matching ROIs should be ignored
+
+    # Test comparison without ignoring non-matching ROI names
+    bv = ss1.image.view(rois=[ss1, ss2], compare_rois=True, show=False,
+                       show_compared_rois_only=False)
+    viewer = bv.viewers[0]
+    assert len(viewer.comparison_pairs) == 2
+    assert len(viewer.rois) == 6
+    
+@close_after
+def test_roi_comparison_single_structure_set():
+    """Test comparison within a single StructureSet."""
+
+    sim = make_sim()
+    sim.add_sphere(20, name="other")
+    ss = sim.get_structure_set()
+
+    bv = ss.image.view(rois=ss, compare_rois=True, show=False)
+    viewer = bv.viewers[0]
+    assert viewer.ui_roi_comp_table.value
+    assert len(viewer.comparison_pairs) == 3
+    assert len(viewer.rois) == 3

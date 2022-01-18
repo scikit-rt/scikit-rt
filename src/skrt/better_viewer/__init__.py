@@ -20,7 +20,13 @@ from skrt.image import (
 )
 from skrt.dose import Dose
 from skrt.registration import Jacobian
-from skrt.structures import StructureSet, ROI, get_colored_roi_string, df_to_html
+from skrt.structures import (
+    StructureSet, 
+    ROI, 
+    get_colored_roi_string, 
+    df_to_html,
+    compare_roi_pairs
+)
 
 # ipywidgets settings
 _style = {'description_width': 'initial'}
@@ -180,6 +186,12 @@ class BetterViewer:
             between ROIs will be displayed below the plot. Can also be set to a list
             of ROI comparison metrics - see skrt.structures.ROI.get_comparison() 
             documentation for list of available metrics. 
+
+        show_compared_rois_only : bool, default=True
+            If compare_rois is True, only ROIs that are being compared will be
+            displayed. E.g. if two StructureSets are given in <rois> that 
+            have some ROIs with matching names, only those with matching 
+            names will be shown.
 
         multi_rois : str/list/dict, default=None
 
@@ -1475,9 +1487,10 @@ class SingleViewer:
         roi_opacity=None,
         roi_linewidth=2,
         roi_info=False,
-        roi_info_dp=1,
+        roi_info_dp=2,
         roi_kwargs=None,
         compare_rois=False,
+        show_compared_rois_only=True,
         length_units="mm",
         area_units="mm",
         vol_units="mm",
@@ -1507,10 +1520,15 @@ class SingleViewer:
 
         # Load additional overlays
         self.load_dose(dose)
+        self.load_jacobian(jacobian)
+
+        # Load ROIs
         self.init_roi = init_roi
+        self.compare_rois = compare_rois
+        self.show_compared_rois_only = show_compared_rois_only
+        self.roi_consensus = roi_consensus
         self.load_rois(rois, roi_names=roi_names, rois_to_keep=rois_to_keep,
                        rois_to_remove=rois_to_remove)
-        self.load_jacobian(jacobian)
 
         # Set initial orientation
         view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
@@ -1623,14 +1641,12 @@ class SingleViewer:
         self.legend_loc = legend_loc
         self.roi_info = roi_info
         self.roi_info_dp = roi_info_dp
-        self.compare_rois = compare_rois
         self.force_roi_geometry_calc = True
         self.force_roi_comp_calc = True
         self.roi_vol_units = vol_units
         self.roi_area_units = area_units
         self.roi_length_units = length_units
         self.roi_kwargs = roi_kwargs if roi_kwargs is not None else {}
-        self.roi_consensus = roi_consensus
 
         # Colormap
         if cmap:
@@ -1697,7 +1713,8 @@ class SingleViewer:
                 standalone_rois.add_roi(roi)
             else:
                 structure_sets.append(StructureSet(roi, image=self.image))
-        structure_sets.append(standalone_rois)
+        if len(standalone_rois.get_rois()):
+            structure_sets.append(standalone_rois)
 
         # Load all structure sets and apply filters
         structure_sets_filtered = []
@@ -1715,11 +1732,41 @@ class SingleViewer:
             all_names.extend(ss.get_roi_names())
             ss_names.append(ss.name)
 
+        # Make list of ROI comparison pairs
+        if self.compare_rois:
+            if len(structure_sets_filtered) > 2:
+                raise RuntimeError("Unable to compare ROIs from more than two "
+                                   "StructureSets")
+
+            if self.roi_consensus:
+                self.comparison_pairs = []
+
+            # Comparison within a single StructureSet
+            elif len(structure_sets) == 1:
+                    self.comparison_pairs = \
+                            structure_sets_filtered[0].get_comparison_pairs()
+
+            # Compare two StructureSets
+            else:
+                self.comparison_pairs = \
+                        structure_sets_filtered[0].get_comparison_pairs(
+                            structure_sets_filtered[1])
+
+            self.compared_rois = []
+            for pair in self.comparison_pairs:
+                self.compared_rois.extend(pair)
+
         # Make list of all ROIs and assign unique names
         self.rois = [] 
         name_counts = {name: 0 for name in all_names}
         for ss in structure_sets_filtered:
             for roi in ss.get_rois(ignore_empty=True):
+
+                # Ignore the ROI if not comparing
+                if self.compare_rois and self.show_compared_rois_only \
+                   and not self.roi_consensus:
+                    if roi not in self.compared_rois:
+                        continue
 
                 # Check whether this is the user-specified initial ROI
                 is_current = (self.init_roi == roi.name) and not self.current_roi
@@ -2163,12 +2210,14 @@ class SingleViewer:
         # Add ROI comparison table
         if self.compare_rois:
             self.ui_roi_comp_table = ipyw.HTML()
-            self.ui_roi_lower = ipyw.VBox([self.ui_roi_lower, 
-                                           self.ui_roi_comp_table])
+            self.ui_roi_lower = ipyw.VBox([self.ui_roi_comp_table,
+                                           self.ui_roi_lower])
 
         # Add to lower UI
         if not no_roi or self.roi_info or self.compare_rois:
             self.lower_ui.append(self.ui_roi_lower)
+
+        # Fill tables
         if not no_roi or self.roi_info:
             self.update_roi_info_table()
         if self.compare_rois:
@@ -2178,9 +2227,13 @@ class SingleViewer:
             self.lower_ui.extend([self.save_name, self.save_button])
 
     def roi_is_visible(self, roi):
-        """Check whether a given ROI is currently visible."""
+        """Check whether a given ROI is currently visible. If the ROI isn't 
+        in the checkbox list, return True (used to ensure that consensus 
+        contours always count as visible for comparison table)."""
 
-        return self.roi_checkboxes[roi.name].value
+        if roi.name in self.roi_checkboxes:
+            return self.roi_checkboxes[roi.name].value
+        return True
 
     def get_visible_rois(self):
         '''Get list of names of currently visible ROIs from checkboxes.'''
@@ -2236,15 +2289,30 @@ class SingleViewer:
         if not self.compare_rois:
             return
 
+        current_pairs = []
+
+        # Update pairs list if using consensus
+        if self.roi_consensus:
+
+            rois_for_consensus = [roi for roi in self.rois 
+                                  if roi.name != self.roi_to_exclude
+                                  and self.roi_is_visible(roi)]
+            consensus = StructureSet(rois_for_consensus).get_consensus(
+                self.ui_roi_consensus_type.value, color="white")
+            excluded = self.structure_set.get_roi(self.roi_to_exclude)
+            current_pairs = [(excluded, consensus)]
+
+        # Get list of pairs where both ROIs are currently visible
+        else:
+            for roi1, roi2 in self.comparison_pairs:
+                if self.roi_is_visible(roi1) and self.roi_is_visible(roi2):
+                    current_pairs.append((roi1, roi2))
+
         # Get table for all currently visible ROIs
         metrics = self.roi_info if is_list(self.roi_info) else None
-        if self.roi_consensus:
-            comp_type = "consensus"
-            consensus_type = self.ui_roi_consensus_type.value
-        else:
-            comp_type = "auto"
-            consensus_type = None
-        df_roi_comp = self.structure_set.get_comparison( 
+        self.ui_roi_comp_table.value = compare_roi_pairs(
+            current_pairs,
+            html=True,
             metrics=metrics,
             view=self.view,
             sl=self.slice[self.view],
@@ -2255,44 +2323,13 @@ class SingleViewer:
             decimal_places=self.roi_info_dp,
             vol_units=self.roi_vol_units,
             area_units=self.roi_area_units,
-            length_units=self.roi_length_units,
+            centroid_units=self.roi_length_units,
             force=self.force_roi_comp_calc
         )
 
         # Only force recalculation of global ROI metrics once
         if self.force_roi_comp_calc:
             self.force_roi_comp_calc = False
-
-        # Make ROI names coloured
-        for i, roi in enumerate(self.rois):
-            df_roi_info.at[i, ("", "ROI")] = self.get_roi_html(roi)
-
-        # Convert dataframe to HTML
-        html = df_roi_info.fillna('—').to_html(index=False)
-        html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
-
-        # Add header with style details
-        header = """
-            <head>
-                <style>
-                    th, td {
-                        padding: 2px 10px;
-                    }
-                    th {
-                        background-color: rgb(225, 225, 225);
-                        text-align: center;
-                    }
-                </style>
-            </head>
-        """
-        #  white-space: nowrap;
-        table_html = (
-            (header + html)
-            .replace("&gt;", ">")
-            .replace("&lt;", "<")
-            .replace("&amp;", "&")
-        )
-        self.ui_roi_table.value = table_html
 
     def show(self, show=True):
         '''Display plot and UI.'''
@@ -2354,7 +2391,6 @@ class SingleViewer:
         rois_to_plot = [roi for roi in self.rois if roi.name in 
                         self.visible_rois]
         self.update_roi_info_table()
-        #  self.update_roi_comparisons()
         roi_kwargs = self.roi_kwargs
         if self.ui_roi_plot_type.value != self.roi_plot_type:
             self.update_roi_sliders()
@@ -2382,6 +2418,9 @@ class SingleViewer:
             exclude_from_consensus = self.roi_to_exclude
         else:
             exclude_from_consensus = None
+
+        # Update ROI comparison table
+        self.update_roi_comparison()
 
         # Settings for overlay (dose map or jacobian)
         if self.has_jacobian:
