@@ -8,7 +8,7 @@ import subprocess
 import skrt.image
 from skrt.structures import ROI, StructureSet
 from skrt.core import get_logger, Data, to_list, Defaults
-from skrt.dose import ImageOverlay
+from skrt.dose import ImageOverlay, Dose
 
 _ELASTIX_DIR = None
 _ELASTIX = "elastix"
@@ -623,6 +623,13 @@ class Registration(Data):
             so you will need to use double quotes.
         """
 
+        # If image is a Dose object, set pixel type to float
+        if params is None:
+            params = {}
+        is_dose = isinstance(im, Dose)
+        if is_dose:
+            params["ResultImagePixelType"] = "float"
+
         # Save image temporarily as nifti if needed
         im = skrt.image.Image(im)
         self.make_tmp_dir()
@@ -643,20 +650,23 @@ class Registration(Data):
             return
 
         # Otherwise, return Image object
-        final_im = skrt.image.Image(result_path)
-        self.rm_tmp_dir()
-
-        # Transform structure sets
-        if rois == "all":
-            rois_to_transform = im.structure_sets
-        elif isinstance(rois, int):
-            rois_to_transform = [im.structure_sets[rois]]
+        if is_dose:
+            final_im = Dose(result_path)
         else:
-            rois_to_transform = []
-        for ss in rois_to_transform:
-            ss2 = self.transform_structure_set(ss, step=step)
-            final_im.add_structure_set(ss2)
+            final_im = skrt.image.Image(result_path)
 
+            # Transform structure sets
+            if rois == "all":
+                rois_to_transform = im.structure_sets
+            elif isinstance(rois, int):
+                rois_to_transform = [im.structure_sets[rois]]
+            else:
+                rois_to_transform = []
+            for ss in rois_to_transform:
+                ss2 = self.transform_structure_set(ss, step=step)
+                final_im.add_structure_set(ss2)
+
+        self.rm_tmp_dir()
         return final_im
 
     def transform_data(self, path, step=-1, params=None):
