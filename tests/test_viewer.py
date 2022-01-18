@@ -10,6 +10,7 @@ from skrt.better_viewer import BetterViewer
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
 from skrt.image import Image, ImageComparison
+from skrt.simulation import SyntheticImage
 
 # Create fake data
 data = (np.random.rand(40, 50, 20) * 1000).astype(np.uint16)
@@ -34,6 +35,7 @@ data2 = (np.random.rand(30, 20, 20) * 1000).astype(np.uint16)
 im2 = Image(data2)
 
 
+# Decorator to close matplotlib figures (prevents too many figures from existing)
 def close_after(func):
     def do_then_close():
         func()
@@ -185,145 +187,41 @@ def test_titles():
     assert qv.viewers[0].image.ax.title.get_text() == title[0]
     assert qv.viewers[1].image.ax.title.get_text() == title[1]
 
+def make_structure_set():
+    """Make a structure set containing two ROIs."""
 
-#  @close_after
-#  def test_mask():
-    #  BetterViewer("data/ct.nii", mask=("data/structs/RTSTRUCT_CT_20140715_113632"
-                                     #  "_002_alterio_pcs.nii.gz"), show=False)
+    sim = SyntheticImage((100, 100, 10))
+    sim.add_sphere(20, name="sphere")
+    sim.add_cube(10, name="cube")
+    return sim.get_structure_set()
 
+@close_after
+def test_unique_naming():
+    """Check that multiple ROIs with the same name are assigned unique names."""
 
-#  @close_after
-#  def test_dose():
-    #  opacity = 0.3
-    #  cmap = "gray"
-    #  qv = BetterViewer("data/MI_BSpline30/result.0.nii",
-                     #  dose="data/MI_BSpline30/spatialJacobian.nii",
-                     #  dose_kwargs={"cmap": cmap},
-                     #  dose_opacity=opacity, show=False)
-    #  assert qv.viewers[0].ui_dose.value == opacity
+    ss1 = make_structure_set()
+    ss2 = make_structure_set()
+    assert ss1.get_roi_names() == ss2.get_roi_names()
+    bv = ss1.image.view(rois=[ss1, ss2], show=False)
+    roi_names = bv.viewers[0].roi_names
+    assert len(set(roi_names)) == 4
+    for name in ss2.get_roi_names():
+        assert f"{name} 1" in roi_names
+        assert f"{name} 2" in roi_names
 
+@close_after
+def test_unique_naming_from_structure_set():
+    """Check that multiple ROIs with the same name are assigned unique names
+    based on StructureSet names."""
 
-#  @close_after
-#  def test_share_slider():
-    #  qv = BetterViewer(['data/MI_Translation/ct_relapse.nii',
-                      #  'data/MI_Translation/result.0.nii'], share_slider=False,
-                      #  show=False)
-    #  assert len(qv.viewers) == 2
-    #  assert len(qv.slider_boxes) == 2
-
-
-#  @close_after
-#  @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
-#  def test_structs():
-
-    #  # Test directory
-    #  qv = BetterViewer("data/ct.nii", structs="data/structs", show=False)
-    #  assert len(qv.viewers[0].im.structs) == len(os.listdir("data/structs")) - 1
-
-    #  # Test list of files
-    #  qv = BetterViewer(
-        #  "data/ct.nii",
-        #  structs=[
-            #  "data/structs/RTSTRUCT_CT_20140715_113632_002_mpc.nii.gz",
-            #  "data/structs/RTSTRUCT_CT_20140715_113632_002_right_smg.nii.gz"
-        #  ], show=False)
-    #  assert len(qv.viewers[0].im.structs) == 2
-
-    #  # Test wildcard directory
-    #  qv = BetterViewer("data/ct.nii", structs="data/str*", show=False)
-    #  assert len(qv.viewers[0].im.structs) == len(os.listdir("data/structs")) - 1
-
-    #  # Test wildcard files
-    #  qv = BetterViewer("data/ct.nii", show=False,
-                     #  structs=["data/structs/*parotid*", "data/structs/*mpc*"])
-    #  assert len(qv.viewers[0].im.structs) == 3
-
-
-#  @close_after
-#  @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
-#  def test_struct_colours():
-
-    #  colour = 'cyan'
-
-    #  # Test with wildcard filename
-    #  qv = BetterViewer("data/ct.nii", structs="data/structs/*parotid*",
-                     #  struct_colours={"*parotid*": colour},
-                     #  show=False)
-    #  assert len(qv.viewers[0].im.structs) == 2
-    #  assert qv.viewers[0].im.structs[0].color == to_rgba(colour)
-
-    #  # Test with structure name
-    #  qv = BetterViewer("data/ct.nii", structs="data/structs/*right_parotid*",
-                     #  struct_colours={"right parotid": colour},
-                     #  show=False)
-    #  assert qv.viewers[0].im.structs[0].color == to_rgba(colour)
-
-    #  # Test with wildcard structure name
-    #  qv = BetterViewer("data/ct.nii", structs="data/structs/*right_parotid*",
-                     #  struct_colours={"*parotid": colour}, show=False)
-    #  assert qv.viewers[0].im.structs[0].color == to_rgba(colour)
-
-
-#  @close_after
-#  @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
-#  def test_struct_mask():
-    #  opacity = 0.6
-    #  qv = BetterViewer("data/ct.nii", structs="data/structs/*mpc*",
-                     #  struct_plot_type="mask", struct_opacity=opacity,
-                     #  show=False)
-    #  assert qv.viewers[0].ui_struct_opacity.value == opacity
-
-
-#  @close_after
-#  def test_zoom():
-    #  BetterViewer("data/ct.nii", zoom=2, show=False)
-
-
-#  @close_after
-#  def test_downsample():
-    #  BetterViewer("data/ct.ni", downsample=(5, 4, 2), show=False)
-
-
-#  @close_after
-#  def test_jacobian():
-    #  opacity = 0.2
-    #  qv = BetterViewer("data/MI_BSpline30/result.0.nii",
-                #  jacobian="data/MI_BSpline30/spatialJacobian.nii",
-                #  jacobian_opacity=opacity, show=False)
-    #  assert qv.viewers[0].ui_jac_opacity.value == opacity
-
-
-#  @close_after
-#  def test_df_grid():
-    #  qv = BetterViewer("data/MI_BSpline30/result.0.nii",
-                #  df="data/MI_BSpline30/deformationField.nii", show=False)
-    #  assert qv.viewers[0].ui_df.value == "grid"
-
-
-#  @close_after
-#  def test_df_quiver():
-    #  qv = BetterViewer("data/MI_BSpline30/result.0.nii",
-                #  df="data/MI_BSpline30/deformationField.nii",
-                #  df_plot_type="quiver", show=False)
-    #  assert qv.viewers[0].ui_df.value == "quiver"
-
-
-#  @close_after
-#  def test_save():
-    #  output = "data/test_march2.pdf"
-    #  #  if os.path.isfile(output):
-        #  #  os.remove(output)
-    #  BetterViewer("data/ct.nii", save_as=output, show=False)
-    #  #  assert os.path.isfile(output)
-
-
-#  @close_after
-#  def test_orthog_view():
-    #  qv = BetterViewer("data/ct.nii", orthog_view=True, show=False)
-    #  assert isinstance(qv.viewers[0], OrthogViewer)
-
-
-#  @close_after
-#  def test_plots_per_row():
-    #  qv = BetterViewer(["data/ct.nii", "data/ct.nii"], plots_per_row=1,
-                     #  show=False)
+    ss1 = make_structure_set()
+    ss1.name = "ss1"
+    ss2 = make_structure_set()
+    ss2.name = "ss2"
+    assert ss1.get_roi_names() == ss2.get_roi_names()
+    bv = ss1.image.view(rois=[ss1, ss2], show=False)
+    roi_names = bv.viewers[0].roi_names
+    assert len(set(roi_names)) == 4
+    for ss in [ss1, ss2]:
+        for name in ss.get_roi_names():
+            assert f"{name} ({ss.name})" in roi_names
