@@ -368,12 +368,12 @@ self will be passed to the “dose” parameter.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="skrt.dose.RtPlan">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">RtPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtPlan" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.MachineData" title="skrt.core.MachineData"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.MachineData</span></code></a></p>
+<dt class="sig sig-object py" id="skrt.dose.Plan">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Archive</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.dose.RtPlan.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.RtPlan.__init__" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.dose.Plan.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise dated object from a path and assign its timestamp. If
 no valid timestamp is found within the path string, it will be set
 automatically from the current date and time if auto_timestamp is True.</p>
