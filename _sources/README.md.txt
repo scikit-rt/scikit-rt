@@ -16,7 +16,7 @@ Installation via a minconda environment is recommended. If not using miniconda, 
 #### 1. Miniconda setup (recommended)
 
 1. Install miniconda by downloading from https://docs.conda.io/en/latest/miniconda.html .
-2. Open the Anaconda Prompt app (indows) or a terminal (Mac/Linux).
+2. Open the Anaconda Prompt app (Windows) or a terminal (Mac/Linux).
 3. Create a new environment called `skrt` (can replace this with a name of your choice) with python 3.9 by running:
 ```
 conda create --name skrt python=3.9
