@@ -325,22 +325,41 @@ class Dose(ImageOverlay):
 class Plan(Archive):
     def __init__(self, path="", load=True):
 
+        self.loaded = False
+        self.path = None
+        self.approval_status = None
+        self.n_fraction_group = None
+        self.n_beam_seq = None
+        self.n_fraction = None
+        self.target_dose = None
         Archive.__init__(self, path)
 
-        ds = pydicom.read_file(path, force=True)
+        if load:
+            self.load()
+
+    def load(self, force=False):
+        '''
+        Load plan data.
+        '''
+
+        if self.loaded and not force:
+            return
+
+        self.dicom_dataset = pydicom.dcmread(self.path, force=True)
 
         try:
-            self.approval_status = ds.ApprovalStatus
+            self.approval_status = self.dicom_dataset.ApprovalStatus
         except AttributeError:
             self.approval_status = None
 
         try:
-            self.n_fraction_group = len(ds.FractionGroupSequence)
+            self.n_fraction_group = len(
+                    self.dicom.dataset.FractionGroupSequence)
         except AttributeError:
             self.n_fraction_group = None
 
         try:
-            self.n_beam_seq = len(ds.BeamSequence)
+            self.n_beam_seq = len(self.dicom_dataset.BeamSequence)
         except AttributeError:
             self.n_beam_seq = None
 
@@ -348,10 +367,20 @@ class Plan(Archive):
         self.target_dose = None
         if self.n_fraction_group is not None:
             self.n_fraction = 0
-            for fraction in ds.FractionGroupSequence:
+            for fraction in self.dicom_dataset.FractionGroupSequence:
                 self.n_fraction += fraction.NumberOfFractionsPlanned
                 if hasattr(fraction, "ReferencedDoseReferenceSequence"):
                     if self.target_dose is None:
                         self.target_dose = 0.0
                     for dose in fraction.ReferencedDoseReferenceSequence:
                         self.target_dose += dose.TargetPrescriptionDose
+
+        self.loaded = True
+
+    def get_dicom_dataset(self):
+        '''
+        Return pydicom.dataset.FileDataset object associated with this plan.
+        '''
+
+        self.load()
+        return self.dicom_dataset
