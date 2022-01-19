@@ -8,7 +8,7 @@ import time
 import skrt.core
 from skrt.image import Image
 from skrt.structures import StructureSet
-from skrt.dose import Dose
+from skrt.dose import Dose, Plan
 
 
 class Study(skrt.core.Archive):
@@ -38,6 +38,14 @@ class Study(skrt.core.Archive):
             dtype=Dose,
             subdir="RTDOSE",
             attr_name="doses",
+            load=False
+        )
+
+        # Load treament plans
+        self.load_from_subdir(
+            dtype=Plan,
+            subdir="RTPLAN",
+            attr_name="plans",
             load=False
         )
 
@@ -97,7 +105,8 @@ class Study(skrt.core.Archive):
         for im_type_dir in os.listdir(obj_dir):
 
             im_type = im_type_dir
-            if subdir in ['RTDOSE'] and im_type not in self.image_types:
+            if subdir in ['RTDOSE', 'RTPLAN'] \
+                    and im_type not in self.image_types:
                 im_type = 'CT'
             subpath = f"{subdir}/{im_type_dir}"
 

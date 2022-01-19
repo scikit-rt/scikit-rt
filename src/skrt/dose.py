@@ -7,7 +7,7 @@ import functools
 
 import matplotlib
 
-from skrt.core import MachineData
+from skrt.core import Archive
 import skrt.image
 
 
@@ -322,10 +322,10 @@ class Dose(ImageOverlay):
         return np.mean(self.get_dose_in_roi(roi))
 
 
-class RtPlan(MachineData):
-    def __init__(self, path=""):
+class Plan(Archive):
+    def __init__(self, path="", load=True):
 
-        MachineData.__init__(self, path)
+        Archive.__init__(self, path)
 
         ds = pydicom.read_file(path, force=True)
 
