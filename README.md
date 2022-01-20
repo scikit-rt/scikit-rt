@@ -4,6 +4,8 @@ A suite of tools for loading, plotting, and analysing medical imaging data.
 
 This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
+For full code documentation, go to https://scikit-rt.github.io/scikit-rt/.
+
 ## Installation
 
 Package installation provides full code access.  Docker installation
