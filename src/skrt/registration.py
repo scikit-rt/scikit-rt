@@ -510,6 +510,7 @@ class Registration(Data):
             that this will cause any prior steps that have not yet been run
             to be run.
         """
+        global _ELASTIX
 
         # Check if the registration has already been performed
         if self.is_registered(step) and not force:
@@ -525,8 +526,10 @@ class Registration(Data):
         # Run
         cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
         self.logger.info(f"Running command:\n {cmd}")
+        cmd_args = [_ELASTIX] + cmd.split(_ELASTIX)[1].split()
+        print('Hello', cmd_args)
         code = subprocess.run(
-                cmd.split(), capture_output=self.capture_output).returncode
+                cmd_args, capture_output=self.capture_output).returncode
 
         # Check whether registration succeeded
         if code:
