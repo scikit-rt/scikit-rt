@@ -432,15 +432,15 @@ class Registration(Data):
                 tfile = self.tfiles[prev_step]
 
         # Construct command
-        cmd = (
-            f"{_ELASTIX} -f {self.fixed_path} -m {self.moving_path} "
-            f"-p {self.pfiles[step]} -out {self.outdirs[step]}"
-        )
+        cmd = [
+            _ELASTIX,
+            '-f', self.fixed_path.replace("\\", "/"),
+            '-m', self.moving_path.replace("\\", "/"),
+            "-p", self.pfiles[step].replace("\\", "/"),
+            '-out', self.outdirs[step].replace("\\", "/")
+            ]
         if tfile is not None:
-            cmd += f" -t0 {tfile}"
-
-        # Replace any backslashes
-        cmd = cmd.replace("\\", "/")
+            cmd.extend(['-t0', tfile.replace("\\", "/")])
 
         return cmd
 
@@ -525,11 +525,9 @@ class Registration(Data):
 
         # Run
         cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
-        self.logger.info(f"Running command:\n {cmd}")
-        cmd_args = [_ELASTIX] + cmd.split(_ELASTIX)[1].split()
-        print('Hello', cmd_args)
+        self.logger.info(f"Running command:\n {' '.join(cmd)}")
         code = subprocess.run(
-                cmd_args, capture_output=self.capture_output).returncode
+                cmd, capture_output=self.capture_output).returncode
 
         # Check whether registration succeeded
         if code:
