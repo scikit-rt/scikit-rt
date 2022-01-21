@@ -165,6 +165,18 @@ affect the image associated with the Dose object.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.add_plan">
+<span class="sig-name descname"><span class="pre">add_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_plan" title="Permalink to this definition"></a></dt>
+<dd><p>Add a Plan object to be associated with this image. This does not
+affect the image associated with the Plan object.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>plan<span class="classifier">skrt.dose.Plan</span></dt><dd><p>A Plan object to assign to this image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.add_structure_set">
 <span class="sig-name descname"><span class="pre">add_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_structure_set" title="Permalink to this definition"></a></dt>
 <dd><p>Add a structure set to be associated with this image. This does
@@ -180,6 +192,12 @@ not affect the image associated with the structure set.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.clear_doses">
 <span class="sig-name descname"><span class="pre">clear_doses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clear_doses" title="Permalink to this definition"></a></dt>
 <dd><p>Clear all dose maps associated with this image.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.clear_plans">
+<span class="sig-name descname"><span class="pre">clear_plans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clear_plans" title="Permalink to this definition"></a></dt>
+<dd><p>Clear all plan maps associated with this image.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -478,6 +496,12 @@ None, self.source_type will be used.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.get_origin">
 <span class="sig-name descname"><span class="pre">get_origin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_origin" title="Permalink to this definition"></a></dt>
 <dd><p>Return origin position in mm in order [x, y, z].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_plans">
+<span class="sig-name descname"><span class="pre">get_plans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_plans" title="Permalink to this definition"></a></dt>
+<dd><p>Return list of Plan objects associated with this Image.</p>
 </dd></dl>
 
 <dl class="py method">

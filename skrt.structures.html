@@ -185,6 +185,24 @@ Image object.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.add_plan">
+<span class="sig-name descname"><span class="pre">add_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.add_plan" title="Permalink to this definition"></a></dt>
+<dd><p>Add a Plan object to be associated with this ROI. This
+does not affect the structure set associated with the Plan object.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>plan<span class="classifier">skrt.dose.Plan</span></dt><dd><p>A Plan object to assign to this structure set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.clear_plans">
+<span class="sig-name descname"><span class="pre">clear_plans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.clear_plans" title="Permalink to this definition"></a></dt>
+<dd><p>Clear all plan maps associated with this ROI.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.clone_attrs">
 <span class="sig-name descname"><span class="pre">clone_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.clone_attrs" title="Permalink to this definition"></a></dt>
 <dd><p>Assign all attributes of &lt;self&gt; to another object, &lt;obj&gt;,  ensuring 
@@ -849,6 +867,12 @@ recalculated.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_plans">
+<span class="sig-name descname"><span class="pre">get_plans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_plans" title="Permalink to this definition"></a></dt>
+<dd><p>Return list of Plan objects associated with this ROI.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_polygons">
 <span class="sig-name descname"><span class="pre">get_polygons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_as_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_polygons" title="Permalink to this definition"></a></dt>
 <dd><p>Get dict of polygons for each slice.</p>
@@ -1397,6 +1421,18 @@ colors which will be applied to loaded ROIs in order.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.add_plan">
+<span class="sig-name descname"><span class="pre">add_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.add_plan" title="Permalink to this definition"></a></dt>
+<dd><p>Add a Plan object to be associated with this structure set. This
+does not affect the structure set associated with the Plan object.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>plan<span class="classifier">skrt.dose.Plan</span></dt><dd><p>A Plan object to assign to this structure set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.add_roi">
 <span class="sig-name descname"><span class="pre">add_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.add_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Add a single ROI with  optional kwargs.</p>
@@ -1406,6 +1442,12 @@ colors which will be applied to loaded ROIs in order.</p>
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.add_rois">
 <span class="sig-name descname"><span class="pre">add_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.add_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Add additional ROIs from source(s).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.clear_plans">
+<span class="sig-name descname"><span class="pre">clear_plans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.clear_plans" title="Permalink to this definition"></a></dt>
+<dd><p>Clear all plan maps associated with this structure set.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1665,6 +1707,12 @@ of a single ROI with the consensus of all others is desired.</p>
 representing the combination.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_plans">
+<span class="sig-name descname"><span class="pre">get_plans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_plans" title="Permalink to this definition"></a></dt>
+<dd><p>Return list of Plan objects associated with this structure set.</p>
 </dd></dl>
 
 <dl class="py method">
