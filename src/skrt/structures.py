@@ -1175,6 +1175,8 @@ class ROI(skrt.core.Archive):
 
         contours = self.get_contours("x-y")
         z_keys = sorted(contours.keys())
+        if len(z_keys) < 2:
+            return self.get_voxel_size()[2]
         diffs = [z_keys[i] - z_keys[i - 1] for i in range(1, len(z_keys))]
         return min(diffs)
 
@@ -3191,7 +3193,7 @@ class ROI(skrt.core.Archive):
         """Plot the ROI as a contour."""
 
         self.load()
-        if not self.on_slice(view, idx=idx) or self.empty:
+        if (not self.on_slice(view, idx=idx) and not flatten) or self.empty:
             return
 
         contour_kwargs = {} if contour_kwargs is None else contour_kwargs

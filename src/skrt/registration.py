@@ -869,7 +869,7 @@ class Registration(Data):
 
         step = self.get_step_name(step)
         outfile = os.path.join(self.outdirs[step], "result.0.nii")
-        self.transform(self.moving_image, outfile=outfile)
+        self.transform(self.moving_image, step=step, outfile=outfile)
         self.transformed_images[step] = skrt.image.Image(
             outfile, title="Transformed moving")
 
