@@ -4362,6 +4362,7 @@ class StructureSet(skrt.core.Archive):
                 root_uid=root_uid,
                 header_extras=header_extras,
                 source_type=type(self).__name__,
+                outname = outname,
             )
             self.dicom_dataset = dicom_writer.write()
 

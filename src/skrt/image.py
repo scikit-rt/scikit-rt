@@ -2080,8 +2080,10 @@ class Image(skrt.core.Archive):
             # Get name of dicom directory
             if outname.endswith(".dcm"):
                 outdir = os.path.abspath(os.path.dirname(outname))
+                filename = os.path.basename(outname)
             else:
                 outdir = outname
+                filename = None
 
             # Get header source
             if header_source is None and self.source_type == "dicom":
@@ -2100,6 +2102,7 @@ class Image(skrt.core.Archive):
                 root_uid,
                 header_extras,
                 type(self).__name__,
+                filename
             )
             self.dicom_dataset = dicom_writer.write()
             if verbose:

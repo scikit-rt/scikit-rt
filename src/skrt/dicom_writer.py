@@ -53,7 +53,7 @@ class DicomWriter:
     def __init__(self, outdir=None, data=None, affine=None,
             overwrite=True, header_source=None, orientation=None,
             patient_id=None, modality=None, root_uid=None, header_extras={},
-            source_type=None):
+            source_type=None, outname=None):
         '''
         Create instance of DicomWriter class.
 
@@ -117,9 +117,16 @@ class DicomWriter:
             - 'Dose';
             - 'Image';
             - 'StructureSet'.
+
+        outname : str, default=None
+            Name to use for output file for Dose and StructureSet.  If None,
+            a name including modality and timestamp is generated.  This
+            parameter is disregarded for Images, where names correspond
+            to sequential numbering.
         '''
         # Set attribute values from input parameters.
         self.outdir = Path(fullpath(str(outdir)))
+        self.outname = outname
         self.data = data
         self.affine = affine
         self.overwrite = overwrite
@@ -538,7 +545,10 @@ class DicomWriter:
             intercept = getattr(self.ds, 'RescaleIntercept', 0)
             # Write single file.
             self.set_image()
-            outpath = self.get_path_with_timestamp()
+            if self.outname is None:
+                outpath = self.get_path_with_timestamp()
+            else:
+                outpath = str(self.outdir / self.outname)
             self.ds.save_as(outpath)
 
         elif self.source_type == 'Image':
@@ -554,7 +564,10 @@ class DicomWriter:
 
         elif self.source_type == 'StructureSet':
             self.set_structure_set()
-            outpath = self.get_path_with_timestamp()
+            if self.outname is None:
+                outpath = self.get_path_with_timestamp()
+            else:
+                outpath = str(self.outdir / self.outname)
             self.ds.save_as(outpath)
 
         return self.ds
