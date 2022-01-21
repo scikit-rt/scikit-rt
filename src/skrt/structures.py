@@ -224,6 +224,7 @@ class ROI(skrt.core.Archive):
         self.source_type = None
         self.dicom_dataset = None
         self.contours_only = False
+        self.plans = []
 
         # Create name
         self.name = name
@@ -3529,6 +3530,27 @@ class ROI(skrt.core.Archive):
         self.mask.crop_to_roi(roi, **kwargs)
         self.shape = self.get_mask().shape
 
+    def add_plan(self, plan):
+        """Add a Plan object to be associated with this ROI. This
+        does not affect the structure set associated with the Plan object.
+
+        **Parameters:**
+
+        plan : skrt.dose.Plan
+            A Plan object to assign to this structure set.
+        """
+
+        self.plans.append(plan)
+
+    def clear_plans(self):
+        """Clear all plan maps associated with this ROI."""
+
+        self.plans = []
+
+    def get_plans(self):
+        """Return list of Plan objects associated with this ROI."""
+
+        return self.plans
 
 class StructureSet(skrt.core.Archive):
     """Structure set."""
@@ -3634,7 +3656,7 @@ class StructureSet(skrt.core.Archive):
         self.ignore_dicom_colors = ignore_dicom_colors
         self.dicom_dataset = None
         self.roi_kwargs = kwargs
-
+        self.plans = []
         path = path if isinstance(path, str) else ""
         skrt.core.Archive.__init__(self, path)
 
@@ -4918,6 +4940,29 @@ class StructureSet(skrt.core.Archive):
                     restore, fill_value, force_contours)
 
         return None
+
+    def add_plan(self, plan):
+        """Add a Plan object to be associated with this structure set. This
+        does not affect the structure set associated with the Plan object.
+
+        **Parameters:**
+
+        plan : skrt.dose.Plan
+            A Plan object to assign to this structure set.
+        """
+
+        self.plans.append(plan)
+
+    def clear_plans(self):
+        """Clear all plan maps associated with this structure set."""
+
+        self.plans = []
+
+    def get_plans(self):
+        """Return list of Plan objects associated with this structure set."""
+
+        return self.plans
+
 
 class StructureSetIterator:
 

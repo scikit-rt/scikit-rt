@@ -131,11 +131,15 @@ class Study(skrt.core.Archive):
                         obj_to_match = objs[0]
                     else:
                         obj_to_match = archive
-                    image = find_matching_object(obj_to_match, image_types)
+                    image, ss = find_matching_object(obj_to_match, image_types)
                     if image is not None:
                         for obj in objs:
                             if hasattr(obj, "set_image"):
                                 obj.set_image(image)
+                    if ss is not None:
+                        for obj in objs:
+                            if hasattr(obj, "set_structure_set"):
+                                obj.set_structure_set(ss)
 
                 # Add to list of all objects for this image type
                 all_objs.extend(objs)
@@ -727,18 +731,18 @@ class Patient(skrt.core.PathData):
 
 def find_matching_object(obj, possible_matches):
     """For a given object <obj> and a list of potential matching objects
-    <possible_matches>, find an object that matches either <obj>'s path,
-    or <obj>'s date and time."""
+    <possible_matches>, find an object that matches <obj>'s path,
+    <obj>'s date and time, or SOP Instance UID."""
 
     # Try matching on path
     for match in possible_matches:
         if os.path.basename(obj.path) == os.path.basename(match.path):
-            return match
+            return (match, None)
 
     # If no path match, try matching on timestamp
     for match in possible_matches:
         if (match.date == obj.date) and (match.time == obj.time):
-            return match
+            return (match, None)
 
     # If no timestamp match, try matching on SOP Instance UID
     if issubclass(type(obj), Dose):
@@ -755,4 +759,17 @@ def find_matching_object(obj, possible_matches):
                     sop_instance_uid = '.'.join(
                             ds_match.SOPInstanceUID.split('.')[:-1])
                     if sop_instance_uid == referenced_sop_instance_uid:
-                        return match
+                        return (match, None)
+
+    elif issubclass(type(obj), Plan):
+        ds_obj = obj.get_dicom_dataset()
+        if hasattr(ds_obj, 'ReferencedStructureSetSequence'):
+            referenced_sop_instance_uid = ds_obj.\
+                    ReferencedStructureSetSequence[-1].ReferencedSOPInstanceUID
+            for match in possible_matches:
+                for structure_set in match.get_structure_sets():
+                    ds_match = structure_set.get_dicom_dataset()
+                    if hasattr(ds_match, 'SOPInstanceUID'):
+                        sop_instance_uid = ds_match.SOPInstanceUID
+                        if sop_instance_uid == referenced_sop_instance_uid:
+                            return (match, structure_set)
