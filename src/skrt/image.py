@@ -127,6 +127,7 @@ class Image(skrt.core.Archive):
         self.nifti_array = nifti_array
         self.structure_sets = []
         self.doses = []
+        self.plans = []
         self._custom_dtype = dtype
 
         # Default image plotting settings
@@ -264,6 +265,11 @@ class Image(skrt.core.Archive):
         """Return list of Dose objects associated with this Image."""
 
         return self.doses
+
+    def get_plans(self):
+        """Return list of Plan objects associated with this Image."""
+
+        return self.plans
 
     def load(self, force=False):
         """Load pixel array from image source. If already loaded and <force> 
@@ -1199,6 +1205,23 @@ class Image(skrt.core.Archive):
 
         self.doses = []
 
+    def add_plan(self, plan):
+        """Add a Plan object to be associated with this image. This does not
+        affect the image associated with the Plan object.
+
+        **Parameters:**
+
+        plan : skrt.dose.Plan
+            A Plan object to assign to this image.
+        """
+
+        self.plans.append(plan)
+
+    def clear_plans(self):
+        """Clear all plan maps associated with this image."""
+
+        self.plans = []
+
     def get_mpl_kwargs(self, view, mpl_kwargs=None, scale_in_mm=True):
         """Get a dict of kwargs for plotting this image in matplotlib. This
         will create a default dict, which is updated to contain any kwargs
@@ -2080,8 +2103,10 @@ class Image(skrt.core.Archive):
             # Get name of dicom directory
             if outname.endswith(".dcm"):
                 outdir = os.path.abspath(os.path.dirname(outname))
+                filename = os.path.basename(outname)
             else:
                 outdir = outname
+                filename = None
 
             # Get header source
             if header_source is None and self.source_type == "dicom":
@@ -2100,6 +2125,7 @@ class Image(skrt.core.Archive):
                 root_uid,
                 header_extras,
                 type(self).__name__,
+                filename
             )
             self.dicom_dataset = dicom_writer.write()
             if verbose:

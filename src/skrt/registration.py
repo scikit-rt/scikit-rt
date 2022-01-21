@@ -432,15 +432,15 @@ class Registration(Data):
                 tfile = self.tfiles[prev_step]
 
         # Construct command
-        cmd = (
-            f"{_ELASTIX} -f {self.fixed_path} -m {self.moving_path} "
-            f"-p {self.pfiles[step]} -out {self.outdirs[step]}"
-        )
+        cmd = [
+            _ELASTIX,
+            '-f', self.fixed_path.replace("\\", "/"),
+            '-m', self.moving_path.replace("\\", "/"),
+            "-p", self.pfiles[step].replace("\\", "/"),
+            '-out', self.outdirs[step].replace("\\", "/")
+            ]
         if tfile is not None:
-            cmd += f" -t0 {tfile}"
-
-        # Replace any backslashes
-        cmd = cmd.replace("\\", "/")
+            cmd.extend(['-t0', tfile.replace("\\", "/")])
 
         return cmd
 
@@ -510,6 +510,7 @@ class Registration(Data):
             that this will cause any prior steps that have not yet been run
             to be run.
         """
+        global _ELASTIX
 
         # Check if the registration has already been performed
         if self.is_registered(step) and not force:
@@ -524,9 +525,9 @@ class Registration(Data):
 
         # Run
         cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
-        self.logger.info(f"Running command:\n {cmd}")
+        self.logger.info(f"Running command:\n {' '.join(cmd)}")
         code = subprocess.run(
-                cmd.split(), capture_output=self.capture_output).returncode
+                cmd, capture_output=self.capture_output).returncode
 
         # Check whether registration succeeded
         if code:
@@ -1537,7 +1538,7 @@ def get_default_pfiles(basename_only=True):
 
     import skrt
 
-    rel_path = "../../examples/elastix/parameter_files".split("/")
+    rel_path = "data/elastix_parameter_files".split("/")
     pdir = os.path.join(skrt.__path__[0], *rel_path)
     files = [file for file in os.listdir(pdir) if file.endswith(".txt")]
     if basename_only:

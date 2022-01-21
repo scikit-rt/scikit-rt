@@ -9,6 +9,7 @@ import matplotlib
 
 from skrt.core import Archive
 import skrt.image
+import skrt.structures
 
 
 class ImageOverlay(skrt.image.Image):
@@ -332,6 +333,8 @@ class Plan(Archive):
         self.n_beam_seq = None
         self.n_fraction = None
         self.target_dose = None
+        self.image = None
+        self.structure_set = None
         Archive.__init__(self, path)
 
         if load:
@@ -384,3 +387,34 @@ class Plan(Archive):
 
         self.load()
         return self.dicom_dataset
+
+    def set_image(self, image):
+        """Set associated image, initialising it if needed."""
+
+        # Convert to Image object if needed
+        if image and not isinstance(image, skrt.image.Image):
+            image = skrt.image.Image(image)
+
+        # Assign image to self
+        self.image = image
+
+        # Assign self to the image
+        if self.image is not None:
+            self.image.add_plan(self)
+
+    def set_structure_set(self, structure_set):
+        """Set associated structure set, initialising it if needed."""
+
+        # Convert to StructureSet object if needed
+        if structure_set and not isinstance(
+                structure_set, skrt.structures.StructureSet):
+            structure_set = skrt.structures.StructureSet(structure_set)
+
+        # Assign structure set to self
+        self.structure_set = structure_set
+
+        # Assign self to the structure set and its rois
+        if self.structure_set is not None:
+            self.structure_set.add_plan(self)
+            for roi in self.structure_set.get_rois():
+                roi.add_plan(self)

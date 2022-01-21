@@ -131,11 +131,15 @@ class Study(skrt.core.Archive):
                         obj_to_match = objs[0]
                     else:
                         obj_to_match = archive
-                    image = find_matching_object(obj_to_match, image_types)
+                    image, ss = find_matching_object(obj_to_match, image_types)
                     if image is not None:
                         for obj in objs:
                             if hasattr(obj, "set_image"):
                                 obj.set_image(image)
+                    if ss is not None:
+                        for obj in objs:
+                            if hasattr(obj, "set_structure_set"):
+                                obj.set_structure_set(ss)
 
                 # Add to list of all objects for this image type
                 all_objs.extend(objs)
@@ -603,6 +607,7 @@ class Patient(skrt.core.PathData):
         to_ignore=None,
         overwrite=True,
         structure_set="all",
+        dose='all',
         root_uid=None
     ):
         """Write files tree."""
@@ -659,62 +664,85 @@ class Patient(skrt.core.PathData):
                     Image.write(im, outname, patient_id=self.id,
                                 modality=image_type, root_uid=root_uid)
 
-                    # Find structure sets to write
-                    if structure_set == "all":
-                        ss_to_write = im.get_structure_sets()
-                    elif structure_set is None:
-                        ss_to_write = []
-                    elif isinstance(structure_set, int):
-                        ss_to_write = [im.get_structure_sets()[structure_set]]
-                    elif skrt.core.is_list(structure_set):
-                        ss_to_write = [im.get_structure_sets()[i] for i in structure_set]
+                    # Write associated structure sets
+                    self.write_non_image_data(im, image_type, im_timestamp,
+                            'structure_sets', 'RTSTRUCT', structure_set,
+                            study_dir, overwrite, ext)
+
+                    # Write associated doses
+                    self.write_non_image_data(im, image_type, im_timestamp,
+                            'doses', 'RTDOSE', dose, study_dir, overwrite, ext)
+
+    def write_non_image_data(self, im=None, image_type=None, im_timestamp=None,
+            items=None, modality=None, selection=None, outdir='.',
+            overwrite=True, ext='.dcm'):
+
+        if not ext.startswith("."):
+            ext = f".{ext}"
+
+        # Find data to write
+        im_get_items = getattr(im, f'get_{items}')
+        if selection == "all":
+            items_to_write = im_get_items()
+        elif selection is None:
+            items_to_write = []
+        elif isinstance(selection, int):
+            items_to_write = [im_get_items()[selection]]
+        elif skrt.core.is_list(selection):
+            items_to_write = [im_get_items()[i] for i in items]
+        else:
+            raise TypeError('Unrecognised {items} selection: {selection}')
+
+        # Write structure sets for this image
+        for item in items_to_write:
+
+        # Find path to output structure directory
+            if modality in str(item.path):
+                item_subpath = item.path.split(modality, 1)[1].strip(
+                        os.path.sep)
+                item_path = os.path.join(outdir, modality, item_subpath)
+                filename = os.path.basename(item.path)
+            else:
+                item_path = os.path.join(
+                        outdir, modality, image_type, im_timestamp
+                        )
+                filename = f'{modality}_{item.timestamp}'
+            if ext == '.dcm':
+                item_dir = os.path.dirname(item_path)
+            else:
+                item_dir = os.path.join(item_path, filename)
+
+            # Ensure it exists
+            if not os.path.exists(item_dir):
+                os.makedirs(item_dir)
+
+            # Write dicom structure set
+            if ext == '.dcm':
+                if not os.path.exists(item_path) or overwrite:
+                    if not filename.endswith('.dcm'):
+                        filename = f'{filename}.dcm'
+                    if modality == 'RTSTRUCT':
+                        item.write(outname=filename, outdir=item_dir)
                     else:
-                        raise TypeError(
-                            "Unrecognised structure_set option " f"{structure_set}"
-                        )
-
-                    # Write structure sets for this image
-                    for ss in ss_to_write:
-
-                        # Find path to output structure directory
-                        ss_path = os.path.join(
-                            study_dir, 'RTSTRUCT', image_type, im_timestamp
-                        )
-                        filename = f'RTSTRUCT_{ss.timestamp}'
-                        if ext == ".dcm":
-                            ss_dir = ss_path
-                        else:
-                            ss_dir = os.path.join(ss_path, filename)
-
-                        # Ensure it exists
-                        if not os.path.exists(ss_path):
-                            os.makedirs(ss_path)
-
-                        # Write dicom structure set
-                        if ext == ".dcm":
-                            if os.path.exists(ss_path) and not overwrite:
-                                continue
-                            ss.write(outname=f'{filename}.dcm', outdir=ss_path)
-
-                        # Write ROIs to individual files
-                        else:
-                            ss.write(outdir=ss_dir, ext=ext)
-
+                        item.write(outname=item_path)
+            # Write ROIs to individual files
+            elif 'RTSTRUCT' == modality:
+                item.write(outdir=item_dir, ext=ext)
 
 def find_matching_object(obj, possible_matches):
     """For a given object <obj> and a list of potential matching objects
-    <possible_matches>, find an object that matches either <obj>'s path,
-    or <obj>'s date and time."""
+    <possible_matches>, find an object that matches <obj>'s path,
+    <obj>'s date and time, or SOP Instance UID."""
 
     # Try matching on path
     for match in possible_matches:
         if os.path.basename(obj.path) == os.path.basename(match.path):
-            return match
+            return (match, None)
 
     # If no path match, try matching on timestamp
     for match in possible_matches:
         if (match.date == obj.date) and (match.time == obj.time):
-            return match
+            return (match, None)
 
     # If no timestamp match, try matching on SOP Instance UID
     if issubclass(type(obj), Dose):
@@ -731,4 +759,17 @@ def find_matching_object(obj, possible_matches):
                     sop_instance_uid = '.'.join(
                             ds_match.SOPInstanceUID.split('.')[:-1])
                     if sop_instance_uid == referenced_sop_instance_uid:
-                        return match
+                        return (match, None)
+
+    elif issubclass(type(obj), Plan):
+        ds_obj = obj.get_dicom_dataset()
+        if hasattr(ds_obj, 'ReferencedStructureSetSequence'):
+            referenced_sop_instance_uid = ds_obj.\
+                    ReferencedStructureSetSequence[-1].ReferencedSOPInstanceUID
+            for match in possible_matches:
+                for structure_set in match.get_structure_sets():
+                    ds_match = structure_set.get_dicom_dataset()
+                    if hasattr(ds_match, 'SOPInstanceUID'):
+                        sop_instance_uid = ds_match.SOPInstanceUID
+                        if sop_instance_uid == referenced_sop_instance_uid:
+                            return (match, structure_set)

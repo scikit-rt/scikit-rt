@@ -4,6 +4,8 @@ A suite of tools for loading, plotting, and analysing medical imaging data.
 
 This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
+For full code documentation, go to https://scikit-rt.github.io/scikit-rt/skrt_modules.html
+
 ## Installation
 
 Package installation provides full code access.  Docker installation
@@ -116,6 +118,8 @@ server port (8888) on the container side.
 3) [Patients and studies](#3-patients)
 4) [Synthetic data](#4-synthetic-data)
 5) [Image registration](docs/image_registration.md)
+6) [Keyboard shortcuts for pop-out interactive viewer](#6-keyboard-shortcuts-for-pop-out-interactive-viewer)
+
 
 ## 1. Images
 
@@ -737,3 +741,19 @@ p.write(outdir="some_dir")
 ```
 
 This will create a patient directory `somedir/my_id` containing the added study and its corresponding image and structure set.
+
+### 5. Image registration
+
+See tutorial [here](docs/image_registration.md)
+
+### 6. Keyboard shortcuts for pop-out interactive viewer
+
+A minimal pop-up interactive viewer can be created by running `.view()` on any `Image`, `Dose`, `ROI` or `StructureSet` from python outside of a jupyter notebook. The controls are:
+
+- scroll: move 1 slice
+- left/right keys: move 1 slice
+- up/down keys: move 5 slices
+- v: toggle orientation between axial, sagittal, and coronal
+- d: toggle dose field opacity (if viewing dose field overlaid on image)
+- c: toggle ROI plotting type between contour, filled, and mask (if viewing ROIs)
+- j: jump between ROIs (if viewing a `StructureSet`)
