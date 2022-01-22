@@ -339,7 +339,7 @@ class ROI(skrt.core.Archive):
                     self.input_contours[float(key)] = [np.array(contours[key])]
                 rois.append(self.name)
 
-            else:
+            elif os.path.isdir(self.source) or not self.source.endswith('.nii'):
                 # Try loading from dicom structure set
                 rois, ds = load_rois_dicom(self.source, names=self.name)
                 if len(rois):
