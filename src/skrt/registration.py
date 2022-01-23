@@ -99,6 +99,8 @@ class Registration(Data):
         # Set up fixed and moving images
         self.fixed_path = os.path.join(self.path, "fixed.nii.gz")
         self.moving_path = os.path.join(self.path, "moving.nii.gz")
+        self.fixed_source = fixed
+        self.moving_source = moving
         if fixed is not None:
             self.set_fixed_image(fixed)
         if moving is not None:
@@ -791,15 +793,18 @@ class Registration(Data):
             return
 
         # Otherwise, return ROI object
-        roi = ROI(result_path, name=roi.name, color=roi.color)
-        self.rm_tmp_dir()
         if transform_points:
-            if hasattr(self, 'moving_image'):
-                roi.set_image(self.moving_image)
+            if issubclass(skrt.image.Image, type(self.moving_source)):
+                image = self.moving_source
+            elif isinstance(str, self.moving_source):
+                image = skrt.image.Image(self.moving_source)
+            else:
+                image = getattr(self, 'moving_image', None)
         else:
-            transformed_image = self.get_transformed_image(step)
-            if transformed_image is not None:
-                roi.set_image(transformed_image)
+            image = self.get_transformed_image(step)
+        roi = ROI(result_path, name=roi.name, color=roi.color, image=image)
+        self.rm_tmp_dir()
+
         return roi
 
     def transform_structure_set(
@@ -856,12 +861,16 @@ class Registration(Data):
         # Otherwise, return structure set
         final.name = "Transformed"
         if transform_points:
-            if hasattr(self, 'moving_image'):
-                final.set_image(self.moving_image)
+            if issubclass(skrt.image.Image, type(self.moving_source)):
+                image = self.moving_source
+            elif isinstance(str, self.moving_source):
+                image = skrt.image.Image(self.moving_source)
+            else:
+                image = getattr(self, 'moving_image', None)
         else:
-            transformed_image = self.get_transformed_image(step)
-            if transformed_image is not None:
-                final.set_image(transformed_image)
+            image = self.get_transformed_image(step)
+        if image is not None:
+            final.set_image(image)
         return final
 
     def transform_moving_image(self, step=-1):

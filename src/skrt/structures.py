@@ -4371,7 +4371,6 @@ class StructureSet(skrt.core.Archive):
         # Check whether to write to dicom file
         if isinstance(outname, str) and outname.endswith(".dcm"):
             ext = ".dcm"
-            outname = os.path.join(outdir, outname)
 
         if ext == ".dcm":
             dicom_writer = DicomWriter(
