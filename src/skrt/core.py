@@ -542,9 +542,10 @@ class MachineData(Dated):
 class Archive(Dated):
     """Dated object associated with multiple files."""
 
-    def __init__(self, path: str = "", allow_dirs: bool = False):
+    def __init__(self, path: str = "", auto_timestamp=False,
+            allow_dirs: bool = False):
 
-        Dated.__init__(self, path)
+        Dated.__init__(self, path, auto_timestamp)
 
         # Find names of files within the directory
         self.files = []
@@ -570,8 +571,8 @@ class File(Dated):
     """File with an associated date. Files can be sorted based on their
     filenames."""
 
-    def __init__(self, path: str = ""):
-        Dated.__init__(self, path)
+    def __init__(self, path: str = "", auto_timestamp=False):
+        Dated.__init__(self, path, auto_timestamp)
 
     def __eq__(self, other):
         return self.path == other.path

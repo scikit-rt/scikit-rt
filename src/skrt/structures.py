@@ -3570,6 +3570,7 @@ class StructureSet(skrt.core.Archive):
         multi_label=False,
         colors=None,
         ignore_dicom_colors=False,
+        auto_timestamp=False,
         **kwargs
     ):
         """Load structure set from the source(s) given in <path>.
@@ -3632,6 +3633,10 @@ class StructureSet(skrt.core.Archive):
             colors for ROIs matching that name. If a list, should contain
             colors which will be applied to loaded ROIs in order.
 
+        auto_timestamp : bool default=False
+            If true and no valid timestamp is found within the path string,
+            timestamp generated from current date and time.
+
         `**`kwargs :
             Additional keyword args to use when initialising new ROI objects.
         """
@@ -3660,7 +3665,7 @@ class StructureSet(skrt.core.Archive):
         self.roi_kwargs = kwargs
         self.plans = []
         path = path if isinstance(path, str) else ""
-        skrt.core.Archive.__init__(self, path)
+        skrt.core.Archive.__init__(self, path, auto_timestamp)
 
         self.loaded = False
         if load:

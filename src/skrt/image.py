@@ -54,7 +54,8 @@ class Image(skrt.core.Archive):
         origin=(0, 0, 0),
         nifti_array=False,
         downsample=None,
-        dtype=None
+        dtype=None,
+        auto_timestamp=False,
     ):
         """
         Initialise from a medical image source.
@@ -105,6 +106,10 @@ class Image(skrt.core.Archive):
 
         dtype : type, default=None
             Type to which loaded data should be cast.
+
+        auto_timestamp : bool default=False
+            If true and no valid timestamp is found within the path string,
+            timestamp generated from current date and time.
         """
 
         # Clone from another Image object
@@ -135,7 +140,7 @@ class Image(skrt.core.Archive):
         self._default_cmap = "gray"
 
         path = self.source if isinstance(self.source, str) else ""
-        skrt.core.Archive.__init__(self, path)
+        skrt.core.Archive.__init__(self, path, auto_timestamp)
 
         if load and (not isinstance(self.source, str) or self.source):
             self.load()

@@ -13,7 +13,8 @@ pdir = f"tmp/{pid}"
 p = Patient(pid)
 
 # Create synthetic image
-sim = SyntheticImage((100, 100, 40))
+nz = 40
+sim = SyntheticImage((100, 100, nz), auto_timestamp=True)
 sim.add_cube(50, name='cube')
 sim.add_sphere(25, name='sphere')
 
@@ -91,23 +92,65 @@ def test_load_images():
 
 def test_write_rois_nifti():
     p.studies = []
-    p.add_study(images=[sim])
+    p.add_study(images=[sim.get_image()])
     if os.path.exists(pdir):
         shutil.rmtree(pdir)
     p.write("tmp", ext=".nii", structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert os.path.exists(f"{sdir}/CT")
     assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
-    nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}/"
-                               f"RTSTRUCT_{sim.structure_sets[0].timestamp}")
+    nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
     assert "cube.nii" in nifti_rois
     assert "sphere.nii" in nifti_rois
 
-def test_write_rois_dicom():
-    pass
-
 def test_read_nifti_patient():
     pass
+
+def test_write_rois_dicom():
+    p.studies = []
+    p.add_study(images=[sim.get_image()])
+    if os.path.exists(pdir):
+        shutil.rmtree(pdir)
+    p.write("tmp", ext='.dcm', structure_set="all")
+    sdir = f"{pdir}/{p.studies[0].timestamp}"
+    assert os.path.exists(f"{sdir}/CT")
+    assert os.path.exists(f"{sdir}/CT/{sim.timestamp}")
+    items = os.listdir(f"{sdir}/CT/{sim.timestamp}")
+    assert len(items) == nz
+    for item in items:
+        assert 'dcm' in item
+    assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
+    assert os.path.exists(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
+    items = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
+    assert len(items) == 1
+
+def test_read_dicom_patient():
+    p_test = Patient(pdir)
+    assert len(p_test.studies) == 1
+    study = p_test.studies[-1]
+    assert len(study.ct_images) == 1
+    assert len(study.ct_images[0].files) == nz
+    assert len(study.ct_structure_sets) == 1
+    roi_names = study.ct_structure_sets[0].get_roi_names()
+    assert len(roi_names) == 2
+    assert "cube" in roi_names
+    assert "sphere" in roi_names
+
+def test_copy_dicom_patient():
+    p_test = Patient(pdir)
+    pdir_copy = f"tmp/test_patient_copy"
+    p_test.copy(pdir_copy)
+    p_test_copy = Patient(pdir_copy)
+
+    assert len(p_test.studies) == len(p_test.studies)
+    s1 = p_test.studies[-1]
+    s2 = p_test_copy.studies[-1]
+    assert len(s1.ct_images) == len(s2.ct_images)
+    assert len(s1.ct_images[0].files) == len(s2.ct_images[0].files)
+    assert len(s1.ct_structure_sets) == len(s2.ct_structure_sets)
+    roi_names1 = s1.ct_structure_sets[0].get_roi_names()
+    roi_names2 = s2.ct_structure_sets[0].get_roi_names()
+    assert roi_names1 == roi_names2
 
 def test_null_patient():
     p = Patient()

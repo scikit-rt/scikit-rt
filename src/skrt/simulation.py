@@ -22,6 +22,7 @@ class SyntheticImage(Image):
         voxel_size=(1, 1, 1),
         intensity=-1024,
         noise_std=None,
+        auto_timestamp=False,
     ):
         """Create an initially blank synthetic image to which geometric 
         ROIs can be added.
@@ -50,6 +51,10 @@ class SyntheticImage(Image):
         noise_std : float, default=None
             Standard deviation of Gaussian noise to apply to the image.
             If None, no noise will be applied.
+
+        auto_timestamp : bool default=False
+            If true and no valid timestamp is found within the path string,
+            timestamp generated from current date and time.
         """
 
         # Assign properties
@@ -72,7 +77,7 @@ class SyntheticImage(Image):
         # Initialise as Image
         Image.__init__(
             self, self.get_background(), voxel_size=self.voxel_size,
-            origin=self.origin
+            origin=self.origin, auto_timestamp=auto_timestamp
         )
 
         # Write to file if a filename is given
@@ -115,7 +120,7 @@ class SyntheticImage(Image):
         self.update_rois()
         self._image = Image(self)
         self._structure_set = StructureSet(list(self.rois.values()),
-                                          image=self._image)
+                image=self._image, auto_timestamp=True)
         self.structure_sets = [self._structure_set]
 
     def get_image(self):

@@ -3,8 +3,9 @@ Class DicomWriter for writing data in DICOM format.
 
 DICOM writing is supported for instances of:
 
+- skrt.dose.Dose;
 - skrt.image.Image;
-- skrt.dose.Dose.
+- skrt.simulation.SyntheticImage.
 '''
 
 import datetime

@@ -1,6 +1,7 @@
 """Classes related to Patients and Studies."""
 
 import os
+from pathlib import Path
 import pydicom
 import shutil
 import time
@@ -600,6 +601,121 @@ class Patient(skrt.core.PathData):
                 break
         return last
 
+    def copy(self, outdir='.', to_keep='all', overwrite=True,
+            structure_set='all'):
+
+        '''
+        Copy patient dataset, with optional filtering.
+
+        **Parameters:**
+
+        outdir : str/pathlib.Path, default = '.'
+            Output directory to which patient dataset is to be copied.
+
+        to_keep : str/list, default = 'all'
+            Specification of data types to be copied.  If 'all', all data
+            are copied.  If a list, only data from the listed study
+            ubdirectories are copied.  For example,
+            to_keep=['CT', 'RTSTRUCT/CT'] would result in copying of only
+            CT images and associated structure sets.
+
+        overwrite : bool, default=True
+            If True, delete any existing patient directory, and its contents,
+            in the output directory before copying.
+
+        structure_set : str/int/list, default = 'all'
+            Select structure set(s) to copy.  If 'all', all structure sets 
+            are copied.  If an integer or list of integers, a sorted list
+            of structure sets for each image set is created, and only
+            structure sets at the indicated positions in this list are
+            copied.  For example, structure_set=[0, -1] would result
+            in the first and last structure sets being copied.
+        '''
+        # Ensure that structure_set is a list or 'all'.
+        if isinstance(structure_set, int):
+            structure_set = [structure_set]
+        if not isinstance(structure_set, list) and 'all' != structure_set:
+            structure_set = []
+
+        # Define output patient directory, and ensure that it exists.
+        outdir_path = Path(skrt.core.fullpath(str(outdir)))
+        patient_dir = outdir_path / self.id
+        if patient_dir.exists() and overwrite:
+            shutil.rmtree(patient_dir)
+        patient_dir.mkdir(parents=True, exist_ok=True)
+
+        for study in self.studies:
+
+            # Define output study directory, and ensure that it exists.
+            study_dir = patient_dir / study.subdir / study.timestamp
+            study_dir.mkdir(parents=True, exist_ok=True)
+
+            # Easy case: copy everything in the study directory.
+            if 'all' == to_keep:
+                shutil.copytree(study.path, str(study_dir), dirs_exist_ok=True)
+
+            else:
+                # Loop over subdirectories with content to be copied.
+                for subdir in to_keep:
+                    indir = Path(study.path) / subdir
+                    if not indir.exists():
+                        continue
+                    outdir = study_dir / subdir
+                    outdir.mkdir(parents=True, exist_ok=True)
+                    # Copy everything if this isn't an RTSTRUCT directory
+                    # to which selection is to be applied.
+                    if not (str(subdir).startswith('RTSTRUCT')
+                            or 'all' == structure_set):
+                        shutil.copytree(str(indir), str(outdir),
+                                dirs_exist_ok=True)
+                    else:
+                        # Subdirectories from which RTSTRUCT data
+                        # are to be copied may be specified as any of:
+                        # 'RTSTRUCT', 'RTSTRUCT/<modality>',
+                        # 'RTSTRUCT/<modality>/<timestamp>'.
+                        # Code tries to allow for any of these.
+                        elements = str(subdir).strip(os.path.sep).split(
+                                os.path.sep)
+                        rtstruct_indir = Path(study.path) / elements[0]
+                        rtstruct_outdir = study_dir / elements[0]
+
+                        # Identify and loop over modalities.
+                        if len(elements) > 1:
+                            modalities = [elements[1]]
+                        else:
+                            modalities = rtstruct_indir.iterdir()
+                        for modality in modalities:
+                            modality_indir = rtstruct_indir / modality
+                            modality_outdir = rtstruct_outdir / modality
+
+                            # Identify and loop over timestamps.
+                            if len(elements) > 2:
+                                timestamps = [elements[2]]
+                            else:
+                                timestamps = modality_indir.iterdir()
+                            for timestamp in timestamps:
+                                ss_indir = modality_indir / timestamp
+
+                                # Identify structure sets for copying.
+                                structure_sets = list(ss_indir.iterdir())
+                                structure_sets.sort()
+                                ss_to_copy = []
+                                for i in structure_set:
+                                    try:
+                                        ss = structure_set[i]
+                                    except IndexError:
+                                        ss = None
+                                    if ss and ss not in ss_to_copy:
+                                        ss_co_topy.append(ss)
+
+                                # Copy selected structure sets.
+                                for ss in ss_to_copy:
+                                    ss_outdir = modality_outdir / timestamp
+                                    ss_outdir.mkdir(parents=True, exist_ok=True)
+                                    ss_in = ss_indir / ss
+                                    ss_out = ss_outdir / ss
+                                    shutil.copy2(ss_in, ss_out)
+
     def write(
         self,
         outdir=".",
@@ -700,17 +816,11 @@ class Patient(skrt.core.PathData):
             if modality in str(item.path):
                 item_subpath = item.path.split(modality, 1)[1].strip(
                         os.path.sep)
-                item_path = os.path.join(outdir, modality, item_subpath)
-                filename = os.path.basename(item.path)
+                item_dir = os.path.join(outdir, modality, item_subpath)
             else:
-                item_path = os.path.join(
-                        outdir, modality, image_type, im_timestamp
-                        )
-                filename = f'{modality}_{item.timestamp}'
-            if ext == '.dcm':
-                item_dir = os.path.dirname(item_path)
-            else:
-                item_dir = os.path.join(item_path, filename)
+                item_dir = os.path.join(
+                        outdir, modality, image_type, im_timestamp)
+            filename = f'{modality}_{item.timestamp}'
 
             # Ensure it exists
             if not os.path.exists(item_dir):
@@ -718,12 +828,13 @@ class Patient(skrt.core.PathData):
 
             # Write dicom structure set
             if ext == '.dcm':
-                if not os.path.exists(item_path) or overwrite:
+                if not os.path.exists(item_dir) or overwrite:
                     if not filename.endswith('.dcm'):
                         filename = f'{filename}.dcm'
                     if modality == 'RTSTRUCT':
                         item.write(outname=filename, outdir=item_dir)
                     else:
+                        item_path = os.path.join(item_dir, filename)
                         item.write(outname=item_path)
             # Write ROIs to individual files
             elif 'RTSTRUCT' == modality:
