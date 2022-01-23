@@ -148,6 +148,33 @@ with this patient.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.copy" title="Permalink to this definition"></a></dt>
+<dd><p>Copy patient dataset, with optional filtering.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outdir<span class="classifier">str/pathlib.Path, default = ‘.’</span></dt><dd><p>Output directory to which patient dataset is to be copied.</p>
+</dd>
+<dt>to_keep<span class="classifier">str/list, default = ‘all’</span></dt><dd><p>Specification of data types to be copied.  If ‘all’, all data
+are copied.  If a list, only data from the listed study
+ubdirectories are copied.  For example,
+to_keep=[‘CT’, ‘RTSTRUCT/CT’] would result in copying of only
+CT images and associated structure sets.</p>
+</dd>
+<dt>overwrite<span class="classifier">bool, default=True</span></dt><dd><p>If True, delete any existing patient directory, and its contents,
+in the output directory before copying.</p>
+</dd>
+<dt>structure_set<span class="classifier">str/int/list, default = ‘all’</span></dt><dd><p>Select structure set(s) to copy.  If ‘all’, all structure sets 
+are copied.  If an integer or list of integers, a sorted list
+of structure sets for each image set is created, and only
+structure sets at the indicated positions in this list are
+copied.  For example, structure_set=[0, -1] would result
+in the first and last structure sets being copied.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_age">
 <span class="sig-name descname"><span class="pre">get_age</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_age" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
