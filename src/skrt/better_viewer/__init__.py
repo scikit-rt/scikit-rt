@@ -345,7 +345,12 @@ class BetterViewer:
         init_slice : integer, default=None
             Slice number in the initial orientation direction at which to
             display the first image (can be changed interactively later). If
-            None, the central slice will be displayed.
+            None, the central slice will be displayed.  Takes precedence over
+            <init_idx>.
+
+        init_idx : integer, default=None
+            Index in the initial orienation direction of the slice
+            in the array to plot.
 
         init_pos : float, default=None
             Position in mm of the first slice to display. This will be rounded
@@ -1449,6 +1454,7 @@ class SingleViewer:
         im=None,
         init_view="x-y",
         init_slice=None,
+        init_idx=None,
         init_pos=None,
         intensity=None,
         intensity_width=500,
@@ -1548,6 +1554,8 @@ class SingleViewer:
         }
         if init_pos is not None and self.scale_in_mm:
             self.set_slice_from_pos(init_view, init_pos)
+        elif init_idx is not None:
+            self.set_slice_from_idx(init_view, init_idx)
         else:
             self.set_slice(init_view, init_slice)
 
@@ -1844,6 +1852,13 @@ class SingleViewer:
 
         ax = _slice_axes[view]
         sl = self.image.pos_to_slice(pos, ax)
+        self.set_slice(view, sl)
+
+    def set_slice_from_idx(self, view, idx):
+        """Set the current slice number from index of slice in image array."""
+
+        ax = _slice_axes[view]
+        sl = self.image.idx_to_slice(idx, ax)
         self.set_slice(view, sl)
 
     def make_ui(self, other_viewer=None, share_slider=True, no_roi=False,
