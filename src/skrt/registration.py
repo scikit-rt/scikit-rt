@@ -796,7 +796,7 @@ class Registration(Data):
         if transform_points:
             if issubclass(skrt.image.Image, type(self.moving_source)):
                 image = self.moving_source
-            elif isinstance(str, self.moving_source):
+            elif isinstance(self.moving_source, str):
                 image = skrt.image.Image(self.moving_source)
             else:
                 image = getattr(self, 'moving_image', None)
@@ -863,7 +863,7 @@ class Registration(Data):
         if transform_points:
             if issubclass(skrt.image.Image, type(self.moving_source)):
                 image = self.moving_source
-            elif isinstance(str, self.moving_source):
+            elif isinstance(self.moving_source, str):
                 image = skrt.image.Image(self.moving_source)
             else:
                 image = getattr(self, 'moving_image', None)
