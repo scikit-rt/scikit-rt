@@ -884,3 +884,5 @@ def find_matching_object(obj, possible_matches):
                         sop_instance_uid = ds_match.SOPInstanceUID
                         if sop_instance_uid == referenced_sop_instance_uid:
                             return (match, structure_set)
+
+    return (None, None)
