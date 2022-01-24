@@ -85,6 +85,7 @@ class SyntheticImage(Image):
             self.filename = os.path.expanduser(filename)
             self.write()
 
+    '''
     def view(self, **kwargs):
         """View with QuickViewer."""
 
@@ -100,6 +101,7 @@ class SyntheticImage(Image):
         qv_kwargs.update(kwargs)
         rois = self.get_roi_data()
         QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
+    '''
 
     def update(self, force_bkg=False):
         """Update self.data so that it contains all current shapes."""

@@ -1119,13 +1119,17 @@ class ROI(skrt.core.Archive):
                                        " numbers from contours without knowing voxel"
                                        " sizes and mask shape!")
             else:
+                view_axes = ([0, 1, 2] if len(centroid['mm']) == 3 else
+                        skrt.image._plot_axes[view])
+
                 centroid["voxels"] = np.array([
                     self.pos_to_idx(c, ax=i, return_int=False) 
-                    for i, c in enumerate(centroid["mm"])
+                    for i, c in zip(view_axes, centroid["mm"])
                 ])
+
                 centroid["slice"] = np.array([
                     self.pos_to_slice(c, ax=i, return_int=False) 
-                    for i, c in enumerate(centroid["mm"])
+                    for i, c in zip(view_axes, centroid["mm"])
                 ])
 
         # Otherwise, calculate centroid from binary mask
@@ -1155,13 +1159,17 @@ class ROI(skrt.core.Archive):
             centroid["voxels"] = np.array(centroid_voxels)
 
             # Convert to mm and slices
+            view_axes = ([0, 1, 2] if len(centroid['voxels']) == 3 else
+                    skrt.image._plot_axes[view])
+
             centroid["mm"] = np.array([
-                self.idx_to_pos(c, ax=i) for i, c in 
-                enumerate(centroid["voxels"])
+                self.idx_to_pos(c, ax=i)
+                for i, c in zip(view_axes, centroid["voxels"])
             ])
+
             centroid["slice"] = np.array([
-                self.idx_to_slice(c, ax=i) for i, c in 
-                enumerate(centroid["voxels"])
+                self.idx_to_slice(c, ax=i)
+                for i, c in zip(view_axes, centroid["voxels"])
             ])
 
         # Cache global centroid
