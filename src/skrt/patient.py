@@ -664,7 +664,7 @@ class Patient(skrt.core.PathData):
                     outdir.mkdir(parents=True, exist_ok=True)
                     # Copy everything if this isn't an RTSTRUCT directory
                     # to which selection is to be applied.
-                    if not (str(subdir).startswith('RTSTRUCT')
+                    if ((not str(subdir).startswith('RTSTRUCT'))
                             or 'all' == structure_set):
                         shutil.copytree(str(indir), str(outdir),
                                 dirs_exist_ok=True)
