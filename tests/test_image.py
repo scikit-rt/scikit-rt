@@ -692,3 +692,27 @@ def test_dicom_dicom_slice():
     im.write(dcm_file)
     im_dcm = Image(f'{dcm_file}/1.dcm')
     assert im_dcm.get_data().shape == shape_single
+
+def test_create_foreground_mask():
+    sim = SyntheticImage((100, 100, 40))
+    sim.add_cube(side_length=5, name="cube", centre=(25, 60, 12), intensity=60)
+    sim.add_sphere(radius=10, name="sphere", centre=(80, 20, 12), intensity=50)
+
+    # Should detect sphere in first loop and cube in second
+    for intensity in [50, 60]:
+        threshold = intensity - 5
+        mask1 = sim.create_foreground_mask(threshold=threshold).get_data()
+        mask1 = mask1.astype(np.uint32)
+        mask1[mask1 > 0] =1
+
+        nx, ny, nz = sim.get_n_voxels()
+        mask2 = np.zeros((ny, nx, nz), dtype=np.uint32)
+        mask2[sim.get_data() == intensity] = 1
+
+        assert mask1.shape == mask2.shape
+        assert mask1.min() == 0
+        assert mask1.max() == 1
+        assert mask1.min() == mask2.min()
+        assert mask1.max() == mask2.max()
+        assert mask1.sum() == mask2.sum()
+    assert np.all(mask1 == mask2)

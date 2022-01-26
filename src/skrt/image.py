@@ -8,6 +8,7 @@ import datetime
 import glob
 import functools
 import logging
+import mahotas
 import math
 import matplotlib as mpl
 import matplotlib.cm
@@ -623,6 +624,149 @@ class Image(skrt.core.Archive):
             z_array = None
 
         return (x_array, y_array, z_array)
+
+    def create_foreground_box_mask(self, dx=0, dy=0, threshold=-200):
+        '''
+        Slice by slice, create rectangular mask encolosing foreground mask.
+
+        dx : int, default=0
+            Margin along columns to be added on each side of mask bounding box.
+
+        dy : int, default=0
+            Margin along rows to be added on each side of mask bounding box.
+
+        threshold : int/float, default=None
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+        '''
+
+        if not isNifti(image):
+            image = convertCTToNifti(image)
+
+        foregroundmask = self.create_foreground_mask(image, threshold)
+        foreground_box_mask = create_box_mask_from_mask(foreground_mask, dx, dy)
+
+        return foreground_box_mask
+
+    def create_foreground_mask(self, threshold=None, convex_hull=False,
+            fill_holes=True, dxy=0):
+        '''
+        Create foreground mask.
+
+        Slice by slice, the foreground is taken to correspond to the
+        largest region of contiguous pixels above a threshold value.
+
+        **Parameters:**
+
+        threshold : int/float, default=None
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If False, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=False
+            If False, fill holes in the slice foreground masks initially
+            obtained.
+        '''
+        self.load()
+
+        # Initialise mask array from foreground mask of first slice.
+        out_array = np.array(self.get_slice_foreground(
+            0, threshold, convex_hull, fill_holes, dxy))
+
+        # Stack slice foregrounds masks.
+        for idx in range(1, self.get_n_voxels()[2]):
+            out_array = np.dstack((out_array, self.get_slice_foreground(
+                idx, threshold, convex_hull, fill_holes, dxy)))
+
+        # Clone the current image, and replace its data with
+        # the foreground mask.
+        out_image = Image(self)
+        out_image.data = out_array
+
+        return out_image
+
+    def get_slice_foreground(self, idx=0, threshold=None,
+            convex_hull=False, fill_holes=False, dxy=0):
+        '''
+        Create foreground mask for image slice.
+
+        The foreground is taken to correspond to the largest region
+        of contiguous pixels above a threshold value.
+
+        **Parameters:**
+
+        idx : int, default=0
+            Index of slice for which foreground mask is to be obtained.
+
+        threshold : int/float, default=None
+            Intensity value above which pixels are assigned to regions
+            for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If False, return the convex hull of the foreground mask
+            initially obtained.
+
+        fill_holes : bool, default=False
+            If False, fill holes in the foreground mask initially
+            obtained.
+        '''
+
+        # Extract slice data.
+        image_slice = self.get_data()[:, :, idx]
+
+        # Handle case where slice contains intensity values above threshold,
+        # and not intensities are the same.
+        if ((image_slice.max() > threshold) and
+                (image_slice.max() - image_slice.min() > 0)):
+
+            # Obtain intensity values relative to the minimum.
+            test_slice = np.uint32(image_slice - image_slice.min())
+            # Make this a 2D array.
+            test_slice = np.squeeze(test_slice)
+            # Calculate Otsu threshold, or rescale threshold value provided.
+            if threshold is None:
+                rescaled_threshold = mahotas.thresholding.otsu(test_slice)
+            else:
+                rescaled_threshold = threshold - image_slice.min()
+
+            # Label regions of contiguous pixels of above-threshold intensity.
+            label_array1, n_object = mahotas.label(
+                    test_slice > rescaled_threshold)
+            # Identify largest labelled region, and use this as foreground.
+            foreground = np.argsort(np.bincount(label_array1.ravel()))[-2]
+            label_array2 = np.int8(label_array1 == foreground)
+
+            if fill_holes:
+                # Fill holes using different structuring elements.
+                label_array2 = scipy.ndimage.binary_fill_holes(label_array2)
+                for i in range(5, 3, -1):
+                    structure = np.ones((i, i))
+                    label_array2 = scipy.ndimage.binary_fill_holes(
+                        label_array2, structure)
+                label_array2 = scipy.ndimage.binary_fill_holes(label_array2)
+
+            if dxy > 0:
+                # Add a margin to the mask.
+                structure = np.ones((dxy, dxy))
+                label_array2 = scipy.ndimage.binary_dilation(
+                        label_array2, structure)
+
+            if convex_hull:
+                # Take the convex hull of the mask.
+                label_array2 = skimage.morphology.convex_hull_image(
+                        label_array2)
+
+        # Handle the cases where all intensities are the same.
+        else:
+            if image_slice.max() > threshold:
+                label_array2 = np.ones(image_slice.shape)
+            else:
+                label_array2 = np.zeros(image_slice.shape)
+
+        return label_array2
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
             fill_value=None, image_size_unit=None, keep_centre=False):
@@ -3338,3 +3482,43 @@ def pad_transpose(transpose, ndim):
         for i in range(ndim - nt):
             transpose.append(i + nt)
     return transpose
+
+def create_box_mask_from_mask(image=None, dx=0, dy=0):
+    '''
+    Slice by slice, create box masks enclosing an arbitrarily shaped mask.
+
+    **Parameters:**
+
+    image : Image, default=None
+        Image object representing arbitrarily shaped mask for which
+        slice-by-slice box masks are to be determined.
+
+    dx : int, default=0
+        Margin along columns to be added on each side of mask bounding box.
+
+    dy : int, default=0
+        Margin along rows to be added on each side of mask bounding box.
+    '''
+
+    # Retrieve image data and numbers of voxels.
+    mask_array = in_image.get_data()
+    nx, ny, nz = in_image.get_n_voxels()
+
+    # Initialise output array.
+    out_array = np.zeros((ny, nx, nz)), np.int8
+
+    # Slice by slice, determine bounding box of mask, and fill with ones.
+    for iz in range(nz):
+        jmin, jmax, imin, imax = mahotas.bbox(mask_array[:, :, iz])
+        jmin = min(ny - 1, max(0, jmin - dy))
+        jmax = max(0, min(ny - 1, jmax + dy))
+        imin = min(nx - 1, max(0, imin - dx))
+        imax = max(0, min(nx - 1, imax + dx))
+        out_array[jmin: jmax, imin: imax, iz] = 1
+
+    # Create clone of input image, then assign box mask as its data.
+    out_image = Image(in_image)
+    out_image.data = out_array
+
+    return out_image
+
