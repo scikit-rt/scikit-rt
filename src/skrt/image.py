@@ -10,7 +10,7 @@ import functools
 import logging
 try:
     import mahotas
-except ImportError:
+except ModuleNotFoundError:
     pass
 import math
 import matplotlib as mpl
