@@ -8,7 +8,10 @@ import datetime
 import glob
 import functools
 import logging
-import mahotas
+try:
+    import mahotas
+except ImportError:
+    pass
 import math
 import matplotlib as mpl
 import matplotlib.cm
