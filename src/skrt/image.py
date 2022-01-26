@@ -783,6 +783,7 @@ class Image(skrt.core.Archive):
             the minimum intensity value of the original image is used.
         '''
 
+        image.load()
         self.resize(image.get_n_voxels(), image.get_origin(),
                 image.get_voxel_size(), fill_value)
 
