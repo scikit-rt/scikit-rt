@@ -9,7 +9,7 @@ import glob
 import functools
 import logging
 try:
-    import mahotas
+   import mahotas
 except ModuleNotFoundError:
     pass
 import math
