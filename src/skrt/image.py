@@ -8,10 +8,7 @@ import datetime
 import glob
 import functools
 import logging
-try:
-   import mahotas
-except ModuleNotFoundError:
-    pass
+import mahotas
 import math
 import matplotlib as mpl
 import matplotlib.cm
