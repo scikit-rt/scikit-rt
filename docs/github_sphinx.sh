@@ -21,8 +21,6 @@
 # https://sphinx-themes.org/
 # ------------------------------------------
 
-cd docs
-
 # Upgrade pip
 pip install --upgrade pip
 
@@ -53,6 +51,4 @@ sed -i 's/docs\/images/_static/' 'source/README.md'
 
 # Delete and recreate html-format documentation
 make clean
-#make html
-
-cd ..
+make html
