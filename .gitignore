@@ -9,6 +9,7 @@ build
 *.egg-info/
 *.nii*
 *.dcm
+*.root
 tests/tmp
 examples/*/tests/tmp
 docs/build/*
