@@ -3894,7 +3894,7 @@ class StructureSet(skrt.core.Archive):
             for m in matches:
 
                 # Loop through ROIs and see if there's a match
-                for i, s in enumerate(self.rois):
+                for i, s in enumerate(self.get_rois()):
 
                     # Don't rename an ROI more than once
                     if i in already_renamed:
