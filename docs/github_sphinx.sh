@@ -21,15 +21,15 @@
 # https://sphinx-themes.org/
 # ------------------------------------------
 
-# Upgrade pip
-pip install --upgrade pip
+## Upgrade pip
+#pip install --upgrade pip
 
-# Workaround for having SimpleITK installation with Python 3.10
-pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
+## Workaround for having SimpleITK installation with Python 3.10
+#pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
 
-# Install scikit-rt and voxtox
-pip install -e ..
-pip install -e ../examples/voxtox
+## Install scikit-rt and voxtox
+#pip install -e ..
+#pip install -e ../examples/voxtox
 
 # Delete package rst files, and recreate
 EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
