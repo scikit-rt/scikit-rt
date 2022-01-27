@@ -135,6 +135,16 @@ class Application():
         self.logger = get_logger(name=class_name, log_level=self.log_level)
         self.status = Status(name=class_name)
 
+        if not self.algs:
+            self.status.code = 1
+            self.reason = 'No algorithms to run'
+        else:
+            for alg in self.algs:
+                if not alg.status.ok():
+                    self.status.code = alg.status.code
+                    self.status.reason = f'{alg.name}: {alg.status.reason}'
+
+
     def execute(self, patient=None):
         '''
         For each patient, call each algorithm's execute method.
