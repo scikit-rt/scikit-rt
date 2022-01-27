@@ -625,7 +625,7 @@ class Image(skrt.core.Archive):
 
         return (x_array, y_array, z_array)
 
-    def create_foreground_box_mask(self, dx=0, dy=0, threshold=-200):
+    def get_foreground_box_mask(self, dx=0, dy=0, threshold=-200):
         '''
         Slice by slice, create rectangular mask encolosing foreground mask.
 
@@ -643,12 +643,12 @@ class Image(skrt.core.Archive):
         if not isNifti(image):
             image = convertCTToNifti(image)
 
-        foregroundmask = self.create_foreground_mask(image, threshold)
-        foreground_box_mask = create_box_mask_from_mask(foreground_mask, dx, dy)
+        foregroundmask = self.get_foreground_mask(image, threshold)
+        foreground_box_mask = get_box_mask_from_mask(foreground_mask, dx, dy)
 
         return foreground_box_mask
 
-    def create_foreground_mask(self, threshold=None, convex_hull=False,
+    def get_foreground_mask(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0):
         '''
         Create foreground mask.
@@ -717,20 +717,20 @@ class Image(skrt.core.Archive):
         # Extract slice data.
         image_slice = self.get_data()[:, :, idx]
 
-        # Handle case where slice contains intensity values above threshold,
-        # and not intensities are the same.
-        if ((image_slice.max() > threshold) and
-                (image_slice.max() - image_slice.min() > 0)):
+        # Obtain intensity values relative to the minimum.
+        test_slice = np.uint32(image_slice - image_slice.min())
+        # Make this a 2D array.
+        test_slice = np.squeeze(test_slice)
+        # Calculate Otsu threshold, or rescale threshold value provided.
+        if threshold is None:
+            rescaled_threshold = mahotas.thresholding.otsu(test_slice)
+        else:
+            rescaled_threshold = threshold - image_slice.min()
 
-            # Obtain intensity values relative to the minimum.
-            test_slice = np.uint32(image_slice - image_slice.min())
-            # Make this a 2D array.
-            test_slice = np.squeeze(test_slice)
-            # Calculate Otsu threshold, or rescale threshold value provided.
-            if threshold is None:
-                rescaled_threshold = mahotas.thresholding.otsu(test_slice)
-            else:
-                rescaled_threshold = threshold - image_slice.min()
+        # Handle case where slice contains intensity values above threshold,
+        # and intensities are not the same.
+        if ((test_slice.max() > rescaled_threshold) and
+                (test_slice.max() - test_slice.min() > 0)):
 
             # Label regions of contiguous pixels of above-threshold intensity.
             label_array1, n_object = mahotas.label(
@@ -761,7 +761,7 @@ class Image(skrt.core.Archive):
 
         # Handle the cases where all intensities are the same.
         else:
-            if image_slice.max() > threshold:
+            if test_slice.max() > rescaled_threshold:
                 label_array2 = np.ones(image_slice.shape)
             else:
                 label_array2 = np.zeros(image_slice.shape)
@@ -3483,7 +3483,7 @@ def pad_transpose(transpose, ndim):
             transpose.append(i + nt)
     return transpose
 
-def create_box_mask_from_mask(image=None, dx=0, dy=0):
+def get_box_mask_from_mask(image=None, dx=0, dy=0):
     '''
     Slice by slice, create box masks enclosing an arbitrarily shaped mask.
 

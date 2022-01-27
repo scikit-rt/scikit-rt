@@ -6,6 +6,7 @@ import shutil
 import pytest
 import subprocess
 
+from skrt import Image
 from skrt.simulation import SyntheticImage
 from skrt.registration import Registration
 
@@ -20,9 +21,11 @@ if os.path.exists(reg_dir):
 sim1 = SyntheticImage((10, 12, 8))
 sim1.add_cube(2, centre=(4, 4, 4))
 im1 = sim1.get_image()
+mask1 = im1.get_foreground_mask(threshold=-10)
 sim2 = SyntheticImage((11, 11, 11))
 sim2.add_cube(2, centre=(6, 6, 6))
 im2 = sim2.get_image()
+mask2 = im2.get_foreground_mask(threshold=-10)
 
 # Check for elastix executable
 try:
@@ -49,6 +52,24 @@ def test_setup_with_images():
     assert os.path.exists(reg.moving_path)
     assert np.all(reg.fixed_image.get_standardised_data() == im1.get_standardised_data())
     assert np.all(reg.moving_image.get_standardised_data() == im2.get_standardised_data())
+
+def test_setup_with_masks():
+    """Test creation of a new Registration object with images and masks."""
+
+    reg = Registration(reg_dir, im1, im2, mask1, mask2, overwrite=True)
+    assert os.path.exists(reg.fixed_path)
+    assert os.path.exists(reg.moving_path)
+    assert os.path.exists(reg.fixed_mask_path)
+    assert os.path.exists(reg.moving_mask_path)
+
+    array1 = (Image(reg.fixed_path).get_data() > -10)
+    array2 = (Image(reg.moving_path).get_data() > -10)
+    array3 = (Image(reg.fixed_mask_path).get_data() > 0)
+    array4 = (Image(reg.moving_mask_path).get_data() > 0)
+    assert array1.sum() == array3.sum()
+    assert np.all(array1 == array3)
+    assert array2.sum() == array4.sum()
+    assert np.all(array2 == array4)
 
 def test_init_with_pfiles():
     """Test creation of a new Registration object with images and parameter
@@ -136,12 +157,20 @@ def test_clear_registrations():
 def test_run_registration():
     """Test running of a multi-step registration."""
 
+    # Define masks that keep visible the entire image volumes.
+    im1_mask = Image(im1)
+    im1_mask.data = np.ones(im1.get_data().shape)
+    im2_mask = Image(im2)
+    im2_mask.data = np.ones(im2.get_data().shape)
+
     pfiles = ["pfiles/MI_Translation.txt", "pfiles/MI_Affine.txt"]
     reg = Registration(
         reg_dir, 
         overwrite=True, 
         fixed=im1, 
         moving=im2,
+        fixed_mask=im1_mask,
+        moving_mask=im2_mask,
         pfiles=pfiles
     )
     assert len(reg.tfiles) == 0

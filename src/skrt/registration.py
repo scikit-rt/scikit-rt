@@ -18,8 +18,9 @@ _transformix = "transformix"
 class Registration(Data):
 
     def __init__(
-        self, path, fixed=None, moving=None, pfiles=None, auto=False,
-        overwrite=False, tfiles={}, capture_output=False, log_level=None):
+        self, path, fixed=None, moving=None, fixed_mask=None,
+        moving_mask=None, pfiles=None, auto=False, overwrite=False,
+        tfiles={}, capture_output=False, log_level=None):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -43,6 +44,19 @@ class Registration(Data):
             an Image object can be initialised. Must be set if the directory
             at <path> does not already contain a moving image file called
             "moving.nii.gz".
+
+        fixed_mask : Image/str, default=None
+            Image object representing a mask to be applied to the fixed image,
+            or a source from which an Image object can be initialised. If
+            None and an image file 'fixed_mask.nii.gz' exists at <path>
+            then this will be used.  Setting a mask is optional.
+
+        moving_mask : Image/str, default=None
+            Image object representing a mask to be applied to the moving image,
+            or a source from which an Image object can be initialised. If
+            None and an image file 'moving_mask.nii.gz' exists at <path>
+            then this will be used.  Setting a mask is optional.
+
 
         pfiles : str/list/dict, default=None
             Path(s) to elastix parameter file(s) to be used in each step of the
@@ -96,15 +110,21 @@ class Registration(Data):
             shutil.rmtree(path)
             os.mkdir(path)
 
-        # Set up fixed and moving images
+        # Set up fixed and moving images and optional masks
         self.fixed_path = os.path.join(self.path, "fixed.nii.gz")
         self.moving_path = os.path.join(self.path, "moving.nii.gz")
+        self.fixed_mask_path = os.path.join(self.path, "fixed_mask.nii.gz")
+        self.moving_mask_path = os.path.join(self.path, "moving_mask.nii.gz")
         self.fixed_source = fixed
         self.moving_source = moving
         if fixed is not None:
             self.set_fixed_image(fixed)
+            if fixed_mask is not None:
+                self.set_fixed_mask(fixed_mask)
         if moving is not None:
             self.set_moving_image(moving)
+            if moving_mask is not None:
+                self.set_moving_mask(moving_mask)
         if fixed is None and moving is None:
             self.load_existing_input_images()
 
@@ -143,17 +163,18 @@ class Registration(Data):
             an Image object.
 
         category : str
-            Category of image ("fixed" or "moving").
+            Category of image: "fixed", "moving", "fixed_mask", "moving_mask".
 
         force : bool, default=True
             If True, the image file within self.path will be overwritten by
             this image even if it already exists.
         """
 
-        if category not in ["fixed", "moving"]:
+        categories = ["fixed", "moving", "fixed_mask", "moving_mask"]
+        if category not in categories:
             raise RuntimeError(
                 f"Unrecognised image category {category}; "
-                "should be either fixed or moving"
+                f"should be one of{categories}"
             )
 
         if not isinstance(im, skrt.image.Image):
@@ -161,15 +182,26 @@ class Registration(Data):
         path = getattr(self, f"{category}_path")
         if not os.path.exists(path) or force:
             skrt.image.Image.write(im, path)
-        setattr(self, f"{category}_image", skrt.image.Image(path))
+        if 'mask' in category:
+            setattr(self, f"{category}", skrt.image.Image(path))
+        else:
+            setattr(self, f"{category}_image", skrt.image.Image(path))
 
     def set_fixed_image(self, im):
         """Assign a fixed image."""
         self.set_image(im, "fixed")
 
+    def set_fixed_mask(self, im):
+        """Assign a fixed-image mask."""
+        self.set_image(im, "fixed_mask")
+
     def set_moving_image(self, im):
         """Assign a moving image."""
         self.set_image(im, "moving")
+
+    def set_moving_mask(self, im):
+        """Assign a moving-image mask."""
+        self.set_image(im, "moving_mask")
 
     def load_existing_input_images(self):
         """Attempt to load images from fixed.nii.gz and moving.nii.gz from
@@ -438,9 +470,15 @@ class Registration(Data):
             _ELASTIX,
             '-f', self.fixed_path.replace("\\", "/"),
             '-m', self.moving_path.replace("\\", "/"),
+            ]
+        if os.path.exists(self.fixed_mask_path):
+            cmd.extend(['-fMask', self.fixed_mask_path.replace("\\", "/"),])
+        if os.path.exists(self.moving_mask_path):
+            cmd.extend(['-mMask', self.moving_mask_path.replace("\\", "/"),])
+        cmd.extend([
             "-p", self.pfiles[step].replace("\\", "/"),
             '-out', self.outdirs[step].replace("\\", "/")
-            ]
+            ])
         if tfile is not None:
             cmd.extend(['-t0', tfile.replace("\\", "/")])
 

@@ -701,7 +701,7 @@ def test_create_foreground_mask():
     # Should detect sphere in first loop and cube in second
     for intensity in [50, 60]:
         threshold = intensity - 5
-        mask1 = sim.create_foreground_mask(threshold=threshold).get_data()
+        mask1 = sim.get_foreground_mask(threshold=threshold).get_data()
         mask1 = mask1.astype(np.uint32)
         mask1[mask1 > 0] =1
 
