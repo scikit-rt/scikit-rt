@@ -12,11 +12,11 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src'))
-sys.path.insert(0, os.path.abspath('../src/skrt'))
-sys.path.insert(0, os.path.abspath('../src/skrt/better_viewer'))
-sys.path.insert(0, os.path.abspath('../src/skrt/viewer'))
-sys.path.insert(0, os.path.abspath('../examples/voxtox/src'))
+sys.path.insert(0, os.path.abspath('../../src'))
+sys.path.insert(0, os.path.abspath('../../src/skrt'))
+sys.path.insert(0, os.path.abspath('../../src/skrt/better_viewer'))
+sys.path.insert(0, os.path.abspath('../../src/skrt/viewer'))
+sys.path.insert(0, os.path.abspath('../../examples/voxtox/src'))
 
 print(f'cwd: {os.getcwd()}')
 print(f'sys.path: {sys.path}')
@@ -31,7 +31,7 @@ copyright = '2021'
 #author = ''
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.3'
+release = '0.2.3'
 
 
 # -- General configuration ---------------------------------------------------
