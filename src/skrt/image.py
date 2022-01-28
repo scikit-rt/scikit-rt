@@ -2455,10 +2455,12 @@ class Image(skrt.core.Archive):
     def has_same_geometry(self, im):
         """Check whether this Image has the same geometric properties
         another Image <im> (i.e. same origin, voxel sizes, and shape)."""
-
+        small_value = 0.005
+        
         same = self.get_data().shape == im.get_data().shape
-        same *= all([self.origin[i] == im.origin[i] for i in range(2)])
+        same *= all([abs(self.origin[i] - im.origin[i]) < small_value for i in range(2)])
         same *= all([self.voxel_size[i] == im.voxel_size[i] for i in range(2)])
+    
         return same
 
     def crop(self, xlim=None, ylim=None, zlim=None):
