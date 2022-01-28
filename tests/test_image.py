@@ -716,3 +716,24 @@ def test_create_foreground_mask():
         assert mask1.max() == mask2.max()
         assert mask1.sum() == mask2.sum()
     assert np.all(mask1 == mask2)
+
+def test_same_geometry():
+    # Test identification of geometry differences
+    shape1 = (50, 50, 10)
+    voxel_size1 = (1, 1, 3)
+    origin1 = (-62., -62., -10.)
+
+    # Compare image with itself
+    im1 = create_test_image(shape1, voxel_size1, origin1)
+    assert im1.has_same_geometry(im1)
+
+    # Accept differences within tolerance
+    max_diff = 0.001
+    origin2 = (-62.0008, -61.9999, -10.0003)
+    im2 = create_test_image(shape1, voxel_size1, origin2)
+    assert im1.has_same_geometry(im2, max_diff)
+
+    # Reject differences outside tolerance
+    origin3 = (-62., -62., -12.002)
+    im3 = create_test_image(shape1, voxel_size1, origin3)
+    assert not im1.has_same_geometry(im3, max_diff)
