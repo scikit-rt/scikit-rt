@@ -4,6 +4,6 @@ dependencies:
   - jupyter
   - jupyterlab
   - pip
-  - python
+  - python=3.8
   - pip:
     - -e .
