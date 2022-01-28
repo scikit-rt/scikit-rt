@@ -27,8 +27,6 @@ jobs:
 
       - name: Build documentation
         run: |
-          export PYTHONPATH="$(pwd)/scikit-rt/src:$(pwd)/scikit-rt/examples/voxtox/src"
-          echo ${PYTHONPATH}
           cd docs
           ./github_sphinx.sh
           cd ..
