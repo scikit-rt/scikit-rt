@@ -20,10 +20,22 @@ jobs:
           pip install -e .
           pip install -e ./examples/voxtox
 
+      - name: Run tests.
+        run: |
+          cd tests
+          pytest -vv
+          cd ..
+
       - name: Install Sphinx
         run: |
           sudo apt-get update
           sudo apt-get install python3-sphinx
+
+      - name: Run tests two.
+        run: |
+          cd tests
+          pytest -vv
+          cd ..
 
       - name: Build documentation
         run: |
