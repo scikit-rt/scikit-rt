@@ -581,6 +581,14 @@ class ROI(skrt.core.Archive):
         self.load()
         return self.origin
 
+    def get_name(self, original=False):
+        """
+        Load self and get name. If <original> is True, get the original name.
+        """
+
+        self.load()
+        return (self.original_name if original else self.name)
+
     def get_mask(self, view="x-y", flatten=False, standardise=False, 
                  force_standardise=False):
         """Get binary mask, optionally flattened in a given orientation."""
@@ -4115,10 +4123,7 @@ class StructureSet(skrt.core.Archive):
         get the original names of the ROIs.
         """
 
-        if not original:
-            return [s.name for s in self.get_rois()]
-        else:
-            return [s.original_name for s in self.get_rois()]
+        return [s.get_name(original) for s in self.get_rois()]
 
     def get_roi_dict(self):
         """Get dict of ROI names and objects."""
@@ -4138,6 +4143,14 @@ class StructureSet(skrt.core.Archive):
 
         self.load()
         print("\n".join(self.get_roi_names()))
+
+    def get_name(self):
+        '''
+        Load self and get name.
+        '''
+
+        self.load()
+        return (self.name)
 
     def get_geometry(
         self, 

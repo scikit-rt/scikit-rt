@@ -83,16 +83,16 @@ def test_rename():
         "sphere2": "spher*"
     }
     structure_set.rename_rois(new_names)
-    assert structure_set.get_rois()[0].name != structure_set.get_rois()[0].original_name
+    assert structure_set.get_rois()[0].get_name() != structure_set.get_rois()[0].get_name(original=True)
     assert set(structure_set.get_roi_names()) == set(new_names.keys())
 
     # Check that original names are kept
     n_match = 0
     for roi in structure_set:
-        if roi.name in new_names:
+        if roi.get_name() in new_names:
             match = False
-            for old_name in new_names[roi.name]:
-                if fnmatch.fnmatch(roi.original_name.lower(), old_name.lower()):
+            for old_name in new_names[roi.get_name()]:
+                if fnmatch.fnmatch(roi.get_name(original=True).lower(), old_name.lower()):
                     match = True
                     n_match += 1
                     break
