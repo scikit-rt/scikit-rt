@@ -5338,7 +5338,7 @@ def df_to_html(df):
                     padding: 2px 10px;
                 }
                 th {
-                    background-color: rgb(225, 225, 225);
+                    background-color: transparent;
                     text-align: center;
                 }
             </style>
