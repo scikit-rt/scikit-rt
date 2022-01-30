@@ -743,16 +743,7 @@ class BetterViewer:
         viewer_type = SingleViewer if not orthog_view else OrthogViewer
         kwargs = {key.replace('colour', 'color'): val for key, val in kwargs.items()}
 
-        init_view = kwargs.get('init_view', None)
         for i in range(self.n):
-            # If initial view not specified by user,
-            # set based on image orientation.
-            if not init_view:
-                view = self.images[i].get_orientation_view()
-                if view:
-                    kwargs['init_view'] = self.images[i].get_orientation_view()
-                else:
-                    kwargs['init_view'] = 'x-y'
               
             viewer = viewer_type(
                 self.images[i],
@@ -1467,7 +1458,7 @@ class SingleViewer:
     def __init__(
         self,
         im=None,
-        init_view="x-y",
+        init_view=None,
         init_slice=None,
         init_idx=None,
         init_pos=None,
@@ -1556,6 +1547,12 @@ class SingleViewer:
                        rois_to_remove=rois_to_remove)
 
         # Set initial orientation
+        if not init_view:
+            view = self.image.get_orientation_view()
+            if view:
+                init_view = view
+            else:
+                init_view = 'x-y'
         view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
         if init_view in view_map:
             self.view = view_map[init_view]
