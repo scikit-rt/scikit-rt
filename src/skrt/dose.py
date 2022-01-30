@@ -38,7 +38,7 @@ class ImageOverlay(skrt.image.Image):
 
     def plot(
         self, 
-        view="x-y",
+        view=None,
         ax=None,
         gs=None,
         figsize=None,
@@ -56,7 +56,8 @@ class ImageOverlay(skrt.image.Image):
 
         view : str
             Orientation in which to compute the index. Can be "x-y", "y-z", or
-            "x-z".
+            "x-z".  If None, the initial view is chosen to match
+            the image orienation.
 
         ax : matplotlib.pyplot.Axes, default=None
             Axes on which to plot. If None, new axes will be created.
@@ -91,6 +92,8 @@ class ImageOverlay(skrt.image.Image):
         """
 
         # Set up axes
+        if not view:
+            view = self.get_orientation_view()
         self.set_ax(view, ax, gs, figsize, zoom, colorbar)
         self.load()
 

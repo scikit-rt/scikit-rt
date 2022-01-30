@@ -340,8 +340,10 @@ class BetterViewer:
             first unbroken string of numbers that can be successfully parsed
             with dateutil.parser.
 
-        init_view : string, default='x-y'
-            Orientation at which to initially display the image(s).
+        init_view : string, default=None
+            Orientation ('x-y', 'y-z', 'x-z' at which to initially display
+            the image(s).  If None, the initial view is chosen to match
+            the image orienation.
 
         init_slice : integer, default=None
             Slice number in the initial orientation direction at which to
@@ -740,7 +742,18 @@ class BetterViewer:
         self.viewers = []
         viewer_type = SingleViewer if not orthog_view else OrthogViewer
         kwargs = {key.replace('colour', 'color'): val for key, val in kwargs.items()}
+
+        init_view = kwargs.get('init_view', None)
         for i in range(self.n):
+            # If initial view not specified by user,
+            # set based on image orientation.
+            if not init_view:
+                view = self.images[i].get_orientation_view()
+                if view:
+                    kwargs['init_view'] = self.images[i].get_orientation_view()
+                else:
+                    kwargs['init_view'] = 'x-y'
+              
             viewer = viewer_type(
                 self.images[i],
                 title=self.title[i],

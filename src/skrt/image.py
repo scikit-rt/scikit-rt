@@ -1058,6 +1058,8 @@ class Image(skrt.core.Archive):
             None, self.source_type will be used.
         """
 
+        self.load()
+
         if source_type is None:
             source_type = self.source_type
         if affine is None:
@@ -1075,6 +1077,22 @@ class Image(skrt.core.Archive):
             "I": [0, 0, -1],
         }
         return vecs[codes[0]] + vecs[codes[1]]
+
+    def get_orientation_view(self):
+        '''
+        Determine view corresponding to the image's orientation.
+        '''
+        self.load()
+        orient = self.get_orientation_vector()
+        axis1 = ''.join([ax * v for ax, v in zip(_axes, orient[:3])])
+        axis2 = ''.join([ax * v for ax, v in zip(_axes, orient[3:])])
+        view = f'{axis1}-{axis2}'
+        if view not in _plot_axes:
+            view = f'{axis2}-{axis1}'
+        if view not in _plot_axes:
+            view = None
+
+        return view
 
     def get_axes(self, col_first=False):
         """Return list of axis numbers in order [column, row, slice] if
@@ -1445,7 +1463,7 @@ class Image(skrt.core.Archive):
 
     def plot(
         self,
-        view="x-y",
+        view=None,
         sl=None,
         idx=None,
         pos=None,
@@ -1491,9 +1509,10 @@ class Image(skrt.core.Archive):
 
         **Parameters:**
         
-        view : str, default='x-y'
+        view : str, default=None
             Orientation in which to plot the image. Can be any of 'x-y',
-            'y-z', and 'x-z'.
+            'y-z', and 'x-z'.  If None, the initial view is chosen to match
+            the image orienation.
 
         sl : int, default=None
             Slice number to plot. Takes precedence over <idx> and <pos> if not
@@ -1642,6 +1661,9 @@ class Image(skrt.core.Archive):
         """
 
         self.load()
+
+        if not view:
+            view = self.get_orientation_view()
 
         # Set up axes
         self.set_ax(view, ax, gs, figsize, zoom, colorbar)
@@ -2545,7 +2567,7 @@ class ImageComparison(Image):
 
     def plot(
         self,
-        view="x-y",
+        view=None,
         sl=None,
         idx=None,
         pos=None,
@@ -2575,6 +2597,10 @@ class ImageComparison(Image):
         # Use default plot_type attribute if no type given
         if plot_type is None:
             plot_type = self.plot_type
+
+        # If view not specified, set based on image orientation
+        if view is None:
+            view = self.get_orientation_view()
 
         # By default, use comparison type as title
         if self.override_title is None:
