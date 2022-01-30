@@ -422,8 +422,8 @@ class Image(skrt.core.Archive):
             self._default_vmin = window_centre - window_width / 2
             self._default_vmax = window_centre + window_width / 2
         else:
-            self._default_vmin = -300
-            self._default_vmax = 200
+            self._default_vmin = self.data.min()
+            self._default_vmax = self.data.max()
 
         # Set title from filename
         if self.title is None:
@@ -3019,6 +3019,14 @@ def load_dicom(path, debug=False):
     # Rescale the data
     data = rescale_dicom_data(ds, data)
 
+    # Take into account photometric interpretation.
+    if ds.PhotometricInterpretation == 'MONOCHROME1':
+        vmin = data.min()
+        vmax = data.max()
+        data = -data + vmin + vmax
+        if window_centre:
+            window_centre = -window_centre + vmin + vmax
+
     return data, affine, window_centre, window_width, ds, z_paths
 
 
@@ -3069,6 +3077,9 @@ def load_dicom_many_files(paths):
             ds = pydicom.dcmread(path, force=True)
         except pydicom.errors.InvalidDicomError:
             continue
+
+        # Try to ensure that dataset has attribute ImageOrientationPatient
+        set_image_orientation_patient(ds)
 
         # Get orientation info from first file
         if orientation is None:
@@ -3137,6 +3148,9 @@ def load_dicom_single_file(path):
         data = data.transpose((1, 2, 0))[:, :, ::-1]
     else:
         raise RuntimeError(f"Unrecognised number of image dimensions: {data.ndim}")
+
+    # Try to ensure that dataset has attribute ImageOrientationPatient
+    set_image_orientation_patient(ds)
 
     affine = get_dicom_affine(ds)
     return data, affine, ds
@@ -3240,7 +3254,7 @@ def get_dicom_affine(ds, image_positions=None):
     else:
         slice_elements = [0] * 3
         slice_elements[axes[2]] = voxel_size[2]
-        origin = ds.ImagePositionPatient
+        origin = getattr(ds, "ImagePositionPatient", [0, 0, 0])
         n_slices = getattr(ds, "NumberOfFrames", 1)
         origin[2] -= (n_slices - 1) * voxel_size[2]
 
@@ -3525,3 +3539,32 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
 
     return out_image
 
+def set_image_orientation_patient(ds):
+    '''
+    Try to ensure that image orientation patient is set for DICOM dataset.
+
+    If the dataset doesn't have the attribute ImageOrientationPatient,
+    the effective value is determined from PatientOrientation, if present.
+
+    **Parameter:**
+
+    ds : pydicom.FileDataset
+        DICOM dataset.
+    '''
+
+    direction_cosines = {
+            'P' : [0, -1, 0],
+            'A' : [0, 1, 0],
+            'L' : [-1, 0, 0],
+            'R' : [1, 0, 0],
+            'FR' : [1, 0, 0],
+            'H' : [0, 0, 1],
+            'F' : [0, 0, -1],
+            }
+    
+    if not hasattr(ds, 'ImageOrientationPatient'):
+        patient_orientation =  getattr(ds, 'PatientOrientation', None)
+        if patient_orientation:
+            ds.ImageOrientationPatient = (
+                    direction_cosines[patient_orientation[1]] +
+                    direction_cosines[patient_orientation[0]])

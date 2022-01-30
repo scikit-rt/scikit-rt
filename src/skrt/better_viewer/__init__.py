@@ -2,6 +2,7 @@
 
 import ipywidgets as ipyw
 import itertools
+import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1216,6 +1217,7 @@ class BetterViewer:
             v.image.get_plot_aspect_ratio(self.view, self.zoom, self.colorbar)
             for v in self.viewers
         ]
+
         width_ratios.extend(
             [
                 c.get_plot_aspect_ratio(self.view, self.zoom, 

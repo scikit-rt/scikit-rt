@@ -517,16 +517,22 @@ class Dated(PathData):
 
     def __lt__(self, other):
         if self.date == other.date:
+            if self.time == other.time:
+                return self.path < other.path
             return self.time < other.time
         return self.date < other.date
 
     def __gt__(self, other):
         if self.date == other.date:
+            if self.time == other.time:
+                return self.path > other.path
             return self.time > other.time
         return self.date > other.date
 
     def __le__(self, other):
         if self.date == other.date:
+            if self.time == other.time:
+                return self.path < other.path
             return self.time < other.time
         return self.date < other.date
 
