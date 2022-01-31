@@ -536,6 +536,18 @@ class Image(skrt.core.Archive):
         self._svoxel_size = list(np.diag(self._saffine))[:-1]
         self._sorigin = list(self._saffine[:-1, -1])
 
+    def print_geometry(self, float_format='.4f'):
+        self.load()
+        print(f'Shape: {self.get_data().shape}')
+        voxel_size = tuple([f'{dxyz:{float_format}}'
+                for dxyz in self.get_voxel_size()])
+        print(f'Voxel size: {voxel_size}')
+        origin = tuple([f'{xyz:{float_format}}' for xyz in self.get_origin()])
+        print(f'Origin: {origin}')
+        image_extent = tuple([f'({v1:{float_format}}, {v2:{float_format}})'
+            for v1, v2 in list(self.image_extent)])
+        print(f'Extent: {image_extent}')
+
     def resample(self, voxel_size=(1, 1, 1), order=1):
         '''
         Resample image to have particular voxel sizes.
