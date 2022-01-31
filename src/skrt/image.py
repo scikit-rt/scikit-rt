@@ -2482,7 +2482,8 @@ class Image(skrt.core.Archive):
         same = self.get_data().shape == im.get_data().shape
         same *= all([abs(self.origin[i] - im.origin[i]) < max_diff
             for i in range(3)])
-        same *= all([self.voxel_size[i] == im.voxel_size[i] for i in range(3)])
+        same *= all([abs(self.voxel_size[i] - im.voxel_size[i]) < max_diff
+            for i in range(3)])
     
         return same
 
