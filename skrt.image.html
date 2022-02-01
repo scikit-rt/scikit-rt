@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>skrt.image module &mdash; Scikit-rt 0.1.3 documentation</title>
+  <title>skrt.image module &mdash; Scikit-rt 0.2.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -180,6 +180,27 @@ affect the image associated with the Plan object.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.add_sinogram_noise">
+<span class="sig-name descname"><span class="pre">add_sinogram_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">185000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_sinogram_noise" title="Permalink to this definition"></a></dt>
+<dd><p>Add Poisson fluctuations at level of sinogram.</p>
+<p>For a kV CT scan mapped to the radiodensity scale of an MV CT scan
+(self.map_hu(‘kv_to_mv’), this function adds intensity fluctuations
+to reproduce better the fluctuations in an MV CT scan.</p>
+<p>The procedure for adding fluctuations was originally devised and
+implemented by M.Z. Wilson.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>phi0<span class="classifier">int/float, default=60000</span></dt><dd><p>Notional photon flux used in image creation.</p>
+</dd>
+<dt>eta<span class="classifier">int/float, default=185000</span></dt><dd><p>Notional constant of proportionality linking radiodensity
+and line integrals measuring attenuation along photon paths.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, default=False</span></dt><dd><p>Print information on progress in noise addition</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.add_structure_set">
 <span class="sig-name descname"><span class="pre">add_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_structure_set" title="Permalink to this definition"></a></dt>
 <dd><p>Add a structure set to be associated with this image. This does
@@ -187,6 +208,19 @@ not affect the image associated with the structure set.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>structure_set<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>A StructureSet object to assign to this image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.assign_intensity_to_rois">
+<span class="sig-name descname"><span class="pre">assign_intensity_to_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.assign_intensity_to_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Assign intensity value to image regions corresponding to ROIs.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>rois<span class="classifier">list of skrt.structures.ROI objects, default=None</span></dt><dd><p>ROIs for which voxels are to be assigned an intensity value.</p>
+</dd>
+<dt>intensity<span class="classifier">int/float, default=0</span></dt><dd><p>Intensity value to be assigned to ROI voxels.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -350,6 +384,41 @@ None.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_foreground_box_mask">
+<span class="sig-name descname"><span class="pre">get_foreground_box_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_box_mask" title="Permalink to this definition"></a></dt>
+<dd><p>Slice by slice, create rectangular mask encolosing foreground mask.</p>
+<dl class="simple">
+<dt>dx<span class="classifier">int, default=0</span></dt><dd><p>Margin along columns to be added on each side of mask bounding box.</p>
+</dd>
+<dt>dy<span class="classifier">int, default=0</span></dt><dd><p>Margin along rows to be added on each side of mask bounding box.</p>
+</dd>
+<dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
+regions for determination of foreground.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_foreground_mask">
+<span class="sig-name descname"><span class="pre">get_foreground_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_mask" title="Permalink to this definition"></a></dt>
+<dd><p>Create foreground mask.</p>
+<p>Slice by slice, the foreground is taken to correspond to the
+largest region of contiguous pixels above a threshold value.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
+regions for determination of foreground.</p>
+</dd>
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If False, create mask from the convex hulls of the
+slice foreground masks initially obtained.</p>
+</dd>
+<dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If False, fill holes in the slice foreground masks initially
+obtained.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_idx">
 <span class="sig-name descname"><span class="pre">get_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_idx" title="Permalink to this definition"></a></dt>
 <dd><p>Get an array index from either a slice number, index, or
@@ -496,6 +565,12 @@ None, self.source_type will be used.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_orientation_view">
+<span class="sig-name descname"><span class="pre">get_orientation_view</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_orientation_view" title="Permalink to this definition"></a></dt>
+<dd><p>Determine view corresponding to the image’s orientation.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_origin">
 <span class="sig-name descname"><span class="pre">get_origin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_origin" title="Permalink to this definition"></a></dt>
 <dd><p>Return origin position in mm in order [x, y, z].</p>
@@ -530,6 +605,23 @@ in order (x, y, z).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_sinogram">
+<span class="sig-name descname"><span class="pre">get_sinogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_sinogram" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve image where each slice corresponds to a sinogram.</p>
+<p>A slice sinogram is obtain through application of a Radon
+transform to the original image slice.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>The first time that sinogram image is created, it is
+stored as self.sinogram.  It is recreated only if force
+is set to True.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, default=False</span></dt><dd><p>Print information on progress in sinogram creation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_slice">
 <span class="sig-name descname"><span class="pre">get_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_slice" title="Permalink to this definition"></a></dt>
 <dd><p>Get a slice of the data in the correct orientation for plotting. 
@@ -551,6 +643,28 @@ orientation specified in &lt;view&gt;; &lt;sl&gt;/&lt;idx&gt;/&lt;pos&gt; will b
 </dd>
 <dt>shift<span class="classifier">list, default=[None, None, None]</span></dt><dd><p>Translational shift in order [dx, dy, dz] to apply before returning
 slice.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_slice_foreground">
+<span class="sig-name descname"><span class="pre">get_slice_foreground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_slice_foreground" title="Permalink to this definition"></a></dt>
+<dd><p>Create foreground mask for image slice.</p>
+<p>The foreground is taken to correspond to the largest region
+of contiguous pixels above a threshold value.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>idx<span class="classifier">int, default=0</span></dt><dd><p>Index of slice for which foreground mask is to be obtained.</p>
+</dd>
+<dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels are assigned to regions
+for determination of foreground.</p>
+</dd>
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If False, return the convex hull of the foreground mask
+initially obtained.</p>
+</dd>
+<dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If False, fill holes in the foreground mask initially
+obtained.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -603,9 +717,10 @@ even if it has previously been computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.has_same_geometry">
-<span class="sig-name descname"><span class="pre">has_same_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.has_same_geometry" title="Permalink to this definition"></a></dt>
-<dd><p>Check whether this Image has the same geometric properties
-another Image &lt;im&gt; (i.e. same origin, voxel sizes, and shape).</p>
+<span class="sig-name descname"><span class="pre">has_same_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.has_same_geometry" title="Permalink to this definition"></a></dt>
+<dd><p>Check whether this Image has the same geometric properties,
+another Image &lt;im&gt; (i.e. same origin, voxel sizes, and shape),
+with tolerance &lt;max_diff&gt; on agreement of origins.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -700,6 +815,18 @@ a title from the basename of this path.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.map_hu">
+<span class="sig-name descname"><span class="pre">map_hu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kv_to_mv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.map_hu" title="Permalink to this definition"></a></dt>
+<dd><p>Map radiodensities in Hounsfield units according to mapping function.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>mapping - str, default=’kv_to_mv’</dt><dd><p>Identifier of mapping function to be used.  Currently only
+the VoxTox mapping from kV CT scan to MV CT scan is implemented.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.match_size">
 <span class="sig-name descname"><span class="pre">match_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.match_size" title="Permalink to this definition"></a></dt>
 <dd><p>Match image size to that of a reference image.</p>
@@ -753,12 +880,13 @@ that of the image with smaller z voxels.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotate_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">major_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minor_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks_all_sides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_axis_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'contour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_from_consensus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_on_roi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.plot" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotate_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">major_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minor_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks_all_sides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_axis_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'contour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_from_consensus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_on_roi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Plot a 2D slice of the image.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
-<dt>view<span class="classifier">str, default=’x-y’</span></dt><dd><p>Orientation in which to plot the image. Can be any of ‘x-y’,
-‘y-z’, and ‘x-z’.</p>
+<dt>view<span class="classifier">str, default=None</span></dt><dd><p>Orientation in which to plot the image. Can be any of ‘x-y’,
+‘y-z’, and ‘x-z’.  If None, the initial view is chosen to match
+the image orienation.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number to plot. Takes precedence over &lt;idx&gt; and &lt;pos&gt; if not
 None. If all of &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are None, the central
@@ -889,6 +1017,40 @@ plotting method.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.print_geometry">
+<span class="sig-name descname"><span class="pre">print_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">float_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.4f'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.print_geometry" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.remove_bolus">
+<span class="sig-name descname"><span class="pre">remove_bolus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bolus_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.remove_bolus" title="Permalink to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Attempt to remove bolus from image.</p>
+<p>In treatment planning, ROIs labelled as bolus may be defined on
+the skin, and are assigned a radiodensity of water (zero) to help guide
+the treatment optimiser.  The original image is approximately
+recovered by overwriting with the radiodensity of air.</p>
+<p><strong>Parameters:</strong>
+structure_set : skrt.structures.StructureSet</p>
+<blockquote>
+<div><p>Structure set to search for ROIs labelled as bolus.  If None,
+the image’s earliest associated structure set is used.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>bolus_names<span class="classifier">list, default=None</span></dt><dd><p>List of names, optionally including wildcards, with which
+bolus may be labelled.  If None, use
+skrt.image._default_bolus_names.</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>intensity<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value to be assigned to voxels of ROI labelled as bolus.
+If None, use image’s minimum value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.resample">
 <span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.resample" title="Permalink to this definition"></a></dt>
 <dd><p>Resample image to have particular voxel sizes.</p>
@@ -934,6 +1096,31 @@ use ‘voxel’.</p>
 </dd>
 <dt>keep_centre: bool, default=False</dt><dd><p>If True, make the centre of the initial image the centre of
 the resized image, disregarding the value passed to origin.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.select_foreground">
+<span class="sig-name descname"><span class="pre">select_foreground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.select_foreground" title="Permalink to this definition"></a></dt>
+<dd><p>Modify image to show intensity information only for foreground.</p>
+<p>Slice by slice, the foreground is taken to correspond to the
+largest region of contiguous pixels above a threshold value.
+Voxels outside the foreground region are all assigned the
+same same (background) intensity value.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
+regions for determination of foreground.</p>
+</dd>
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If False, create mask from the convex hulls of the
+slice foreground masks initially obtained.</p>
+</dd>
+<dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If False, fill holes in the slice foreground masks initially
+obtained.</p>
+</dd>
+<dt>background<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value to be assigned to background voxels.  If
+None, the image’s minimum value is used.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1191,12 +1378,13 @@ timestamp generated from current date and time.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.ImageComparison.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cb_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diff_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cached_slices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.ImageComparison.plot" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cb_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlay_legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dta_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diff_crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cached_slices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.ImageComparison.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Plot a 2D slice of the image.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
-<dt>view<span class="classifier">str, default=’x-y’</span></dt><dd><p>Orientation in which to plot the image. Can be any of ‘x-y’,
-‘y-z’, and ‘x-z’.</p>
+<dt>view<span class="classifier">str, default=None</span></dt><dd><p>Orientation in which to plot the image. Can be any of ‘x-y’,
+‘y-z’, and ‘x-z’.  If None, the initial view is chosen to match
+the image orienation.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number to plot. Takes precedence over &lt;idx&gt; and &lt;pos&gt; if not
 None. If all of &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are None, the central
@@ -1340,6 +1528,22 @@ plotting method.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_box_mask_from_mask">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_box_mask_from_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_box_mask_from_mask" title="Permalink to this definition"></a></dt>
+<dd><p>Slice by slice, create box masks enclosing an arbitrarily shaped mask.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>image<span class="classifier">Image, default=None</span></dt><dd><p>Image object representing arbitrarily shaped mask for which
+slice-by-slice box masks are to be determined.</p>
+</dd>
+<dt>dx<span class="classifier">int, default=0</span></dt><dd><p>Margin along columns to be added on each side of mask bounding box.</p>
+</dd>
+<dt>dy<span class="classifier">int, default=0</span></dt><dd><p>Margin along rows to be added on each side of mask bounding box.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.get_dicom_affine">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_dicom_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_dicom_affine" title="Permalink to this definition"></a></dt>
 <dd><p>Assemble affine matrix from a dicom file. Optionally infer slice 
@@ -1451,6 +1655,19 @@ ds : pydicom.FileDataset</p>
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_nifti</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_geometry" title="Permalink to this definition"></a></dt>
 <dd><p>Get an affine matrix, voxel size list, and origin list from 
 a combination of these inputs.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.kv_to_mv">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">kv_to_mv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.kv_to_mv" title="Permalink to this definition"></a></dt>
+<dd><p>Map radiodensity in Hounsfield units from kV CT scan to MV CT scan.</p>
+<p>Function originally written by M.Z. Wilson.  Parameterisation
+derived from kV and MV CT scans collected in VoxTox study.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>hu - int</dt><dd><p>Radiodensity (Hounsfield units) for kV CT scan.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1569,6 +1786,19 @@ from which that slice of the image was read.</p>
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">set_ax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect_getter=&lt;function</span> <span class="pre">default_aspect&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.set_ax" title="Permalink to this definition"></a></dt>
 <dd><p>Set up axes for plotting an object, either from a given exes or
 gridspec, or by creating new axes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.set_image_orientation_patient">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">set_image_orientation_patient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.set_image_orientation_patient" title="Permalink to this definition"></a></dt>
+<dd><p>Try to ensure that image orientation patient is set for DICOM dataset.</p>
+<p>If the dataset doesn’t have the attribute ImageOrientationPatient,
+the effective value is determined from PatientOrientation, if present.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>DICOM dataset.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

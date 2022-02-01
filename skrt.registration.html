@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>skrt.registration module &mdash; Scikit-rt 0.1.3 documentation</title>
+  <title>skrt.registration module &mdash; Scikit-rt 0.2.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -211,11 +211,11 @@ self will be passed to the “dose” parameter.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.registration.Registration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Data</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Load data for an image registration and run the registration if
 auto_seg=True.</p>
 <p><strong>Parameters:</strong></p>
@@ -235,6 +235,16 @@ at &lt;path&gt; does not already contain a fixed image file called
 an Image object can be initialised. Must be set if the directory
 at &lt;path&gt; does not already contain a moving image file called
 “moving.nii.gz”.</p>
+</dd>
+<dt>fixed_mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be applied to the fixed image,
+or a source from which an Image object can be initialised. If
+None and an image file ‘fixed_mask.nii.gz’ exists at &lt;path&gt;
+then this will be used.  Setting a mask is optional.</p>
+</dd>
+<dt>moving_mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be applied to the moving image,
+or a source from which an Image object can be initialised. If
+None and an image file ‘moving_mask.nii.gz’ exists at &lt;path&gt;
+then this will be used.  Setting a mask is optional.</p>
 </dd>
 <dt>pfiles<span class="classifier">str/list/dict, default=None</span></dt><dd><p>Path(s) to elastix parameter file(s) to be used in each step of the
 registration. If a list of more than one path, the parameter files
@@ -542,6 +552,12 @@ to be run.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.set_fixed_mask">
+<span class="sig-name descname"><span class="pre">set_fixed_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.set_fixed_mask" title="Permalink to this definition"></a></dt>
+<dd><p>Assign a fixed-image mask.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.set_image">
 <span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.set_image" title="Permalink to this definition"></a></dt>
 <dd><p>Assign a fixed or moving image.</p>
@@ -550,7 +566,7 @@ to be run.</p>
 <dt>im<span class="classifier">Image/str</span></dt><dd><p>The Image object to set, or a path that can be used to intialise
 an Image object.</p>
 </dd>
-<dt>category<span class="classifier">str</span></dt><dd><p>Category of image (“fixed” or “moving”).</p>
+<dt>category<span class="classifier">str</span></dt><dd><p>Category of image: “fixed”, “moving”, “fixed_mask”, “moving_mask”.</p>
 </dd>
 <dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image file within self.path will be overwritten by
 this image even if it already exists.</p>
@@ -562,6 +578,12 @@ this image even if it already exists.</p>
 <dt class="sig sig-object py" id="skrt.registration.Registration.set_moving_image">
 <span class="sig-name descname"><span class="pre">set_moving_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.set_moving_image" title="Permalink to this definition"></a></dt>
 <dd><p>Assign a moving image.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.set_moving_mask">
+<span class="sig-name descname"><span class="pre">set_moving_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.set_moving_mask" title="Permalink to this definition"></a></dt>
+<dd><p>Assign a moving-image mask.</p>
 </dd></dl>
 
 <dl class="py method">
