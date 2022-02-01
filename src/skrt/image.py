@@ -3,6 +3,7 @@
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
 import scipy.ndimage
+import scipy.interpolate
 import copy
 import datetime
 import glob
@@ -27,12 +28,16 @@ import skimage.transform
 import skrt.core
 from skrt.dicom_writer import DicomWriter
 
-
 _axes = ["x", "y", "z"]
 _slice_axes = {"x-y": 2, "y-z": 0, "x-z": 1}
 _plot_axes = {"x-y": [0, 1], "y-z": [2, 1], "x-z": [2, 0]}
 _default_figsize = 6
 _default_stations = {"0210167": "LA3", "0210292": "LA4"}
+_default_bolus_names = ["planning bolus", "virtual bolus", "bolus",
+        "fo p/bolus", "for bolus", "for p-bolus", "for virtual bolus",
+        "plan bolus", "planning  bolus", "planningl bolus", "pretend bolus",
+        "temp-for bolus", "temp- for bolus", "Temp for p/bolus",
+        "treatment bolus", "t1-for bolus", "0.5CM BOLUS"]
 
 # Matplotlib settings
 mpl.rcParams["figure.figsize"] = (7.4, 4.8)
@@ -135,6 +140,7 @@ class Image(skrt.core.Archive):
         self.doses = []
         self.plans = []
         self._custom_dtype = dtype
+        self.sinogram = None
 
         # Default image plotting settings
         self._default_colorbar_label = "HU"
@@ -547,6 +553,9 @@ class Image(skrt.core.Archive):
         image_extent = tuple([f'({v1:{float_format}}, {v2:{float_format}})'
             for v1, v2 in list(self.image_extent)])
         print(f'Extent: {image_extent}')
+        image_size = tuple([f'{abs(v2 - v1):{float_format}}'
+            for v1, v2 in list(self.image_extent)])
+        print(f'Image size: {image_size}')
 
     def resample(self, voxel_size=(1, 1, 1), order=1):
         '''
@@ -779,6 +788,47 @@ class Image(skrt.core.Archive):
                 label_array2 = np.zeros(image_slice.shape)
 
         return label_array2
+
+    def select_foreground(self, threshold=None, convex_hull=False,
+            fill_holes=True, dxy=0, background=None):
+        '''
+        Modify image to show intensity information only for foreground.
+
+        Slice by slice, the foreground is taken to correspond to the
+        largest region of contiguous pixels above a threshold value.
+        Voxels outside the foreground region are all assigned the
+        same same (background) intensity value.
+
+        **Parameters:**
+
+        threshold : int/float, default=None
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If False, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=False
+            If False, fill holes in the slice foreground masks initially
+            obtained.
+
+        background : int/float, default=None
+            Intensity value to be assigned to background voxels.  If
+            None, the image's minimum value is used.
+        '''
+        self.load()
+
+        # Obtain foreground mask.
+        mask = self.get_foreground_mask(threshold=threshold,
+                convex_hull=convex_hull, fill_holes=fill_holes, dxy=dxy)
+
+        # Set background intensity if not specified.
+        if background is None:
+            background = self.get_data().min()
+
+        # Set voxels outside foreground to background intensity.
+        self.data[mask.get_data() == False] = background
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
             fill_value=None, image_size_unit=None, keep_centre=False):
@@ -2548,6 +2598,175 @@ class Image(skrt.core.Archive):
         bounds = roi.get_extents(**kwargs)
         self.crop(*bounds)
 
+    def map_hu(self, mapping='kv_to_mv'):
+        '''
+        Map radiodensities in Hounsfield units according to mapping function.
+
+        **Parameter:**
+
+        mapping - str, default='kv_to_mv'
+            Identifier of mapping function to be used.  Currently only
+            the VoxTox mapping from kV CT scan to MV CT scan is implemented.
+        '''
+        if 'kv_to_mv' == mapping:
+            self.data = (np.vectorize(kv_to_mv, otypes=[np.float64])
+                    (self.get_data()))
+        else:
+            print(f'Mapping function {mapping} not known.')
+
+    def get_sinogram(self, force=False, verbose=False):
+        '''
+        Retrieve image where each slice corresponds to a sinogram.
+
+        A slice sinogram is obtain through application of a Radon
+        transform to the original image slice.
+
+        **Parameters:**
+
+        force : bool, default=False
+            The first time that sinogram image is created, it is
+            stored as self.sinogram.  It is recreated only if force
+            is set to True.
+
+        verbose : bool, default=False
+            Print information on progress in sinogram creation.
+        '''
+        self.load()
+
+        if (self.sinogram is None) or force:
+            if verbose:
+                print('Creating sinogram for each image slice:')
+
+            # Value to subtract to have only positive intensities.
+            vmin = min(self.get_data().min(), 0)
+
+            sinogram_stack = []
+            nz = self.get_n_voxels()[2]
+            # Apply Radon transform slice by slice
+            for iz in range(nz):
+                if verbose:
+                    print(f'    ...slice {iz + 1:3d} of {nz:3d}')
+                im_slice = self.get_data()[:, :, iz] - vmin
+                sinogram_slice = skimage.transform.radon(im_slice, circle=False)
+                sinogram_stack.append(sinogram_slice)
+            self.sinogram = Image(np.stack(sinogram_stack, axis=-1))
+
+        return self.sinogram
+            
+    def add_sinogram_noise(self, phi0=60000, eta=185000, verbose=False):
+
+        '''
+        Add Poisson fluctuations at level of sinogram.
+
+        For a kV CT scan mapped to the radiodensity scale of an MV CT scan
+        (self.map_hu('kv_to_mv'), this function adds intensity fluctuations
+        to reproduce better the fluctuations in an MV CT scan.
+
+        The procedure for adding fluctuations was originally devised and
+        implemented by M.Z. Wilson.
+
+        **Parameters:**
+
+        phi0 : int/float, default=60000
+            Notional photon flux used in image creation.
+
+        eta : int/float, default=185000
+            Notional constant of proportionality linking radiodensity
+            and line integrals measuring attenuation along photon paths.
+
+        verbose : bool, default=False
+            Print information on progress in noise addition
+        '''
+        self.load()
+
+        self.get_sinogram(verbose=verbose)
+
+        if verbose:
+            print('Adding sinogram-level fluctuations for each image slice:')
+
+        # Value to subtract to have only positive intensities.
+        vmin = min(self.get_data().min(), 0)
+
+        nz = self.get_n_voxels()[2]
+        
+        # Loop over slices
+        for iz in range(nz):
+            if verbose:
+                print(f'    ...slice {iz + 1:3d} of {nz:3d}')
+            sinogram_slice = self.get_sinogram().get_data()[:, :, iz].copy()
+            for idx, value in np.ndenumerate(sinogram_slice):
+                if sinogram_slice[idx] > 0:
+                    # Sample notional photon flux from a poisson distribution
+                    flux = np.random.poisson(
+                            phi0 * np.exp(-sinogram_slice[idx] / eta))
+                    if flux > 0:
+                        # Recalculate the sinogram value from the new flux value
+                        sinogram_slice[idx] = -eta * np.log(flux / phi0)
+
+            # Apply inverse Radon transform through filtered back propagation
+            self.data[:, :, iz] = skimage.transform.iradon(sinogram_slice,
+                    circle=False, filter_name='hann') + vmin
+
+    def assign_intensity_to_rois(self, rois=None, intensity=0):
+        '''
+        Assign intensity value to image regions corresponding to ROIs.
+
+        **Parameters:**
+
+        rois : list of skrt.structures.ROI objects, default=None
+            ROIs for which voxels are to be assigned an intensity value.
+
+        intensity : int/float, default=0
+            Intensity value to be assigned to ROI voxels.
+        '''
+
+        self.load()
+
+        for roi in rois:
+            self.data[roi.get_mask()] = intensity
+
+    def remove_bolus(self, structure_set=None, bolus_names=None,
+            intensity=None):
+        '''
+        Attempt to remove bolus from image.
+
+        In treatment planning, ROIs labelled as bolus may be defined on
+        the skin, and are assigned a radiodensity of water (zero) to help guide
+        the treatment optimiser.  The original image is approximately
+        recovered by overwriting with the radiodensity of air.
+
+        **Parameters:**
+        structure_set : skrt.structures.StructureSet
+            Structure set to search for ROIs labelled as bolus.  If None,
+            the image's earliest associated structure set is used.
+
+        bolus_names : list, default=None
+            List of names, optionally including wildcards, with which
+            bolus may be labelled.  If None, use
+            skrt.image._default_bolus_names.
+
+       intensity : int/float, default=None
+            Intensity value to be assigned to voxels of ROI labelled as bolus.
+            If None, use image's minimum value.
+        '''
+
+        if structure_set is None:
+            if self.structure_sets:
+                structure_set = self.structure_sets[0]
+            else:
+                return
+
+        self.load()
+
+        if bolus_names is None:
+            bolus_names = _default_bolus_names
+
+        if intensity is None:
+            intensity = self.get_data().min()
+        bolus_rois = []
+        for bolus_name in bolus_names:
+            bolus_rois.extend(structure_set.get_rois_wildcard(bolus_name))
+        self.assign_intensity_to_rois(bolus_rois, intensity)
 
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
@@ -3607,3 +3826,59 @@ def set_image_orientation_patient(ds):
             ds.ImageOrientationPatient = (
                     direction_cosines[patient_orientation[1]] +
                     direction_cosines[patient_orientation[0]])
+
+def kv_to_mv(hu):
+    '''
+    Map radiodensity in Hounsfield units from kV CT scan to MV CT scan.
+
+    Function originally written by M.Z. Wilson.  Parameterisation
+    derived from kV and MV CT scans collected in VoxTox study.
+
+    **Parameter:**
+
+    hu - int
+        Radiodensity (Hounsfield units) for kV CT scan.
+    '''
+
+    # hu is the old kVCT HU
+    # y is the new synthetic MVCT HU
+    # x's are the relative electron densities
+
+    # remove issues with dental implants
+    if hu > 2200:
+        hu = 2200
+
+    if hu > 192:
+        y = 945.8 *((hu + 1754.3) / 1769.5) - 944.91
+
+    elif 75 < hu < 193:
+        # fit a spline curve using the densities
+        x0 = np.linspace(0, 2, 100)
+        x1 = x0[:54]
+        x2 = x0[57:]
+        xnew = np.delete(x0, [54, 55, 56])
+        # upper kvct line
+        y2 = 1769.5 * x2 - 1754.3
+        # lower kvct line
+        y3 = 970.2 * x1 - 991.98
+        ynew = np.concatenate((y3,y2), axis=0)
+
+        # fit a spline between the two kvct calibration lines
+        # for each hu value - shift the y axis such that
+        # the density can be found by finding the roots of
+        # the spline. This density can then be used in the
+        # simple straight line fit of the MVCT calibration
+        yreduced = np.array(ynew[45:65]) - hu
+        freduced = scipy.interpolate.UnivariateSpline(
+                xnew[45:65], yreduced, s=0)
+        density = freduced.roots()[0]
+ 
+        y = (945.8 * density) - 944.91
+
+    elif hu < 76:
+        y = 945.8 * ((hu + 991.98) / 970.2) - 944.91
+
+    elif hu <= -1024:
+        y = -1024
+
+    return round(y)

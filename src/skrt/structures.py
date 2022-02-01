@@ -4113,7 +4113,7 @@ class StructureSet(skrt.core.Archive):
 
         rois = []
         for roi in self.get_rois():
-            if fnmatch.fnmatch(roi.name, wildcard):
+            if fnmatch.fnmatch(roi.name.lower(), wildcard.lower()):
                 rois.append(roi)
         return rois
 
