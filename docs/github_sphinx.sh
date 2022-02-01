@@ -21,15 +21,21 @@
 # https://sphinx-themes.org/
 # ------------------------------------------
 
-## Upgrade pip
-#pip install --upgrade pip
+cd docs
 
-## Workaround for having SimpleITK installation with Python 3.10
-#pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
+# Upgrade pip
+pip install --upgrade pip
 
-## Install scikit-rt and voxtox
-#pip install -e ..
-#pip install -e ../examples/voxtox
+# Workaraound for not being able to install mahotas from pypi
+grep -v mahotas ../setup.cfg > ./setup.cfg
+mv ./setup.cfg ../setup.cfg
+
+# Workaround for having SimpleITK installation with Python 3.10
+pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
+
+# Install scikit-rt and voxtox
+pip install -e ..
+pip install -e ../examples/voxtox
 
 # Delete package rst files, and recreate
 EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
@@ -51,4 +57,6 @@ sed -i 's/docs\/images/_static/' 'source/README.md'
 
 # Delete and recreate html-format documentation
 make clean
-make html
+#make html
+
+cd ..

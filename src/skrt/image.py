@@ -9,7 +9,6 @@ import datetime
 import glob
 import functools
 import logging
-import mahotas
 import math
 import matplotlib as mpl
 import matplotlib.cm
@@ -27,6 +26,12 @@ import skimage.transform
 
 import skrt.core
 from skrt.dicom_writer import DicomWriter
+
+try:
+    import mahotas
+    _has_mahotas = True
+except ModuleNotFoundError:
+    _has_mahotas = False
 
 _axes = ["x", "y", "z"]
 _slice_axes = {"x-y": 2, "y-z": 0, "x-z": 1}
@@ -734,6 +739,11 @@ class Image(skrt.core.Archive):
             If False, fill holes in the foreground mask initially
             obtained.
         '''
+
+        if not _has_mahotas:
+            print('WARNING: Module mahotas unavailable')
+            print('WARNING: Unable to execute function '\
+                    + 'skrt.image.Image.get_slice_foreground()')
 
         # Extract slice data.
         image_slice = self.get_data()[:, :, idx]
@@ -3774,6 +3784,11 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
     dy : int, default=0
         Margin along rows to be added on each side of mask bounding box.
     '''
+
+    if not _has_mahotas:
+        print('WARNING: Module mahotas unavailable')
+        print('WARNING: Unable to execute function '\
+                + 'skrt.image.Image.get_box_mas_from_mask()')
 
     # Retrieve image data and numbers of voxels.
     mask_array = in_image.get_data()

@@ -12,6 +12,20 @@ from skrt.core import File
 from skrt.image import Image
 from skrt.simulation import SyntheticImage
 
+try:
+    import mahotas
+    has_mahotas = True
+except ModuleNotFoundError:
+    has_mahotas = False
+
+# Decorator for tests requiring mahotas
+def needs_mahotas(func):
+    def wrapper():
+        if not has_mahotas:
+            return
+        else:
+            func()
+    return wrapper
 
 # Create fake data
 def create_test_image(shape, voxel_size, origin, data_type='rand', factor=1000):
@@ -693,6 +707,7 @@ def test_dicom_dicom_slice():
     im_dcm = Image(f'{dcm_file}/1.dcm')
     assert im_dcm.get_data().shape == shape_single
 
+@needs_mahotas
 def test_create_foreground_mask():
     sim = SyntheticImage((100, 100, 40))
     sim.add_cube(side_length=5, name="cube", centre=(25, 60, 12), intensity=60)
