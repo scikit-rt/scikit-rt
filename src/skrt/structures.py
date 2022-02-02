@@ -5092,7 +5092,7 @@ def contour_to_polygon(contour):
 
     polygon = geometry.Polygon(contour)
 
-    delta = 0.001
+    delta = 0.005
     if not polygon.is_valid:
         tmp = geometry.Polygon(polygon)
         buffer = 0.
