@@ -2157,10 +2157,11 @@ class ROI(skrt.core.Archive):
             # Get positions of slice(s) on which to compare areas and total areas
             # on those slice(s)
             if not single_slice:
-                positions = list(self.get_contours("x-y").keys())
+                positions = set(self.get_contours("x-y").keys()).union(
+                        set(other.get_contours("x-y").keys()))
                 areas1 = [self.get_area("x-y", pos=p) for p in positions]
                 area1 = sum([a for a in areas1 if a is not None])
-                areas2 = [self.get_area("x-y", pos=p) for p in positions]
+                areas2 = [other.get_area("x-y", pos=p) for p in positions]
                 area2 = sum([a for a in areas2 if a is not None])
             else:
                 positions = [

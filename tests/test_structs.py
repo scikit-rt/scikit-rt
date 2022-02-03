@@ -23,9 +23,9 @@ if not os.path.exists("tmp"):
     os.mkdir("tmp")
 
 # Create synthetic structure set
-sim = SyntheticImage((100, 100, 40))
-sim.add_cube(side_length=40, name="cube", intensity=1)
-sim.add_sphere(radius=20, name="sphere", intensity=10)
+sim = SyntheticImage((100, 100, 100))
+sim.add_cube(side_length=40, name="cube", centre=sim.get_centre(), intensity=1)
+sim.add_sphere(radius=20, name="sphere", centre=sim.get_centre(), intensity=10)
 structure_set = sim.get_structure_set()
 cube = structure_set.get_roi("cube")
 
@@ -729,3 +729,29 @@ def test_get_rois_ignore_empty():
 
     rois = ss.get_rois(ignore_empty=True)
     assert len(rois) == 1
+
+def test_dice():
+    """Test calculation of Dice scores"""
+
+    # Compare sphere with sphere increased in volume by different scale factors.
+    for scale in [1., 1.1, 1.2, 1.3, 1.4, 1.5]:
+        sphere1 = ROI(structure_set.get_roi("sphere"))
+        sphere2 = ROI(structure_set.get_roi("sphere"))
+        sphere2.transform(scale=scale, centre=sphere2.get_centroid())
+
+        # Check that volume change is as expected.
+        assert sphere1.get_volume() * scale**3 == pytest.approx(
+                sphere2.get_volume(), rel=0.01)
+
+        # Calculate Dice score based on roi volumes.
+        dice_expected = 2 / (1 + sphere2.get_volume() / sphere1.get_volume())
+
+
+        # Compare Dice scores with expectations, for two methods used.
+        for method in ['contour', 'mask']:
+            assert sphere1.get_dice(sphere2, method=method) == pytest.approx(
+                    dice_expected, abs=0.001)
+            assert sphere2.get_dice(sphere1, method=method) == pytest.approx(
+                    dice_expected, abs=0.001)
+            assert sphere2.get_dice(sphere1, method=method) == sphere1.get_dice(
+                    sphere2, method=method)
