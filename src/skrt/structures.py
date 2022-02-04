@@ -226,6 +226,10 @@ class ROI(skrt.core.Archive):
         self.contours_only = False
         self.plans = []
 
+        # Properties relating to plan dose constraints
+        self.roi_type = None
+        self.constraint = None
+
         # Create name
         self.name = name
         if self.name is None:
@@ -3560,6 +3564,7 @@ class ROI(skrt.core.Archive):
         """
 
         self.plans.append(plan)
+        self.plans.sort()
 
     def clear_plans(self):
         """Clear all plan maps associated with this ROI."""
@@ -4980,6 +4985,7 @@ class StructureSet(skrt.core.Archive):
         """
 
         self.plans.append(plan)
+        self.plans.sort()
 
     def clear_plans(self):
         """Clear all plan maps associated with this structure set."""

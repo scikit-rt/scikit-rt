@@ -7,7 +7,7 @@ import functools
 
 import matplotlib
 
-from skrt.core import Archive
+from skrt.core import Archive, Data
 import skrt.image
 import skrt.structures
 
@@ -184,6 +184,20 @@ class Dose(ImageOverlay):
         if image is not None:
             image.add_dose(self)
 
+    def set_plan(self, plan):
+        """Set associated plan, initialising it if needed."""
+
+        # Convert to Plan object if needed
+        if plan and not isinstance(plan, Plan):
+            plan = Plan(plan)
+
+        # Assign plan to self
+        self.plan = plan
+
+        # Assign self to the plan
+        if self.plan is not None:
+            self.plan.add_dose(self)
+
     def view(self, **kwargs):
 
         return ImageOverlay.view(self, kwarg_name="dose", **kwargs)
@@ -335,11 +349,14 @@ class Plan(Archive):
         self.n_fraction_group = None
         self.n_beam_seq = None
         self.n_fraction = None
-        self.target_dose = None
+        self.organs_at_risk = None
+        self.targets = None
         self.image = None
         self.structure_set = None
+        self.doses = []
         Archive.__init__(self, path)
 
+        self.constraints_loaded = False
         if load:
             self.load()
 
@@ -381,7 +398,48 @@ class Plan(Archive):
                     for dose in fraction.ReferencedDoseReferenceSequence:
                         self.target_dose += dose.TargetPrescriptionDose
 
+        self.load_constraints()
         self.loaded = True
+
+    def load_constraints(self, force=False):
+        '''
+        Load dose constraints from plan.
+        '''
+
+        if ((self.constraints_loaded and not force) or not self.structure_set):
+            return
+
+        rois = {}
+        for roi in self.structure_set:
+            rois[roi.number] = roi
+
+        self.organs_at_risk = []
+        self.targets = []
+        
+        ds = self.get_dicom_dataset()
+
+        for item in ds.DoseReferenceSequence:
+            roi = rois[item.ReferencedROINumber]
+            roi.roi_type = item.DoseReferenceType
+            roi.constraint = Constraint()
+            roi.constraint.weight = float(item.ConstraintWeight)
+            if 'ORGAN_AT_RISK' == item.DoseReferenceType:
+                roi.constraint.maximum_dose = float(item.OrganAtRiskMaximumDose)
+                roi.constraint.full_volume_dose = float(
+                        item.OrganAtRiskFullVolumeDose)
+                roi.constraint.overdose_volume_fraction = float(
+                        item.OrganAtRiskOverdoseVolumeFraction)
+                self.organs_at_risk.append(roi)
+            elif 'TARGET' == item.DoseReferenceType:
+                roi.constraint.minimum_dose = float(item.TargetMinimumDose)
+                roi.constraint.prescription_dose = float(
+                        item.TargetPrescriptionDose)
+                roi.constraint.maximum_dose = float(item.TargetMaximumDose)
+                roi.constraint.underdose_volume_fraction = float(
+                        item.TargetUnderdoseVolumeFraction)
+                self.targets.append(roi)
+
+        self.roi_info_loaded = True
 
     def get_dicom_dataset(self):
         '''
@@ -390,6 +448,20 @@ class Plan(Archive):
 
         self.load()
         return self.dicom_dataset
+
+    def get_targets(self):
+        '''
+        Return list of ROIs identified in plan as targets.
+        '''
+        self.load_constraints()
+        return self.targets
+
+    def get_organs_at_risk(self):
+        '''
+        Return list of ROIs identified in plan as organs at risk.
+        '''
+        self.load_constraints()
+        return self.organs_at_risk
 
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
@@ -421,3 +493,63 @@ class Plan(Archive):
             self.structure_set.add_plan(self)
             for roi in self.structure_set.get_rois():
                 roi.add_plan(self)
+
+    def add_dose(self, dose):
+        """Add a Dose object to be associated with this plan. This does not
+        affect the plan associated with the Dose object.
+
+        **Parameters:**
+
+        dose : skrt.dose.Dose
+            A Dose object to assign to this plan.
+        """
+
+        self.doses.append(dose)
+        self.doses.sort()
+
+    def clear_doses(self):
+        """Clear all dose maps associated with this plan."""
+
+        self.doses = []
+
+
+class Constraint(Data):
+    '''
+    Container for data relating to a dose constraint.
+    '''
+
+    def __init__(self, opts={}, **kwargs):
+        """
+        Constructor of Container class.
+
+        The following constraint attributes may be set via opts or
+        **kwargs, but are otherwise initialised to None:
+
+        - weight
+        - minimum_dose
+        - maximum_dose
+        - full_volume_dose,
+        - prescription_dose
+        - underdose_volume_fraction
+        - overdose_volume_fraction
+
+        **Parameters:**
+
+        opts: dict, default={}
+            Dictionary to be used in setting instance attributes
+            (dictionary keys) and their initial values.
+
+        `**`kwargs
+            Keyword-value pairs to be used in setting instance attributes
+            and their initial values.
+        """
+
+        self.weight = None
+        self.minimum_dose = None
+        self.maximum_dose = None
+        self.full_volume_dose = None
+        self.prescription_dose = None
+        self.underdose_volume_fraction = None
+        self.overdose_volume_fraction = None
+
+        super().__init__(opts, **kwargs)

@@ -137,6 +137,9 @@ class Study(skrt.core.Archive):
                         for obj in objs:
                             if hasattr(obj, "set_image"):
                                 obj.set_image(image)
+                                if 'plans' == attr_name:
+                                    link_plan_to_doses(obj)
+
                     if ss is not None:
                         for obj in objs:
                             if hasattr(obj, "set_structure_set"):
@@ -886,3 +889,24 @@ def find_matching_object(obj, possible_matches):
                             return (match, structure_set)
 
     return (None, None)
+
+def link_plan_to_doses(plan):
+    '''
+    Link plan to doses derived from it.
+
+    This function assumes that associations between images and doses
+    have already been defined.
+
+    **Parameter:**
+
+    plan : skrt.dose.Plan
+        Plan object for which doses associations are to be determined.
+    '''
+
+    plan_uid = plan.get_dicom_dataset().SOPInstanceUID
+    doses = plan.image.get_doses()
+    for dose in doses:
+        dose_ds = dose.get_dicom_dataset()
+        for referenced_plan in dose_ds.ReferencedRTPlanSequence:
+            if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
+                dose.set_plan(plan)

@@ -1439,6 +1439,7 @@ class Image(skrt.core.Archive):
         """
 
         self.doses.append(dose)
+        self.doses.sort()
 
     def clear_doses(self):
         """Clear all dose maps associated with this image."""
@@ -1456,6 +1457,7 @@ class Image(skrt.core.Archive):
         """
 
         self.plans.append(plan)
+        self.plans.sort()
 
     def clear_plans(self):
         """Clear all plan maps associated with this image."""
