@@ -354,6 +354,9 @@ class Plan(Archive):
         self.image = None
         self.structure_set = None
         self.doses = []
+        for constraint_attribute in Constraint.get_weight_and_objectives():
+            setattr(self, constraint_attribute, None)
+
         Archive.__init__(self, path)
 
         self.constraints_loaded = False
@@ -387,7 +390,7 @@ class Plan(Archive):
             self.n_beam_seq = None
 
         self.n_fraction = None
-        self.target_dose = None
+        self.dose_objective = None
         if self.n_fraction_group is not None:
             self.n_fraction = 0
             for fraction in self.dicom_dataset.FractionGroupSequence:
@@ -463,6 +466,65 @@ class Plan(Archive):
         self.load_constraints()
         return self.organs_at_risk
 
+    def get_dose_objective(self, objective='maximum_dose', idx_dose=0,
+            dose=None):
+        '''
+        Obtain Dose object representing weight or objective of dose constraint.
+
+        **Parameters:**
+        objective : str, default='maximum_dose'
+            Identifier of objective for which information is to be obtained.
+            For a list of objectives, see skrt.dose.Constraint class.
+
+        idx_dose : int, default=0
+            Index of dose object in self.doses from which dose data are
+            to be taken.
+
+        dose : skrt.dose.Dose, default=None
+            Dose object from which dose data are to be taken.  If specified,
+            idx_dose is ignored.
+        '''
+
+        # Check that specified objective is known.
+        if objective not in Constraint.get_weight_and_objectives():
+            print(f'Unknown dose objective: \'{objective}\'')
+            print(f'Known objectives: {Constraint.get_weight_and_objectives()}')
+            return None
+
+
+        # Return pre-existing result if available.
+        dose_objective = getattr(self, objective)
+        if dose_objective:
+            return dose_objective
+
+        # Check that data needed for defining dose objective are available.
+        rois = self.get_targets()
+        rois.extend(self.get_organs_at_risk())
+        if not rois or not (self.doses or dose):
+            return dose_objective
+
+        # Initialise Dose object for objective data.
+        if dose:
+            dose_objective = Dose(dose)
+        else:
+            dose_objective = Dose(self.doses[idx_dose])
+
+        dose_objective.load()
+        dose_objective.data = np.zeros(dose_objective.data.shape)
+        
+        # Obtain objective information for each ROI.
+        for roi in rois:
+            if roi.constraint:
+                roi_clone = skrt.structures.ROI(roi)
+                roi_clone.set_image(dose_objective)
+                mask = roi_clone.get_mask()
+                dose_objective.data[mask > 0] = (
+                        getattr(roi_clone.constraint, objective))
+
+        setattr(self, objective, dose_objective)
+
+        return dose_objective
+
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
 
@@ -518,6 +580,15 @@ class Constraint(Data):
     Container for data relating to a dose constraint.
     '''
 
+    @classmethod
+    def get_weight_and_objectives(cls):
+        '''
+        Return weight and objectives that may be associated with a constraint.
+        '''
+        return ['weight', 'minimum_dose', 'maximum_dose', 'full_volume_dose',
+                'prescription_dose', 'underdose_volume_fraction',
+                'overdose_volume_fraction']
+
     def __init__(self, opts={}, **kwargs):
         """
         Constructor of Container class.
@@ -544,12 +615,8 @@ class Constraint(Data):
             and their initial values.
         """
 
-        self.weight = None
-        self.minimum_dose = None
-        self.maximum_dose = None
-        self.full_volume_dose = None
-        self.prescription_dose = None
-        self.underdose_volume_fraction = None
-        self.overdose_volume_fraction = None
+        for attribute in Constraint.get_weight_and_objectives():
+            setattr(self, attribute, None)
 
         super().__init__(opts, **kwargs)
+

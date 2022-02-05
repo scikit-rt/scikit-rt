@@ -67,6 +67,7 @@ class Image(skrt.core.Archive):
         downsample=None,
         dtype=None,
         auto_timestamp=False,
+        default_intensity=(-200, 300),
     ):
         """
         Initialise from a medical image source.
@@ -121,6 +122,14 @@ class Image(skrt.core.Archive):
         auto_timestamp : bool default=False
             If true and no valid timestamp is found within the path string,
             timestamp generated from current date and time.
+
+        default_intensity : tuple,None default=(-300, 300)
+            Default intensity range for image display.  This can
+            be specified as a two-element tuple, giving minimum and maximum,
+            or if set to None then the images full intensity range is
+            used.  If WindowCenter and WindowWidth are defined in a
+            DICOM source file, these values will be used instead to
+            define the default intensity range.
         """
 
         # Clone from another Image object
@@ -150,6 +159,7 @@ class Image(skrt.core.Archive):
         # Default image plotting settings
         self._default_colorbar_label = "HU"
         self._default_cmap = "gray"
+        self.default_intensity = default_intensity
 
         path = self.source if isinstance(self.source, str) else ""
         skrt.core.Archive.__init__(self, path, auto_timestamp)
@@ -433,8 +443,12 @@ class Image(skrt.core.Archive):
             self._default_vmin = window_centre - window_width / 2
             self._default_vmax = window_centre + window_width / 2
         else:
-            self._default_vmin = self.data.min()
-            self._default_vmax = self.data.max()
+            if self.default_intensity is None:
+                self._default_vmin = self.data.min()
+                self._default_vmax = self.data.max()
+            else:
+                self._default_vmin = self.default_intensity[0]
+                self._default_vmax = self.default_intensity[1]
 
         # Set title from filename
         if self.title is None:
