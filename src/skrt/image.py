@@ -3395,7 +3395,6 @@ def load_dicom_many_files(paths):
     sorted_data = [data_slices[z] for z in sorted_slices]
     data = np.stack(sorted_data, axis=-1)
     z_paths = {z : z_paths[z] for z in sorted_slices}
-
     # Get affine matrix
     affine = get_dicom_affine(ds, image_positions)
 
@@ -3593,8 +3592,8 @@ def rescale_dicom_data(ds, data):
     rescale_intercept = getattr(ds, "RescaleIntercept", 0.)
 
     # Apply rescaling
-    return data * float(rescale_slope) + float(rescale_intercept)
-
+    return (data * float(rescale_slope)
+            + float(rescale_intercept)).astype(np.float32)
 
 def get_dicom_window(ds):
     """Get intensity window defaults from a dicom file.

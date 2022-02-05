@@ -737,7 +737,8 @@ class ROI(skrt.core.Archive):
 
             # Initialise self.mask as image
             self.mask = skrt.image.Image(
-                np.zeros((self.shape[1], self.shape[0], self.shape[2])),
+                np.zeros((self.shape[1], self.shape[0], self.shape[2]),
+                    dtype=bool),
                 affine=self.affine, 
                 voxel_size=self.voxel_size,
                 origin=self.origin
