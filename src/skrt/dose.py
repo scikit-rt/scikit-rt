@@ -345,17 +345,20 @@ class Plan(Archive):
 
         self.loaded = False
         self.path = None
+        self.name = None
         self.approval_status = None
         self.n_fraction_group = None
         self.n_beam_seq = None
         self.n_fraction = None
         self.organs_at_risk = None
+        self.target_dose = None
         self.targets = None
         self.image = None
         self.structure_set = None
         self.doses = []
+        self.objectives = Data()
         for constraint_attribute in Constraint.get_weight_and_objectives():
-            setattr(self, constraint_attribute, None)
+            setattr(self.objectives, constraint_attribute, None)
 
         Archive.__init__(self, path)
 
@@ -373,6 +376,8 @@ class Plan(Archive):
 
         self.dicom_dataset = pydicom.dcmread(self.path, force=True)
 
+        self.name = getattr(self.dicom_dataset, 'RTPlanName', None)
+
         try:
             self.approval_status = self.dicom_dataset.ApprovalStatus
         except AttributeError:
@@ -380,7 +385,7 @@ class Plan(Archive):
 
         try:
             self.n_fraction_group = len(
-                    self.dicom.dataset.FractionGroupSequence)
+                    self.dicom_dataset.FractionGroupSequence)
         except AttributeError:
             self.n_fraction_group = None
 
@@ -390,7 +395,6 @@ class Plan(Archive):
             self.n_beam_seq = None
 
         self.n_fraction = None
-        self.dose_objective = None
         if self.n_fraction_group is not None:
             self.n_fraction = 0
             for fraction in self.dicom_dataset.FractionGroupSequence:
@@ -493,7 +497,7 @@ class Plan(Archive):
 
 
         # Return pre-existing result if available.
-        dose_objective = getattr(self, objective)
+        dose_objective = getattr(self.objectives, objective)
         if dose_objective:
             return dose_objective
 
@@ -521,9 +525,39 @@ class Plan(Archive):
                 dose_objective.data[mask > 0] = (
                         getattr(roi_clone.constraint, objective))
 
-        setattr(self, objective, dose_objective)
+        setattr(self.objectives, objective, dose_objective)
 
         return dose_objective
+
+    def get_approval_status(self):
+        '''Return plan approval status.'''
+        self.load()
+        return self.approval_status
+
+    def get_n_beam_seq(self):
+        '''Return number of beam sequences for this plan.'''
+        self.load()
+        return self.n_beam_seq
+
+    def get_n_fraction(self):
+        '''Return number of fractions for this plan.'''
+        self.load()
+        return self.n_fraction
+
+    def get_n_fraction_group(self):
+        '''Return number of fraction groups for this plan.'''
+        self.load()
+        return self.n_fraction_group
+
+    def get_name(self):
+        '''Return plan name.'''
+        self.load()
+        return self.name
+
+    def get_target_dose(self):
+        '''Return dose to target (tumour) for this plan.'''
+        self.load()
+        return self.name
 
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
