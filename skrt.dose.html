@@ -128,6 +128,12 @@ and their initial values.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Constraint.get_weight_and_objectives">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_weight_and_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Constraint.get_weight_and_objectives" title="Permalink to this definition"></a></dt>
+<dd><p>Return weight and objectives that may be associated with a constraint.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -184,6 +190,13 @@ all axes, or a list containing downsampling amounts in order
 </dd>
 <dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
 timestamp generated from current date and time.</p>
+</dd>
+<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+be specified as a two-element tuple, giving minimum and maximum,
+or if set to None then the images full intensity range is
+used.  If WindowCenter and WindowWidth are defined in a
+DICOM source file, these values will be used instead to
+define the default intensity range.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -345,6 +358,13 @@ all axes, or a list containing downsampling amounts in order
 <dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
 timestamp generated from current date and time.</p>
 </dd>
+<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+be specified as a two-element tuple, giving minimum and maximum,
+or if set to None then the images full intensity range is
+used.  If WindowCenter and WindowWidth are defined in a
+DICOM source file, these values will be used instead to
+define the default intensity range.</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -447,6 +467,26 @@ affect the plan associated with the Dose object.</p>
 <dt class="sig sig-object py" id="skrt.dose.Plan.get_dicom_dataset">
 <span class="sig-name descname"><span class="pre">get_dicom_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_dicom_dataset" title="Permalink to this definition"></a></dt>
 <dd><p>Return pydicom.dataset.FileDataset object associated with this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_dose_objective">
+<span class="sig-name descname"><span class="pre">get_dose_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'maximum_dose'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_dose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_dose_objective" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain Dose object representing weight or objective of dose constraint.</p>
+<p><strong>Parameters:</strong>
+objective : str, default=’maximum_dose’</p>
+<blockquote>
+<div><p>Identifier of objective for which information is to be obtained.
+For a list of objectives, see skrt.dose.Constraint class.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>idx_dose<span class="classifier">int, default=0</span></dt><dd><p>Index of dose object in self.doses from which dose data are
+to be taken.</p>
+</dd>
+<dt>dose<span class="classifier">skrt.dose.Dose, default=None</span></dt><dd><p>Dose object from which dose data are to be taken.  If specified,
+idx_dose is ignored.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
