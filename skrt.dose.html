@@ -464,6 +464,12 @@ affect the plan associated with the Dose object.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_approval_status">
+<span class="sig-name descname"><span class="pre">get_approval_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_approval_status" title="Permalink to this definition"></a></dt>
+<dd><p>Return plan approval status.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Plan.get_dicom_dataset">
 <span class="sig-name descname"><span class="pre">get_dicom_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_dicom_dataset" title="Permalink to this definition"></a></dt>
 <dd><p>Return pydicom.dataset.FileDataset object associated with this plan.</p>
@@ -490,9 +496,39 @@ idx_dose is ignored.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_n_beam_seq">
+<span class="sig-name descname"><span class="pre">get_n_beam_seq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_n_beam_seq" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of beam sequences for this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_n_fraction">
+<span class="sig-name descname"><span class="pre">get_n_fraction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_n_fraction" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of fractions for this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_n_fraction_group">
+<span class="sig-name descname"><span class="pre">get_n_fraction_group</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_n_fraction_group" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of fraction groups for this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_name">
+<span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_name" title="Permalink to this definition"></a></dt>
+<dd><p>Return plan name.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Plan.get_organs_at_risk">
 <span class="sig-name descname"><span class="pre">get_organs_at_risk</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_organs_at_risk" title="Permalink to this definition"></a></dt>
 <dd><p>Return list of ROIs identified in plan as organs at risk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_target_dose">
+<span class="sig-name descname"><span class="pre">get_target_dose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_target_dose" title="Permalink to this definition"></a></dt>
+<dd><p>Return dose to target (tumour) for this plan.</p>
 </dd></dl>
 
 <dl class="py method">
