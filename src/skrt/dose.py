@@ -426,7 +426,9 @@ class Plan(Archive):
         ds = self.get_dicom_dataset()
 
         for item in ds.DoseReferenceSequence:
-            roi = rois[item.ReferencedROINumber]
+            roi = rois.get(item.ReferencedROINumber, None)
+            if roi is None:
+                continue
             roi.roi_type = item.DoseReferenceType
             roi.constraint = Constraint()
             roi.constraint.weight = float(item.ConstraintWeight)
