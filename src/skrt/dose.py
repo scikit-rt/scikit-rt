@@ -19,7 +19,7 @@ class ImageOverlay(skrt.image.Image):
 
     def __init__(self, path, load=True, image=None, *args, **kwargs):
 
-        skrt.image.Image.__init__(self, path, *args, **kwargs)
+        skrt.image.Image.__init__(self, path, load, *args, **kwargs)
         self.set_image(image)
 
         # Default dose plotting settings
@@ -405,8 +405,8 @@ class Plan(Archive):
                     for dose in fraction.ReferencedDoseReferenceSequence:
                         self.target_dose += dose.TargetPrescriptionDose
 
-        self.load_constraints()
         self.loaded = True
+        self.load_constraints()
 
     def load_constraints(self, force=False):
         '''
@@ -417,7 +417,7 @@ class Plan(Archive):
             return
 
         rois = {}
-        for roi in self.structure_set:
+        for roi in self.structure_set.get_rois():
             rois[roi.number] = roi
 
         self.organs_at_risk = []
@@ -446,7 +446,7 @@ class Plan(Archive):
                         item.TargetUnderdoseVolumeFraction)
                 self.targets.append(roi)
 
-        self.roi_info_loaded = True
+        self.constraints_loaded = True
 
     def get_dicom_dataset(self):
         '''
@@ -587,8 +587,6 @@ class Plan(Archive):
         # Assign self to the structure set and its rois
         if self.structure_set is not None:
             self.structure_set.add_plan(self)
-            for roi in self.structure_set.get_rois():
-                roi.add_plan(self)
 
     def add_dose(self, dose):
         """Add a Dose object to be associated with this plan. This does not

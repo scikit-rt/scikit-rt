@@ -3564,8 +3564,9 @@ class ROI(skrt.core.Archive):
             A Plan object to assign to this structure set.
         """
 
-        self.plans.append(plan)
-        self.plans.sort()
+        if not plan in self.plans:
+            self.plans.append(plan)
+            self.plans.sort()
 
     def clear_plans(self):
         """Clear all plan maps associated with this ROI."""
@@ -3833,6 +3834,8 @@ class StructureSet(skrt.core.Archive):
         self.recolor_rois(self.colors)
         for roi in self.rois:
             roi.structure_set = self
+            for plan in self.plans:
+                roi.add_plan(plan)
 
         self.loaded = True
 
@@ -4976,8 +4979,9 @@ class StructureSet(skrt.core.Archive):
         return None
 
     def add_plan(self, plan):
-        """Add a Plan object to be associated with this structure set. This
-        does not affect the structure set associated with the Plan object.
+        """Add a Plan object to be associated with this structure set and
+        its ROIs. This does not affect the structure set associated with
+        the Plan object.
 
         **Parameters:**
 
@@ -4985,8 +4989,12 @@ class StructureSet(skrt.core.Archive):
             A Plan object to assign to this structure set.
         """
 
-        self.plans.append(plan)
-        self.plans.sort()
+        if not plan in self.plans:
+            self.plans.append(plan)
+            self.plans.sort()
+
+            for roi in self.rois:
+                roi.add_plan(plan)
 
     def clear_plans(self):
         """Clear all plan maps associated with this structure set."""

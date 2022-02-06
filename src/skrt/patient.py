@@ -860,7 +860,8 @@ def find_matching_object(obj, possible_matches):
 
     # If no timestamp match, try matching on SOP Instance UID
     if issubclass(type(obj), Dose):
-        ds_obj = obj.get_dicom_dataset()
+        # ds_obj = obj.get_dicom_dataset()
+        ds_obj = pydicom.dcmread(obj.path)
         if hasattr(ds_obj, 'ReferencedImageSequence'):
             # Omit part of UID after final dot,
             # to be insenstive to slice/frame considered.
@@ -868,7 +869,8 @@ def find_matching_object(obj, possible_matches):
                     ds_obj.ReferencedImageSequence[-1]
                     .ReferencedSOPInstanceUID.split('.')[:-1])
             for match in possible_matches:
-                ds_match = match.get_dicom_dataset()
+                # ds_match = match.get_dicom_dataset()
+                ds_match = pydicom.dcmread(match.files[0].path)
                 if hasattr(ds_match, 'SOPInstanceUID'):
                     sop_instance_uid = '.'.join(
                             ds_match.SOPInstanceUID.split('.')[:-1])
@@ -876,13 +878,15 @@ def find_matching_object(obj, possible_matches):
                         return (match, None)
 
     elif issubclass(type(obj), Plan):
-        ds_obj = obj.get_dicom_dataset()
+        # ds_obj = obj.get_dicom_dataset()
+        ds_obj = pydicom.dcmread(obj.path)
         if hasattr(ds_obj, 'ReferencedStructureSetSequence'):
             referenced_sop_instance_uid = ds_obj.\
                     ReferencedStructureSetSequence[-1].ReferencedSOPInstanceUID
             for match in possible_matches:
                 for structure_set in match.get_structure_sets():
-                    ds_match = structure_set.get_dicom_dataset()
+                    # ds_match = structure_set.get_dicom_dataset()
+                    ds_match = pydicom.dcmread(structure_set.path)
                     if hasattr(ds_match, 'SOPInstanceUID'):
                         sop_instance_uid = ds_match.SOPInstanceUID
                         if sop_instance_uid == referenced_sop_instance_uid:
@@ -903,10 +907,12 @@ def link_plan_to_doses(plan):
         Plan object for which doses associations are to be determined.
     '''
 
-    plan_uid = plan.get_dicom_dataset().SOPInstanceUID
+    # plan_uid = plan.get_dicom_dataset().SOPInstanceUID
+    plan_uid = pydicom.dcmread(plan.path).SOPInstanceUID
     doses = plan.image.get_doses()
     for dose in doses:
-        dose_ds = dose.get_dicom_dataset()
+        # dose_ds = dose.get_dicom_dataset()
+        dose_ds = pydicom.dcmread(dose.path)
         for referenced_plan in dose_ds.ReferencedRTPlanSequence:
             if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
                 dose.set_plan(plan)
