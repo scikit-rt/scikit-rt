@@ -468,7 +468,7 @@ This patient would have three studies, two in the "planning" category and two in
 
 #### Files within a study
 
-Each study can contain images of various imaging modalities, and associated structure sets. Within a study directory, there can be three "special" directories, named `RTSTRUCT`, `RTDOSE`, and `RTPLAN` (currently only `RTSTRUCT` does anything; the others will be updated soon), containing structure sets, dose fields, and radiotherapy plans, respectively.
+Each study can contain images of various imaging modalities, and associated structure sets. Within a study directory, there can be three "special" directories, named `RTSTRUCT`, `RTDOSE`, and `RTPLAN`, containing structure sets, dose fields, and radiotherapy plans, respectively.
 
 Any other directories within the study directory are taken to represent an **imaging modality**. The structure sets associated with this modality should be nested inside the `RTSTRUCT` directory inside directories with the same name as the image directories. The images and structure sets themselves should be further nested inside a timestamp directory representing the time at which that image was taken.
 
@@ -537,7 +537,7 @@ For each imaging modalitiy subdirectory inside the study, a new class property w
 
 #### Structure sets
 
-The study's structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the `structs` property of the `Image` itself; this is a list of `StructureSet` objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:
+The study's structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the `structure_set` property of the `Image` itself; this is a list of `StructureSet` objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:
 ```
 p = Patient('mypatient1')
 s = p.studies[0]
@@ -550,6 +550,66 @@ structure_set = s.ct_structure_sets[0]
 ```
 
 The `StructureSet` object also has an associated `image` property (`structure_set.image`), which can be used to find out which `Image` is associated with that structure set.
+
+#### Treatment plans
+Data from radiotherapy treatment plans are made available as `Plan` objects.  `Study` objects group `Plan` objects in lists with names of the form `<machine>_plans`, where `<machine>` identifies the treatment machine to which the plan relates.  `Image` objects and 'StructureSet` objects group together all plans associated with them, in a list `plans`.  A `Dose` object is only ever derived from a single plan, referenced as `plan`.  Different ways of accessing a `Plan` object are shown below.
+
+```
+\# Access plan from Study.
+plan = s.la3_plans[0]
+
+\# Access plan from Image to which it relates.
+plan = s.ct_images[0].plans[0]
+
+\# Access plan from StructureSet to which it relates.
+plan = s.ct_structure_sets[0].plans[0]
+
+\# Access plan from Dose (each of which can relate to only a single plan).
+plan = s.ct_doses[0].plan
+```
+
+Planning information that can then be accessed include the following:
+
+```
+\# Obtain plan name.
+name = plan.get_name()
+
+\# Obtain plan approval status.
+status = plan.get_approval_status()
+
+\# Obtain planned number of treatment fractions.
+n_fraction = plan.get_n_fraction()
+
+\# Obtain planned dose to target (i.e. tumour).
+target_dose = plan.get_target_dose()
+
+\# Obtain list of ROI objects defined as targets.
+targets = plan.get_targets()
+
+\# For any target, obtain the planning constraints and weight.
+target_constraint_weight = targets[0].constraint.weight
+target_prescription_dose = targets[0].constraint.prescription_dose
+target_maximum_dose = targets[0].constraint.maximum_dose
+target_minimum_dose = targets[0].constraint.minimum_dose
+target_underdose_volume_fraction = targets[0].constraint.underdose_volume_fraction
+
+\# Obtain list of ROI objects defined as organs at risk.
+oars = plan.get_organs_at_risk()
+
+\# For any organ at risk, obtain the planning constraints and weight.
+oar_constraint_weight = oars[0].constraint.weight
+oar_maximum_dose = oars[0].constraint.maximum_dose
+oar_full_volume_dose = oars[0].constraint.full_volume_dose
+oar_overdose_volume_fraction = oars[0].constraint.overdose_volume_fraction
+
+\# For any target or organ at risk, obtain a Dose object, representing
+\# a dose objective passed to the optimiser.  Allowed values for the
+\# objective correspond to the constraints and weights.
+\# Data of the resulting object may be visualised in the same way
+\# as for any other Dose object.
+max_dose = plan.get_dose_objective('maximum_dose')
+max_dose.view()
+```
 
 ## 4. Synthetic data
 
