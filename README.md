@@ -611,6 +611,10 @@ max_dose = plan.get_dose_objective('maximum_dose')
 max_dose.view()
 ```
 
+Example plot of maximum-dose objective:
+
+<img src="docs/images/maximum_dose.png" alt="Plot of maximum-dose objective" height="500"/>
+
 ## 4. Synthetic data
 
 ### 4.1 Synthetic images
