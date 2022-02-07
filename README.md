@@ -552,7 +552,7 @@ structure_set = s.ct_structure_sets[0]
 The `StructureSet` object also has an associated `image` property (`structure_set.image`), which can be used to find out which `Image` is associated with that structure set.
 
 #### Treatment plans
-Data from radiotherapy treatment plans are made available as `Plan` objects.  `Study` objects group `Plan` objects in lists with names of the form `<machine>_plans`, where `<machine>` identifies the treatment machine to which the plan relates.  `Image` objects and 'StructureSet` objects group together all plans associated with them, in a list `plans`.  A `Dose` object is only ever derived from a single plan, referenced as `plan`.  Different ways of accessing a `Plan` object are shown below.
+Data from radiotherapy treatment plans are made available as `Plan` objects.  `Study` objects group `Plan` objects in lists with names of the form `<machine>_plans`, where `<machine>` identifies the treatment machine to which the plan relates.  `Image` objects and `StructureSet` objects group together all plans associated with them, in a list `plans`.  A `Dose` object is only ever derived from a single plan, referenced as `plan`.  Different ways of accessing a `Plan` object are shown below.
 
 ```
 # Access plan from Study.
