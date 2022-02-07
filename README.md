@@ -613,7 +613,7 @@ max_dose.view()
 
 Example plot of maximum-dose objective:
 
-<img src="docs/images/maximum_dose.png" alt="Plot of maximum-dose objective" height="300"/>
+<img src="docs/images/maximum_dose.png" alt="Plot of maximum-dose objective" height="400"/>
 
 ## 4. Synthetic data
 
