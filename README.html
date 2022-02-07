@@ -97,6 +97,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#the-study-class">The Study class</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id1">Images</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#structure-sets">Structure sets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treatment-plans">Treatment plans</a></li>
 </ul>
 </li>
 </ul>
@@ -605,7 +606,7 @@ e.g.</p>
 </section>
 <section id="files-within-a-study">
 <h4>Files within a study<a class="headerlink" href="#files-within-a-study" title="Permalink to this headline"></a></h4>
-<p>Each study can contain images of various imaging modalities, and associated structure sets. Within a study directory, there can be three “special” directories, named <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code>, <code class="docutils literal notranslate"><span class="pre">RTDOSE</span></code>, and <code class="docutils literal notranslate"><span class="pre">RTPLAN</span></code> (currently only <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code> does anything; the others will be updated soon), containing structure sets, dose fields, and radiotherapy plans, respectively.</p>
+<p>Each study can contain images of various imaging modalities, and associated structure sets. Within a study directory, there can be three “special” directories, named <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code>, <code class="docutils literal notranslate"><span class="pre">RTDOSE</span></code>, and <code class="docutils literal notranslate"><span class="pre">RTPLAN</span></code>, containing structure sets, dose fields, and radiotherapy plans, respectively.</p>
 <p>Any other directories within the study directory are taken to represent an <strong>imaging modality</strong>. The structure sets associated with this modality should be nested inside the <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code> directory inside directories with the same name as the image directories. The images and structure sets themselves should be further nested inside a timestamp directory representing the time at which that image was taken.</p>
 <p>For example, if a study containined both CT and MR images, as well as two structure sets associated with the CT image, the file structure should be as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">20200416_120350</span>
@@ -670,7 +671,7 @@ e.g.</p>
 </section>
 <section id="structure-sets">
 <h4>Structure sets<a class="headerlink" href="#structure-sets" title="Permalink to this headline"></a></h4>
-<p>The study’s structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the <code class="docutils literal notranslate"><span class="pre">structs</span></code> property of the <code class="docutils literal notranslate"><span class="pre">Image</span></code> itself; this is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:</p>
+<p>The study’s structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the <code class="docutils literal notranslate"><span class="pre">structure_set</span></code> property of the <code class="docutils literal notranslate"><span class="pre">Image</span></code> itself; this is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">studies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">structure_set</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ct_images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure_sets</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -681,6 +682,66 @@ e.g.</p>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object also has an associated <code class="docutils literal notranslate"><span class="pre">image</span></code> property (<code class="docutils literal notranslate"><span class="pre">structure_set.image</span></code>), which can be used to find out which <code class="docutils literal notranslate"><span class="pre">Image</span></code> is associated with that structure set.</p>
+</section>
+<section id="treatment-plans">
+<h4>Treatment plans<a class="headerlink" href="#treatment-plans" title="Permalink to this headline"></a></h4>
+<p>Data from radiotherapy treatment plans are made available as <code class="docutils literal notranslate"><span class="pre">Plan</span></code> objects.  <code class="docutils literal notranslate"><span class="pre">Study</span></code> objects group <code class="docutils literal notranslate"><span class="pre">Plan</span></code> objects in lists with names of the form <code class="docutils literal notranslate"><span class="pre">&lt;machine&gt;_plans</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;machine&gt;</span></code> identifies the treatment machine to which the plan relates.  <code class="docutils literal notranslate"><span class="pre">Image</span></code> objects and <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects group together all plans associated with them, in a list <code class="docutils literal notranslate"><span class="pre">plans</span></code>.  A <code class="docutils literal notranslate"><span class="pre">Dose</span></code> object is only ever derived from a single plan, referenced as <code class="docutils literal notranslate"><span class="pre">plan</span></code>.  Different ways of accessing a <code class="docutils literal notranslate"><span class="pre">Plan</span></code> object are shown below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Access plan from Study.</span>
+<span class="n">plan</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">la3_plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Access plan from Image to which it relates.</span>
+<span class="n">plan</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ct_images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Access plan from StructureSet to which it relates.</span>
+<span class="n">plan</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ct_structure_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Access plan from Dose (each of which can relate to only a single plan).</span>
+<span class="n">plan</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ct_doses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plan</span>
+</pre></div>
+</div>
+<p>Planning information that can then be accessed include the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Obtain plan name.</span>
+<span class="n">name</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+
+<span class="c1"># Obtain plan approval status.</span>
+<span class="n">status</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">get_approval_status</span><span class="p">()</span>
+
+<span class="c1"># Obtain planned number of treatment fractions.</span>
+<span class="n">n_fraction</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">get_n_fraction</span><span class="p">()</span>
+
+<span class="c1"># Obtain planned dose to target (i.e. tumour).</span>
+<span class="n">target_dose</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">get_target_dose</span><span class="p">()</span>
+
+<span class="c1"># Obtain list of ROI objects defined as targets.</span>
+<span class="n">targets</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">get_targets</span><span class="p">()</span>
+
+<span class="c1"># For any target, obtain the planning constraints and weight.</span>
+<span class="n">target_constraint_weight</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">weight</span>
+<span class="n">target_prescription_dose</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">prescription_dose</span>
+<span class="n">target_maximum_dose</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">maximum_dose</span>
+<span class="n">target_minimum_dose</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">minimum_dose</span>
+<span class="n">target_underdose_volume_fraction</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">underdose_volume_fraction</span>
+
+<span class="c1"># Obtain list of ROI objects defined as organs at risk.</span>
+<span class="n">oars</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">get_organs_at_risk</span><span class="p">()</span>
+
+<span class="c1"># For any organ at risk, obtain the planning constraints and weight.</span>
+<span class="n">oar_constraint_weight</span> <span class="o">=</span> <span class="n">oars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">weight</span>
+<span class="n">oar_maximum_dose</span> <span class="o">=</span> <span class="n">oars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">maximum_dose</span>
+<span class="n">oar_full_volume_dose</span> <span class="o">=</span> <span class="n">oars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">full_volume_dose</span>
+<span class="n">oar_overdose_volume_fraction</span> <span class="o">=</span> <span class="n">oars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">overdose_volume_fraction</span>
+
+<span class="c1"># For any target or organ at risk, obtain a Dose object, representing</span>
+<span class="c1"># a dose objective passed to the optimiser.  Allowed values for the</span>
+<span class="c1"># objective correspond to the constraints and weights.</span>
+<span class="c1"># Data of the resulting object may be visualised in the same way</span>
+<span class="c1"># as for any other Dose object.</span>
+<span class="n">max_dose</span> <span class="o">=</span> <span class="n">plan</span><span class="o">.</span><span class="n">get_dose_objective</span><span class="p">(</span><span class="s1">&#39;maximum_dose&#39;</span><span class="p">)</span>
+<span class="n">max_dose</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Example plot of maximum-dose objective:</p>
+<img src="_static/maximum_dose.png" alt="Plot of maximum-dose objective" height="400"/>
 </section>
 </section>
 </section>
