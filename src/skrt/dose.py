@@ -166,9 +166,16 @@ class Dose(ImageOverlay):
 
         ImageOverlay.__init__(self, *args, **kwargs)
 
+        # Ensure linking between image and dose
+        self.set_image(self.image)
+
         # Plot settings specific to dose map
         self._default_cmap = "jet"
         self._default_colorbar_label = "Dose (Gy)"
+
+        # Delete spurious attributes inherited from Image class
+        del self.plans
+        del self.doses
 
     def load(self, *args, **kwargs):
         """Load self and set default maximum plotting intensity from max of
