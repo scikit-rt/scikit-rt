@@ -292,6 +292,17 @@ in &lt;images&gt; (which should be a list of DatedStores), if provided.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.link_plan_to_doses">
+<span class="sig-name descname"><span class="pre">link_plan_to_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.link_plan_to_doses" title="Permalink to this definition"></a></dt>
+<dd><p>Link plan to doses derived from it.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>plan<span class="classifier">skrt.dose.Plan</span></dt><dd><p>Plan object for which dose associations are to be determined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.load_from_subdir">
 <span class="sig-name descname"><span class="pre">load_from_subdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.load_from_subdir" title="Permalink to this definition"></a></dt>
 <dd><p>Create objects of type &lt;dtype&gt; from each directory in &lt;subdir&gt; and 
@@ -332,19 +343,6 @@ files in subdirectories not named RTDOSE, RTSTRUCT, or RTPLAN.</p>
 <dd><p>For a given object &lt;obj&gt; and a list of potential matching objects
 &lt;possible_matches&gt;, find an object that matches &lt;obj&gt;’s path,
 &lt;obj&gt;’s date and time, or SOP Instance UID.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.patient.link_plan_to_doses">
-<span class="sig-prename descclassname"><span class="pre">skrt.patient.</span></span><span class="sig-name descname"><span class="pre">link_plan_to_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.link_plan_to_doses" title="Permalink to this definition"></a></dt>
-<dd><p>Link plan to doses derived from it.</p>
-<p>This function assumes that associations between images and doses
-have already been defined.</p>
-<p><strong>Parameter:</strong></p>
-<dl class="simple">
-<dt>plan<span class="classifier">skrt.dose.Plan</span></dt><dd><p>Plan object for which doses associations are to be determined.</p>
-</dd>
-</dl>
 </dd></dl>
 
 </section>
