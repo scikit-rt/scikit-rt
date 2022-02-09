@@ -1,6 +1,6 @@
 """Classes related to ROIs and structure sets."""
 
-from scipy import ndimage
+from scipy import interpolate, ndimage
 from skimage import draw
 from shapely import affinity
 from shapely import geometry
@@ -5139,6 +5139,61 @@ def polygon_to_contour(polygon):
     contour = np.array(contour_points)
 
     return contour
+
+def interpolate_contour_points(source, n_point=100, smoothness_per_point=0,
+        dxy=0.1):
+
+    if isinstance(source, geometry.polygon.Polygon):
+        points = list(polygon_to_contour(source))
+    elif isinstance(source, np.ndarray) or isinstance(source, list):
+        points = list(source)
+    else:
+        points = None
+
+    if points is None:
+        print('Unrecognised source passed to \'interpolate_contour_points()\'')
+        print('Source must be shapely Polygon or contour')
+        return points
+
+    # Make last point the same as first point, to create closed curve
+    points.append(points[0])
+
+    x_last, y_last = points[0]
+    x_values, y_values = ([x_last], [y_last])
+    for i in range(1, len(points)):
+        x, y = points[i]
+        if (abs(x - x_last) > dxy) or (abs(y - y_last) > dxy):
+            x_values.append(points[i][0])
+            y_values.append(points[i][1])
+        x_last, y_last = points[i]
+
+    x_values = np.array(x_values)
+    y_values = np.array(y_values)
+
+    smoothness = smoothness_per_point * len(x_values)
+
+    try:
+        tck, u = interpolate.splprep(
+            [x_values, y_values], s=smoothness, per=True)
+        xi_values, yi_values = interpolate.splev(
+            np.linspace(0., 1., n_point), tck)
+    except TypeError as problem:
+        print("WARNING: Problem in interpolate_contour_points():", problem)
+        return None
+
+    points_interpolated = list(zip(xi_values, yi_values))
+    # Remove last point, which is the same as first point
+    points_interpolated = [list(xy) for xy in points_interpolated]
+    points_interpolated.pop()
+
+    if isinstance(source, geometry.polygon.Polygon):
+        out_object = geometry.polygon.Polygon(points_interpolated)
+    elif isinstance(source, np.ndarray):
+        out_object = np.ndarray(points_interpolated)
+    else:
+        out_object = points_interpolated
+
+    return out_object
 
 def write_structure_set_dicom(
     outname, 
