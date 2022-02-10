@@ -1006,6 +1006,32 @@ only be calculated if it has not yet been cached in self._volume.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.interpolate_points">
+<span class="sig-name descname"><span class="pre">interpolate_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothness_per_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.interpolate_points" title="Permalink to this definition"></a></dt>
+<dd><p>Return new ROI object, with interpolated contour points.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>n_point<span class="classifier">int, default=None</span></dt><dd><p>Number of points per contour, after interpolation.  This must
+be set to None for dxy to be considered.</p>
+</dd>
+<dt>dxy<span class="classifier">float, default=None</span></dt><dd><p>Approximate distance required between contour points.  This is taken
+into account only if n_point is set to None.  For a contour of
+length contour_length, the number of contour points is then taken
+to be max(int(contour_length / dxy), 3).</p>
+</dd>
+<dt>smoothness_per_point<span class="classifier">float, default=0</span></dt><dd><p>Parameter determining the smoothness of the B-spline curve used
+in contour approximation for interpolation.  The product of
+smoothness_per_point and the number of contour points (specified
+directly via n_point, or indirectly via dxy) corresponds to the
+parameter s of scipy.interpolate.splprep - see documentation at:</p>
+<p><a class="reference external" href="https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep">https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep</a></p>
+<p>A smoothness_per_point of 0 forces the B-spline to pass through
+all of the pre-interpolation contour points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.is_empty">
 <span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.is_empty" title="Permalink to this definition"></a></dt>
 <dd><p>Check whether this ROI is empty.</p>
@@ -1808,6 +1834,33 @@ representing the combination.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.interpolate_points">
+<span class="sig-name descname"><span class="pre">interpolate_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothness_per_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.interpolate_points" title="Permalink to this definition"></a></dt>
+<dd><p>Return new StructureSet object, with interpolated contour points.</p>
+<p>Points are interpolated for each contour of each ROI.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>n_point<span class="classifier">int, default=None</span></dt><dd><p>Number of points per contour, after interpolation.  This must
+be set to None for dxy to be considered.</p>
+</dd>
+<dt>dxy<span class="classifier">float, default=None</span></dt><dd><p>Approximate distance required between contour points.  This is taken
+into account only if n_point is set to None.  For a contour of
+length contour_length, the number of contour points is then taken
+to be max(int(contour_length / dxy), 3).</p>
+</dd>
+<dt>smoothness_per_point<span class="classifier">float, default=0</span></dt><dd><p>Parameter determining the smoothness of the B-spline curve used
+in contour approximation for interpolation.  The product of
+smoothness_per_point and the number of contour points (specified
+directly via n_point, or indirectly via dxy) corresponds to the
+parameter s of scipy.interpolate.splprep - see documentation at:</p>
+<p><a class="reference external" href="https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep">https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep</a></p>
+<p>A smoothness_per_point of 0 forces the B-spline to pass through
+all of the pre-interpolation contour points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.load">
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.load" title="Permalink to this definition"></a></dt>
 <dd><p>Load structure set from source(s). If None, will load from own
@@ -2064,9 +2117,34 @@ the background color will be grey.</p>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.structures.interpolate_contour_points">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">interpolate_contour_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothness_per_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.interpolate_contour_points" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="skrt.structures.interpolate_points_single_contour">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">interpolate_points_single_contour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothness_per_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.interpolate_points_single_contour" title="Permalink to this definition"></a></dt>
+<dd><p>Interpolate points for a single contour.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>source<span class="classifier">shapely.polygon.Polygon/np.ndarray/list, default=None</span></dt><dd><p>Contour representation as either a shapely Polygon, a numpy
+array of [x, y] pairs or a list of [x, y] pairs.  The
+returned contour has the same representation.</p>
+</dd>
+<dt>n_point<span class="classifier">int, default=None</span></dt><dd><p>Number of points to define contour, after interpolation.  This must
+be set to None for dxy to be considered.</p>
+</dd>
+<dt>dxy<span class="classifier">float, default=None</span></dt><dd><p>Approximate distance required between contour points.  This is taken
+into account only if n_point is set to None.  For a contour of
+length contour_length, the number of contour points is then taken
+to be max(int(contour_length / dxy), 3).</p>
+</dd>
+<dt>smoothness_per_point<span class="classifier">float, default=0</span></dt><dd><p>Parameter determining the smoothness of the B-spline curve used
+in contour approximation for interpolation.  The product of
+smoothness_per_point and the number of contour points (specified
+directly via n_point, or indirectly via dxy) corresponds to the
+parameter s of scipy.interpolate.splprep - see documentation at:</p>
+<p><a class="reference external" href="https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep">https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep</a></p>
+<p>A smoothness_per_point of 0 forces the B-spline to pass through
+all of the pre-interpolation contour points.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.load_rois_dicom">
