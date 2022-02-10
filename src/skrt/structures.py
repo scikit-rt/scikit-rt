@@ -18,6 +18,7 @@ import re
 import shutil
 import skimage.measure
 import time
+import warnings
 
 import skrt.core
 import skrt.image
@@ -772,12 +773,12 @@ class ROI(skrt.core.Archive):
 
                     # Check overlap of edge pixels
                     if self.overlap_level is not None:
-                        conn = ndimage.morphology.generate_binary_structure(
+                        conn = ndimage.generate_binary_structure(
                             2, 2)
-                        edge = mask ^ ndimage.morphology.binary_dilation(
+                        edge = mask ^ ndimage.binary_dilation(
                             mask, conn)
                         if self.overlap_level >= 0.5:
-                            edge += mask ^ ndimage.morphology.binary_erosion(
+                            edge += mask ^ ndimage.binary_erosion(
                                 mask, conn)
 
                         # Check whether each edge pixel has sufficient overlap
@@ -1010,6 +1011,53 @@ class ROI(skrt.core.Archive):
         if idx is None:
             return False
         return idx in self.get_indices(view)
+
+    def interpolate_points(self, n_point=None, dxy=None,
+        smoothness_per_point=0):
+        '''
+        Return new ROI object, with interpolated contour points.
+
+        **Parameters:**
+
+        n_point : int, default=None
+            Number of points per contour, after interpolation.  This must
+            be set to None for dxy to be considered.
+
+        dxy : float, default=None
+            Approximate distance required between contour points.  This is taken
+            into account only if n_point is set to None.  For a contour of
+            length contour_length, the number of contour points is then taken
+            to be max(int(contour_length / dxy), 3).  
+
+        smoothness_per_point : float, default=0
+            Parameter determining the smoothness of the B-spline curve used
+            in contour approximation for interpolation.  The product of
+            smoothness_per_point and the number of contour points (specified
+            directly via n_point, or indirectly via dxy) corresponds to the
+            parameter s of scipy.interpolate.splprep - see documentation at:
+        
+            https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
+
+            A smoothness_per_point of 0 forces the B-spline to pass through
+            all of the pre-interpolation contour points.
+        '''
+
+        new_contours = {}
+        for z, contours in self.get_contours().items():
+            new_contours[z] = []
+            for contour in contours:
+                new_contour = interpolate_points_single_contour(
+                        contour, n_point, dxy, smoothness_per_point)
+                new_contours[z].append(new_contour)
+
+        # Clone self, then clear mask and reset contours of clone
+        roi = ROI(self)
+        roi.input_contours = new_contours
+        roi.contours = {"x-y": new_contours}
+        roi.loaded_mask = False
+        roi.mask = None
+
+        return roi
 
     def get_centroid(
         self,
@@ -2304,7 +2352,7 @@ class ROI(skrt.core.Archive):
                 mask2 = other.get_mask(view, flatten=True)
 
         # Make structuring element
-        conn2 = ndimage.morphology.generate_binary_structure(2, connectivity)
+        conn2 = ndimage.generate_binary_structure(2, connectivity)
         if mask1.ndim == 2:
             conn = conn2
         else:
@@ -2312,12 +2360,12 @@ class ROI(skrt.core.Archive):
             conn[:, :, 1] = conn2
 
         # Get outer pixel of binary maps
-        surf1 = mask1 ^ ndimage.morphology.binary_erosion(mask1, conn)
-        surf2 = mask2 ^ ndimage.morphology.binary_erosion(mask2, conn)
+        surf1 = mask1 ^ ndimage.binary_erosion(mask1, conn)
+        surf2 = mask2 ^ ndimage.binary_erosion(mask2, conn)
 
         # Make arrays of distances to surface of each pixel
-        dist1 = ndimage.morphology.distance_transform_edt(~surf1, voxel_size)
-        dist2 = ndimage.morphology.distance_transform_edt(~surf2, voxel_size)
+        dist1 = ndimage.distance_transform_edt(~surf1, voxel_size)
+        dist2 = ndimage.distance_transform_edt(~surf2, voxel_size)
 
         # Get signed arrays
         if signed:
@@ -5006,6 +5054,51 @@ class StructureSet(skrt.core.Archive):
 
         return self.plans
 
+    def interpolate_points(self, n_point=None, dxy=None,
+        smoothness_per_point=0):
+        '''
+        Return new StructureSet object, with interpolated contour points.
+
+        Points are interpolated for each contour of each ROI.
+
+        **Parameters:**
+
+        n_point : int, default=None
+            Number of points per contour, after interpolation.  This must
+            be set to None for dxy to be considered.
+
+        dxy : float, default=None
+            Approximate distance required between contour points.  This is taken
+            into account only if n_point is set to None.  For a contour of
+            length contour_length, the number of contour points is then taken
+            to be max(int(contour_length / dxy), 3).  
+
+        smoothness_per_point : float, default=0
+            Parameter determining the smoothness of the B-spline curve used
+            in contour approximation for interpolation.  The product of
+            smoothness_per_point and the number of contour points (specified
+            directly via n_point, or indirectly via dxy) corresponds to the
+            parameter s of scipy.interpolate.splprep - see documentation at:
+        
+            https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
+
+            A smoothness_per_point of 0 forces the B-spline to pass through
+            all of the pre-interpolation contour points.
+        '''
+
+        # Interpolate points for the rois
+        rois = []
+        for roi in self.get_rois():
+            rois.append(roi.interpolate_points(
+                n_point, dxy, smoothness_per_point))
+
+        # Clone self, then reset source and rois
+        ss = StructureSet(self)
+        ss.sources = rois
+        ss.rois = rois
+
+        return ss
+
 
 class StructureSetIterator:
 
@@ -5140,11 +5233,46 @@ def polygon_to_contour(polygon):
 
     return contour
 
-def interpolate_contour_points(source, n_point=100, smoothness_per_point=0,
-        dxy=0.1):
+def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
+        smoothness_per_point=0):
+    '''
+    Interpolate points for a single contour.
 
+    **Parameters:**
+
+    source : shapely.polygon.Polygon/np.ndarray/list, default=None
+        Contour representation as either a shapely Polygon, a numpy
+        array of [x, y] pairs or a list of [x, y] pairs.  The
+        returned contour has the same representation.
+
+    n_point : int, default=None
+        Number of points to define contour, after interpolation.  This must
+        be set to None for dxy to be considered.
+
+    dxy : float, default=None
+        Approximate distance required between contour points.  This is taken
+        into account only if n_point is set to None.  For a contour of
+        length contour_length, the number of contour points is then taken
+        to be max(int(contour_length / dxy), 3).  
+
+    smoothness_per_point : float, default=0
+        Parameter determining the smoothness of the B-spline curve used
+        in contour approximation for interpolation.  The product of
+        smoothness_per_point and the number of contour points (specified
+        directly via n_point, or indirectly via dxy) corresponds to the
+        parameter s of scipy.interpolate.splprep - see documentation at:
+        
+        https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
+
+        A smoothness_per_point of 0 forces the B-spline to pass through
+        all of the pre-interpolation contour points.
+    '''
+
+    # Extract list of contour points from source.
+    contour_length = None
     if isinstance(source, geometry.polygon.Polygon):
         points = list(polygon_to_contour(source))
+        contour_length = source.length
     elif isinstance(source, np.ndarray) or isinstance(source, list):
         points = list(source)
     else:
@@ -5153,43 +5281,70 @@ def interpolate_contour_points(source, n_point=100, smoothness_per_point=0,
     if points is None:
         print('Unrecognised source passed to \'interpolate_contour_points()\'')
         print('Source must be shapely Polygon or contour')
-        return points
+        return None
 
-    # Make last point the same as first point, to create closed curve
-    points.append(points[0])
+    # If number of contour points not passed directly,
+    # try to determine its value from the distance between contour points.
+    if n_point is None and dxy:
+        if contour_length is None:
+            contour_length = contour_to_polygon(source).length
+        n_point = max(int(contour_length / dxy), 3)
+    if n_point is None:
+        print('No interpolation performed')
+        print('Number of contour points (n_point) or distance between points'
+                'must be specified.')
+        return None
 
+    # Discard points that aren't separated from the preceeding point
+    # by at least some minimum distance.
+    dxy_min = 0.1
     x_last, y_last = points[0]
     x_values, y_values = ([x_last], [y_last])
     for i in range(1, len(points)):
         x, y = points[i]
-        if (abs(x - x_last) > dxy) or (abs(y - y_last) > dxy):
+        if (abs(x - x_last) > dxy_min) or (abs(y - y_last) > dxy_min):
             x_values.append(points[i][0])
             y_values.append(points[i][1])
         x_last, y_last = points[i]
 
+    # Ensure closed curve.
+    if ((abs(x_values[-1] - x_values[0]) > dxy_min) or
+            (abs(y_values[-1] - y_values[0]) > dxy_min)):
+        x_values.append(x_values[0])
+        y_values.append(y_values[0])
+        added_point = 1
+    else:
+        added_point = 0
+
     x_values = np.array(x_values)
     y_values = np.array(y_values)
 
+    # Interpolate contour points.
     smoothness = smoothness_per_point * len(x_values)
-
     try:
-        tck, u = interpolate.splprep(
-            [x_values, y_values], s=smoothness, per=True)
-        xi_values, yi_values = interpolate.splev(
-            np.linspace(0., 1., n_point), tck)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="Setting x")
+            tck, u = interpolate.splprep(
+                [x_values, y_values], s=smoothness, per=True)
+            xi_values, yi_values = interpolate.splev(
+                np.linspace(0., 1., n_point + added_point), tck)
     except TypeError as problem:
         print("WARNING: Problem in interpolate_contour_points():", problem)
         return None
 
+    # Store points in a form that may be converted to a numpy array.
     points_interpolated = list(zip(xi_values, yi_values))
-    # Remove last point, which is the same as first point
-    points_interpolated = [list(xy) for xy in points_interpolated]
-    points_interpolated.pop()
+    points_interpolated = [xy for xy in points_interpolated]
 
+    # If point was added for the B-spline fitting, remove it now.
+    if added_point:
+        points_interpolated.pop()
+
+    # Return interpolated contour in the same representation as the source.
     if isinstance(source, geometry.polygon.Polygon):
         out_object = geometry.polygon.Polygon(points_interpolated)
     elif isinstance(source, np.ndarray):
-        out_object = np.ndarray(points_interpolated)
+        out_object = np.array(points_interpolated)
     else:
         out_object = points_interpolated
 
