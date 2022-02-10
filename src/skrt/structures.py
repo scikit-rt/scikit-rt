@@ -5279,7 +5279,8 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
         points = None
 
     if points is None:
-        print('Unrecognised source passed to \'interpolate_contour_points()\'')
+        print('Unrecognised source passed to '
+                '\'interpolate_points_single_contour()\'')
         print('Source must be shapely Polygon or contour')
         return None
 
@@ -5295,9 +5296,12 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
                 'must be specified.')
         return None
 
+    # Make last point the same as the first, to ensure closed curve.
+    points.append(points[0])
+
     # Discard points that aren't separated from the preceeding point
     # by at least some minimum distance.
-    dxy_min = 0.1
+    dxy_min = 0.001
     x_last, y_last = points[0]
     x_values, y_values = ([x_last], [y_last])
     for i in range(1, len(points)):
@@ -5307,38 +5311,26 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
             y_values.append(points[i][1])
         x_last, y_last = points[i]
 
-    # Ensure closed curve.
-    if ((abs(x_values[-1] - x_values[0]) > dxy_min) or
-            (abs(y_values[-1] - y_values[0]) > dxy_min)):
-        x_values.append(x_values[0])
-        y_values.append(y_values[0])
-        added_point = 1
-    else:
-        added_point = 0
-
     x_values = np.array(x_values)
     y_values = np.array(y_values)
 
     # Interpolate contour points.
     smoothness = smoothness_per_point * len(x_values)
     try:
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message="Setting x")
+#        with warnings.catch_warnings():
+#            warnings.filterwarnings("ignore", message="Setting x")
             tck, u = interpolate.splprep(
-                [x_values, y_values], s=smoothness, per=True)
-            xi_values, yi_values = interpolate.splev(
-                np.linspace(0., 1., n_point + added_point), tck)
+                    [x_values, y_values], s=smoothness, per=True)
     except TypeError as problem:
         print("WARNING: Problem in interpolate_contour_points():", problem)
         return None
 
+    xi_values, yi_values = interpolate.splev(
+        np.linspace(0., 1., n_point + 1), tck)
+
     # Store points in a form that may be converted to a numpy array.
     points_interpolated = list(zip(xi_values, yi_values))
     points_interpolated = [xy for xy in points_interpolated]
-
-    # If point was added for the B-spline fitting, remove it now.
-    if added_point:
-        points_interpolated.pop()
 
     # Return interpolated contour in the same representation as the source.
     if isinstance(source, geometry.polygon.Polygon):
