@@ -2416,7 +2416,8 @@ class SingleViewer:
             centroid_units=self.roi_length_units,
             force=self.force_roi_comp_calc,
             colored=True,
-            html=True
+            html=True,
+            roi_kwargs=self.roi_kwargs,
         )
 
         # Only force recalculation of global ROI metrics once

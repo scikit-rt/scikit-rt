@@ -2804,15 +2804,17 @@ class ROI(skrt.core.Archive):
         return df
 
     def get_comparison_name(self, roi, camelcase=False, colored=False,
-                            grey=False):
+                            grey=False, roi_kwargs={}):
         """Get name of comparison between this ROI and another."""
 
         own_name = self.name
         other_name = roi.name
 
         if colored:
-            own_name = get_colored_roi_string(self, grey)
-            other_name = get_colored_roi_string(roi, grey)
+            own_color = self.get_color_from_kwargs(roi_kwargs)
+            own_name = get_colored_roi_string(self, grey, own_color)
+            other_color = roi.get_color_from_kwargs(roi_kwargs)
+            other_name = get_colored_roi_string(roi, grey, other_color)
 
         if self.name == roi.name:
             if camelcase:
@@ -5620,6 +5622,7 @@ def compare_roi_pairs(
     name_as_index=True,
     greyed_out=None,
     colored=False,
+    roi_kwargs={},
     **kwargs
 ):
     if html:
@@ -5642,7 +5645,8 @@ def compare_roi_pairs(
                 df_row[col] = "--"
 
         # Adjust comparison name
-        comp_name = roi1.get_comparison_name(roi2, colored=colored, grey=grey)
+        comp_name = roi1.get_comparison_name(roi2, colored=colored, grey=grey,
+                roi_kwargs=roi_kwargs)
         if name_as_index:
             df_row.rename({df_row.index[0]: comp_name}, inplace=True)
         else:
