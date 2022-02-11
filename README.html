@@ -147,7 +147,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="scikit-rt">
+  <section id="scikit-rt">
 <h1>scikit-rt<a class="headerlink" href="#scikit-rt" title="Permalink to this headline"></a></h1>
 <p>A suite of tools for loading, plotting, and analysing medical imaging data.</p>
 <p>This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].</p>
@@ -169,7 +169,7 @@ allows for scikit-rt code to be used from a jupyter notebook.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">skrt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span>
 </pre></div>
 </div>
-<ol class="arabic simple">
+<ol class="arabic simple" start="4">
 <li><p>Activate the environment by running:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
@@ -186,13 +186,13 @@ allows for scikit-rt code to be used from a jupyter notebook.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
-<ol class="arabic simple">
+<ol class="arabic simple" start="4">
 <li><p>If using Windows, you will also need to install shapely by running:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">shapely</span>
 </pre></div>
 </div>
-<ol class="arabic simple">
+<ol class="arabic simple" start="5">
 <li><p>If you want to be able to calculate the STAPLE consensus of contours, you must also install SimpleITK:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">simpleitk</span>
@@ -230,7 +230,7 @@ export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 </pre></div>
 </div>
-<ol class="arabic simple">
+<ol class="arabic simple" start="4">
 <li><p>If you are on Windows or didn’t do step 3, any time you want to use image registration in scikit-rt, you will need to run:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_elastix_dir</span>
@@ -274,12 +274,12 @@ server port (8888) on the container side.</p></li>
 <section id="table-of-contents">
 <h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline"></a></h2>
 <ol class="arabic simple">
-<li><p><a class="reference external" href="#1-images">Images</a></p></li>
-<li><p><a class="reference external" href="#2-rois-and-structure-sets">Regions of interest (ROIs) and structure sets</a></p></li>
-<li><p><a class="reference external" href="#3-patients">Patients and studies</a></p></li>
-<li><p><a class="reference external" href="#4-synthetic-data">Synthetic data</a></p></li>
+<li><p><span class="xref myst">Images</span></p></li>
+<li><p><span class="xref myst">Regions of interest (ROIs) and structure sets</span></p></li>
+<li><p><span class="xref myst">Patients and studies</span></p></li>
+<li><p><span class="xref myst">Synthetic data</span></p></li>
 <li><p><a class="reference internal" href="image_registration.html"><span class="doc std std-doc">Image registration</span></a></p></li>
-<li><p><a class="reference external" href="#6-keyboard-shortcuts-for-pop-out-interactive-viewer">Keyboard shortcuts for pop-out interactive viewer</a></p></li>
+<li><p><span class="xref myst">Keyboard shortcuts for pop-out interactive viewer</span></p></li>
 </ol>
 </section>
 <section id="images">
