@@ -1854,6 +1854,7 @@ class Image(skrt.core.Archive):
                         show=False,
                         include_image=False,
                         no_invert=True,
+                        color=roi.get_color_from_kwargs(roi_kwargs),
                         **roi_kwargs
                     )
                     plotted_rois.append(roi)
@@ -1914,8 +1915,9 @@ class Image(skrt.core.Archive):
                 if max(roi_ylim) < min(ylim) or min(roi_ylim) > max(ylim):
                     continue
 
+                color=roi.get_color_from_kwargs(roi_kwargs)
                 roi_handles.append(
-                    mpatches.Patch(color=roi.color, label=roi.name))
+                    mpatches.Patch(color=color, label=roi.name))
 
             # Draw ROI legend
             if legend and len(roi_handles):

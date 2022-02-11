@@ -3626,6 +3626,23 @@ class ROI(skrt.core.Archive):
 
         return self.plans
 
+    def get_color_from_kwargs(self, kwargs={}, key='roi_colors'):
+        '''
+        Return ROI colour passed via dictionary of keyword arguments.
+
+        **Parameters:**
+
+        kwargs : dict, default={}
+            Dictionary of keyword arguments, which may include
+            parameter providing dictionary of ROI colours for plotting.
+
+        key : str, default='roi_colors'
+            Key in kwargs dictionary specifying parameter that, if
+            present, provides dictionary of ROI colours.
+        '''
+        roi_colors = kwargs.get(key, {})
+        return roi_colors.get(self.name, self.color)
+
 class StructureSet(skrt.core.Archive):
     """Structure set."""
 
@@ -4216,6 +4233,7 @@ class StructureSet(skrt.core.Archive):
         html=False, 
         colored=False,
         greyed_out=None,
+        roi_kwargs={},
         **kwargs):
         """Get pandas DataFrame of geometric properties for all ROIs.
         If no sl/idx/pos is given, the central slice of each ROI will be used.
@@ -4251,7 +4269,9 @@ class StructureSet(skrt.core.Archive):
 
             # Set ROI name to have colored background if requested
             if colored:
-                col_str = get_colored_roi_string(roi, grey=(roi in greyed_out))
+                color = roi.get_color_from_kwargs(roi_kwargs)
+                col_str = get_colored_roi_string(
+                        roi, grey=(roi in greyed_out), color=color)
                 if name_as_index:
                     df_row.rename({df_row.index[0]: col_str}, inplace=True)
                 else:
@@ -5577,15 +5597,17 @@ def best_text_color(red, green, blue):
     return "white"
 
 
-def get_colored_roi_string(roi, grey=False):
+def get_colored_roi_string(roi, grey=False, color=None):
     """Get ROI name in HTML with background color from roi.color. If grey=True,
     the background color will be grey."""
 
+    if color is None:
+        color = roi.color
     if grey:
         red, green, blue = 255, 255, 255
         text_col = 200, 200, 200
     else:
-        red, green, blue = [c * 255 for c in roi.color[:3]]
+        red, green, blue = [c * 255 for c in color[:3]]
         text_col = best_text_color(red, green, blue)
     return (
         '<p style="background-color: rgb({}, {}, {}); '

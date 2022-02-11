@@ -1673,6 +1673,11 @@ class SingleViewer:
         self.roi_area_units = area_units
         self.roi_length_units = length_units
         self.roi_kwargs = roi_kwargs if roi_kwargs is not None else {}
+        self.roi_kwargs['roi_colors'] = {}
+        if 'roi_colors' in kwargs:
+            for roi_name, roi_color in kwargs['roi_colors'].items():
+                self.roi_kwargs['roi_colors'][roi_name] = mpl.colors.to_rgba(
+                        roi_color)
         self.roi_comp_metrics = compare_rois if is_list(compare_rois) \
                 else None
 
@@ -2335,7 +2340,8 @@ class SingleViewer:
             rows = []
             for roi in self.rois:
                 grey = not self.roi_is_visible(roi)
-                rows.append({'ROI': get_colored_roi_string(roi, grey)})
+                color = roi.get_color_from_kwargs(self.roi_kwargs)
+                rows.append({'ROI': get_colored_roi_string(roi, grey, color)})
             df_roi_info = pd.DataFrame(rows)
             self.ui_roi_table.value = df_to_html(df_roi_info)
 
@@ -2360,7 +2366,8 @@ class SingleViewer:
                 force=self.force_roi_geometry_calc,
                 greyed_out=non_visible,
                 colored=True,
-                html=True
+                html=True,
+                roi_kwargs=self.roi_kwargs,
             )
 
             # Only force recalculation of global ROI metrics once
