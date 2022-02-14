@@ -1176,13 +1176,13 @@ class Registration(Data):
         self.ensure_registered(step)
 
         # Create new object
-        storage[step] = run_transformix_on_all(
+        storage[step] = self.run_transformix_on_all(
             is_jac, outdir=self.outdirs[step], tfile=self.tfiles[step], 
             image=self.transformed_images[step]
         )
         return storage[step]
 
-    def get_jacobian(self, step=-1):
+    def get_jacobian(self, step=-1, force=False):
         """Generate Jacobian determinant using transformix for a given 
         registration step (or return existing Jacobian object, unless 
         force=True).
@@ -1195,6 +1195,46 @@ class Registration(Data):
         registration step."""
         
         return self._get_jac_or_def(step, False, force)
+
+    def run_transformix_on_all(self, is_jac, outdir, tfile, image=None):
+        """Run transformix with either `-jac all` or `-def all` to create a
+        Jacobian determinant or deformation field file, and return either
+        a Jacobian or DeformationField object initialised from the output file.
+        """
+
+        # Settings
+        if is_jac:
+            opt = "-jac"
+            dtype = Jacobian
+            expected_outname = "spatialJacobian.nii"
+            title = "Jacobian determinant"
+        else:
+            opt = "-def"
+            dtype = DeformationField
+            expected_outname = "deformationField.nii"
+            title = "Deformation field"
+
+        # Run transformix
+        cmd = [
+            _transformix,
+            opt,
+            "all",
+            "-out",
+            outdir,
+            "-tp",
+            tfile
+        ]
+        self.logger.info(f'Running command:\n {" ".join(cmd)}')
+        code = subprocess.run(cmd, capture_output=self.capture_output).returncode
+        if code:
+            logfile = os.path.join(outdir, 'transformix.log')
+            raise RuntimeError(f"Creation of {title }failed. See {logfile} for"
+                           " more info.")
+
+        # Create output object
+        output_file = os.path.join(outdir, expected_outname)
+        assert os.path.exists(output_file)
+        return dtype(output_file, image=image, title=title)
 
 
 class Jacobian(ImageOverlay):
@@ -1397,48 +1437,6 @@ class DeformationField:
                 output[i] = 2
 
         return output
-
-
-
-def run_transformix_on_all(is_jac, outdir, tfile, image=None):
-    """Run transformix with either `-jac all` or `-def all` to create a
-    Jacobian determinant or deformation field file, and return either
-    a Jacobian or DeformationField object initialised from the output file.
-    """
-
-    # Settings
-    if is_jac:
-        opt = "-jac"
-        dtype = Jacobian
-        expected_outname = "spatialJacobian.nii"
-        name = "Jacobian determinant"
-    else:
-        opt = "-def"
-        dtype = DeformationField
-        expected_outname = "deformationField.nii"
-        name = "Deformation field"
-
-    # Run transformix
-    cmd = [
-        _transformix,
-        opt,
-        "all",
-        "-out",
-        outdir,
-        "-tp",
-        tfile
-    ]
-    self.logger.info('Running command:\n {" ".join(cmd)}')
-    code = subprocess.run(cmd, capture_output=self.capture_output).returncode
-    if code:
-        logfile = os.path.join(outdir, 'transformix.log')
-        raise RuntimeError(f"Jacobian creation failed. See {logfile} for "
-                           " more info.")
-
-    # Create output object
-    output_file = os.path.join(outdir, expected_outname)
-    assert os.path.exists(output_file)
-    return dtype(output_file, image=image, name=name)
 
 
 def set_elastix_dir(path):
