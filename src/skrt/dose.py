@@ -174,8 +174,9 @@ class Dose(ImageOverlay):
         self._default_colorbar_label = "Dose (Gy)"
 
         # Delete spurious attributes inherited from Image class
-        del self.plans
-        del self.doses
+        for attribute in ['doses', 'plans']:
+            if hasattr(self, attribute):
+                delattr(self, attribute)
 
     def load(self, *args, **kwargs):
         """Load self and set default maximum plotting intensity from max of
