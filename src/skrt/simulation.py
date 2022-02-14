@@ -145,12 +145,22 @@ class SyntheticImage(Image):
         kwargs.setdefault("rois", -1)
         Image.plot(self, **kwargs)
 
-    def view(self, **kwargs):
-        """View the current image with QuickViewer."""
+    def view(self, images=None, **kwargs):
+        """View self with BetterViewer along with any additional images in 
+        <images>. Any ``**kwargs`` will be passed to BetterViewer
+        initialisation.
+        """
 
         from skrt.better_viewer import BetterViewer
+        ims = [self]
+        if images is not None:
+            if isinstance(images, Image):
+                ims.append(images)
+            else:
+                ims.extend(images)
         kwargs.setdefault("rois", self.get_structure_set())
-        return BetterViewer(self.get_image(), **kwargs)
+
+        return BetterViewer(ims, **kwargs)
 
     def get_roi_data(self):
         """Get dict of ROIs and names with any transformations applied."""
