@@ -134,6 +134,89 @@ in voxels in each dimension.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="skrt.registration.Grid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.dose.html#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.dose.ImageOverlay</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Grid.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise from a medical image source.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><dl class="simple">
+<dt>Source of image data. Can be either:</dt><dd><ol class="loweralpha simple">
+<li><p>A string containing the path to a dicom or nifti file;</p></li>
+<li><p>A string containing the path to a numpy file containing a
+2D or 3D array;</p></li>
+<li><p>A 2D or 3D numpy array;</p></li>
+<li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
+<li><p>An existing Image object to be cloned; in this case, all 
+other input args except &lt;title&gt; will be ignored, as these 
+will be taken from the existing Image.</p></li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
+can be loaded later with the load() method.</p>
+</dd>
+<dt>title<span class="classifier">str, default=None</span></dt><dd><p>Title to use when plotting the image. If None and &lt;source&gt; is a
+path, a title will be automatically generated from the filename.</p>
+</dd>
+<dt>affine<span class="classifier">4x4 array, default=None</span></dt><dd><p>Array containing the affine matrix to use if &lt;source&gt; is a numpy
+array or path to a numpy file. If not None, this takes precendence
+over &lt;voxel_size&gt; and &lt;origin&gt;.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=(1, 1, 1)</span></dt><dd><p>Voxel sizes in mm in order (x, y, z) to use if &lt;source&gt; is a numpy
+array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>origin<span class="classifier">tuple, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z) to use if &lt;source&gt; is a
+numpy array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>nifti_array<span class="classifier">bool, default=False</span></dt><dd><p>If True and &lt;source&gt; is a numpy array or numpy file, the array
+will be treated as a nifti-style array, i.e. (x, y, z) in
+(row, column, slice), as opposed to dicom style.</p>
+</dd>
+<dt>downsample<span class="classifier">int/list, default=None</span></dt><dd><p>Amount by which to downsample the image. Can be a single value for
+all axes, or a list containing downsampling amounts in order
+(x, y, z).</p>
+</dd>
+<dt>dtype<span class="classifier">type, default=None</span></dt><dd><p>Type to which loaded data should be cast.</p>
+</dd>
+<dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
+timestamp generated from current date and time.</p>
+</dd>
+<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+be specified as a two-element tuple, giving minimum and maximum,
+or if set to None then the images full intensity range is
+used.  If WindowCenter and WindowWidth are defined in a
+DICOM source file, these values will be used instead to
+define the default intensity range.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Grid.view">
+<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.view" title="Permalink to this definition"></a></dt>
+<dd><p>View with BetterViewer, optionally overlaying on image.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, this ImageOverlay will be displayed overlaid on its
+underlying Image.</p>
+</dd>
+<dt>kwarg_name<span class="classifier">str, default=None</span></dt><dd><p>Name of kwarg under which to provide self to the call to
+self.image.Image.view() if include_image=True. By default,
+self will be passed to the “dose” parameter.</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="skrt.registration.Jacobian">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.dose.html#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.dose.ImageOverlay</span></code></a></p>
@@ -209,7 +292,7 @@ underlying Image.</p>
 self.image.Image.view() if include_image=True. By default,
 self will be passed to the “dose” parameter.</p>
 </dd>
-<dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
+<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -425,6 +508,43 @@ index of that step name in self.steps.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.get_transformed_grid">
+<span class="sig-name descname"><span class="pre">get_transformed_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(30,</span> <span class="pre">30,</span> <span class="pre">30)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">2,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foreground</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_transformed_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Obtaing transformed grid.</p>
+<p>A three-dimensional grid is defined in the space of
+the moving image, and is transformed by applying the
+result of a registration step.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>step<span class="classifier">int, default=-1</span></dt><dd><p>Registration step for which transformed grid is
+to be obtained.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False, return any previously calculated transformed
+grid.  If True, disregard any previous calculations.</p>
+</dd>
+<dt>spacing<span class="classifier">tuple, default=(30, 30, 30)</span></dt><dd><p>Spacing along (x, y, z) directions of grid lines.  If
+voxel_units is True, values are taken to be in numbers
+of voxels.  Otherwise, values are taken to be in the
+same units as the voxel dimensions of the moving image.</p>
+</dd>
+<dt>thickness: tuple, default=(2, 2, 2)</dt><dd><p>Thickness along (x, y, z) directions of grid lines.  If
+voxel_units is True, values are taken to be in numbers
+of voxels.  Otherwise, values are taken to be in the
+same units as the voxel dimensions of the moving image.</p>
+</dd>
+<dt>background: int/float, default=-1024</dt><dd><p>Intensity value to be assigned to voxels not on grid lines.</p>
+</dd>
+<dt>foreground: int/float, default=1024</dt><dd><p>Intensity value to be assigned to voxels on grid lines.</p>
+</dd>
+<dt>voxel_units: bool, default=False</dt><dd><p>If True, values for spacing and thickness are taken to be
+in numbers of voxels.  If False, values for spacing and
+thickness are taken to be in the same units as the
+voxel dimensions of the moving image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_transformed_image">
 <span class="sig-name descname"><span class="pre">get_transformed_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_transformed_image" title="Permalink to this definition"></a></dt>
 <dd><p>Get the transformed moving image for a given step, by default the
@@ -581,12 +701,19 @@ a Jacobian or DeformationField object initialised from the output file.</p>
 <dt>im<span class="classifier">Image/str</span></dt><dd><p>The Image object to set, or a path that can be used to intialise
 an Image object.</p>
 </dd>
-<dt>category<span class="classifier">str</span></dt><dd><p>Category of image: “fixed”, “moving”, “fixed_mask”, “moving_mask”.</p>
+<dt>category<span class="classifier">str</span></dt><dd><p>Category of image: “fixed”, “moving”, “fixed_mask”, “moving_mask”,
+“moving_grid”.</p>
 </dd>
 <dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image file within self.path will be overwritten by
 this image even if it already exists.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.set_moving_grid">
+<span class="sig-name descname"><span class="pre">set_moving_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.set_moving_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Assign a grid in the reference system of the moving image.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -607,13 +734,13 @@ this image even if it already exists.</p>
 <dd><p>Call one of the transform functions, depending on the type of
 <cite>to_transform</cite>. Functions called depending on type are:</p>
 <dl class="simple">
-<dt>Image:</dt><dd><p>transform_image(to_transform, <a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs)</p>
+<dt>Image:</dt><dd><p>transform_image(to_transform, <a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs)</p>
 </dd>
-<dt>str:</dt><dd><p>transform_data(to_transform, <a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs)</p>
+<dt>str:</dt><dd><p>transform_data(to_transform, <a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs)</p>
 </dd>
-<dt>StructureSet:</dt><dd><p>transform_structure_set(to_transform, <a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs)</p>
+<dt>StructureSet:</dt><dd><p>transform_structure_set(to_transform, <a href="#id25"><span class="problematic" id="id26">`</span></a><a href="#id27"><span class="problematic" id="id28">**</span></a><a href="#id29"><span class="problematic" id="id30">`</span></a>kwargs)</p>
 </dd>
-<dt>ROI:</dt><dd><p>transform_roi(to_transform, <a href="#id25"><span class="problematic" id="id26">`</span></a><a href="#id27"><span class="problematic" id="id28">**</span></a><a href="#id29"><span class="problematic" id="id30">`</span></a>kwargs)</p>
+<dt>ROI:</dt><dd><p>transform_roi(to_transform, <a href="#id31"><span class="problematic" id="id32">`</span></a><a href="#id33"><span class="problematic" id="id34">**</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>kwargs)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -750,7 +877,7 @@ the result of the final step will be shown.</p>
 <dt>compare_with_fixed<span class="classifier">bool, default=True</span></dt><dd><p>If True, the result will be displayed in comparison with the
 fixed image.</p>
 </dd>
-<dt><a href="#id31"><span class="problematic" id="id32">`</span></a><a href="#id33"><span class="problematic" id="id34">**</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>kwargs :</dt><dd><p>Optional keyword arguments to pass to BetterViewer.</p>
+<dt><a href="#id37"><span class="problematic" id="id38">`</span></a><a href="#id39"><span class="problematic" id="id40">**</span></a><a href="#id41"><span class="problematic" id="id42">`</span></a>kwargs :</dt><dd><p>Optional keyword arguments to pass to BetterViewer.</p>
 </dd>
 </dl>
 </dd></dl>

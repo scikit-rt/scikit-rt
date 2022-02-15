@@ -364,6 +364,36 @@ initialisation.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.simulation.make_grid">
+<span class="sig-prename descclassname"><span class="pre">skrt.simulation.</span></span><span class="sig-name descname"><span class="pre">make_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(30,</span> <span class="pre">30,</span> <span class="pre">30)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">2,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foreground</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.make_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Create a synthetic image of a grid pattern for a specified image.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Reference image, for which grid pattern is to be created.</p>
+</dd>
+<dt>spacing<span class="classifier">tuple, default=(30, 30, 30)</span></dt><dd><p>Spacing along (x, y, z) directions of grid lines.  If
+voxel_units is True, values are taken to be in numbers
+of voxels.  Otherwise, values are taken to be in the
+same units as the voxel dimensions of the reference image.</p>
+</dd>
+<dt>thickness: tuple, default=(2, 2, 2)</dt><dd><p>Thickness along (x, y, z) directions of grid lines.  If
+voxel_units is True, values are taken to be in numbers
+of voxels.  Otherwise, values are taken to be in the
+same units as the voxel dimensions of the reference image.</p>
+</dd>
+<dt>background: int/float, default=-1024</dt><dd><p>Intensity value to be assigned to voxels not on grid lines.</p>
+</dd>
+<dt>foreground: int/float, default=1024</dt><dd><p>Intensity value to be assigned to voxels on grid lines.</p>
+</dd>
+<dt>voxel_units: bool, default=False</dt><dd><p>If True, values for spacing and thickness are taken to be
+in numbers of voxels.  If False, values for spacing and
+thickness are taken to be in the same units as the
+voxel dimensions of the reference image.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
