@@ -20,7 +20,7 @@ from skrt.image import (
     _default_figsize
 )
 from skrt.dose import Dose
-from skrt.registration import Jacobian
+from skrt.registration import Grid, Jacobian
 from skrt.structures import (
     StructureSet, 
     ROI, 
@@ -44,6 +44,7 @@ class BetterViewer:
         dose=None,
         rois=None,
         #  multi_rois=None,
+        grid=None,
         jacobian=None,
         df=None,
         share_slider=True,
@@ -210,6 +211,10 @@ class BetterViewer:
             If True, add the option to plot the consensus of ROIs rather than
             plotting individually. Only works if a single StructureSet is
             provided for each image.
+
+        grid : string/nifti/array/list, default=None
+            Source(s) of grid array(s) to overlay on each plot
+            (see valid image sources for <images>).
 
         jacobian : string/nifti/array/list, default=None
             Source(s) of jacobian determinant array(s) to overlay on each plot
@@ -452,6 +457,15 @@ class BetterViewer:
         mask_threshold : float, default=0.5
             Threshold on mask array; voxels with values below this threshold
             will be masked (or values above, if <invert_mask> is True).
+
+        grid_opacity : float, default=0.4
+            Initial opacity of the overlaid grid. Can later
+            be changed interactively.
+
+        grid_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
+            for the grid. See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
+            for options.
 
         jacobian_opacity : float, default=0.5
             Initial opacity of the overlaid jacobian determinant. Can later
@@ -734,6 +748,7 @@ class BetterViewer:
         self.mask = self.get_input_list(mask)
         self.rois = self.get_input_list(rois, allow_sublist=True)
         #  self.multi_rois = self.get_input_list(multi_rois, allow_sublist=True)
+        self.grid = self.get_input_list(grid)
         self.jacobian = self.get_input_list(jacobian)
         self.df = self.get_input_list(df)
 
@@ -752,6 +767,7 @@ class BetterViewer:
                 mask=self.mask[i],
                 rois=self.rois[i],
                 #  multi_rois=self.multi_rois[i],
+                grid=self.grid[i],
                 jacobian=self.jacobian[i],
                 df=self.df[i],
                 standalone=False,
@@ -995,6 +1011,8 @@ class BetterViewer:
                 self.extra_ui.append(getattr(v0, 'ui_' + attr))
         if self.any_attr('jacobian'):
             self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
+        if self.any_attr('grid'):
+            self.extra_ui.extend([v0.ui_grid_opacity, v0.ui_grid_range])
         if self.any_attr('rois'):
             to_add = [
                 v0.ui_roi_plot_type,
@@ -1485,6 +1503,10 @@ class SingleViewer:
         invert_mask=False,
         mask=None,
         mask_color="black",
+        grid=None,
+        grid_opacity=0.4,
+        grid_kwargs=None,
+        grid_range=[-500, 0],
         jacobian=None,
         jacobian_opacity=0.5,
         jacobian_kwargs=None,
@@ -1536,6 +1558,7 @@ class SingleViewer:
         # Load additional overlays
         self.load_dose(dose)
         self.load_jacobian(jacobian)
+        self.load_grid(grid)
 
         # Load ROIs
         self.init_roi = init_roi
@@ -1647,6 +1670,9 @@ class SingleViewer:
             self.dose_kwargs["vmax"] = dose_range[1]
         if dose_cmap is not None:
             self.dose_kwargs["cmap"] = dose_cmap
+        self.init_grid_opacity = grid_opacity
+        self.init_grid_range = grid_range
+        self.grid_kwargs = grid_kwargs if grid_kwargs is not None else {}
         self.init_jacobian_opacity = jacobian_opacity
         self.init_jacobian_range = jacobian_range
         self.jacobian_kwargs = jacobian_kwargs if jacobian_kwargs is not None else {}
@@ -1830,6 +1856,25 @@ class SingleViewer:
         self.structure_set = StructureSet(self.rois)
         self.roi_names = [roi.name for roi in self.rois]
         self.has_rois = bool(len(self.rois))
+
+    def load_grid(self, grid):
+        """Load grid."""
+
+        # Can't plot both grid and dose
+        if self.has_dose and grid is not None:
+            print("Warning: can't overlay both dose map and grid "
+                  "on same image. Overlaying dose map only.")
+            self.has_grid = False
+            return
+
+        if grid is None:
+            self.grid = None
+        elif isinstance(grid, Grid):
+            self.grid = grid
+        else:
+            self.grid = Grid(grid)
+
+        self.has_grid = self.grid is not None
 
     def load_jacobian(self, jacobian):
         """Load jacobian determinant."""
@@ -2086,6 +2131,30 @@ class SingleViewer:
             )
             if self.has_dose:
                 self.extra_ui.append(self.ui_dose)
+
+            #  Grid opacity and range
+            self.ui_grid_opacity = ipyw.FloatSlider(
+                value=self.init_grid_opacity,
+                min=0,
+                max=1,
+                step=0.05,
+                description='Grid opacity',
+                continuous_update=self.continuous_update,
+                readout_format='.2f',
+                style=_style,
+            )
+            self.ui_grid_range = ipyw.FloatRangeSlider(
+                min=-500,
+                max=0,
+                step=1,
+                value=self.init_grid_range,
+                description='Grid range',
+                continuous_update=False,
+                style=_style,
+                readout_format='.1f',
+            )
+            if self.has_grid:
+                self.extra_ui.extend([self.ui_grid_opacity, self.ui_grid_range])
 
             #  Jacobian opacity and range
             self.ui_jac_opacity = ipyw.FloatSlider(
@@ -2515,8 +2584,14 @@ class SingleViewer:
         # Update ROI comparison table
         self.update_roi_comparison()
 
-        # Settings for overlay (dose map or jacobian)
-        if self.has_jacobian:
+        # Settings for overlay (grid, dose map or jacobian)
+        if self.has_grid:
+            overlay = self.grid
+            overlay_opacity = self.ui_grid_opacity.value
+            overlay_kwargs = self.grid_kwargs
+            overlay_kwargs["vmin"] = self.ui_grid_range.value[0]
+            overlay_kwargs["vmax"] = self.ui_grid_range.value[1]
+        elif self.has_jacobian:
             overlay = self.jacobian
             overlay_opacity = self.ui_jac_opacity.value
             overlay_kwargs = self.jacobian_kwargs

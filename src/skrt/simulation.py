@@ -60,7 +60,8 @@ class SyntheticImage(Image):
         # Assign properties
         shape = skrt.core.to_list(shape)
         self.shape = [shape[1], shape[0], shape[2]]
-        self.voxel_size = [abs(v) for v in skrt.core.to_list(voxel_size)]
+        #self.voxel_size = [abs(v) for v in skrt.core.to_list(voxel_size)]
+        self.voxel_size = skrt.core.to_list(voxel_size)
         self.origin = origin
         self.max_hu = 0 if noise_std is None else noise_std * 3
         self.min_hu = -self.max_hu if self.max_hu != 0 else -20
@@ -517,3 +518,55 @@ class Grid:
                 | (coords[0] % self.spacing[0] < self.thickness[0])
                 | (coords[2] % self.spacing[2] < self.thickness[2])
             )
+
+
+def make_grid(image, spacing=(30, 30, 30), thickness=(2, 2, 2),
+        background=-1024, foreground=1024, voxel_units=False):
+    '''
+    Create a synthetic image of a grid pattern for a specified image.
+
+    **Parameters:**
+
+    image : skrt.image.Image
+        Reference image, for which grid pattern is to be created.
+
+    spacing : tuple, default=(30, 30, 30)
+        Spacing along (x, y, z) directions of grid lines.  If
+        voxel_units is True, values are taken to be in numbers
+        of voxels.  Otherwise, values are taken to be in the
+        same units as the voxel dimensions of the reference image.
+
+    thickness: tuple, default=(2, 2, 2)
+        Thickness along (x, y, z) directions of grid lines.  If
+        voxel_units is True, values are taken to be in numbers
+        of voxels.  Otherwise, values are taken to be in the
+        same units as the voxel dimensions of the reference image.
+
+    background: int/float, default=-1024
+        Intensity value to be assigned to voxels not on grid lines.
+
+    foreground: int/float, default=1024
+        Intensity value to be assigned to voxels on grid lines.
+
+    voxel_units: bool, default=False
+        If True, values for spacing and thickness are taken to be
+        in numbers of voxels.  If False, values for spacing and
+        thickness are taken to be in the same units as the
+        voxel dimensions of the reference image.
+    '''
+    image.load()
+      
+    if not voxel_units:
+        spacing = [max(round(spacing[i] /
+            abs(image.get_voxel_size()[i])), 1) for i in range(len(spacing))]
+        thickness = [max(round(thickness[i] /
+            abs(image.get_voxel_size()[i])), 1) for i in range(len(thickness))]
+
+    grid_image = SyntheticImage(
+            shape=image.get_n_voxels(),
+            origin=image.get_origin(),
+            voxel_size=image.get_voxel_size(),
+            intensity=background)
+    grid_image.add_grid(spacing, thickness, foreground)
+
+    return grid_image

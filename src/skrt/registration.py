@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -9,6 +10,7 @@ import skrt.image
 from skrt.structures import ROI, StructureSet
 from skrt.core import get_logger, Data, to_list, Defaults
 from skrt.dose import ImageOverlay, Dose
+from skrt.simulation import make_grid
 
 _ELASTIX_DIR = None
 _ELASTIX = "elastix"
@@ -143,6 +145,8 @@ class Registration(Data):
             self.add_pfiles(pfiles)
         else:
             self.load_pfiles()
+        self.moving_grid_path = os.path.join(self.path, "moving_grid.nii.gz")
+        self.transformed_grids = {}
 
         if not self.pfiles:
             self.tfiles = tfiles
@@ -163,14 +167,16 @@ class Registration(Data):
             an Image object.
 
         category : str
-            Category of image: "fixed", "moving", "fixed_mask", "moving_mask".
+            Category of image: "fixed", "moving", "fixed_mask", "moving_mask",
+            "moving_grid".
 
         force : bool, default=True
             If True, the image file within self.path will be overwritten by
             this image even if it already exists.
         """
 
-        categories = ["fixed", "moving", "fixed_mask", "moving_mask"]
+        categories = ["fixed", "moving", "fixed_mask", "moving_mask",
+                "moving_grid"]
         if category not in categories:
             raise RuntimeError(
                 f"Unrecognised image category {category}; "
@@ -182,7 +188,7 @@ class Registration(Data):
         path = getattr(self, f"{category}_path")
         if not os.path.exists(path) or force:
             skrt.image.Image.write(im, path)
-        if 'mask' in category:
+        if 'grid' in category or 'mask' in category:
             setattr(self, f"{category}", skrt.image.Image(path))
         else:
             setattr(self, f"{category}_image", skrt.image.Image(path))
@@ -202,6 +208,10 @@ class Registration(Data):
     def set_moving_mask(self, im):
         """Assign a moving-image mask."""
         self.set_image(im, "moving_mask")
+
+    def set_moving_grid(self, im):
+        """Assign a grid in the reference system of the moving image."""
+        self.set_image(im, "moving_grid")
 
     def load_existing_input_images(self):
         """Attempt to load images from fixed.nii.gz and moving.nii.gz from
@@ -1182,6 +1192,76 @@ class Registration(Data):
         )
         return storage[step]
 
+    def get_transformed_grid(self, step=-1, force=False,
+            spacing=(30, 30, 30), thickness=(2, 2, 2),
+            background=-1024, foreground=1024, voxel_units=False):
+        '''
+        Obtaing transformed grid.
+
+        A three-dimensional grid is defined in the space of
+        the moving image, and is transformed by applying the
+        result of a registration step.
+
+        **Parameters:**
+
+        step : int, default=-1
+            Registration step for which transformed grid is
+            to be obtained.
+
+        force : bool, default=False
+            If False, return any previously calculated transformed
+            grid.  If True, disregard any previous calculations.
+
+        spacing : tuple, default=(30, 30, 30)
+            Spacing along (x, y, z) directions of grid lines.  If
+            voxel_units is True, values are taken to be in numbers
+            of voxels.  Otherwise, values are taken to be in the
+            same units as the voxel dimensions of the moving image.
+
+        thickness: tuple, default=(2, 2, 2)
+            Thickness along (x, y, z) directions of grid lines.  If
+            voxel_units is True, values are taken to be in numbers
+            of voxels.  Otherwise, values are taken to be in the
+            same units as the voxel dimensions of the moving image.
+
+        background: int/float, default=-1024
+            Intensity value to be assigned to voxels not on grid lines.
+
+        foreground: int/float, default=1024
+            Intensity value to be assigned to voxels on grid lines.
+
+        voxel_units: bool, default=False
+            If True, values for spacing and thickness are taken to be
+            in numbers of voxels.  If False, values for spacing and
+            thickness are taken to be in the same units as the
+            voxel dimensions of the moving image.
+        '''
+
+        # If object already exists, return it unless forcing
+        storage = self.transformed_grids
+        step = self.get_step_name(step)
+        if step in storage and not force:
+            return storage[step]
+
+        # Ensure registration has been performed for this step
+        self.ensure_registered(step)
+
+        # Ensure that untransformed grid exists
+        if not hasattr(self, 'moving_grid') or force:
+            self.set_moving_grid(make_grid(self.moving_image, spacing,
+                thickness, background, foreground, voxel_units))
+            self.moving_grid = Grid(self.moving_grid.path,
+                    image=self.moving_image, title='Grid')
+
+        grid_path = Path(
+                self.transform_data(path=self.moving_grid_path, step=step))
+        grid_path = grid_path.rename(Path(self.outdirs[step]) / 'grid.nii')
+
+        #self.transformed_grids[step] = skrt.image.Image(str(grid_path))
+        self.transformed_grids[step] = Grid(str(grid_path), image=self.transformed_images[step], title='Transformed grid')
+
+        return self.transformed_grids[step]
+
     def get_jacobian(self, step=-1, force=False):
         """Generate Jacobian determinant using transformix for a given 
         registration step (or return existing Jacobian object, unless 
@@ -1235,6 +1315,22 @@ class Registration(Data):
         output_file = os.path.join(outdir, expected_outname)
         assert os.path.exists(output_file)
         return dtype(output_file, image=image, title=title)
+
+
+class Grid(ImageOverlay):
+
+    def __init__(self, *args, **kwargs):
+
+        ImageOverlay.__init__(self, *args, **kwargs)
+
+        # Plot settings specific to Grid.
+        self._default_cmap = "gray"
+        self._default_colorbar_label = "Intensity"
+        self._default_vmin = -500
+        self._default_vmax = 0
+
+    def view(self, **kwargs):
+        return ImageOverlay.view(self, kwarg_name="grid", **kwargs)
 
 
 class Jacobian(ImageOverlay):
