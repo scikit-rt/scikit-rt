@@ -2564,7 +2564,7 @@ class Image(skrt.core.Archive):
         self.set_geometry()
         return None
 
-    def has_same_geometry(self, im, max_diff=0.005):
+    def has_same_geometry(self, im, max_diff=0.200):
         """Check whether this Image has the same geometric properties,
         another Image <im> (i.e. same origin, voxel sizes, and shape),
         with tolerance <max_diff> on agreement of origins."""
@@ -2795,6 +2795,7 @@ class Image(skrt.core.Archive):
         for bolus_name in bolus_names:
             bolus_rois.extend(structure_set.get_rois_wildcard(bolus_name))
         self.assign_intensity_to_rois(bolus_rois, intensity)
+
 
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
