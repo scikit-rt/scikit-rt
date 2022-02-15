@@ -2313,7 +2313,9 @@ class SingleViewer:
 
         # Make visibility checkbox for each ROI
         self.roi_checkboxes = {
-            s: ipyw.Checkbox(value=True, indent=False) for s in self.roi_names
+            s: ipyw.Checkbox(value=True, indent=False,
+                layout=ipyw.Layout(height='100%'))
+            for s in self.roi_names
         }
         self.ui_roi_checkboxes.extend(list(self.roi_checkboxes.values()))
         for s in self.rois:
@@ -2328,8 +2330,8 @@ class SingleViewer:
         if not no_roi or self.roi_info:
             ui_roi_lower.append(
                 ipyw.VBox(
-                    self.ui_roi_checkboxes, 
-                    layout=ipyw.Layout(width='30px', grid_gap='1.5px')
+                    self.ui_roi_checkboxes,
+                    # layout=ipyw.Layout(width='30px', grid_gap='1.5px')
                 ),
             )
 

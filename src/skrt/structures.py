@@ -5575,7 +5575,7 @@ def df_to_html(df):
         <head>
             <style>
                 th, td {
-                    padding: 2px 10px;
+                    padding: 2px 2px;
                 }
                 th {
                     background-color: transparent;
