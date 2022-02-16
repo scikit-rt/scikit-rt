@@ -1,5 +1,6 @@
 """Tools for performing image registration."""
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import numpy as np
 import os
 from pathlib import Path
@@ -1194,7 +1195,7 @@ class Registration(Data):
 
     def get_transformed_grid(self, step=-1, force=False,
             spacing=(30, 30, 30), thickness=(2, 2, 2),
-            background=-1024, foreground=1024, voxel_units=False):
+            voxel_units=False, color='green'):
         '''
         Obtaing transformed grid.
 
@@ -1218,23 +1219,22 @@ class Registration(Data):
             of voxels.  Otherwise, values are taken to be in the
             same units as the voxel dimensions of the moving image.
 
-        thickness: tuple, default=(2, 2, 2)
+        thickness : tuple, default=(2, 2, 2)
             Thickness along (x, y, z) directions of grid lines.  If
             voxel_units is True, values are taken to be in numbers
             of voxels.  Otherwise, values are taken to be in the
             same units as the voxel dimensions of the moving image.
 
-        background: int/float, default=-1024
-            Intensity value to be assigned to voxels not on grid lines.
-
-        foreground: int/float, default=1024
-            Intensity value to be assigned to voxels on grid lines.
-
-        voxel_units: bool, default=False
+        voxel_units : bool, default=False
             If True, values for spacing and thickness are taken to be
             in numbers of voxels.  If False, values for spacing and
             thickness are taken to be in the same units as the
             voxel dimensions of the moving image.
+
+        color : tuple/str, default='green'
+            Colour to use for grid lines.  The colour may be specified
+            in any of the forms recognised by matplotlib:
+            https://matplotlib.org/stable/tutorials/colors/colors.html
         '''
 
         # If object already exists, return it unless forcing
@@ -1246,19 +1246,24 @@ class Registration(Data):
         # Ensure registration has been performed for this step
         self.ensure_registered(step)
 
+        # Fixed intensities for foreground and background
+        background = 0
+        foreground = 1
+
         # Ensure that untransformed grid exists
         if not hasattr(self, 'moving_grid') or force:
             self.set_moving_grid(make_grid(self.moving_image, spacing,
                 thickness, background, foreground, voxel_units))
             self.moving_grid = Grid(self.moving_grid.path,
-                    image=self.moving_image, title='Grid')
+                    color=color, image=self.moving_image, title='Grid')
 
         grid_path = Path(
                 self.transform_data(path=self.moving_grid_path, step=step))
         grid_path = grid_path.rename(Path(self.outdirs[step]) / 'grid.nii')
 
         #self.transformed_grids[step] = skrt.image.Image(str(grid_path))
-        self.transformed_grids[step] = Grid(str(grid_path), image=self.transformed_images[step], title='Transformed grid')
+        self.transformed_grids[step] = Grid(str(grid_path), color=color,
+                image=self.transformed_images[step], title='Transformed grid')
 
         return self.transformed_grids[step]
 
@@ -1319,15 +1324,16 @@ class Registration(Data):
 
 class Grid(ImageOverlay):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, color='green', **kwargs):
 
         ImageOverlay.__init__(self, *args, **kwargs)
 
         # Plot settings specific to Grid.
-        self._default_cmap = "gray"
+        cmap = matplotlib.colors.ListedColormap([(0, 0, 0, 0), color])
+        self._default_cmap = cmap
         self._default_colorbar_label = "Intensity"
-        self._default_vmin = -500
-        self._default_vmax = 0
+        self._default_vmin = 0
+        self._default_vmax = 1
 
     def view(self, **kwargs):
         return ImageOverlay.view(self, kwarg_name="grid", **kwargs)

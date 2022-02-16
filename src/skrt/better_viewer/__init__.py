@@ -458,7 +458,7 @@ class BetterViewer:
             Threshold on mask array; voxels with values below this threshold
             will be masked (or values above, if <invert_mask> is True).
 
-        grid_opacity : float, default=0.4
+        grid_opacity : float, default=1.0
             Initial opacity of the overlaid grid. Can later
             be changed interactively.
 
@@ -1012,7 +1012,7 @@ class BetterViewer:
         if self.any_attr('jacobian'):
             self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
         if self.any_attr('grid'):
-            self.extra_ui.extend([v0.ui_grid_opacity, v0.ui_grid_range])
+            self.extra_ui.extend([v0.ui_grid_opacity])
         if self.any_attr('rois'):
             to_add = [
                 v0.ui_roi_plot_type,
@@ -1504,9 +1504,9 @@ class SingleViewer:
         mask=None,
         mask_color="black",
         grid=None,
-        grid_opacity=0.4,
+        grid_opacity=1.0,
         grid_kwargs=None,
-        grid_range=[-500, 0],
+        grid_range=None,
         jacobian=None,
         jacobian_opacity=0.5,
         jacobian_kwargs=None,
@@ -2143,18 +2143,8 @@ class SingleViewer:
                 readout_format='.2f',
                 style=_style,
             )
-            self.ui_grid_range = ipyw.FloatRangeSlider(
-                min=-500,
-                max=0,
-                step=1,
-                value=self.init_grid_range,
-                description='Grid range',
-                continuous_update=False,
-                style=_style,
-                readout_format='.1f',
-            )
             if self.has_grid:
-                self.extra_ui.extend([self.ui_grid_opacity, self.ui_grid_range])
+                self.extra_ui.extend([self.ui_grid_opacity])
 
             #  Jacobian opacity and range
             self.ui_jac_opacity = ipyw.FloatSlider(
@@ -2591,8 +2581,9 @@ class SingleViewer:
             overlay = self.grid
             overlay_opacity = self.ui_grid_opacity.value
             overlay_kwargs = self.grid_kwargs
-            overlay_kwargs["vmin"] = self.ui_grid_range.value[0]
-            overlay_kwargs["vmax"] = self.ui_grid_range.value[1]
+            if self.init_grid_range is not None:
+                overlay_kwargs["vmin"] = self.init_grid_range[0]
+                overlay_kwargs["vmax"] = self.init_grid_range[1]
         elif self.has_jacobian:
             overlay = self.jacobian
             overlay_opacity = self.ui_jac_opacity.value
