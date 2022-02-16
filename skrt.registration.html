@@ -135,11 +135,11 @@ in voxels in each dimension.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.registration.Grid">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.dose.html#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.dose.ImageOverlay</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Grid.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise from a medical image source.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -509,7 +509,7 @@ index of that step name in self.steps.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_transformed_grid">
-<span class="sig-name descname"><span class="pre">get_transformed_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(30,</span> <span class="pre">30,</span> <span class="pre">30)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">2,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foreground</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_transformed_grid" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_transformed_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(30,</span> <span class="pre">30,</span> <span class="pre">30)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">2,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_transformed_grid" title="Permalink to this definition"></a></dt>
 <dd><p>Obtaing transformed grid.</p>
 <p>A three-dimensional grid is defined in the space of
 the moving image, and is transformed by applying the
@@ -527,19 +527,19 @@ voxel_units is True, values are taken to be in numbers
 of voxels.  Otherwise, values are taken to be in the
 same units as the voxel dimensions of the moving image.</p>
 </dd>
-<dt>thickness: tuple, default=(2, 2, 2)</dt><dd><p>Thickness along (x, y, z) directions of grid lines.  If
+<dt>thickness<span class="classifier">tuple, default=(2, 2, 2)</span></dt><dd><p>Thickness along (x, y, z) directions of grid lines.  If
 voxel_units is True, values are taken to be in numbers
 of voxels.  Otherwise, values are taken to be in the
 same units as the voxel dimensions of the moving image.</p>
 </dd>
-<dt>background: int/float, default=-1024</dt><dd><p>Intensity value to be assigned to voxels not on grid lines.</p>
-</dd>
-<dt>foreground: int/float, default=1024</dt><dd><p>Intensity value to be assigned to voxels on grid lines.</p>
-</dd>
-<dt>voxel_units: bool, default=False</dt><dd><p>If True, values for spacing and thickness are taken to be
+<dt>voxel_units<span class="classifier">bool, default=False</span></dt><dd><p>If True, values for spacing and thickness are taken to be
 in numbers of voxels.  If False, values for spacing and
 thickness are taken to be in the same units as the
 voxel dimensions of the moving image.</p>
+</dd>
+<dt>color<span class="classifier">tuple/str, default=’green’</span></dt><dd><p>Colour to use for grid lines.  The colour may be specified
+in any of the forms recognised by matplotlib:
+<a class="reference external" href="https://matplotlib.org/stable/tutorials/colors/colors.html">https://matplotlib.org/stable/tutorials/colors/colors.html</a></p>
 </dd>
 </dl>
 </dd></dl>
