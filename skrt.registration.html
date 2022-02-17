@@ -478,10 +478,13 @@ registration step.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_jacobian">
-<span class="sig-name descname"><span class="pre">get_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_jacobian" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_to_fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_jacobian" title="Permalink to this definition"></a></dt>
 <dd><p>Generate Jacobian determinant using transformix for a given 
 registration step (or return existing Jacobian object, unless 
 force=True).</p>
+<p>Positive values in the Jacobian determinant represent:
+- moving_to_fixed=False: scaling from fixed image to moving image;
+- moving_to_fixed=True: scaling from moving image to fixed image.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -912,6 +915,48 @@ file.</p>
 <dt class="sig sig-object py" id="skrt.registration.get_default_pfiles">
 <span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.registration.get_jacobian_colormap">
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_jacobian_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_per_band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{0:</span> <span class="pre">1,</span> <span class="pre">1:</span> <span class="pre">0.5,</span> <span class="pre">2:</span> <span class="pre">1}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_jacobian_colormap" title="Permalink to this definition"></a></dt>
+<dd><p>Return custom colour map, for highlighting features of Jacobian determinant.</p>
+<p>Following image registration by Elastix, the Jacobian determinant of
+the registration transformation reflects the characteristics of the
+deformation field.  A positive value, x, in the Jacobian determinant
+indicates a volume scaling by x in going from the fixed image to the
+moving image.  A negative value indicates folding.</p>
+<p>The colour map defined here is designed to cover the range -1 to 2,
+highlighting the following:</p>
+<ul class="simple">
+<li><p>regions of no volume change (value equal to 1);</p></li>
+<li><p>regions of small and large expansion (values greater than 1
+by a small or large amount);</p></li>
+<li><p>regions of small and large expansion (non-negative values less than 1
+by a small or large amount);</p></li>
+<li><p>regions of folding (negative values).</p></li>
+</ul>
+<p>The colour map is as follows:
+- x &lt; 0 (band 0): yellow, increasing linearly in intensity,</p>
+<blockquote>
+<div><p>from 0 at x ==0 to 1 at saturation value;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>0 &lt;= x &lt; 1 (band 1): blue, increasing in intensity as 1/x,
+from 0 at x == 1 to 1 at saturation value;</p></li>
+<li><p>x == 1: transparent;</p></li>
+<li><p>x &gt; 1 (band 2): red, increasing linearly in intensity,
+from 0 at x == 1 to 1 at saturation value;</p></li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>col_per_band<span class="classifier">int, default=1000</span></dt><dd><p>Number of colours (anchor points) per band in the colour map.</p>
+</dd>
+<dt>sat_values<span class="classifier">dict, default={0: 1, 1: 0.5, 2: 1}</span></dt><dd><p>Dictionary of saturation values for the colour bands.  The
+saturation value is the (unsigned) distance along the x scale
+from the band threshold.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.prepend_path">
