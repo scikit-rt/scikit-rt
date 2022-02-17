@@ -17,7 +17,7 @@ class ImageOverlay(skrt.image.Image):
     functionality includes the ability to plot overlaid on its associated 
     Image."""
 
-    def __init__(self, path, load=True, image=None, *args, **kwargs):
+    def __init__(self, path="", load=True, image=None, *args, **kwargs):
 
         skrt.image.Image.__init__(self, path, load, *args, **kwargs)
         self.set_image(image)

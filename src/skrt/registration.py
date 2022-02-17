@@ -1267,13 +1267,29 @@ class Registration(Data):
 
         return self.transformed_grids[step]
 
-    def get_jacobian(self, step=-1, force=False):
-        """Generate Jacobian determinant using transformix for a given 
+    def get_jacobian(self, step=-1, force=False, moving_to_fixed=False):
+        """
+        Generate Jacobian determinant using transformix for a given 
         registration step (or return existing Jacobian object, unless 
         force=True).
+
+        Positive values in the Jacobian determinant represent:
+        - moving_to_fixed=False: scaling from fixed image to moving image;
+        - moving_to_fixed=True: scaling from moving image to fixed image.
         """
 
-        return self._get_jac_or_def(step, True, force)
+        if moving_to_fixed:
+            jac1 = self._get_jac_or_def(step, True, force)
+            jac1.load()
+            jac2 = Jacobian(jac1)
+            jac2.load()
+            jac2.image = jac1.image
+            jac2.data[jac2.data > 0] = 1 / jac2.data[jac2.data > 0]
+            jac2._data_canonical[jac2._data_canonical > 0] = (
+                    1 / jac2._data_canonical[jac2._data_canonical > 0])
+            return jac2
+        else:
+            return self._get_jac_or_def(step, True, force)
 
     def get_deformation_field(self, step=-1, force=False):
         """Generate deformation field using transformix for a given 
@@ -1346,10 +1362,12 @@ class Jacobian(ImageOverlay):
         ImageOverlay.__init__(self, *args, **kwargs)
 
         # Plot settings specific to Jacobian determinant
-        self._default_cmap = "seismic"
+        self._default_cmap = get_jacobian_colormap()
         self._default_colorbar_label = "Jacobian"
-        self._default_vmin = -0.5
-        self._default_vmax = 2.5
+        self._default_vmin = -1
+        self._default_vmax = 2
+        self.load()
+        self.data = -self.data
 
     def view(self, **kwargs):
         return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
@@ -1691,3 +1709,115 @@ def get_default_pfiles(basename_only=True):
     if basename_only:
         return files
     return [os.path.join(pdir, file) for file in files]
+
+
+def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
+    '''
+    Return custom colour map, for highlighting features of Jacobian determinant.
+
+    Following image registration by Elastix, the Jacobian determinant of
+    the registration transformation reflects the characteristics of the
+    deformation field.  A positive value, x, in the Jacobian determinant
+    indicates a volume scaling by x in going from the fixed image to the
+    moving image.  A negative value indicates folding.
+
+    The colour map defined here is designed to cover the range -1 to 2,
+    highlighting the following:
+
+    - regions of no volume change (value equal to 1);
+    - regions of small and large expansion (values greater than 1
+      by a small or large amount);
+    - regions of small and large expansion (non-negative values less than 1
+      by a small or large amount);
+    - regions of folding (negative values).
+
+    The colour map is as follows:
+    - x < 0 (band 0): yellow, increasing linearly in intensity,
+      from 0 at x ==0 to 1 at saturation value;
+    - 0 <= x < 1 (band 1): blue, increasing in intensity as 1/x,
+      from 0 at x == 1 to 1 at saturation value;
+    - x == 1: transparent;
+    - x > 1 (band 2): red, increasing linearly in intensity,
+      from 0 at x == 1 to 1 at saturation value;
+
+    **Parameters:**
+
+    col_per_band : int, default=1000
+        Number of colours (anchor points) per band in the colour map.
+
+    sat_values : dict, default={0: 1, 1: 0.5, 2: 1}
+        Dictionary of saturation values for the colour bands.  The
+        saturation value is the (unsigned) distance along the x scale
+        from the band threshold.
+    '''
+    # Define row indices within colour map for each band,
+    # and determine total number of rows.
+    n_band = 3
+    ranges = {}
+    all_ranges = set()
+    for i in range(n_band):
+        ranges[i] = list(range(i * col_per_band, 1 + (i + 1) * col_per_band))
+        all_ranges = all_ranges.union(set(ranges[i]))
+    n_col = len(all_ranges)
+
+    # Initialise n_col x 3 array for red, green, blue.
+    values = np.zeros(shape=(n_col, 3))
+    anchors = np.linspace(0, 1, n_col)
+    values[:, 0] = anchors
+    red = values.copy()
+    green = values.copy()
+    blue = values.copy()
+
+    # Local function for mapping between colour intensities
+    # and values in Jacobian determinant (scale from -1 to 2).
+    def get_x(u):
+        return (-1 + 3 * u)
+
+    # Define rgb values for band 0:
+    # yellow increasing linearly from 0 with negative x
+    band = 0
+    x_sat = -sat_values[band]
+    for i in ranges[band]:
+        x = get_x(anchors[i])
+        v = x / x_sat if (x_sat and x > x_sat) else 1
+        red[i, 1:3] = v
+        green[i, 1:3] = v
+    
+    # Define rgb values for band 0:
+    # blue increasing as 1/x from 1 to 0.
+    band = 1
+    x_1 = get_x(anchors[ranges[band][1]])
+    x_max = get_x(anchors[ranges[band][-1]])
+    x_sat = max(1 - sat_values[band], x_1)
+    v_min = 1 / x_max
+    v_max = 1 / x_sat - v_min
+    for i in ranges[band]:
+        x = get_x(anchors[i])
+        v = ((1 / x) - v_min) / v_max if (x and x > x_sat) else 1
+        if i == ranges[band][0]:
+            red[i, 2] = 0
+            green[i, 2] = 0
+            blue[i, 2] = v
+        else:
+            blue[i, 1:3] = v
+        
+    # Define rgb values for band 0:
+    # red increasing linearly from 1 with positive x.
+    band = 2
+    x_sat = 1 + sat_values[band]
+    for i in ranges[band]:
+        x = get_x(anchors[i])
+        v = (x - 1)/ (x_sat - 1) if (x_sat - 1 and x < x_sat) else 1
+        if i == ranges[band][0]:
+            red[i, 2] = v
+            green[i, 2] = 0
+            blue[i, 2] = 0
+        else:
+            red[i, 1:3] = v
+ 
+    # Create colour map.
+    cdict = {'red' : red, 'green' : green, 'blue' : blue}
+    cmap = matplotlib.colors.LinearSegmentedColormap('jacobian',
+            segmentdata=cdict)
+
+    return cmap

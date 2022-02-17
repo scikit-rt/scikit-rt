@@ -1510,7 +1510,7 @@ class SingleViewer:
         jacobian=None,
         jacobian_opacity=0.5,
         jacobian_kwargs=None,
-        jacobian_range=[0.8, 1.2],
+        jacobian_range=None,
         df=None,
         df_plot_type="grid",
         df_spacing=30,
@@ -2158,8 +2158,8 @@ class SingleViewer:
                 style=_style,
             )
             self.ui_jac_range = ipyw.FloatRangeSlider(
-                min=-0.5,
-                max=2.5,
+                min=-1.0,
+                max=2.0,
                 step=0.1,
                 value=self.init_jacobian_range,
                 description='Jacobian range',
