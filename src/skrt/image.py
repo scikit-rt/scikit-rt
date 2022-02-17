@@ -1583,6 +1583,7 @@ class Image(skrt.core.Archive):
         legend=False,
         roi_kwargs=None,
         centre_on_roi=None,
+        legend_bbox_to_anchor=None,
         legend_loc="lower left",
         dose=None,
         dose_opacity=0.5,
@@ -1727,6 +1728,13 @@ class Image(skrt.core.Archive):
             Name of ROI on which to centre, if no idx/sl/pos is given.
             If <zoom> is given but no <zoom_centre>, the zoom will also centre
             on this ROI.
+
+        legend_bbox_to_anchor : tuple, default=None
+            Specify placement of ROI legend.
+            - If a four-element tuple, the elements specify
+              (x, y, width, height) of the legend bounding box.
+            - If a two-element tuple, the elements specify (x, y) of
+              the part of the legend bounding box specified by legend_loc.
 
         legend_loc : str, default='lower left'
             Legend location for ROI legend.
@@ -1922,7 +1930,8 @@ class Image(skrt.core.Archive):
             # Draw ROI legend
             if legend and len(roi_handles):
                 self.ax.legend(
-                    handles=roi_handles, loc=legend_loc, facecolor="white",
+                    handles=roi_handles, bbox_to_anchor=legend_bbox_to_anchor,
+                    loc=legend_loc, facecolor="white",
                     framealpha=1
                 )
 
@@ -2844,6 +2853,7 @@ class ImageComparison(Image):
         cb_splits=2,
         overlay_opacity=0.5,
         overlay_legend=False,
+        overlay_legend_bbox_to_anchor=None,
         overlay_legend_loc=None,
         colorbar=False,
         colorbar_label=None,
@@ -2889,7 +2899,7 @@ class ImageComparison(Image):
             mesh = self._plot_chequerboard(view, invert, cb_splits)
         elif plot_type == "overlay":
             mesh = self._plot_overlay(
-                view, invert, overlay_opacity, overlay_legend, overlay_legend_loc
+                view, invert, overlay_opacity, overlay_legend, overlay_legend_bbox_to_anchor, overlay_legend_loc
             )
         elif plot_type in ["difference", "diff"]:
             mesh = self._plot_difference(invert)
@@ -3011,6 +3021,7 @@ class ImageComparison(Image):
         invert=False,
         opacity=0.5,
         legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc="auto"
     ):
 

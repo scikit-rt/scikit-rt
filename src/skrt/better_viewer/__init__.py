@@ -57,6 +57,7 @@ class BetterViewer:
         cb_splits=2,
         overlay_opacity=0.5,
         overlay_legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc='lower left',
         translation=False,
         translation_write_style=None,
@@ -291,6 +292,11 @@ class BetterViewer:
 
         overlay_legend : bool default=False
             If True, a legend will be displayed on the overlay plot.
+
+        legend_bbox_to_anchor : str, default=None
+            Bounding box relative to which any legends are to be positioned.
+            Must be a valid matplotlib legend bbox_to_anchor.
+            See: https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html
 
         legend_loc : str, default='lower left'
             Location for any legends being displayed. Must be a valid
@@ -772,6 +778,7 @@ class BetterViewer:
                 df=self.df[i],
                 standalone=False,
                 scale_in_mm=scale_in_mm,
+                legend_bbox_to_anchor=legend_bbox_to_anchor,
                 legend_loc=legend_loc,
                 **kwargs,
             )
@@ -785,6 +792,7 @@ class BetterViewer:
         self.cb_splits = cb_splits
         self.overlay_opacity = overlay_opacity
         self.overlay_legend = overlay_legend
+        self.legend_bbox_to_anchor = legend_bbox_to_anchor
         self.legend_loc = legend_loc
         self.comparison_only = comparison_only
         if (
@@ -1435,6 +1443,7 @@ class BetterViewer:
                     cb_splits=self.ui_cb.value,
                     overlay_opacity=self.ui_overlay.value,
                     overlay_legend=self.overlay_legend,
+                    overlay_legend_bbox_to_anchor=self.legend_bbox_to_anchor,
                     overlay_legend_loc=self.legend_loc,
                     zoom=self.viewers[0].zoom,
                     zoom_centre=self.viewers[0].zoom_centre,
@@ -1531,6 +1540,7 @@ class SingleViewer:
         area_units="mm",
         vol_units="mm",
         legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc="lower left",
         init_roi=None,
         roi_consensus=False,
@@ -1659,6 +1669,7 @@ class SingleViewer:
         self.minor_ticks = minor_ticks
         self.ticks_all_sides = ticks_all_sides
         self.no_axis_labels = no_axis_labels
+        self.legend_bbox_to_anchor = legend_bbox_to_anchor
         self.legend_loc = legend_loc
         self.shift = [None, None, None]
 
@@ -1688,6 +1699,7 @@ class SingleViewer:
                 self.roi_filled_opacity = roi_opacity
         self.roi_linewidth = roi_linewidth
         self.legend = legend
+        self.legend_bbox_to_anchor = legend_bbox_to_anchor
         self.legend_loc = legend_loc
         self.roi_info = roi_info
         self.roi_info_dp = roi_info_dp
@@ -2611,6 +2623,7 @@ class SingleViewer:
             zoom_centre=self.current_centre[self.view],
             colorbar=colorbar,
             colorbar_label=self.colorbar_label,
+            legend_bbox_to_anchor=self.legend_bbox_to_anchor,
             legend_loc=self.legend_loc,
             annotate_slice=self.annotate_slice,
             major_ticks=self.major_ticks,

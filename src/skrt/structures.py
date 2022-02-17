@@ -3327,6 +3327,8 @@ class ROI(skrt.core.Archive):
         names=None, 
         show=True, 
         include_image=False,
+        legend_bbox_to_anchor=None,
+        legend_loc="lower left",
         **kwargs
     ):
         """Plot comparison with another ROI. If no sl/idx/pos are given,
@@ -3426,7 +3428,7 @@ class ROI(skrt.core.Archive):
             ]
             self.ax.legend(
                 handles=handles, framealpha=1, facecolor="white", 
-                loc="lower left"
+                bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc
             )
 
         # Show/save
@@ -4429,7 +4431,8 @@ class StructureSet(skrt.core.Archive):
 
     def plot_comparisons(
         self, other=None, comp_type="auto", outdir=None, legend=True, 
-        names=None, **kwargs
+        names=None, legend_bbox_to_anchor=None, legend_loc="lower left",
+        **kwargs
     ):
         """Plot comparison pairs."""
 
@@ -4447,7 +4450,9 @@ class StructureSet(skrt.core.Archive):
                 names = [self.name, other.name]
 
             roi1.plot_comparison(
-                roi2, legend=legend, save_as=outname, names=names, **kwargs
+                roi2, legend=legend, save_as=outname, names=names,
+                legend_bbox_to_anchor=legend_bbox_to_anchor,
+                legend_loc=legend_loc, **kwargs
             )
 
     def plot_surface_distances(
@@ -4523,6 +4528,7 @@ class StructureSet(skrt.core.Archive):
         show=True,
         save_as=None,
         legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc="lower left",
         consensus_type=None,
         exclude_from_consensus=None,
@@ -4563,6 +4569,7 @@ class StructureSet(skrt.core.Archive):
                 show=show,
                 save_as=save_as,
                 legend=legend,
+                legend_bbox_to_anchor=legend_bbox_to_anchor,
                 legend_loc=legend_loc,
                 consensus_type=consensus_type,
                 exclude_from_consensus=exclude_from_consensus,
@@ -4649,9 +4656,9 @@ class StructureSet(skrt.core.Archive):
 
         # Draw legend
         if legend and len(roi_handles):
-            self.ax.legend(
-                handles=roi_handles, loc=legend_loc, facecolor="white",
-                framealpha=1
+            self.ax.legend(handles=roi_handles,
+                    bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc,
+                    facecolor="white", framealpha=1
             )
 
         # Display image

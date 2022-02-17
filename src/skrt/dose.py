@@ -242,7 +242,8 @@ class Dose(ImageOverlay):
 
     def plot_DVH(self, rois=[], bins=50, dose_min=0, dose_max=None,
             figsize=(8, 4), lw=2, n_colour=10, cmap='turbo', grid=True,
-            fname=None):
+            fname=None, legend_bbox_to_anchor=(1.01, 0.5),
+            legend_loc='center left'):
         '''
         Plot dose-volume histogram for specified ROI(s).
 
@@ -330,8 +331,8 @@ class Dose(ImageOverlay):
         ax.set_xlabel('Dose (Gy)')
         ax.set_ylabel('Volume fraction')
         ax.grid(grid)
-        ax.legend(handles=lines, labels=labels, loc='center left',
-                bbox_to_anchor=(1.01, 0.5))
+        ax.legend(handles=lines, labels=labels,
+                bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc)
         matplotlib.pyplot.tight_layout()
 
         # Show figure or save to file.
