@@ -473,7 +473,7 @@ class BetterViewer:
             for the grid. See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
             for options.
 
-        jacobian_opacity : float, default=0.5
+        jacobian_opacity : float, default=1.0
             Initial opacity of the overlaid jacobian determinant. Can later
             be changed interactively.
 
@@ -1517,7 +1517,7 @@ class SingleViewer:
         grid_kwargs=None,
         grid_range=None,
         jacobian=None,
-        jacobian_opacity=0.5,
+        jacobian_opacity=1.0,
         jacobian_kwargs=None,
         jacobian_range=None,
         df=None,

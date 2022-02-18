@@ -1732,12 +1732,12 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
     - regions of folding (negative values).
 
     The colour map is as follows:
-    - x < 0 (band 0): yellow, increasing linearly in intensity,
+    - x < 0 (band 0): yellow, increasing linearly in opacity,
       from 0 at x ==0 to 1 at saturation value;
-    - 0 <= x < 1 (band 1): blue, increasing in intensity as 1/x,
+    - 0 <= x < 1 (band 1): blue, increasing in opacity as 1/x,
       from 0 at x == 1 to 1 at saturation value;
     - x == 1: transparent;
-    - x > 1 (band 2): red, increasing linearly in intensity,
+    - x > 1 (band 2): red, increasing linearly in opacity,
       from 0 at x == 1 to 1 at saturation value;
 
     **Parameters:**
@@ -1760,31 +1760,35 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
         all_ranges = all_ranges.union(set(ranges[i]))
     n_col = len(all_ranges)
 
-    # Initialise n_col x 3 array for red, green, blue.
+    # Initialise n_col x 3 array for red, green, blue, alpha.
     values = np.zeros(shape=(n_col, 3))
     anchors = np.linspace(0, 1, n_col)
     values[:, 0] = anchors
     red = values.copy()
     green = values.copy()
     blue = values.copy()
+    alpha = values.copy()
 
     # Local function for mapping between colour intensities
     # and values in Jacobian determinant (scale from -1 to 2).
     def get_x(u):
         return (-1 + 3 * u)
 
-    # Define rgb values for band 0:
-    # yellow increasing linearly from 0 with negative x
+    # Define rgba values for band 0:
+    # yellow increasing linearly in opacity with negative x,
+    # starting with opacity 0.5.
     band = 0
     x_sat = -sat_values[band]
     for i in ranges[band]:
         x = get_x(anchors[i])
         v = x / x_sat if (x_sat and x > x_sat) else 1
-        red[i, 1:3] = v
-        green[i, 1:3] = v
+        v = min(v + 0.5, 1)
+        red[i, 1:3] = 1
+        green[i, 1:3] = 1
+        alpha[i, 1:3] = v
     
-    # Define rgb values for band 0:
-    # blue increasing as 1/x from 1 to 0.
+    # Define rgba values for band 1:
+    # blue increasing in opacity as 1/x from 1 to 0.
     band = 1
     x_1 = get_x(anchors[ranges[band][1]])
     x_max = get_x(anchors[ranges[band][-1]])
@@ -1797,26 +1801,30 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
         if i == ranges[band][0]:
             red[i, 2] = 0
             green[i, 2] = 0
-            blue[i, 2] = v
+            blue[i, 2] = 1
+            alpha[i, 2] = v
         else:
-            blue[i, 1:3] = v
+            blue[i, 1:3] = 1
+            alpha[i, 1:3] = v
         
-    # Define rgb values for band 0:
-    # red increasing linearly from 1 with positive x.
+    # Define rgba values for band 2:
+    # red increasing linearly in opacity above x=1.
     band = 2
     x_sat = 1 + sat_values[band]
     for i in ranges[band]:
         x = get_x(anchors[i])
         v = (x - 1)/ (x_sat - 1) if (x_sat - 1 and x < x_sat) else 1
         if i == ranges[band][0]:
-            red[i, 2] = v
+            red[i, 2] = 1
             green[i, 2] = 0
             blue[i, 2] = 0
+            alpha[i, 2] = v
         else:
-            red[i, 1:3] = v
+            red[i, 1:3] = 1
+            alpha[i, 1:3] = v
  
     # Create colour map.
-    cdict = {'red' : red, 'green' : green, 'blue' : blue}
+    cdict = {'red' : red, 'green' : green, 'blue' : blue, 'alpha': alpha}
     cmap = matplotlib.colors.LinearSegmentedColormap('jacobian',
             segmentdata=cdict)
 
