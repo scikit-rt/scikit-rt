@@ -471,14 +471,14 @@ class Plan(Archive):
         '''
         Return list of ROIs identified in plan as targets.
         '''
-        self.load_constraints()
+        self.load()
         return self.targets
 
     def get_organs_at_risk(self):
         '''
         Return list of ROIs identified in plan as organs at risk.
         '''
-        self.load_constraints()
+        self.load()
         return self.organs_at_risk
 
     def get_dose_objective(self, objective='maximum_dose', idx_dose=0,
