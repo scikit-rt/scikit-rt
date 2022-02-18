@@ -280,12 +280,12 @@ class SyntheticImage(Image):
                 if group not in self.groups:
                     self.groups[group] = ShapeGroup([shape], name=group)
                     self.roi_shapes[group] = self.groups[group]
-                    self.rois[group] = ROI(
-                        shape.get_data(self.get_coords()), name=group, 
-                        affine=self.get_affine()
-                    )
                 else:
                     self.groups[group].add_shape(shape)
+                self.rois[group] = ROI(
+                        self.groups[group].get_data(self.get_coords()),
+                        name=group, affine=self.get_affine(), image=self
+                        )
             else:
 
                 if shape_type not in self.shape_count:
@@ -299,7 +299,7 @@ class SyntheticImage(Image):
                 self.roi_shapes[shape.name] = shape
                 self.rois[shape.name] = ROI(
                     shape.get_data(self.get_coords()), name=shape.name, 
-                    affine=self.get_affine()
+                    affine=self.get_affine(), image=self
                 )
 
         self.min_hu = min([shape.intensity, self.min_hu])
