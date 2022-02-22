@@ -233,6 +233,33 @@ not affect the image associated with the structure set.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.astype">
+<span class="sig-name descname"><span class="pre">astype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">itype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.astype" title="Permalink to this definition"></a></dt>
+<dd><p>Return image object with requested type of representation.</p>
+<p>Image objects loaded from a DICOM source and Image objects
+loaded from a NIfTI source have different representations
+for two reasons:</p>
+<ul class="simple">
+<li><p>indices for an image slice have the order
+[row][column] in pydicom vs [column][row] in nibabel;</p></li>
+<li><p>axis definitions follow radiology convention
+in pydicom vs neurology convention in nibabel; for discussion
+of the conventions, see:
+<a class="reference external" href="https://nipy.org/nibabel/neuro_radio_conventions.html">https://nipy.org/nibabel/neuro_radio_conventions.html</a></p></li>
+</ul>
+<p>This function returns the requested representation,
+independently of the original source.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>itype<span class="classifier">str</span></dt><dd><p>Identifier of the representation type required.  Allowed
+values are ‘dcm’ and ‘dicom’ for a pydicom/DICOM
+representation; ‘nii’ and ‘nifti’ for a nibabel/NIfTI
+representation.  For any other value, None is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.clear_doses">
 <span class="sig-name descname"><span class="pre">clear_doses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clear_doses" title="Permalink to this definition"></a></dt>
 <dd><p>Clear all dose maps associated with this image.</p>
