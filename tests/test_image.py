@@ -752,3 +752,13 @@ def test_same_geometry():
     origin3 = (-62., -62., -12.002)
     im3 = create_test_image(shape1, voxel_size1, origin3)
     assert not im1.has_same_geometry(im3, max_diff)
+
+def test_astype():
+    # Test conversions between pydicom/DICOM representations
+    # and nibabel/NIfTI representations
+    assert np.all(im_nii.get_affine() == im_dcm.astype('nii').get_affine())
+    assert np.all(im_dcm.get_affine() == im_nii.astype('dcm').get_affine())
+    assert np.all(im_nii.get_data() == im_dcm.astype('nii').get_data())
+    assert np.all(im_dcm.get_data() == im_nii.astype('dcm').get_data())
+    assert im_dcm.astype('unknown') is None
+    assert im_nii.astype('unknown') is None

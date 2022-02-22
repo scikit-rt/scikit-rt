@@ -167,6 +167,78 @@ class Image(skrt.core.Archive):
         if load and (not isinstance(self.source, str) or self.source):
             self.load()
 
+    def astype(self, itype):
+        '''
+        Return image object with requested type of representation.
+
+        Image objects loaded from a DICOM source and Image objects
+        loaded from a NIfTI source have different representations
+        for two reasons:
+
+        - indices for an image slice have the order
+          [row][column] in pydicom vs [column][row] in nibabel;
+        - axis definitions follow radiology convention
+          in pydicom vs neurology convention in nibabel; for discussion
+          of the conventions, see:
+          https://nipy.org/nibabel/neuro_radio_conventions.html
+
+        This function returns the requested representation,
+        independently of the original source.
+
+        **Parameter:**
+
+        itype : str
+            Identifier of the representation type required.  Allowed
+            values are 'dcm' and 'dicom' for a pydicom/DICOM
+            representation; 'nii' and 'nifti' for a nibabel/NIfTI
+            representation.  For any other value, None is returned.
+        '''
+
+        # Check if the requested type is recognised.
+        nii_type = itype in ['nii', 'nifti']
+        dcm_type = itype in ['dcm', 'dicom']
+
+        if nii_type or dcm_type:
+            # Ensure that image is loaded, and created clone.
+            self.load()
+            im = Image(self)
+
+            # Modify image data if source_type isn't the requested type.
+            if ((nii_type and 'nifti' not in self.source_type)
+                    or (dcm_type and 'nifti' in self.source_type)):
+                affine = self.affine.copy()
+                # Convert to nibabel/NIfTI representation.
+                if nii_type:
+                    affine[0, :] = -affine[0, :]
+                    affine[1, 3] = -(affine[1, 3] +
+                            (self.get_data().shape[0] - 1)
+                            * self.get_voxel_size()[1])
+                    data = self.get_data().transpose(1, 0, 2)[:, ::-1, :]
+                    im.source_type = 'nifti array'
+                # Convert to pydicom/DICOM representation.
+                else:
+                    affine[0, :] = -affine[0, :]
+                    affine[1, 3] = -(affine[1, 3] +
+                            (self.get_data().shape[1] - 1)
+                            * self.get_voxel_size()[1])
+                    data = self.get_data().transpose(1, 0, 2)[::-1, :, :]
+                    im.source_type = 'array'
+                # Reset parameters and geometry based on
+                # updated data and affine.
+                im.source = data
+                im.data = data
+                im.affine = affine
+                im.dicom_dataset = None
+                im.voxel_size = None
+                im.origin = None
+                im.set_geometry()
+
+        else:
+            # Deal with case where requested type is unrecognised.
+            im = None
+
+        return im
+
     def get_data(self, standardise=False, force_standardise=True):
         """Return 3D image array.
 
