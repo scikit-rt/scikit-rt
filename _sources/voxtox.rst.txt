@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+   voxtox.data
    voxtox.roi_names
 
 Submodules
