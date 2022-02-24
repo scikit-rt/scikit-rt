@@ -1,0 +1,7 @@
+voxtox.roi\_names.prostate\_roi\_names module
+=============================================
+
+.. automodule:: voxtox.roi_names.prostate_roi_names
+   :members:
+   :undoc-members:
+   :show-inheritance:

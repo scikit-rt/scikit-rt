@@ -1,6 +1,13 @@
 voxtox package
 ==============
 
+Subpackages
+-----------
+
+.. toctree::
+
+   voxtox.roi_names
+
 Submodules
 ----------
 
