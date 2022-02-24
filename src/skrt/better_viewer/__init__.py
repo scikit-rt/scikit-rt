@@ -20,7 +20,7 @@ from skrt.image import (
     _default_figsize
 )
 from skrt.dose import Dose
-from skrt.registration import Jacobian
+from skrt.registration import Grid, Jacobian
 from skrt.structures import (
     StructureSet, 
     ROI, 
@@ -44,6 +44,7 @@ class BetterViewer:
         dose=None,
         rois=None,
         #  multi_rois=None,
+        grid=None,
         jacobian=None,
         df=None,
         share_slider=True,
@@ -56,6 +57,7 @@ class BetterViewer:
         cb_splits=2,
         overlay_opacity=0.5,
         overlay_legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc='lower left',
         translation=False,
         translation_write_style=None,
@@ -211,6 +213,10 @@ class BetterViewer:
             plotting individually. Only works if a single StructureSet is
             provided for each image.
 
+        grid : string/nifti/array/list, default=None
+            Source(s) of grid array(s) to overlay on each plot
+            (see valid image sources for <images>).
+
         jacobian : string/nifti/array/list, default=None
             Source(s) of jacobian determinant array(s) to overlay on each plot
             (see valid image sources for <images>).
@@ -286,6 +292,11 @@ class BetterViewer:
 
         overlay_legend : bool default=False
             If True, a legend will be displayed on the overlay plot.
+
+        legend_bbox_to_anchor : str, default=None
+            Bounding box relative to which any legends are to be positioned.
+            Must be a valid matplotlib legend bbox_to_anchor.
+            See: https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html
 
         legend_loc : str, default='lower left'
             Location for any legends being displayed. Must be a valid
@@ -453,7 +464,16 @@ class BetterViewer:
             Threshold on mask array; voxels with values below this threshold
             will be masked (or values above, if <invert_mask> is True).
 
-        jacobian_opacity : float, default=0.5
+        grid_opacity : float, default=1.0
+            Initial opacity of the overlaid grid. Can later
+            be changed interactively.
+
+        grid_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
+            for the grid. See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
+            for options.
+
+        jacobian_opacity : float, default=1.0
             Initial opacity of the overlaid jacobian determinant. Can later
             be changed interactively.
 
@@ -734,6 +754,7 @@ class BetterViewer:
         self.mask = self.get_input_list(mask)
         self.rois = self.get_input_list(rois, allow_sublist=True)
         #  self.multi_rois = self.get_input_list(multi_rois, allow_sublist=True)
+        self.grid = self.get_input_list(grid)
         self.jacobian = self.get_input_list(jacobian)
         self.df = self.get_input_list(df)
 
@@ -752,10 +773,12 @@ class BetterViewer:
                 mask=self.mask[i],
                 rois=self.rois[i],
                 #  multi_rois=self.multi_rois[i],
+                grid=self.grid[i],
                 jacobian=self.jacobian[i],
                 df=self.df[i],
                 standalone=False,
                 scale_in_mm=scale_in_mm,
+                legend_bbox_to_anchor=legend_bbox_to_anchor,
                 legend_loc=legend_loc,
                 **kwargs,
             )
@@ -769,6 +792,7 @@ class BetterViewer:
         self.cb_splits = cb_splits
         self.overlay_opacity = overlay_opacity
         self.overlay_legend = overlay_legend
+        self.legend_bbox_to_anchor = legend_bbox_to_anchor
         self.legend_loc = legend_loc
         self.comparison_only = comparison_only
         if (
@@ -995,6 +1019,8 @@ class BetterViewer:
                 self.extra_ui.append(getattr(v0, 'ui_' + attr))
         if self.any_attr('jacobian'):
             self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
+        if self.any_attr('grid'):
+            self.extra_ui.extend([v0.ui_grid_opacity])
         if self.any_attr('rois'):
             to_add = [
                 v0.ui_roi_plot_type,
@@ -1417,6 +1443,7 @@ class BetterViewer:
                     cb_splits=self.ui_cb.value,
                     overlay_opacity=self.ui_overlay.value,
                     overlay_legend=self.overlay_legend,
+                    overlay_legend_bbox_to_anchor=self.legend_bbox_to_anchor,
                     overlay_legend_loc=self.legend_loc,
                     zoom=self.viewers[0].zoom,
                     zoom_centre=self.viewers[0].zoom_centre,
@@ -1485,10 +1512,14 @@ class SingleViewer:
         invert_mask=False,
         mask=None,
         mask_color="black",
+        grid=None,
+        grid_opacity=1.0,
+        grid_kwargs=None,
+        grid_range=None,
         jacobian=None,
-        jacobian_opacity=0.5,
+        jacobian_opacity=1.0,
         jacobian_kwargs=None,
-        jacobian_range=[0.8, 1.2],
+        jacobian_range=None,
         df=None,
         df_plot_type="grid",
         df_spacing=30,
@@ -1509,6 +1540,7 @@ class SingleViewer:
         area_units="mm",
         vol_units="mm",
         legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc="lower left",
         init_roi=None,
         roi_consensus=False,
@@ -1536,6 +1568,7 @@ class SingleViewer:
         # Load additional overlays
         self.load_dose(dose)
         self.load_jacobian(jacobian)
+        self.load_grid(grid)
 
         # Load ROIs
         self.init_roi = init_roi
@@ -1636,6 +1669,7 @@ class SingleViewer:
         self.minor_ticks = minor_ticks
         self.ticks_all_sides = ticks_all_sides
         self.no_axis_labels = no_axis_labels
+        self.legend_bbox_to_anchor = legend_bbox_to_anchor
         self.legend_loc = legend_loc
         self.shift = [None, None, None]
 
@@ -1647,6 +1681,9 @@ class SingleViewer:
             self.dose_kwargs["vmax"] = dose_range[1]
         if dose_cmap is not None:
             self.dose_kwargs["cmap"] = dose_cmap
+        self.init_grid_opacity = grid_opacity
+        self.init_grid_range = grid_range
+        self.grid_kwargs = grid_kwargs if grid_kwargs is not None else {}
         self.init_jacobian_opacity = jacobian_opacity
         self.init_jacobian_range = jacobian_range
         self.jacobian_kwargs = jacobian_kwargs if jacobian_kwargs is not None else {}
@@ -1662,6 +1699,7 @@ class SingleViewer:
                 self.roi_filled_opacity = roi_opacity
         self.roi_linewidth = roi_linewidth
         self.legend = legend
+        self.legend_bbox_to_anchor = legend_bbox_to_anchor
         self.legend_loc = legend_loc
         self.roi_info = roi_info
         self.roi_info_dp = roi_info_dp
@@ -1673,6 +1711,11 @@ class SingleViewer:
         self.roi_area_units = area_units
         self.roi_length_units = length_units
         self.roi_kwargs = roi_kwargs if roi_kwargs is not None else {}
+        self.roi_kwargs['roi_colors'] = {}
+        if 'roi_colors' in kwargs:
+            for roi_name, roi_color in kwargs['roi_colors'].items():
+                self.roi_kwargs['roi_colors'][roi_name] = mpl.colors.to_rgba(
+                        roi_color)
         self.roi_comp_metrics = compare_rois if is_list(compare_rois) \
                 else None
 
@@ -1825,6 +1868,25 @@ class SingleViewer:
         self.structure_set = StructureSet(self.rois)
         self.roi_names = [roi.name for roi in self.rois]
         self.has_rois = bool(len(self.rois))
+
+    def load_grid(self, grid):
+        """Load grid."""
+
+        # Can't plot both grid and dose
+        if self.has_dose and grid is not None:
+            print("Warning: can't overlay both dose map and grid "
+                  "on same image. Overlaying dose map only.")
+            self.has_grid = False
+            return
+
+        if grid is None:
+            self.grid = None
+        elif isinstance(grid, Grid):
+            self.grid = grid
+        else:
+            self.grid = Grid(grid)
+
+        self.has_grid = self.grid is not None
 
     def load_jacobian(self, jacobian):
         """Load jacobian determinant."""
@@ -2082,6 +2144,20 @@ class SingleViewer:
             if self.has_dose:
                 self.extra_ui.append(self.ui_dose)
 
+            #  Grid opacity and range
+            self.ui_grid_opacity = ipyw.FloatSlider(
+                value=self.init_grid_opacity,
+                min=0,
+                max=1,
+                step=0.05,
+                description='Grid opacity',
+                continuous_update=self.continuous_update,
+                readout_format='.2f',
+                style=_style,
+            )
+            if self.has_grid:
+                self.extra_ui.extend([self.ui_grid_opacity])
+
             #  Jacobian opacity and range
             self.ui_jac_opacity = ipyw.FloatSlider(
                 value=self.init_jacobian_opacity,
@@ -2094,8 +2170,8 @@ class SingleViewer:
                 style=_style,
             )
             self.ui_jac_range = ipyw.FloatRangeSlider(
-                min=-0.5,
-                max=2.5,
+                min=-1.0,
+                max=2.0,
                 step=0.1,
                 value=self.init_jacobian_range,
                 description='Jacobian range',
@@ -2239,7 +2315,9 @@ class SingleViewer:
 
         # Make visibility checkbox for each ROI
         self.roi_checkboxes = {
-            s: ipyw.Checkbox(value=True, indent=False) for s in self.roi_names
+            s: ipyw.Checkbox(value=True, indent=False,
+                layout=ipyw.Layout(height='100%'))
+            for s in self.roi_names
         }
         self.ui_roi_checkboxes.extend(list(self.roi_checkboxes.values()))
         for s in self.rois:
@@ -2254,8 +2332,8 @@ class SingleViewer:
         if not no_roi or self.roi_info:
             ui_roi_lower.append(
                 ipyw.VBox(
-                    self.ui_roi_checkboxes, 
-                    layout=ipyw.Layout(width='30px', grid_gap='1.5px')
+                    self.ui_roi_checkboxes,
+                    # layout=ipyw.Layout(width='30px', grid_gap='1.5px')
                 ),
             )
 
@@ -2335,7 +2413,8 @@ class SingleViewer:
             rows = []
             for roi in self.rois:
                 grey = not self.roi_is_visible(roi)
-                rows.append({'ROI': get_colored_roi_string(roi, grey)})
+                color = roi.get_color_from_kwargs(self.roi_kwargs)
+                rows.append({'ROI': get_colored_roi_string(roi, grey, color)})
             df_roi_info = pd.DataFrame(rows)
             self.ui_roi_table.value = df_to_html(df_roi_info)
 
@@ -2360,7 +2439,8 @@ class SingleViewer:
                 force=self.force_roi_geometry_calc,
                 greyed_out=non_visible,
                 colored=True,
-                html=True
+                html=True,
+                roi_kwargs=self.roi_kwargs,
             )
 
             # Only force recalculation of global ROI metrics once
@@ -2409,7 +2489,8 @@ class SingleViewer:
             centroid_units=self.roi_length_units,
             force=self.force_roi_comp_calc,
             colored=True,
-            html=True
+            html=True,
+            roi_kwargs=self.roi_kwargs,
         )
 
         # Only force recalculation of global ROI metrics once
@@ -2507,8 +2588,15 @@ class SingleViewer:
         # Update ROI comparison table
         self.update_roi_comparison()
 
-        # Settings for overlay (dose map or jacobian)
-        if self.has_jacobian:
+        # Settings for overlay (grid, dose map or jacobian)
+        if self.has_grid:
+            overlay = self.grid
+            overlay_opacity = self.ui_grid_opacity.value
+            overlay_kwargs = self.grid_kwargs
+            if self.init_grid_range is not None:
+                overlay_kwargs["vmin"] = self.init_grid_range[0]
+                overlay_kwargs["vmax"] = self.init_grid_range[1]
+        elif self.has_jacobian:
             overlay = self.jacobian
             overlay_opacity = self.ui_jac_opacity.value
             overlay_kwargs = self.jacobian_kwargs
@@ -2535,6 +2623,7 @@ class SingleViewer:
             zoom_centre=self.current_centre[self.view],
             colorbar=colorbar,
             colorbar_label=self.colorbar_label,
+            legend_bbox_to_anchor=self.legend_bbox_to_anchor,
             legend_loc=self.legend_loc,
             annotate_slice=self.annotate_slice,
             major_ticks=self.major_ticks,

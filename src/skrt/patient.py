@@ -50,6 +50,11 @@ class Study(skrt.core.Archive):
             load=False
         )
 
+        if hasattr(self, 'plan_types'):
+            for plans in self.plan_types.values():
+                for plan in plans:
+                    self.link_plan_to_doses(plan)
+
         #  self.load_dose_or_plan()
 
     def load_images(self):
@@ -102,6 +107,11 @@ class Study(skrt.core.Archive):
         if not os.path.exists(obj_dir):
             return
 
+        # Initialise dictionary of all objects created.
+        obj_types_name = f'{attr_name[:-1]}_types'
+        setattr(self, obj_types_name, {})
+        obj_types = getattr(self, obj_types_name)
+
         # Search subdirectories (each corresponds to an image type)
         for im_type_dir in os.listdir(obj_dir):
 
@@ -137,8 +147,6 @@ class Study(skrt.core.Archive):
                         for obj in objs:
                             if hasattr(obj, "set_image"):
                                 obj.set_image(image)
-                                if 'plans' == attr_name:
-                                    link_plan_to_doses(obj)
 
                     if ss is not None:
                         for obj in objs:
@@ -150,7 +158,9 @@ class Study(skrt.core.Archive):
 
             # Create attribute for objects of this type
             if len(all_objs):
-                setattr(self, f"{im_type_dir.lower()}_{attr_name}", all_objs)
+                key = f"{im_type_dir.lower().replace('-', '_')}"
+                setattr(self, f"{key}_{attr_name}", all_objs)
+                obj_types[key] = all_objs
 
     def add_image(self, im, image_type="CT"):
         '''Add a new image of a given image type.'''
@@ -441,6 +451,27 @@ class Study(skrt.core.Archive):
                 plan_dose.imageStack += dose.getImageStack()
 
         return plan_dose
+
+    def link_plan_to_doses(self, plan):
+        '''
+        Link plan to doses derived from it.
+
+        **Parameter:**
+
+        plan : skrt.dose.Plan
+            Plan object for which dose associations are to be determined.
+        '''
+
+        plan_uid = pydicom.dcmread(plan.path).SOPInstanceUID
+        doses = []
+        if hasattr(self, 'dose_types'):
+            for value in self.dose_types.values():
+                doses.extend(value)
+        for dose in doses:
+            dose_ds = pydicom.dcmread(dose.path)
+            for referenced_plan in dose_ds.ReferencedRTPlanSequence:
+                if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
+                    dose.set_plan(plan)
 
 
 class Patient(skrt.core.PathData):
@@ -893,26 +924,3 @@ def find_matching_object(obj, possible_matches):
                             return (match, structure_set)
 
     return (None, None)
-
-def link_plan_to_doses(plan):
-    '''
-    Link plan to doses derived from it.
-
-    This function assumes that associations between images and doses
-    have already been defined.
-
-    **Parameter:**
-
-    plan : skrt.dose.Plan
-        Plan object for which doses associations are to be determined.
-    '''
-
-    # plan_uid = plan.get_dicom_dataset().SOPInstanceUID
-    plan_uid = pydicom.dcmread(plan.path).SOPInstanceUID
-    doses = plan.image.get_doses()
-    for dose in doses:
-        # dose_ds = dose.get_dicom_dataset()
-        dose_ds = pydicom.dcmread(dose.path)
-        for referenced_plan in dose_ds.ReferencedRTPlanSequence:
-            if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
-                dose.set_plan(plan)

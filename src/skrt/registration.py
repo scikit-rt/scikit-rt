@@ -1,7 +1,9 @@
 """Tools for performing image registration."""
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import numpy as np
 import os
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -9,6 +11,7 @@ import skrt.image
 from skrt.structures import ROI, StructureSet
 from skrt.core import get_logger, Data, to_list, Defaults
 from skrt.dose import ImageOverlay, Dose
+from skrt.simulation import make_grid
 
 _ELASTIX_DIR = None
 _ELASTIX = "elastix"
@@ -143,6 +146,8 @@ class Registration(Data):
             self.add_pfiles(pfiles)
         else:
             self.load_pfiles()
+        self.moving_grid_path = os.path.join(self.path, "moving_grid.nii.gz")
+        self.transformed_grids = {}
 
         if not self.pfiles:
             self.tfiles = tfiles
@@ -163,14 +168,16 @@ class Registration(Data):
             an Image object.
 
         category : str
-            Category of image: "fixed", "moving", "fixed_mask", "moving_mask".
+            Category of image: "fixed", "moving", "fixed_mask", "moving_mask",
+            "moving_grid".
 
         force : bool, default=True
             If True, the image file within self.path will be overwritten by
             this image even if it already exists.
         """
 
-        categories = ["fixed", "moving", "fixed_mask", "moving_mask"]
+        categories = ["fixed", "moving", "fixed_mask", "moving_mask",
+                "moving_grid"]
         if category not in categories:
             raise RuntimeError(
                 f"Unrecognised image category {category}; "
@@ -182,7 +189,7 @@ class Registration(Data):
         path = getattr(self, f"{category}_path")
         if not os.path.exists(path) or force:
             skrt.image.Image.write(im, path)
-        if 'mask' in category:
+        if 'grid' in category or 'mask' in category:
             setattr(self, f"{category}", skrt.image.Image(path))
         else:
             setattr(self, f"{category}_image", skrt.image.Image(path))
@@ -202,6 +209,10 @@ class Registration(Data):
     def set_moving_mask(self, im):
         """Assign a moving-image mask."""
         self.set_image(im, "moving_mask")
+
+    def set_moving_grid(self, im):
+        """Assign a grid in the reference system of the moving image."""
+        self.set_image(im, "moving_grid")
 
     def load_existing_input_images(self):
         """Attempt to load images from fixed.nii.gz and moving.nii.gz from
@@ -1176,25 +1187,172 @@ class Registration(Data):
         self.ensure_registered(step)
 
         # Create new object
-        storage[step] = run_transformix_on_all(
+        storage[step] = self.run_transformix_on_all(
             is_jac, outdir=self.outdirs[step], tfile=self.tfiles[step], 
             image=self.transformed_images[step]
         )
         return storage[step]
 
-    def get_jacobian(self, step=-1):
-        """Generate Jacobian determinant using transformix for a given 
+    def get_transformed_grid(self, step=-1, force=False,
+            spacing=(30, 30, 30), thickness=(2, 2, 2),
+            voxel_units=False, color='green'):
+        '''
+        Obtaing transformed grid.
+
+        A three-dimensional grid is defined in the space of
+        the moving image, and is transformed by applying the
+        result of a registration step.
+
+        **Parameters:**
+
+        step : int, default=-1
+            Registration step for which transformed grid is
+            to be obtained.
+
+        force : bool, default=False
+            If False, return any previously calculated transformed
+            grid.  If True, disregard any previous calculations.
+
+        spacing : tuple, default=(30, 30, 30)
+            Spacing along (x, y, z) directions of grid lines.  If
+            voxel_units is True, values are taken to be in numbers
+            of voxels.  Otherwise, values are taken to be in the
+            same units as the voxel dimensions of the moving image.
+
+        thickness : tuple, default=(2, 2, 2)
+            Thickness along (x, y, z) directions of grid lines.  If
+            voxel_units is True, values are taken to be in numbers
+            of voxels.  Otherwise, values are taken to be in the
+            same units as the voxel dimensions of the moving image.
+
+        voxel_units : bool, default=False
+            If True, values for spacing and thickness are taken to be
+            in numbers of voxels.  If False, values for spacing and
+            thickness are taken to be in the same units as the
+            voxel dimensions of the moving image.
+
+        color : tuple/str, default='green'
+            Colour to use for grid lines.  The colour may be specified
+            in any of the forms recognised by matplotlib:
+            https://matplotlib.org/stable/tutorials/colors/colors.html
+        '''
+
+        # If object already exists, return it unless forcing
+        storage = self.transformed_grids
+        step = self.get_step_name(step)
+        if step in storage and not force:
+            return storage[step]
+
+        # Ensure registration has been performed for this step
+        self.ensure_registered(step)
+
+        # Fixed intensities for foreground and background
+        background = 0
+        foreground = 1
+
+        # Ensure that untransformed grid exists
+        if not hasattr(self, 'moving_grid') or force:
+            self.set_moving_grid(make_grid(self.moving_image, spacing,
+                thickness, background, foreground, voxel_units))
+            self.moving_grid = Grid(self.moving_grid.path,
+                    color=color, image=self.moving_image, title='Grid')
+
+        grid_path = Path(
+                self.transform_data(path=self.moving_grid_path, step=step))
+        grid_path = grid_path.rename(Path(self.outdirs[step]) / 'grid.nii')
+
+        #self.transformed_grids[step] = skrt.image.Image(str(grid_path))
+        self.transformed_grids[step] = Grid(str(grid_path), color=color,
+                image=self.transformed_images[step], title='Transformed grid')
+
+        return self.transformed_grids[step]
+
+    def get_jacobian(self, step=-1, force=False, moving_to_fixed=False):
+        """
+        Generate Jacobian determinant using transformix for a given 
         registration step (or return existing Jacobian object, unless 
         force=True).
+
+        Positive values in the Jacobian determinant represent:
+        - moving_to_fixed=False: scaling from fixed image to moving image;
+        - moving_to_fixed=True: scaling from moving image to fixed image.
         """
 
-        return self._get_jac_or_def(step, True, force)
+        if moving_to_fixed:
+            jac1 = self._get_jac_or_def(step, True, force)
+            jac1.load()
+            jac2 = Jacobian(jac1)
+            jac2.load()
+            jac2.image = jac1.image
+            jac2.data[jac2.data > 0] = 1 / jac2.data[jac2.data > 0]
+            jac2._data_canonical[jac2._data_canonical > 0] = (
+                    1 / jac2._data_canonical[jac2._data_canonical > 0])
+            return jac2
+        else:
+            return self._get_jac_or_def(step, True, force)
 
     def get_deformation_field(self, step=-1, force=False):
         """Generate deformation field using transformix for a given 
         registration step."""
         
         return self._get_jac_or_def(step, False, force)
+
+    def run_transformix_on_all(self, is_jac, outdir, tfile, image=None):
+        """Run transformix with either `-jac all` or `-def all` to create a
+        Jacobian determinant or deformation field file, and return either
+        a Jacobian or DeformationField object initialised from the output file.
+        """
+
+        # Settings
+        if is_jac:
+            opt = "-jac"
+            dtype = Jacobian
+            expected_outname = "spatialJacobian.nii"
+            title = "Jacobian determinant"
+        else:
+            opt = "-def"
+            dtype = DeformationField
+            expected_outname = "deformationField.nii"
+            title = "Deformation field"
+
+        # Run transformix
+        cmd = [
+            _transformix,
+            opt,
+            "all",
+            "-out",
+            outdir,
+            "-tp",
+            tfile
+        ]
+        self.logger.info(f'Running command:\n {" ".join(cmd)}')
+        code = subprocess.run(cmd, capture_output=self.capture_output).returncode
+        if code:
+            logfile = os.path.join(outdir, 'transformix.log')
+            raise RuntimeError(f"Creation of {title }failed. See {logfile} for"
+                           " more info.")
+
+        # Create output object
+        output_file = os.path.join(outdir, expected_outname)
+        assert os.path.exists(output_file)
+        return dtype(output_file, image=image, title=title)
+
+
+class Grid(ImageOverlay):
+
+    def __init__(self, *args, color='green', **kwargs):
+
+        ImageOverlay.__init__(self, *args, **kwargs)
+
+        # Plot settings specific to Grid.
+        cmap = matplotlib.colors.ListedColormap([(0, 0, 0, 0), color])
+        self._default_cmap = cmap
+        self._default_colorbar_label = "Intensity"
+        self._default_vmin = 0
+        self._default_vmax = 1
+
+    def view(self, **kwargs):
+        return ImageOverlay.view(self, kwarg_name="grid", **kwargs)
 
 
 class Jacobian(ImageOverlay):
@@ -1204,10 +1362,12 @@ class Jacobian(ImageOverlay):
         ImageOverlay.__init__(self, *args, **kwargs)
 
         # Plot settings specific to Jacobian determinant
-        self._default_cmap = "seismic"
+        self._default_cmap = get_jacobian_colormap()
         self._default_colorbar_label = "Jacobian"
-        self._default_vmin = -0.5
-        self._default_vmax = 2.5
+        self._default_vmin = -1
+        self._default_vmax = 2
+        self.load()
+        self.data = -self.data
 
     def view(self, **kwargs):
         return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
@@ -1399,48 +1559,6 @@ class DeformationField:
         return output
 
 
-
-def run_transformix_on_all(is_jac, outdir, tfile, image=None):
-    """Run transformix with either `-jac all` or `-def all` to create a
-    Jacobian determinant or deformation field file, and return either
-    a Jacobian or DeformationField object initialised from the output file.
-    """
-
-    # Settings
-    if is_jac:
-        opt = "-jac"
-        dtype = Jacobian
-        expected_outname = "spatialJacobian.nii"
-        name = "Jacobian determinant"
-    else:
-        opt = "-def"
-        dtype = DeformationField
-        expected_outname = "deformationField.nii"
-        name = "Deformation field"
-
-    # Run transformix
-    cmd = [
-        _transformix,
-        opt,
-        "all",
-        "-out",
-        outdir,
-        "-tp",
-        tfile
-    ]
-    self.logger.info('Running command:\n {" ".join(cmd)}')
-    code = subprocess.run(cmd, capture_output=self.capture_output).returncode
-    if code:
-        logfile = os.path.join(outdir, 'transformix.log')
-        raise RuntimeError(f"Jacobian creation failed. See {logfile} for "
-                           " more info.")
-
-    # Create output object
-    output_file = os.path.join(outdir, expected_outname)
-    assert os.path.exists(output_file)
-    return dtype(output_file, image=image, name=name)
-
-
 def set_elastix_dir(path):
 
     # Set directory
@@ -1591,3 +1709,123 @@ def get_default_pfiles(basename_only=True):
     if basename_only:
         return files
     return [os.path.join(pdir, file) for file in files]
+
+
+def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
+    '''
+    Return custom colour map, for highlighting features of Jacobian determinant.
+
+    Following image registration by Elastix, the Jacobian determinant of
+    the registration transformation reflects the characteristics of the
+    deformation field.  A positive value, x, in the Jacobian determinant
+    indicates a volume scaling by x in going from the fixed image to the
+    moving image.  A negative value indicates folding.
+
+    The colour map defined here is designed to cover the range -1 to 2,
+    highlighting the following:
+
+    - regions of no volume change (value equal to 1);
+    - regions of small and large expansion (values greater than 1
+      by a small or large amount);
+    - regions of small and large expansion (non-negative values less than 1
+      by a small or large amount);
+    - regions of folding (negative values).
+
+    The colour map is as follows:
+    - x < 0 (band 0): yellow, increasing linearly in opacity,
+      from 0 at x ==0 to 1 at saturation value;
+    - 0 <= x < 1 (band 1): blue, increasing in opacity as 1/x,
+      from 0 at x == 1 to 1 at saturation value;
+    - x == 1: transparent;
+    - x > 1 (band 2): red, increasing linearly in opacity,
+      from 0 at x == 1 to 1 at saturation value;
+
+    **Parameters:**
+
+    col_per_band : int, default=1000
+        Number of colours (anchor points) per band in the colour map.
+
+    sat_values : dict, default={0: 1, 1: 0.5, 2: 1}
+        Dictionary of saturation values for the colour bands.  The
+        saturation value is the (unsigned) distance along the x scale
+        from the band threshold.
+    '''
+    # Define row indices within colour map for each band,
+    # and determine total number of rows.
+    n_band = 3
+    ranges = {}
+    all_ranges = set()
+    for i in range(n_band):
+        ranges[i] = list(range(i * col_per_band, 1 + (i + 1) * col_per_band))
+        all_ranges = all_ranges.union(set(ranges[i]))
+    n_col = len(all_ranges)
+
+    # Initialise n_col x 3 array for red, green, blue, alpha.
+    values = np.zeros(shape=(n_col, 3))
+    anchors = np.linspace(0, 1, n_col)
+    values[:, 0] = anchors
+    red = values.copy()
+    green = values.copy()
+    blue = values.copy()
+    alpha = values.copy()
+
+    # Local function for mapping between colour intensities
+    # and values in Jacobian determinant (scale from -1 to 2).
+    def get_x(u):
+        return (-1 + 3 * u)
+
+    # Define rgba values for band 0:
+    # yellow increasing linearly in opacity with negative x,
+    # starting with opacity 0.5.
+    band = 0
+    x_sat = -sat_values[band]
+    for i in ranges[band]:
+        x = get_x(anchors[i])
+        v = x / x_sat if (x_sat and x > x_sat) else 1
+        v = min(v + 0.5, 1)
+        red[i, 1:3] = 1
+        green[i, 1:3] = 1
+        alpha[i, 1:3] = v
+    
+    # Define rgba values for band 1:
+    # blue increasing in opacity as 1/x from 1 to 0.
+    band = 1
+    x_1 = get_x(anchors[ranges[band][1]])
+    x_max = get_x(anchors[ranges[band][-1]])
+    x_sat = max(1 - sat_values[band], x_1)
+    v_min = 1 / x_max
+    v_max = 1 / x_sat - v_min
+    for i in ranges[band]:
+        x = get_x(anchors[i])
+        v = ((1 / x) - v_min) / v_max if (x and x > x_sat) else 1
+        if i == ranges[band][0]:
+            red[i, 2] = 0
+            green[i, 2] = 0
+            blue[i, 2] = 1
+            alpha[i, 2] = v
+        else:
+            blue[i, 1:3] = 1
+            alpha[i, 1:3] = v
+        
+    # Define rgba values for band 2:
+    # red increasing linearly in opacity above x=1.
+    band = 2
+    x_sat = 1 + sat_values[band]
+    for i in ranges[band]:
+        x = get_x(anchors[i])
+        v = (x - 1)/ (x_sat - 1) if (x_sat - 1 and x < x_sat) else 1
+        if i == ranges[band][0]:
+            red[i, 2] = 1
+            green[i, 2] = 0
+            blue[i, 2] = 0
+            alpha[i, 2] = v
+        else:
+            red[i, 1:3] = 1
+            alpha[i, 1:3] = v
+ 
+    # Create colour map.
+    cdict = {'red' : red, 'green' : green, 'blue' : blue, 'alpha': alpha}
+    cmap = matplotlib.colors.LinearSegmentedColormap('jacobian',
+            segmentdata=cdict)
+
+    return cmap

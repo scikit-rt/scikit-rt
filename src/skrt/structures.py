@@ -1,6 +1,6 @@
 """Classes related to ROIs and structure sets."""
 
-from scipy import ndimage
+from scipy import interpolate, ndimage
 from skimage import draw
 from shapely import affinity
 from shapely import geometry
@@ -18,6 +18,7 @@ import re
 import shutil
 import skimage.measure
 import time
+import warnings
 
 import skrt.core
 import skrt.image
@@ -772,12 +773,12 @@ class ROI(skrt.core.Archive):
 
                     # Check overlap of edge pixels
                     if self.overlap_level is not None:
-                        conn = ndimage.morphology.generate_binary_structure(
+                        conn = ndimage.generate_binary_structure(
                             2, 2)
-                        edge = mask ^ ndimage.morphology.binary_dilation(
+                        edge = mask ^ ndimage.binary_dilation(
                             mask, conn)
                         if self.overlap_level >= 0.5:
-                            edge += mask ^ ndimage.morphology.binary_erosion(
+                            edge += mask ^ ndimage.binary_erosion(
                                 mask, conn)
 
                         # Check whether each edge pixel has sufficient overlap
@@ -1010,6 +1011,53 @@ class ROI(skrt.core.Archive):
         if idx is None:
             return False
         return idx in self.get_indices(view)
+
+    def interpolate_points(self, n_point=None, dxy=None,
+        smoothness_per_point=0):
+        '''
+        Return new ROI object, with interpolated contour points.
+
+        **Parameters:**
+
+        n_point : int, default=None
+            Number of points per contour, after interpolation.  This must
+            be set to None for dxy to be considered.
+
+        dxy : float, default=None
+            Approximate distance required between contour points.  This is taken
+            into account only if n_point is set to None.  For a contour of
+            length contour_length, the number of contour points is then taken
+            to be max(int(contour_length / dxy), 3).  
+
+        smoothness_per_point : float, default=0
+            Parameter determining the smoothness of the B-spline curve used
+            in contour approximation for interpolation.  The product of
+            smoothness_per_point and the number of contour points (specified
+            directly via n_point, or indirectly via dxy) corresponds to the
+            parameter s of scipy.interpolate.splprep - see documentation at:
+        
+            https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
+
+            A smoothness_per_point of 0 forces the B-spline to pass through
+            all of the pre-interpolation contour points.
+        '''
+
+        new_contours = {}
+        for z, contours in self.get_contours().items():
+            new_contours[z] = []
+            for contour in contours:
+                new_contour = interpolate_points_single_contour(
+                        contour, n_point, dxy, smoothness_per_point)
+                new_contours[z].append(new_contour)
+
+        # Clone self, then clear mask and reset contours of clone
+        roi = ROI(self)
+        roi.input_contours = new_contours
+        roi.contours = {"x-y": new_contours}
+        roi.loaded_mask = False
+        roi.mask = None
+
+        return roi
 
     def get_centroid(
         self,
@@ -2304,7 +2352,7 @@ class ROI(skrt.core.Archive):
                 mask2 = other.get_mask(view, flatten=True)
 
         # Make structuring element
-        conn2 = ndimage.morphology.generate_binary_structure(2, connectivity)
+        conn2 = ndimage.generate_binary_structure(2, connectivity)
         if mask1.ndim == 2:
             conn = conn2
         else:
@@ -2312,12 +2360,12 @@ class ROI(skrt.core.Archive):
             conn[:, :, 1] = conn2
 
         # Get outer pixel of binary maps
-        surf1 = mask1 ^ ndimage.morphology.binary_erosion(mask1, conn)
-        surf2 = mask2 ^ ndimage.morphology.binary_erosion(mask2, conn)
+        surf1 = mask1 ^ ndimage.binary_erosion(mask1, conn)
+        surf2 = mask2 ^ ndimage.binary_erosion(mask2, conn)
 
         # Make arrays of distances to surface of each pixel
-        dist1 = ndimage.morphology.distance_transform_edt(~surf1, voxel_size)
-        dist2 = ndimage.morphology.distance_transform_edt(~surf2, voxel_size)
+        dist1 = ndimage.distance_transform_edt(~surf1, voxel_size)
+        dist2 = ndimage.distance_transform_edt(~surf2, voxel_size)
 
         # Get signed arrays
         if signed:
@@ -2756,15 +2804,17 @@ class ROI(skrt.core.Archive):
         return df
 
     def get_comparison_name(self, roi, camelcase=False, colored=False,
-                            grey=False):
+                            grey=False, roi_kwargs={}):
         """Get name of comparison between this ROI and another."""
 
         own_name = self.name
         other_name = roi.name
 
         if colored:
-            own_name = get_colored_roi_string(self, grey)
-            other_name = get_colored_roi_string(roi, grey)
+            own_color = self.get_color_from_kwargs(roi_kwargs)
+            own_name = get_colored_roi_string(self, grey, own_color)
+            other_color = roi.get_color_from_kwargs(roi_kwargs)
+            other_name = get_colored_roi_string(roi, grey, other_color)
 
         if self.name == roi.name:
             if camelcase:
@@ -3277,6 +3327,8 @@ class ROI(skrt.core.Archive):
         names=None, 
         show=True, 
         include_image=False,
+        legend_bbox_to_anchor=None,
+        legend_loc="lower left",
         **kwargs
     ):
         """Plot comparison with another ROI. If no sl/idx/pos are given,
@@ -3376,7 +3428,7 @@ class ROI(skrt.core.Archive):
             ]
             self.ax.legend(
                 handles=handles, framealpha=1, facecolor="white", 
-                loc="lower left"
+                bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc
             )
 
         # Show/save
@@ -3577,6 +3629,23 @@ class ROI(skrt.core.Archive):
         """Return list of Plan objects associated with this ROI."""
 
         return self.plans
+
+    def get_color_from_kwargs(self, kwargs={}, key='roi_colors'):
+        '''
+        Return ROI colour passed via dictionary of keyword arguments.
+
+        **Parameters:**
+
+        kwargs : dict, default={}
+            Dictionary of keyword arguments, which may include
+            parameter providing dictionary of ROI colours for plotting.
+
+        key : str, default='roi_colors'
+            Key in kwargs dictionary specifying parameter that, if
+            present, provides dictionary of ROI colours.
+        '''
+        roi_colors = kwargs.get(key, {})
+        return roi_colors.get(self.name, self.color)
 
 class StructureSet(skrt.core.Archive):
     """Structure set."""
@@ -4168,6 +4237,7 @@ class StructureSet(skrt.core.Archive):
         html=False, 
         colored=False,
         greyed_out=None,
+        roi_kwargs={},
         **kwargs):
         """Get pandas DataFrame of geometric properties for all ROIs.
         If no sl/idx/pos is given, the central slice of each ROI will be used.
@@ -4203,7 +4273,9 @@ class StructureSet(skrt.core.Archive):
 
             # Set ROI name to have colored background if requested
             if colored:
-                col_str = get_colored_roi_string(roi, grey=(roi in greyed_out))
+                color = roi.get_color_from_kwargs(roi_kwargs)
+                col_str = get_colored_roi_string(
+                        roi, grey=(roi in greyed_out), color=color)
                 if name_as_index:
                     df_row.rename({df_row.index[0]: col_str}, inplace=True)
                 else:
@@ -4359,7 +4431,8 @@ class StructureSet(skrt.core.Archive):
 
     def plot_comparisons(
         self, other=None, comp_type="auto", outdir=None, legend=True, 
-        names=None, **kwargs
+        names=None, legend_bbox_to_anchor=None, legend_loc="lower left",
+        **kwargs
     ):
         """Plot comparison pairs."""
 
@@ -4377,7 +4450,9 @@ class StructureSet(skrt.core.Archive):
                 names = [self.name, other.name]
 
             roi1.plot_comparison(
-                roi2, legend=legend, save_as=outname, names=names, **kwargs
+                roi2, legend=legend, save_as=outname, names=names,
+                legend_bbox_to_anchor=legend_bbox_to_anchor,
+                legend_loc=legend_loc, **kwargs
             )
 
     def plot_surface_distances(
@@ -4453,6 +4528,7 @@ class StructureSet(skrt.core.Archive):
         show=True,
         save_as=None,
         legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc="lower left",
         consensus_type=None,
         exclude_from_consensus=None,
@@ -4493,6 +4569,7 @@ class StructureSet(skrt.core.Archive):
                 show=show,
                 save_as=save_as,
                 legend=legend,
+                legend_bbox_to_anchor=legend_bbox_to_anchor,
                 legend_loc=legend_loc,
                 consensus_type=consensus_type,
                 exclude_from_consensus=exclude_from_consensus,
@@ -4579,9 +4656,9 @@ class StructureSet(skrt.core.Archive):
 
         # Draw legend
         if legend and len(roi_handles):
-            self.ax.legend(
-                handles=roi_handles, loc=legend_loc, facecolor="white",
-                framealpha=1
+            self.ax.legend(handles=roi_handles,
+                    bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc,
+                    facecolor="white", framealpha=1
             )
 
         # Display image
@@ -5006,6 +5083,51 @@ class StructureSet(skrt.core.Archive):
 
         return self.plans
 
+    def interpolate_points(self, n_point=None, dxy=None,
+        smoothness_per_point=0):
+        '''
+        Return new StructureSet object, with interpolated contour points.
+
+        Points are interpolated for each contour of each ROI.
+
+        **Parameters:**
+
+        n_point : int, default=None
+            Number of points per contour, after interpolation.  This must
+            be set to None for dxy to be considered.
+
+        dxy : float, default=None
+            Approximate distance required between contour points.  This is taken
+            into account only if n_point is set to None.  For a contour of
+            length contour_length, the number of contour points is then taken
+            to be max(int(contour_length / dxy), 3).  
+
+        smoothness_per_point : float, default=0
+            Parameter determining the smoothness of the B-spline curve used
+            in contour approximation for interpolation.  The product of
+            smoothness_per_point and the number of contour points (specified
+            directly via n_point, or indirectly via dxy) corresponds to the
+            parameter s of scipy.interpolate.splprep - see documentation at:
+        
+            https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
+
+            A smoothness_per_point of 0 forces the B-spline to pass through
+            all of the pre-interpolation contour points.
+        '''
+
+        # Interpolate points for the rois
+        rois = []
+        for roi in self.get_rois():
+            rois.append(roi.interpolate_points(
+                n_point, dxy, smoothness_per_point))
+
+        # Clone self, then reset source and rois
+        ss = StructureSet(self)
+        ss.sources = rois
+        ss.rois = rois
+
+        return ss
+
 
 class StructureSetIterator:
 
@@ -5139,6 +5261,115 @@ def polygon_to_contour(polygon):
     contour = np.array(contour_points)
 
     return contour
+
+def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
+        smoothness_per_point=0):
+    '''
+    Interpolate points for a single contour.
+
+    **Parameters:**
+
+    source : shapely.polygon.Polygon/np.ndarray/list, default=None
+        Contour representation as either a shapely Polygon, a numpy
+        array of [x, y] pairs or a list of [x, y] pairs.  The
+        returned contour has the same representation.
+
+    n_point : int, default=None
+        Number of points to define contour, after interpolation.  This must
+        be set to None for dxy to be considered.
+
+    dxy : float, default=None
+        Approximate distance required between contour points.  This is taken
+        into account only if n_point is set to None.  For a contour of
+        length contour_length, the number of contour points is then taken
+        to be max(int(contour_length / dxy), 3).  
+
+    smoothness_per_point : float, default=0
+        Parameter determining the smoothness of the B-spline curve used
+        in contour approximation for interpolation.  The product of
+        smoothness_per_point and the number of contour points (specified
+        directly via n_point, or indirectly via dxy) corresponds to the
+        parameter s of scipy.interpolate.splprep - see documentation at:
+        
+        https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
+
+        A smoothness_per_point of 0 forces the B-spline to pass through
+        all of the pre-interpolation contour points.
+    '''
+
+    # Extract list of contour points from source.
+    contour_length = None
+    if isinstance(source, geometry.polygon.Polygon):
+        points = list(polygon_to_contour(source))
+        contour_length = source.length
+    elif isinstance(source, np.ndarray) or isinstance(source, list):
+        points = list(source)
+    else:
+        points = None
+
+    if points is None:
+        print('Unrecognised source passed to '
+                '\'interpolate_points_single_contour()\'')
+        print('Source must be shapely Polygon or contour')
+        return None
+
+    # If number of contour points not passed directly,
+    # try to determine its value from the distance between contour points.
+    if n_point is None and dxy:
+        if contour_length is None:
+            contour_length = contour_to_polygon(source).length
+        n_point = max(int(contour_length / dxy), 3)
+    if n_point is None:
+        print('No interpolation performed')
+        print('Number of contour points (n_point) or distance between points'
+                'must be specified.')
+        return None
+
+    # Make last point the same as the first, to ensure closed curve.
+    points.append(points[0])
+
+    # Discard points that aren't separated from the preceeding point
+    # by at least some minimum distance.
+    dxy_min = 0.001
+    x_last, y_last = points[0]
+    x_values, y_values = ([x_last], [y_last])
+    for i in range(1, len(points)):
+        x, y = points[i]
+        if (abs(x - x_last) > dxy_min) or (abs(y - y_last) > dxy_min):
+            x_values.append(points[i][0])
+            y_values.append(points[i][1])
+        x_last, y_last = points[i]
+
+    x_values = np.array(x_values)
+    y_values = np.array(y_values)
+
+    # Interpolate contour points.
+    smoothness = smoothness_per_point * len(x_values)
+    try:
+#        with warnings.catch_warnings():
+#            warnings.filterwarnings("ignore", message="Setting x")
+            tck, u = interpolate.splprep(
+                    [x_values, y_values], s=smoothness, per=True)
+    except TypeError as problem:
+        print("WARNING: Problem in interpolate_contour_points():", problem)
+        return None
+
+    xi_values, yi_values = interpolate.splev(
+        np.linspace(0., 1., n_point + 1), tck)
+
+    # Store points in a form that may be converted to a numpy array.
+    points_interpolated = list(zip(xi_values, yi_values))
+    points_interpolated = [xy for xy in points_interpolated]
+
+    # Return interpolated contour in the same representation as the source.
+    if isinstance(source, geometry.polygon.Polygon):
+        out_object = geometry.polygon.Polygon(points_interpolated)
+    elif isinstance(source, np.ndarray):
+        out_object = np.array(points_interpolated)
+    else:
+        out_object = points_interpolated
+
+    return out_object
 
 def write_structure_set_dicom(
     outname, 
@@ -5351,7 +5582,7 @@ def df_to_html(df):
         <head>
             <style>
                 th, td {
-                    padding: 2px 10px;
+                    padding: 2px 2px;
                 }
                 th {
                     background-color: transparent;
@@ -5375,15 +5606,17 @@ def best_text_color(red, green, blue):
     return "white"
 
 
-def get_colored_roi_string(roi, grey=False):
+def get_colored_roi_string(roi, grey=False, color=None):
     """Get ROI name in HTML with background color from roi.color. If grey=True,
     the background color will be grey."""
 
+    if color is None:
+        color = roi.color
     if grey:
         red, green, blue = 255, 255, 255
         text_col = 200, 200, 200
     else:
-        red, green, blue = [c * 255 for c in roi.color[:3]]
+        red, green, blue = [c * 255 for c in color[:3]]
         text_col = best_text_color(red, green, blue)
     return (
         '<p style="background-color: rgb({}, {}, {}); '
@@ -5396,6 +5629,7 @@ def compare_roi_pairs(
     name_as_index=True,
     greyed_out=None,
     colored=False,
+    roi_kwargs={},
     **kwargs
 ):
     if html:
@@ -5418,7 +5652,8 @@ def compare_roi_pairs(
                 df_row[col] = "--"
 
         # Adjust comparison name
-        comp_name = roi1.get_comparison_name(roi2, colored=colored, grey=grey)
+        comp_name = roi1.get_comparison_name(roi2, colored=colored, grey=grey,
+                roi_kwargs=roi_kwargs)
         if name_as_index:
             df_row.rename({df_row.index[0]: comp_name}, inplace=True)
         else:

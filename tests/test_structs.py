@@ -15,7 +15,7 @@ from shapely.validation import explain_validity
 
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
-        StructureSet, ROI
+        StructureSet, ROI, interpolate_points_single_contour
 
 
 # Make temporary test dir
@@ -755,3 +755,41 @@ def test_dice():
                     dice_expected, abs=0.001)
             assert sphere2.get_dice(sphere1, method=method) == sphere1.get_dice(
                     sphere2, method=method)
+
+def test_point_interpolation_single_contours():
+    random.seed(1)
+
+    sphere = structure_set.get_roi("sphere")
+
+    # Interpolate points for individual contours,
+    # then check that number of points is within 1 of the requested value.
+    for z, contours in sphere.get_contours().items():
+        for contour in contours:
+            n_point = random.randint(10, 100)
+            contour2 = interpolate_points_single_contour(contour, n_point)
+            assert abs(n_point - len(contour2)) <= 1
+
+def test_point_interpolation_roi():
+    sphere1 = structure_set.get_roi("sphere")
+    n_points = [4, 100]
+
+    for n_point in n_points:
+        sphere2 = sphere1.interpolate_points(n_point=n_point)
+
+        if 4 == n_point:
+            # Expect Dice score close to that for a circle with radius r
+            # circumscribing a square with sides sqrt(2) * r
+            dice_expected = 4 / (math.pi + 2)
+            assert sphere1.get_dice(sphere2, method='contour') == pytest.approx(
+                    dice_expected, abs=0.025)
+        if 100 == n_point:
+            # Expect dice score close to 1
+            dice_expected = 1
+            assert sphere1.get_dice(sphere2, method='contour') == pytest.approx(
+                    dice_expected, abs=0.005)
+
+        # Check that number of points for each contouri
+        # is within 1 of the requested value.
+        for z, contours2 in sphere2.get_contours().items():
+            for contour2 in contours2:
+                assert abs(n_point - len(contour2)) <=1

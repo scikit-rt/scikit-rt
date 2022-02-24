@@ -167,6 +167,78 @@ class Image(skrt.core.Archive):
         if load and (not isinstance(self.source, str) or self.source):
             self.load()
 
+    def astype(self, itype):
+        '''
+        Return image object with requested type of representation.
+
+        Image objects loaded from a DICOM source and Image objects
+        loaded from a NIfTI source have different representations
+        for two reasons:
+
+        - indices for an image slice have the order
+          [row][column] in pydicom vs [column][row] in nibabel;
+        - axis definitions follow radiology convention
+          in pydicom vs neurology convention in nibabel; for discussion
+          of the conventions, see:
+          https://nipy.org/nibabel/neuro_radio_conventions.html
+
+        This function returns the requested representation,
+        independently of the original source.
+
+        **Parameter:**
+
+        itype : str
+            Identifier of the representation type required.  Allowed
+            values are 'dcm' and 'dicom' for a pydicom/DICOM
+            representation; 'nii' and 'nifti' for a nibabel/NIfTI
+            representation.  For any other value, None is returned.
+        '''
+
+        # Check if the requested type is recognised.
+        nii_type = itype in ['nii', 'nifti']
+        dcm_type = itype in ['dcm', 'dicom']
+
+        if nii_type or dcm_type:
+            # Ensure that image is loaded, and created clone.
+            self.load()
+            im = Image(self)
+
+            # Modify image data if source_type isn't the requested type.
+            if ((nii_type and 'nifti' not in self.source_type)
+                    or (dcm_type and 'nifti' in self.source_type)):
+                affine = self.affine.copy()
+                # Convert to nibabel/NIfTI representation.
+                if nii_type:
+                    affine[0, :] = -affine[0, :]
+                    affine[1, 3] = -(affine[1, 3] +
+                            (self.get_data().shape[0] - 1)
+                            * self.get_voxel_size()[1])
+                    data = self.get_data().transpose(1, 0, 2)[:, ::-1, :]
+                    im.source_type = 'nifti array'
+                # Convert to pydicom/DICOM representation.
+                else:
+                    affine[0, :] = -affine[0, :]
+                    affine[1, 3] = -(affine[1, 3] +
+                            (self.get_data().shape[1] - 1)
+                            * self.get_voxel_size()[1])
+                    data = self.get_data().transpose(1, 0, 2)[::-1, :, :]
+                    im.source_type = 'array'
+                # Reset parameters and geometry based on
+                # updated data and affine.
+                im.source = data
+                im.data = data
+                im.affine = affine
+                im.dicom_dataset = None
+                im.voxel_size = None
+                im.origin = None
+                im.set_geometry()
+
+        else:
+            # Deal with case where requested type is unrecognised.
+            im = None
+
+        return im
+
     def get_data(self, standardise=False, force_standardise=True):
         """Return 3D image array.
 
@@ -1583,6 +1655,7 @@ class Image(skrt.core.Archive):
         legend=False,
         roi_kwargs=None,
         centre_on_roi=None,
+        legend_bbox_to_anchor=None,
         legend_loc="lower left",
         dose=None,
         dose_opacity=0.5,
@@ -1728,6 +1801,13 @@ class Image(skrt.core.Archive):
             If <zoom> is given but no <zoom_centre>, the zoom will also centre
             on this ROI.
 
+        legend_bbox_to_anchor : tuple, default=None
+            Specify placement of ROI legend.
+            - If a four-element tuple, the elements specify
+              (x, y, width, height) of the legend bounding box.
+            - If a two-element tuple, the elements specify (x, y) of
+              the part of the legend bounding box specified by legend_loc.
+
         legend_loc : str, default='lower left'
             Legend location for ROI legend.
 
@@ -1854,6 +1934,7 @@ class Image(skrt.core.Archive):
                         show=False,
                         include_image=False,
                         no_invert=True,
+                        color=roi.get_color_from_kwargs(roi_kwargs),
                         **roi_kwargs
                     )
                     plotted_rois.append(roi)
@@ -1914,13 +1995,15 @@ class Image(skrt.core.Archive):
                 if max(roi_ylim) < min(ylim) or min(roi_ylim) > max(ylim):
                     continue
 
+                color=roi.get_color_from_kwargs(roi_kwargs)
                 roi_handles.append(
-                    mpatches.Patch(color=roi.color, label=roi.name))
+                    mpatches.Patch(color=color, label=roi.name))
 
             # Draw ROI legend
             if legend and len(roi_handles):
                 self.ax.legend(
-                    handles=roi_handles, loc=legend_loc, facecolor="white",
+                    handles=roi_handles, bbox_to_anchor=legend_bbox_to_anchor,
+                    loc=legend_loc, facecolor="white",
                     framealpha=1
                 )
 
@@ -2562,7 +2645,7 @@ class Image(skrt.core.Archive):
         self.set_geometry()
         return None
 
-    def has_same_geometry(self, im, max_diff=0.005):
+    def has_same_geometry(self, im, max_diff=0.200):
         """Check whether this Image has the same geometric properties,
         another Image <im> (i.e. same origin, voxel sizes, and shape),
         with tolerance <max_diff> on agreement of origins."""
@@ -2794,6 +2877,7 @@ class Image(skrt.core.Archive):
             bolus_rois.extend(structure_set.get_rois_wildcard(bolus_name))
         self.assign_intensity_to_rois(bolus_rois, intensity)
 
+
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
 
@@ -2841,6 +2925,7 @@ class ImageComparison(Image):
         cb_splits=2,
         overlay_opacity=0.5,
         overlay_legend=False,
+        overlay_legend_bbox_to_anchor=None,
         overlay_legend_loc=None,
         colorbar=False,
         colorbar_label=None,
@@ -2886,7 +2971,7 @@ class ImageComparison(Image):
             mesh = self._plot_chequerboard(view, invert, cb_splits)
         elif plot_type == "overlay":
             mesh = self._plot_overlay(
-                view, invert, overlay_opacity, overlay_legend, overlay_legend_loc
+                view, invert, overlay_opacity, overlay_legend, overlay_legend_bbox_to_anchor, overlay_legend_loc
             )
         elif plot_type in ["difference", "diff"]:
             mesh = self._plot_difference(invert)
@@ -3008,6 +3093,7 @@ class ImageComparison(Image):
         invert=False,
         opacity=0.5,
         legend=False,
+        legend_bbox_to_anchor=None,
         legend_loc="auto"
     ):
 

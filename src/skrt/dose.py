@@ -17,7 +17,7 @@ class ImageOverlay(skrt.image.Image):
     functionality includes the ability to plot overlaid on its associated 
     Image."""
 
-    def __init__(self, path, load=True, image=None, *args, **kwargs):
+    def __init__(self, path="", load=True, image=None, *args, **kwargs):
 
         skrt.image.Image.__init__(self, path, load, *args, **kwargs)
         self.set_image(image)
@@ -166,9 +166,17 @@ class Dose(ImageOverlay):
 
         ImageOverlay.__init__(self, *args, **kwargs)
 
+        # Ensure linking between image and dose
+        self.set_image(self.image)
+
         # Plot settings specific to dose map
         self._default_cmap = "jet"
         self._default_colorbar_label = "Dose (Gy)"
+
+        # Delete spurious attributes inherited from Image class
+        for attribute in ['doses', 'plans']:
+            if hasattr(self, attribute):
+                delattr(self, attribute)
 
     def load(self, *args, **kwargs):
         """Load self and set default maximum plotting intensity from max of
@@ -234,7 +242,8 @@ class Dose(ImageOverlay):
 
     def plot_DVH(self, rois=[], bins=50, dose_min=0, dose_max=None,
             figsize=(8, 4), lw=2, n_colour=10, cmap='turbo', grid=True,
-            fname=None):
+            fname=None, legend_bbox_to_anchor=(1.01, 0.5),
+            legend_loc='center left'):
         '''
         Plot dose-volume histogram for specified ROI(s).
 
@@ -322,8 +331,8 @@ class Dose(ImageOverlay):
         ax.set_xlabel('Dose (Gy)')
         ax.set_ylabel('Volume fraction')
         ax.grid(grid)
-        ax.legend(handles=lines, labels=labels, loc='center left',
-                bbox_to_anchor=(1.01, 0.5))
+        ax.legend(handles=lines, labels=labels,
+                bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc)
         matplotlib.pyplot.tight_layout()
 
         # Show figure or save to file.
@@ -462,14 +471,14 @@ class Plan(Archive):
         '''
         Return list of ROIs identified in plan as targets.
         '''
-        self.load_constraints()
+        self.load()
         return self.targets
 
     def get_organs_at_risk(self):
         '''
         Return list of ROIs identified in plan as organs at risk.
         '''
-        self.load_constraints()
+        self.load()
         return self.organs_at_risk
 
     def get_dose_objective(self, objective='maximum_dose', idx_dose=0,
