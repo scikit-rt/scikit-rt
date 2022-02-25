@@ -1,4 +1,4 @@
-##voxtox/examples/roi\_names##
+##voxtox/examples/roi\_names
 
 This directory contains functions, and example data, for creating
 modules defining dictionaries that allow standardisation of
