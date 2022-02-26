@@ -48,3 +48,26 @@ def test_view():
     sim = SyntheticImage((10, 10, 10))
     sim.view(show=False)
 
+def test_group():
+    # Test grouping
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 50),
+            intensity=1, group='my_group')
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 50),
+            intensity=10, group='my_group')
+    my_group = sim.get_roi('my_group')
+    ss = sim.get_structure_set()
+    # Check that cube and sphere are grouped as a single ROI
+    assert len(ss.get_roi_names()) == 1
+    assert ss.get_roi_names()[0] == 'my_group'
+
+    sim2 = SyntheticImage((100, 100, 100))
+    sim2.add_cube(
+            side_length=40, name="cube", centre=(30, 30, 50), intensity=1)
+    sim2.add_sphere(
+            radius=20, name="sphere", centre=(70, 70, 50), intensity=10)
+    cube = sim2.get_roi('cube')
+    sphere = sim2.get_roi('sphere')
+
+    # Check that grouped cube and sphere have same volume as components
+    assert my_group.get_volume() == cube.get_volume() + sphere.get_volume()
