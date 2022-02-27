@@ -49,7 +49,8 @@ def test_view():
     sim.view(show=False)
 
 def test_group():
-    # Test grouping
+    '''Test grouping.'''
+
     sim = SyntheticImage((100, 100, 100))
     sim.add_cube(side_length=40, name="cube", centre=(30, 30, 50),
             intensity=1, group='my_group')
@@ -68,6 +69,11 @@ def test_group():
             radius=20, name="sphere", centre=(70, 70, 50), intensity=10)
     cube = sim2.get_roi('cube')
     sphere = sim2.get_roi('sphere')
+    ss2 = sim2.get_structure_set()
 
     # Check that grouped cube and sphere have same volume as components
     assert my_group.get_volume() == cube.get_volume() + sphere.get_volume()
+
+    # Check that structure sets for grouped and ungrouped volumes
+    # have same extent.
+    assert ss.get_extent() == ss2.get_extent()

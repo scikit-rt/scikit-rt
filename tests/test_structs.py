@@ -793,3 +793,54 @@ def test_point_interpolation_roi():
         for z, contours2 in sphere2.get_contours().items():
             for contour2 in contours2:
                 assert abs(n_point - len(contour2)) <=1
+
+def test_roi_split():
+    '''Test splitting of composite ROI into components.'''
+
+    # Define non-composite ROIs.
+    sim0 = SyntheticImage((100, 100, 100))
+    sim0.add_cube(side_length=40, name="cube", centre=(30, 30, 50), intensity=1)
+    sim0.add_sphere(radius=20, name="sphere", centre=(70, 70, 50), intensity=10)
+    cube = sim0.get_roi('cube')
+    sphere = sim0.get_roi('sphere')
+
+    # Define composite ROI.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 50),
+            intensity=1, group='my_group')
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 50),
+            intensity=10, group='my_group')
+    my_group = sim.get_roi('my_group')
+    ss = sim.get_structure_set()
+
+    # Test splitting and name assignment.
+    names = ['shape_1', 'shape_2']
+    ss2 = my_group.split(names=names)
+    assert len(ss2.get_rois()) == 2
+    assert ss2.get_extent() == ss.get_extent()
+    for i in range(2):
+        assert ss2.rois[i].name == names[i]
+    volume = 0
+    for roi in ss2.get_rois():
+        volume += roi.get_volume()
+    assert volume == my_group.get_volume()
+
+    # Test splitting with change in mask voxel size.
+    ss3 = my_group.split(voxel_size=(0.5, 0.5))
+    assert len(ss3.get_rois()) == 2
+    assert ss3.get_extent() == ss.get_extent()
+    volume = 0
+    for roi in ss3.get_rois():
+        volume += roi.get_volume()
+    assert volume == my_group.get_volume()
+
+    # Test splitting with ordering.
+    for order in ['x+', 'x-', 'y+', 'y-', 'z+', 'z-']:
+        ss4 = my_group.split(order=order)
+        rois4 = ss4.get_rois()
+        assert len(rois4) == 2
+        axis = 'xyz'.find(order[0])
+        rois0 = (cube, sphere) if ('+' in order) else (sphere, cube)
+        for i in range(2):
+            assert (rois4[i].get_centroid()[axis]
+                    == rois0[i].get_centroid()[axis])

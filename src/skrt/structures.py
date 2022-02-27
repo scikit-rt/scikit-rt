@@ -3647,6 +3647,79 @@ class ROI(skrt.core.Archive):
         roi_colors = kwargs.get(key, {})
         return roi_colors.get(self.name, self.color)
 
+    def split(self, voxel_size=None, names=None, order='x+'):
+        '''
+        Split a composite ROI into its components.
+
+        A composite ROI may result because phyically separate ROIs are
+        given the same label during manual contouring, or because
+        multiple ROIs are returned by an auto-segmentation algorithm.
+
+        The component ROIs are identified by labelling a mask of the
+        composite, using scipy.ndimage.measurements.label().
+
+        **Parameters:**
+
+        voxel_size : tuple, default=None
+            Voxel size (x, y) dimensions to use in creating mask for
+            labelling.  This can be useful if the ROI source is contour
+            points, and the resolution wanted is greater than is allowed
+            by the voxel size of the ROI image.
+
+        names: list, default=None
+            List of names to be applied to the component ROIs.  Names
+            are applied after any ROI ordering.
+
+        order : str, default='x+'
+            Specification of way it which ROIs are to be orderd:
+            - 'x+' : in order of increasing x value.
+            - 'x-' : in order of decreasing x value.
+            - 'y+' : in order of increasing y value.
+            - 'y-' : in order of decreasing y value.
+            - 'z+' : in order of increasing z value.
+            - 'z-' : in order of decreasing z value.
+            If any other values is given, no ordering is performed.
+        '''
+
+        # If names not specified, make it an empty list.
+        if names is None:
+            names = []
+
+        # Resize ROI mask if voxel size is to be changed.
+        if voxel_size:
+            roi = ROI(self)
+            voxel_size_3d = (voxel_size[0], voxel_size[1], None)
+            roi.create_mask()
+            roi.mask.resize(voxel_size=voxel_size_3d, method='nearest',
+                    image_size_unit='mm')
+            roi.create_mask(force=True)
+        else:
+            roi = self
+ 
+        # Label ROI components.
+        label_mask, n_label = ndimage.measurements.label(roi.get_mask())
+
+        # If voxel size changed for labelling,
+        # recreate label mask with original voxel size.
+        if voxel_size:
+            roi.mask.data = label_mask
+            roi.mask.resize(voxel_size=self.image.get_voxel_size(),
+                    method='nearest', image_size_unit='mm')
+            label_mask = roi.mask.data
+
+        # Create structure set from label mask.
+        ss = StructureSet(label_mask, multi_label=True, image=self.image)
+
+        # Store ROIs in specified order.
+        ss.order_rois(order)
+
+        # Apply names.
+        for i in range(min(len(names), len(ss.rois))):
+            ss.rois[i].name = names[i]
+
+        return ss
+
+
 class StructureSet(skrt.core.Archive):
     """Structure set."""
 
@@ -5127,6 +5200,47 @@ class StructureSet(skrt.core.Archive):
         ss.rois = rois
 
         return ss
+
+    def order_rois(self, order='x+'):
+        '''
+        Order ROIs by one of their centroid coordinates.
+
+        **Parameter:**
+
+        order : str, default='x+'
+            Specification of way it which ROIs are to be orderd:
+            - 'x+' : in order of increasing x value.
+            - 'x-' : in order of decreasing x value.
+            - 'y+' : in order of increasing y value.
+            - 'y-' : in order of decreasing y value.
+            - 'z+' : in order of increasing z value.
+            - 'z-' : in order of decreasing z value.
+        '''
+
+        if order not in ['x+', 'x-', 'y+', 'y-', 'z+', 'z-']:
+            return
+
+        # Determine axis for ordering, and direction.
+        axis = 'xyz'.find(order[0])
+        reverse = ('-' in order)
+
+        # Create dictionary where keys are centroid coordinates
+        # and values are lists of ROI indicies at these coordinates.
+        centroids = {}
+        for i in range(len(self.rois)):
+            xyz = self.rois[i].get_centroid()[axis]
+            if xyz not in centroids:
+                centroids[xyz] = []
+            centroids[xyz].append(i)
+
+        # Create list of ROIs ordered by centroid coordinate.
+        rois = []
+        for centroid in sorted(centroids, reverse=reverse):
+            for i in centroids[centroid]:
+                rois.append(self.rois[i])
+
+        # Store the new order of ROIs.
+        self.rois = rois
 
 
 class StructureSetIterator:

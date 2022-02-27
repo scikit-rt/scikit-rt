@@ -927,7 +927,8 @@ class Image(skrt.core.Archive):
         self.data[mask.get_data() == False] = background
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
-            fill_value=None, image_size_unit=None, keep_centre=False):
+            fill_value=None, image_size_unit=None, keep_centre=False,
+            method='linear'):
         '''
         Resize image to specified image size, voxel size and origin.
 
@@ -963,6 +964,10 @@ class Image(skrt.core.Archive):
         keep_centre: bool, default=False
             If True, make the centre of the initial image the centre of
             the resized image, disregarding the value passed to origin.
+
+        method: str, default='linear'
+            Interpolation method to use.  Valid values are 'linear' and
+            'nearest'
         '''
         # Return if no resizing requested.
         if image_size is None and voxel_size is None and origin is None:
@@ -984,10 +989,6 @@ class Image(skrt.core.Archive):
         if voxel_size is None:
             voxel_size = self.get_voxel_size()
 
-        if 'mm' == image_size_unit:
-            for i in range(3):
-                image_size = math.ceil(image_size[i] / voxel_size[i])
-
         # Allow for two-dimensional images
         if 2 == len(self.get_data().shape):
             ny, nx = self.get_data().shape
@@ -1007,6 +1008,11 @@ class Image(skrt.core.Archive):
                 origin[i] = self.get_origin()[i]
             if voxel_size[i] is None:
                 voxel_size[i] = self.get_voxel_size()[i]
+
+        # Convert to voxel units
+        if 'mm' == image_size_unit:
+            for i in range(3):
+                image_size[i] = math.ceil(image_size[i] / voxel_size[i])
 
         # Redefine origin to fix centre position.
         if keep_centre:
@@ -1040,7 +1046,7 @@ class Image(skrt.core.Archive):
                 interpolant = scipy.interpolate.RegularGridInterpolator(
                         (y1_array, x1_array, z1_array),
                         self.get_data(),
-                        method="linear",
+                        method=method,
                         bounds_error=False,
                         fill_value=fill_value)
 
