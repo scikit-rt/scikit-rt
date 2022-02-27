@@ -1318,6 +1318,37 @@ the dummy image. See documentation of ROI.get_dummy_image().</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.split">
+<span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x+'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.split" title="Permalink to this definition"></a></dt>
+<dd><p>Split a composite ROI into its components.</p>
+<p>A composite ROI may result because phyically separate ROIs are
+given the same label during manual contouring, or because
+multiple ROIs are returned by an auto-segmentation algorithm.</p>
+<p>The component ROIs are identified by labelling a mask of the
+composite, using scipy.ndimage.measurements.label().</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (x, y) dimensions to use in creating mask for
+labelling.  This can be useful if the ROI source is contour
+points, and the resolution wanted is greater than is allowed
+by the voxel size of the ROI image.</p>
+</dd>
+<dt>names: list, default=None</dt><dd><p>List of names to be applied to the component ROIs.  Names
+are applied after any ROI ordering.</p>
+</dd>
+<dt>order<span class="classifier">str, default=’x+’</span></dt><dd><p>Specification of way it which ROIs are to be orderd:
+- ‘x+’ : in order of increasing x value.
+- ‘x-’ : in order of decreasing x value.
+- ‘y+’ : in order of increasing y value.
+- ‘y-’ : in order of decreasing y value.
+- ‘z+’ : in order of increasing z value.
+- ‘z-’ : in order of decreasing z value.
+If any other values is given, no ordering is performed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fine'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Apply three-dimensional similarity transform to ROI.</p>
@@ -1880,6 +1911,23 @@ all of the pre-interpolation contour points.</p>
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.load" title="Permalink to this definition"></a></dt>
 <dd><p>Load structure set from source(s). If None, will load from own
 self.sources.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.order_rois">
+<span class="sig-name descname"><span class="pre">order_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x+'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.order_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Order ROIs by one of their centroid coordinates.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>order<span class="classifier">str, default=’x+’</span></dt><dd><p>Specification of way it which ROIs are to be orderd:
+- ‘x+’ : in order of increasing x value.
+- ‘x-’ : in order of decreasing x value.
+- ‘y+’ : in order of increasing y value.
+- ‘y-’ : in order of decreasing y value.
+- ‘z+’ : in order of increasing z value.
+- ‘z-’ : in order of decreasing z value.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
