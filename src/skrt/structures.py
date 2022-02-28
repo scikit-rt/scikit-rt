@@ -3692,7 +3692,7 @@ class ROI(skrt.core.Archive):
             roi.create_mask()
             roi.mask.resize(voxel_size=voxel_size_3d, method='nearest',
                     image_size_unit='mm')
-            roi.create_mask(force=True)
+            #roi.create_mask(force=True)
         else:
             roi = self
  
@@ -3703,8 +3703,7 @@ class ROI(skrt.core.Archive):
         # recreate label mask with original voxel size.
         if voxel_size:
             roi.mask.data = label_mask
-            roi.mask.resize(voxel_size=self.image.get_voxel_size(),
-                    method='nearest', image_size_unit='mm')
+            roi.mask.match_size(self.image, method='nearest')
             label_mask = roi.mask.data
 
         # Create structure set from label mask.

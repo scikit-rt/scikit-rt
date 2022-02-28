@@ -1012,7 +1012,8 @@ class Image(skrt.core.Archive):
         # Convert to voxel units
         if 'mm' == image_size_unit:
             for i in range(3):
-                image_size[i] = math.ceil(image_size[i] / voxel_size[i])
+                image_size[i] = (math.ceil(image_size[i] * self.voxel_size[i]
+                    / voxel_size[i]))
 
         # Redefine origin to fix centre position.
         if keep_centre:
@@ -1073,7 +1074,7 @@ class Image(skrt.core.Archive):
 
         return None
 
-    def match_size(self, image=None, fill_value=None):
+    def match_size(self, image=None, fill_value=None, method='linear'):
 
         '''
         Match image size to that of a reference image.
@@ -1085,15 +1086,20 @@ class Image(skrt.core.Archive):
         
         image: skrt.image.Image/None, default=None
             Reference image, with which size is to be matched.
+
         fill_value: float/None, default = None
             Intensity value to be assigned to any voxels in the resized
             image that are outside the original image.  If set to None,
             the minimum intensity value of the original image is used.
+
+        method: str, default='linear'
+            Interpolation method to use.  Valid values are 'linear' and
+            'nearest'
         '''
 
         image.load()
         self.resize(image.get_n_voxels(), image.get_origin(),
-                image.get_voxel_size(), fill_value)
+                image.get_voxel_size(), fill_value, method=method)
 
         return None
 
