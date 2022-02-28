@@ -862,7 +862,7 @@ the VoxTox mapping from kV CT scan to MV CT scan is implemented.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.match_size">
-<span class="sig-name descname"><span class="pre">match_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.match_size" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">match_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.match_size" title="Permalink to this definition"></a></dt>
 <dd><p>Match image size to that of a reference image.</p>
 <p>After matching, the image voxels are in one-to-one correspondence
 with those of the reference.</p>
@@ -873,6 +873,9 @@ with those of the reference.</p>
 <dt>fill_value: float/None, default = None</dt><dd><p>Intensity value to be assigned to any voxels in the resized
 image that are outside the original image.  If set to None,
 the minimum intensity value of the original image is used.</p>
+</dd>
+<dt>method: str, default=’linear’</dt><dd><p>Interpolation method to use.  Valid values are ‘linear’ and
+‘nearest’</p>
 </dd>
 </dl>
 </dd></dl>
