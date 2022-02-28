@@ -3692,22 +3692,35 @@ class ROI(skrt.core.Archive):
             roi.create_mask()
             roi.mask.resize(voxel_size=voxel_size_3d, method='nearest',
                     image_size_unit='mm')
-            #roi.create_mask(force=True)
+            roi.set_image(skrt.image.Image(roi.mask))
         else:
             roi = self
  
         # Label ROI components.
         label_mask, n_label = ndimage.measurements.label(roi.get_mask())
 
-        # If voxel size changed for labelling,
-        # recreate label mask with original voxel size.
-        if voxel_size:
-            roi.mask.data = label_mask
-            roi.mask.match_size(self.image, method='nearest')
-            label_mask = roi.mask.data
+        if voxel_size and 'contour' == self.source_type:
+            # Handle cases where composite ROI is from contour points,
+            # and mask voxel size has been passed as an argument.
+            # In this case component ROIs are initialised from contours
+            # recreated from the mask, which may be higher-resolution
+            # than the default.
+            ss0 = StructureSet(label_mask, multi_label=True, image=roi.mask)
+            ss = StructureSet()
+            for roi in ss0.get_rois():
+                ss.add_roi(ROI(source=roi.get_contours(), name=roi.name))
+            ss.set_image(self.image)
+        else:
+            # Handle cases where component ROIs are initialised from mask.
+            if voxel_size:
+                # If voxel size changed for labelling,
+                # recreate label mask with original voxel size.
+                roi.mask.data = label_mask
+                roi.mask.match_size(self.image, method='nearest')
+                label_mask = roi.mask.data
 
-        # Create structure set from label mask.
-        ss = StructureSet(label_mask, multi_label=True, image=self.image)
+            # Create structure set from label mask.
+            ss = StructureSet(label_mask, multi_label=True, image=self.image)
 
         # Store ROIs in specified order.
         ss.order_rois(order)
