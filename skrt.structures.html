@@ -1349,6 +1349,29 @@ If any other values is given, no ordering is performed.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.split_in_two">
+<span class="sig-name descname"><span class="pre">split_in_two</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.split_in_two" title="Permalink to this definition"></a></dt>
+<dd><p>Split a composite ROI into two component parts.</p>
+<p>Split an ROI into two components, either side of a specified
+plane.  This may be useful, for example, when left and right
+ROIs have been assigned a common label.</p>
+<p>For more general ROI splitting, see skrt.structure.ROI.split().
+Note that split() acts on binary masks, whereas split_in_two()
+acts on contours.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>axis<span class="classifier">‘str’, default=’x’</span></dt><dd><p>Axis (‘x’, ‘y’ or ‘z’) perpendicular to plane about which
+ROI is to be split.</p>
+</dd>
+<dt>v0<span class="classifier">float, default=0</span></dt><dd><p>Coordinate along selected axis, specifying plane about which
+ROI is to be split.</p>
+</dd>
+<dt>names: list, default=None</dt><dd><p>List of names to be applied to the component ROIs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fine'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Apply three-dimensional similarity transform to ROI.</p>
