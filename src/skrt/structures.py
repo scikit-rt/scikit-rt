@@ -3731,6 +3731,92 @@ class ROI(skrt.core.Archive):
 
         return ss
 
+    def split_in_two(self, axis='x', v0=0, names=None,):
+        '''
+        Split a composite ROI into two component parts.
+
+        Split an ROI into two components, either side of a specified
+        plane.  This may be useful, for example, when left and right
+        ROIs have been assigned a common label.
+
+        For more general ROI splitting, see skrt.structure.ROI.split().
+        Note that split() acts on binary masks, whereas split_in_two()
+        acts on contours.
+
+        **Parameters:**
+
+        axis : 'str', default='x'
+            Axis ('x', 'y' or 'z') perpendicular to plane about which
+            ROI is to be split.
+
+        v0 : float, default=0
+            Coordinate along selected axis, specifying plane about which
+            ROI is to be split.
+
+        names: list, default=None
+            List of names to be applied to the component ROIs.
+        '''
+
+        # If names not specified, initialise to empty list.
+        if names is None:
+            names = []
+
+        # Based on selected axis, define view and default name suffixes.
+        if 'x' == axis.lower():
+            view = 'x-y'
+            suffixes = ('right', 'left')
+        elif 'y' == axis.lower():
+            view = 'x-y'
+            suffixes = ('anterior', 'posterior')
+        elif 'z' == axis.lower():
+            view = 'y-z'
+            suffixes = ('inferior', 'superior')
+            # In the 'y-z' view, y and z axes map to shapely x and y axes.
+            axis = 'y'
+
+        # Define polygon representing ROI contour as low or high,
+        # depending on whether the polygon centroid is lower or higher
+        # than the coordinate of the splitting plane.
+        polygons_low = {}
+        polygons_high = {}
+        for z, polygons in self.get_polygons(view).items():
+            for polygon in polygons:
+                v = getattr(polygon.centroid, axis)
+                if v < v0:
+                    if not z in polygons_low:
+                        polygons_low[z] = []
+                    polygons_low[z].append(polygon)
+                else:
+                    if not z in polygons_high:
+                        polygons_high[z] = []
+                    polygons_high[z].append(polygon)
+
+
+        # Create ROI from polygons below the splitting plane.
+        if polygons_low:
+            roi_low = ROI(source=polygons_low, image=self.image)
+            roi_low.name = (names[0] if len(names) > 0
+                    else f'{self.name}_{suffixes[0]}')
+        else:
+            roi_low = None
+
+        # Create ROI from polygons above the splitting plane.
+        if polygons_high:
+            roi_high = ROI(source=polygons_high, image=self.image)
+            roi_high.name = (names[1] if len(names) > 1
+                    else f'{self.name}_{suffixes[1]}')
+        else:
+            roi_high = None
+
+        # Create structure set for component ROI(s).
+        rois = list(filter(None, [roi_low, roi_high]))
+        if rois:
+            ss = StructureSet(path=rois, name=self.name, image=self.image)
+        else:
+            ss = None
+
+        return ss
+
 
 class StructureSet(skrt.core.Archive):
     """Structure set."""

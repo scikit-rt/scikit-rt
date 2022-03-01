@@ -844,3 +844,32 @@ def test_roi_split():
         for i in range(2):
             assert (rois4[i].get_centroid()[axis]
                     == rois0[i].get_centroid()[axis])
+
+def test_roi_split_in_two():
+    '''Test splitting of composite ROI into two components.'''
+
+    # Define non-composite ROIs.
+    sim0 = SyntheticImage((100, 100, 100))
+    sim0.add_cube(side_length=40, name="cube", centre=(30, 30, 50), intensity=1)
+    sim0.add_sphere(radius=20, name="sphere", centre=(70, 70, 50), intensity=10)
+    cube0 = ROI(sim0.get_roi('cube').get_contours(), image=sim0)
+    sphere0 = ROI(sim0.get_roi('sphere').get_contours(), image=sim0)
+    
+    # Define composite ROI.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 50),
+            intensity=1, group='my_group')
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 50),
+            intensity=10, group='my_group')
+    my_group = ROI(sim.get_roi('my_group').get_contours(), image=sim)
+
+    # Check that ROIs from splitting match originals
+    for axis in ['x', 'y']:
+        ss = my_group.split_in_two(axis=axis, v0=50, names=['cube', 'sphere'])
+        assert len(ss.rois) == 2
+        cube, sphere = ss.get_rois()
+
+        assert np.all(cube.get_centroid() == cube0.get_centroid())
+        assert np.all(sphere.get_centroid() == sphere0.get_centroid())
+        assert (cube.get_volume() == cube0.get_volume())
+        assert (sphere.get_volume() == sphere0.get_volume())
