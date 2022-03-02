@@ -462,16 +462,17 @@ class Study(skrt.core.Archive):
             Plan object for which dose associations are to be determined.
         '''
 
-        plan_uid = pydicom.dcmread(plan.path).SOPInstanceUID
+        plan_uid = pydicom.dcmread(plan.path, force=True).SOPInstanceUID
         doses = []
         if hasattr(self, 'dose_types'):
             for value in self.dose_types.values():
                 doses.extend(value)
         for dose in doses:
-            dose_ds = pydicom.dcmread(dose.path)
-            for referenced_plan in dose_ds.ReferencedRTPlanSequence:
-                if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
-                    dose.set_plan(plan)
+            dose_ds = pydicom.dcmread(dose.path, force=True)
+            if hasattr(dose_ds, 'ReferencedRTPlanSequence'):
+                for referenced_plan in dose_ds.ReferencedRTPlanSequence:
+                    if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
+                        dose.set_plan(plan)
 
 
 class Patient(skrt.core.PathData):
@@ -892,7 +893,7 @@ def find_matching_object(obj, possible_matches):
     # If no timestamp match, try matching on SOP Instance UID
     if issubclass(type(obj), Dose):
         # ds_obj = obj.get_dicom_dataset()
-        ds_obj = pydicom.dcmread(obj.path)
+        ds_obj = pydicom.dcmread(obj.path, force=True)
         if hasattr(ds_obj, 'ReferencedImageSequence'):
             # Omit part of UID after final dot,
             # to be insenstive to slice/frame considered.
@@ -901,7 +902,7 @@ def find_matching_object(obj, possible_matches):
                     .ReferencedSOPInstanceUID.split('.')[:-1])
             for match in possible_matches:
                 # ds_match = match.get_dicom_dataset()
-                ds_match = pydicom.dcmread(match.files[0].path)
+                ds_match = pydicom.dcmread(match.files[0].path, force=True)
                 if hasattr(ds_match, 'SOPInstanceUID'):
                     sop_instance_uid = '.'.join(
                             ds_match.SOPInstanceUID.split('.')[:-1])
@@ -910,14 +911,14 @@ def find_matching_object(obj, possible_matches):
 
     elif issubclass(type(obj), Plan):
         # ds_obj = obj.get_dicom_dataset()
-        ds_obj = pydicom.dcmread(obj.path)
+        ds_obj = pydicom.dcmread(obj.path, force=True)
         if hasattr(ds_obj, 'ReferencedStructureSetSequence'):
             referenced_sop_instance_uid = ds_obj.\
                     ReferencedStructureSetSequence[-1].ReferencedSOPInstanceUID
             for match in possible_matches:
                 for structure_set in match.get_structure_sets():
                     # ds_match = structure_set.get_dicom_dataset()
-                    ds_match = pydicom.dcmread(structure_set.path)
+                    ds_match = pydicom.dcmread(structure_set.path, force=True)
                     if hasattr(ds_match, 'SOPInstanceUID'):
                         sop_instance_uid = ds_match.SOPInstanceUID
                         if sop_instance_uid == referenced_sop_instance_uid:
