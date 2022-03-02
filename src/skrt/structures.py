@@ -4025,7 +4025,8 @@ class StructureSet(skrt.core.Archive):
             # Attempt to load from dicom
             rois = []
             if isinstance(source, str):
-                rois, ds = load_rois_dicom(source)
+                if os.path.splitext(source)[1] != '.nii':
+                    rois, ds = load_rois_dicom(source)
             if len(rois):
                 for number, roi in rois.items():
 
