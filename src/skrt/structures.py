@@ -4022,22 +4022,6 @@ class StructureSet(skrt.core.Archive):
                 if os.path.isdir(source):
                     continue
 
-            # Load from ROI mask
-            loaded_from_mask = False
-            if isinstance(source, str):
-                try:
-                    self.rois.append(ROI(
-                        source, 
-                        image=self.image,
-                        **self.roi_kwargs
-                    ))
-                    loaded_from_mask = True
-                except RuntimeError:
-                    continue
-
-            if loaded_from_mask:
-                continue
-
             # Attempt to load from dicom
             rois = []
             if isinstance(source, str):
@@ -4073,6 +4057,17 @@ class StructureSet(skrt.core.Archive):
                 # Auto-assign name from dicom filename
                 if single_source and self.name is None:
                     self.name = os.path.basename(source).replace(".dcm", "")
+
+            # Load from ROI mask
+            else:
+                try:
+                    self.rois.append(ROI(
+                        source, 
+                        image=self.image,
+                        **self.roi_kwargs
+                    ))
+                except RuntimeError:
+                    continue
 
         self.rename_rois(keep_renamed_only=self.keep_renamed_only)
         self.filter_rois()
