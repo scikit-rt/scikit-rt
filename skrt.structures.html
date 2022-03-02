@@ -1563,6 +1563,22 @@ that ROIs are copied if copy_rois=True.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.combine_rois">
+<span class="sig-name descname"><span class="pre">combine_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.combine_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Combine two or more ROIs as a single ROI.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi_names<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to be combined.  If None, all of the
+structure set’s ROIs are combined.</p>
+</dd>
+<dt>new_name<span class="classifier">str, default=None</span></dt><dd><p>Name to be given to the composite ROI.  If None, the
+name assigned is formed by joining together the names
+of the original ROIs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.filter_rois">
 <span class="sig-name descname"><span class="pre">filter_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.filter_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Keep only the ROIs in the to_keep list and remove any in the
