@@ -873,3 +873,23 @@ def test_roi_split_in_two():
         assert np.all(sphere.get_centroid() == sphere0.get_centroid())
         assert (cube.get_volume() == cube0.get_volume())
         assert (sphere.get_volume() == sphere0.get_volume())
+
+def test_combine_rois():
+    '''Test combining of ROIs.'''
+
+    # Define non-composite ROIs.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 50), intensity=1)
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 50), intensity=10)
+    cube = sim.get_roi('cube')
+    sphere = sim.get_roi('sphere')
+    ss = sim.get_structure_set()
+    
+    # Define composite ROI.
+    cube_and_sphere = ss.combine_rois()
+
+    assert (cube_and_sphere.get_volume() ==
+            cube.get_volume() + sphere.get_volume())
+
+    assert np.all(cube_and_sphere.get_mask() ==
+            cube.get_mask() + sphere.get_mask())
