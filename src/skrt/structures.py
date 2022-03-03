@@ -5341,31 +5341,31 @@ class StructureSet(skrt.core.Archive):
         # Store the new order of ROIs.
         self.rois = rois
 
-    def combine_rois(self, roi_names=None, new_name=None):
+    def combine_rois(self, name=None, roi_names=None):
         '''
         Combine two or more ROIs as a single ROI.
 
         **Parameters:**
 
-        roi_names : list, default=None
-            List of names of ROIs to be combined.  If None, all of the
-            structure set's ROIs are combined.
-
-        new_name : str, default=None
+        name : str, default=None
             Name to be given to the composite ROI.  If None, the
             name assigned is formed by joining together the names
             of the original ROIs.
+
+        roi_names : list, default=None
+            List of names of ROIs to be combined.  If None, all of the
+            structure set's ROIs are combined.
         '''
 
         # If None values passed, set default behaviour.
         if roi_names is None:
             roi_names = self.get_roi_names()
-        if new_name is None:
-            new_name = '+'.join(roi_names)
+        if name is None:
+            name = '+'.join(roi_names)
 
         # Clone one of the ROIs as a starting point.
         roi_new = ROI(self.get_roi(roi_names[0]))
-        roi_new.name = new_name
+        roi_new.name = name
         roi_new.create_mask()
 
         # Combine with data from the other ROIs.
