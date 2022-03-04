@@ -2657,7 +2657,7 @@ class Image(skrt.core.Archive):
         self.set_geometry()
         return None
 
-    def has_same_geometry(self, im, max_diff=0.200):
+    def has_same_geometry(self, im, max_diff=0.005):
         """Check whether this Image has the same geometric properties,
         another Image <im> (i.e. same origin, voxel sizes, and shape),
         with tolerance <max_diff> on agreement of origins."""
