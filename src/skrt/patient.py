@@ -814,7 +814,7 @@ class Patient(skrt.core.PathData):
                     if os.path.exists(outname) and not overwrite:
                         continue
                     Image.write(im, outname, patient_id=self.id,
-                                modality=image_type, root_uid=root_uid)
+                                modality=image_type.upper(), root_uid=root_uid)
 
                     # Write associated structure sets
                     self.write_non_image_data(im, image_type, im_timestamp,
