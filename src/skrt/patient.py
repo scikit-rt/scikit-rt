@@ -855,7 +855,7 @@ class Patient(skrt.core.PathData):
                 item_dir = os.path.join(outdir, modality, item_subpath)
             else:
                 item_dir = os.path.join(
-                        outdir, modality, image_type, im_timestamp)
+                        outdir, modality, image_type.upper(), im_timestamp)
             filename = f'{modality}_{item.timestamp}'
 
             # Ensure it exists

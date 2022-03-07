@@ -97,8 +97,8 @@ def test_write_rois_nifti():
         shutil.rmtree(pdir)
     p.write("tmp", ext=".nii", structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
-    assert os.path.exists(f"{sdir}/CT")
-    assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
+    assert 'CT' in os.listdir(f"{sdir}")
+    assert 'CT' in os.listdir(f"{sdir}/RTSTRUCT")
     nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
     assert "cube.nii" in nifti_rois
     assert "sphere.nii" in nifti_rois
@@ -113,13 +113,13 @@ def test_write_rois_dicom():
         shutil.rmtree(pdir)
     p.write("tmp", ext='.dcm', structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
-    assert os.path.exists(f"{sdir}/CT")
+    assert 'CT' in os.listdir(f"{sdir}")
     assert os.path.exists(f"{sdir}/CT/{sim.timestamp}")
     items = os.listdir(f"{sdir}/CT/{sim.timestamp}")
     assert len(items) == nz
     for item in items:
         assert 'dcm' in item
-    assert os.path.exists(f"{sdir}/RTSTRUCT/CT")
+    assert 'CT' in os.listdir(f"{sdir}/RTSTRUCT")
     assert os.path.exists(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
     items = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
     assert len(items) == 1
