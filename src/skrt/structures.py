@@ -3656,7 +3656,7 @@ class ROI(skrt.core.Archive):
         multiple ROIs are returned by an auto-segmentation algorithm.
 
         The component ROIs are identified by labelling a mask of the
-        composite, using scipy.ndimage.measurements.label().
+        composite, using scipy.ndimage.label().
 
         **Parameters:**
 
@@ -3697,7 +3697,7 @@ class ROI(skrt.core.Archive):
             roi = self
  
         # Label ROI components.
-        label_mask, n_label = ndimage.measurements.label(roi.get_mask())
+        label_mask, n_label = ndimage.label(roi.get_mask())
 
         if voxel_size and 'contour' == self.source_type:
             # Handle cases where composite ROI is from contour points,
