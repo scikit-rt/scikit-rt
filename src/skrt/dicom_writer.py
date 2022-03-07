@@ -135,7 +135,7 @@ class DicomWriter:
         self.orientation = orientation if orientation is not None \
                 else [1, 0, 0, 0, 1, 0]
         self.patient_id = patient_id
-        self.modality = modality if modality is not None else 'CT'
+        self.modality = modality.upper() if modality is not None else 'CT'
         self.header_extras = header_extras
         self.source_type = source_type
 

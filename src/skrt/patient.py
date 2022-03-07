@@ -70,17 +70,17 @@ class Study(skrt.core.Archive):
             subdir = os.path.basename(file.path)
             if subdir in special_dirs:
                 continue
-            self.image_types[subdir] = {}
+            self.image_types[subdir.lower()] = {}
 
             # Get Image objects in this subdir
             attr = f"{subdir.lower()}_images"
             images = self.create_objects(dtype=Image, subdir=subdir, load=False)
             for im in images:
-                im.image_type = subdir
+                im.image_type = subdir.lower()
 
             # Store the images
             setattr(self, attr, images)
-            self.image_types[subdir] = images
+            self.image_types[subdir.lower()] = images
 
     def load_from_subdir(self, dtype, subdir, attr_name, **kwargs):
         """Create objects of type <dtype> from each directory in <subdir> and 
@@ -115,10 +115,10 @@ class Study(skrt.core.Archive):
         # Search subdirectories (each corresponds to an image type)
         for im_type_dir in os.listdir(obj_dir):
 
-            im_type = im_type_dir
+            im_type = im_type_dir.lower()
             if subdir in ['RTDOSE', 'RTPLAN'] \
                     and im_type not in self.image_types:
-                im_type = 'CT'
+                im_type = 'ct'
             subpath = f"{subdir}/{im_type_dir}"
 
             all_objs = []
@@ -138,7 +138,7 @@ class Study(skrt.core.Archive):
                 # Look for an image matching the timestamp of this archive
                 if im_type in self.image_types:
                     image_types = self.image_types[im_type]
-                    if im_type != im_type_dir:
+                    if im_type != im_type_dir.lower():
                         obj_to_match = objs[0]
                     else:
                         obj_to_match = archive
@@ -162,7 +162,7 @@ class Study(skrt.core.Archive):
                 setattr(self, f"{key}_{attr_name}", all_objs)
                 obj_types[key] = all_objs
 
-    def add_image(self, im, image_type="CT"):
+    def add_image(self, im, image_type="ct"):
         '''Add a new image of a given image type.'''
 
         # Ensure we have a list of this type of image
@@ -180,16 +180,16 @@ class Study(skrt.core.Archive):
 
         # Also add to dict of images of each type
         if image_type not in self.image_types:
-            self.image_types[image_type] = [im]
+            self.image_types[image_type.lower()] = [im]
         else:
-            self.image_types[image_type].append(im)
+            self.image_types[image_type.lower()].append(im)
 
         # Ensure image has a timestamp
         if not im.timestamp:
             im.timestamp = skrt.core.generate_timestamp()
 
         # Ensure corresponding structure list exists
-        struct_subdir = f"RTSTRUCT/{image_type}"
+        struct_subdir = f"RTSTRUCT/{image_type.upper()}"
         struct_name = f"{image_type.lower()}_structure_sets"
         if not hasattr(self, struct_name):
             setattr(self, struct_name, [])
@@ -502,7 +502,7 @@ class Patient(skrt.core.PathData):
                             )
 
     def add_study(self, subdir='', timestamp=None, images=None, 
-                  image_type="CT"):
+                  image_type="ct"):
         '''Add a new study.'''
     
         # Create empty Study object
@@ -513,7 +513,7 @@ class Patient(skrt.core.PathData):
         # Add images
         if images:
             for im in images:
-                s.add_image(im, image_type)
+                s.add_image(im, image_type.lower())
 
         # Add to studies list
         self.studies.append(s)
@@ -574,7 +574,8 @@ class Patient(skrt.core.PathData):
         obj = None
         if self.studies:
             obj = getattr(
-                self.studies[0], f"{self.studies[0].image_types[0].lower()}_images"
+                self.studies[0],
+                f"{self.studies[0].image_types[0].lower()}_images"
             )[-1]
 
         # Read demographic info from the object
@@ -791,7 +792,7 @@ class Patient(skrt.core.PathData):
                 if image_type in to_ignore:
                     continue
 
-                image_type_dir = os.path.join(study_dir, image_type)
+                image_type_dir = os.path.join(study_dir, image_type.upper())
                 if not os.path.exists(image_type_dir):
                     os.mkdir(image_type_dir)
 
