@@ -2889,6 +2889,43 @@ class Image(skrt.core.Archive):
             bolus_rois.extend(structure_set.get_rois_wildcard(bolus_name))
         self.assign_intensity_to_rois(bolus_rois, intensity)
 
+    def apply_banding(self, bands=None):
+        '''
+        Apply banding to image data.
+
+        **Parameter:**
+
+        bands - dict, default=None
+            Dictionary of value bandings to be applied to image data.
+            Keys specify band limits, and values indicte the values
+            to be assigned.  For example:
+
+            - bands{-100: -1024, 100: 0, 1e10: 1024}
+
+            will result in the following banding:
+ 
+            - value <= -100 => -1024;
+            - -100 < value <= 100 => 0;
+            - 100 < value <= 1e10 => 1024.
+        '''
+
+        if bands is None:
+            return
+
+        # Retreive data, and initialise banded values to lowest band.
+        image_data = self.get_data()
+        values = sorted(list(bands.keys()))
+        banded_data = np.ones(image_data.shape) * bands[values[0]]
+
+        # Set values between values[i-1] and values[i] to bands[values[i]],
+        for i in range(1, len(values)):
+            v1 = values[i - 1]
+            v2 = values[i]
+            v_band = bands[v2]
+            banded_data[(image_data > v1) & (image_data <= v2)] = v_band
+
+        self.data = banded_data
+
 
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
@@ -4010,3 +4047,105 @@ def kv_to_mv(hu):
         y = -1024
 
     return round(y)
+
+def save_images_as_nifti(
+        study=None, out_dir='.', image_types=None, verbose=True, image_dz=None,
+        bands=None, fill_value=-1024, require_structure_set=None):
+    '''
+    Save a study's image data as nifti files.
+
+    **Parameters:**
+
+    study - skrt.core.Study object
+        Study for which image data are to be saved.
+
+    out_dir - str, default='.'
+        Directory to which nifti files will be saved
+
+    image_types - list/None, default=None
+        Images types to be saved: None to save all, or otherwise a list
+        of image types to save.
+
+    verbose - bool, default=True
+       Flag indicating whether to report progress.
+
+    image_dz - float, default=None
+        Slice thickness (mm) for images.  If None, the original
+        slice thickness is kept.
+
+    bands - dict, default=None
+        Nested dictionary of value bandings to be performed before
+        image saving.  The primary key defines the type of image to
+        which the banding applies.  Secondary keys specify band limits,
+        and associated values indicte the values to be assigned.
+        For example:
+
+        - bands{'mvct' : {-100: -1024, 100: 0, 1e10: 1024}}
+
+        will band an image of type 'mvct':
+
+        - value <= -100 => -1024;
+        - -100 < value <= 100 => 0;
+        - 100 < value <= 1e10 => 1024.
+
+    fill_value - int/float, default=-1024
+        Value used when extrapolating image outside data area>
+
+    require_structure_set - list, default=None
+        List of image types for which data are to be written only
+        if there is an associated structure set.
+    '''
+
+    # Set defaults.
+    if bands is None:
+        bands = {}
+    if require_structure_set is None:
+        require_structure_set = []
+
+    # Obtain full path to output directory.
+    out_dir = skrt.core.fullpath(out_dir)
+
+    # Obtain set of image types to be saved.
+    save_types = set(study.image_types)
+    if image_types is not None:
+        save_types = save_types.intersection(set(image_types))
+    if verbose:
+        if save_types:
+            print(f"Saving imaging data to '{out_dir}':")
+        else:
+            print(f"No data to save for output directory '{out_dir}'")
+
+    # Loop over image types to be saved.
+    for save_type in save_types:
+        # Loop over images.
+        for idx, image in enumerate(
+                sorted(study.image_types[save_type])):
+
+            # Skip image if associated structure set is required but missing.
+            if (save_type in require_structure_set and
+                    save_type not in image.structure_set_types):
+                continue
+
+            # Identify imaging machine.
+            suffix = image.get_machine() if image.get_machine() else 'Unknown'
+
+            # Clone image object for writing.
+            # If data manipulation is required, this will be
+            # applied to the clone rather than to the original.
+            out_image = Image(image)
+
+            # Resize to required slice thickness.
+            if image_dz:
+                out_image.resize(voxel_size=(None, None, image_dz),
+                        fill_value=fill_value)
+
+            # Apply banding.
+            if save_type in bands:
+                if bands[save_type]:
+                    out_image.apply_bandings(bands[save_type])
+
+            # Define output path and write image.
+            outname = (f'{out_dir}/{save_type.upper()}'
+                       f'_{image.timestamp}_{idx+1:03}'
+                       f'_{suffix}.nii.gz')
+            out_image.write(outname=outname, verbose=verbose)

@@ -762,3 +762,19 @@ def test_astype():
     assert np.all(im_dcm.get_data() == im_nii.astype('dcm').get_data())
     assert im_dcm.astype('unknown') is None
     assert im_nii.astype('unknown') is None
+
+def test_apply_banding():
+    # Test banding.
+    im1 = Image(im)
+    bands = {300: 100, 700: 500, 1e10: 900}
+    im1.apply_banding(bands)
+    values = sorted(list(bands.keys()))
+    for i in range(len(values)):
+        if i:
+            v1 = values[i - 1]
+        else:
+            v1 = -1e10
+        v2 = values[i]
+        v_band = bands[v2]
+        assert (((im.get_data() > v1) & (im.get_data() <= v2)).sum()
+                == (im1.get_data() == v_band).sum())
