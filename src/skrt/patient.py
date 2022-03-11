@@ -474,30 +474,44 @@ class Study(skrt.core.Archive):
                     if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
                         dose.set_plan(plan)
 
-    def save_images_as_nifti(self, out_dir='.', image_types=None,
-            verbose=True, image_dz=None, bands=None, fill_value=-1024,
-            require_structure_set=None):
+    def save_images_as_nifti(self, out_dir='.', image_types=None, times=None,
+            verbose=True, image_size=None, voxel_size=None, fill_value=-1024,
+            bands=None, require_structure_set=None):
         '''
         Save study's image data as nifti files.
 
         **Parameters:**
 
         out_dir - str, default='.'
-            Directory to which nifti files will be saved
+            Directory to which nifti files will be saved.
 
-        image_types - list/None, default=None
-            Images types to be saved: None to save all, or otherwise a list
-            of image types to save.
+        image_types - list/str/None, default=None
+            Images types to be saved: None to save all, otherwise a list
+            of image types to save, or a string specifying a single image
+            type to save.
+
+        times : dict, default=None
+            Dictionary where the keys are image types and the values are
+            lists of timestamp indices for the images to be saved,
+            0 being the earliest and -1 being the most recent.  If set to
+            None, all images are saved.
 
         verbose - bool, default=True
            Flag indicating whether to report progress.
 
-        image_dz - float, default=None
-            Slice thickness (mm) for images.  If None, the original
-            slice thickness is kept.
+        image_size - tuple, default=None
+            Image dimensions (dx, dy, dz) in voxels for image resizing
+            prior to writing.  If None, original image size is kept.
+
+        voxel_size - tuple, default=None
+            Voxel dimensions (dx, dy, dz) in mm for image resizing
+            prior to writing.  If None, original voxel size is kept.
+
+        fill_value - int/float, default=-1024
+            Value used when extrapolating image outside data area>
 
         bands - dict, default=None
-            Nested dictionary of value bandings to be performed before
+            Nested dictionary of value bandings to be applied before
             image saving.  The primary key defines the type of image to
             which the banding applies.  Secondary keys specify band limits,
             and associated values indicte the values to be assigned.
@@ -510,9 +524,6 @@ class Study(skrt.core.Archive):
             - value <= -100 => -1024;
             - -100 < value <= 100 => 0;
             - 100 < value <= 1e10 => 1024.
-
-        fill_value - int/float, default=-1024
-            Value used when extrapolating image outside data area>
 
         require_structure_set - list, default=None
             List of image types for which data are to be written only
@@ -531,6 +542,8 @@ class Study(skrt.core.Archive):
         # Obtain set of image types to be saved.
         save_types = set(self.image_types)
         if image_types is not None:
+            if isinstance(image_types, str):
+                image_types = {image_types}
             save_types = save_types.intersection(set(image_types))
         if verbose:
             if save_types:
@@ -540,9 +553,15 @@ class Study(skrt.core.Archive):
 
         # Loop over image types to be saved.
         for save_type in save_types:
+            images = sorted(self.image_types[save_type])
+
+            # Only consider images with requested indices.
+            if times:
+                if save_type in times and times[save_type]:
+                    images = [images[idx] for idx in times[save_type]]
+
             # Loop over images.
-            for idx, image in enumerate(
-                    sorted(self.image_types[save_type])):
+            for idx, image in enumerate(images):
 
                 # Skip image if associated structure set required but missing.
                 if (save_type in require_structure_set and
@@ -558,10 +577,10 @@ class Study(skrt.core.Archive):
                 # applied to the clone rather than to the original.
                 out_image = Image(image)
 
-                # Resize to required slice thickness.
-                if image_dz:
-                    out_image.resize(voxel_size=(None, None, image_dz),
-                            fill_value=fill_value)
+                # Resize to required image size and voxel size.
+                if image_size is not None or voxel_size is not None:
+                    out_image.resize(image_size=image_size,
+                            voxel_size=voxel_size, fill_value=fill_value)
 
                 # Apply banding.
                 if save_type in bands:
@@ -573,6 +592,159 @@ class Study(skrt.core.Archive):
                            f'_{image.timestamp}_{idx+1:03}'
                            f'_{suffix}.nii.gz')
                 out_image.write(outname=outname, verbose=verbose)
+
+    def save_structure_sets_as_nifti(self, out_dir='.',
+            image_types=None, times=None, files=None,
+            verbose=True, image_size=None, voxel_size=None, roi_names=None,
+            force_roi_nifti=False, bilateral_names=None):
+
+        '''
+        Save study's structure-set data as nifti files.
+
+        **Parameters:**
+
+        out_dir - str, default='.'
+            Directory to which nifti files will be saved.
+
+        image_types - list/str/None, default=None
+            Images types for which structure sets are to be saved: None to
+            save for all, otherwise a list of image types, or a string
+            specifying a single image type.
+
+        times : dict, default=None
+            Dictionary where the keys are image types and the values are
+            lists of timestamp indices for the images for which structure
+            sets are to be saved, 0 being the earliest and -1 being the
+            most recent.  If set to None, structure sets are saved for
+            all images.
+
+        files : dict, default=None
+            Dictionary where the keys are image types and the values are
+            lists of file indices for structure sets to be saved for
+            a given image, 0 being the earliest and -1 being the most recent.
+            If set to None, all of an image's structure sets are saved.
+
+        verbose - bool, default=True
+           Flag indicating whether to report progress.
+
+        image_size - tuple, default=None
+            Image dimensions (dx, dy, dz) in voxels for image resizing
+            prior to writing.  If None, original image size is kept.
+
+        voxel_size - tuple, default=None
+            Voxel dimensions (dx, dy, dz) in mm for image resizing
+            prior to writing.  If None, original voxel size is kept.
+
+        roi_names : dict, default=None
+            Dictionary of names for renaming ROIs, where the keys are new 
+            names and values are lists of possible names of ROIs that should
+            be assigned the new name. These names can also contain wildcards
+            with the '*' symbol.
+
+        force_roi_nifti : bool, default=False
+            If True, force writing of dummy NIfTI file for all named ROIs
+            not found in structure set.  If False, named ROIs not found in
+            structure set are disregarded.
+
+        bilateral_names : list, default=None
+            List of names of ROIs that should be split into
+            left and right parts.
+        '''
+
+        # Obtain full path to output directory.
+        out_dir = skrt.core.fullpath(out_dir)
+
+        # Initialise list or names for bilateral ROIs
+        if bilateral_names is None:
+            bilateral_names = []
+
+        # Obtain set of image types for which structure sets are to be saved.
+        save_types = set(self.structure_set_types)
+        if image_types is not None:
+            if isinstance(image_types, str):
+                image_types = {image_types}
+            save_types = save_types.intersection(set(image_types))
+        if verbose:
+            if save_types:
+                print(f"Saving structure_set data to '{out_dir}':")
+            else:
+                print(f"No data to save for output directory '{out_dir}'")
+
+        # Loop over image types for which structure sets are to be saved.
+        for save_type in save_types:
+            if save_type not in self.image_types:
+                continue
+            images = sorted(self.image_types[save_type])
+
+            # Only consider images with requested indices.
+            if times:
+                if save_type in times and times[save_type]:
+                    images = [images[idx] for idx in times[save_type]]
+
+            # Loop over images.
+            for image in images:
+                structure_sets = sorted(image.structure_sets)
+
+                # Only consider structure sets with requested indices.
+                if files:
+                    if save_type in files and files[save_type]:
+                        structure_sets = [structure_sets[idx]
+                                for idx in files[save_type]]
+
+                # Loop over structure sets
+                idx = 0
+                for structure_set in structure_sets:
+                    # Filter ROIs
+                    ss = structure_set.filtered_copy(names=roi_names,
+                            keep_renamed_only=True)
+
+                    # Resize associated image if needed.
+                    if ss.get_roi_names() or force_roi_nifti:
+                        if image_size is not None or voxel_size is not None:
+                            im = Image(ss.image)
+                            im.resize(image_size=image_size,
+                                    voxel_size=voxel_size)
+                            ss.set_image(im)
+
+                    # Create list of ROIs to be saved.
+                    if roi_names:
+                        save_names = list(roi_names)
+                    else:
+                        save_names = list(ss.get_roi_names())
+
+                    # Split ROI into left and right parts if needed.
+                    for roi_name in bilateral_names:
+                        save_names.remove(roi_name)
+                        save_names.append(f'{roi_name}_left')
+                        save_names.append(f'{roi_name}_right')
+                        if roi_name in ss.get_roi_names():
+                            ss_tmp = ss.get_roi(roi_name).split_in_two()
+                            for roi in ss_tmp.get_rois():
+                                ss.add(roi)
+
+                    # Loop over ROIs.
+                    idx_add = 0
+                    for roi_name in save_names:
+                        # Define output path
+                        outname = (f'RTSTRUCT_{save_type.upper()}'
+                                   f'_{image.timestamp}_{idx+1:03}'
+                                   f'_{roi_name}.nii.gz')
+                        if roi_name in ss.get_roi_names():
+                            # Save ROI mask.
+                            roi = ss.get_roi(roi_name)
+                            roi.write(outname=outname, outdir=out_dir,
+                                    ext='nii.gz', verbose=verbose)
+                            idx_add = 1
+                        elif force_roi_nifti:
+                            # Save dummy mask for ROI not found
+                            # in structure set.
+                            im = Image(ss.image)
+                            shape = im.get_data().shape
+                            im.data = np.zeros(shape)
+                            outname = f'{out_dir}/{outname}'
+                            ss.image.write(outname=outname, verbose=verbose)
+                            idx_add = 1
+                    idx += idx_add
 
 
 class Patient(skrt.core.PathData):
