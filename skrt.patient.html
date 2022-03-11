@@ -331,21 +331,32 @@ files in subdirectories not named RTDOSE, RTSTRUCT, or RTPLAN.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.save_images_as_nifti">
-<span class="sig-name descname"><span class="pre">save_images_as_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.save_images_as_nifti" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_images_as_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.save_images_as_nifti" title="Permalink to this definition"></a></dt>
 <dd><p>Save study’s image data as nifti files.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
-<dt>out_dir - str, default=’.’</dt><dd><p>Directory to which nifti files will be saved</p>
+<dt>out_dir - str, default=’.’</dt><dd><p>Directory to which nifti files will be saved.</p>
 </dd>
-<dt>image_types - list/None, default=None</dt><dd><p>Images types to be saved: None to save all, or otherwise a list
-of image types to save.</p>
+<dt>image_types - list/str/None, default=None</dt><dd><p>Images types to be saved: None to save all, otherwise a list
+of image types to save, or a string specifying a single image
+type to save.</p>
+</dd>
+<dt>times<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where the keys are image types and the values are
+lists of timestamp indices for the images to be saved,
+0 being the earliest and -1 being the most recent.  If set to
+None, all images are saved.</p>
 </dd>
 <dt>verbose - bool, default=True</dt><dd><p>Flag indicating whether to report progress.</p>
 </dd>
-<dt>image_dz - float, default=None</dt><dd><p>Slice thickness (mm) for images.  If None, the original
-slice thickness is kept.</p>
+<dt>image_size - tuple, default=None</dt><dd><p>Image dimensions (dx, dy, dz) in voxels for image resizing
+prior to writing.  If None, original image size is kept.</p>
 </dd>
-<dt>bands - dict, default=None</dt><dd><p>Nested dictionary of value bandings to be performed before
+<dt>voxel_size - tuple, default=None</dt><dd><p>Voxel dimensions (dx, dy, dz) in mm for image resizing
+prior to writing.  If None, original voxel size is kept.</p>
+</dd>
+<dt>fill_value - int/float, default=-1024</dt><dd><p>Value used when extrapolating image outside data area&gt;</p>
+</dd>
+<dt>bands - dict, default=None</dt><dd><p>Nested dictionary of value bandings to be applied before
 image saving.  The primary key defines the type of image to
 which the banding applies.  Secondary keys specify band limits,
 and associated values indicte the values to be assigned.
@@ -360,10 +371,54 @@ For example:</p>
 <li><p>100 &lt; value &lt;= 1e10 =&gt; 1024.</p></li>
 </ul>
 </dd>
-<dt>fill_value - int/float, default=-1024</dt><dd><p>Value used when extrapolating image outside data area&gt;</p>
-</dd>
 <dt>require_structure_set - list, default=None</dt><dd><p>List of image types for which data are to be written only
 if there is an associated structure set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.save_structure_sets_as_nifti">
+<span class="sig-name descname"><span class="pre">save_structure_sets_as_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_roi_nifti</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilateral_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.save_structure_sets_as_nifti" title="Permalink to this definition"></a></dt>
+<dd><p>Save study’s structure-set data as nifti files.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>out_dir - str, default=’.’</dt><dd><p>Directory to which nifti files will be saved.</p>
+</dd>
+<dt>image_types - list/str/None, default=None</dt><dd><p>Images types for which structure sets are to be saved: None to
+save for all, otherwise a list of image types, or a string
+specifying a single image type.</p>
+</dd>
+<dt>times<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where the keys are image types and the values are
+lists of timestamp indices for the images for which structure
+sets are to be saved, 0 being the earliest and -1 being the
+most recent.  If set to None, structure sets are saved for
+all images.</p>
+</dd>
+<dt>files<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where the keys are image types and the values are
+lists of file indices for structure sets to be saved for
+a given image, 0 being the earliest and -1 being the most recent.
+If set to None, all of an image’s structure sets are saved.</p>
+</dd>
+<dt>verbose - bool, default=True</dt><dd><p>Flag indicating whether to report progress.</p>
+</dd>
+<dt>image_size - tuple, default=None</dt><dd><p>Image dimensions (dx, dy, dz) in voxels for image resizing
+prior to writing.  If None, original image size is kept.</p>
+</dd>
+<dt>voxel_size - tuple, default=None</dt><dd><p>Voxel dimensions (dx, dy, dz) in mm for image resizing
+prior to writing.  If None, original voxel size is kept.</p>
+</dd>
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new 
+names and values are lists of possible names of ROIs that should
+be assigned the new name. These names can also contain wildcards
+with the ‘*’ symbol.</p>
+</dd>
+<dt>force_roi_nifti<span class="classifier">bool, default=False</span></dt><dd><p>If True, force writing of dummy NIfTI file for all named ROIs
+not found in structure set.  If False, named ROIs not found in
+structure set are disregarded.</p>
+</dd>
+<dt>bilateral_names<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs that should be split into
+left and right parts.</p>
 </dd>
 </dl>
 </dd></dl>
