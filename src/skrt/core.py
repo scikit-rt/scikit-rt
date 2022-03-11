@@ -671,7 +671,17 @@ def get_time_and_date(timestamp: str = "") -> Tuple[str, str]:
         if (-1 != i1) and (-1 != i2):
             bitstamp = timestamp[i1 + 1: i2]
             if is_timestamp(bitstamp):
-                time_date = tuple(bitstamp.split("_"))
+                items = bitstamp.split("_")
+                if len(items) > 2:
+                    if (items[0].isalpha() and items[1].isdigit()
+                            and items[2].isdigit()):
+                        items = items[1:3]
+                    elif items[0].isdigit() and items[1].isdigit():
+                        items = items[:2]
+                    elif items[0].isdigit() and items[1].isdigit():
+                        items = items[:2]
+                if len(items) != 2:
+                    time_date = tuple(items)
 
     return time_date
 
