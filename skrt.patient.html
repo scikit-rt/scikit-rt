@@ -330,6 +330,45 @@ files in subdirectories not named RTDOSE, RTSTRUCT, or RTPLAN.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Study.save_images_as_nifti">
+<span class="sig-name descname"><span class="pre">save_images_as_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.save_images_as_nifti" title="Permalink to this definition"></a></dt>
+<dd><p>Save study’s image data as nifti files.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>out_dir - str, default=’.’</dt><dd><p>Directory to which nifti files will be saved</p>
+</dd>
+<dt>image_types - list/None, default=None</dt><dd><p>Images types to be saved: None to save all, or otherwise a list
+of image types to save.</p>
+</dd>
+<dt>verbose - bool, default=True</dt><dd><p>Flag indicating whether to report progress.</p>
+</dd>
+<dt>image_dz - float, default=None</dt><dd><p>Slice thickness (mm) for images.  If None, the original
+slice thickness is kept.</p>
+</dd>
+<dt>bands - dict, default=None</dt><dd><p>Nested dictionary of value bandings to be performed before
+image saving.  The primary key defines the type of image to
+which the banding applies.  Secondary keys specify band limits,
+and associated values indicte the values to be assigned.
+For example:</p>
+<ul class="simple">
+<li><p>bands{‘mvct’ : {-100: -1024, 100: 0, 1e10: 1024}}</p></li>
+</ul>
+<p>will band an image of type ‘mvct’:</p>
+<ul class="simple">
+<li><p>value &lt;= -100 =&gt; -1024;</p></li>
+<li><p>-100 &lt; value &lt;= 100 =&gt; 0;</p></li>
+<li><p>100 &lt; value &lt;= 1e10 =&gt; 1024.</p></li>
+</ul>
+</dd>
+<dt>fill_value - int/float, default=-1024</dt><dd><p>Value used when extrapolating image outside data area&gt;</p>
+</dd>
+<dt>require_structure_set - list, default=None</dt><dd><p>List of image types for which data are to be written only
+if there is an associated structure set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.sum_dose_plans">
 <span class="sig-name descname"><span class="pre">sum_dose_plans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dose_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.sum_dose_plans" title="Permalink to this definition"></a></dt>
 <dd><p>Sum over doses using a given summation type.</p>
