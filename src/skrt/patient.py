@@ -56,6 +56,13 @@ class Study(skrt.core.Archive):
                 for plan in plans:
                     self.link_plan_to_doses(plan)
 
+        if 'ct' in self.image_types and 'cthd' in self.image_types:
+            if (len(self.image_types['ct']) == 1
+                and len(self.image_types['cthd']) == 1):
+                self.cthd_images[0].structure_sets = []
+                for ss in self.ct_images[0].structure_sets:
+                    self.cthd_images[0].add_structure_set(ss)
+                    ss.set_image(self.cthd_images[0])
         #  self.load_dose_or_plan()
 
     def load_images(self):
@@ -566,7 +573,7 @@ class Study(skrt.core.Archive):
 
                 # Skip image if associated structure set required but missing.
                 if (save_type in require_structure_set and
-                        save_type not in image.structure_set_types):
+                        not image.structure_sets):
                     continue
 
                 # Identify imaging machine.
@@ -660,7 +667,7 @@ class Study(skrt.core.Archive):
             bilateral_names = []
 
         # Obtain set of image types for which structure sets are to be saved.
-        save_types = set(self.structure_set_types)
+        save_types = set(self.image_types)
         if image_types is not None:
             if isinstance(image_types, str):
                 image_types = {image_types}
