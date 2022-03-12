@@ -5,6 +5,7 @@ from pathlib import Path
 import pydicom
 import shutil
 import time
+import timeit
 
 import skrt.core
 from skrt.image import Image
@@ -755,6 +756,9 @@ class Patient(skrt.core.PathData):
 
     def __init__(self, path="", exclude=["logfiles"]):
 
+        # Record start time
+        tic = timeit.default_timer()
+
         # Set path and patient ID
         if path is None:
             path = os.getcwd()
@@ -772,6 +776,10 @@ class Patient(skrt.core.PathData):
                             self.studies.extend(
                                 self.create_objects(dtype=Study, subdir=subdir)
                             )
+
+        # Record end time, then store initialisation time.
+        toc = timeit.default_timer()
+        self.init_time = (toc - tic)
 
     def add_study(self, subdir='', timestamp=None, images=None, 
                   image_type="ct"):
