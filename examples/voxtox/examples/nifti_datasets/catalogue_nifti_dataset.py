@@ -75,7 +75,7 @@ def catalogue_dataset(
             if 'RTSTRUCT' == elements[0]:
                 channel = '_'.join(elements[5:])
                 channel_ok = (channel in roi_names) or (not roi_names)
-            elif 'MVCT' == elements[0]:
+            elif elements[0] in ['MVCT', 'CTHD']:
                 channel = 'ct'
             else:
                 channel = elements[0].lower()
@@ -157,15 +157,15 @@ if '__main__' == __name__:
     #default_dataset_dir = './HeadAndNeck_VoxToxClinical_SyntheticMVCT_20210218'
     default_dataset_dir = './HeadAndNeck_VoxTox_SyntheticMVCT_20210225'
     default_dataset_dir = './nifti_dataset'
-    default_out_csv = 'dataset_smg.csv'
+    default_dataset_dir = '/r02/voxtox/project_data_2022_nifti'
     default_out_csv = 'dataset_cochlea.csv'
-    default_out_csv = 'dataset_glands.csv'
     default_out_csv = 'dataset_spinal_cord.csv'
     default_out_csv = 'dataset_oral_cavity.csv'
     default_out_csv = 'dataset_throat1.csv'
     default_out_csv = 'dataset_throat2.csv'
     default_out_csv = 'dataset_multiple.csv'
-    default_roi_names = ['smg_left', 'smg_right']
+    default_out_csv = 'dataset_glands.csv'
+    default_out_csv = 'dataset_smg.csv'
     default_roi_names = ['cochlea_left', 'cochlea_right']
     default_roi_names = [
         'alterio_pc', 'mpc', 'oral_cavity', 'parotid_left', 'parotid_right',
@@ -178,9 +178,11 @@ if '__main__' == __name__:
     default_roi_names = ['oral_cavity']
     default_roi_names = ['mpc', 'oral_cavity', 'sg_larynx', 'spc']
     default_roi_names = ['alterio_pc', 'oral_cavity', 'sg_larynx']
+    default_roi_names = ['brainstem', 'mandible',
+        'parotid_left', 'parotid_right', 'spinal_cord']
     default_roi_names = [
-        'brainstem', 'mandible', 'parotid_left', 'parotid_right',
-        'spinal_cord']
+        'parotid_left', 'parotid_right', 'smg_left', 'smg_right']
+    default_roi_names = ['smg_left', 'smg_right']
 
     if (len(sys.argv) > 1):
         dataset_dir = sys.argv[1]

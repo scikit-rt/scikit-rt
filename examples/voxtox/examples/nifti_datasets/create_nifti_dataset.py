@@ -177,43 +177,87 @@ class CreateNiftiDataset(Algorithm):
         return self.status
 
 
+def get_app(setup_script=''):
+    '''
+    Define and configure application to be run.
+    '''
+
+    opts = {}
+    opts['image_types'] = ['cthd']
+    opts['roi_names'] = h_names.head_and_neck_plan
+    opts['voxel_size'] = None
+    opts['recreate_out_dir'] = False
+    opts['times'] = {'cthd': [-1]}
+    opts['files'] = {'cthd': [0]}
+    opts['verbose'] = True
+    opts['out_dir'] = '/r02/voxtox/project_data_2022_nifti'
+
+    if 'Ganga' in __name__:
+        opts['alg_module'] = fullpath(sys.argv[0])
+
+    # Set the severity level for event logging
+    log_level = 'INFO'
+
+    # Create algorithm object
+    alg = CreateNiftiDataset(opts=opts, name=None, log_level=log_level)
+
+    # Create the list of algorithms to be run (here just the one)
+    algs = [alg]
+
+    # Create the application
+    app = Application(algs=algs, log_level=log_level)
+
+    return app
+
+def get_paths():
+    # Define the patient data to be analysed
+    data_dir = '/r02/voxtox/project_data_2022'
+    paths = glob.glob(f'{data_dir}/VT*')
+
+    return paths
+
 if '__main__' == __name__:
+    # Define and configure the application to be run.
+    app = get_app()
 
-    # Create list of paths to patient data
-    path = '/r02/voxtox/kh_synthetic/transform_derangement_000/head_and_neck/consolidation/VT1_H_22EEAK1L'
-    path = '/Users/karl/data/head_and_neck/partiii/VT1_H_A98302K1'
-    sys.argv.append(path)
-    arg_ok = (len(sys.argv) > 1)
-    if arg_ok:
-        path = sys.argv[1]
-        arg_ok = isinstance(path, str)
-    if arg_ok:
-        paths = glob.glob(path, recursive=True)
-        paths.sort()
-        arg_ok = (len(paths) > 0)
+    # Define the patient data to be analysed
+    paths = get_paths()
 
-    # Create and run algorithm to save data in NIfTI format
-    if arg_ok:
-        opts = {}
-        opts['image_types'] = ['ct']
-        opts['structure_set_types_save'] = ['ct']
-        opts['roi_names'] = h_names.head_and_neck_plan
-        opts['voxel_size'] = None
-        opts['recreate_out_dir'] = False
-        opts['times'] = {'ct': [-1]}
-        opts['files'] = {'ct': [0]}
-        opts['verbose'] = True
-        algs = [CreateNiftiDataset(opts)]
-        app = Application(algs)
-        app.run(paths)
+    # Run application for the selected data
+    app.run(paths[0:4])
 
-    # Print usage information
-    else:
-        print(
-                '\nUsage: python create_nifti_dataset.py <path>'
-                '\n\n       <path> -- path identifying patient folders,'
-                '\n       to be expanded as list by glob.glob(<path>)'
-            )
+if 'Ganga' in __name__:
+    # Define script for setting analysis environment
+    setup_script = fullpath('skrt_conda.sh')
 
-        if path and not paths:
-            print(f'\nNo data found at path \'{path}\'')
+    # Define and configure the application to be run.
+    ganga_app = SkrtApp._impl.from_application(get_app(), setup_script)
+
+    # Define the patient data to be analysed
+    paths = get_paths()
+    input_data = PatientDataset(paths=paths)
+
+    # Define processing system
+    backend = Local()
+    #backend = Condor()
+
+    # Define how job should be split into subjobs
+    splitter = PatientDatasetSplitter(patients_per_subjob=65)
+
+    # Define merging of subjob outputs
+    merger = SmartMerger()
+    merger.files = ['stderr', 'stdout']
+    merger.ignorefailed = True
+    postprocessors = [merger]
+
+    # Define job name
+    name = 'create_nifti_dataset'
+
+    # Define list of outputs to be saved
+    outbox = []
+
+    # Create the job, and submit to processing system
+    j = Job(application=ganga_app, backend=backend, inputdata=input_data,
+            outputsandbox=outbox, splitter=splitter,
+            postprocessors=postprocessors, name=name)
+    j.submit()
