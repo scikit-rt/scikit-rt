@@ -2,7 +2,6 @@
 Script for cataloguing NIfTI dataset, in form expected by InnerEye.
 '''
 
-import os
 from pathlib import Path
 import sys
 
@@ -196,7 +195,7 @@ if '__main__' == __name__:
     else:
         roi_names = default_roi_names
 
-    if os.path.isdir(dataset_dir):
+    if Path(dataset_dir).is_dir():
         catalogue_dataset(dataset_dir, out_csv, roi_names)
 
     # Print usage information
