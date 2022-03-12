@@ -1,3 +1,4 @@
+skrt_conda.sh
 .*
 !.gitignore
 !.gitlab-ci.yml
