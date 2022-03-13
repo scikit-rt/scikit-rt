@@ -94,7 +94,7 @@ def catalogue_dataset(
                     patients[patient_id] = {}
                     patients[patient_id]['channels'] = []
                 patients[patient_id][channel] = (
-                    nifti_path, '', '', nx, ny, nz)
+                    nifti_path.relative_to(dataset_dir), '', '', nx, ny, nz)
                 patients[patient_id]['channels'].append(channel)
             else:
                 print(f'Patient {patient_id} - {nz} slices - skipping')
@@ -166,6 +166,8 @@ if '__main__' == __name__:
     default_out_csv = 'dataset_multiple.csv'
     default_out_csv = 'dataset_glands.csv'
     default_out_csv = 'dataset_smg.csv'
+    default_out_csv = 'dataset_multiple.csv'
+    default_out_csv = 'dataset_smg.csv'
     default_roi_names = ['cochlea_left', 'cochlea_right']
     default_roi_names = [
         'alterio_pc', 'mpc', 'oral_cavity', 'parotid_left', 'parotid_right',
@@ -182,6 +184,8 @@ if '__main__' == __name__:
         'parotid_left', 'parotid_right', 'spinal_cord']
     default_roi_names = [
         'parotid_left', 'parotid_right', 'smg_left', 'smg_right']
+    default_roi_names = ['brainstem', 'mandible',
+        'parotid_left', 'parotid_right', 'spinal_cord']
     default_roi_names = ['smg_left', 'smg_right']
 
     if (len(sys.argv) > 1):

@@ -694,7 +694,7 @@ class Study(skrt.core.Archive):
                 structure_sets = sorted(image.structure_sets)
 
                 # Only consider structure sets with requested indices.
-                if files:
+                if files and structure_sets:
                     if save_type in files and files[save_type]:
                         structure_sets = [structure_sets[idx]
                                 for idx in files[save_type]]
