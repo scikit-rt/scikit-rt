@@ -100,6 +100,25 @@
 <section id="module-voxtox.roi_names">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-voxtox.roi_names" title="Permalink to this headline"></a></h2>
 <p>Package providing dictionaries for standardising ROI labels.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="voxtox.roi_names.get_roi">
+<span class="sig-prename descclassname"><span class="pre">voxtox.roi_names.</span></span><span class="sig-name descname"><span class="pre">get_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'plan'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.roi_names.get_roi" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain named ROI from structure set.</p>
+<p>A standardised name is passed as argument, and the possible actual
+names are determined based on data type.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>structure_set<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>Structure set from which ROI is to be retrieved.</p>
+</dd>
+<dt>roi_name<span class="classifier">str</span></dt><dd><p>Name identifying ROI to be retrieved.</p>
+</dd>
+<dt>data_type<span class="classifier">str, default=’plan’</span></dt><dd><p>Type of data considered.  This affects the possible actual ROI
+names corresponding to a standardised name.  The available
+data types include: ‘plan’, ‘voxtox’, ‘iov’, ‘mvct’.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
