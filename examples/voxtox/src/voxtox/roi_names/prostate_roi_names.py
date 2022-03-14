@@ -305,6 +305,11 @@ prostate_voxtox['pelvic_floor_muscles'] = [
     'Pelvic floor muscles']
 prostate_voxtox['rectum'] = ['Rectum', 'rectum']
 
+prostate_mvct = {}
+prostate_mvct['pelvic_floor_muscles'] = [
+    'Pelvic floor muscles']
+prostate_mvct['rectum'] = ['Rectum', 'rectum']
+
 prostate_iov = {}
 prostate_iov['rectum_am'] = ['Rectum A*M*']
 prostate_iov['rectum_cw'] = ['Rectum C*W*']
