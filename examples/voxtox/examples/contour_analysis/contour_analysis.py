@@ -13,8 +13,8 @@ import pandas as pd
 from skrt.application import Algorithm, Application
 from skrt.core import fullpath
 
-from voxtox.data.djn_253 import djn_253
-from voxtox.data.jes_109 import jes_109
+from voxtox.data import get_paths_djn_253
+from voxtox.data import get_paths_jes_109
 from voxtox.roi_names import get_roi
 
 class ContourAnalysis(Algorithm):
@@ -142,7 +142,8 @@ def get_paths():
     # Define the patient data to be analysed
     data_dir = '/Users/karl/data/head_and_neck/partiii'
     #paths = glob.glob(f'{data_dir}/VT*')
-    paths = djn_253
+    data_dir = '/r02/voxtox/data/head_and_neck'
+    paths = get_paths_djn_253(data_dir)
 
     return paths
 
@@ -172,11 +173,11 @@ if 'Ganga' in __name__:
     #backend = Condor()
 
     # Define how job should be split into subjobs
-    splitter = PatientDatasetSplitter(patients_per_subjob=65)
+    splitter = PatientDatasetSplitter(patients_per_subjob=50)
 
     # Define merging of subjob outputs
     merger = SmartMerger()
-    merger.files = ['stderr', 'stdout']
+    merger.files = ['stderr', 'stdout', 'roi_data.csv']
     merger.ignorefailed = True
     postprocessors = [merger]
 
@@ -184,10 +185,10 @@ if 'Ganga' in __name__:
     name = 'contour_analysis'
 
     # Define list of outputs to be saved
-    outbox = []
+    outbox = ['roi_data.csv']
 
     # Create the job, and submit to processing system
     j = Job(application=ganga_app, backend=backend, inputdata=input_data,
-            outputsandbox=outbox, splitter=splitter,
+            outputfiles=outbox, splitter=splitter,
             postprocessors=postprocessors, name=name)
     j.submit()
