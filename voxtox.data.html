@@ -100,6 +100,37 @@
 <section id="module-voxtox.data">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-voxtox.data" title="Permalink to this headline"></a></h2>
 <p>Package providing lists of datasets with outlining for VoxTox.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="voxtox.data.get_paths">
+<span class="sig-prename descclassname"><span class="pre">voxtox.data.</span></span><span class="sig-name descname"><span class="pre">get_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VT1_*'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.data.get_paths" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve full paths corresponding to set of identifiers.</p>
+<p><strong>Parameters:</strong>
+ids - list, default=None</p>
+<blockquote>
+<div><p>List of patient identifiers.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>topdir - str, default=’.’</dt><dd><p>Top-level data directory.</p>
+</dd>
+<dt>samples - list, default=None</dt><dd><p>List of topdir sub-directories to be searched for patient data.</p>
+</dd>
+<dt>pattern - str, default=’VT1_*’</dt><dd><p>Pattern to be matched to identify patient folders.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="voxtox.data.get_paths_djn_253">
+<span class="sig-prename descclassname"><span class="pre">voxtox.data.</span></span><span class="sig-name descname"><span class="pre">get_paths_djn_253</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">top_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.data.get_paths_djn_253" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve full paths to datasets with planning scans outlined by DJN.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="voxtox.data.get_paths_jes_109">
+<span class="sig-prename descclassname"><span class="pre">voxtox.data.</span></span><span class="sig-name descname"><span class="pre">get_paths_jes_109</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">top_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.data.get_paths_jes_109" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve full paths to datasets with planning scans outlined by JES.</p>
+</dd></dl>
+
 </section>
 </section>
 
