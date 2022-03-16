@@ -68,6 +68,8 @@ class ContourAnalysis(Algorithm):
         for study in patient.studies:
             if len(study.ct_structure_sets) < 2:
                 continue
+            if not hasattr(study, 'ct_images'):
+                continue
             study.ct_structure_sets.sort()
             ss_plan = study.ct_structure_sets[0]
             ss_voxtox = study.ct_structure_sets[-1]
@@ -144,6 +146,7 @@ def get_paths():
     #paths = glob.glob(f'{data_dir}/VT*')
     data_dir = '/r02/voxtox/data/head_and_neck'
     paths = get_paths_djn_253(data_dir)
+    paths = ['/r02/voxtox/data/head_and_neck/special_cases/consolidation/VT1_H_419CE2K1']
 
     return paths
 
