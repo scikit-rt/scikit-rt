@@ -146,7 +146,6 @@ def get_paths():
     #paths = glob.glob(f'{data_dir}/VT*')
     data_dir = '/r02/voxtox/data/head_and_neck'
     paths = get_paths_djn_253(data_dir)
-    paths = ['/r02/voxtox/data/head_and_neck/special_cases/consolidation/VT1_H_419CE2K1']
 
     return paths
 
