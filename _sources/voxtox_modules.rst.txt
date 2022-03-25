@@ -1,7 +1,0 @@
-voxtox
-======
-
-.. toctree::
-   :maxdepth: 4
-
-   voxtox

@@ -1,7 +1,0 @@
-voxtox.data.jes\_109 module
-===========================
-
-.. automodule:: voxtox.data.jes_109
-   :members:
-   :undoc-members:
-   :show-inheritance:

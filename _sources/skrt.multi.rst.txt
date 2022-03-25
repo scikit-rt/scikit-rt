@@ -1,7 +1,0 @@
-skrt.multi module
-=================
-
-.. automodule:: skrt.multi
-   :members:
-   :undoc-members:
-   :show-inheritance:

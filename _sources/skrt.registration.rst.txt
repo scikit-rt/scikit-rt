@@ -1,7 +1,0 @@
-skrt.registration module
-========================
-
-.. automodule:: skrt.registration
-   :members:
-   :undoc-members:
-   :show-inheritance:
