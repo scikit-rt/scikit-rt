@@ -1,5 +1,7 @@
 """Classes related to ROIs and structure sets."""
 
+from pathlib import Path
+
 from scipy import interpolate, ndimage
 from skimage import draw
 from shapely import affinity
@@ -3522,7 +3524,7 @@ class ROI(skrt.core.Archive):
         # Write array to nifti or npy
         elif ext != ".dcm":
             self.create_mask()
-            self.mask.write(outname, **kwargs)
+            self.mask.write(outname, verbose=verbose, **kwargs)
         else:
             if header_source and keep_source_rois:
                 structure_set = StructureSet(header_source)
@@ -3930,6 +3932,10 @@ class StructureSet(skrt.core.Archive):
         self.plans = []
         path = path if isinstance(path, str) else ""
         skrt.core.Archive.__init__(self, path, auto_timestamp)
+        if self.path and not self.name:
+            name = Path(self.path).name.split('_')[0].lower()
+            if name[0].isalpha():
+                self.name = name
 
         self.loaded = False
         if load:
@@ -3964,13 +3970,15 @@ class StructureSet(skrt.core.Archive):
                                 f"or numpy array. Type found: {type(sources)}.")
             single_source = True
 
-            # Put affine matrix into kwargs
-            if self.image is not None:
-                self.roi_kwargs["affine"] = self.image.get_affine()
-
             # Load input array into image
             array = skrt.image.Image(sources).get_data(standardise=True).astype(int)
             n = array.max()
+
+            # Enforce Dicom convention for data array of image object,
+            # so that affine matrix will be correctly defined for mask creation.
+            im = skrt.image.Image(sources)
+            if 'nifti' in im.source_type:
+                im = im.astype('dcm')
             i_name = 0
             for i in range(0, n):
                 if self.names is not None and i_name < len(self.names):
@@ -3978,13 +3986,25 @@ class StructureSet(skrt.core.Archive):
                     i_name += 1
                 else:
                     name = f"ROI {i}"
+
+                #im2.data = (im1.data == i + 1)
                 self.rois.append(ROI(
                     array == i + 1, 
+                    affine = im.get_affine(),
+                    voxel_size = None,
+                    origin = None,
                     image=self.image,
                     name=name,
                     **self.roi_kwargs
                 ))
             sources = []
+
+            # For NIfTI source, revert to NIfTI convention for data array
+            # of mask, so that it can be written correctly to file.
+            if 'nifti' in im.source_type:
+                for idx in range(len(self.rois)):
+                    self.rois[idx].mask = self.rois[idx].mask.astype('nii')
+
             self.loaded = True
 
         else:
@@ -4683,7 +4703,7 @@ class StructureSet(skrt.core.Archive):
             shutil.rmtree(outdir)
             os.mkdir(outdir)
         for s in self.get_rois():
-            s.write(outdir=outdir, ext=ext, **kwargs)
+            s.write(outdir=outdir, ext=ext, verbose=verbose, **kwargs)
 
     def plot(
         self,

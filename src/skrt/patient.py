@@ -769,7 +769,7 @@ class Patient(skrt.core.PathData):
         # Set path and patient ID
         if path is None:
             path = os.getcwd()
-        self.path = skrt.core.fullpath(path)
+        self.path = skrt.core.fullpath(str(path))
         self.id = os.path.basename(self.path)
 
         # Find studies
@@ -786,7 +786,7 @@ class Patient(skrt.core.PathData):
 
         # Record end time, then store initialisation time.
         toc = timeit.default_timer()
-        self.init_time = (toc - tic)
+        self._init_time = (toc - tic)
 
     def add_study(self, subdir='', timestamp=None, images=None, 
                   image_type="ct"):
