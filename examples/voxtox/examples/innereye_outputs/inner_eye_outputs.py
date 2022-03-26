@@ -43,7 +43,7 @@ def copy_data(row, indir=None, outdir=None, timestamp=None):
     modality_timestamp = '_'.join(elements[2: 5])
     modality_dir = (outdir / patient_id / study_timestamp / modality
             / modality_timestamp)
-    nifti_dir = outdir / patient_id / study_timestamp / 'NIfTI'
+    innereye_dir = outdir / patient_id / study_timestamp / 'InnerEye'
 
     # Loop over InnerEye results in patient directory.
     for inpath in indir_patient.glob('*.nii.gz'):
@@ -59,7 +59,7 @@ def copy_data(row, indir=None, outdir=None, timestamp=None):
             outpath = modality_dir / f'innereye_{timestamp}' / inpath.name
         else:
             # Result is a map of posterior probability or Shannon entropy
-            outpath = nifti_dir / inpath.name
+            outpath = innereye_dir / f'{timestamp}_{inpath.name}'
 
         # Create output directory if it doesn't exist, and copy file.
         outpath.parent.mkdir(parents=True, exist_ok=True)

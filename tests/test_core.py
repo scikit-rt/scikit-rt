@@ -1,5 +1,7 @@
 '''Test core data classes and functions.'''
 
+from pathlib import Path
+
 import os
 import time
 import shutil
@@ -114,3 +116,19 @@ def test_null_file():
     assert(x.subdir == '')
     assert(x.time == '')
     assert(x.timestamp == '')
+
+def test_data_by_filename():
+    timestamp = skrt.core.generate_timestamp()
+    data_objects = []
+    n_object = 5
+    for idx in range(n_object):
+        data_objects.append(skrt.core.PathData(
+            f'/datastore/{timestamp}_object{idx:03}.dat'))
+
+    data_by_filename = skrt.core.get_data_by_filename(data_objects)
+    assert len(data_by_filename) == len(data_objects)
+    for filename, data_object in data_by_filename.items():
+        assert filename in data_object.path
+        filename_from_path = (Path(data_object.path).stem
+                .split(f'{timestamp}_')[-1])
+        assert filename == filename_from_path

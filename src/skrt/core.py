@@ -1,5 +1,7 @@
 """Core data classes and functions."""
 
+from pathlib import Path
+
 import copy
 import functools
 import os
@@ -697,8 +699,6 @@ def is_timestamp(string: str = "") -> bool:
             items = items[1:3]
         elif items[0].isdigit() and items[1].isdigit():
             items = items[:2]
-        elif items[0].isdigit() and items[1].isdigit():
-            items = items[:2]
     if len(items) != 2:
         valid = False
     else:
@@ -743,3 +743,50 @@ def generate_timestamp() -> str:
     '''Make timestamp from the current time.'''
 
     return time.strftime('%Y%m%d_%H%M%S')
+
+def get_data_by_filename(data_objects=None, remove_timestamp=True,
+        remove_suffix=True):
+
+    '''
+    Create dictionary of data_objects from list.
+
+    Dictionary keys are derived from the paths to the data sources.
+
+    **Parameters:**
+
+    data_objects : list, default=None
+        List of data objects.
+
+    remove_timestamp : bool, default=True
+        If True, remove and timestamps from filenames to be used as
+        dictionary keys.
+
+    remove_suffix : bool, default=True
+        If True, remove any suffixes from filenames to be used as
+        dictionary keys.
+    '''
+
+    data_by_filename = {}
+    if data_objects:
+
+        idx = 0
+        for data_object in data_objects:
+            path = getattr(data_object, 'path', '')
+            if path:
+                # Determine filename, removing timestamp and suffix if needed.
+                filename = Path(path).name
+                if remove_timestamp:
+                    time_and_date = get_time_and_date(filename)
+                    if None not in time_and_date:
+                        timestamp = '_'.join(time_and_date)
+                        filename = ''.join(filename.split(f'{timestamp}_'))
+                if remove_suffix:
+                    filename = filename.split('.')[0]
+            else:
+                # Create dummy filename for object with no associated path.
+                idx += 1
+                filename = f'unknown_{idx:03}'
+
+            data_by_filename[filename] = data_object
+
+    return data_by_filename
