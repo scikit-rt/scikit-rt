@@ -33,6 +33,10 @@ mv ./setup.cfg ../setup.cfg
 # Workaround for having SimpleITK installation with Python 3.10
 pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
 
+# Install older version of jinja2 for compatibility with sphinx
+pin uninstall -y jinja2
+pip install jinja2==3.0.3
+
 # Install scikit-rt and voxtox
 pip install -e ..
 pip install -e ../examples/voxtox
