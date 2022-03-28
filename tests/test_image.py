@@ -8,6 +8,9 @@ import numpy as np
 import shutil
 import pydicom
 
+from pydicom._storage_sopclass_uids import\
+        PositronEmissionTomographyImageStorage
+
 from skrt.core import File
 from skrt.image import Image
 from skrt.simulation import SyntheticImage
@@ -189,11 +192,16 @@ def test_dcm_to_dcm():
 
     # Write to dicom
     dcm = "tmp/tmp_dcm2"
-    series_description = 'Image study'
-    header_extras = {'SeriesDescription' : series_description}
+    series_description = 'Image series'
+    study_description = 'Image study'
+    # Test that tag can be with or without spaces
+    header_extras = {
+            'SeriesDescription' : series_description,
+            'Study Description' : study_description}
     im_dcm.write(dcm, header_extras=header_extras)
     im_dcm2 = Image(dcm)
     assert im_dcm2.get_dicom_dataset().SeriesDescription == series_description
+    assert im_dcm2.get_dicom_dataset().StudyDescription == study_description
 
     assert im_dcm.data.shape == im_dcm2.data.shape
     assert np.all(im_dcm.affine == im_dcm2.affine)
@@ -202,9 +210,9 @@ def test_dcm_to_dcm():
 def test_nifti_to_dcm():
     """Check that a nifti file can be written to dicom using a fresh header."""
 
-    # Write nifti to dicom
+    # Write nifti to dicom, setting modality as PT
     dcm = "tmp/tmp_nii2dcm"
-    im_nii.write(dcm)
+    im_nii.write(dcm, modality='PT')
     im_nii2dcm = Image(dcm)
 
     # Check standardised data and affine are the same
@@ -217,6 +225,13 @@ def test_nifti_to_dcm():
     ndata, naffine = im_nii2dcm.get_nifti_array_and_affine()
     assert np.all(im_nii.affine == naffine)
     assert np.all(im_nii.data == ndata)
+
+    # Check modality-related information correctly set
+    ds = im_nii2dcm.get_dicom_dataset()
+    assert ds.file_meta.MediaStorageSOPClassUID == (
+            PositronEmissionTomographyImageStorage)
+    assert ds.SOPClassUID == PositronEmissionTomographyImageStorage
+    assert ds.Modality == 'PT'
 
 def test_dcm_to_nifti_to_dcm():
     """Check that a nifti file can be written to dicom using the header of 

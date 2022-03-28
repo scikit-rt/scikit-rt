@@ -317,6 +317,7 @@ class DicomWriter:
                 'RTSTRUCT' : 'RTStructureSetStorage',
                 'CT' : 'CTImageStorage',
                 'MR' : 'MRImageStorage',
+                'PT' : 'PositronEmissionTomographyImageStorage',
                 }
 
         media_storage_sop_class_name = storage_classes.get(self.modality)
@@ -528,7 +529,7 @@ class DicomWriter:
         '''
 
         for attribute, value in self.header_extras.items():
-            setattr(self.ds, attribute, value)
+            setattr(self.ds, attribute.replace(' ',''), value)
 
     def write(self):
         '''
@@ -550,7 +551,7 @@ class DicomWriter:
                 outpath = self.get_path_with_timestamp()
             else:
                 outpath = str(self.outdir / self.outname)
-            self.ds.save_as(outpath)
+            self.ds.save_as(outpath, write_like_original=False)
 
         elif self.source_type == 'Image':
             # Obtain rescale parameters.
@@ -561,7 +562,7 @@ class DicomWriter:
                 self.set_image_slice(i)
                 outname = f'{self.ds.InstanceNumber}.dcm'
                 outpath = self.outdir / outname
-                self.ds.save_as(outpath)
+                self.ds.save_as(outpath, write_like_original=False)
 
         elif self.source_type == 'StructureSet':
             self.set_structure_set()
@@ -569,6 +570,6 @@ class DicomWriter:
                 outpath = self.get_path_with_timestamp()
             else:
                 outpath = str(self.outdir / self.outname)
-            self.ds.save_as(outpath)
+            self.ds.save_as(outpath, write_like_original=False)
 
         return self.ds
