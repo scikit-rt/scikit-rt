@@ -1,0 +1,27 @@
+voxtox package
+==============
+
+Subpackages
+-----------
+
+.. toctree::
+
+   voxtox.data
+   voxtox.roi_names
+
+Submodules
+----------
+
+.. toctree::
+
+   voxtox.core
+   voxtox.image
+   voxtox.structures
+
+Module contents
+---------------
+
+.. automodule:: voxtox
+   :members:
+   :undoc-members:
+   :show-inheritance:

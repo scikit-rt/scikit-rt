@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>voxtox.structures module &mdash; Scikit-rt 0.2.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="voxtox.image module" href="voxtox.image.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">scikit-rt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_registration.html">Image registration with scikit-rt and elastix</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="voxtox_modules.html">voxtox</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="voxtox.html">voxtox package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="voxtox.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="voxtox.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="voxtox.core.html">voxtox.core module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="voxtox.image.html">voxtox.image module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">voxtox.structures module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.html#module-voxtox">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="voxtox_modules.html">voxtox</a> &raquo;</li>
+          <li><a href="voxtox.html">voxtox package</a> &raquo;</li>
+      <li>voxtox.structures module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/voxtox.structures.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-voxtox.structures">
+<span id="voxtox-structures-module"></span><h1>voxtox.structures module<a class="headerlink" href="#module-voxtox.structures" title="Permalink to this headline"></a></h1>
+<p>VoxTox extenstions to Scikit-rt for ROIs and StructureSets</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="voxtox.structures.ROI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">voxtox.structures.</span></span><span class="sig-name descname"><span class="pre">ROI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_geom_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_cloud</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.ROI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.structures.html#skrt.structures.ROI" title="skrt.structures.ROI"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.structures.ROI</span></code></a></p>
+<p>VoxTox-specific extensions to Scikit-rt ROI class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.ROI.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_geom_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_cloud</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.ROI.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor for ROI object.</p>
+<p><strong>Parameters :</strong></p>
+<dl class="simple">
+<dt>point_cloud<span class="classifier">bool, default=False</span></dt><dd><p>If True, write ROI data in VoxTox point-cloud format.
+Each file contains contour data for a single ROI.
+Each line gives (column, row, slice) coordinates
+for a single point.  Points are ordered sequentially
+around a slice.  Slice numbers are inverted with respect
+to the usual DICOM numbering.</p>
+</dd>
+<dt>key_precision<span class="classifier">float, default=0.1</span></dt><dd><p>Precision with which z-coordinate should match z-plane
+when loading point-cloud data.</p>
+</dd>
+</dl>
+<p>For details of other parameters, see
+documentation for skrt.structures.ROI.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.ROI.apply_couch_shifts">
+<span class="sig-name descname"><span class="pre">apply_couch_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.ROI.apply_couch_shifts" title="Permalink to this definition"></a></dt>
+<dd><p>Apply couch shifts to ROI.</p>
+<p>Couch shifts - applied in the order translation, rotation - represent
+the transformation for mapping from guidance scan to planning scan.</p>
+<p>Reverse shifts - applied in the order rotation, translation - represent
+the transformation for mapping from planning scan to guidance scan.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>reverse: bool, default=False</dt><dd><p>If True, reverse couch shifts are applied.</p>
+</dd>
+<dt>force_contours<span class="classifier">bool, default=True</span></dt><dd><p>If True, and the transform corresponds to a translation
+and/or rotation about the z-axis, apply transform to contour
+points independently of the original data source.  Otherwise
+apply transform to mask.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.ROI.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.ROI.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load ROI from file or source.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, force loading, even if ROI data already loaded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.ROI.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_cloud</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.ROI.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write ROI data.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outdir<span class="classifier">str, default=’.’</span></dt><dd><p>Directory where point-cloud file is to be written.</p>
+</dd>
+<dt>outname<span class="classifier">str, default=None</span></dt><dd><p>Name to be used for the point-cloud file.  If not already
+present, the extension defined by ext, or ‘.txt’ if ext is None,
+is appended.</p>
+</dd>
+<dt>ext<span class="classifier">str, default=None</span></dt><dd><p>Extension to be added to the name of the output file.</p>
+</dd>
+<dt>point_cloud<span class="classifier">bool, default=False</span></dt><dd><p>If True, write ROI data in VoxTox point-cloud format.
+Each file contains contour data for a single ROI.
+Each line gives (column, row, slice) coordinates
+for a single point.  Points are ordered sequentially
+around a slice.  Slice numbers are inverted with respect
+to the usual DICOM numbering.</p>
+</dd>
+<dt>kwargs<span class="classifier">dict, default={}</span></dt><dd><p>Dictionary containing keyword arguments to pass to the constructor
+of the associated skrt.image.Image object. See skrt.image.Image
+documentation for details of available parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="voxtox.structures.StructureSet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">voxtox.structures.</span></span><span class="sig-name descname"><span class="pre">StructureSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_cloud</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.StructureSet" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.structures.html#skrt.structures.StructureSet" title="skrt.structures.StructureSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.structures.StructureSet</span></code></a></p>
+<p>VoxTox-specific extensions to Scikit-rt StructureSet class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.StructureSet.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_cloud</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.StructureSet.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor for StructureSet object.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>point_cloud<span class="classifier">bool, default=False</span></dt><dd><p>If True, write StructureSet data in VoxTox point-cloud format.
+Each file contains contour data for a single ROI.
+Each line gives (column, row, slice) coordinates
+for a single point.  Points are ordered sequentially
+around a slice.  Slice numbers are inverted with respect
+to the usual DICOM numbering.</p>
+</dd>
+<dt>key_precision<span class="classifier">float, default=0.1</span></dt><dd><p>Precision with which z-coordinate should match z-plane
+when loading point-cloud data.</p>
+</dd>
+</dl>
+<p>For details of parameters, see documentation for
+skrt.structures.StructureSet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.StructureSet.apply_couch_shifts">
+<span class="sig-name descname"><span class="pre">apply_couch_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.StructureSet.apply_couch_shifts" title="Permalink to this definition"></a></dt>
+<dd><p>Apply couch shifts to structure-set ROIs.</p>
+<p>Couch shifts - applied in the order translation, rotation - represent
+the transformation for mapping from guidance scan to planning scan.</p>
+<p>Reverse shifts - applied in the order rotation, translation - represent
+the transformation for mapping from planning scan to guidance scan.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>reverse: bool, default=False</dt><dd><p>If True, reverse couch shifts are applied.</p>
+</dd>
+<dt>names<span class="classifier">list/None, default=False</span></dt><dd><p>List of ROIs to which transform is to be applied.  If None,
+transform is applied to all ROIs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.StructureSet.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.StructureSet.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load structure set form sources.  If None, load from self.sources.</p>
+<p>When loading a structure set from point clouds, the default
+precision with which z-coordinates are matched to z-planes
+is key_value=0.1.  If a different value is wanted, this should
+be specified when creating the StructureSet instance.</p>
+<p>For details of loading from sources other than point-cloud files,
+see documnetation for skrt.structures.StructureSet.load().</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>sources<span class="classifier">Various, default=None</span></dt><dd><p>Sources from which to load structure set.  If the sources are
+files with the extension ‘.txt’, they are treated as being in
+VoxTox point-cloud format.  The default precision with which
+z-coordinates are matched to z-planes is key_value=0.1.
+If a different value is wanted, this should be specified when
+creating the StructureSet instance.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, force loading, even if StructureSet data already loaded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="voxtox.structures.StructureSet.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_cloud</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.StructureSet.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write StructureSet data.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outname<span class="classifier">str, default=None</span></dt><dd><p>Filename when a single output file is produced.  Disregarded
+when set to None, or when multiple output files are produced,
+in which case filenames match the corresponding ROI names.</p>
+</dd>
+<dt>outdir<span class="classifier">str, default=’.’</span></dt><dd><p>Directory where output files are be written.</p>
+</dd>
+<dt>ext<span class="classifier">str, default=None</span></dt><dd><p>The filename extension.  For point-cloud files this is
+disregarded, and the extension is ‘.txt’.</p>
+</dd>
+<dt>overwrite: bool, default=True</dt><dd><p>If True, overwrite any pre-existing point files.</p>
+</dd>
+<dt>point_cloud<span class="classifier">bool, default=False</span></dt><dd><p>If True, write ROI data in VoxTox point-cloud format.
+Each file contains contour data for a single ROI.
+Each line gives (column, row, slice) coordinates
+for a single point.  Points are ordered sequentially
+around a slice.  Slice numbers are inverted with respect
+to the usual DICOM numbering.</p>
+</dd>
+<dt>names<span class="classifier">dict, default={}</span></dt><dd><p>Dictionary mapping between possible ROI names within
+a structure set (dictionary values) and names to be used
+for point-cloud files (dictionary keys).  The possible names
+names can contain wildcards with the ‘*’ symbol.</p>
+</dd>
+<dt>kwargs<span class="classifier">dict, default={}</span></dt><dd><p>Dictionary containing arbitrary parameter-value pairs
+passed in the function call.  For point-cloud files
+this dictionary is disregarded.  Otherwise it’s
+passed in a call to skrt.structures.StructureSet.write().</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="voxtox.structures.contours_mean_z">
+<span class="sig-prename descclassname"><span class="pre">voxtox.structures.</span></span><span class="sig-name descname"><span class="pre">contours_mean_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contours_3d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.contours_mean_z" title="Permalink to this definition"></a></dt>
+<dd><p>Recalculate point cloud, averaging over z-coordinates in a plane</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>contours_3d<span class="classifier">dict, default={}</span></dt><dd><p>Dictionary of point-cloud data, where the keys are plane
+z-coordinates, as strings, and the value for a given key
+is a list of (x, y, z) point coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="voxtox.structures.get_key">
+<span class="sig-prename descclassname"><span class="pre">voxtox.structures.</span></span><span class="sig-name descname"><span class="pre">get_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contours_3d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.structures.get_key" title="Permalink to this definition"></a></dt>
+<dd><p>Determine z-plane key corresponding to given z-coordinate.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>z_point<span class="classifier">float, default=0</span></dt><dd><p>Z-coordinate of a contour point.</p>
+</dd>
+<dt>contours_3d<span class="classifier">dict, default={}</span></dt><dd><p>Dictionary of contour-point coordinates, stored by z-plane.</p>
+</dd>
+<dt>key_precision<span class="classifier">float, default=0.1</span></dt><dd><p>Precision with which z-coordinate should match z-plane.
+As a result of rounding errors, and/or small translations
+when applying registration transforms, z-coordinates for points
+in the same plane may not be identical.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="voxtox.image.html" class="btn btn-neutral float-left" title="voxtox.image module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

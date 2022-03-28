@@ -1,0 +1,18 @@
+skrt.viewer package
+===================
+
+Submodules
+----------
+
+.. toctree::
+
+   skrt.viewer.core
+   skrt.viewer.viewer
+
+Module contents
+---------------
+
+.. automodule:: skrt.viewer
+   :members:
+   :undoc-members:
+   :show-inheritance:

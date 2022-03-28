@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>skrt.dose module &mdash; Scikit-rt 0.2.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="skrt.image module" href="skrt.image.html" />
+    <link rel="prev" title="skrt.dicom_writer module" href="skrt.dicom_writer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">scikit-rt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_registration.html">Image registration with scikit-rt and elastix</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="skrt_modules.html">skrt</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="skrt.html">skrt package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="skrt.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="skrt.application.html">skrt.application module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html">skrt.core module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dicom_writer.html">skrt.dicom_writer module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">skrt.dose module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html">skrt.image module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.multi.html">skrt.multi module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.patient.html">skrt.patient module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html">skrt.registration module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html">skrt.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html">skrt.structures module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.html#module-skrt">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
+          <li><a href="skrt.html">skrt package</a> &raquo;</li>
+      <li>skrt.dose module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/skrt.dose.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-skrt.dose">
+<span id="skrt-dose-module"></span><h1>skrt.dose module<a class="headerlink" href="#module-skrt.dose" title="Permalink to this headline"></a></h1>
+<p>Classes related to doses and plans.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.dose.Constraint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Constraint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Data</span></code></a></p>
+<p>Container for data relating to a dose constraint.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Constraint.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Constraint.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of Container class.</p>
+<p>The following constraint attributes may be set via opts or
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs, but are otherwise initialised to None:</p>
+<ul class="simple">
+<li><p>weight</p></li>
+<li><p>minimum_dose</p></li>
+<li><p>maximum_dose</p></li>
+<li><p>full_volume_dose,</p></li>
+<li><p>prescription_dose</p></li>
+<li><p>underdose_volume_fraction</p></li>
+<li><p>overdose_volume_fraction</p></li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
+(dictionary keys) and their initial values.</p>
+</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">`</span></a><a href="#id5"><span class="problematic" id="id6">**</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
+and their initial values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Constraint.get_weight_and_objectives">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_weight_and_objectives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Constraint.get_weight_and_objectives" title="Permalink to this definition"></a></dt>
+<dd><p>Return weight and objectives that may be associated with a constraint.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.dose.Dose">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.dose.ImageOverlay</span></code></a></p>
+<p>Class representing a dose map. The same as an Image but with overridden
+plotting behaviour and extra functionality relating to ROIs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise from a medical image source.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><dl class="simple">
+<dt>Source of image data. Can be either:</dt><dd><ol class="loweralpha simple">
+<li><p>A string containing the path to a dicom or nifti file;</p></li>
+<li><p>A string containing the path to a numpy file containing a
+2D or 3D array;</p></li>
+<li><p>A 2D or 3D numpy array;</p></li>
+<li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
+<li><p>An existing Image object to be cloned; in this case, all 
+other input args except &lt;title&gt; will be ignored, as these 
+will be taken from the existing Image.</p></li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
+can be loaded later with the load() method.</p>
+</dd>
+<dt>title<span class="classifier">str, default=None</span></dt><dd><p>Title to use when plotting the image. If None and &lt;source&gt; is a
+path, a title will be automatically generated from the filename.</p>
+</dd>
+<dt>affine<span class="classifier">4x4 array, default=None</span></dt><dd><p>Array containing the affine matrix to use if &lt;source&gt; is a numpy
+array or path to a numpy file. If not None, this takes precendence
+over &lt;voxel_size&gt; and &lt;origin&gt;.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=(1, 1, 1)</span></dt><dd><p>Voxel sizes in mm in order (x, y, z) to use if &lt;source&gt; is a numpy
+array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>origin<span class="classifier">tuple, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z) to use if &lt;source&gt; is a
+numpy array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>nifti_array<span class="classifier">bool, default=False</span></dt><dd><p>If True and &lt;source&gt; is a numpy array or numpy file, the array
+will be treated as a nifti-style array, i.e. (x, y, z) in
+(row, column, slice), as opposed to dicom style.</p>
+</dd>
+<dt>downsample<span class="classifier">int/list, default=None</span></dt><dd><p>Amount by which to downsample the image. Can be a single value for
+all axes, or a list containing downsampling amounts in order
+(x, y, z).</p>
+</dd>
+<dt>dtype<span class="classifier">type, default=None</span></dt><dd><p>Type to which loaded data should be cast.</p>
+</dd>
+<dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
+timestamp generated from current date and time.</p>
+</dd>
+<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+be specified as a two-element tuple, giving minimum and maximum,
+or if set to None then the images full intensity range is
+used.  If WindowCenter and WindowWidth are defined in a
+DICOM source file, these values will be used instead to
+define the default intensity range.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_dose_in_roi">
+<span class="sig-name descname"><span class="pre">get_dose_in_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_dose_in_roi" title="Permalink to this definition"></a></dt>
+<dd><p>Return 1D numpy array containing all of the dose values for the 
+voxels inside an ROI. Fails if the ROI and dose arrays are not the 
+same size.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_max_dose_in_rois">
+<span class="sig-name descname"><span class="pre">get_max_dose_in_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_max_dose_in_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Return maximum dose in a set of rois.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>rois<span class="classifier">list, default=[]</span></dt><dd><p>List of ROI objects, for which maximum dose is to be determined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_mean_dose">
+<span class="sig-name descname"><span class="pre">get_mean_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_mean_dose" title="Permalink to this definition"></a></dt>
+<dd><p>Get mean dose inside an ROI.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load self and set default maximum plotting intensity from max of
+data array if not yet set.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.plot_DVH">
+<span class="sig-name descname"><span class="pre">plot_DVH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'turbo'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_bbox_to_anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.01,</span> <span class="pre">0.5)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'center</span> <span class="pre">left'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.plot_DVH" title="Permalink to this definition"></a></dt>
+<dd><p>Plot dose-volume histogram for specified ROI(s).</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>rois<span class="classifier">ROI/StructureSet/list, default=[]</span></dt><dd><p>ROI(s) for which dose-volume histogram is to be plotted.  This
+can be a single skrt.structures.ROI object, a single
+skrt.structures.StructureSet object, or a list containing any
+combination of ROI and StructureSet objects.</p>
+</dd>
+<dt>bins<span class="classifier">int, default=50</span></dt><dd><p>Number of bins in the dose-volume histogram.</p>
+</dd>
+<dt>dose_min<span class="classifier">float, default=0</span></dt><dd><p>Minimum dose value to be included.</p>
+</dd>
+<dt>dose_max<span class="classifier">float, default=None</span></dt><dd><p>Maximum dose value to be included.  If None, this is set to
+the maximum dose for the ROI(s) considered.</p>
+</dd>
+<dt>figsize<span class="classifier">tuple of floats, default=(8, 5)</span></dt><dd><p>Dimensions (inches) of the matplotlib figure</p>
+</dd>
+<dt>lw<span class="classifier">float, default=2</span></dt><dd><p>Width (relative to matplotlib default) of line used in drawing
+histogram outlines.</p>
+</dd>
+<dt>n_colour<span class="classifier">int, default=10</span></dt><dd><p>Number of colours over which to cycle when drawing histograms.</p>
+</dd>
+<dt>cmap<span class="classifier">str, default=’turbo’</span></dt><dd><p>Name of a matplotlib colour map from which to define set of
+colours over which to cycle when drawing histograms.</p>
+<p>For predfined names see:</p>
+<p><a class="reference external" href="https://matplotlib.org/stable/gallery/color/colormap_reference.html">https://matplotlib.org/stable/gallery/color/colormap_reference.html</a></p>
+</dd>
+<dt>grid<span class="classifier">bool, default=True</span></dt><dd><p>If True, overlay a grid on the dose-volume histogram.</p>
+</dd>
+<dt>fname<span class="classifier">str, default=None</span></dt><dd><p>Name of file for saving output.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.set_image">
+<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.set_image" title="Permalink to this definition"></a></dt>
+<dd><p>Set associated image. Image.add_dose(self) will also be called.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.set_plan">
+<span class="sig-name descname"><span class="pre">set_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.set_plan" title="Permalink to this definition"></a></dt>
+<dd><p>Set associated plan, initialising it if needed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.view">
+<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.view" title="Permalink to this definition"></a></dt>
+<dd><p>View with BetterViewer, optionally overlaying on image.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, this ImageOverlay will be displayed overlaid on its
+underlying Image.</p>
+</dd>
+<dt>kwarg_name<span class="classifier">str, default=None</span></dt><dd><p>Name of kwarg under which to provide self to the call to
+self.image.Image.view() if include_image=True. By default,
+self will be passed to the “dose” parameter.</p>
+</dd>
+<dt><a href="#id9"><span class="problematic" id="id10">`</span></a><a href="#id11"><span class="problematic" id="id12">**</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.dose.ImageOverlay">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">ImageOverlay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.image.html#skrt.image.Image" title="skrt.image.Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.image.Image</span></code></a></p>
+<p>Image that can be associated with another Image, and whose plotting
+functionality includes the ability to plot overlaid on its associated 
+Image.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.ImageOverlay.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise from a medical image source.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><dl class="simple">
+<dt>Source of image data. Can be either:</dt><dd><ol class="loweralpha simple">
+<li><p>A string containing the path to a dicom or nifti file;</p></li>
+<li><p>A string containing the path to a numpy file containing a
+2D or 3D array;</p></li>
+<li><p>A 2D or 3D numpy array;</p></li>
+<li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
+<li><p>An existing Image object to be cloned; in this case, all 
+other input args except &lt;title&gt; will be ignored, as these 
+will be taken from the existing Image.</p></li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
+can be loaded later with the load() method.</p>
+</dd>
+<dt>title<span class="classifier">str, default=None</span></dt><dd><p>Title to use when plotting the image. If None and &lt;source&gt; is a
+path, a title will be automatically generated from the filename.</p>
+</dd>
+<dt>affine<span class="classifier">4x4 array, default=None</span></dt><dd><p>Array containing the affine matrix to use if &lt;source&gt; is a numpy
+array or path to a numpy file. If not None, this takes precendence
+over &lt;voxel_size&gt; and &lt;origin&gt;.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=(1, 1, 1)</span></dt><dd><p>Voxel sizes in mm in order (x, y, z) to use if &lt;source&gt; is a numpy
+array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>origin<span class="classifier">tuple, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z) to use if &lt;source&gt; is a
+numpy array or path to a numpy file and &lt;affine&gt; is not provided.</p>
+</dd>
+<dt>nifti_array<span class="classifier">bool, default=False</span></dt><dd><p>If True and &lt;source&gt; is a numpy array or numpy file, the array
+will be treated as a nifti-style array, i.e. (x, y, z) in
+(row, column, slice), as opposed to dicom style.</p>
+</dd>
+<dt>downsample<span class="classifier">int/list, default=None</span></dt><dd><p>Amount by which to downsample the image. Can be a single value for
+all axes, or a list containing downsampling amounts in order
+(x, y, z).</p>
+</dd>
+<dt>dtype<span class="classifier">type, default=None</span></dt><dd><p>Type to which loaded data should be cast.</p>
+</dd>
+<dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
+timestamp generated from current date and time.</p>
+</dd>
+<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+be specified as a two-element tuple, giving minimum and maximum,
+or if set to None then the images full intensity range is
+used.  If WindowCenter and WindowWidth are defined in a
+DICOM source file, these values will be used instead to
+define the default intensity range.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="skrt.dose.ImageOverlay.max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max</span></span><a class="headerlink" href="#skrt.dose.ImageOverlay.max" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.ImageOverlay.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpl_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay.plot" title="Permalink to this definition"></a></dt>
+<dd><p>Plot this overlay, optionally overlaid on its associated Image.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation in which to compute the index. Can be “x-y”, “y-z”, or
+“x-z”.  If None, the initial view is chosen to match
+the image orienation.</p>
+</dd>
+<dt>ax<span class="classifier">matplotlib.pyplot.Axes, default=None</span></dt><dd><p>Axes on which to plot. If None, new axes will be created.</p>
+</dd>
+<dt>gs<span class="classifier">matplotlib.gridspec.GridSpec, default=None</span></dt><dd><p>If not None and &lt;ax&gt; is None, new axes will be created on the
+current matplotlib figure with this gridspec.</p>
+</dd>
+<dt>figsize<span class="classifier">float, default=None</span></dt><dd><p>Figure height in inches; only used if &lt;ax&gt; and &lt;gs&gt; are None.</p>
+</dd>
+<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True and this ImageOverlay has an associate image, it will be 
+plotted overlaid on the image.</p>
+</dd>
+<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>If plotting on top of an image, this sets the opacity of the 
+overlay (0 = fully transparent, 1 = fully opaque).</p>
+</dd>
+<dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>
+</dd>
+<dt>colorbar<span class="classifier">bool, default=True</span></dt><dd><p>If True, a colorbar will be drawn alongside the plot.</p>
+</dd>
+<dt>show<span class="classifier">bool, default = True</span></dt><dd><p>If True, the plot will be displayed immediately.</p>
+</dd>
+<dt><a href="#id15"><span class="problematic" id="id16">`</span></a><a href="#id17"><span class="problematic" id="id18">**</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>kwargs:</dt><dd><p>Keyword args to pass to skrt.image.Image.plot().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.ImageOverlay.set_image">
+<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay.set_image" title="Permalink to this definition"></a></dt>
+<dd><p>Set associated image, initialising it if needed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.ImageOverlay.view">
+<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwarg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay.view" title="Permalink to this definition"></a></dt>
+<dd><p>View with BetterViewer, optionally overlaying on image.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, this ImageOverlay will be displayed overlaid on its
+underlying Image.</p>
+</dd>
+<dt>kwarg_name<span class="classifier">str, default=None</span></dt><dd><p>Name of kwarg under which to provide self to the call to
+self.image.Image.view() if include_image=True. By default,
+self will be passed to the “dose” parameter.</p>
+</dd>
+<dt><a href="#id21"><span class="problematic" id="id22">`</span></a><a href="#id23"><span class="problematic" id="id24">**</span></a><a href="#id25"><span class="problematic" id="id26">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.dose.Plan">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Archive</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise dated object from a path and assign its timestamp. If
+no valid timestamp is found within the path string, it will be set
+automatically from the current date and time if auto_timestamp is True.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.add_dose">
+<span class="sig-name descname"><span class="pre">add_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dose</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.add_dose" title="Permalink to this definition"></a></dt>
+<dd><p>Add a Dose object to be associated with this plan. This does not
+affect the plan associated with the Dose object.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>dose<span class="classifier">skrt.dose.Dose</span></dt><dd><p>A Dose object to assign to this plan.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.clear_doses">
+<span class="sig-name descname"><span class="pre">clear_doses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.clear_doses" title="Permalink to this definition"></a></dt>
+<dd><p>Clear all dose maps associated with this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_approval_status">
+<span class="sig-name descname"><span class="pre">get_approval_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_approval_status" title="Permalink to this definition"></a></dt>
+<dd><p>Return plan approval status.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_dicom_dataset">
+<span class="sig-name descname"><span class="pre">get_dicom_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_dicom_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Return pydicom.dataset.FileDataset object associated with this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_dose_objective">
+<span class="sig-name descname"><span class="pre">get_dose_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'maximum_dose'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_dose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_dose_objective" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain Dose object representing weight or objective of dose constraint.</p>
+<p><strong>Parameters:</strong>
+objective : str, default=’maximum_dose’</p>
+<blockquote>
+<div><p>Identifier of objective for which information is to be obtained.
+For a list of objectives, see skrt.dose.Constraint class.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>idx_dose<span class="classifier">int, default=0</span></dt><dd><p>Index of dose object in self.doses from which dose data are
+to be taken.</p>
+</dd>
+<dt>dose<span class="classifier">skrt.dose.Dose, default=None</span></dt><dd><p>Dose object from which dose data are to be taken.  If specified,
+idx_dose is ignored.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_n_beam_seq">
+<span class="sig-name descname"><span class="pre">get_n_beam_seq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_n_beam_seq" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of beam sequences for this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_n_fraction">
+<span class="sig-name descname"><span class="pre">get_n_fraction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_n_fraction" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of fractions for this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_n_fraction_group">
+<span class="sig-name descname"><span class="pre">get_n_fraction_group</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_n_fraction_group" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of fraction groups for this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_name">
+<span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_name" title="Permalink to this definition"></a></dt>
+<dd><p>Return plan name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_organs_at_risk">
+<span class="sig-name descname"><span class="pre">get_organs_at_risk</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_organs_at_risk" title="Permalink to this definition"></a></dt>
+<dd><p>Return list of ROIs identified in plan as organs at risk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_target_dose">
+<span class="sig-name descname"><span class="pre">get_target_dose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_target_dose" title="Permalink to this definition"></a></dt>
+<dd><p>Return dose to target (tumour) for this plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.get_targets">
+<span class="sig-name descname"><span class="pre">get_targets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.get_targets" title="Permalink to this definition"></a></dt>
+<dd><p>Return list of ROIs identified in plan as targets.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load plan data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.load_constraints">
+<span class="sig-name descname"><span class="pre">load_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.load_constraints" title="Permalink to this definition"></a></dt>
+<dd><p>Load dose constraints from plan.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.set_image">
+<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.set_image" title="Permalink to this definition"></a></dt>
+<dd><p>Set associated image, initialising it if needed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Plan.set_structure_set">
+<span class="sig-name descname"><span class="pre">set_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.set_structure_set" title="Permalink to this definition"></a></dt>
+<dd><p>Set associated structure set, initialising it if needed.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="skrt.dicom_writer.html" class="btn btn-neutral float-left" title="skrt.dicom_writer module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="skrt.image.html" class="btn btn-neutral float-right" title="skrt.image module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
