@@ -8,9 +8,8 @@ from time import strftime
 import pandas as pd
 
 from skrt import StructureSet
-from skrt.core import generate_timestamp
 
-def copy_data(row, indir=None, outdir=None, timestamp=None):
+def copy_data(row, indir=None, outdir=None):
     '''
     Copy data based on single row in a dataframe.
 
@@ -26,9 +25,6 @@ def copy_data(row, indir=None, outdir=None, timestamp=None):
 
     outdir : pathlib.Path, default=None
         Path to directory to which data are to be copied.
-
-    timestamp : str, default=None
-        Timestamp appended to sub-directories for copied data.
     '''
     # Define path to data for patient referenced in current row.
     indir_patient = indir / f'{row.subject:03}'
@@ -56,10 +52,11 @@ def copy_data(row, indir=None, outdir=None, timestamp=None):
 
         if result_type not in ['posterior', 'uncertainty']:
             # Result is a binary map.
-            outpath = modality_dir / f'innereye_{timestamp}' / inpath.name
+            outpath = (modality_dir / f'innereye_{modality_timestamp}' /
+                    inpath.name)
         else:
             # Result is a map of posterior probability or Shannon entropy
-            outpath = innereye_dir / f'{timestamp}_{inpath.name}'
+            outpath = innereye_dir / f'{modality_timestamp}_{inpath.name}'
 
         # Create output directory if it doesn't exist, and copy file.
         outpath.parent.mkdir(parents=True, exist_ok=True)
@@ -95,10 +92,6 @@ def select_and_copy(topdir=None, experiments=None, outdir=None,
         rmtree(outdir)
     outdir.mkdir(parents=True)
 
-
-    # Generate timestamp with which to tag outputs.
-    timestamp = generate_timestamp()
-
     # Loop over experiments.
     if experiments is None:
         experiments = {}
@@ -113,20 +106,20 @@ def select_and_copy(topdir=None, experiments=None, outdir=None,
         df_rois.drop_duplicates(subset='subject', inplace=True)
         # Copy patient data.
         df_rois.apply(copy_data, axis=1, indir=indir,
-                      outdir=outdir / experiment, timestamp=timestamp)
+                outdir=outdir / experiment)
 
 if '__main__' == __name__:
 
     # Path to top-level directory containing InnerEye experiment directories.
-    topdir = Path('/Users/karl/Desktop/ExperimentRun')
+    topdir = Path('/Users/karl/Desktop/InnerEye')
 
     # Dictionary where keys are sub-directories to be created in output
     # directory and values are run directories in input directory.
     experiments = {
-        'head_and_neck_smg':
-        'dcid.HD_37d263b2-0978-4426-9010-af56cd04bd0c',
-        'head_and_neck_multiple5':
-        'dcid.HD_fe7ddde0-f20b-4cb0-90a1-a9c693b8be34',
+        'head_and_neck_smg_dice': 'smgs_dice',
+        'head_and_neck_smg_focal': 'smgs_focal',
+        'head_and_neck_pg_sc_dice': 'parotids_dice',
+        'head_and_neck_pg_sc_focal': 'parotids_focal',
         }
 
     # Path to directory to which data are to be copied.
