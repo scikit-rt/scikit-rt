@@ -362,12 +362,13 @@ in the array to plot.</p>
 to the nearest slice. If &lt;init_pos&gt; and &lt;init_idx&gt; are both given,
 &lt;init_pos&gt; will override &lt;init_idx&gt; only if &lt;scale_in_mm&gt; is True.</p>
 </dd>
-<dt>intensity<span class="classifier">float/tuple, default=None</span></dt><dd><p>Intensity central value or range thresholds at which to display the image.
+<dt>intensity<span class="classifier">float/tuple/str, default=None</span></dt><dd><p>Intensity central value or range thresholds at which to display the image.
 Can later be changed interactively. If a single value is given, the
 Intensity range will be centred at this value with width given by
 &lt;intensity_width&gt;. If a tuple is given, the intensity range will be set to the
 two values in the tuple. If None, default intensity will be taken
-from the image itself.</p>
+from the image itself.  If ‘auto’, lower and upper bounds are
+set to the minimum and maximum intensity in the image.</p>
 </dd>
 <dt>intensity_width<span class="classifier">float, default=500</span></dt><dd><p>Initial width of the intensity window. Only used if &lt;intensity&gt; is a single
 value.</p>
