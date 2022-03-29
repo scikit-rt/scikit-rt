@@ -371,13 +371,14 @@ class BetterViewer:
             to the nearest slice. If <init_pos> and <init_idx> are both given,
             <init_pos> will override <init_idx> only if <scale_in_mm> is True.
 
-        intensity : float/tuple, default=None
+        intensity : float/tuple/str, default=None
             Intensity central value or range thresholds at which to display the image.
             Can later be changed interactively. If a single value is given, the
             Intensity range will be centred at this value with width given by
             <intensity_width>. If a tuple is given, the intensity range will be set to the
             two values in the tuple. If None, default intensity will be taken
-            from the image itself.
+            from the image itself.  If 'auto', lower and upper bounds are
+            set to the minimum and maximum intensity in the image.
 
         intensity_width : float, default=500
             Initial width of the intensity window. Only used if <intensity> is a single
@@ -1613,6 +1614,11 @@ class SingleViewer:
                 self.image._default_vmin,
                 self.image._default_vmax
             ]
+        elif 'auto' == intensity:
+            self.intensity = [
+                self.image.get_data().min(),
+                self.image.get_data().max(),
+            ]
         self.intensity_from_width = isinstance(intensity, float) \
                 or isinstance(intensity, int)
         self.intensity_width = intensity_width
@@ -1620,11 +1626,14 @@ class SingleViewer:
         # Set upper and lower limits of the intensity slider
         self.intensity_limits = intensity_limits
         if intensity_limits is None:
-            if type(self.image) == Image:
-                self.intensity_limits = [-2000, 2000]
+            if 'auto' == intensity:
+                self.intensity_limits = self.intensity
             else:
-                self.intensity_limits = [self.image.data.min(), 
-                                         self.image.data.max()]
+                if type(self.image) == Image:
+                    self.intensity_limits = [-2000, 2000]
+                else:
+                    self.intensity_limits = [self.image.data.min(), 
+                                             self.image.data.max()]
 
         # Ensure limits extend to the initial intensity range
         if self.intensity[0] < self.intensity_limits[0]:
