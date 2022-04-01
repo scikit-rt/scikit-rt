@@ -59,7 +59,7 @@ im_nii = Image(nii_file)
 
 # Create a test dicom file
 dcm_file = "tmp/tmp_dcm"
-im.write(dcm_file)
+im.write(dcm_file, header_extras={'RescaleSlope': 1})
 im_dcm = Image(dcm_file)
 
 
@@ -196,6 +196,7 @@ def test_dcm_to_dcm():
     study_description = 'Image study'
     # Test that tag can be with or without spaces
     header_extras = {
+            'RescaleSlope' : 1,
             'SeriesDescription' : series_description,
             'Study Description' : study_description}
     im_dcm.write(dcm, header_extras=header_extras)
@@ -212,7 +213,7 @@ def test_nifti_to_dcm():
 
     # Write nifti to dicom, setting modality as PT
     dcm = "tmp/tmp_nii2dcm"
-    im_nii.write(dcm, modality='PT')
+    im_nii.write(dcm, modality='PT', header_extras={'RescaleSlope': 1})
     im_nii2dcm = Image(dcm)
 
     # Check standardised data and affine are the same
