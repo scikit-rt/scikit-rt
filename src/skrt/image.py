@@ -3991,6 +3991,15 @@ def set_image_orientation_patient(ds):
             ds.ImageOrientationPatient = (
                     direction_cosines[patient_orientation[1]] +
                     direction_cosines[patient_orientation[0]])
+        else:
+            print('WARNING: ImageOrientationPatient '
+                  'and PatientOrientation undefined')
+            patient_position = getattr(ds, 'PatientPosition', None)
+            if patient_position:
+                print(f'Patient position: {patient_position}')
+            ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+            print('WARNING: Guessing ImageOrientationPatient = '
+                 f'\'{ds.ImageOrientationPatient}\'')
 
 def kv_to_mv(hu):
     '''
