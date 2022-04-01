@@ -396,7 +396,13 @@ class DicomWriter:
         # Set attributes specific to 'Image' type.
         if self.source_type == 'Image':
             self.ds.ImagesInAcquisition = self.data.shape[2]
-            self.ds.RescaleSlope = getattr(self.ds, 'RescaleSlope', 1)
+            intensity_range = self.data.max() - self.data.min()
+            if intensity_range < 1000:
+                default_rescale_slope = intensity_range / 1000
+            else:
+                default_rescale_slope = 1
+            self.ds.RescaleSlope = getattr(
+                    self.ds, 'RescaleSlope', default_rescale_slope)
 
         # Set attributes specific to 'Dose' type.
         elif self.source_type == 'Dose':
