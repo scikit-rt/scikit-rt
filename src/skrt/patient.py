@@ -860,10 +860,13 @@ class Patient(skrt.core.PathData):
         # Find an object from which to extract the info
         obj = None
         if self.studies:
-            obj = getattr(
-                self.studies[0],
-                f"{self.studies[0].image_types[0].lower()}_images"
-            )[-1]
+            # Preferentially choose first CT scan.
+            image_types = list(self.studies[0].image_types.keys())
+            if image_types:
+                image_type = 'ct' if 'ct' in image_types else image_types[0]
+                obj = getattr(
+                    self.studies[0],
+                    f"{image_type.lower()}_images")[0]
 
         # Read demographic info from the object
         if obj and obj.files:
@@ -878,6 +881,10 @@ class Patient(skrt.core.PathData):
         # Ensure sex is uppercase and single character
         if info["Sex"]:
             info["Sex"] = info["Sex"][0].upper()
+
+        # Obtain age as an integer in years.
+        if info["Age"]:
+            info["Age"] = int(info["Age"].strip('0').strip('Y'))
 
         # Store data
         self.age = info["Age"]
