@@ -110,6 +110,18 @@ no valid timestamp is found within the path string, it will be set
 automatically from the current date and time if auto_timestamp is True.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.Archive.get_file_size">
+<span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.get_file_size" title="Permalink to this definition"></a></dt>
+<dd><p>Return size in bytes of associated file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.Archive.get_n_file">
+<span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.get_n_file" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of data files associated with this object.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -379,6 +391,18 @@ be used to initialise objects.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.PathData.get_file_size">
+<span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_file_size" title="Permalink to this definition"></a></dt>
+<dd><p>Return size in bytes of associated file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.PathData.get_n_file">
+<span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_n_file" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of data files associated with this object.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -420,6 +444,17 @@ dictionary keys.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_file_size">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_file_size" title="Permalink to this definition"></a></dt>
+<dd><p>Return size in bytes of data files associated with listed objects.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>objs<span class="classifier">list, default=None</span></dt><dd><p>List of objects for which file sizes are to be summed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_logger">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_logger" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve named event logger.</p>
@@ -429,6 +464,17 @@ dictionary keys.</p>
 </dd>
 <dt>log_level: string/integer/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
 log_level is set to the value of Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_n_file">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_n_file" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of data files associated with listed objects.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>objs<span class="classifier">list, default=None</span></dt><dd><p>List of objects for which numbers of files are to be summed.</p>
 </dd>
 </dl>
 </dd></dl>
