@@ -7,6 +7,8 @@ import shutil
 import time
 import timeit
 
+import pandas as pd
+
 import skrt.core
 from skrt.image import Image
 from skrt.structures import StructureSet
@@ -385,7 +387,7 @@ class Study(skrt.core.Archive):
 
         else:
 
-            # Get fraction froup and beam sequence
+            # Get fraction group and beam sequence
             if self.plans:
                 n_frac_group = self.plans[-1].nFractionGroup
                 n_beam_seq = self.plans[-1].nBeamSequence
@@ -882,6 +884,10 @@ class Patient(skrt.core.PathData):
         if info["Sex"]:
             info["Sex"] = info["Sex"][0].upper()
 
+        # Obtain birth date as pandas Timestamp.
+        if info["BirthDate"]:
+            info["BirthDate"] = pd.Timestamp(info["BirthDate"])
+
         # Obtain age as an integer in years.
         if info["Age"]:
             info["Age"] = int(info["Age"].strip('0').strip('Y'))
@@ -908,6 +914,60 @@ class Patient(skrt.core.PathData):
         if not hasattr(self, 'birth_date'):
             self.load_demographics()
         return self.birth_date
+
+    def get_info(self, collections=None, plan_image='ct',
+            treatment_image='mvct', df=False):
+
+        if collections is None:
+            collections = {}
+
+        info = {}
+        info['id'] = self.id
+        info['disease'] = self.id.split("_")[1]
+
+        for collection, collection_types in collections.items():
+            info[collection] = None
+            for collection_type in collection_types:
+                if collection_type in self.path:
+                    info[collection] = collection_type
+
+        info['birth_date'] = self.get_birth_date()
+        info['age'] = self.get_age()
+        info['sex'] = self.get_sex()
+
+
+        info['plan_name'] = None
+        info['n_fraction'] = None
+        info['target_dose'] = None
+        for study in self.studies:
+            if hasattr(study, 'plan_types'):
+                plan_type = sorted(list(study.plan_types.keys()))[0]
+                plan = study.plan_types[plan_type][0]
+                plan.load()
+                info['plan_name'] = plan.name
+                info['n_fraction'] = plan.n_fraction
+                info['target_dose'] = plan.target_dose
+                break
+
+        info['n_study'] = len(self.studies)
+        data_labels = ['image', 'structure_set', 'dose', 'plan']
+        for study in self.studies:
+            for data_label in data_labels:
+                type_label = f'{data_label}_types'
+                data_types = getattr(study, type_label, None)
+                if data_types:
+                    for data_type, objs in sorted(data_types.items()):
+                        file_label = f'{data_label}_{data_type}_file'
+                        size_label = f'{data_label}_{data_type}_size'
+                        if not file_label in info:
+                            info[file_label] = 0
+                        if not size_label in info:
+                            info[size_label] = 0
+                        for obj in objs:
+                            info[file_label] += obj.get_n_file()
+                            info[size_label] += obj.get_file_size()
+
+        return (pd.DataFrame([info]) if df else info)
 
     def get_subdir_studies(self, subdir=""):
         """Get list of studies within a given subdirectory."""

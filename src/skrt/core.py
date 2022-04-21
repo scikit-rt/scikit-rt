@@ -591,10 +591,13 @@ class Archive(Dated):
         '''
         Return size in bytes of associated file.
         '''
-        size = 0
-        for file in self.files:
-            if Path(file.path).exists():
-                size += Path(file.path).stat().st_size
+        if Path(self.path).is_file():
+            size = Path(self.path).stat().st_size
+        else:
+            size = 0
+            for file in self.files:
+                if Path(file.path).exists():
+                    size += Path(file.path).stat().st_size
 
         return size
 
@@ -602,7 +605,11 @@ class Archive(Dated):
         '''
         Return number of data files associated with this object.
         '''
-        return len(self.files)
+        if Path(self.path).is_file():
+            n_file = 1
+        else:
+            n_file = len(self.files)
+        return n_file
 
 class File(Dated):
     """File with an associated date. Files can be sorted based on their
