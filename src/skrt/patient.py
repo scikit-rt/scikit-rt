@@ -893,17 +893,20 @@ class Patient(skrt.core.PathData):
 
     def get_age(self):
 
-        self.load_demographics()
+        if not hasattr(self, 'age'):
+            self.load_demographics()
         return self.age
 
     def get_sex(self):
 
-        self.load_demographics()
+        if not hasattr(self, 'sex'):
+            self.load_demographics()
         return self.sex
 
     def get_birth_date(self):
 
-        self.load_demographics()
+        if not hasattr(self, 'birth_date'):
+            self.load_demographics()
         return self.birth_date
 
     def get_subdir_studies(self, subdir=""):
