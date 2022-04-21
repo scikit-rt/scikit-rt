@@ -132,3 +132,31 @@ def test_data_by_filename():
         filename_from_path = (Path(data_object.path).stem
                 .split(f'{timestamp}_')[-1])
         assert filename == filename_from_path
+
+def test_file_info():
+    timestamp = '19990405_230203'
+    tdir = Path(f'tmp/{timestamp}')
+    if tdir.exists():
+        shutil.rmtree(tdir)
+    tdir.mkdir(parents=True)
+    (tdir / 'some_dir').mkdir()
+    path1 = tdir / 'some_file.txt'
+    with open(path1, 'w') as file:
+        file.write('testing')
+    path2 = tdir / '.hidden'
+    with open(path2, 'w') as file:
+        file.write('testing')
+    path_data = skrt.core.PathData(path1)
+    archive = skrt.core.Archive(tdir)
+    archive2 = skrt.core.Archive(tdir, allow_dirs=True)
+    assert path_data.get_n_file() == 1
+    assert archive.get_n_file() == 1
+    size = Path(archive.files[0].path).stat().st_size
+    assert path_data.get_file_size() == size
+    assert archive.get_file_size() == size
+    assert archive2.get_n_file() == 2
+    assert skrt.core.get_n_file(archive) == 1
+    assert skrt.core.get_n_file([archive, archive2]) == 3
+    for file in archive2.files:
+        size += Path(file.path).stat().st_size
+    assert skrt.core.get_file_size([archive, archive2]) == size

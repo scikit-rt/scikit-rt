@@ -1,5 +1,6 @@
 """Core data classes and functions."""
 
+from collections.abc import Iterable
 from pathlib import Path
 
 import copy
@@ -459,6 +460,18 @@ class PathData(Data):
 
         return objs
 
+    def get_file_size(self):
+        '''
+        Return size in bytes of associated file.
+        '''
+        return Path(self.path).stat().st_size if Path(self.path).exists() else 0
+
+    def get_n_file(self):
+        '''
+        Return number of data files associated with this object.
+        '''
+        # Only 1 data file associated with a non-Archive object.
+        return 1
 
 @functools.total_ordering
 class Dated(PathData):
@@ -574,6 +587,22 @@ class Archive(Dated):
 
         self.files.sort()
 
+    def get_file_size(self):
+        '''
+        Return size in bytes of associated file.
+        '''
+        size = 0
+        for file in self.files:
+            if Path(file.path).exists():
+                size += Path(file.path).stat().st_size
+
+        return size
+
+    def get_n_file(self):
+        '''
+        Return number of data files associated with this object.
+        '''
+        return len(self.files)
 
 class File(Dated):
     """File with an associated date. Files can be sorted based on their
@@ -629,6 +658,7 @@ def fullpath(path: str = "") -> str:
 
     expanded = ""
     if path:
+        path = str(path)
         tmp = os.path.expandvars(path.strip())
         tmp = os.path.abspath(os.path.expanduser(tmp))
         expanded = os.path.realpath(tmp)
@@ -790,3 +820,38 @@ def get_data_by_filename(data_objects=None, remove_timestamp=True,
             data_by_filename[filename] = data_object
 
     return data_by_filename
+
+def get_n_file(objs=None):
+    '''
+    Return number of data files associated with listed objects.
+
+    **Parameter:**
+
+    objs : list, default=None
+        List of objects for which numbers of files are to be summed.
+    '''
+    if not isinstance(objs, Iterable):
+        objs = [objs]
+
+    n_file = 0
+    for obj in objs:
+        n_file += obj.get_n_file()
+    return n_file
+
+def get_file_size(objs=None):
+    '''
+    Return size in bytes of data files associated with listed objects.
+
+    **Parameter:**
+
+    objs : list, default=None
+        List of objects for which file sizes are to be summed.
+    '''
+    if not isinstance(objs, Iterable):
+        objs = [objs]
+
+    size = 0
+    for obj in objs:
+        size += obj.get_file_size()
+    return size
+
