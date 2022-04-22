@@ -43,6 +43,30 @@ def test_dated_interval():
     dated = skrt.core.Dated("20010502_120358")
     assert dated.in_date_interval("19991203", "20030402")
 
+def test_time_separated_objects():
+    dated1 = skrt.core.Dated("19990405_120324")
+    dated2 = skrt.core.Dated("20010502_120358")
+    dated3 = skrt.core.Dated("19990405_130324")
+    objs1 = [dated1, dated2, dated3]
+
+    objs2 = skrt.core.get_time_separated_objects(objs1)
+    assert len(objs2) == 2
+    assert dated1 not in objs2
+    assert dated3 == objs2[0]
+    assert dated2 == objs2[1]
+
+    objs3 = skrt.core.get_time_separated_objects(objs1, most_recent=False)
+    assert len(objs3) == 2
+    assert dated3 not in objs3
+    assert dated1 == objs3[0]
+    assert dated2 == objs3[1]
+
+    objs4 = skrt.core.get_time_separated_objects(objs1, min_delta=10, unit='s')
+    assert len(objs4) == 3
+    assert dated1 == objs4[0]
+    assert dated3 == objs4[1]
+    assert dated2 == objs4[2]
+
 def test_files():
     file1 = skrt.core.File('afile.txt')
     file2 = skrt.core.File('bfile.txt')

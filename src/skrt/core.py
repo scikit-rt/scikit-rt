@@ -12,6 +12,7 @@ from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
+import pandas as pd
 import pydicom
 
 class Defaults:
@@ -862,3 +863,46 @@ def get_file_size(objs=None):
         size += obj.get_file_size()
     return size
 
+def get_time_separated_objects(objs, min_delta=4, unit='hour',
+        most_recent=True):
+    '''
+    Return ordered list of dated objects, filtering for minimum time separation.
+
+    objs : list
+        List of dated objects.
+
+    min_delta : int/pandas.Timedelta, default=4
+        Minimum time interval required between objects.  If an integer,
+        the unit must be specified.
+
+    unit : str, default='hour'
+        Unit of min_delta if the latter is specified as an integer;
+        ignored otherwise.  Valid units are any accepted by pandas.Timedelta:
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html
+
+    most_recent : bool, default=True
+        When objects aren't separated by the minimum time interval, keep
+        the most recent if True, or the least recent otherwise. 
+    '''
+    if not isinstance(min_delta, pd.Timedelta):
+        min_delta = pd.Timedelta(min_delta, unit)
+
+    timed_objs = {}
+    for obj in objs:
+        if obj.date and obj.time:
+            timestamp = pd.Timestamp(''.join([obj.date, obj.time]))
+            timed_objs[timestamp] = obj
+
+    time_separated_objs = []
+    if timed_objs:
+        timestamps = sorted(timed_objs.keys(), reverse=most_recent)
+        time_separated_objs = [timed_objs[timestamps[0]]]
+
+        for idx in range(1, len(timestamps)):
+            if abs(timestamps[idx] - timestamps[idx - 1]) > min_delta:
+                time_separated_objs.append(timed_objs[timestamps[idx]])
+
+    if most_recent:
+        time_separated_objs.reverse()
+
+    return time_separated_objs
