@@ -44,23 +44,27 @@ def test_dated_interval():
     assert dated.in_date_interval("19991203", "20030402")
 
 def test_time_separated_objects():
+    # Test filtering of dated objects based on time separation.
     dated1 = skrt.core.Dated("19990405_120324")
     dated2 = skrt.core.Dated("20010502_120358")
     dated3 = skrt.core.Dated("19990405_130324")
     objs1 = [dated1, dated2, dated3]
 
+    # Keep most recent, requiring default time separation (4 hours).
     objs2 = skrt.core.get_time_separated_objects(objs1)
     assert len(objs2) == 2
     assert dated1 not in objs2
     assert dated3 == objs2[0]
     assert dated2 == objs2[1]
 
+    # Keep least recent, requiring default time separation (4 hours).
     objs3 = skrt.core.get_time_separated_objects(objs1, most_recent=False)
     assert len(objs3) == 2
     assert dated3 not in objs3
     assert dated1 == objs3[0]
     assert dated2 == objs3[1]
 
+    # Keep most recent, requiring time separation of 10 seconds.
     objs4 = skrt.core.get_time_separated_objects(objs1, min_delta=10, unit='s')
     assert len(objs4) == 3
     assert dated1 == objs4[0]

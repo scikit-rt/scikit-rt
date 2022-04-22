@@ -884,24 +884,34 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
         When objects aren't separated by the minimum time interval, keep
         the most recent if True, or the least recent otherwise. 
     '''
+
+    # Ensure that min_delta is a pandas Timedelta object.
     if not isinstance(min_delta, pd.Timedelta):
         min_delta = pd.Timedelta(min_delta, unit)
 
+    # Only consider objects with non-null date and time.
     timed_objs = {}
     for obj in objs:
         if obj.date and obj.time:
             timestamp = pd.Timestamp(''.join([obj.date, obj.time]))
             timed_objs[timestamp] = obj
 
+    # Obtain the list of objects with time separation greater than minimum.
     time_separated_objs = []
     if timed_objs:
+        # Sort time stamps,
+        # reversing order if most-recent objects are to be kept.
         timestamps = sorted(timed_objs.keys(), reverse=most_recent)
         time_separated_objs = [timed_objs[timestamps[0]]]
 
+        # Check that absolute time separation is greater than minimum.
+        # (Time separations will be all positive or all negative,
+        # depending on sort order.)
         for idx in range(1, len(timestamps)):
             if abs(timestamps[idx] - timestamps[idx - 1]) > min_delta:
                 time_separated_objs.append(timed_objs[timestamps[idx]])
 
+    # Ensure ascending order.
     if most_recent:
         time_separated_objs.reverse()
 
