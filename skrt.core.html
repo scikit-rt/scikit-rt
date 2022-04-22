@@ -486,6 +486,26 @@ log_level is set to the value of Defaults().log_level.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_time_separated_objects">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_time_separated_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">most_recent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_time_separated_objects" title="Permalink to this definition"></a></dt>
+<dd><p>Return ordered list of dated objects, filtering for minimum time separation.</p>
+<dl class="simple">
+<dt>objs<span class="classifier">list</span></dt><dd><p>List of dated objects.</p>
+</dd>
+<dt>min_delta<span class="classifier">int/pandas.Timedelta, default=4</span></dt><dd><p>Minimum time interval required between objects.  If an integer,
+the unit must be specified.</p>
+</dd>
+<dt>unit<span class="classifier">str, default=’hour’</span></dt><dd><p>Unit of min_delta if the latter is specified as an integer;
+ignored otherwise.  Valid units are any accepted by pandas.Timedelta:
+<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html">https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html</a></p>
+</dd>
+<dt>most_recent<span class="classifier">bool, default=True</span></dt><dd><p>When objects aren’t separated by the minimum time interval, keep
+the most recent if True, or the least recent otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.is_list">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_list" title="Permalink to this definition"></a></dt>
 <dd><p>Check whether a variable is a list, tuple, or array.</p>
