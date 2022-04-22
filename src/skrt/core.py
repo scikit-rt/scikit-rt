@@ -512,6 +512,9 @@ class Dated(PathData):
         else:
             self.timestamp = f"{self.date}_{self.time}"
 
+    def get_pandas_timestamp(self):
+        return pd.Timestamp(''.join([self.date, self.time]))
+
     def in_date_interval(self,
                          min_date: Optional[str] = None,
                          max_date: Optional[str] = None) -> bool:

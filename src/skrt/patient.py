@@ -915,11 +915,41 @@ class Patient(skrt.core.PathData):
             self.load_demographics()
         return self.birth_date
 
-    def get_info(self, collections=None, plan_image='ct',
-            treatment_image='mvct', df=False):
+    def get_info(self, collections=None, data_labels=None, plan_image_type='ct',
+            treatment_image_type='mvct', df=False):
+        '''
+        Retrieve patient summary information.
 
+        **Parameters:**
+
+        collections : dict, default=None
+            Dictionary where keys define types of patient grouping,
+            and values are lists defining specific groupings of this type.  For
+            example, {'cohort' : ['discovery', 'consolidation']} defines
+            two patient cohorts - a discovery cohort and a consolidation
+            cohort.  It's assumed that specific groupings are included
+            in data paths.  If None, an empty dictionary is used.
+
+        data_labels : list, default=None
+            List of strings specifying types of data associated with
+            a study.  If None, the list used is:
+            ['image', 'structure_set', 'dose', 'plan'].
+
+        plan_image_type : str, default='ct'
+            String identifying type of image recorded for treatment planning.
+
+        treatment_image_type : str, default='mvct'
+            String identifying type of image recorded at treatment time.
+
+        df : bool, default=False
+            If False, return summary information as a dictionary.
+            If True, return summary information as a pandas dataframe.
+        '''
         if collections is None:
             collections = {}
+
+        if data_labels is None:
+            data_labels = ['image', 'structure_set', 'dose', 'plan']
 
         info = {}
         info['id'] = self.id
@@ -950,7 +980,8 @@ class Patient(skrt.core.PathData):
                 break
 
         info['n_study'] = len(self.studies)
-        data_labels = ['image', 'structure_set', 'dose', 'plan']
+        plan_images = []
+        treatment_images = []
         for study in self.studies:
             for data_label in data_labels:
                 type_label = f'{data_label}_types'
@@ -959,13 +990,47 @@ class Patient(skrt.core.PathData):
                     for data_type, objs in sorted(data_types.items()):
                         file_label = f'{data_label}_{data_type}_file'
                         size_label = f'{data_label}_{data_type}_size'
+                        obj_label = f'{data_label}_{data_type}_obj'
                         if not file_label in info:
                             info[file_label] = 0
                         if not size_label in info:
                             info[size_label] = 0
+                        if 'image' == data_label:
+                            if obj_label not in info:
+                                info[obj_label] = 0
+                            info[obj_label] += len(objs)
                         for obj in objs:
                             info[file_label] += obj.get_n_file()
                             info[size_label] += obj.get_file_size()
+                            if 'image' == data_label:
+                                if plan_image_type == data_type:
+                                    plan_images.append(obj)
+                                if treatment_image_type == data_type:
+                                    treatment_images.append(obj)
+
+        plan_images.sort()
+        treatment_images.sort()
+        if plan_images:
+            info['plan_image_time'] = plan_images[0].get_pandas_timestamp()
+        else:
+            info['plan_image_time'] = None
+
+        if info['n_fraction'] is not None:
+            info['plan_time'] = plan.get_pandas_timestamp()
+        else:
+            info['plan_time'] = None
+
+        if treatment_images:
+            info['treatment_start'] = treatment_images[0].get_pandas_timestamp()
+            info['treatment_end'] = treatment_images[-1].get_pandas_timestamp()
+        else:
+            info['treatment_start'] = None
+            info['treatment_end'] = None
+        time_separated_plan_images = skrt.core.get_time_separated_objects(
+                plan_images, min_delta=4, unit='hour')
+        time_separated_treatment_images = skrt.core.get_time_separated_objects(
+                treatment_images, min_delta=4, unit='hour')
+        info['n_treatment'] = len(time_separated_treatment_images)
 
         return (pd.DataFrame([info]) if df else info)
 
