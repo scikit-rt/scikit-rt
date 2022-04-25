@@ -355,6 +355,7 @@ class Plan(Archive):
         self.loaded = False
         self.path = None
         self.name = None
+        self.description = None
         self.approval_status = None
         self.n_fraction_group = None
         self.n_beam_seq = None
@@ -386,6 +387,8 @@ class Plan(Archive):
         self.dicom_dataset = pydicom.dcmread(self.path, force=True)
 
         self.name = getattr(self.dicom_dataset, 'RTPlanName', None)
+        self.description = getattr(
+                self.dicom_dataset, 'RTPlanDescription', None)
 
         try:
             self.approval_status = self.dicom_dataset.ApprovalStatus
