@@ -185,8 +185,33 @@ in the first and last structure sets being copied.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_image_info">
+<span class="sig-name descname"><span class="pre">get_image_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_image_info" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve information about images.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>image_types<span class="classifier">list, default=None</span></dt><dd><p>List of strings indicating types of image for which information
+is to be retrieved, for example [‘ct’, ‘mr’].  If None,
+information is retrieved for all image types in the patient
+dataset.</p>
+</dd>
+<dt>min_delta<span class="classifier">int/pandas.Timedelta, default=4</span></dt><dd><p>Minimum time interval required between image objects.
+If an integer, the unit must be specified.</p>
+</dd>
+<dt>unit<span class="classifier">str, default=’hour’</span></dt><dd><p>Unit of min_delta if the latter is specified as an integer;
+ignored otherwise.  Valid units are any accepted by
+pandas.Timedelta:
+<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html">https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html</a></p>
+</dd>
+<dt>df<span class="classifier">bool, default=False</span></dt><dd><p>If False, return summary information as a dictionary.
+If True, return summary information as a pandas dataframe.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_info">
-<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mvct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mvct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve patient summary information.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -204,6 +229,14 @@ a study.  If None, the list used is:
 <dt>plan_image_type<span class="classifier">str, default=’ct’</span></dt><dd><p>String identifying type of image recorded for treatment planning.</p>
 </dd>
 <dt>treatment_image_type<span class="classifier">str, default=’mvct’</span></dt><dd><p>String identifying type of image recorded at treatment time.</p>
+</dd>
+<dt>min_delta<span class="classifier">int/pandas.Timedelta, default=4</span></dt><dd><p>Minimum time interval required between image objects.
+If an integer, the unit must be specified.</p>
+</dd>
+<dt>unit<span class="classifier">str, default=’hour’</span></dt><dd><p>Unit of min_delta if the latter is specified as an integer;
+ignored otherwise.  Valid units are any accepted by
+pandas.Timedelta:
+<a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html">https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html</a></p>
 </dd>
 <dt>df<span class="classifier">bool, default=False</span></dt><dd><p>If False, return summary information as a dictionary.
 If True, return summary information as a pandas dataframe.</p>
