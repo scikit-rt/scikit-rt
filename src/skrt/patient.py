@@ -916,7 +916,7 @@ class Patient(skrt.core.PathData):
         return self.birth_date
 
     def get_info(self, collections=None, data_labels=None, plan_image_type='ct',
-            treatment_image_type='mvct', df=False):
+            treatment_image_type='mvct', min_delta=4, unit='hour', df=False):
         '''
         Retrieve patient summary information.
 
@@ -941,52 +941,75 @@ class Patient(skrt.core.PathData):
         treatment_image_type : str, default='mvct'
             String identifying type of image recorded at treatment time.
 
+        min_delta : int/pandas.Timedelta, default=4
+            Minimum time interval required between image objects.
+            If an integer, the unit must be specified.
+
+        unit : str, default='hour'
+            Unit of min_delta if the latter is specified as an integer;
+            ignored otherwise.  Valid units are any accepted by
+            pandas.Timedelta:
+            https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html
+
         df : bool, default=False
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
         '''
+        # Ensure that dictionary is defined for patient groupings.
         if collections is None:
             collections = {}
 
+        # Ensure that list is defined for data labels.
         if data_labels is None:
             data_labels = ['image', 'structure_set', 'dose', 'plan']
 
+        # Create dictionary for information to be returned.
         info = {}
+
+        # Store basic patient information.
         info['id'] = self.id
         info['disease'] = self.id.split("_")[1]
+        info['birth_date'] = self.get_birth_date()
+        info['age'] = self.get_age()
+        info['sex'] = self.get_sex()
 
+        # Store information on patient groupings.
+        # The assumption here is that the collection type is
+        # included in the data path.
         for collection, collection_types in collections.items():
             info[collection] = None
             for collection_type in collection_types:
                 if collection_type in self.path:
                     info[collection] = collection_type
 
-        info['birth_date'] = self.get_birth_date()
-        info['age'] = self.get_age()
-        info['sex'] = self.get_sex()
-
-
+        # Store plan information.
+        # Information is taken from the earliest plan file,
+        # in the earliest study containing a plan file.
         info['plan_name'] = None
-        info['n_fraction'] = None
-        info['target_dose'] = None
+        info['plan_fraction'] = None
+        info['plan_target_dose'] = None
         for study in self.studies:
             if hasattr(study, 'plan_types'):
                 plan_type = sorted(list(study.plan_types.keys()))[0]
                 plan = study.plan_types[plan_type][0]
                 plan.load()
                 info['plan_name'] = plan.name
-                info['n_fraction'] = plan.n_fraction
-                info['target_dose'] = plan.target_dose
+                info['plan_fraction'] = plan.n_fraction
+                info['plan_target_dose'] = plan.target_dose
                 break
 
+        # Store information about all data types, across all studies.
         info['n_study'] = len(self.studies)
-        plan_images = []
-        treatment_images = []
         for study in self.studies:
             for data_label in data_labels:
                 type_label = f'{data_label}_types'
                 data_types = getattr(study, type_label, None)
                 if data_types:
+                    # For each data type, store information on:
+                    # - number of files;
+                    # - combined size (in bytes) of all files;
+                    # For image data, also store information on:
+                    # - number of image objects.
                     for data_type, objs in sorted(data_types.items()):
                         file_label = f'{data_label}_{data_type}_file'
                         size_label = f'{data_label}_{data_type}_size'
@@ -1002,37 +1025,100 @@ class Patient(skrt.core.PathData):
                         for obj in objs:
                             info[file_label] += obj.get_n_file()
                             info[size_label] += obj.get_file_size()
-                            if 'image' == data_label:
-                                if plan_image_type == data_type:
-                                    plan_images.append(obj)
-                                if treatment_image_type == data_type:
-                                    treatment_images.append(obj)
 
-        plan_images.sort()
-        treatment_images.sort()
+        # Create lists of image objects for planning and for treatment.
+        plan_images = self.combined_objs(f'{plan_image_type}_images')
+        treatment_images = self.combined_objs(f'{treatment_image_type}_images')
+
+        # Store time of image used for plan creation.
         if plan_images:
             info['plan_image_time'] = plan_images[0].get_pandas_timestamp()
         else:
             info['plan_image_time'] = None
 
-        if info['n_fraction'] is not None:
+        # Store time of plan creation.
+        if info['plan_fraction'] is not None:
             info['plan_time'] = plan.get_pandas_timestamp()
         else:
             info['plan_time'] = None
 
+        # Store times of first and last treatment images.
         if treatment_images:
             info['treatment_start'] = treatment_images[0].get_pandas_timestamp()
             info['treatment_end'] = treatment_images[-1].get_pandas_timestamp()
         else:
             info['treatment_start'] = None
             info['treatment_end'] = None
+
+        # Filter to have images separated by a minimum amount of time.
         time_separated_plan_images = skrt.core.get_time_separated_objects(
-                plan_images, min_delta=4, unit='hour')
+                plan_images, min_delta=min_delta, unit=unit)
         time_separated_treatment_images = skrt.core.get_time_separated_objects(
-                treatment_images, min_delta=4, unit='hour')
+                treatment_images, min_delta=min_delta, unit=unit)
+
+        # Store number of time-separated images.
         info['n_treatment'] = len(time_separated_treatment_images)
 
         return (pd.DataFrame([info]) if df else info)
+
+    def get_image_info(self, image_types=None, min_delta=4, unit='hour',
+            df=False):
+        '''
+        Retrieve information about images.
+
+        **Parameters:**
+
+        image_types : list, default=None
+            List of strings indicating types of image for which information
+            is to be retrieved, for example ['ct', 'mr'].  If None,
+            information is retrieved for all image types in the patient
+            dataset.
+
+        min_delta : int/pandas.Timedelta, default=4
+            Minimum time interval required between image objects.
+            If an integer, the unit must be specified.
+
+        unit : str, default='hour'
+            Unit of min_delta if the latter is specified as an integer;
+            ignored otherwise.  Valid units are any accepted by
+            pandas.Timedelta:
+            https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timedelta.html
+
+        df : bool, default=False
+            If False, return summary information as a dictionary.
+            If True, return summary information as a pandas dataframe.
+        '''
+        if image_types is None:
+            all_image_types = self.combined_objs('image_types')
+            image_types = []
+            for image_types_now in all_image_types:
+                for image_type in image_types_now:
+                    if image_type not in image_types:
+                        image_types.append(image_type)
+
+        all_info = []
+        for image_type in sorted(image_types):
+            image_label = f'{image_type.lower()}_images'
+            images = self.combined_objs(image_label)
+            time_separated_images = skrt.core.get_time_separated_objects(
+                    images, min_delta=min_delta, unit=unit)
+            ref_time = None
+            for image in time_separated_images:
+                info = {}
+                info['id'] = self.id
+                info['modality'] = image_type
+                info['timestamp'] = image.get_pandas_timestamp()
+                info['day'] = info['timestamp'].isoweekday()
+                if ref_time is not None:
+                    info['time_delta'] = info['timestamp'] - ref_time
+                    info['days_delta'] = info['time_delta'].round('1d')
+                else:
+                    info['time_delta'] = None
+                    info['days_delta'] = None
+                ref_time = info['timestamp']
+                all_info.append(info)
+
+        return (pd.DataFrame(all_info) if df else all_info)
 
     def get_subdir_studies(self, subdir=""):
         """Get list of studies within a given subdirectory."""
