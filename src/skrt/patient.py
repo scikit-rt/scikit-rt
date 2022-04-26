@@ -875,6 +875,25 @@ class Patient(skrt.core.PathData):
         all_objs.sort()
         return all_objs
 
+    def combined_types(self, cls):
+        '''
+        Get list of object types across all studies, for a given class.
+
+        **Parameters:**
+
+        cls : str
+            Class name (case insensitive), for which types of object are
+            to be retrieved.
+        '''
+        all_types = []
+        for study in self.studies:
+            obj_types = getattr(study, f'{cls.lower()}_types', [])
+            for obj_type in sorted(obj_types):
+                if not obj_type in all_types:
+                    all_types.append(obj_type)
+        all_types.sort()
+        return all_types
+
     def load_demographics(self):
         """Load a patient's birth date, age, and sex."""
 
@@ -1128,12 +1147,7 @@ class Patient(skrt.core.PathData):
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
         '''
-        if image_types is None:
-            image_types = []
-            for study in self.studies:
-                for image_type in getattr(study, 'image_types', []):
-                    if image_type not in image_types:
-                        image_types.append(image_type)
+        image_types = self.combined_types('image')
 
         all_info = []
         for image_type in sorted(image_types):
@@ -1159,6 +1173,50 @@ class Patient(skrt.core.PathData):
 
         return (pd.DataFrame(all_info) if df else all_info)
 
+    def get_dose_info(self, dose_types=None, df=False):
+        '''
+        Retrieve information about dose.
+
+        **Parameters:**
+
+        dose_types : list, default=None
+            List of strings indicating types of dose for which information
+            is to be retrieved.  If None, information is retrieved for
+            all dose types in the patient dataset.
+
+        df : bool, default=False
+            If False, return summary information as a dictionary.
+            If True, return summary information as a pandas dataframe.
+        '''
+
+        dose_types = self.combined_types('dose')
+
+        all_info = []
+        for dose_type in sorted(dose_types):
+            dose_label = f'{dose_type.lower()}_doses'
+            doses = self.combined_objs(dose_label)
+            for dose in sorted(doses):
+                dose.load()
+                info = {}
+                info['id'] = self.id
+                info['timestamp'] = dose.get_pandas_timestamp()
+                info['day'] = (info['timestamp'].isoweekday()
+                        if info['timestamp'] else None)
+                info['dose_summation_type'] = dose.get_dose_summation_type()
+                info['dose_max'] = dose.get_max()
+                info['dose_units'] = dose.get_dose_units()
+                info['dose_type'] = dose.get_dose_type()
+                info['linked_plan'] = hasattr(dose, 'plan')
+                if hasattr(dose, 'plan'):
+                    info['linked_plan_status'] = dose.plan.get_approval_status()
+                    info['linked_plan_fraction'] = dose.plan.get_n_fraction()
+                else:
+                    info['linked_plan_status'] = None
+                    info['linked_plan_fraction'] = None
+                all_info.append(info)
+
+        return (pd.DataFrame(all_info) if df else all_info)
+
     def get_plan_info(self, plan_types=None, df=False):
         '''
         Retrieve information about treatment plans.
@@ -1175,12 +1233,7 @@ class Patient(skrt.core.PathData):
             If True, return summary information as a pandas dataframe.
         '''
 
-        if plan_types is None:
-            plan_types = []
-            for study in self.studies:
-                for plan_type in getattr(study, 'plan_types', []):
-                    if plan_type not in plan_types:
-                        plan_types.append(plan_type)
+        plan_types = self.combined_types('plan')
 
         all_info = []
         for plan_type in sorted(plan_types):
@@ -1194,13 +1247,31 @@ class Patient(skrt.core.PathData):
                 info['day'] = (info['timestamp'].isoweekday()
                         if info['timestamp'] else None)
                 info['plan_type'] = plan_type
-                info['plan_name'] = plan.name
-                info['plan_description'] = plan.description
+                info['plan_name'] = plan.get_name()
+                info['plan_description'] = plan.get_description()
                 info['plan_prescription_description'] = (
-                        plan.prescription_description)
-                info['plan_fraction'] = plan.n_fraction
-                info['plan_target_dose'] = plan.target_dose
-                info['plan_status'] = plan.approval_status
+                        plan.get_prescription_description())
+                info['plan_fraction'] = plan.get_n_fraction()
+                info['plan_target_dose'] = plan.get_target_dose()
+                info['plan_status'] = plan.get_approval_status()
+                info['linked_doses'] = len(plan.doses)
+
+                dose_summation_types = []
+                max_doses = []
+                for dose in plan.doses:
+                    dose_summation_types.append(dose.get_dose_summation_type())
+                    max_doses.append(dose.get_max())
+                info['linked_dose_summation_type'] = (
+                        '_'.join(dose_summation_types))
+                if not max_doses:
+                    info['linked_dose_max'] = None
+                elif len(max_doses) == 1:
+                    info['linked_dose_max'] = max_doses[0]
+                else:
+                    max_doses = [f'{max_dose:.4f}'
+                            for max_dose in max_doses]
+                    info['linked_dose_max'] = '_'.join(max_doses)
+
                 all_info.append(info)
 
         return (pd.DataFrame(all_info) if df else all_info)

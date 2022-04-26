@@ -3362,7 +3362,8 @@ def get_dicom_paths(path):
             ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
         # Check whether there are multiple files for this image
-        if ds.get("ImagesInAcquisition", None) == 1:
+        if (ds.get("ImagesInAcquisition", None) == 1
+                or hasattr(ds, "NumberOfFrames")):
             paths = [path]
 
     # Case where there are multiple dicom files for this image
@@ -3557,6 +3558,11 @@ def load_dicom_single_file(path):
     """
 
     ds = pydicom.dcmread(path, force=True)
+
+    # Fill empty TransferSyntaxUID 
+    if not hasattr(ds, "TransferSyntaxUID"):
+        ds.file_meta.TransferSyntaxUID = \
+            pydicom.uid.ImplicitVRLittleEndian
 
     # Get data and transpose such that it's a 3D array with slice in last
     data = ds.pixel_array

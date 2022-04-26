@@ -178,12 +178,22 @@ class Dose(ImageOverlay):
             if hasattr(self, attribute):
                 delattr(self, attribute)
 
+        # Initialise additional attributes
+        self.dose_units = None
+        self.dose_type = None
+        self.dose_summation_type = None
+
     def load(self, *args, **kwargs):
         """Load self and set default maximum plotting intensity from max of
         data array if not yet set."""
 
         skrt.image.Image.load(self, *args, **kwargs)
         self._default_vmax = self.max
+        ds = self.dicom_dataset
+        if ds:
+            self.dose_units = getattr(ds, 'DoseUnits', None)
+            self.dose_type = getattr(ds, 'DoseType', None)
+            self.dose_summation_type = getattr(ds, 'DoseSummationType', None)
 
     def set_image(self, image):
         """Set associated image. Image.add_dose(self) will also be called."""
@@ -205,6 +215,18 @@ class Dose(ImageOverlay):
         # Assign self to the plan
         if self.plan is not None:
             self.plan.add_dose(self)
+
+    def get_dose_units(self):
+        self.load()
+        return self.dose_units
+
+    def get_dose_type(self):
+        self.load()
+        return self.dose_type
+
+    def get_dose_summation_type(self):
+        self.load()
+        return self.dose_summation_type
 
     def view(self, **kwargs):
 
@@ -567,6 +589,11 @@ class Plan(Archive):
         '''Return plan description.'''
         self.load()
         return self.description
+
+    def get_prescription_description(self):
+        '''Return plan prescription description.'''
+        self.load()
+        return self.prescription_description
 
     def get_n_beam_seq(self):
         '''Return number of beam sequences for this plan.'''
