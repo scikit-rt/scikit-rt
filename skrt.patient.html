@@ -142,16 +142,14 @@ will be the directories that the files are in.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.combined_objs">
-<span class="sig-name descname"><span class="pre">combined_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_objs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">combined_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_objs" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of objects across all studies associated with
 this patient.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>attr<span class="classifier">str, default=None</span></dt><dd><p>Attribute name, identifying list of objects associated with a study.
-If None, then objects are selected based on dtype.</p>
-</dd>
-<dt>dtype<span class="classifier">str, default=None</span></dt><dd><p>Type of object.  Valid types are ‘image’, ‘dose’, ‘plan’,
-‘structure_set’.  Considered only if attr has a null value.</p>
+<dt>attr<span class="classifier">str</span></dt><dd><p>Attribute name, identifying list of objects associated with a study.
+If attr ends with ‘_types’, then objects of all listed types
+are retrieved.</p>
 </dd>
 </dl>
 </dd></dl>
