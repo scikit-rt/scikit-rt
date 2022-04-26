@@ -164,7 +164,13 @@ class Study(skrt.core.Archive):
                                 obj.set_structure_set(ss)
 
                 # Add to list of all objects for this image type
-                all_objs.extend(objs)
+                # The preceding code results in object duplication.
+                # This should be debugged, but for now just avoid
+                # storing duplicates.
+                for obj in objs:
+                    if obj not in all_objs:
+                        all_objs.append(obj)
+                #all_objs.extend(objs)
 
             # Create attribute for objects of this type
             if len(all_objs):
@@ -1009,6 +1015,7 @@ class Patient(skrt.core.PathData):
         # in the earliest study containing a plan file.
         info['plan_name'] = None
         info['plan_description'] = None
+        info['plan_prescription_description'] = None
         info['plan_fraction'] = None
         info['plan_target_dose'] = None
         for study in self.studies:
@@ -1018,6 +1025,8 @@ class Patient(skrt.core.PathData):
                 plan.load()
                 info['plan_name'] = plan.name
                 info['plan_description'] = plan.description
+                info['plan_prescription_description'] = (
+                        plan.prescription_description)
                 info['plan_fraction'] = plan.n_fraction
                 info['plan_target_dose'] = plan.target_dose
                 break
@@ -1120,11 +1129,11 @@ class Patient(skrt.core.PathData):
             If True, return summary information as a pandas dataframe.
         '''
         if image_types is None:
-            all_image_types = self.combined_objs('image_types')
             image_types = []
-            for image_type in all_image_types:
-                if image_type not in image_types:
-                    image_types.append(image_type)
+            for study in self.studies:
+                for image_type in getattr(study, 'image_types', []):
+                    if image_type not in image_types:
+                        image_types.append(image_type)
 
         all_info = []
         for image_type in sorted(image_types):
@@ -1146,6 +1155,52 @@ class Patient(skrt.core.PathData):
                     info['time_delta'] = None
                     info['days_delta'] = None
                 ref_time = info['timestamp']
+                all_info.append(info)
+
+        return (pd.DataFrame(all_info) if df else all_info)
+
+    def get_plan_info(self, plan_types=None, df=False):
+        '''
+        Retrieve information about treatment plans.
+
+        **Parameters:**
+
+        plan_types : list, default=None
+            List of strings indicating types of plan for which information
+            is to be retrieved.  If None, information is retrieved for
+            all plan types in the patient dataset.
+
+        df : bool, default=False
+            If False, return summary information as a dictionary.
+            If True, return summary information as a pandas dataframe.
+        '''
+
+        if plan_types is None:
+            plan_types = []
+            for study in self.studies:
+                for plan_type in getattr(study, 'plan_types', []):
+                    if plan_type not in plan_types:
+                        plan_types.append(plan_type)
+
+        all_info = []
+        for plan_type in sorted(plan_types):
+            plan_label = f'{plan_type.lower()}_plans'
+            plans = self.combined_objs(plan_label)
+            for plan in sorted(plans):
+                plan.load()
+                info = {}
+                info['id'] = self.id
+                info['timestamp'] = plan.get_pandas_timestamp()
+                info['day'] = (info['timestamp'].isoweekday()
+                        if info['timestamp'] else None)
+                info['plan_type'] = plan_type
+                info['plan_name'] = plan.name
+                info['plan_description'] = plan.description
+                info['plan_prescription_description'] = (
+                        plan.prescription_description)
+                info['plan_fraction'] = plan.n_fraction
+                info['plan_target_dose'] = plan.target_dose
+                info['plan_status'] = plan.approval_status
                 all_info.append(info)
 
         return (pd.DataFrame(all_info) if df else all_info)

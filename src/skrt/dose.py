@@ -356,6 +356,7 @@ class Plan(Archive):
         self.path = None
         self.name = None
         self.description = None
+        self.prescription_description = None
         self.approval_status = None
         self.n_fraction_group = None
         self.n_beam_seq = None
@@ -389,6 +390,8 @@ class Plan(Archive):
         self.name = getattr(self.dicom_dataset, 'RTPlanName', None)
         self.description = getattr(
                 self.dicom_dataset, 'RTPlanDescription', None)
+        self.prescription_description = getattr(
+                self.dicom_dataset, 'PrescriptionDescription', None)
 
         try:
             self.approval_status = self.dicom_dataset.ApprovalStatus
@@ -416,6 +419,16 @@ class Plan(Archive):
                         self.target_dose = 0.0
                     for dose in fraction.ReferencedDoseReferenceSequence:
                         self.target_dose += dose.TargetPrescriptionDose
+        dose_reference_sequence = getattr(
+                self.dicom_dataset, 'DoseReferenceSequence', [])
+
+        if self.target_dose is None:
+            target_dose = 0.0
+            for dose_reference in dose_reference_sequence:
+                target_dose = max(target_dose,
+                        getattr(dose_reference, 'TargetPrescriptionDose', 0))
+            if target_dose:
+                self.target_dose = target_dose
 
         self.loaded = True
         self.load_constraints()
