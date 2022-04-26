@@ -142,9 +142,18 @@ will be the directories that the files are in.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.combined_objs">
-<span class="sig-name descname"><span class="pre">combined_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_objs" title="Permalink to this definition"></a></dt>
-<dd><p>Get list of all objects of a given attribute &lt;attr&gt; associated
-with this patient.</p>
+<span class="sig-name descname"><span class="pre">combined_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_objs" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of objects across all studies associated with
+this patient.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>attr<span class="classifier">str, default=None</span></dt><dd><p>Attribute name, identifying list of objects associated with a study.
+If None, then objects are selected based on dtype.</p>
+</dd>
+<dt>dtype<span class="classifier">str, default=None</span></dt><dd><p>Type of object.  Valid types are ‘image’, ‘dose’, ‘plan’,
+‘structure_set’.  Considered only if attr has a null value.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -211,7 +220,7 @@ If True, return summary information as a pandas dataframe.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_info">
-<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mvct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve patient summary information.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -226,9 +235,9 @@ in data paths.  If None, an empty dictionary is used.</p>
 a study.  If None, the list used is:
 [‘image’, ‘structure_set’, ‘dose’, ‘plan’].</p>
 </dd>
-<dt>plan_image_type<span class="classifier">str, default=’ct’</span></dt><dd><p>String identifying type of image recorded for treatment planning.</p>
+<dt>plan_image_type<span class="classifier">str, default=None</span></dt><dd><p>String identifying type of image recorded for treatment planning.</p>
 </dd>
-<dt>treatment_image_type<span class="classifier">str, default=’mvct’</span></dt><dd><p>String identifying type of image recorded at treatment time.</p>
+<dt>treatment_image_type<span class="classifier">str, default=None</span></dt><dd><p>String identifying type of image recorded at treatment time.</p>
 </dd>
 <dt>min_delta<span class="classifier">int/pandas.Timedelta, default=4</span></dt><dd><p>Minimum time interval required between image objects.
 If an integer, the unit must be specified.</p>
