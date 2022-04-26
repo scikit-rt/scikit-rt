@@ -513,7 +513,11 @@ class Dated(PathData):
             self.timestamp = f"{self.date}_{self.time}"
 
     def get_pandas_timestamp(self):
-        return pd.Timestamp(''.join([self.date, self.time]))
+        try:
+            timestamp = pd.Timestamp(''.join([self.date, self.time]))
+        except ValueError:
+            timestamp = None
+        return timestamp
 
     def in_date_interval(self,
                          min_date: Optional[str] = None,
@@ -894,10 +898,16 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
 
     # Only consider objects with non-null date and time.
     timed_objs = {}
-    for obj in objs:
-        if obj.date and obj.time:
-            timestamp = pd.Timestamp(''.join([obj.date, obj.time]))
-            timed_objs[timestamp] = obj
+    if objs:
+        for obj in objs:
+            if obj.date and obj.time:
+                try:
+                    timestamp = pd.Timestamp(''.join([obj.date, obj.time]))
+                except ValueError:
+                    timestamp = None
+
+                if timestamp is not None:
+                    timed_objs[timestamp] = obj
 
     # Obtain the list of objects with time separation greater than minimum.
     time_separated_objs = []

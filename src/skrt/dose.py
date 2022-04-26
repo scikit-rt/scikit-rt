@@ -437,8 +437,10 @@ class Plan(Archive):
         
         ds = self.get_dicom_dataset()
 
-        for item in ds.DoseReferenceSequence:
-            roi = rois.get(item.ReferencedROINumber, None)
+        dose_reference_sequence = getattr(ds, 'DoseReferenceSequence', [])
+
+        for item in dose_reference_sequence:
+            roi = rois.get(getattr(item, 'ReferencedROINumber', None), None)
             if roi is None:
                 continue
             roi.roi_type = item.DoseReferenceType
@@ -547,6 +549,11 @@ class Plan(Archive):
         '''Return plan approval status.'''
         self.load()
         return self.approval_status
+
+    def get_description(self):
+        '''Return plan description.'''
+        self.load()
+        return self.description
 
     def get_n_beam_seq(self):
         '''Return number of beam sequences for this plan.'''

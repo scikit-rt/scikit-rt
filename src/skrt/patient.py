@@ -842,15 +842,32 @@ class Patient(skrt.core.PathData):
 
         return files
 
-    def combined_objs(self, attr):
-        """Get list of all objects of a given attribute <attr> associated
-        with this patient."""
+    def combined_objs(self, attr=None, dtype=None):
+        '''
+        Get list of objects across all studies associated with
+        this patient.
 
+        **Parameters:**
+
+        attr : str, default=None
+            Attribute name, identifying list of objects associated with a study.
+            If None, then objects are selected based on dtype.
+
+        dtype : str, default=None
+            Type of object.  Valid types are 'image', 'dose', 'plan',
+            'structure_set'.  Considered only if attr has a null value.
+        '''
         all_objs = []
-        for study in self.studies:
-            objs = getattr(study, attr)
-            if objs:
-                all_objs.extend(objs)
+        if attr is not None:
+            for study in self.studies:
+                objs = getattr(study, attr, None)
+                if objs:
+                    all_objs.extend(objs)
+        elif dtype is not None:
+            for study in self.studies:
+                obj_types = getattr(study, f'{dtype}_types', [])
+                for obj_type in sorted(obj_types):
+                    all_objs.extend(getattr(study, f'{obj_type}_{dtype}s'))
         all_objs.sort()
         return all_objs
 
@@ -886,7 +903,10 @@ class Patient(skrt.core.PathData):
 
         # Obtain birth date as pandas Timestamp.
         if info["BirthDate"]:
-            info["BirthDate"] = pd.Timestamp(info["BirthDate"])
+            try:
+                info["BirthDate"] = pd.Timestamp(info["BirthDate"])
+            except ValueError:
+                info["BirthDate"] = None
 
         # Obtain age as an integer in years.
         if info["Age"]:
@@ -915,8 +935,9 @@ class Patient(skrt.core.PathData):
             self.load_demographics()
         return self.birth_date
 
-    def get_info(self, collections=None, data_labels=None, plan_image_type='ct',
-            treatment_image_type='mvct', min_delta=4, unit='hour', df=False):
+    def get_info(self, collections=None, data_labels=None,
+            plan_image_type=None, treatment_image_type=None,
+            min_delta=4, unit='hour', df=False):
         '''
         Retrieve patient summary information.
 
@@ -935,10 +956,10 @@ class Patient(skrt.core.PathData):
             a study.  If None, the list used is:
             ['image', 'structure_set', 'dose', 'plan'].
 
-        plan_image_type : str, default='ct'
+        plan_image_type : str, default=None
             String identifying type of image recorded for treatment planning.
 
-        treatment_image_type : str, default='mvct'
+        treatment_image_type : str, default=None
             String identifying type of image recorded at treatment time.
 
         min_delta : int/pandas.Timedelta, default=4
@@ -968,7 +989,10 @@ class Patient(skrt.core.PathData):
 
         # Store basic patient information.
         info['id'] = self.id
-        info['disease'] = self.id.split("_")[1]
+        try:
+            info['disease'] = self.id.split("_")[1]
+        except IndexError:
+            pass
         info['birth_date'] = self.get_birth_date()
         info['age'] = self.get_age()
         info['sex'] = self.get_sex()
@@ -986,6 +1010,7 @@ class Patient(skrt.core.PathData):
         # Information is taken from the earliest plan file,
         # in the earliest study containing a plan file.
         info['plan_name'] = None
+        info['plan_description'] = None
         info['plan_fraction'] = None
         info['plan_target_dose'] = None
         for study in self.studies:
@@ -994,6 +1019,7 @@ class Patient(skrt.core.PathData):
                 plan = study.plan_types[plan_type][0]
                 plan.load()
                 info['plan_name'] = plan.name
+                info['plan_description'] = plan.description
                 info['plan_fraction'] = plan.n_fraction
                 info['plan_target_dose'] = plan.target_dose
                 break
@@ -1027,8 +1053,15 @@ class Patient(skrt.core.PathData):
                             info[size_label] += obj.get_file_size()
 
         # Create lists of image objects for planning and for treatment.
-        plan_images = self.combined_objs(f'{plan_image_type}_images')
-        treatment_images = self.combined_objs(f'{treatment_image_type}_images')
+        if plan_image_type:
+            plan_images = self.combined_objs(f'{plan_image_type}_images')
+        else:
+            plan_images = None
+        if treatment_image_type:
+            treatment_images = self.combined_objs(
+                    f'{treatment_image_type}_images')
+        else:
+            treatment_images = None
 
         # Store time of image used for plan creation.
         if plan_images:
@@ -1091,10 +1124,9 @@ class Patient(skrt.core.PathData):
         if image_types is None:
             all_image_types = self.combined_objs('image_types')
             image_types = []
-            for image_types_now in all_image_types:
-                for image_type in image_types_now:
-                    if image_type not in image_types:
-                        image_types.append(image_type)
+            for image_type in all_image_types:
+                if image_type not in image_types:
+                    image_types.append(image_type)
 
         all_info = []
         for image_type in sorted(image_types):
