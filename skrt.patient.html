@@ -155,6 +155,18 @@ are retrieved.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.combined_types">
+<span class="sig-name descname"><span class="pre">combined_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.combined_types" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of object types across all studies, for a given class.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>cls<span class="classifier">str</span></dt><dd><p>Class name (case insensitive), for which types of object are
+to be retrieved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.copy">
 <span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.copy" title="Permalink to this definition"></a></dt>
 <dd><p>Copy patient dataset, with optional filtering.</p>
@@ -190,6 +202,22 @@ in the first and last structure sets being copied.</p>
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_birth_date">
 <span class="sig-name descname"><span class="pre">get_birth_date</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_birth_date" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_dose_info">
+<span class="sig-name descname"><span class="pre">get_dose_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dose_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_dose_info" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve information about dose.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>dose_types<span class="classifier">list, default=None</span></dt><dd><p>List of strings indicating types of dose for which information
+is to be retrieved.  If None, information is retrieved for
+all dose types in the patient dataset.</p>
+</dd>
+<dt>df<span class="classifier">bool, default=False</span></dt><dd><p>If False, return summary information as a dictionary.
+If True, return summary information as a pandas dataframe.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_image_info">
