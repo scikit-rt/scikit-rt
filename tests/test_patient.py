@@ -89,7 +89,7 @@ def test_load_images():
     assert len(s.ct_images) == 1
     assert len(s.mr_images) == 1
     assert np.all(s.ct_images[0].get_affine() == sim.get_affine())
-    images = p2.combined_objs(dtype='image')
+    images = p2.combined_objs('image_types')
     assert len(images) == 2
     assert images[0] == s.ct_images[0]
     assert images[1] == s.mr_images[0]

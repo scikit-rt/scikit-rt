@@ -842,32 +842,30 @@ class Patient(skrt.core.PathData):
 
         return files
 
-    def combined_objs(self, attr=None, dtype=None):
+    def combined_objs(self, attr):
         '''
         Get list of objects across all studies associated with
         this patient.
 
         **Parameters:**
 
-        attr : str, default=None
+        attr : str
             Attribute name, identifying list of objects associated with a study.
-            If None, then objects are selected based on dtype.
-
-        dtype : str, default=None
-            Type of object.  Valid types are 'image', 'dose', 'plan',
-            'structure_set'.  Considered only if attr has a null value.
+            If attr ends with '_types', then objects of all listed types
+            are retrieved.
         '''
         all_objs = []
-        if attr is not None:
+        if attr.endswith('_types'):
+            dtype = attr.replace('_types', 's')
+            for study in self.studies:
+                obj_types = getattr(study, attr, [])
+                for obj_type in sorted(obj_types):
+                    all_objs.extend(getattr(study, f'{obj_type}_{dtype}'))
+        else:
             for study in self.studies:
                 objs = getattr(study, attr, None)
                 if objs:
                     all_objs.extend(objs)
-        elif dtype is not None:
-            for study in self.studies:
-                obj_types = getattr(study, f'{dtype}_types', [])
-                for obj_type in sorted(obj_types):
-                    all_objs.extend(getattr(study, f'{obj_type}_{dtype}s'))
         all_objs.sort()
         return all_objs
 
