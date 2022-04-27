@@ -1012,10 +1012,6 @@ class Patient(skrt.core.PathData):
 
         # Store basic patient information.
         info['id'] = self.id
-        try:
-            info['disease'] = self.id.split("_")[1]
-        except IndexError:
-            pass
         info['birth_date'] = self.get_birth_date()
         info['age'] = self.get_age()
         info['sex'] = self.get_sex()
