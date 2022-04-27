@@ -1071,8 +1071,7 @@ class Patient(skrt.core.PathData):
                     # For dose data, also store information on:
                     # - maximum dose.
                     for data_type, objs in sorted(data_types.items()):
-                        if ('image' == data_label and
-                                data_type not in image_types):
+                        if data_type not in image_types:
                             continue
                         file_label = f'{data_label}_{data_type}_file'
                         size_label = f'{data_label}_{data_type}_size'
