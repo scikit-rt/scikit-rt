@@ -246,7 +246,7 @@ If True, return summary information as a pandas dataframe.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_info">
-<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve patient summary information.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -257,9 +257,14 @@ two patient cohorts - a discovery cohort and a consolidation
 cohort.  It’s assumed that specific groupings are included
 in data paths.  If None, an empty dictionary is used.</p>
 </dd>
-<dt>data_labels<span class="classifier">list, default=None</span></dt><dd><p>List of strings specifying types of data associated with
+<dt>data_labels<span class="classifier">list, default=None</span></dt><dd><p>List of strings specifying labels of data associated with
 a study.  If None, the list used is:
 [‘image’, ‘structure_set’, ‘dose’, ‘plan’].</p>
+</dd>
+<dt>image_types<span class="classifier">list, default=None</span></dt><dd><p>List of strings indicating types of image for which information
+is to be retrieved, for example [‘ct’, ‘mr’].  If None,
+information is retrieved for all image types in the patient
+dataset.  Ignored if ‘image’ isn’t included in data_labels.</p>
 </dd>
 <dt>plan_image_type<span class="classifier">str, default=None</span></dt><dd><p>String identifying type of image recorded for treatment planning.</p>
 </dd>
