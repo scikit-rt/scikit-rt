@@ -1062,10 +1062,13 @@ class Patient(skrt.core.PathData):
                     # - combined size (in bytes) of all files;
                     # For image data, also store information on:
                     # - number of image objects.
+                    # For dose data, also store information on:
+                    # - maximum dose.
                     for data_type, objs in sorted(data_types.items()):
                         file_label = f'{data_label}_{data_type}_file'
                         size_label = f'{data_label}_{data_type}_size'
                         obj_label = f'{data_label}_{data_type}_obj'
+                        dose_label = f'{data_label}_{data_type}_max'
                         if not file_label in info:
                             info[file_label] = 0
                         if not size_label in info:
@@ -1074,6 +1077,12 @@ class Patient(skrt.core.PathData):
                             if obj_label not in info:
                                 info[obj_label] = 0
                             info[obj_label] += len(objs)
+                        if 'dose' == data_label:
+                            if dose_label not in info:
+                                info[dose_label] = 0
+                            for obj in objs:
+                               info[dose_label] = max(
+                                       info[dose_label], obj.get_max())
                         for obj in objs:
                             info[file_label] += obj.get_n_file()
                             info[size_label] += obj.get_file_size()
