@@ -2,14 +2,11 @@
 
 from pathlib import Path
 
-def get_paths(ids=None, topdir='.', samples=None, pattern='VT1_*'):
+def get_paths(topdir='.', samples=None, pattern='VT1_*', ids=None):
     '''
-    Retrieve full paths corresponding to set of identifiers.
+    Retrieve full paths to patient folders, optionally matching on ids.
 
     **Parameters:**
-    ids - list, default=None
-        List of patient identifiers.
-
     topdir - str, default='.'
         Top-level data directory.
 
@@ -18,11 +15,12 @@ def get_paths(ids=None, topdir='.', samples=None, pattern='VT1_*'):
 
     pattern - str, default='VT1_*'
         Pattern to be matched to identify patient folders.
+
+    ids - list, default=None
+        List of patient identifiers.  Ignored if None.
     '''
 
     # Set defaults.
-    if not ids:
-        ids = []
     if not samples:
         samples = ['consolidation', 'discovery',
                    'error_cases/consolidation', 'error_cases/discovery',
@@ -32,9 +30,12 @@ def get_paths(ids=None, topdir='.', samples=None, pattern='VT1_*'):
     paths = []
     for sample in samples:
         patient_paths = (Path(topdir) / sample).glob(pattern)
-        for patient_path in patient_paths:
-            if patient_path.name in ids:
-                paths.append(str(patient_path))
+        if ids is None:
+            paths.extend(list(patient_paths))
+        else:
+            for patient_path in patient_paths:
+                if patient_path.name in ids:
+                    paths.append(str(patient_path))
 
     paths.sort()
     
