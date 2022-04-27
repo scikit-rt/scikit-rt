@@ -958,7 +958,7 @@ class Patient(skrt.core.PathData):
             self.load_demographics()
         return self.birth_date
 
-    def get_info(self, collections=None, data_labels=None,
+    def get_info(self, collections=None, data_labels=None, image_types=None,
             plan_image_type=None, treatment_image_type=None,
             min_delta=4, unit='hour', df=False):
         '''
@@ -975,9 +975,15 @@ class Patient(skrt.core.PathData):
             in data paths.  If None, an empty dictionary is used.
 
         data_labels : list, default=None
-            List of strings specifying types of data associated with
+            List of strings specifying labels of data associated with
             a study.  If None, the list used is:
             ['image', 'structure_set', 'dose', 'plan'].
+
+        image_types : list, default=None
+            List of strings indicating types of image for which information
+            is to be retrieved, for example ['ct', 'mr'].  If None,
+            information is retrieved for all image types in the patient
+            dataset.  Ignored if 'image' isn't included in data_labels.
 
         plan_image_type : str, default=None
             String identifying type of image recorded for treatment planning.
@@ -1006,6 +1012,10 @@ class Patient(skrt.core.PathData):
         # Ensure that list is defined for data labels.
         if data_labels is None:
             data_labels = ['image', 'structure_set', 'dose', 'plan']
+
+        # Ensure that list is defined for image_types.
+        if image_types is None:
+            image_types = self.combined_types('image')
 
         # Create dictionary for information to be returned.
         info = {}
@@ -1061,6 +1071,9 @@ class Patient(skrt.core.PathData):
                     # For dose data, also store information on:
                     # - maximum dose.
                     for data_type, objs in sorted(data_types.items()):
+                        if ('image' == data_label and
+                                data_type not in image_types):
+                            continue
                         file_label = f'{data_label}_{data_type}_file'
                         size_label = f'{data_label}_{data_type}_size'
                         obj_label = f'{data_label}_{data_type}_obj'
@@ -1152,7 +1165,10 @@ class Patient(skrt.core.PathData):
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
         '''
-        image_types = self.combined_types('image')
+
+        # Ensure that list is defined for image_types.
+        if image_types is None:
+            image_types = self.combined_types('image')
 
         all_info = []
         for image_type in sorted(image_types):
@@ -1194,7 +1210,9 @@ class Patient(skrt.core.PathData):
             If True, return summary information as a pandas dataframe.
         '''
 
-        dose_types = self.combined_types('dose')
+        # Ensure that list is defined for dose_types.
+        if dose_types is None:
+            dose_types = self.combined_types('dose')
 
         all_info = []
         for dose_type in sorted(dose_types):
@@ -1238,7 +1256,9 @@ class Patient(skrt.core.PathData):
             If True, return summary information as a pandas dataframe.
         '''
 
-        plan_types = self.combined_types('plan')
+        # Ensure that list is defined for plan_types.
+        if plan_types is None:
+            plan_types = self.combined_types('plan')
 
         all_info = []
         for plan_type in sorted(plan_types):
