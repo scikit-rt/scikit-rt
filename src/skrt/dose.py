@@ -618,7 +618,7 @@ class Plan(Archive):
     def get_target_dose(self):
         '''Return dose to target (tumour) for this plan.'''
         self.load()
-        return self.name
+        return self.target_dose
 
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
