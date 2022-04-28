@@ -548,13 +548,16 @@ class Plan(Archive):
 
 
         # Return pre-existing result if available.
-        dose_objective = getattr(self.objectives, objective)
+        dose_objective = getattr(self.objectives, objective, None)
         if dose_objective:
             return dose_objective
 
         # Check that data needed for defining dose objective are available.
         rois = self.get_targets()
-        rois.extend(self.get_organs_at_risk())
+        if rois:
+            rois.extend(self.get_organs_at_risk())
+        else:
+            rois = self.get_organs_at_risk()
         if not rois or not (self.doses or dose):
             return dose_objective
 
