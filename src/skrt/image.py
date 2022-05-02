@@ -2033,7 +2033,7 @@ class Image(skrt.core.Archive):
 
         # Save to file
         if save_as:
-            self.fig.savefig(save_as)
+            self.fig.savefig(save_as, bbox_inches="tight", pad_inches=0.03)
             plt.close()
 
     def label_ax(
@@ -2072,11 +2072,13 @@ class Image(skrt.core.Archive):
         # Annotate with slice position
         if annotate_slice:
             z_ax = _axes[_slice_axes[view]]
+            pos = self.idx_to_pos(idx, z_ax)
+            im_slice = self.idx_to_slice(idx, z_ax)
+            n_slice = self.get_n_voxels()[_axes.index(z_ax)]
             if scale_in_mm:
-                z_str = "{} = {:.1f} mm".format(z_ax, self.idx_to_pos(idx,
-                                                                      z_ax))
+                z_str = f"{z_ax} = {pos:.1f} mm"
             else:
-                z_str = "{} = {}".format(z_ax, self.idx_to_slice(idx, z_ax))
+                z_str = f"{z_ax} = {im_slice} of {n_slice}"
             if matplotlib.colors.is_color_like(annotate_slice):
                 color = annotate_slice
             else:
