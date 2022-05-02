@@ -2057,11 +2057,13 @@ class Image(skrt.core.Archive):
         if title is None:
             title = self.title
         if title:
-            self.ax.set_title(title, pad=8)
+            # Previously passed: pad=8
+            self.ax.set_title(title)
 
         # Set axis labels
         units = " (mm)" if scale_in_mm else ""
-        self.ax.set_xlabel(_axes[x_ax] + units, labelpad=0)
+        # Previously passed: labelpad=0
+        self.ax.set_xlabel(_axes[x_ax] + units)
         if not no_ylabel:
             self.ax.set_ylabel(_axes[y_ax] + units)
         else:
