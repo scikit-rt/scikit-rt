@@ -791,10 +791,28 @@ class Patient(skrt.core.PathData):
                             self.studies.extend(
                                 self.create_objects(dtype=Study, subdir=subdir)
                             )
+        
+        # Add to data objects a reference to the patient object.
+        self.link_study_data_to_patient()
 
         # Record end time, then store initialisation time.
         toc = timeit.default_timer()
         self._init_time = (toc - tic)
+
+    def link_study_data_to_patient(self):
+        '''Add to data objects a reference to the associated patient object.'''
+
+        categories = set()
+
+        for study in self.studies:
+            for attribute in dir(study):
+                if "types" in attribute:
+                    categories.add(attribute)
+            study.patient = self
+
+        for category in categories:
+            for obj in self.combined_objs(category):
+                obj.patient = self
 
     def add_study(self, subdir='', timestamp=None, images=None, 
                   image_type="ct"):

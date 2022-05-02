@@ -140,6 +140,18 @@ def test_read_dicom_patient():
     assert "cube" in roi_names
     assert "sphere" in roi_names
 
+def test_patient_references():
+    # Test that all of a patient's data objects have a reference to the patient.
+    p_test = Patient(pdir)
+    n_objs = {"image_types": 0, "structure_set_types": 0, "studies": 0}
+
+    for category in n_objs.keys():
+        objs = getattr(p_test, category, p_test.combined_objs(category))
+        for obj in objs:
+            n_objs[category] += 1
+            assert obj.patient == p_test
+        assert 1 == n_objs[category]
+
 def test_copy_dicom_patient():
     p_test = Patient(pdir)
     pdir_copy = f"tmp/test_patient_copy"
