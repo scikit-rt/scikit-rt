@@ -1578,6 +1578,9 @@ class Image(skrt.core.Archive):
                 Greyscale range to use; taken from self._default_vmin and
                 self._default_vmax by default.
 
+        For information on matplotlib colour maps, see:
+            https://matplotlib.org/stable/gallery/color/colormap_reference.html
+
         **Parameters:**
         
         view : str
@@ -1652,6 +1655,7 @@ class Image(skrt.core.Archive):
         colorbar=False,
         colorbar_label=None,
         title=None,
+        no_xlabel=False,
         no_ylabel=False,
         annotate_slice=False,
         major_ticks=None,
@@ -1750,8 +1754,14 @@ class Image(skrt.core.Archive):
             Custom title for the plot. If None, a title inferred from the image
             filename will be used. If False or '', no title will be added.
 
+        no_xlabel : bool, default=False
+            If True, the x axis will not be labelled.
+
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
+
+        no_axis_label : bool, default=False
+            If True, axis labels and axis values aren't shown.
 
         annotate_slice : bool/str, default=False
             Color for annotation of slice number. If False, no annotation will
@@ -1975,6 +1985,7 @@ class Image(skrt.core.Archive):
             idx,
             scale_in_mm,
             title,
+            no_xlabel,
             no_ylabel,
             annotate_slice,
             major_ticks,
@@ -2042,6 +2053,7 @@ class Image(skrt.core.Archive):
         idx,
         scale_in_mm=True,
         title=None,
+        no_xlabel=False,
         no_ylabel=False,
         annotate_slice=False,
         major_ticks=None,
@@ -2063,7 +2075,10 @@ class Image(skrt.core.Archive):
         # Set axis labels
         units = " (mm)" if scale_in_mm else ""
         # Previously passed: labelpad=0
-        self.ax.set_xlabel(f"${_axes[x_ax]}${units}")
+        if not no_xlabel:
+            self.ax.set_xlabel(f"${_axes[x_ax]}${units}")
+        else:
+            self.ax.set_xticks([])
         if not no_ylabel:
             self.ax.set_ylabel(f"${_axes[y_ax]}${units}")
         else:
