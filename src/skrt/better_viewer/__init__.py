@@ -67,6 +67,7 @@ class BetterViewer:
         diff_crit=15,
         suptitle=None,
         show=True,
+        include_image=False,
         **kwargs,
     ):
         '''
@@ -740,6 +741,10 @@ class BetterViewer:
             If True, major (and minor if using) tick marks will be shown above
             and to the right hand side of the plot as well as below and to the
             left. The top/right ticks will not be labelled.
+
+        include_image : bool, default=False
+            If True, and image has associated image, overlay former on the
+            latter.
         '''
 
         # Get image file inputs
@@ -781,6 +786,7 @@ class BetterViewer:
                 scale_in_mm=scale_in_mm,
                 legend_bbox_to_anchor=legend_bbox_to_anchor,
                 legend_loc=legend_loc,
+                include_image=include_image,
                 **kwargs,
             )
             self.viewers.append(viewer)
@@ -1557,6 +1563,7 @@ class SingleViewer:
         no_axis_labels=False,
         scale_in_mm=True,
         title=None,
+        include_image=False,
         **kwargs,
     ):
 
@@ -1681,6 +1688,7 @@ class SingleViewer:
         self.legend_bbox_to_anchor = legend_bbox_to_anchor
         self.legend_loc = legend_loc
         self.shift = [None, None, None]
+        self.include_image = include_image
 
         # Overlay plot settings
         self.init_dose_opacity = dose_opacity
@@ -2654,7 +2662,8 @@ class SingleViewer:
             shift=self.shift,
             scale_in_mm=self.scale_in_mm,
             consensus_type=consensus_type,
-            exclude_from_consensus=exclude_from_consensus
+            exclude_from_consensus=exclude_from_consensus,
+            **kwargs
         )
         self.plotting = False
         self.colorbar_drawn = True
@@ -2677,6 +2686,11 @@ class SingleViewer:
         if not self.in_notebook and hasattr(im, 'ax'):
             ax = getattr(im, 'ax')
             ax.clear()
+
+        # If image is linked to another image,
+        # add overlay flag to keyword arguments.
+        if hasattr(im, 'image'):
+            kwargs['include_image'] = self.include_image
 
         # Plot image
         im.plot(ax=ax, view=view, **kwargs)

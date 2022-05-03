@@ -1922,7 +1922,10 @@ class Image(skrt.core.Archive):
             dose_kwargs = {}
 
         # Apply intensity window if given
-        if intensity is not None:
+        if 'auto' == intensity:
+            mpl_kwargs["vmin"] = self.get_data().min()
+            mpl_kwargs["vmax"] = self.get_data().max()
+        elif intensity is not None:
             mpl_kwargs["vmin"] = intensity[0]
             mpl_kwargs["vmax"] = intensity[1]
 
