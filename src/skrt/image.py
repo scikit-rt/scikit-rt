@@ -949,7 +949,7 @@ class Image(skrt.core.Archive):
 
         voxel_size : tuple/list/None, default=None
             Voxel sizes in mm in order (x, y, z).  If None, the image's
-            existing origin is kept.  If a value in the tuple/list is None,
+            existing voxel size is kept.  If a value in the tuple/list is None,
             the relevant existing value is kept.
 
         fill_value: float/None, default = None
@@ -2063,9 +2063,9 @@ class Image(skrt.core.Archive):
         # Set axis labels
         units = " (mm)" if scale_in_mm else ""
         # Previously passed: labelpad=0
-        self.ax.set_xlabel(_axes[x_ax] + units)
+        self.ax.set_xlabel(f"${_axes[x_ax]}${units}")
         if not no_ylabel:
-            self.ax.set_ylabel(_axes[y_ax] + units)
+            self.ax.set_ylabel(f"${_axes[y_ax]}${units}")
         else:
             self.ax.set_yticks([])
 
@@ -2076,9 +2076,9 @@ class Image(skrt.core.Archive):
             im_slice = self.idx_to_slice(idx, z_ax)
             n_slice = self.get_n_voxels()[_axes.index(z_ax)]
             if scale_in_mm:
-                z_str = f"{z_ax} = {pos:.1f} mm"
+                z_str = f"${z_ax}$ = {pos:.1f} mm"
             else:
-                z_str = f"{z_ax} = {im_slice} of {n_slice}"
+                z_str = f"${z_ax}$ = {im_slice} of {n_slice}"
             if matplotlib.colors.is_color_like(annotate_slice):
                 color = annotate_slice
             else:
