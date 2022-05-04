@@ -111,10 +111,10 @@ class ImageOverlay(skrt.image.Image):
         self.set_ax(view, ax, gs, figsize, zoom, colorbar)
         self.load()
 
-        # Plot underlying image
+        # Plot underlying image, always without title.
         if include_image and self.image is not None:
             self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
-                    show=False)
+                    show=False, title="")
 
             # Use default transprency if plotting image and opacity is None
             if opacity is None:
@@ -140,35 +140,6 @@ class ImageOverlay(skrt.image.Image):
             show=show, 
             **kwargs
         )
-
-
-    def view(self, include_image=True, kwarg_name=None, **kwargs):
-        """View with BetterViewer, optionally overlaying on image.
-
-        **Parameters**:
-
-        include_image : bool, default=False
-            If True, this ImageOverlay will be displayed overlaid on its
-            underlying Image.
-
-        kwarg_name : str, default=None
-            Name of kwarg under which to provide self to the call to
-            self.image.Image.view() if include_image=True. By default,
-            self will be passed to the "dose" parameter.
-
-        `**`kwargs :
-            Keyword args to pass to BetterViewer initialisation.
-        """
-
-        from skrt.better_viewer import BetterViewer
-
-        if include_image and self.image is not None:
-            if kwarg_name is None:
-                kwarg_name = "dose"
-            kwargs[kwarg_name] = self
-            return self.image.view(**kwargs)
-
-        return skrt.image.Image.view(self, **kwargs)
 
     @functools.cached_property
     def max(self):
@@ -245,10 +216,6 @@ class Dose(ImageOverlay):
     def get_dose_summation_type(self):
         self.load()
         return self.dose_summation_type
-
-    def view(self, **kwargs):
-
-        return ImageOverlay.view(self, kwarg_name="dose", **kwargs)
 
     def get_dose_in_roi(self, roi):
         """Return 1D numpy array containing all of the dose values for the 

@@ -123,11 +123,12 @@ class Image(skrt.core.Archive):
             If true and no valid timestamp is found within the path string,
             timestamp generated from current date and time.
 
-        default_intensity : tuple,None default=(-300, 300)
+        default_intensity : tuple,None default=(-200, 300)
             Default intensity range for image display.  This can
             be specified as a two-element tuple, giving minimum and maximum,
-            or if set to None then the images full intensity range is
-            used.  If WindowCenter and WindowWidth are defined in a
+            or if set to None then intensity range used is from the
+            minimum of zero and the image minimum, to the image maximum.
+            If WindowCenter and WindowWidth are defined in a
             DICOM source file, these values will be used instead to
             define the default intensity range.
         """
@@ -516,7 +517,7 @@ class Image(skrt.core.Archive):
             self._default_vmax = window_centre + window_width / 2
         else:
             if self.default_intensity is None:
-                self._default_vmin = self.data.min()
+                self._default_vmin = min(self.data.min(), 0)
                 self._default_vmax = self.data.max()
             else:
                 self._default_vmin = self.default_intensity[0]
@@ -1943,6 +1944,7 @@ class Image(skrt.core.Archive):
                 show=False,
                 include_image=False, 
                 opacity=dose_opacity, 
+                title="",
                 mpl_kwargs=dose_kwargs
             )
 

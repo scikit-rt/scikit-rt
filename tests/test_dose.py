@@ -61,8 +61,8 @@ def test_view_with_image():
     dose.set_image(im)
     opacity = 0.8
     bv = dose.view(include_image=True, show=False, dose_opacity=opacity)
-    assert bv.viewers[0].image == im
-    assert bv.viewers[0].dose == dose
+    assert np.all(bv.viewers[0].image.get_data() == dose.get_data())
+    assert np.all(bv.viewers[0].image.image.get_data() == im.get_data())
     assert bv.viewers[0].ui_dose.value == opacity
 
 def test_view_from_image():
