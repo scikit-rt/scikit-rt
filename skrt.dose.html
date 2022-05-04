@@ -191,10 +191,11 @@ all axes, or a list containing downsampling amounts in order
 <dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
 timestamp generated from current date and time.</p>
 </dd>
-<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+<dt>default_intensity<span class="classifier">tuple,None default=(-200, 300)</span></dt><dd><p>Default intensity range for image display.  This can
 be specified as a two-element tuple, giving minimum and maximum,
-or if set to None then the images full intensity range is
-used.  If WindowCenter and WindowWidth are defined in a
+or if set to None then intensity range used is from the
+minimum of zero and the image minimum, to the image maximum.
+If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
 </dd>
@@ -297,24 +298,6 @@ colours over which to cycle when drawing histograms.</p>
 <dd><p>Set associated plan, initialising it if needed.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.dose.Dose.view">
-<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.view" title="Permalink to this definition"></a></dt>
-<dd><p>View with BetterViewer, optionally overlaying on image.</p>
-<p><strong>Parameters</strong>:</p>
-<dl class="simple">
-<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, this ImageOverlay will be displayed overlaid on its
-underlying Image.</p>
-</dd>
-<dt>kwarg_name<span class="classifier">str, default=None</span></dt><dd><p>Name of kwarg under which to provide self to the call to
-self.image.Image.view() if include_image=True. By default,
-self will be passed to the “dose” parameter.</p>
-</dd>
-<dt><a href="#id9"><span class="problematic" id="id10">`</span></a><a href="#id11"><span class="problematic" id="id12">**</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -373,10 +356,11 @@ all axes, or a list containing downsampling amounts in order
 <dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
 timestamp generated from current date and time.</p>
 </dd>
-<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+<dt>default_intensity<span class="classifier">tuple,None default=(-200, 300)</span></dt><dd><p>Default intensity range for image display.  This can
 be specified as a two-element tuple, giving minimum and maximum,
-or if set to None then the images full intensity range is
-used.  If WindowCenter and WindowWidth are defined in a
+or if set to None then intensity range used is from the
+minimum of zero and the image minimum, to the image maximum.
+If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
 </dd>
@@ -427,7 +411,7 @@ overlay (0 = fully transparent, 1 = fully opaque).</p>
 </dd>
 <dt>show<span class="classifier">bool, default = True</span></dt><dd><p>If True, the plot will be displayed immediately.</p>
 </dd>
-<dt><a href="#id15"><span class="problematic" id="id16">`</span></a><a href="#id17"><span class="problematic" id="id18">**</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>kwargs:</dt><dd><p>Keyword args to pass to skrt.image.Image.plot().</p>
+<dt><a href="#id9"><span class="problematic" id="id10">`</span></a><a href="#id11"><span class="problematic" id="id12">**</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a>kwargs:</dt><dd><p>Keyword args to pass to skrt.image.Image.plot().</p>
 </dd>
 </dl>
 </dd></dl>
@@ -436,24 +420,6 @@ overlay (0 = fully transparent, 1 = fully opaque).</p>
 <dt class="sig sig-object py" id="skrt.dose.ImageOverlay.set_image">
 <span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay.set_image" title="Permalink to this definition"></a></dt>
 <dd><p>Set associated image, initialising it if needed.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.dose.ImageOverlay.view">
-<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwarg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay.view" title="Permalink to this definition"></a></dt>
-<dd><p>View with BetterViewer, optionally overlaying on image.</p>
-<p><strong>Parameters</strong>:</p>
-<dl class="simple">
-<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, this ImageOverlay will be displayed overlaid on its
-underlying Image.</p>
-</dd>
-<dt>kwarg_name<span class="classifier">str, default=None</span></dt><dd><p>Name of kwarg under which to provide self to the call to
-self.image.Image.view() if include_image=True. By default,
-self will be passed to the “dose” parameter.</p>
-</dd>
-<dt><a href="#id21"><span class="problematic" id="id22">`</span></a><a href="#id23"><span class="problematic" id="id24">**</span></a><a href="#id25"><span class="problematic" id="id26">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>

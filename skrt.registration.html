@@ -186,10 +186,11 @@ all axes, or a list containing downsampling amounts in order
 <dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
 timestamp generated from current date and time.</p>
 </dd>
-<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+<dt>default_intensity<span class="classifier">tuple,None default=(-200, 300)</span></dt><dd><p>Default intensity range for image display.  This can
 be specified as a two-element tuple, giving minimum and maximum,
-or if set to None then the images full intensity range is
-used.  If WindowCenter and WindowWidth are defined in a
+or if set to None then intensity range used is from the
+minimum of zero and the image minimum, to the image maximum.
+If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
 </dd>
@@ -199,19 +200,9 @@ define the default intensity range.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Grid.view">
 <span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.view" title="Permalink to this definition"></a></dt>
-<dd><p>View with BetterViewer, optionally overlaying on image.</p>
-<p><strong>Parameters</strong>:</p>
-<dl class="simple">
-<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, this ImageOverlay will be displayed overlaid on its
-underlying Image.</p>
-</dd>
-<dt>kwarg_name<span class="classifier">str, default=None</span></dt><dd><p>Name of kwarg under which to provide self to the call to
-self.image.Image.view() if include_image=True. By default,
-self will be passed to the “dose” parameter.</p>
-</dd>
-<dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
-</dd>
-</dl>
+<dd><p>View self with BetterViewer along with any additional images in 
+&lt;images&gt;. Any <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> will be passed to BetterViewer
+initialisation.</p>
 </dd></dl>
 
 </dd></dl>
@@ -269,10 +260,11 @@ all axes, or a list containing downsampling amounts in order
 <dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
 timestamp generated from current date and time.</p>
 </dd>
-<dt>default_intensity<span class="classifier">tuple,None default=(-300, 300)</span></dt><dd><p>Default intensity range for image display.  This can
+<dt>default_intensity<span class="classifier">tuple,None default=(-200, 300)</span></dt><dd><p>Default intensity range for image display.  This can
 be specified as a two-element tuple, giving minimum and maximum,
-or if set to None then the images full intensity range is
-used.  If WindowCenter and WindowWidth are defined in a
+or if set to None then intensity range used is from the
+minimum of zero and the image minimum, to the image maximum.
+If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
 </dd>
@@ -282,19 +274,9 @@ define the default intensity range.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Jacobian.view">
 <span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian.view" title="Permalink to this definition"></a></dt>
-<dd><p>View with BetterViewer, optionally overlaying on image.</p>
-<p><strong>Parameters</strong>:</p>
-<dl class="simple">
-<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, this ImageOverlay will be displayed overlaid on its
-underlying Image.</p>
-</dd>
-<dt>kwarg_name<span class="classifier">str, default=None</span></dt><dd><p>Name of kwarg under which to provide self to the call to
-self.image.Image.view() if include_image=True. By default,
-self will be passed to the “dose” parameter.</p>
-</dd>
-<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to BetterViewer initialisation.</p>
-</dd>
-</dl>
+<dd><p>View self with BetterViewer along with any additional images in 
+&lt;images&gt;. Any <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> will be passed to BetterViewer
+initialisation.</p>
 </dd></dl>
 
 </dd></dl>
@@ -737,13 +719,13 @@ this image even if it already exists.</p>
 <dd><p>Call one of the transform functions, depending on the type of
 <cite>to_transform</cite>. Functions called depending on type are:</p>
 <dl class="simple">
-<dt>Image:</dt><dd><p>transform_image(to_transform, <a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs)</p>
+<dt>Image:</dt><dd><p>transform_image(to_transform, <a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs)</p>
 </dd>
-<dt>str:</dt><dd><p>transform_data(to_transform, <a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs)</p>
+<dt>str:</dt><dd><p>transform_data(to_transform, <a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs)</p>
 </dd>
-<dt>StructureSet:</dt><dd><p>transform_structure_set(to_transform, <a href="#id25"><span class="problematic" id="id26">`</span></a><a href="#id27"><span class="problematic" id="id28">**</span></a><a href="#id29"><span class="problematic" id="id30">`</span></a>kwargs)</p>
+<dt>StructureSet:</dt><dd><p>transform_structure_set(to_transform, <a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs)</p>
 </dd>
-<dt>ROI:</dt><dd><p>transform_roi(to_transform, <a href="#id31"><span class="problematic" id="id32">`</span></a><a href="#id33"><span class="problematic" id="id34">**</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>kwargs)</p>
+<dt>ROI:</dt><dd><p>transform_roi(to_transform, <a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -880,7 +862,7 @@ the result of the final step will be shown.</p>
 <dt>compare_with_fixed<span class="classifier">bool, default=True</span></dt><dd><p>If True, the result will be displayed in comparison with the
 fixed image.</p>
 </dd>
-<dt><a href="#id37"><span class="problematic" id="id38">`</span></a><a href="#id39"><span class="problematic" id="id40">**</span></a><a href="#id41"><span class="problematic" id="id42">`</span></a>kwargs :</dt><dd><p>Optional keyword arguments to pass to BetterViewer.</p>
+<dt><a href="#id25"><span class="problematic" id="id26">`</span></a><a href="#id27"><span class="problematic" id="id28">**</span></a><a href="#id29"><span class="problematic" id="id30">`</span></a>kwargs :</dt><dd><p>Optional keyword arguments to pass to BetterViewer.</p>
 </dd>
 </dl>
 </dd></dl>
