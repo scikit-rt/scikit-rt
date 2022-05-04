@@ -19,15 +19,13 @@ class ImageOverlay(skrt.image.Image):
 
     def __init__(self, path="", load=True, image=None, *args, **kwargs):
 
+        kwargs['default_intensity'] = kwargs.get('default_intensity', None)
         skrt.image.Image.__init__(self, path, load, *args, **kwargs)
         self.set_image(image)
 
         # Default dose plotting settings
         self._default_cmap = "jet"
         self._default_colorbar_label = "Intensity"
-        self._default_vmin = 0
-        if not hasattr(self, "_default_vmax"):
-            self._default_vmax = None
 
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
@@ -39,6 +37,9 @@ class ImageOverlay(skrt.image.Image):
     def plot(
         self, 
         view=None,
+        sl=None,
+        idx=None,
+        pos=None,
         ax=None,
         gs=None,
         figsize=None,
@@ -58,6 +59,19 @@ class ImageOverlay(skrt.image.Image):
             Orientation in which to compute the index. Can be "x-y", "y-z", or
             "x-z".  If None, the initial view is chosen to match
             the image orienation.
+
+        sl : int, default=None
+            Slice number to plot. Takes precedence over <idx> and <pos> if not
+            None. If all of <sl>, <idx>, and <pos> are None, the central
+            slice will be plotted.
+
+        idx : int, default=None
+            Index of the slice in the array to plot. Takes precendence over
+            <pos>.
+
+        pos : float, default=None
+            Position in mm of the slice to plot. Will be rounded to the nearest
+            slice. Only used if <sl> and <idx> are both None.
 
         ax : matplotlib.pyplot.Axes, default=None
             Axes on which to plot. If None, new axes will be created.
@@ -99,7 +113,8 @@ class ImageOverlay(skrt.image.Image):
 
         # Plot underlying image
         if include_image and self.image is not None:
-            self.image.plot(view, ax=self.ax, show=False)
+            self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
+                    show=False)
 
             # Use default transprency if plotting image and opacity is None
             if opacity is None:
@@ -115,6 +130,9 @@ class ImageOverlay(skrt.image.Image):
         skrt.image.Image.plot(
             self, 
             view=view,
+            sl=sl,
+            idx=idx,
+            pos=pos,
             ax=self.ax,
             zoom=zoom,
             colorbar=colorbar,
