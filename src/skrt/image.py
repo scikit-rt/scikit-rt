@@ -158,7 +158,7 @@ class Image(skrt.core.Archive):
         self.sinogram = None
 
         # Default image plotting settings
-        self._default_colorbar_label = "HU"
+        self._default_colorbar_label = "Radiodensity (HU)"
         self._default_cmap = "gray"
         self.default_intensity = default_intensity
 
@@ -1655,6 +1655,8 @@ class Image(skrt.core.Archive):
         show=True,
         colorbar=False,
         colorbar_label=None,
+        clb_kwargs=None,
+        clb_label_kwargs=None,
         title=None,
         no_xlabel=False,
         no_ylabel=False,
@@ -1739,6 +1741,12 @@ class Image(skrt.core.Archive):
 
         colorbar_label : str, default='HU'
             Label for the colorbar, if drawn.
+
+        clb_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to pyplot.colorbar().
+
+        clb_label_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to colorbar.set_label().
 
         intensity : list, default=None
             Two-item list containing min and max intensity for plotting. 
@@ -1921,6 +1929,17 @@ class Image(skrt.core.Archive):
             roi_kwargs = {}
         if dose_kwargs is None:
             dose_kwargs = {}
+        if clb_kwargs is None:
+            clb_kwargs = {}
+        if clb_label_kwargs is None:
+            clb_label_kwargs = {}
+
+        # Set defaults for clb_kwargs and clb_label_kwargs
+        if view == 'x-y':
+            clb_kwargs['pad'] = clb_kwargs.get('pad', 0.04)
+        else:
+            clb_kwargs['pad'] = clb_kwargs.get('pad', 0.06)
+        clb_label_kwargs['labelpad'] = clb_label_kwargs.get('labelpad', 7)
 
         # Apply intensity window if given
         if 'auto' == intensity:
@@ -2039,7 +2058,8 @@ class Image(skrt.core.Archive):
         clb_label = colorbar_label if colorbar_label is not None \
                 else self._default_colorbar_label
         if colorbar and mpl_kwargs.get("alpha", 1) > 0:
-            clb = self.fig.colorbar(mesh, ax=self.ax, label=clb_label)
+            clb = self.fig.colorbar(mesh, ax=self.ax, **clb_kwargs)
+            clb.set_label(clb_label, **clb_label_kwargs)
             clb.solids.set_edgecolor("face")
 
         # Display image
@@ -2320,8 +2340,9 @@ class Image(skrt.core.Archive):
             x_len /= zoom[x_ax]
             y_len /= zoom[y_ax]
 
-        # Add padding for colorbar(s)
-        colorbar_frac = 0.4 * 5 / figsize
+        # Add padding for colorbar(s).
+        # Numerator of 10 here is fairly arbitrary...
+        colorbar_frac = 10 / figsize
         x_len *= 1 + (n_colorbars * colorbar_frac)
 
         # Return estimated width ratio

@@ -160,7 +160,7 @@ class Dose(ImageOverlay):
 
         # Plot settings specific to dose map
         self._default_cmap = "jet"
-        self._default_colorbar_label = "Dose (Gy)"
+        self._default_colorbar_label = "Radiation dose (Gy)"
 
         # Delete spurious attributes inherited from Image class
         for attribute in ['doses', 'plans']:
