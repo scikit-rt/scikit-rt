@@ -26,6 +26,7 @@ class ImageOverlay(skrt.image.Image):
         # Default dose plotting settings
         self._default_cmap = "jet"
         self._default_colorbar_label = "Intensity"
+        self._default_opacity = 0.5
 
     def set_image(self, image):
         """Set associated image, initialising it if needed."""
@@ -118,7 +119,7 @@ class ImageOverlay(skrt.image.Image):
 
             # Use default transprency if plotting image and opacity is None
             if opacity is None:
-                opacity = 0.5
+                opacity = self._default_opacity
 
         # Add opacity to mpl_kwargs
         if mpl_kwargs is None:
@@ -161,6 +162,7 @@ class Dose(ImageOverlay):
         # Plot settings specific to dose map
         self._default_cmap = "jet"
         self._default_colorbar_label = "Dose (Gy)"
+        self._default_opacity = 0.5
 
         # Delete spurious attributes inherited from Image class
         for attribute in ['doses', 'plans']:
