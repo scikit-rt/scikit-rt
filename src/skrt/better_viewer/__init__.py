@@ -425,6 +425,16 @@ class BetterViewer:
             either 'intensity' if an image file is given, or 'Dose (Gy)' if a dose
             file is given without an image.
 
+        clb_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to pyplot.colorbar().
+            For information on available keyword arguments, see:
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.colorbar.html#matplotlib.pyplot.colorbar
+
+        clb_label_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to colorbar.set_label().
+            For information on available keyword arguments, see:
+            https://matplotlib.org/stable/api/colorbar_api.html#matplotlib.colorbar.Colorbar.set_label
+
         mpl_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
             for the main image.See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
@@ -1457,6 +1467,8 @@ class BetterViewer:
                     mpl_kwargs=self.viewers[0].v_min_max,
                     colorbar=self.comp_colorbar,
                     colorbar_label=self.viewers[0].colorbar_label,
+                    clb_kwargs=self.viewers[0].clb_kwargs,
+                    clb_label_kwargs=self.viewers[0].clb_label_kwargs,
                     show_mse=self.show_mse,
                     dta_tolerance=self.dta_tolerance,
                     dta_crit=self.dta_crit,
@@ -1510,6 +1522,8 @@ class SingleViewer:
         cmap=None,
         colorbar=False,
         colorbar_label=None,
+        clb_kwargs=None,
+        clb_label_kwargs=None,
         mpl_kwargs=None,
         dose=None,
         dose_opacity=0.5,
@@ -1664,6 +1678,8 @@ class SingleViewer:
         self.colorbar = colorbar
         self.colorbar_drawn = False
         self.colorbar_label = colorbar_label
+        self.clb_kwargs = clb_kwargs
+        self.clb_label_kwargs = clb_label_kwargs
         self.annotate_slice = annotate_slice
         if self.annotate_slice is None and not self.in_notebook:
             self.annotate_slice = True
@@ -2640,6 +2656,8 @@ class SingleViewer:
             zoom_centre=self.current_centre[self.view],
             colorbar=colorbar,
             colorbar_label=self.colorbar_label,
+            clb_kwargs=self.clb_kwargs,
+            clb_label_kwargs=self.clb_label_kwargs,
             legend_bbox_to_anchor=self.legend_bbox_to_anchor,
             legend_loc=self.legend_loc,
             annotate_slice=self.annotate_slice,
