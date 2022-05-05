@@ -1007,8 +1007,33 @@ filename will be used. If False or ‘’, no title will be added.</p>
 </dd>
 <dt>no_axis_label<span class="classifier">bool, default=False</span></dt><dd><p>If True, axis labels and axis values aren’t shown.</p>
 </dd>
-<dt>annotate_slice<span class="classifier">bool/str, default=False</span></dt><dd><p>Color for annotation of slice number. If False, no annotation will
-be added. If True, the default color (white) will be used.</p>
+<dt>annotate_slice<span class="classifier">bool/str/dict/list, default=False</span></dt><dd><p>Specification of slice annotations:</p>
+<ul class="simple">
+<li><p>bool: annotate with slice position (scale_in_mm True)</p></li>
+</ul>
+<p>or number (scale_in_mm False), in default colour (white).</p>
+<ul class="simple">
+<li><p>str: annotate with slice position or number in colour</p></li>
+</ul>
+<p>specified by string.</p>
+<ul class="simple">
+<li><p>dict: annotation dictionary, containing keyword-value pairs</p></li>
+</ul>
+<p>to be passed to annotate() method of figure axes.  The
+following defaults are defined:</p>
+<blockquote>
+<div><p>‘text’: slice position or number;
+‘xy’: (0.05, 0.93)
+‘xycoords’: ‘axes fraction’
+‘color’: ‘white’
+‘fontsize’: ‘large’</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>list: list of annotation dictionaries</p></li>
+</ul>
+<p>For information on all parameters that can be passed to
+annotate() method, see:
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.annotate.html">https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.annotate.html</a></p>
 </dd>
 <dt>major_ticks<span class="classifier">float, default=None</span></dt><dd><p>If not None, this value will be used as the interval between major
 tick marks. Otherwise, automatic matplotlib axis tick spacing will
@@ -1534,8 +1559,33 @@ filename will be used. If False or ‘’, no title will be added.</p>
 </dd>
 <dt>no_axis_label<span class="classifier">bool, default=False</span></dt><dd><p>If True, axis labels and axis values aren’t shown.</p>
 </dd>
-<dt>annotate_slice<span class="classifier">bool/str, default=False</span></dt><dd><p>Color for annotation of slice number. If False, no annotation will
-be added. If True, the default color (white) will be used.</p>
+<dt>annotate_slice<span class="classifier">bool/str/dict/list, default=False</span></dt><dd><p>Specification of slice annotations:</p>
+<ul class="simple">
+<li><p>bool: annotate with slice position (scale_in_mm True)</p></li>
+</ul>
+<p>or number (scale_in_mm False), in default colour (white).</p>
+<ul class="simple">
+<li><p>str: annotate with slice position or number in colour</p></li>
+</ul>
+<p>specified by string.</p>
+<ul class="simple">
+<li><p>dict: annotation dictionary, containing keyword-value pairs</p></li>
+</ul>
+<p>to be passed to annotate() method of figure axes.  The
+following defaults are defined:</p>
+<blockquote>
+<div><p>‘text’: slice position or number;
+‘xy’: (0.05, 0.93)
+‘xycoords’: ‘axes fraction’
+‘color’: ‘white’
+‘fontsize’: ‘large’</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>list: list of annotation dictionaries</p></li>
+</ul>
+<p>For information on all parameters that can be passed to
+annotate() method, see:
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.annotate.html">https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.annotate.html</a></p>
 </dd>
 <dt>major_ticks<span class="classifier">float, default=None</span></dt><dd><p>If not None, this value will be used as the interval between major
 tick marks. Otherwise, automatic matplotlib axis tick spacing will
