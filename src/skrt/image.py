@@ -1772,10 +1772,31 @@ class Image(skrt.core.Archive):
         no_axis_label : bool, default=False
             If True, axis labels and axis values aren't shown.
 
-        annotate_slice : bool/str, default=False
-            Color for annotation of slice number. If False, no annotation will
-            be added. If True, the default color (white) will be used.
+        annotate_slice : bool/str/dict/list, default=False
+            Specification of slice annotations:
 
+            - bool: annotate with slice position (scale_in_mm True)
+            or number (scale_in_mm False), in default colour (white).
+
+            - str: annotate with slice position or number in colour
+            specified by string.
+
+            - dict: annotation dictionary, containing keyword-value pairs
+            to be passed to annotate() method of figure axes.  The
+            following defaults are defined:
+                
+                'text': slice position or number;
+                'xy': (0.05, 0.93)
+                'xycoords': 'axes fraction'
+                'color': 'white'
+                'fontsize': 'large'
+
+            - list: list of annotation dictionaries
+
+            For information on all parameters that can be passed to
+            annotate() method, see:
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.annotate.html
+            
         major_ticks : float, default=None
             If not None, this value will be used as the interval between major
             tick marks. Otherwise, automatic matplotlib axis tick spacing will
@@ -2109,27 +2130,45 @@ class Image(skrt.core.Archive):
         else:
             self.ax.set_yticks([])
 
-        # Annotate with slice position
+        # Add annotation(s).
         if annotate_slice:
             z_ax = _axes[_slice_axes[view]]
             pos = self.idx_to_pos(idx, z_ax)
             im_slice = self.idx_to_slice(idx, z_ax)
             n_slice = self.get_n_voxels()[_axes.index(z_ax)]
+
+            # Set default string, indicating slice index or position.
             if scale_in_mm:
                 z_str = f"${z_ax}$ = {pos:.1f} mm"
             else:
                 z_str = f"${z_ax}$ = {im_slice} of {n_slice}"
+
+            # Set default font colour.
             if matplotlib.colors.is_color_like(annotate_slice):
                 color = annotate_slice
             else:
                 color = "white"
-            self.ax.annotate(
-                z_str,
-                xy=(0.05, 0.93),
-                xycoords="axes fraction",
-                color=color,
-                fontsize="large",
-            )
+
+            # Map from value of annotate_slice
+            # to a list of annotation dictionaries.
+            if isinstance(annotate_slice, (list, tuple)):
+                annotations = annotate_slice
+            elif isinstance(annotate_slice, dict):
+                annotations = [annotate_slice]
+            else:
+                annotations = [{'text': z_str, 'color': color}]
+
+            # Annotate slice, with defaults set for some annotate() parameters.
+            for annotation in annotations:
+                annotation['text'] = annotation.get('text', z_str) or z_str
+                # By default, multiple annotations written
+                # one on top of the other...
+                annotation['xy'] = annotation.get('xy', (0.05, 0.93))
+                annotation['xycoords'] = annotation.get(
+                    'xycoords', 'axes fraction')
+                annotation['color'] = annotation.get('color', color)
+                annotation['fontsize'] = annotation.get('fontsize','large')
+                self.ax.annotate(**annotation)
 
         # Adjust tick marks
         if not no_axis_labels:
