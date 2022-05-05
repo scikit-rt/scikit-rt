@@ -461,6 +461,7 @@ class DicomWriter:
         self.ds.InstanceNumber = sl
         self.ds.file_meta.MediaStorageSOPInstanceUID = (
                 f'{self.mediaStorageSOPInstanceUID}.{sl}')
+        self.ds.SOPInstanceUID = self.ds.file_meta.MediaStorageSOPInstanceUID
 
     def set_structure_set(self):
         '''
