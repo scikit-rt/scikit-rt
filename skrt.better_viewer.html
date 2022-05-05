@@ -397,8 +397,11 @@ None, the default z limits will be used.</p>
 <dt>cmap<span class="classifier">str, default=None</span></dt><dd><p>Matplotlib colormap to use for image plotting. Supercedes any
 cmap included in &lt;mpl_kwargs&gt;.</p>
 </dd>
-<dt>colorbar<span class="classifier">bool, default=False</span></dt><dd><p>If True, colorbars will be displayed for intensity, dose and Jacobian
-determinant.</p>
+<dt>colorbar<span class="classifier">int/bool, default=False</span></dt><dd><p>Indicate whether to display colour bar(s):
+- 1 or True: colour bar for main image;
+- 2: colour bars for main image and for any associated image
+or overlay;
+- 0 or False: no colour bar.</p>
 </dd>
 <dt>colorbar_label<span class="classifier">str, default=None</span></dt><dd><p>Label for the colorbar and range slider. If None, will default to
 either ‘intensity’ if an image file is given, or ‘Dose (Gy)’ if a dose

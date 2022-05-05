@@ -407,7 +407,11 @@ overlay (0 = fully transparent, 1 = fully opaque).</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>
 </dd>
-<dt>colorbar<span class="classifier">bool, default=True</span></dt><dd><p>If True, a colorbar will be drawn alongside the plot.</p>
+<dt>colorbar<span class="classifier">int/bool, default=False</span></dt><dd><p>Indicate whether to display colour bar(s):
+- 1 or True: colour bar for main image;
+- 2: colour bars for main image and for any associated image
+or overlay;
+- 0 or False: no colour bar.</p>
 </dd>
 <dt>show<span class="classifier">bool, default = True</span></dt><dd><p>If True, the plot will be displayed immediately.</p>
 </dd>
