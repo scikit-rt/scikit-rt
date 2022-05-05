@@ -1736,8 +1736,12 @@ class Image(skrt.core.Archive):
             Position around which zooming is applied. If None, the centre of
             the image will be used.
 
-        colorbar : bool, default=True
-            If True, a colorbar will be drawn alongside the plot.
+        colorbar : int/bool, default=False
+            Indicate whether to display colour bar(s):
+            - 1 or True: colour bar for main image;
+            - 2: colour bars for main image and for any associated image
+            or overlay;
+            - 0 or False: no colour bar.
 
         colorbar_label : str, default='HU'
             Label for the colorbar, if drawn.
@@ -1956,10 +1960,7 @@ class Image(skrt.core.Archive):
             clb_label_kwargs = {}
 
         # Set defaults for clb_kwargs and clb_label_kwargs
-        if view == 'x-y':
-            clb_kwargs['pad'] = clb_kwargs.get('pad', 0.04)
-        else:
-            clb_kwargs['pad'] = clb_kwargs.get('pad', 0.06)
+        clb_kwargs['pad'] = clb_kwargs.get('pad', 0.06)
         clb_label_kwargs['labelpad'] = clb_label_kwargs.get('labelpad', 7)
 
         # Apply intensity window if given
@@ -1982,6 +1983,7 @@ class Image(skrt.core.Archive):
                 idx=idx,
                 ax=self.ax,
                 show=False,
+                colorbar= max((colorbar - 1), 0),
                 include_image=False, 
                 opacity=dose_opacity, 
                 title="",
@@ -2381,8 +2383,7 @@ class Image(skrt.core.Archive):
 
         # Add padding for colorbar(s).
         # Numerator of 10 here is fairly arbitrary...
-        colorbar_frac = 10 / figsize
-        x_len *= 1 + (n_colorbars * colorbar_frac)
+        x_len *= (1 + (n_colorbars * 10) / figsize)
 
         # Return estimated width ratio
         total_y = figsize + y_pad

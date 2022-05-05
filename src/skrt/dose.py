@@ -96,8 +96,12 @@ class ImageOverlay(skrt.image.Image):
         mpl_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.imshow().
 
-        colorbar : bool, default=True
-            If True, a colorbar will be drawn alongside the plot.
+        colorbar : int/bool, default=False
+            Indicate whether to display colour bar(s):
+            - 1 or True: colour bar for main image;
+            - 2: colour bars for main image and for any associated image
+            or overlay;
+            - 0 or False: no colour bar.
 
         show : bool, default = True
             If True, the plot will be displayed immediately.
@@ -115,7 +119,7 @@ class ImageOverlay(skrt.image.Image):
         # Plot underlying image, always without title.
         if include_image and self.image is not None:
             self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
-                    show=False, title="")
+                    show=False, title="", colorbar=max((colorbar - 1), 0))
 
             # Use default transprency if plotting image and opacity is None
             if opacity is None:

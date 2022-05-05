@@ -416,9 +416,12 @@ class BetterViewer:
             Matplotlib colormap to use for image plotting. Supercedes any
             cmap included in <mpl_kwargs>.
 
-        colorbar : bool, default=False
-            If True, colorbars will be displayed for intensity, dose and Jacobian
-            determinant.
+        colorbar : int/bool, default=False
+            Indicate whether to display colour bar(s):
+            - 1 or True: colour bar for main image;
+            - 2: colour bars for main image and for any associated image
+            or overlay;
+            - 0 or False: no colour bar.
 
         colorbar_label : str, default=None
             Label for the colorbar and range slider. If None, will default to
