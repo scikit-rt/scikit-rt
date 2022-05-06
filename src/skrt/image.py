@@ -2183,7 +2183,7 @@ class Image(skrt.core.Archive):
                 annotation['text'] = annotation.get('text', z_str) or z_str
                 # By default, multiple annotations written
                 # one on top of the other...
-                annotation['xy'] = annotation.get('xy', (0.05, 0.93))
+                annotation['xy'] = annotation.get('xy', (0.04, 0.91))
                 annotation['xycoords'] = annotation.get(
                     'xycoords', 'axes fraction')
                 annotation['color'] = annotation.get('color', color)
