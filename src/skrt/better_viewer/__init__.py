@@ -440,6 +440,18 @@ class BetterViewer:
             For information on available keyword arguments, see:
             https://matplotlib.org/stable/api/colorbar_api.html#matplotlib.colorbar.Colorbar.set_label
 
+        no_xlabel : bool, default=False
+            If True, the x axis will not be labelled.
+
+        no_ylabel : bool, default=False
+            If True, the y axis will not be labelled.
+
+        no_xtick_labels : bool, default=False
+            If True, ticks on the x axis will not be labelled.
+
+        no_ytick_labels : bool, default=False
+            If True, ticks on the y axis will not be labelled.
+
         mpl_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
             for the main image.See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
@@ -1474,6 +1486,10 @@ class BetterViewer:
                     colorbar_label=self.viewers[0].colorbar_label,
                     clb_kwargs=self.viewers[0].clb_kwargs,
                     clb_label_kwargs=self.viewers[0].clb_label_kwargs,
+                    no_xlabel=self.viewers[0].no_xlabel,
+                    no_ylabel=self.viewers[0].no_ylabel,
+                    no_xtick_labels=self.viewers[0].no_xtick_labels,
+                    no_ytick_labels=self.viewers[0].no_ytick_labels,
                     show_mse=self.show_mse,
                     dta_tolerance=self.dta_tolerance,
                     dta_crit=self.dta_crit,
@@ -1529,6 +1545,10 @@ class SingleViewer:
         colorbar_label=None,
         clb_kwargs=None,
         clb_label_kwargs=None,
+        no_xlabel=False,
+        no_ylabel=False,
+        no_xtick_labels=False,
+        no_ytick_labels=False,
         mpl_kwargs=None,
         dose=None,
         dose_opacity=0.5,
@@ -1688,6 +1708,10 @@ class SingleViewer:
         self.colorbar_label = colorbar_label
         self.clb_kwargs = clb_kwargs
         self.clb_label_kwargs = clb_label_kwargs
+        self.no_xlabel = no_xlabel
+        self.no_ylabel = no_ylabel
+        self.no_xtick_labels = no_xtick_labels
+        self.no_ytick_labels = no_ytick_labels
         self.annotate_slice = annotate_slice
         if self.annotate_slice is None and not self.in_notebook:
             self.annotate_slice = True
@@ -2663,6 +2687,10 @@ class SingleViewer:
             colorbar_label=self.colorbar_label,
             clb_kwargs=self.clb_kwargs,
             clb_label_kwargs=self.clb_label_kwargs,
+            no_xlabel=self.no_xlabel,
+            no_ylabel=self.no_ylabel,
+            no_xtick_labels=self.no_xtick_labels,
+            no_ytick_labels=self.no_ytick_labels,
             legend_bbox_to_anchor=self.legend_bbox_to_anchor,
             legend_loc=self.legend_loc,
             annotate_slice=self.annotate_slice,

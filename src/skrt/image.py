@@ -1660,6 +1660,8 @@ class Image(skrt.core.Archive):
         title=None,
         no_xlabel=False,
         no_ylabel=False,
+        no_xtick_labels=False,
+        no_ytick_labels=False,
         annotate_slice=False,
         major_ticks=None,
         minor_ticks=None,
@@ -1772,6 +1774,12 @@ class Image(skrt.core.Archive):
 
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
+
+        no_xtick_labels : bool, default=False
+            If True, ticks on the x axis will not be labelled.
+
+        no_ytick_labels : bool, default=False
+            If True, ticks on the y axis will not be labelled.
 
         no_axis_label : bool, default=False
             If True, axis labels and axis values aren't shown.
@@ -1987,6 +1995,10 @@ class Image(skrt.core.Archive):
                 include_image=False, 
                 opacity=dose_opacity, 
                 title="",
+                no_xlabel=True,
+                no_ylabel=True,
+                no_xtick_labels=True,
+                no_ytick_labels=True,
                 mpl_kwargs=dose_kwargs
             )
 
@@ -2034,6 +2046,8 @@ class Image(skrt.core.Archive):
             title,
             no_xlabel,
             no_ylabel,
+            no_xtick_labels,
+            no_ytick_labels,
             annotate_slice,
             major_ticks,
             minor_ticks,
@@ -2103,6 +2117,8 @@ class Image(skrt.core.Archive):
         title=None,
         no_xlabel=False,
         no_ylabel=False,
+        no_xtick_labels=False,
+        no_ytick_labels=False,
         annotate_slice=False,
         major_ticks=None,
         minor_ticks=None,
@@ -2125,12 +2141,14 @@ class Image(skrt.core.Archive):
         # Previously passed: labelpad=0
         if not no_xlabel:
             self.ax.set_xlabel(f"${_axes[x_ax]}${units}")
-        else:
-            self.ax.set_xticks([])
+        if no_xtick_labels:
+            self.ax.set_xticks([], [])
         if not no_ylabel:
             self.ax.set_ylabel(f"${_axes[y_ax]}${units}")
-        else:
-            self.ax.set_yticks([])
+        if no_ytick_labels:
+            self.ax.set_yticks([], [])
+
+        #else:
 
         # Add annotation(s).
         if annotate_slice:

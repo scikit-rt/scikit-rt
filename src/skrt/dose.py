@@ -46,6 +46,10 @@ class ImageOverlay(skrt.image.Image):
         figsize=None,
         zoom=None,
         colorbar=False,
+        no_xlabel=False,
+        no_ylabel=False,
+        no_xtick_labels=False,
+        no_ytick_labels=False,
         include_image=True, 
         opacity=None, 
         mpl_kwargs=None,
@@ -103,6 +107,18 @@ class ImageOverlay(skrt.image.Image):
             or overlay;
             - 0 or False: no colour bar.
 
+        no_xlabel : bool, default=False
+            If True, the x axis will not be labelled.
+
+        no_ylabel : bool, default=False
+            If True, the y axis will not be labelled.
+
+        no_xtick_labels : bool, default=False
+            If True, ticks on the x axis will not be labelled.
+
+        no_ytick_labels : bool, default=False
+            If True, ticks on the y axis will not be labelled.
+
         show : bool, default = True
             If True, the plot will be displayed immediately.
 
@@ -119,7 +135,10 @@ class ImageOverlay(skrt.image.Image):
         # Plot underlying image, always without title.
         if include_image and self.image is not None:
             self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
-                    show=False, title="", colorbar=max((colorbar - 1), 0))
+                    show=False, title="", colorbar=max((colorbar - 1), 0),
+                    no_xlabel=no_xlabel, no_ylabel=no_ylabel,
+                    no_xtick_labels=no_xtick_labels,
+                    no_ytick_labels=no_ytick_labels)
 
             # Use default transprency if plotting image and opacity is None
             if opacity is None:
@@ -143,6 +162,10 @@ class ImageOverlay(skrt.image.Image):
             colorbar=colorbar,
             mpl_kwargs=mpl_kwargs, 
             show=show, 
+            no_xlabel=no_xlabel,
+            no_ylabel=no_ylabel,
+            no_xtick_labels=no_xtick_labels,
+            no_ytick_labels=no_ytick_labels,
             **kwargs
         )
 
