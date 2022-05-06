@@ -373,8 +373,10 @@ set to the minimum and maximum intensity in the image.</p>
 <dt>intensity_width<span class="classifier">float, default=500</span></dt><dd><p>Initial width of the intensity window. Only used if &lt;intensity&gt; is a single
 value.</p>
 </dd>
-<dt>intensity_limits<span class="classifier">tuple, default=None</span></dt><dd><p>Full range to use for the intensity slider. Can also set to ‘auto’ to
-detect min and max intensity in the image. Defaults to (-2000, 2000).</p>
+<dt>intensity_limits<span class="classifier">tuple, default=None</span></dt><dd><p>Full range to use for the intensity slider. Can also set to ‘auto’
+to detect min and max intensity in the image. Defaults to
+(-2000, 2000) for Image objects and to ‘auto’ otherwise (for
+example, for Dose objects).</p>
 </dd>
 <dt>intensity_step<span class="classifier">float, default=None</span></dt><dd><p>Step size to use for the intensity slider. Defaults to 1 if the maximum
 intensity is &gt;= 10, otherwise 0.1.</p>
