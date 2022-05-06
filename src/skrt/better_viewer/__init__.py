@@ -386,8 +386,10 @@ class BetterViewer:
             value.
 
         intensity_limits : tuple, default=None
-            Full range to use for the intensity slider. Can also set to 'auto' to
-            detect min and max intensity in the image. Defaults to (-2000, 2000).
+            Full range to use for the intensity slider. Can also set to 'auto'
+            to detect min and max intensity in the image. Defaults to
+            (-2000, 2000) for Image objects and to 'auto' otherwise (for
+            example, for Dose objects).
 
         intensity_step : float, default=None
             Step size to use for the intensity slider. Defaults to 1 if the maximum
@@ -1656,8 +1658,11 @@ class SingleViewer:
                 if type(self.image) == Image:
                     self.intensity_limits = [-2000, 2000]
                 else:
-                    self.intensity_limits = [self.image.data.min(), 
-                                             self.image.data.max()]
+                    self.intensity_limits = 'auto'
+
+        if self.intensity_limits == 'auto':
+            self.intensity_limits = [self.image.data.min(),
+                    self.image.data.max()]
 
         # Ensure limits extend to the initial intensity range
         if self.intensity[0] < self.intensity_limits[0]:
@@ -2017,10 +2022,7 @@ class SingleViewer:
         if not share_slider or not shared_ui:
 
             # Make intensity slider
-            if self.intensity_limits == 'auto':
-                intensity_limits = (self.image.data.min(), self.image.data.max())
-            else:
-                intensity_limits = self.intensity_limits
+            intensity_limits = self.intensity_limits
 
             # Single range slider
             if not self.intensity_from_width:
