@@ -53,7 +53,7 @@ class DicomWriter:
 
     def __init__(self, outdir=None, data=None, affine=None,
             overwrite=True, header_source=None, orientation=None,
-            patient_id=None, modality=None, root_uid=None, header_extras={},
+            patient_id=None, modality=None, root_uid=None, header_extras=None,
             source_type=None, outname=None):
         '''
         Create instance of DicomWriter class.
@@ -105,7 +105,7 @@ class DicomWriter:
             Medical Connections:
             https://www.medicalconnections.co.uk/FreeUID/
 
-        header_extras :
+        header_extras : dict, default=None
             Dictionary of attribute-value pairs for applying arbitary
             updates to a pydicom.dataset.FileDataset.
 
@@ -132,11 +132,10 @@ class DicomWriter:
         self.affine = affine
         self.overwrite = overwrite
         self.header_source = header_source
-        self.orientation = orientation if orientation is not None \
-                else [1, 0, 0, 0, 1, 0]
-        self.patient_id = patient_id
+        self.orientation = orientation or [1, 0, 0, 0, 1, 0]
+        self.patient_id = patient_id or ""
         self.modality = modality.upper() if modality is not None else 'CT'
-        self.header_extras = header_extras
+        self.header_extras = header_extras or {}
         self.source_type = source_type
 
         if root_uid:
