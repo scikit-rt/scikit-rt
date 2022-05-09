@@ -1995,10 +1995,10 @@ class Image(skrt.core.Archive):
                 include_image=False, 
                 opacity=dose_opacity, 
                 title="",
-                no_xlabel=True,
-                no_ylabel=True,
-                no_xtick_labels=True,
-                no_ytick_labels=True,
+                no_xlabel=no_xlabel,
+                no_ylabel=no_ylabel,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels,
                 mpl_kwargs=dose_kwargs
             )
 
