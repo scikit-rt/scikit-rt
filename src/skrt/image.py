@@ -1960,6 +1960,10 @@ class Image(skrt.core.Archive):
             mpl_kwargs = {}
         if roi_kwargs is None:
             roi_kwargs = {}
+        roi_kwargs['no_xlabel'] = no_xlabel
+        roi_kwargs['no_ylabel'] = no_ylabel
+        roi_kwargs['no_xtick_labels'] = no_xtick_labels
+        roi_kwargs['no_ytick_labels'] = no_ytick_labels
         if dose_kwargs is None:
             dose_kwargs = {}
         if clb_kwargs is None:
