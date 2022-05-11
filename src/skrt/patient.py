@@ -1128,12 +1128,16 @@ class Patient(skrt.core.PathData):
             info['plan_image_time'] = plan_images[0].get_pandas_timestamp()
         else:
             info['plan_image_time'] = None
+        info['plan_image_year'] = skrt.core.year_fraction(
+                info['plan_image_time']) 
 
         # Store time of plan creation.
         if info['plan_fraction'] is not None:
             info['plan_time'] = plan.get_pandas_timestamp()
         else:
             info['plan_time'] = None
+        info['plan_year'] = skrt.core.year_fraction(
+                info['plan_time']) 
 
         # Store number of days from planning image to plan creation.
         info['days_plan_image_to_plan'] = (
@@ -1150,6 +1154,10 @@ class Patient(skrt.core.PathData):
         else:
             info['treatment_start'] = None
             info['treatment_end'] = None
+        info['treatment_start_year'] = skrt.core.year_fraction(
+                info['treatment_start']) 
+        info['treatment_end_year'] = skrt.core.year_fraction(
+                info['treatment_end']) 
 
         # Store treatment duration.
         info['days_treatment'] = skrt.core.get_interval_in_days(
