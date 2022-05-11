@@ -14,7 +14,6 @@ from skrt.image import Image
 from skrt.structures import StructureSet
 from skrt.dose import Dose, Plan
 
-
 class Study(skrt.core.Archive):
     """Class representing a single study; can contain images, dose fields,
     and structure sets."""
@@ -1136,6 +1135,14 @@ class Patient(skrt.core.PathData):
         else:
             info['plan_time'] = None
 
+        # Store number of days from planning image to plan creation.
+        info['days_plan_image_to_plan'] = (
+                skrt.core.get_interval_in_days(
+                info['plan_image_time'], info['plan_time']))
+        info['whole_days_plan_image_to_plan'] = (
+                skrt.core.get_interval_in_whole_days(
+                info['plan_image_time'], info['plan_time']))
+
         # Store times of first and last treatment images.
         if treatment_images:
             info['treatment_start'] = treatment_images[0].get_pandas_timestamp()
@@ -1143,6 +1150,36 @@ class Patient(skrt.core.PathData):
         else:
             info['treatment_start'] = None
             info['treatment_end'] = None
+
+        # Store treatment duration.
+        info['days_treatment'] = skrt.core.get_interval_in_days(
+                info['treatment_start'], info['treatment_end'])
+        info['whole_days_treatment'] = skrt.core.get_interval_in_whole_days(
+                info['treatment_start'], info['treatment_end'])
+
+        # Store number of days from planning to treatment start.
+        info['days_plan_to_treatment'] = (
+                skrt.core.get_interval_in_days(
+                info['plan_time'], info['treatment_start']))
+        info['whole_days_plan_to_treatment'] = (
+                skrt.core.get_interval_in_whole_days(
+                info['plan_time'], info['treatment_start']))
+
+        # Store number of days from planning image to treatment start.
+        info['days_plan_image_to_treatment'] = (
+                skrt.core.get_interval_in_days(
+                info['plan_image_time'], info['treatment_start']))
+        info['whole_days_plan_image_to_treatment'] = (
+                skrt.core.get_interval_in_whole_days(
+                info['plan_image_time'], info['treatment_start']))
+
+        # Check that intervals are consistent.
+        if (info['whole_days_plan_image_to_plan'] and
+                info['whole_days_plan_to_treatment'] and
+                info['whole_days_plan_image_to_treatment']):
+            assert (info['whole_days_plan_image_to_treatment'] ==
+                    info['whole_days_plan_image_to_plan'] +
+                    info['whole_days_plan_to_treatment'])
 
         # Filter to have images separated by a minimum amount of time.
         time_separated_plan_images = skrt.core.get_time_separated_objects(
@@ -1193,20 +1230,28 @@ class Patient(skrt.core.PathData):
             images = self.combined_objs(image_label)
             time_separated_images = skrt.core.get_time_separated_objects(
                     images, min_delta=min_delta, unit=unit)
-            ref_time = None
+            time_last = None
+            time_zero = time_separated_images[0].get_pandas_timestamp()
+
             for image in time_separated_images:
                 info = {}
                 info['id'] = self.id
                 info['modality'] = image_type
                 info['timestamp'] = image.get_pandas_timestamp()
                 info['day'] = info['timestamp'].isoweekday()
-                if ref_time is not None:
-                    info['time_delta'] = info['timestamp'] - ref_time
-                    info['days_delta'] = info['time_delta'].round('1d')
+                if time_last is not None:
+                    info['time_delta'] = info['timestamp'] - time_last
                 else:
                     info['time_delta'] = None
-                    info['days_delta'] = None
-                ref_time = info['timestamp']
+                info['days_delta'] = skrt.core.get_interval_in_days(
+                        time_last, info['timestamp'])
+                info['whole_days_delta'] = skrt.core.get_interval_in_whole_days(
+                        time_last, info['timestamp'])
+                time_last = info['timestamp']
+                info['days_total'] = skrt.core.get_interval_in_days(
+                        time_zero, info['timestamp'])
+                info['whole_days_total'] = skrt.core.get_interval_in_whole_days(
+                        time_zero, info['timestamp'])
                 all_info.append(info)
 
         return (pd.DataFrame(all_info) if df else all_info)

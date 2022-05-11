@@ -929,3 +929,45 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
         time_separated_objs.reverse()
 
     return time_separated_objs
+
+def get_interval_in_days(timestamp1, timestamp2):
+    '''
+    Return interval in days between two timestamps.
+
+    **Parameters:**
+
+    timestamp1 : pandas.Timestamp
+        Timestamp corresponding to start of interval.
+
+    timestamp2 : pandas.Timestamp
+        Timestamp corresponding to end of interval.
+    '''
+    if (isinstance(timestamp1, pd.Timestamp) and
+            isinstance(timestamp2, pd.Timestamp)):
+        interval = (timestamp2 - timestamp1).total_seconds()
+        interval /= pd.Timedelta('1d').total_seconds()
+    else:
+        interval = None
+    return interval
+
+def get_interval_in_whole_days(timestamp1, timestamp2):
+    '''
+    Return interval in whole days between two timestamps.
+    
+    **Parameters:**
+
+    timestamp1 : pandas.Timestamp
+        Timestamp corresponding to start of interval.
+
+    timestamp2 : pandas.Timestamp
+        Timestamp corresponding to end of interval.
+    '''
+    if (isinstance(timestamp1, pd.Timestamp) and
+            isinstance(timestamp2, pd.Timestamp)):
+        interval = ((timestamp2.floor('1d') - timestamp1.floor('1d'))
+                .total_seconds())
+        interval /= pd.Timedelta('1d').total_seconds()
+        interval = round(interval)
+    else:
+        interval = None
+    return interval

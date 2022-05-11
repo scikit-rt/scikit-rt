@@ -6,6 +6,8 @@ import os
 import time
 import shutil
 
+import pandas as pd
+
 import skrt.core
 
 
@@ -188,3 +190,18 @@ def test_file_info():
     for file in archive2.files:
         size += Path(file.path).stat().st_size
     assert skrt.core.get_file_size([archive, archive2]) == size
+
+def test_intervals():
+    # Test determinations of intervals.
+
+    timestamp1 = 1
+    timestamp2 = 1
+    assert skrt.core.get_interval_in_days(timestamp1, timestamp2) == None
+    assert skrt.core.get_interval_in_whole_days(timestamp1, timestamp2) == None
+
+    timestamp1 = pd.Timestamp("20220121183500")
+    timestamp2 = pd.Timestamp("20220205123500")
+
+    assert (skrt.core.get_interval_in_days(timestamp1, timestamp2) ==
+            14 + 18 / 24)
+    assert skrt.core.get_interval_in_whole_days(timestamp1, timestamp2) == 15
