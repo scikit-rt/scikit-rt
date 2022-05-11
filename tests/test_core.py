@@ -192,7 +192,7 @@ def test_file_info():
     assert skrt.core.get_file_size([archive, archive2]) == size
 
 def test_intervals():
-    # Test determinations of intervals.
+    '''Test determinations of intervals.'''
 
     timestamp1 = 1
     timestamp2 = 1
@@ -205,3 +205,12 @@ def test_intervals():
     assert (skrt.core.get_interval_in_days(timestamp1, timestamp2) ==
             14 + 18 / 24)
     assert skrt.core.get_interval_in_whole_days(timestamp1, timestamp2) == 15
+
+def test_year_fraction():
+    '''Test conversion from timestamp to year fraction'''
+
+    assert skrt.core.year_fraction(1) == None
+    assert (skrt.core.year_fraction(pd.Timestamp("20220121"))
+            == (2022 + 20 / 365))
+    assert (skrt.core.year_fraction(pd.Timestamp("20200229"))
+            == (2020 + 59 / 366))

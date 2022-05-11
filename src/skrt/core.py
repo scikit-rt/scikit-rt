@@ -971,3 +971,30 @@ def get_interval_in_whole_days(timestamp1, timestamp2):
     else:
         interval = None
     return interval
+
+def year_fraction(timestamp):
+    '''
+    Convert from timestamp to year, including fractional part.
+    
+    **Parameter:**
+
+    timestamp : pandas.Timestamp
+        Timestamp to be converted.
+    '''
+    if isinstance(timestamp, pd.Timestamp):
+        # Determine year.
+        year = timestamp.year
+
+        # Determine seconds in year (different for leap year and non-leap year).
+        year_start = pd.Timestamp(f'{year}0101')
+        next_year_start = pd.Timestamp(f'{year + 1}0101')
+        seconds_in_year = (next_year_start - year_start).total_seconds()
+
+        # Determine seconds elapsed so far in year.
+        seconds_to_date = (timestamp - year_start).total_seconds()
+
+        # Add year and fractional part.
+        year_fraction = year + seconds_to_date / seconds_in_year
+    else:
+        year_fraction = None
+    return year_fraction
