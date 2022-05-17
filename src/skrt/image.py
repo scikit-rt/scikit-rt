@@ -2184,15 +2184,16 @@ class Image(skrt.core.Archive):
 
             # Annotate slice, with defaults set for some annotate() parameters.
             for annotation in annotations:
-                annotation['text'] = annotation.get('text', z_str) or z_str
+                annotation_now = copy.deepcopy(annotation)
+                annotation_now['text'] = annotation.get('text', z_str) or z_str
                 # By default, multiple annotations written
                 # one on top of the other...
-                annotation['xy'] = annotation.get('xy', (0.04, 0.91))
-                annotation['xycoords'] = annotation.get(
+                annotation_now['xy'] = annotation.get('xy', (0.04, 0.91))
+                annotation_now['xycoords'] = annotation.get(
                     'xycoords', 'axes fraction')
-                annotation['color'] = annotation.get('color', color)
-                annotation['fontsize'] = annotation.get('fontsize','large')
-                self.ax.annotate(**annotation)
+                annotation_now['color'] = annotation.get('color', color)
+                annotation_now['fontsize'] = annotation.get('fontsize','large')
+                self.ax.annotate(**annotation_now)
 
         # Adjust tick marks
         if not no_axis_labels:
