@@ -175,6 +175,15 @@ def test_read_nii():
     assert set(structure_set.get_roi_names()) \
             == set(structs_from_nii.get_roi_names())
 
+def test_set_image():
+    nii_dir = "tmp/nii_structs"
+    structs_from_nii = StructureSet(nii_dir)
+    sim2 = SyntheticImage((110, 110, 110))
+    structs_from_nii.set_image(sim2)
+    assert len(structs_from_nii.get_rois()) == 2
+    for roi in structs_from_nii.get_rois():
+        assert roi.get_mask().shape == sim2.get_data().shape
+
 def test_plot_contour():
     cube.plot(plot_type="contour", show=False)
 

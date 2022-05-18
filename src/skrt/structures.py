@@ -3115,7 +3115,7 @@ class ROI(skrt.core.Archive):
         self.image = im
         self.contours_only = False
         if self.loaded_mask and not im.has_same_geometry(self.mask):
-            if not hasattr(self, "input_contours"):
+            if getattr(self, "input_contours", None) is None:
                 self.input_contours = self.get_contours("x-y")
             self.mask = None
             self.loaded_mask = False
