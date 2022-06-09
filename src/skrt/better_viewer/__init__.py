@@ -17,7 +17,8 @@ from skrt.image import (
     _axes, 
     _slice_axes, 
     _plot_axes,
-    _default_figsize
+    _default_figsize,
+    get_mask
 )
 from skrt.dose import Dose
 from skrt.registration import Grid, Jacobian
@@ -483,6 +484,9 @@ class BetterViewer:
             Matplotlib colormap to use for dose field plotting. Supercedes
             any cmap in <dose_kwargs>
 
+        masked : bool, default=False
+            If True and a mask is specified, the image is masked.
+
         invert_mask : bool, default=False
             If True, any masks applied will be inverted.
 
@@ -796,6 +800,7 @@ class BetterViewer:
         self.viewers = []
         viewer_type = SingleViewer if not orthog_view else OrthogViewer
         kwargs = {key.replace('colour', 'color'): val for key, val in kwargs.items()}
+        mask_threshold = kwargs.get("mask_threshold", 0.5)
 
         for i in range(self.n):
               
@@ -803,7 +808,7 @@ class BetterViewer:
                 self.images[i],
                 title=self.title[i],
                 dose=self.dose[i],
-                mask=self.mask[i],
+                mask=get_mask(self.mask[i], mask_threshold, images[i]),
                 rois=self.rois[i],
                 #  multi_rois=self.multi_rois[i],
                 grid=self.grid[i],
@@ -1555,6 +1560,7 @@ class SingleViewer:
         dose_kwargs=None,
         dose_range=None,
         dose_cmap=None,
+        masked=False,
         invert_mask=False,
         mask=None,
         mask_color="black",
@@ -1737,6 +1743,12 @@ class SingleViewer:
         self.legend_loc = legend_loc
         self.shift = [None, None, None]
         self.include_image = include_image
+
+        # Mask settings
+        self.mask = mask
+        self.masked = masked
+        self.invert_mask = invert_mask
+        self.mask_color = mask_color
 
         # Overlay plot settings
         self.init_dose_opacity = dose_opacity
@@ -2714,6 +2726,10 @@ class SingleViewer:
             scale_in_mm=self.scale_in_mm,
             consensus_type=consensus_type,
             exclude_from_consensus=exclude_from_consensus,
+            mask=self.mask,
+            masked=self.masked,
+            invert_mask=self.invert_mask,
+            mask_color=self.mask_color,
             **kwargs
         )
         self.plotting = False

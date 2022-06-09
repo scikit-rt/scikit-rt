@@ -69,6 +69,7 @@ class Image(skrt.core.Archive):
         auto_timestamp=False,
         default_intensity=(-200, 300),
         mask=None,
+        mask_threshold=0.5,
     ):
         """
         Initialise from a medical image source.
@@ -136,6 +137,10 @@ class Image(skrt.core.Archive):
         mask : Image/str, default=None
             Image object representing a mask to be associated with the image,
             or a source from which an Image object can be initialised.
+
+        mask_threshold : float, default=0.5
+            Threshold for mask data.  Values above and below this value are
+            set to True and False respectively.
         """
 
         # Clone from another Image object
@@ -161,7 +166,7 @@ class Image(skrt.core.Archive):
         self.plans = []
         self._custom_dtype = dtype
         self.sinogram = None
-        self.set_mask(mask)
+        self.set_mask(mask, mask_threshold)
 
         # Default image plotting settings
         self._default_colorbar_label = "Radiodensity (HU)"
@@ -1382,20 +1387,21 @@ class Image(skrt.core.Archive):
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
 
-    def set_mask(self, mask):
+    def set_mask(self, mask=None, mask_threshold=0.5):
         """
         Associate a mask with this image.
 
-        **Parameter:**
+        **Parameters:**
 
         mask : Image/str, default=None
             Image object representing a mask to be associated with the image,
             or a source from which an Image object can be initialised.
+
+        mask_threshold : float, default=0.5
+            Threshold for mask data.  Values above and below this value are
+            set to True and False respectively.
         """
-        if mask is None or isinstance(mask, Image):
-            self.mask = mask
-        else:
-            self.mask = Image(mask)
+        self.mask = get_mask(mask, mask_threshold, self)
 
     def get_length(self, ax):
         """Get image length along a given axis.
@@ -1707,6 +1713,7 @@ class Image(skrt.core.Archive):
         zlim=None,
         shift=[None, None, None],
         mask=None,
+        mask_threshold=0.5,
         masked=False,
         invert_mask=False,
         mask_color="black",
@@ -1920,9 +1927,12 @@ class Image(skrt.core.Archive):
             Image object can be initialised.  A value specified here
             overrides the value of self's mask attribute.
 
+        mask_threshold : float, default=0.5
+            Threshold for mask data.  Values above and below this value are
+            set to True and False respectively.
+
         masked : bool, default=False
-            If True and this object has attribute self.data_mask assigned,
-            the image will be masked with the array in self.data_mask.
+            If True and a mask is specified, the image is masked.
 
         invert_mask : bool, default=False
             If True and a mask is applied, the mask will be inverted.
@@ -1995,10 +2005,7 @@ class Image(skrt.core.Archive):
                                      shift=shift)
 
         # If required, apply mask to image slice
-        if mask is None:
-            mask = self.mask
-        elif not isinstance(mask, (Image)):
-            mask = Image(mask)
+        mask = get_mask(mask, mask_threshold)
 
         if mask and masked:
             mask_slice = mask.get_slice(view, idx=idx, flatten=flatten,
@@ -4230,3 +4237,39 @@ def kv_to_mv(hu):
         y = -1024
 
     return round(y)
+
+def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
+    """
+    Return mask as Image object, resizing if required.
+
+    **Parameters:**
+
+    mask : Image/str, default=None
+        Image object representing a mask to be associated with the image,
+        or a source from which an Image object can be initialised.
+
+    mask_threshold : float, default=0.5
+        Threshold for mask data.  Values above and below this value are
+        set to True and False respectively.
+
+    image_to_match : Image/str, default=None
+        Image object or a source from which an Image object can be
+        initialised.  The mask will be resized if needed, to match
+        this image.
+    """
+    if mask is not None:
+        # Ensure mask is image object.
+        if not isinstance(mask, Image):
+            mask = Image(mask)
+        # Ensure data array is boolean.
+        mask_data = mask.get_data()
+        if mask_data.dtype != bool:
+            mask.data = mask_data > mask_threshold
+
+        # Match mask to size of reference image.
+        if image_to_match is not None:
+            if not isinstance(image_to_match, Image):
+                image_to_match = Image(image_to_match)
+            mask.match_size(image_to_match, 0, 'nearest')
+
+    return mask
