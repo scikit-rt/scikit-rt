@@ -68,6 +68,7 @@ class Image(skrt.core.Archive):
         dtype=None,
         auto_timestamp=False,
         default_intensity=(-200, 300),
+        mask=None,
     ):
         """
         Initialise from a medical image source.
@@ -131,6 +132,10 @@ class Image(skrt.core.Archive):
             If WindowCenter and WindowWidth are defined in a
             DICOM source file, these values will be used instead to
             define the default intensity range.
+
+        mask : Image/str, default=None
+            Image object representing a mask to be associated with the image,
+            or a source from which an Image object can be initialised.
         """
 
         # Clone from another Image object
@@ -156,6 +161,7 @@ class Image(skrt.core.Archive):
         self.plans = []
         self._custom_dtype = dtype
         self.sinogram = None
+        self.set_mask(mask)
 
         # Default image plotting settings
         self._default_colorbar_label = "Radiodensity (HU)"
@@ -1376,6 +1382,20 @@ class Image(skrt.core.Archive):
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
 
+    def set_mask(self, mask):
+        """
+        Associate a mask with this image.
+
+        **Parameter:**
+
+        mask : Image/str, default=None
+            Image object representing a mask to be associated with the image,
+            or a source from which an Image object can be initialised.
+        """
+        if mask is None or isinstance(mask, Image):
+            self.mask = mask
+        else:
+            self.mask = Image(mask)
 
     def get_length(self, ax):
         """Get image length along a given axis.
@@ -1603,7 +1623,7 @@ class Image(skrt.core.Archive):
         for name in ["vmin", "vmax", "cmap"]:
             if name not in mpl_kwargs:
                 mpl_kwargs[name] = getattr(self, f"_default_{name}")
-
+        
         # Set image extent and aspect ratio
         extent = self.plot_extent[view]
         mpl_kwargs["aspect"] = 1
@@ -1685,7 +1705,11 @@ class Image(skrt.core.Archive):
         xlim=None,
         ylim=None,
         zlim=None,
-        shift=[None, None, None]
+        shift=[None, None, None],
+        mask=None,
+        masked=False,
+        invert_mask=False,
+        mask_color="black",
     ):
         """Plot a 2D slice of the image.
 
@@ -1890,6 +1914,21 @@ class Image(skrt.core.Archive):
 
         xlim, ylim : tuples, default=None
             Custom limits on the x and y axes of the plot.
+
+        mask : Image/str, default=None
+            Image object representing a mask, or a source from which an
+            Image object can be initialised.  A value specified here
+            overrides the value of self's mask attribute.
+
+        masked : bool, default=False
+            If True and this object has attribute self.data_mask assigned,
+            the image will be masked with the array in self.data_mask.
+
+        invert_mask : bool, default=False
+            If True and a mask is applied, the mask will be inverted.
+
+        mask_color : matplotlib color, default="black"
+            color in which to plot masked areas.
         """
 
         self.load()
@@ -1955,6 +1994,20 @@ class Image(skrt.core.Archive):
         image_slice = self.get_slice(view, idx=idx, flatten=flatten, 
                                      shift=shift)
 
+        # If required, apply mask to image slice
+        if mask is None:
+            mask = self.mask
+        elif not isinstance(mask, (Image)):
+            mask = Image(mask)
+
+        if mask and masked:
+            mask_slice = mask.get_slice(view, idx=idx, flatten=flatten,
+                    shift=shift)
+            if invert_mask:
+                image_slice = np.ma.masked_where(mask_slice, image_slice)
+            else:
+                image_slice = np.ma.masked_where(~mask_slice, image_slice)
+
         # Initialise kwargs dicts
         if mpl_kwargs is None:
             mpl_kwargs = {}
@@ -1982,6 +2035,13 @@ class Image(skrt.core.Archive):
         elif intensity is not None:
             mpl_kwargs["vmin"] = intensity[0]
             mpl_kwargs["vmax"] = intensity[1]
+
+        # Ensure colour map is defined, and set mask colour
+        cmap = mpl_kwargs.get("cmap", self._default_cmap)
+        if isinstance(cmap, str):
+            cmap = copy.copy(matplotlib.cm.get_cmap(cmap))
+            cmap.set_bad(color=mask_color)
+        mpl_kwargs["cmap"] = cmap
 
         # Plot the slice
         mesh = self.ax.imshow(
