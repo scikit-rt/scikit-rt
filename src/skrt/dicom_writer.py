@@ -225,7 +225,7 @@ class DicomWriter:
         file_meta.MediaStorageSOPInstanceUID = generate_uid(self.root_uid)
         file_meta.TransferSyntaxUID = transfer_syntax_uid
         version = pydicom.__version__
-        file_meta.ImplementationClassUID = f'{self.root_uid}.{version}'
+        file_meta.ImplementationClassUID = f'{self.root_uid}{version}'
         file_meta.ImplementationVersionName = f'pydicom-{version}'
 
         # Create FileDataset instance
@@ -504,7 +504,7 @@ class DicomWriter:
 
             roi_contour = Dataset()
 #            roi_contour.ROIDisplayColor = list(map(str, roi.color))
-            roi_contour.ROIDisplayColor = [f'{255 * rgb}'
+            roi_contour.ROIDisplayColor = [f'{255 * rgb : .0f}'
                     for rgb in roi.color[0 : 3]]
             roi_contour.ReferencedROINumber = number
             roi_contour.ContourSequence = Sequence()
