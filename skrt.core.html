@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -95,12 +96,12 @@
            <div itemprop="articleBody">
              
   <section id="module-skrt.core">
-<span id="skrt-core-module"></span><h1>skrt.core module<a class="headerlink" href="#module-skrt.core" title="Permalink to this headline"></a></h1>
+<span id="skrt-core-module"></span><h1>skrt.core module<a class="headerlink" href="#module-skrt.core" title="Permalink to this heading"></a></h1>
 <p>Core data classes and functions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.Archive">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Archive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Dated</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dated</span></code></a></p>
 <p>Dated object associated with multiple files.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Archive.__init__">
@@ -255,7 +256,7 @@ set to the value of Defaults().print_depth.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.Dated">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Dated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skrt.core.PathData" title="skrt.core.PathData"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.PathData</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#skrt.core.PathData" title="skrt.core.PathData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PathData</span></code></a></p>
 <p>PathData with an associated date and time, which can be used for
 sorting multiple Dateds.</p>
 <dl class="py method">
@@ -319,7 +320,7 @@ but add to them, or modify values, from opts dictionary.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.File">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.File" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Dated</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dated</span></code></a></p>
 <p>File with an associated date. Files can be sorted based on their
 filenames.</p>
 <dl class="py method">
@@ -335,7 +336,7 @@ automatically from the current date and time if auto_timestamp is True.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.MachineData">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">MachineData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.MachineData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Dated</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dated</span></code></a></p>
 <p>Dated object with an associated machine name.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.MachineData.__init__">
@@ -350,7 +351,7 @@ automatically from the current date and time if auto_timestamp is True.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.PathData">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">PathData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Data</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
 <p>Data with an associated path or directory; has the ability to
 extract a list of dated objects from within this directory.</p>
 <dl class="py method">

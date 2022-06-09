@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -82,11 +83,11 @@
            <div itemprop="articleBody">
              
   <section id="image-registration-with-scikit-rt-and-elastix">
-<h1>Image registration with scikit-rt and elastix<a class="headerlink" href="#image-registration-with-scikit-rt-and-elastix" title="Permalink to this headline"></a></h1>
+<h1>Image registration with scikit-rt and elastix<a class="headerlink" href="#image-registration-with-scikit-rt-and-elastix" title="Permalink to this heading"></a></h1>
 <section id="setup">
-<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline"></a></h2>
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this heading"></a></h2>
 <section id="installing-scikit-rt">
-<h3>1. Installing scikit-rt<a class="headerlink" href="#installing-scikit-rt" title="Permalink to this headline"></a></h3>
+<h3>1. Installing scikit-rt<a class="headerlink" href="#installing-scikit-rt" title="Permalink to this heading"></a></h3>
 <ol class="arabic simple">
 <li><p>Ensure you have either <a class="reference external" href="https://pypi.org/project/pip/">pip</a> or <a class="reference external" href="https://docs.anaconda.com/anaconda/install/index.html">anaconda</a>/<a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">miniconda</a> (on Windows I would recommend Anaconda) installed on your machine.</p></li>
 <li><p>Open a terminal (if using pip on mac/linux) or a conda terminal (if using Anaconda - access by opening Anaconda-Navigator, clicking “Environments”, then clicking the play button and “Open Terminal”).</p></li>
@@ -99,14 +100,14 @@
 <p>If you create a new Jupyter notebook, you should be able to import scikit-rt by running <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code>.</p>
 </section>
 <section id="installing-elastix">
-<h3>2. Installing elastix<a class="headerlink" href="#installing-elastix" title="Permalink to this headline"></a></h3>
+<h3>2. Installing elastix<a class="headerlink" href="#installing-elastix" title="Permalink to this heading"></a></h3>
 <ol class="arabic simple">
 <li><p>Download the elastix binaries corresponding to your operating system from here: https://github.com/SuperElastix/elastix/releases/tag/5.0.1</p></li>
 <li><p>Extract the folder and either make a note of where you saved it, or add the <code class="docutils literal notranslate"><span class="pre">bin</span></code> folder to your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> environment variable and <code class="docutils literal notranslate"><span class="pre">lib</span></code> folder to your <code class="docutils literal notranslate"><span class="pre">$DYLDLIBRARYPATH</span></code> variable (if using mac/linux).</p></li>
 </ol>
 </section>
 <section id="downloading-example-elastix-parameter-files">
-<h3>3. Downloading example elastix parameter files<a class="headerlink" href="#downloading-example-elastix-parameter-files" title="Permalink to this headline"></a></h3>
+<h3>3. Downloading example elastix parameter files<a class="headerlink" href="#downloading-example-elastix-parameter-files" title="Permalink to this heading"></a></h3>
 <p>A collection of example elastix parameter files is available at the <a class="reference external" href="https://elastix.lumc.nl/modelzoo/">elastix parameter zoo</a>.</p>
 <ul class="simple">
 <li><p>To obtain the files on your machine, download the git repo: https://github.com/SuperElastix/ElastixModelZoo.</p></li>
@@ -116,7 +117,7 @@
 </section>
 </section>
 <section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h2>
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
 <p>This code is best used inside a Jupyter notebook, but can also be implemented via a python script.</p>
 <p>Here is a code snippet to perform a registration, qualitatively view the results, transform a reference structure set, and quantitatively compare it with the fixed image structure set:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">Registration</span><span class="p">,</span> <span class="n">set_elastix_dir</span>

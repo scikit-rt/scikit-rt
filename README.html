@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -148,19 +149,19 @@
            <div itemprop="articleBody">
              
   <section id="scikit-rt">
-<h1>scikit-rt<a class="headerlink" href="#scikit-rt" title="Permalink to this headline"></a></h1>
+<h1>scikit-rt<a class="headerlink" href="#scikit-rt" title="Permalink to this heading"></a></h1>
 <p>A suite of tools for loading, plotting, and analysing medical imaging data.</p>
 <p>This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].</p>
 <p>For full code documentation, go to https://scikit-rt.github.io/scikit-rt/skrt_modules.html</p>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <p>Package installation provides full code access.  Docker installation
 allows for scikit-rt code to be used from a jupyter notebook.</p>
 <section id="package-installation">
-<h3>Package installation<a class="headerlink" href="#package-installation" title="Permalink to this headline"></a></h3>
+<h3>Package installation<a class="headerlink" href="#package-installation" title="Permalink to this heading"></a></h3>
 <p>Installation via a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and <a class="reference external" href="https://pypi.org/project/pip/">pip</a>.</p>
 <section id="miniconda-setup-recommended">
-<h4>1. Miniconda setup (recommended)<a class="headerlink" href="#miniconda-setup-recommended" title="Permalink to this headline"></a></h4>
+<h4>1. Miniconda setup (recommended)<a class="headerlink" href="#miniconda-setup-recommended" title="Permalink to this heading"></a></h4>
 <ol class="arabic simple">
 <li><p>Install miniconda by downloading from https://docs.conda.io/en/latest/miniconda.html .</p></li>
 <li><p>Open the Anaconda Prompt app (Windows) or a terminal (Mac/Linux).</p></li>
@@ -177,7 +178,7 @@ allows for scikit-rt code to be used from a jupyter notebook.</p>
 </div>
 </section>
 <section id="package-installation-via-pip">
-<h4>2. Package installation via <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#package-installation-via-pip" title="Permalink to this headline"></a></h4>
+<h4>2. Package installation via <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#package-installation-via-pip" title="Permalink to this heading"></a></h4>
 <ol class="arabic simple">
 <li><p>Open Anaconda Prompt/a terminal, if not already open.</p></li>
 <li><p>If using miniconda, ensure that you have first activated your environment by running step 1.4 from above.</p></li>
@@ -200,7 +201,7 @@ allows for scikit-rt code to be used from a jupyter notebook.</p>
 </div>
 </section>
 <section id="using-scikit-rt-in-code">
-<h4>3. Using scikit-rt in code<a class="headerlink" href="#using-scikit-rt-in-code" title="Permalink to this headline"></a></h4>
+<h4>3. Using scikit-rt in code<a class="headerlink" href="#using-scikit-rt-in-code" title="Permalink to this heading"></a></h4>
 <ul class="simple">
 <li><p>If using miniconda, ensure you have opened Anaconda Prompt/a terminal and activated your environment (step 1.4).</p></li>
 <li><p>Options for running python are:</p>
@@ -214,7 +215,7 @@ allows for scikit-rt code to be used from a jupyter notebook.</p>
 </ul>
 </section>
 <section id="elastix-installation-optional-needed-for-image-registration-functionality">
-<h4>4. Elastix installation (optional – needed for image registration functionality)<a class="headerlink" href="#elastix-installation-optional-needed-for-image-registration-functionality" title="Permalink to this headline"></a></h4>
+<h4>4. Elastix installation (optional – needed for image registration functionality)<a class="headerlink" href="#elastix-installation-optional-needed-for-image-registration-functionality" title="Permalink to this heading"></a></h4>
 <ol class="arabic simple">
 <li><p>Download the version of elastix matching your operating system from https://github.com/SuperElastix/elastix/releases/tag/5.0.1</p></li>
 <li><p>Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.</p></li>
@@ -240,14 +241,14 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 </section>
 </section>
 <section id="updating-scikit-rt">
-<h3>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Permalink to this headline"></a></h3>
+<h3>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Permalink to this heading"></a></h3>
 <p>Scikit-rt is in active development. To install the lastest version, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
 </section>
 <section id="docker-installation">
-<h3>Docker installation<a class="headerlink" href="#docker-installation" title="Permalink to this headline"></a></h3>
+<h3>Docker installation<a class="headerlink" href="#docker-installation" title="Permalink to this heading"></a></h3>
 <p>You need to have an installation of <a class="reference external" href="https://www.docker.com/">Docker</a>.</p>
 <p>Download the Scikit-rt docker image with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">pull</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="p">:</span><span class="n">latest</span>
@@ -272,7 +273,7 @@ server port (8888) on the container side.</p></li>
 </section>
 </section>
 <section id="table-of-contents">
-<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline"></a></h2>
+<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p><span class="xref myst">Images</span></p></li>
 <li><p><span class="xref myst">Regions of interest (ROIs) and structure sets</span></p></li>
@@ -283,7 +284,7 @@ server port (8888) on the container side.</p></li>
 </ol>
 </section>
 <section id="images">
-<h2>1. Images<a class="headerlink" href="#images" title="Permalink to this headline"></a></h2>
+<h2>1. Images<a class="headerlink" href="#images" title="Permalink to this heading"></a></h2>
 <p>The Image class can be used to read and write medical images from DICOM, nifti,
 or NumPy format. These images can be plotted and compared.</p>
 <p>To load the Image class:</p>
@@ -310,7 +311,7 @@ or NumPy format. These images can be plotted and compared.</p>
 <li><p>For z, by convention the slice numbers increases from 1 at the head to n_voxels at the feet, so it is in the opposite direction to the array index (convert as n_voxels[2] - idx).</p></li>
 </ul>
 <section id="loading-from-a-file">
-<h3>Loading from a file<a class="headerlink" href="#loading-from-a-file" title="Permalink to this headline"></a></h3>
+<h3>Loading from a file<a class="headerlink" href="#loading-from-a-file" title="Permalink to this heading"></a></h3>
 <p>An image can be loaded from a dicom, nifti, or numpy file via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 </pre></div>
@@ -318,7 +319,7 @@ or NumPy format. These images can be plotted and compared.</p>
 <p>If the dicom file is part of a series, any other files in that series in the same directory will also be loaded. Alternatively, you can give the path to a directory containing multiple dicom files. The first dicom file in that directory alphabetically will be loaded along with any other files in its series.</p>
 </section>
 <section id="loading-from-an-array">
-<h3>Loading from an array<a class="headerlink" href="#loading-from-an-array" title="Permalink to this headline"></a></h3>
+<h3>Loading from an array<a class="headerlink" href="#loading-from-an-array" title="Permalink to this heading"></a></h3>
 <p>An image can also be loaded from a numpy array. By default, it will be taken to have origin (0, 0, 0) and voxel sizes (1, 1, 1) mm; otherwise, these can be set manually, either via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">40</span><span class="p">))</span>
 </pre></div>
@@ -337,7 +338,7 @@ or NumPy format. These images can be plotted and compared.</p>
 <p>where the first row of the affine matrix contains the <code class="docutils literal notranslate"><span class="pre">x</span></code> voxel size and origin, second row contains <code class="docutils literal notranslate"><span class="pre">y</span></code>, third row contains <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p>
 </section>
 <section id="plotting">
-<h3>Plotting<a class="headerlink" href="#plotting" title="Permalink to this headline"></a></h3>
+<h3>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h3>
 <p>To plot a slice of the image, you need to specify the orientation (<code class="docutils literal notranslate"><span class="pre">x-y</span></code>, <code class="docutils literal notranslate"><span class="pre">y-z</span></code>, or <code class="docutils literal notranslate"><span class="pre">x-z</span></code>; default <code class="docutils literal notranslate"><span class="pre">x-y</span></code>) and either the slice number, array index, or position in mm (by default, the central slice in the chosen orientation will be plotted).
 e.g.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;y-z&#39;</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -345,10 +346,10 @@ e.g.</p>
 </div>
 </section>
 <section id="writing-out-image-data">
-<h3>Writing out image data<a class="headerlink" href="#writing-out-image-data" title="Permalink to this headline"></a></h3>
+<h3>Writing out image data<a class="headerlink" href="#writing-out-image-data" title="Permalink to this heading"></a></h3>
 <p>Images can be written out with the <code class="docutils literal notranslate"><span class="pre">Image.write(filename)</span></code> function. The output filetype will be inferred from the filename.</p>
 <section id="writing-to-dicom">
-<h4>Writing to dicom<a class="headerlink" href="#writing-to-dicom" title="Permalink to this headline"></a></h4>
+<h4>Writing to dicom<a class="headerlink" href="#writing-to-dicom" title="Permalink to this heading"></a></h4>
 <p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.dcm</span></code> or is a directory (i.e. has no extension), the image will be written in dicom format. Each <code class="docutils literal notranslate"><span class="pre">x-y</span></code> slice will be written to a separate file labelled by slice number, e.g. slice 1 (corresponding to <code class="docutils literal notranslate"><span class="pre">[:,</span> <span class="pre">:,</span> <span class="pre">-1]</span></code> in the image array) would be saved to <code class="docutils literal notranslate"><span class="pre">1.dcm</span></code>.</p>
 <p>The path to a dicom file from which to take the header can be specified via the <code class="docutils literal notranslate"><span class="pre">header_source</span></code> parameter. If no path is given but the input source for the Image was a dicom file, the header will be taken from the source. Otherwise (e.g. if the file was loaded from a nifti and no <code class="docutils literal notranslate"><span class="pre">header_source</span></code> is given), a brand new header with new UIDs will be created. In that case, you can set the following info for that header:</p>
 <ul class="simple">
@@ -358,20 +359,20 @@ e.g.</p>
 </ul>
 </section>
 <section id="writing-to-nifti">
-<h4>Writing to nifti<a class="headerlink" href="#writing-to-nifti" title="Permalink to this headline"></a></h4>
+<h4>Writing to nifti<a class="headerlink" href="#writing-to-nifti" title="Permalink to this heading"></a></h4>
 <p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.nii</span></code> or <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>, the image will be written to nifti. The nifti will be in canonical format, i.e. in Right, Anterior, Superior configuration. (Note that this means the nifti you write out may not be the same as the one you read in).</p>
 </section>
 <section id="writing-to-a-numpy-array">
-<h4>Writing to a numpy array<a class="headerlink" href="#writing-to-a-numpy-array" title="Permalink to this headline"></a></h4>
+<h4>Writing to a numpy array<a class="headerlink" href="#writing-to-a-numpy-array" title="Permalink to this heading"></a></h4>
 <p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.npy</span></code>, the image array will be written to a numpy binary file. To write a canonical nifti-style array instead of the dicom-style array, set <code class="docutils literal notranslate"><span class="pre">nifti_array=True</span></code>. If <code class="docutils literal notranslate"><span class="pre">set_geometry</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> (which it is by default), a text file will be written to the same directory as the <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file containing the voxel sizes and origin.</p>
 </section>
 </section>
 </section>
 <section id="regions-of-interest-rois-and-structure-sets">
-<h2>2. Regions of interest (ROIs) and structure sets<a class="headerlink" href="#regions-of-interest-rois-and-structure-sets" title="Permalink to this headline"></a></h2>
+<h2>2. Regions of interest (ROIs) and structure sets<a class="headerlink" href="#regions-of-interest-rois-and-structure-sets" title="Permalink to this heading"></a></h2>
 <p>A structure/region of interest (ROI) can be represented by either a set of contour points or a binary mask. The <code class="docutils literal notranslate"><span class="pre">ROI</span></code> class allows an ROI to be loaded from either of these sources and converted from one to the other.</p>
 <section id="the-roi-class">
-<h3>The ROI class<a class="headerlink" href="#the-roi-class" title="Permalink to this headline"></a></h3>
+<h3>The ROI class<a class="headerlink" href="#the-roi-class" title="Permalink to this heading"></a></h3>
 <p>An <code class="docutils literal notranslate"><span class="pre">ROI</span></code> object, which contains a single ROI, can be created via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">ROI</span>
 <span class="n">roi</span> <span class="o">=</span> <span class="n">ROI</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
@@ -402,7 +403,7 @@ e.g.</p>
 </div>
 <p>This image can optionally be plotted in the background when the ROI is plotted.</p>
 <section id="plotting-an-roi">
-<h4>Plotting an ROI<a class="headerlink" href="#plotting-an-roi" title="Permalink to this headline"></a></h4>
+<h4>Plotting an ROI<a class="headerlink" href="#plotting-an-roi" title="Permalink to this heading"></a></h4>
 <p>ROIs can be plotted as contours or a mask or both, and with or without an associated image behind them. The simplest plot command is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
@@ -430,7 +431,7 @@ e.g.</p>
 <img src="_static/struct_mask.png" alt="ROI binary mask plot" height="500"/>
 </section>
 <section id="writing-out-an-roi">
-<h4>Writing out an ROI<a class="headerlink" href="#writing-out-an-roi" title="Permalink to this headline"></a></h4>
+<h4>Writing out an ROI<a class="headerlink" href="#writing-out-an-roi" title="Permalink to this heading"></a></h4>
 <p>An ROI can be written to a nifti or numpy file as a binary mask. This can be done either by specifying a filename with an appropriate extension, e.g.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;my_roi.nii&#39;</span><span class="p">)</span>
 </pre></div>
@@ -447,7 +448,7 @@ e.g.</p>
 <p>would produce a binary numpy file at <code class="docutils literal notranslate"><span class="pre">my_rois/heart.npy</span></code>.</p>
 </section>
 <section id="getting-geometric-properties">
-<h4>Getting geometric properties<a class="headerlink" href="#getting-geometric-properties" title="Permalink to this headline"></a></h4>
+<h4>Getting geometric properties<a class="headerlink" href="#getting-geometric-properties" title="Permalink to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">ROI</span></code> class has various methods for obtaining geometric properties of the ROI:</p>
 <ul class="simple">
 <li><p><strong>Centroid</strong>: get the 3D centroid coordinates (i.e. the centre-of-mass of the ROI) in mm via <code class="docutils literal notranslate"><span class="pre">roi.get_centroid()</span></code>, or get the 2D coordinates for a single slice via <code class="docutils literal notranslate"><span class="pre">roi.get_centroid(view='x-y',</span> <span class="pre">sl=10)</span></code>, for example (the slice position in mm <code class="docutils literal notranslate"><span class="pre">pos</span></code> or slice index <code class="docutils literal notranslate"><span class="pre">idx</span></code> can be given instead of slice number <code class="docutils literal notranslate"><span class="pre">sl</span></code>)</p></li>
@@ -459,10 +460,10 @@ e.g.</p>
 </section>
 </section>
 <section id="structure-sets-the-structureset-class">
-<h3>Structure Sets: the StructureSet class<a class="headerlink" href="#structure-sets-the-structureset-class" title="Permalink to this headline"></a></h3>
+<h3>Structure Sets: the StructureSet class<a class="headerlink" href="#structure-sets-the-structureset-class" title="Permalink to this heading"></a></h3>
 <p>A structure set is an object that contains multiple ROIs. This is implemented via the <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> class.</p>
 <section id="loading-a-structure-set">
-<h4>Loading a structure set<a class="headerlink" href="#loading-a-structure-set" title="Permalink to this headline"></a></h4>
+<h4>Loading a structure set<a class="headerlink" href="#loading-a-structure-set" title="Permalink to this heading"></a></h4>
 <p>A structure set is created via</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">StructureSet</span>
 <span class="n">structure_set</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
@@ -488,7 +489,7 @@ e.g.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> can also be associated with an <code class="docutils literal notranslate"><span class="pre">Image</span></code> object by specifying the <code class="docutils literal notranslate"><span class="pre">image</span></code> argument upon creation, or running <code class="docutils literal notranslate"><span class="pre">structure_set.set_image(image)</span></code>. This image will be assigned to all ROIs in the structure set.</p>
 </section>
 <section id="creating-a-filtered-copy-of-a-structure-set">
-<h4>Creating a filtered copy of a structure set<a class="headerlink" href="#creating-a-filtered-copy-of-a-structure-set" title="Permalink to this headline"></a></h4>
+<h4>Creating a filtered copy of a structure set<a class="headerlink" href="#creating-a-filtered-copy-of-a-structure-set" title="Permalink to this heading"></a></h4>
 <p>Sometimes you may wish to load many ROIs (e.g. from a dicom structure set file) and then filter them by name. This is done via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">filter_rois</span><span class="p">(</span><span class="n">to_keep</span><span class="p">,</span> <span class="n">to_remove</span><span class="p">)</span>
 </pre></div>
@@ -497,7 +498,7 @@ e.g.</p>
 <p>To restore a structure set to its original state (i.e. reload it from its source), run <code class="docutils literal notranslate"><span class="pre">structure_set.reset()</span></code>.</p>
 </section>
 <section id="renaming-rois">
-<h4>Renaming ROIs<a class="headerlink" href="#renaming-rois" title="Permalink to this headline"></a></h4>
+<h4>Renaming ROIs<a class="headerlink" href="#renaming-rois" title="Permalink to this heading"></a></h4>
 <p>ROIs can be renamed by mapping from one or more possible original names to a single final name. In this way, multiple structure sets where the same ROI might have different names can be standardised to have the same ROI names.</p>
 <p>For example, let’s say you wish to rename the right parotid gland to <code class="docutils literal notranslate"><span class="pre">right_parotid</span></code>, but you know that it has a variety of names across different structure sets. You could do this with the following (assuming <code class="docutils literal notranslate"><span class="pre">my_structure_sets</span></code> is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">names_map</span> <span class="o">=</span> <span class="p">{</span>
@@ -511,7 +512,7 @@ e.g.</p>
 <p>You can also choose to discard any ROIs that aren’t in your renaming map by setting <code class="docutils literal notranslate"><span class="pre">keep_renamed_only=True</span></code>.</p>
 </section>
 <section id="getting-rois">
-<h4>Getting ROIs<a class="headerlink" href="#getting-rois" title="Permalink to this headline"></a></h4>
+<h4>Getting ROIs<a class="headerlink" href="#getting-rois" title="Permalink to this heading"></a></h4>
 <p>Get a list of the <code class="docutils literal notranslate"><span class="pre">ROI</span></code> objects belonging to the structure set:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">get_rois</span><span class="p">()</span>
 </pre></div>
@@ -534,14 +535,14 @@ e.g.</p>
 </div>
 </section>
 <section id="filtering-a-structure-set">
-<h4>Filtering a structure set<a class="headerlink" href="#filtering-a-structure-set" title="Permalink to this headline"></a></h4>
+<h4>Filtering a structure set<a class="headerlink" href="#filtering-a-structure-set" title="Permalink to this heading"></a></h4>
 <p>A <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object can be copied to a new <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code>, optionally with some ROIs filtered/renamed (you might want to do this if you want to preserve the original structure set, while making a filtered version too), via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">filtered</span> <span class="o">=</span> <span class="n">structure_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">to_keep</span><span class="p">,</span> <span class="n">to_remove</span><span class="p">,</span> <span class="n">keep_renamed_only</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="writing-a-structure-set">
-<h4>Writing a structure set<a class="headerlink" href="#writing-a-structure-set" title="Permalink to this headline"></a></h4>
+<h4>Writing a structure set<a class="headerlink" href="#writing-a-structure-set" title="Permalink to this heading"></a></h4>
 <p>The ROIs in a structure set can be written to a directory of nifti or numpy files, via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
 </pre></div>
@@ -549,7 +550,7 @@ e.g.</p>
 <p>where <code class="docutils literal notranslate"><span class="pre">outdir</span></code> is the output directory and <code class="docutils literal notranslate"><span class="pre">ext</span></code> is either <code class="docutils literal notranslate"><span class="pre">.nii</span></code>, <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code> or <code class="docutils literal notranslate"><span class="pre">.npy</span></code>. Dicom writing will be supported in future.</p>
 </section>
 <section id="assigning-structuresets-to-an-image">
-<h4>Assigning StructureSets to an Image<a class="headerlink" href="#assigning-structuresets-to-an-image" title="Permalink to this headline"></a></h4>
+<h4>Assigning StructureSets to an Image<a class="headerlink" href="#assigning-structuresets-to-an-image" title="Permalink to this heading"></a></h4>
 <p>Just as ROIs and structure sets can be associated with an image, the <code class="docutils literal notranslate"><span class="pre">Image</span></code> object can be associated with one or more <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. This is done via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">StructureSet</span>
 
@@ -577,12 +578,12 @@ e.g.</p>
 </section>
 </section>
 <section id="patients-and-studies">
-<h2>3. Patients and studies<a class="headerlink" href="#patients-and-studies" title="Permalink to this headline"></a></h2>
+<h2>3. Patients and studies<a class="headerlink" href="#patients-and-studies" title="Permalink to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Patient</span></code> and <code class="docutils literal notranslate"><span class="pre">Study</span></code> classes allow multiple medical images and structure sets associated with a single patient to be read into one object.</p>
 <section id="expected-file-structure">
-<h3>Expected file structure<a class="headerlink" href="#expected-file-structure" title="Permalink to this headline"></a></h3>
+<h3>Expected file structure<a class="headerlink" href="#expected-file-structure" title="Permalink to this heading"></a></h3>
 <section id="patient-and-study-file-structure">
-<h4>Patient and study file structure<a class="headerlink" href="#patient-and-study-file-structure" title="Permalink to this headline"></a></h4>
+<h4>Patient and study file structure<a class="headerlink" href="#patient-and-study-file-structure" title="Permalink to this heading"></a></h4>
 <p>The files for a patient should be sorted into a specific structure in order for the <code class="docutils literal notranslate"><span class="pre">Patient</span></code> class to be able to read them in correctly.</p>
 <p>The top level directory represents the entire <strong>patient</strong>; this should be a directory whose name is the patient’s ID.</p>
 <p>The next one or two levels represent <strong>studies</strong>. A study is identified by a directory whose name is a timestamp, which is a string with format <code class="docutils literal notranslate"><span class="pre">YYYYMMDD_hhmmss</span></code>. These directories can either appear within the patient directory, or be nested in a further level of directories, for example if you wished to separate groups of studies.</p>
@@ -605,7 +606,7 @@ e.g.</p>
 <p>This patient would have three studies, two in the “planning” category and two in the “relapse” category.</p>
 </section>
 <section id="files-within-a-study">
-<h4>Files within a study<a class="headerlink" href="#files-within-a-study" title="Permalink to this headline"></a></h4>
+<h4>Files within a study<a class="headerlink" href="#files-within-a-study" title="Permalink to this heading"></a></h4>
 <p>Each study can contain images of various imaging modalities, and associated structure sets. Within a study directory, there can be three “special” directories, named <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code>, <code class="docutils literal notranslate"><span class="pre">RTDOSE</span></code>, and <code class="docutils literal notranslate"><span class="pre">RTPLAN</span></code>, containing structure sets, dose fields, and radiotherapy plans, respectively.</p>
 <p>Any other directories within the study directory are taken to represent an <strong>imaging modality</strong>. The structure sets associated with this modality should be nested inside the <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code> directory inside directories with the same name as the image directories. The images and structure sets themselves should be further nested inside a timestamp directory representing the time at which that image was taken.</p>
 <p>For example, if a study containined both CT and MR images, as well as two structure sets associated with the CT image, the file structure should be as follows:</p>
@@ -628,7 +629,7 @@ e.g.</p>
 </section>
 </section>
 <section id="the-patient-class">
-<h3>The Patient class<a class="headerlink" href="#the-patient-class" title="Permalink to this headline"></a></h3>
+<h3>The Patient class<a class="headerlink" href="#the-patient-class" title="Permalink to this heading"></a></h3>
 <p>A <code class="docutils literal notranslate"><span class="pre">Patient</span></code> object is created by providing the path to the top-level patient directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span>
@@ -643,7 +644,7 @@ e.g.</p>
 <li><p>Patient birth date: <code class="docutils literal notranslate"><span class="pre">p.get_birth_date()</span></code></p></li>
 </ul>
 <section id="writing-a-patient-tree">
-<h4>Writing a patient tree<a class="headerlink" href="#writing-a-patient-tree" title="Permalink to this headline"></a></h4>
+<h4>Writing a patient tree<a class="headerlink" href="#writing-a-patient-tree" title="Permalink to this heading"></a></h4>
 <p>A patient’s files can be written out in nifti or numpy format. By default, files will be written to compress nifti (<code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>) files. This is done via the <code class="docutils literal notranslate"><span class="pre">write</span></code> method:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;some_dir&#39;</span><span class="p">)</span>
 </pre></div>
@@ -663,14 +664,14 @@ e.g.</p>
 </section>
 </section>
 <section id="the-study-class">
-<h3>The Study class<a class="headerlink" href="#the-study-class" title="Permalink to this headline"></a></h3>
+<h3>The Study class<a class="headerlink" href="#the-study-class" title="Permalink to this heading"></a></h3>
 <p>A <code class="docutils literal notranslate"><span class="pre">Study</span></code> object stores images and structure sets. A list of studies can be extracted from a <code class="docutils literal notranslate"><span class="pre">Patient</span></code> object via the property <code class="docutils literal notranslate"><span class="pre">Patient.studies</span></code>. You can access the study’s path via <code class="docutils literal notranslate"><span class="pre">Study.path</span></code>. If the study was nested inside a subdirectory, the name of that subdirectory is accessed via <code class="docutils literal notranslate"><span class="pre">Study.subdir</span></code>.</p>
 <section id="id1">
-<h4>Images<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h4>
+<h4>Images<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
 <p>For each imaging modalitiy subdirectory inside the study, a new class property will be created to contain a list of images of that modality, called <code class="docutils literal notranslate"><span class="pre">{modality}_images</span></code>, where the modality is taken from the subdirectory name (note, this is always converted to lower case). E.g. if there were directories called <code class="docutils literal notranslate"><span class="pre">CT</span></code> and <code class="docutils literal notranslate"><span class="pre">MR</span></code>, the <code class="docutils literal notranslate"><span class="pre">Study</span></code> object would have properties <code class="docutils literal notranslate"><span class="pre">ct_images</span></code> and <code class="docutils literal notranslate"><span class="pre">mr_images</span></code> containing lists of <code class="docutils literal notranslate"><span class="pre">Image</span></code> objects.</p>
 </section>
 <section id="structure-sets">
-<h4>Structure sets<a class="headerlink" href="#structure-sets" title="Permalink to this headline"></a></h4>
+<h4>Structure sets<a class="headerlink" href="#structure-sets" title="Permalink to this heading"></a></h4>
 <p>The study’s structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the <code class="docutils literal notranslate"><span class="pre">structure_set</span></code> property of the <code class="docutils literal notranslate"><span class="pre">Image</span></code> itself; this is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">studies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -684,7 +685,7 @@ e.g.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object also has an associated <code class="docutils literal notranslate"><span class="pre">image</span></code> property (<code class="docutils literal notranslate"><span class="pre">structure_set.image</span></code>), which can be used to find out which <code class="docutils literal notranslate"><span class="pre">Image</span></code> is associated with that structure set.</p>
 </section>
 <section id="treatment-plans">
-<h4>Treatment plans<a class="headerlink" href="#treatment-plans" title="Permalink to this headline"></a></h4>
+<h4>Treatment plans<a class="headerlink" href="#treatment-plans" title="Permalink to this heading"></a></h4>
 <p>Data from radiotherapy treatment plans are made available as <code class="docutils literal notranslate"><span class="pre">Plan</span></code> objects.  <code class="docutils literal notranslate"><span class="pre">Study</span></code> objects group <code class="docutils literal notranslate"><span class="pre">Plan</span></code> objects in lists with names of the form <code class="docutils literal notranslate"><span class="pre">&lt;machine&gt;_plans</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;machine&gt;</span></code> identifies the treatment machine to which the plan relates.  <code class="docutils literal notranslate"><span class="pre">Image</span></code> objects and <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects group together all plans associated with them, in a list <code class="docutils literal notranslate"><span class="pre">plans</span></code>.  A <code class="docutils literal notranslate"><span class="pre">Dose</span></code> object is only ever derived from a single plan, referenced as <code class="docutils literal notranslate"><span class="pre">plan</span></code>.  Different ways of accessing a <code class="docutils literal notranslate"><span class="pre">Plan</span></code> object are shown below.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Access plan from Study.</span>
 <span class="n">plan</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">la3_plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -746,13 +747,13 @@ e.g.</p>
 </section>
 </section>
 <section id="synthetic-data">
-<h2>4. Synthetic data<a class="headerlink" href="#synthetic-data" title="Permalink to this headline"></a></h2>
+<h2>4. Synthetic data<a class="headerlink" href="#synthetic-data" title="Permalink to this heading"></a></h2>
 <section id="synthetic-images">
-<h3>4.1 Synthetic images<a class="headerlink" href="#synthetic-images" title="Permalink to this headline"></a></h3>
+<h3>4.1 Synthetic images<a class="headerlink" href="#synthetic-images" title="Permalink to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class enables the creation of images containing simple geometric shapes.</p>
 <img src="_static/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
 <section id="creating-a-synthetic-image">
-<h4>Creating a synthetic image<a class="headerlink" href="#creating-a-synthetic-image" title="Permalink to this headline"></a></h4>
+<h4>Creating a synthetic image<a class="headerlink" href="#creating-a-synthetic-image" title="Permalink to this heading"></a></h4>
 <p>To create an empty image, load the <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class and specify the desired image shape in order (x, y, z), e.g.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.simulation</span> <span class="kn">import</span> <span class="n">SyntheticImage</span>
 
@@ -767,7 +768,7 @@ e.g.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">noise_std</span></code>: standard deviation of Gaussian noise to apply to the image. This noise will also be added on top of any shapes. (Can be changed later by altering the <code class="docutils literal notranslate"><span class="pre">sim.noise_std</span></code> property).</p></li>
 </ul>
 <section id="adding-shapes">
-<h5>Adding shapes<a class="headerlink" href="#adding-shapes" title="Permalink to this headline"></a></h5>
+<h5>Adding shapes<a class="headerlink" href="#adding-shapes" title="Permalink to this heading"></a></h5>
 <p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> object has various methods for adding geometric shapes. Each shape has the following arguments:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">intensity</span></code>: intensity value with which to fill the voxels of this shape.</p></li>
@@ -814,7 +815,7 @@ e.g.</p>
 </div>
 </section>
 <section id="id2">
-<h5>Plotting<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h5>
+<h5>Plotting<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h5>
 <p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class inherits from the <code class="docutils literal notranslate"><span class="pre">Image</span></code> class, and can thus be plotted in the same way by calling</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
@@ -822,7 +823,7 @@ e.g.</p>
 <p>along with any of the arguments available to the <code class="docutils literal notranslate"><span class="pre">Image</span></code> plotting method.</p>
 </section>
 <section id="rotations-and-translations">
-<h5>Rotations and translations<a class="headerlink" href="#rotations-and-translations" title="Permalink to this headline"></a></h5>
+<h5>Rotations and translations<a class="headerlink" href="#rotations-and-translations" title="Permalink to this heading"></a></h5>
 <p>Rotations and translations can be applied to the image using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
 </pre></div>
@@ -837,7 +838,7 @@ e.g.</p>
 </div>
 </section>
 <section id="getting-the-image-array">
-<h5>Getting the image array<a class="headerlink" href="#getting-the-image-array" title="Permalink to this headline"></a></h5>
+<h5>Getting the image array<a class="headerlink" href="#getting-the-image-array" title="Permalink to this heading"></a></h5>
 <p>To obtain a NumPy array containing the image data, run</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
 </pre></div>
@@ -845,7 +846,7 @@ e.g.</p>
 <p>This array will contain all of the added shapes, as well as having any rotations, translations, and noise applied.</p>
 </section>
 <section id="saving">
-<h5>Saving<a class="headerlink" href="#saving" title="Permalink to this headline"></a></h5>
+<h5>Saving<a class="headerlink" href="#saving" title="Permalink to this heading"></a></h5>
 <p>The synthetic image can be written to an image file by running</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outname</span><span class="p">)</span>
 </pre></div>
@@ -860,7 +861,7 @@ e.g.</p>
 </section>
 </section>
 <section id="adding-structures">
-<h4>Adding structures<a class="headerlink" href="#adding-structures" title="Permalink to this headline"></a></h4>
+<h4>Adding structures<a class="headerlink" href="#adding-structures" title="Permalink to this heading"></a></h4>
 <p>When shapes are added to the image, they can also be set as ROIs. This allows you to:</p>
 <ul class="simple">
 <li><p>Plot them as contours or masks on top of the image;</p></li>
@@ -868,7 +869,7 @@ e.g.</p>
 <li><p>Write ROIs out separately as masks or as a dicom structure set file.</p></li>
 </ul>
 <section id="single-rois">
-<h5>Single ROIs<a class="headerlink" href="#single-rois" title="Permalink to this headline"></a></h5>
+<h5>Single ROIs<a class="headerlink" href="#single-rois" title="Permalink to this heading"></a></h5>
 <p>To assign a shape as an ROI, you can either give it a name upon creation, e.g.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">add_sphere</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;my_sphere&#39;</span><span class="p">)</span>
 </pre></div>
@@ -885,7 +886,7 @@ e.g.</p>
 </ul>
 </section>
 <section id="grouped-shapes">
-<h5>Grouped shapes<a class="headerlink" href="#grouped-shapes" title="Permalink to this headline"></a></h5>
+<h5>Grouped shapes<a class="headerlink" href="#grouped-shapes" title="Permalink to this heading"></a></h5>
 <p>Multiple shapes can be combined to create a single ROI. To do this, set the <code class="docutils literal notranslate"><span class="pre">group</span></code> argument to some string when creating shapes. Any shapes created with the same <code class="docutils literal notranslate"><span class="pre">group</span></code> name will be added to this group.</p>
 <p>E.g. to create a single ROI called “two_cubes” out of two cubes centred at different positions, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">add_cube</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">centre</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;two_cubes&#39;</span><span class="p">)</span>
@@ -894,7 +895,7 @@ e.g.</p>
 </div>
 </section>
 <section id="id3">
-<h5>Getting ROIs<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h5>
+<h5>Getting ROIs<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h5>
 <p>To get a <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object containing all of the ROIs belonging to the image, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_structure_set</span><span class="p">()</span>
 </pre></div>
@@ -905,13 +906,13 @@ e.g.</p>
 </div>
 </section>
 <section id="saving-rois">
-<h5>Saving ROIs<a class="headerlink" href="#saving-rois" title="Permalink to this headline"></a></h5>
+<h5>Saving ROIs<a class="headerlink" href="#saving-rois" title="Permalink to this heading"></a></h5>
 <p>When the <code class="docutils literal notranslate"><span class="pre">SyntheticImage.write()</span></code> function is called, the ROIs belonging to that image will also be written. If the provided <code class="docutils literal notranslate"><span class="pre">outname</span></code> is that of a nifti or NumPy file, the ROIs will be written to nifti or Numpy files, respectively, inside a directory with the same name as <code class="docutils literal notranslate"><span class="pre">outname</span></code> but with the extension removed.</p>
 </section>
 </section>
 </section>
 <section id="synthetic-patient-objects">
-<h3>4.2 Synthetic Patient objects<a class="headerlink" href="#synthetic-patient-objects" title="Permalink to this headline"></a></h3>
+<h3>4.2 Synthetic Patient objects<a class="headerlink" href="#synthetic-patient-objects" title="Permalink to this heading"></a></h3>
 <p>The Patient class can be used to create a custom patient object from scratch, rather than loading a prexisting patient.</p>
 <p>To do this, first create a blank Patient object with your chosen ID:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
@@ -942,11 +943,11 @@ e.g.</p>
 <p>This will create a patient directory <code class="docutils literal notranslate"><span class="pre">somedir/my_id</span></code> containing the added study and its corresponding image and structure set.</p>
 </section>
 <section id="image-registration">
-<h3>5. Image registration<a class="headerlink" href="#image-registration" title="Permalink to this headline"></a></h3>
+<h3>5. Image registration<a class="headerlink" href="#image-registration" title="Permalink to this heading"></a></h3>
 <p>See tutorial <a class="reference internal" href="image_registration.html"><span class="doc std std-doc">here</span></a></p>
 </section>
 <section id="keyboard-shortcuts-for-pop-out-interactive-viewer">
-<h3>6. Keyboard shortcuts for pop-out interactive viewer<a class="headerlink" href="#keyboard-shortcuts-for-pop-out-interactive-viewer" title="Permalink to this headline"></a></h3>
+<h3>6. Keyboard shortcuts for pop-out interactive viewer<a class="headerlink" href="#keyboard-shortcuts-for-pop-out-interactive-viewer" title="Permalink to this heading"></a></h3>
 <p>A minimal pop-up interactive viewer can be created by running <code class="docutils literal notranslate"><span class="pre">.view()</span></code> on any <code class="docutils literal notranslate"><span class="pre">Image</span></code>, <code class="docutils literal notranslate"><span class="pre">Dose</span></code>, <code class="docutils literal notranslate"><span class="pre">ROI</span></code> or <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> from python outside of a jupyter notebook. The controls are:</p>
 <ul class="simple">
 <li><p>scroll: move 1 slice</p></li>

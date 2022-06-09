@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -95,12 +96,12 @@
            <div itemprop="articleBody">
              
   <section id="module-skrt.dose">
-<span id="skrt-dose-module"></span><h1>skrt.dose module<a class="headerlink" href="#module-skrt.dose" title="Permalink to this headline"></a></h1>
+<span id="skrt-dose-module"></span><h1>skrt.dose module<a class="headerlink" href="#module-skrt.dose" title="Permalink to this heading"></a></h1>
 <p>Classes related to doses and plans.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.dose.Constraint">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Constraint" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Data</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
 <p>Container for data relating to a dose constraint.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Constraint.__init__">
@@ -139,7 +140,7 @@ and their initial values.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.dose.Dose">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.dose.ImageOverlay</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageOverlay</span></code></a></p>
 <p>Class representing a dose map. The same as an Image but with overridden
 plotting behaviour and extra functionality relating to ROIs.</p>
 <dl class="py method">
@@ -198,6 +199,12 @@ minimum of zero and the image minimum, to the image maximum.
 If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
+</dd>
+<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be associated with the image,
+or a source from which an Image object can be initialised.</p>
+</dd>
+<dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
+set to True and False respectively.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -303,7 +310,7 @@ colours over which to cycle when drawing histograms.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.dose.ImageOverlay">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">ImageOverlay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="skrt.image.html#skrt.image.Image" title="skrt.image.Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.image.Image</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="skrt.image.html#skrt.image.Image" title="skrt.image.Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Image</span></code></a></p>
 <p>Image that can be associated with another Image, and whose plotting
 functionality includes the ability to plot overlaid on its associated 
 Image.</p>
@@ -363,6 +370,12 @@ minimum of zero and the image minimum, to the image maximum.
 If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
+</dd>
+<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be associated with the image,
+or a source from which an Image object can be initialised.</p>
+</dd>
+<dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
+set to True and False respectively.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -439,7 +452,7 @@ or overlay;
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.dose.Plan">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">skrt.core.Archive</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">Archive</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Plan.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.__init__" title="Permalink to this definition"></a></dt>
