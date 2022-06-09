@@ -808,7 +808,7 @@ class BetterViewer:
                 self.images[i],
                 title=self.title[i],
                 dose=self.dose[i],
-                mask=get_mask(self.mask[i], mask_threshold, images[i]),
+                mask=get_mask(self.mask[i], mask_threshold, self.images[i]),
                 rois=self.rois[i],
                 #  multi_rois=self.multi_rois[i],
                 grid=self.grid[i],
