@@ -860,6 +860,12 @@ recalculated.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_mask_image">
+<span class="sig-name descname"><span class="pre">get_mask_image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mask_image" title="Permalink to this definition"></a></dt>
+<dd><p>Get image object representing ROI mask.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_mean_surface_distance">
 <span class="sig-name descname"><span class="pre">get_mean_surface_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mean_surface_distance" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -1799,6 +1805,19 @@ of a single ROI with the consensus of all others is desired.</p>
 </dd>
 <dt><a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the creation of the ROI object
 representing the combination.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_mask_image">
+<span class="sig-name descname"><span class="pre">get_mask_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_mask_image" title="Permalink to this definition"></a></dt>
+<dd><p>Get image object representing mask for all ROIs of structure set.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>name<span class="classifier">str, default=None</span></dt><dd><p>Name to be given to the mask image.  If None, the
+name assigned is the name of the structure set, with suffix
+“_mask” appended.</p>
 </dd>
 </dl>
 </dd></dl>
