@@ -1068,28 +1068,6 @@ values outside range.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.better_viewer.get_mask">
-<span class="sig-prename descclassname"><span class="pre">skrt.better_viewer.</span></span><span class="sig-name descname"><span class="pre">get_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_to_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.better_viewer.get_mask" title="Permalink to this definition"></a></dt>
-<dd><p>Return mask as Image object, with boolean data, resizing if required.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>mask<span class="classifier">Image/list/ROI/str/StructureSet, default=None</span></dt><dd><p>Image object representing a mask or a source from which
-an Image object can be initialised.  In addition to the
-sources accepted by the Image constructor, the source
-may be an ROI, a list of ROIs or a StructureSet.  In the
-latter cases, the mask image is derived from the ROI mask(s).</p>
-</dd>
-<dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
-set to True and False respectively.</p>
-</dd>
-<dt>image_to_match<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object or a source from which an Image object can be
-initialised.  The mask will be resized if needed, to match
-this image.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="skrt.better_viewer.in_notebook">
 <span class="sig-prename descclassname"><span class="pre">skrt.better_viewer.</span></span><span class="sig-name descname"><span class="pre">in_notebook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.better_viewer.in_notebook" title="Permalink to this definition"></a></dt>
 <dd><p>Check whether current code is being run within a Jupyter notebook.</p>
