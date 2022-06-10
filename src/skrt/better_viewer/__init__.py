@@ -18,7 +18,6 @@ from skrt.image import (
     _slice_axes, 
     _plot_axes,
     _default_figsize,
-    get_mask
 )
 from skrt.dose import Dose
 from skrt.registration import Grid, Jacobian
@@ -92,9 +91,12 @@ class BetterViewer:
             the first n figures will be given custom titles. If any titles are
             None, the name of the image file will be used as the title.
 
-        mask : string/nifti/array/list, default=None
-            Source(s) of array(s) to with which to mask each plot (see valid
-            image sources for <images>).
+        mask : Image/list/ROI/str/StructureSet, default=None
+            Image object representing a mask or a source from which
+            an Image object can be initialised.  In addition to the
+            sources accepted by the Image constructor, the source
+            may be an ROI, a list of ROIs or a StructureSet.  In the
+            latter cases, the mask image is derived from the ROI mask(s).
 
         dose : string/nifti/array/list, default=None
             Source(s) of dose field array(s) to overlay on each plot (see valid
@@ -3224,3 +3226,45 @@ def to_inches(size):
     elif units == "px":
         return val / mpl.rcParams["figure.dpi"]
 
+def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
+    """
+    Return mask as Image object, with boolean data, resizing if required.
+
+    **Parameters:**
+
+    mask : Image/list/ROI/str/StructureSet, default=None
+        Image object representing a mask or a source from which
+        an Image object can be initialised.  In addition to the
+        sources accepted by the Image constructor, the source
+        may be an ROI, a list of ROIs or a StructureSet.  In the
+        latter cases, the mask image is derived from the ROI mask(s).
+
+    mask_threshold : float, default=0.5
+        Threshold for mask data.  Values above and below this value are
+        set to True and False respectively.
+
+    image_to_match : Image/str, default=None
+        Image object or a source from which an Image object can be
+        initialised.  The mask will be resized if needed, to match
+        this image.
+    """
+    if mask:
+        # Try to ensure that mask is an image object.
+        if isinstance(mask, (ROI, StructureSet)):
+            mask = mask.get_mask_image()
+        elif isinstance(mask, list) and isinstance(mask[0], ROI):
+            mask = StructureSet(mask).get_mask_image()
+        elif not isinstance(mask, Image):
+            mask = Image(mask)
+        # Ensure data array is boolean.
+        mask_data = mask.get_data()
+        if mask_data.dtype != bool:
+            mask.data = mask_data > mask_threshold
+
+        # Match mask to size of reference image.
+        if image_to_match is not None:
+            if not isinstance(image_to_match, Image):
+                image_to_match = Image(image_to_match)
+            mask.match_size(image_to_match, 0, 'nearest')
+
+    return mask

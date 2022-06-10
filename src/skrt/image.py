@@ -68,8 +68,6 @@ class Image(skrt.core.Archive):
         dtype=None,
         auto_timestamp=False,
         default_intensity=(-200, 300),
-        mask=None,
-        mask_threshold=0.5,
     ):
         """
         Initialise from a medical image source.
@@ -133,14 +131,6 @@ class Image(skrt.core.Archive):
             If WindowCenter and WindowWidth are defined in a
             DICOM source file, these values will be used instead to
             define the default intensity range.
-
-        mask : Image/str, default=None
-            Image object representing a mask to be associated with the image,
-            or a source from which an Image object can be initialised.
-
-        mask_threshold : float, default=0.5
-            Threshold for mask data.  Values above and below this value are
-            set to True and False respectively.
         """
 
         # Clone from another Image object
@@ -166,8 +156,6 @@ class Image(skrt.core.Archive):
         self.plans = []
         self._custom_dtype = dtype
         self.sinogram = None
-        self.set_mask(mask, mask_threshold)
-
         # Default image plotting settings
         self._default_colorbar_label = "Radiodensity (HU)"
         self._default_cmap = "gray"
@@ -1387,22 +1375,6 @@ class Image(skrt.core.Archive):
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
 
-    def set_mask(self, mask=None, mask_threshold=0.5):
-        """
-        Associate a mask with this image.
-
-        **Parameters:**
-
-        mask : Image/str, default=None
-            Image object representing a mask to be associated with the image,
-            or a source from which an Image object can be initialised.
-
-        mask_threshold : float, default=0.5
-            Threshold for mask data.  Values above and below this value are
-            set to True and False respectively.
-        """
-        self.mask = get_mask(mask, mask_threshold, self)
-
     def get_length(self, ax):
         """Get image length along a given axis.
 
@@ -1922,14 +1894,17 @@ class Image(skrt.core.Archive):
         xlim, ylim : tuples, default=None
             Custom limits on the x and y axes of the plot.
 
-        mask : Image/str, default=None
-            Image object representing a mask, or a source from which an
-            Image object can be initialised.  A value specified here
-            overrides the value of self's mask attribute.
+        mask : Image/list/ROI/str/StructureSet, default=None
+            Image object representing a mask or a source from which
+            an Image object can be initialised.  In addition to the
+            sources accepted by the Image constructor, the source
+            may be an ROI, a list of ROIs or a StructureSet.  In the
+            latter cases, the mask image is derived from the ROI mask(s).
 
         mask_threshold : float, default=0.5
             Threshold for mask data.  Values above and below this value are
-            set to True and False respectively.
+            set to True and False respectively.  Taken into account only
+            if the mask image has non-boolean data.
 
         masked : bool, default=False
             If True and a mask is specified, the image is masked.
@@ -2005,11 +1980,28 @@ class Image(skrt.core.Archive):
                                      shift=shift)
 
         # If required, apply mask to image slice
-        mask = get_mask(mask, mask_threshold)
-
         if mask and masked:
+
+            # Try to ensure that mask is an Image object.
+            # This includes workaround for using ROI and StructureSet,
+            # while avoiding the cyclic imports that would result
+            # from attempting to import the structures module.
+            if hasattr(mask, "get_mask_image"):
+                mask = mask.get_mask_image()
+            elif (isinstance(mask, list)
+                    and "skrt.structures.ROI" in str(type(mask[0]))):
+                roi_new = mask(0).clone()
+                roi_new.name = "mask_from_roi_list"
+                for i in range(1, len(mask)):
+                    roi_new.mask.data += self.get_roi(roi_names[i]).get_mask()
+                roi_new.mask.data = roi_new.mask.dat > mask_threshold
+            elif not isinstance(mask, Image):
+                mask = Image(mask)
+
             mask_slice = mask.get_slice(view, idx=idx, flatten=flatten,
                     shift=shift)
+            if mask_slice.dtype != bool:
+                mask_slice = mask_slice > mask_threshold
             if invert_mask:
                 image_slice = np.ma.masked_where(mask_slice, image_slice)
             else:
@@ -4237,39 +4229,3 @@ def kv_to_mv(hu):
         y = -1024
 
     return round(y)
-
-def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
-    """
-    Return mask as Image object, resizing if required.
-
-    **Parameters:**
-
-    mask : Image/str, default=None
-        Image object representing a mask to be associated with the image,
-        or a source from which an Image object can be initialised.
-
-    mask_threshold : float, default=0.5
-        Threshold for mask data.  Values above and below this value are
-        set to True and False respectively.
-
-    image_to_match : Image/str, default=None
-        Image object or a source from which an Image object can be
-        initialised.  The mask will be resized if needed, to match
-        this image.
-    """
-    if mask is not None:
-        # Ensure mask is image object.
-        if not isinstance(mask, Image):
-            mask = Image(mask)
-        # Ensure data array is boolean.
-        mask_data = mask.get_data()
-        if mask_data.dtype != bool:
-            mask.data = mask_data > mask_threshold
-
-        # Match mask to size of reference image.
-        if image_to_match is not None:
-            if not isinstance(image_to_match, Image):
-                image_to_match = Image(image_to_match)
-            mask.match_size(image_to_match, 0, 'nearest')
-
-    return mask
