@@ -1097,11 +1097,10 @@ class Image(skrt.core.Archive):
             'nearest'
         '''
 
-        image.load()
-        self.resize(image.get_n_voxels(), image.get_origin(),
-                image.get_voxel_size(), fill_value, method=method)
-
-        return None
+        if not self.has_same_geometry(image):
+            image.load()
+            self.resize(image.get_n_voxels(), image.get_origin(),
+                    image.get_voxel_size(), fill_value, method=method)
 
     def match_voxel_size(self, image, method="self"):
         """Resample to match z-axis voxel size with that of another Image
@@ -1981,27 +1980,9 @@ class Image(skrt.core.Archive):
 
         # If required, apply mask to image slice
         if mask and masked:
-
-            # Try to ensure that mask is an Image object.
-            # This includes workaround for using ROI and StructureSet,
-            # while avoiding the cyclic imports that would result
-            # from attempting to import the structures module.
-            if hasattr(mask, "get_mask_image"):
-                mask = mask.get_mask_image()
-            elif (isinstance(mask, list)
-                    and "skrt.structures.ROI" in str(type(mask[0]))):
-                roi_new = mask(0).clone()
-                roi_new.name = "mask_from_roi_list"
-                for i in range(1, len(mask)):
-                    roi_new.mask.data += self.get_roi(roi_names[i]).get_mask()
-                roi_new.mask.data = roi_new.mask.dat > mask_threshold
-            elif not isinstance(mask, Image):
-                mask = Image(mask)
-
+            mask = get_mask(mask, mask_threshold, self)
             mask_slice = mask.get_slice(view, idx=idx, flatten=flatten,
                     shift=shift)
-            if mask_slice.dtype != bool:
-                mask_slice = mask_slice > mask_threshold
             if invert_mask:
                 image_slice = np.ma.masked_where(mask_slice, image_slice)
             else:
@@ -3092,6 +3073,41 @@ class Image(skrt.core.Archive):
             banded_data[(image_data > v1) & (image_data <= v2)] = v_band
 
         self.data = banded_data
+
+    def get_masked_image(self, mask=None, mask_threshold=0.5,
+            invert_mask=False):
+        '''
+        Return image after application of mask.
+
+        mask : Image/list/ROI/str/StructureSet, default=None
+            Image object representing a mask or a source from which
+            an Image object can be initialised.  In addition to the
+            sources accepted by the Image constructor, the source
+            may be an ROI, a list of ROIs or a StructureSet.  In the
+            latter cases, the mask image is derived from the ROI mask(s).
+
+        mask_threshold : float, default=0.5
+            Threshold for mask data.  Values above and below this value are
+            set to True and False respectively.  Taken into account only
+            if the mask image has non-boolean data.
+
+        invert_mask : bool, default=False
+            If True, the mask is inverted before being applied.
+        '''
+
+        # Try to ensure that mask is an Image object,
+        # has boolean data, and matches the size of self.
+        mask = get_mask(mask, mask_threshold, self)
+
+        # Clone self and apply mask.
+        self.get_data()
+        masked_image = self.clone()
+        if invert_mask:
+            masked_image.data = np.ma.masked_where(mask.data, self.data)
+        else:
+            masked_image.data = np.ma.masked_where(~mask.data, self.data)
+
+        return masked_image
 
 
 class ImageComparison(Image):
@@ -4229,3 +4245,57 @@ def kv_to_mv(hu):
         y = -1024
 
     return round(y)
+
+def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
+    """
+    Return mask as Image object, with boolean data, resizing if required.
+
+    **Parameters:**
+
+    mask : Image/list/ROI/str/StructureSet, default=None
+        Image object representing a mask or a source from which
+        an Image object can be initialised.  In addition to the
+        sources accepted by the Image constructor, the source
+        may be an ROI, a list of ROIs or a StructureSet.  In the
+        latter cases, the mask image is derived from the ROI mask(s).
+
+    mask_threshold : float, default=0.5
+        Threshold for mask data.  Values above and below this value are
+        set to True and False respectively.  Taken into account only
+        if the mask image has non-boolean data.
+
+    image_to_match : Image/str, default=None
+        Image object or a source from which an Image object can be
+        initialised.  The mask will be resized if needed, to match
+        this image.
+    """
+
+    if mask:
+        # Try to ensure that mask is an Image object.
+        # This includes workaround for using ROI and StructureSet,
+        # while avoiding the cyclic imports that would result
+        # from attempting to import the structures module.
+        if hasattr(mask, "get_mask_image"):
+            mask = mask.get_mask_image()
+        elif (isinstance(mask, list)
+                and "skrt.structures.ROI" in str(type(mask[0]))):
+            roi_new = mask(0).clone()
+            roi_new.name = "mask_from_roi_list"
+            for i in range(1, len(mask)):
+                roi_new.mask.data += self.get_roi(roi_names[i]).get_mask()
+            roi_new.mask.data = roi_new.mask.dat > mask_threshold
+            mask = roi_new.get_mask_image()
+        elif not isinstance(mask, Image):
+            mask = Image(mask)
+
+        # Match mask to size of reference image.
+        mask.get_data()
+        if image_to_match is not None:
+            if not isinstance(image_to_match, Image):
+                image_to_match = Image(image_to_match)
+            mask.match_size(image_to_match, 0, "nearest")
+
+        # Ensure data array is boolean.
+        if mask.data.dtype != bool:
+            mask.data = mask.data > mask_threshold
+        return mask
