@@ -100,13 +100,13 @@
 <p>Classes for loading and comparing medical images.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.image.Image">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-</span> <span class="pre">200,</span> <span class="pre">300)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-</span> <span class="pre">200,</span> <span class="pre">300)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">Archive</span></code></a></p>
 <p>Loads and stores a medical image and its geometrical properties, either
 from a dicom/nifti file or a numpy array.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-</span> <span class="pre">200,</span> <span class="pre">300)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-</span> <span class="pre">200,</span> <span class="pre">300)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise from a medical image source.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -160,12 +160,6 @@ minimum of zero and the image minimum, to the image maximum.
 If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
-</dd>
-<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be associated with the image,
-or a source from which an Image object can be initialised.</p>
-</dd>
-<dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
-set to True and False respectively.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1121,12 +1115,15 @@ plotting method.</p>
 </dd>
 <dt>xlim, ylim<span class="classifier">tuples, default=None</span></dt><dd><p>Custom limits on the x and y axes of the plot.</p>
 </dd>
-<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask, or a source from which an
-Image object can be initialised.  A value specified here
-overrides the value of self’s mask attribute.</p>
+<dt>mask<span class="classifier">Image/list/ROI/str/StructureSet, default=None</span></dt><dd><p>Image object representing a mask or a source from which
+an Image object can be initialised.  In addition to the
+sources accepted by the Image constructor, the source
+may be an ROI, a list of ROIs or a StructureSet.  In the
+latter cases, the mask image is derived from the ROI mask(s).</p>
 </dd>
 <dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
-set to True and False respectively.</p>
+set to True and False respectively.  Taken into account only
+if the mask image has non-boolean data.</p>
 </dd>
 <dt>masked<span class="classifier">bool, default=False</span></dt><dd><p>If True and a mask is specified, the image is masked.</p>
 </dd>
@@ -1301,21 +1298,6 @@ the &lt;extent&gt; argument for matplotlib plotting.</p>
 </dd>
 </dl>
 </div></blockquote>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.image.Image.set_mask">
-<span class="sig-name descname"><span class="pre">set_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.set_mask" title="Permalink to this definition"></a></dt>
-<dd><p>Associate a mask with this image.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be associated with the image,
-or a source from which an Image object can be initialised.</p>
-</dd>
-<dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
-set to True and False respectively.</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1507,12 +1489,6 @@ minimum of zero and the image minimum, to the image maximum.
 If WindowCenter and WindowWidth are defined in a
 DICOM source file, these values will be used instead to
 define the default intensity range.</p>
-</dd>
-<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be associated with the image,
-or a source from which an Image object can be initialised.</p>
-</dd>
-<dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
-set to True and False respectively.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1715,12 +1691,15 @@ plotting method.</p>
 </dd>
 <dt>xlim, ylim<span class="classifier">tuples, default=None</span></dt><dd><p>Custom limits on the x and y axes of the plot.</p>
 </dd>
-<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask, or a source from which an
-Image object can be initialised.  A value specified here
-overrides the value of self’s mask attribute.</p>
+<dt>mask<span class="classifier">Image/list/ROI/str/StructureSet, default=None</span></dt><dd><p>Image object representing a mask or a source from which
+an Image object can be initialised.  In addition to the
+sources accepted by the Image constructor, the source
+may be an ROI, a list of ROIs or a StructureSet.  In the
+latter cases, the mask image is derived from the ROI mask(s).</p>
 </dd>
 <dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
-set to True and False respectively.</p>
+set to True and False respectively.  Taken into account only
+if the mask image has non-boolean data.</p>
 </dd>
 <dt>masked<span class="classifier">bool, default=False</span></dt><dd><p>If True and a mask is specified, the image is masked.</p>
 </dd>
@@ -1884,25 +1863,6 @@ ds : pydicom.FileDataset</p>
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_nifti</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_geometry" title="Permalink to this definition"></a></dt>
 <dd><p>Get an affine matrix, voxel size list, and origin list from 
 a combination of these inputs.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.image.get_mask">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_to_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_mask" title="Permalink to this definition"></a></dt>
-<dd><p>Return mask as Image object, resizing if required.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>mask<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing a mask to be associated with the image,
-or a source from which an Image object can be initialised.</p>
-</dd>
-<dt>mask_threshold<span class="classifier">float, default=0.5</span></dt><dd><p>Threshold for mask data.  Values above and below this value are
-set to True and False respectively.</p>
-</dd>
-<dt>image_to_match<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object or a source from which an Image object can be
-initialised.  The mask will be resized if needed, to match
-this image.</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py function">
