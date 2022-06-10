@@ -611,6 +611,13 @@ class ROI(skrt.core.Archive):
             axis=skrt.image._slice_axes[view]
         ).astype(bool)
 
+    def get_mask_image(self):
+        """Get image object representing ROI mask."""
+
+        self.load()
+        self.create_mask()
+        return self.mask
+
     def get_polygons(self, view="x-y", idx_as_key=False):
         """Get dict of polygons for each slice."""
 
@@ -5394,6 +5401,21 @@ class StructureSet(skrt.core.Archive):
 
         return roi_new
 
+    def get_mask_image(self, name=None):
+        """
+        Get image object representing mask for all ROIs of structure set.
+
+        **Parameters:**
+
+        name : str, default=None
+            Name to be given to the mask image.  If None, the
+            name assigned is the name of the structure set, with suffix
+            "_mask" appended.
+        """
+        name = name or f"{self.name}_mask"
+        roi_combined = self.combine_rois(name=name)
+        mask_image = roi_combined.get_mask_image()
+        return mask_image
 
 class StructureSetIterator:
 

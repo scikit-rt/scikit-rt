@@ -902,3 +902,26 @@ def test_combine_rois():
 
     assert np.all(cube_and_sphere.get_mask() ==
             cube.get_mask() + sphere.get_mask())
+
+def test_mask_image():
+    '''Test retrieval of image objects repreenting ROI masks.'''
+
+    # Define ROIs and structure_set.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 50), intensity=1)
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 50), intensity=10)
+    cube = sim.get_roi('cube')
+    sphere = sim.get_roi('sphere')
+    ss = sim.get_structure_set()
+    
+    # Check mask images for individual ROIs.
+    ss_voxels = 0
+    for roi in ss.get_rois():
+        assert roi.get_mask().shape == roi.get_mask_image().get_data().shape
+        roi_voxels = (roi.get_mask() > 0.5).sum()
+        assert roi_voxels > 20 * 20 * 20
+        ss_voxels += roi_voxels
+        assert roi_voxels == (roi.get_mask_image().get_data() > 0.5).sum()
+
+    # Check mask image for structure set.
+    assert ss_voxels == (ss.get_mask_image().get_data() > 0.5).sum()
