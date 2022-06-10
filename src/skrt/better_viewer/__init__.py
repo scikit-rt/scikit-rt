@@ -1053,9 +1053,11 @@ class BetterViewer:
 
         # Make extra UI list
         self.extra_ui = []
-        for attr in ["dose"]:#['mask', 'dose', 'df']:
+        for attr in ["mask", "dose"]:#['mask', 'dose', 'df']:
             if self.any_attr(attr):
                 self.extra_ui.append(getattr(v0, 'ui_' + attr))
+                if "mask" == attr:
+                    self.extra_ui.append(getattr(v0, 'ui_mask_invert'))
         if self.any_attr('jacobian'):
             self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
         if self.any_attr('grid'):
@@ -1749,6 +1751,7 @@ class SingleViewer:
         self.masked = masked
         self.invert_mask = invert_mask
         self.mask_color = mask_color
+        self.has_mask = bool(mask)
 
         # Overlay plot settings
         self.init_dose_opacity = dose_opacity
@@ -2198,11 +2201,14 @@ class SingleViewer:
         if not shared_ui:
 
             # Mask checkbox
-            #  self.ui_mask = ipyw.Checkbox(
-                #  value=self.image.has_mask, indent=False, description='Apply mask'
-            #  )
-            #  if self.image.has_mask:
-                #  self.extra_ui.append(self.ui_mask)
+            self.ui_mask = ipyw.Checkbox(
+                    value=self.masked, indent=False, description='Apply mask')
+            self.ui_mask_invert = ipyw.Checkbox(
+                    value=self.invert_mask, indent=False,
+                    description='Invert mask')
+            if self.has_mask:
+                self.extra_ui.append(self.ui_mask)
+                self.extra_ui.append(self.ui_mask_invert)
 
             #  Dose opacity
             self.ui_dose = ipyw.FloatSlider(
@@ -2336,7 +2342,8 @@ class SingleViewer:
 
         else:
             to_share = [
-                #  'ui_mask',
+                'ui_mask',
+                'ui_mask_invert',
                 'ui_dose',
                 'ui_jac_opacity',
                 'ui_jac_range',
@@ -2727,8 +2734,8 @@ class SingleViewer:
             consensus_type=consensus_type,
             exclude_from_consensus=exclude_from_consensus,
             mask=self.mask,
-            masked=self.masked,
-            invert_mask=self.invert_mask,
+            masked=self.ui_mask.value,
+            invert_mask=self.ui_mask_invert.value,
             mask_color=self.mask_color,
             **kwargs
         )
