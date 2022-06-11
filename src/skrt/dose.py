@@ -54,6 +54,11 @@ class ImageOverlay(skrt.image.Image):
         opacity=None, 
         mpl_kwargs=None,
         show=True,
+        mask=None,
+        mask_threshold=0.5,
+        masked=False,
+        invert_mask=False,
+        mask_color="black",
         **kwargs
     ):
         """Plot this overlay, optionally overlaid on its associated Image.
@@ -122,6 +127,27 @@ class ImageOverlay(skrt.image.Image):
         show : bool, default = True
             If True, the plot will be displayed immediately.
 
+        mask : Image/list/ROI/str/StructureSet, default=None
+            Image object representing a mask or a source from which
+            an Image object can be initialised.  In addition to the
+            sources accepted by the Image constructor, the source
+            may be an ROI, a list of ROIs or a StructureSet.  In the
+            latter cases, the mask image is derived from the ROI mask(s).
+
+        mask_threshold : float, default=0.5
+            Threshold for mask data.  Values above and below this value are
+            set to True and False respectively.  Taken into account only
+            if the mask image has non-boolean data.
+
+        masked : bool, default=False
+            If True and a mask is specified, the image is masked.
+
+        invert_mask : bool, default=False
+            If True and a mask is applied, the mask will be inverted.
+
+        mask_color : matplotlib color, default="black"
+            color in which to plot masked areas.
+
         `**`kwargs:
             Keyword args to pass to skrt.image.Image.plot().
         """
@@ -138,7 +164,10 @@ class ImageOverlay(skrt.image.Image):
                     show=False, title="", colorbar=max((colorbar - 1), 0),
                     no_xlabel=no_xlabel, no_ylabel=no_ylabel,
                     no_xtick_labels=no_xtick_labels,
-                    no_ytick_labels=no_ytick_labels)
+                    no_ytick_labels=no_ytick_labels,
+                    mask=mask, mask_threshold=mask_threshold,
+                    masked=masked, invert_mask=invert_mask,
+                    mask_color=mask_color)
 
             # Use default transprency if plotting image and opacity is None
             if opacity is None:
@@ -166,6 +195,11 @@ class ImageOverlay(skrt.image.Image):
             no_ylabel=no_ylabel,
             no_xtick_labels=no_xtick_labels,
             no_ytick_labels=no_ytick_labels,
+            mask=mask,
+            mask_threshold=mask_threshold,
+            masked=masked,
+            invert_mask=invert_mask,
+            mask_color=mask_color,
             **kwargs
         )
 

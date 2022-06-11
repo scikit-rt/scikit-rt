@@ -2020,7 +2020,7 @@ class Image(skrt.core.Archive):
         cmap = mpl_kwargs.get("cmap", self._default_cmap)
         if isinstance(cmap, str):
             cmap = copy.copy(matplotlib.cm.get_cmap(cmap))
-            cmap.set_bad(color=mask_color)
+        cmap.set_bad(color=mask_color)
         mpl_kwargs["cmap"] = cmap
 
         # Plot the slice
@@ -2043,7 +2043,12 @@ class Image(skrt.core.Archive):
                 no_ylabel=no_ylabel,
                 no_xtick_labels=no_xtick_labels,
                 no_ytick_labels=no_ytick_labels,
-                mpl_kwargs=dose_kwargs
+                mpl_kwargs=dose_kwargs,
+                mask=mask,
+                mask_threshold=mask_threshold,
+                masked=masked,
+                invert_mask=invert_mask,
+                mask_color=mask_color,
             )
 
         # Plot ROIs
