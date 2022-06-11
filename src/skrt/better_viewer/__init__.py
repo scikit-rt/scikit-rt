@@ -1070,6 +1070,8 @@ class BetterViewer:
                 v0.ui_roi_plot_type,
                 v0.ui_roi_linewidth,
                 v0.ui_roi_opacity,
+                 v0.ui_roi_select_all,
+                 v0.ui_roi_deselect_all,
             ]
             if any([v.roi_consensus for v in self.viewers]):
                 to_add.append(v0.ui_roi_consensus_switch)
@@ -1423,6 +1425,20 @@ class BetterViewer:
         if self.plotting:
             return
         self.plotting = True
+
+        # Deal with hiding/showing all ROIs
+        for v in self.viewers:
+            # Hide all ROIs
+            if v.ui_roi_deselect_all.value:
+                for roi in v.rois:
+                    roi.checkbox.value = False
+                v.ui_roi_deselect_all.value = False
+
+            # Show all ROIs
+            if v.ui_roi_select_all.value:
+                for roi in v.rois:
+                    roi.checkbox.value = True
+                v.ui_roi_select_all.value = False
 
         # Deal with view change
         view_changed = self.ui_view.value != self.view
@@ -2331,12 +2347,20 @@ class SingleViewer:
             )
             self.update_roi_sliders()
 
+            # Toggle buttons for showing/hiding all ROIs.
+            self.ui_roi_select_all = ipyw.ToggleButton(
+                    value=False, description='Show all ROIs')
+            self.ui_roi_deselect_all = ipyw.ToggleButton(
+                    value=False, description='Hide all ROIs')
+
             # Add all ROI UIs
             if self.has_rois:
                 to_add = [
                     self.ui_roi_plot_type,
                     self.ui_roi_linewidth,
                     self.ui_roi_opacity,
+                    self.ui_roi_select_all,
+                    self.ui_roi_deselect_all,
                 ]
                 if self.roi_consensus:
                     to_add.append(self.ui_roi_consensus_switch)
@@ -2355,6 +2379,8 @@ class SingleViewer:
                 'ui_roi_consensus_switch',
                 'ui_roi_consensus_type',
                 'ui_roi_linewidth',
+                'ui_roi_select_all',
+                'ui_roi_deselect_all',
                 'ui_roi_opacity',
                 'roi_to_exclude',
             ]
