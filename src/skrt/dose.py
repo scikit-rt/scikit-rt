@@ -311,7 +311,7 @@ class Dose(ImageOverlay):
         return dose_max
 
     def plot_dvh(self, rois=[], bins=50, dose_min=0, dose_max=None,
-            figsize=(8, 4), lw=2, n_colour=10, cmap='turbo', grid=True,
+            figsize=(8, 4), lw=2, n_colour=None, cmap='turbo', grid=True,
             fname=None, legend_bbox_to_anchor=(1.01, 0.5),
             legend_loc='center left'):
         '''
@@ -342,8 +342,10 @@ class Dose(ImageOverlay):
             Width (relative to matplotlib default) of line used in drawing
             histogram outlines.
 
-        n_colour : int, default=10
-            Number of colours over which to cycle when drawing histograms.
+        n_colour : int, default=None
+            Number of colours over which to cycle when drawing histograms
+            based on a colour map.  In None, the ROI color attribute
+            is used to define histogram colour.
 
         cmap : str, default='turbo'
             Name of a matplotlib colour map from which to define set of
@@ -359,11 +361,6 @@ class Dose(ImageOverlay):
         fname : str, default=None
             Name of file for saving output.
         '''
-
-        # Create figure and define the list of colours.
-        fig, ax = matplotlib.pyplot.subplots(figsize=figsize)
-        colours = matplotlib.cm.get_cmap(cmap)(np.linspace(0, 1,n_colour))
-        ax.set_prop_cycle(color=colours)
 
         # Ensure that rois is a list.
         if issubclass(type(rois),
@@ -384,6 +381,14 @@ class Dose(ImageOverlay):
         # Determine the maximum dose for the input roi(s).
         if dose_max is None:
             dose_max = self.get_max_dose_in_rois(all_rois)
+
+        # Create figure and define the list of colours.
+        fig, ax = matplotlib.pyplot.subplots(figsize=figsize)
+        if n_colour is None:
+            colours = [roi.color for roi in all_rois]
+        else:
+            colours = matplotlib.cm.get_cmap(cmap)(np.linspace(0, 1, n_colour))
+        ax.set_prop_cycle(color=colours)
 
         # Plot the dose-volume histograms, and extract information for legend.
         lines= []
