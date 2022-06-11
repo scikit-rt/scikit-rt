@@ -310,7 +310,7 @@ class Dose(ImageOverlay):
             dose_max=max(doses)
         return dose_max
 
-    def plot_DVH(self, rois=[], bins=50, dose_min=0, dose_max=None,
+    def plot_dvh(self, rois=[], bins=50, dose_min=0, dose_max=None,
             figsize=(8, 4), lw=2, n_colour=10, cmap='turbo', grid=True,
             fname=None, legend_bbox_to_anchor=(1.01, 0.5),
             legend_loc='center left'):
