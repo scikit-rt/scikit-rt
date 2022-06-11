@@ -3247,7 +3247,7 @@ class ROI(skrt.core.Archive):
         # Make plot
         if include_image and self.image is not None:
             im_mask = kwargs.get("mask", None)
-            im_masked = kwargs.get("masked", False)
+            im_masked = kwargs.get("masked", True)
             im_invert_mask = kwargs.get("invert_mask", False)
             im_mask_color = kwargs.get("mask_color", "black")
             self.image.plot(view, idx=idx, ax=self.ax, show=False,
@@ -3291,7 +3291,7 @@ class ROI(skrt.core.Archive):
         # Plot underlying image
         if include_image and self.image is not None:
             im_mask = kwargs.get("mask", None)
-            im_masked = kwargs.get("masked", False)
+            im_masked = kwargs.get("masked", True)
             im_invert_mask = kwargs.get("invert_mask", False)
             im_mask_color = kwargs.get("mask_color", "black")
             self.image.plot(view, idx=idx, ax=self.ax, show=False,

@@ -487,7 +487,7 @@ class BetterViewer:
             Matplotlib colormap to use for dose field plotting. Supercedes
             any cmap in <dose_kwargs>
 
-        masked : bool, default=False
+        masked : bool, default=True
             If True and a mask is specified, the image is masked.
 
         invert_mask : bool, default=False
@@ -1565,7 +1565,7 @@ class SingleViewer:
         dose_kwargs=None,
         dose_range=None,
         dose_cmap=None,
-        masked=False,
+        masked=True,
         invert_mask=False,
         mask=None,
         mask_color="black",

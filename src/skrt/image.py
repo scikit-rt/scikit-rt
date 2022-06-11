@@ -1685,7 +1685,7 @@ class Image(skrt.core.Archive):
         shift=[None, None, None],
         mask=None,
         mask_threshold=0.5,
-        masked=False,
+        masked=True,
         invert_mask=False,
         mask_color="black",
     ):
@@ -1905,7 +1905,7 @@ class Image(skrt.core.Archive):
             set to True and False respectively.  Taken into account only
             if the mask image has non-boolean data.
 
-        masked : bool, default=False
+        masked : bool, default=True
             If True and a mask is specified, the image is masked.
 
         invert_mask : bool, default=False
