@@ -5914,7 +5914,11 @@ def get_colored_roi_string(roi, grey=False, color=None):
         color = roi.color
     if grey:
         red, green, blue = 255, 255, 255
+        red, green, blue = 128, 128, 128
         text_col = 200, 200, 200
+        # Avoid setting colour for greyed out ROIs.
+        # This gives good readability for both dark and light themes.
+        return ('<p>&nbsp;{}&nbsp;</p>').format(roi.name)
     else:
         red, green, blue = [c * 255 for c in color[:3]]
         text_col = best_text_color(red, green, blue)
