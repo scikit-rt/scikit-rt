@@ -104,7 +104,7 @@ def test_plot_dvh():
 
     # Check that pdf-file doesn't initially exist, but is created.
     assert not pdf.exists()
-    ax = dose.plot_DVH(rois=[cube, structure_set], fname=str(pdf))
+    ax = dose.plot_dvh(rois=[cube, structure_set], fname=str(pdf))
     assert pdf.exists()
 
     # Check data bounds
