@@ -3246,7 +3246,13 @@ class ROI(skrt.core.Archive):
 
         # Make plot
         if include_image and self.image is not None:
-            self.image.plot(view, idx=idx, ax=self.ax, show=False)
+            im_mask = kwargs.get("mask", None)
+            im_masked = kwargs.get("masked", False)
+            im_invert_mask = kwargs.get("invert_mask", False)
+            im_mask_color = kwargs.get("mask_color", "black")
+            self.image.plot(view, idx=idx, ax=self.ax, show=False,
+                    mask=im_mask, masked=im_masked, invert_mask=im_invert_mask,
+                    mask_color=im_mask_color)
 
         self.ax.imshow(s_colors, extent=self.mask.plot_extent[view], 
                        **mask_kwargs)
@@ -3284,7 +3290,13 @@ class ROI(skrt.core.Archive):
 
         # Plot underlying image
         if include_image and self.image is not None:
-            self.image.plot(view, idx=idx, ax=self.ax, show=False)
+            im_mask = kwargs.get("mask", None)
+            im_masked = kwargs.get("masked", False)
+            im_invert_mask = kwargs.get("invert_mask", False)
+            im_mask_color = kwargs.get("mask_color", "black")
+            self.image.plot(view, idx=idx, ax=self.ax, show=False,
+                    mask=im_mask, masked=im_masked, invert_mask=im_invert_mask,
+                    mask_color=im_mask_color)
 
         # Get contour points
         if flatten:
