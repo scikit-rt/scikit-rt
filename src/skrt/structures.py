@@ -2986,9 +2986,10 @@ class ROI(skrt.core.Archive):
         # Adjust centroid marker size
         if contour_kwargs is None:
             contour_kwargs = {}
-        if "centroid" in plot_type:
+        if "centroid" in plot_type or "contour" == plot_type:
             if linewidth is None:
                 linewidth = defaultParams["lines.linewidth"][0]
+        if "centroid" in plot_type:
             contour_kwargs.setdefault("markersize", 7 * np.sqrt(linewidth))
             contour_kwargs.setdefault("markeredgewidth", np.sqrt(linewidth))
 
@@ -3258,8 +3259,8 @@ class ROI(skrt.core.Archive):
                        **mask_kwargs)
 
         # Adjust axes
-        skrt.image.Image.label_ax(self, view, idx, **kwargs)
-        skrt.image.Image.zoom_ax(self, view, zoom, zoom_centre)
+        skrt.image.Image.label_ax(self.image, view, idx, **kwargs)
+        skrt.image.Image.zoom_ax(self.image, view, zoom, zoom_centre)
         if show:
             plt.show()
 
@@ -3330,8 +3331,8 @@ class ROI(skrt.core.Archive):
 
         # Adjust axes
         self.ax.set_aspect("equal")
-        skrt.image.Image.label_ax(self, view, idx, **kwargs)
-        skrt.image.Image.zoom_ax(self, view, zoom, zoom_centre)
+        skrt.image.Image.label_ax(self.image, view, idx, **kwargs)
+        skrt.image.Image.zoom_ax(self.image, view, zoom, zoom_centre)
         if show:
             plt.show()
 
@@ -3437,6 +3438,11 @@ class ROI(skrt.core.Archive):
 
         # Create legend
         if legend:
+            plot_type = kwargs.get("plot_type", None)
+            if plot_type is None:
+                plot_type = kwargs.get("roi_plot_type", None)
+            linewidth = kwargs.get("linewidth", None)
+            opacity = kwargs.get("opacity", None)
             if names:
                 roi1_name = names[0]
                 roi2_name = names[1]
@@ -3444,8 +3450,10 @@ class ROI(skrt.core.Archive):
                 roi1_name = self.name
                 roi2_name = other.name
             handles = [
-                mpatches.Patch(color=self.color, label=roi1_name),
-                mpatches.Patch(color=roi2_color, label=roi2_name),
+                self.get_patch(
+                    plot_type, self.color, opacity, linewidth, roi1_name),
+                self.get_patch(
+                    plot_type, roi2_color, opacity, linewidth, roi2_name),
             ]
             self.ax.legend(
                 handles=handles, framealpha=1, facecolor="white", 
@@ -3838,6 +3846,77 @@ class ROI(skrt.core.Archive):
 
         return ss
 
+    def get_patch(self, plot_type=None, color=None, opacity=None,
+            linewidth=None, name=None):
+        """
+        Obtain patch reflecting ROI characteristics for plotting.
+
+        The patch obtained can be used as a handle in legend creation.
+
+        **Parameters:**
+
+        plot_type : str, default=None
+            Plotting type. If None, will be either "contour" or "mask" 
+            depending on the input type of the ROI. Options:
+
+                - "contour"
+                - "mask"
+                - "centroid" (contour with marker at centroid)
+                - "filled" (transparent mask + contour)
+                - "filled centroid" (filled with marker at centroid)
+
+        color : matplotlib color, default=None
+            Color with which to plot the ROI; overrides the ROI's own color. If 
+            None, self.color will be used.
+
+        opacity : float, default=None
+            Opacity to use if plotting mask (i.e. plot types "mask", "filled", 
+            or "filled centroid"). If None, opacity will be 1 by default for 
+            solid mask plots and 0.3 by default for filled plots.
+
+        linewidth : float, default=None
+            Width of contour lines. If None, the matplotlib default setting 
+            will be used.
+
+        name : str, default=None
+            Name identifying ROI.  If None, self.name will be used.
+        """
+
+        # Ensure that plotting characteristics are defined.
+        if plot_type is None:
+            plot_type = self.default_geom_method
+
+        if color is None:
+            color = self.color
+
+        if opacity is None:
+            opacity = 0.3 if "filled" in plot_type else 1
+
+        if linewidth is None:
+            linewidth = defaultParams["lines.linewidth"][0]
+
+        if name is None:
+            name = self.name
+
+        # Set potentially different opacities for facecolor and edgecolor
+        facecolor = matplotlib.colors.to_rgba(color, alpha=opacity)
+        edgecolor = matplotlib.colors.to_rgba(color, alpha=1)
+
+        # Define patch according to plot_type.
+        patch = None
+        if plot_type in ["contour", "centroid"]:
+            patch = mpatches.Patch(edgecolor=edgecolor,
+                    linewidth=linewidth, fill=False, label=name)
+        elif plot_type in ["filled", "filled centroid"]:
+            patch = mpatches.Patch(edgecolor=edgecolor,
+                    facecolor=facecolor, linewidth=linewidth, label=name)
+        elif plot_type in ["mask"]:
+            patch = mpatches.Patch(facecolor=facecolor, label=name)
+
+        if patch:
+            patch.set_alpha(None)
+
+        return patch
 
 class StructureSet(skrt.core.Archive):
     """Structure set."""
@@ -4762,11 +4841,17 @@ class StructureSet(skrt.core.Archive):
         # Plot with image
         if include_image and self.image is not None:
 
+            plot_type = plot_type or kwargs.get("roi_plot_type", "contour")
+            kwargs["roi_plot_type"] = plot_type
             roi_kwargs = {}
-            if opacity is not None:
+            if opacity is None:
+                roi_kwargs["opacity"] = 0.3 if "filled" in plot_type else 1
+            else:
                 roi_kwargs["opacity"] = opacity
-            if linewidth is not None:
-                roi_kwargs["linewidth"] = opacity
+            if linewidth is None:
+                roi_kwargs["linewidth"] = defaultParams["lines.linewidth"][0]
+            else:
+                roi_kwargs["linewidth"] = linewidth
 
             self.image.plot(
                 view,
@@ -4774,7 +4859,6 @@ class StructureSet(skrt.core.Archive):
                 idx=idx,
                 pos=pos,
                 rois=self,
-                roi_plot_type=plot_type,
                 roi_kwargs=roi_kwargs,
                 centre_on_roi=centre_on_roi,
                 show=show,
@@ -4812,7 +4896,8 @@ class StructureSet(skrt.core.Archive):
 
             if legend:
                 roi_handles.append(
-                    mpatches.Patch(color=consensus_color, label=consensus.name))
+                        consensus.get_patch(plot_type, consensus_color, opacity,
+                            linewidth, consensus.name))
 
             # Plot excluded ROI on top
             if exclude_from_consensus is not None:
@@ -4823,7 +4908,8 @@ class StructureSet(skrt.core.Archive):
                               ax=self.ax, **kwargs)
                 if legend:
                     roi_handles.append(
-                        mpatches.Patch(color=excluded.color, label=excluded.name))
+                        mpatches.Patch(plot_type, excluded.color, opacity,
+                            linewidth, excluded.name))
 
         # Otherwise, plot first ROI and get axes
         else:
@@ -4845,7 +4931,8 @@ class StructureSet(skrt.core.Archive):
 
             if legend:
                 roi_handles.append(
-                    mpatches.Patch(color=central.color, label=central.name))
+                        central.get_patch(plot_type, central.color, opacity,
+                            linewidth, central.name))
 
             # Plot other ROIs
             for i, roi in enumerate(self.get_rois(ignore_empty=True)):
@@ -4861,9 +4948,8 @@ class StructureSet(skrt.core.Archive):
                 if legend:
                     if (idx is None and pos is None and sl is None) or \
                        roi.on_slice(view, sl=sl, idx=idx, pos=pos):
-                        roi_handles.append(mpatches.Patch(
-                            color=roi.color,
-                            label=roi.name))
+                        roi_handles.append(roi.get_patch(plot_type, roi.color,
+                            opacity, linewidth, roi.name))
 
         # Draw legend
         if legend and len(roi_handles):

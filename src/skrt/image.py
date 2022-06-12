@@ -2131,23 +2131,11 @@ class Image(skrt.core.Archive):
                 if max(roi_ylim) < min(ylim) or min(roi_ylim) > max(ylim):
                     continue
 
-                # Define ROI handle based on plot type.
+                # Define ROI handle.
                 color = roi.get_color_from_kwargs(roi_kwargs)
-                facecolor = matplotlib.colors.to_rgba(color, alpha=opacity)
-                edgecolor = matplotlib.colors.to_rgba(color, alpha=1)
-                roi_handle = None
-                if roi_plot_type in ["contour", "centroid"]:
-                    roi_handle = mpatches.Patch(edgecolor=edgecolor,
-                            linewidth=linewidth, fill=False, label=roi.name)
-                elif roi_plot_type in ["filled", "filled centroid"]:
-                    roi_handle = mpatches.Patch(edgecolor=edgecolor,
-                            facecolor=facecolor, linewidth=linewidth,
-                            label=roi.name)
-                elif roi_plot_type in ["mask"]:
-                    roi_handle = mpatches.Patch(facecolor=facecolor,
-                            label=roi.name)
+                roi_handle = roi.get_patch(
+                        roi_plot_type, color, opacity, linewidth)
                 if roi_handle:
-                    roi_handle.set_alpha(None)
                     roi_handles.append(roi_handle)
 
             # Draw ROI legend
