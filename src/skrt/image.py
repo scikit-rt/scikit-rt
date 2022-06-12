@@ -2117,6 +2117,9 @@ class Image(skrt.core.Archive):
         x_ax, y_ax = _plot_axes[view] 
         roi_handles = []
         if legend and consensus_type is None:
+            linewidth = roi_kwargs.get("linewidth",
+                    mpl.defaultParams["lines.linewidth"][0])
+            opacity = roi_kwargs.get("opacity", 1)
             for roi in plotted_rois:
 
                 # Check whether this ROI is currently visible
@@ -2128,9 +2131,24 @@ class Image(skrt.core.Archive):
                 if max(roi_ylim) < min(ylim) or min(roi_ylim) > max(ylim):
                     continue
 
-                color=roi.get_color_from_kwargs(roi_kwargs)
-                roi_handles.append(
-                    mpatches.Patch(color=color, label=roi.name))
+                # Define ROI handle based on plot type.
+                color = roi.get_color_from_kwargs(roi_kwargs)
+                facecolor = matplotlib.colors.to_rgba(color, alpha=opacity)
+                edgecolor = matplotlib.colors.to_rgba(color, alpha=1)
+                roi_handle = None
+                if roi_plot_type in ["contour", "centroid"]:
+                    roi_handle = mpatches.Patch(edgecolor=edgecolor,
+                            linewidth=linewidth, fill=False, label=roi.name)
+                elif roi_plot_type in ["filled", "filled centroid"]:
+                    roi_handle = mpatches.Patch(edgecolor=edgecolor,
+                            facecolor=facecolor, linewidth=linewidth,
+                            label=roi.name)
+                elif roi_plot_type in ["mask"]:
+                    roi_handle = mpatches.Patch(facecolor=facecolor,
+                            label=roi.name)
+                if roi_handle:
+                    roi_handle.set_alpha(None)
+                    roi_handles.append(roi_handle)
 
             # Draw ROI legend
             if legend and len(roi_handles):
