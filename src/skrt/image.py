@@ -1666,6 +1666,8 @@ class Image(skrt.core.Archive):
         no_axis_labels=False,
         rois=None,
         roi_plot_type="contour",
+        roi_opacity=None,
+        roi_linewidth=None,
         consensus_type=None,
         exclude_from_consensus=None,
         consensus_color="blue",
@@ -1837,6 +1839,16 @@ class Image(skrt.core.Archive):
         roi_plot_type : str, default='contour'
             ROI plotting type (see ROI.plot() for options).
 
+        roi_opacity : float, default=None
+            Opacity to use if plotting ROI as mask (i.e. roi_plot_type
+            "mask", "filled", or "filled centroid"). If None, opacity
+            will be 1 by default for solid mask plots and 0.3 by default
+            for filled plots.
+
+        roi_linewidth : float, default=None
+            Width of ROI contour lines. If None, the matplotlib default setting 
+            will be used.
+
         consensus_type : str, default=None
             If not None, the consensus of all ROIs will be plotting rather than
             plotting ROIs individually. Requires <rois> to be a single
@@ -1997,6 +2009,15 @@ class Image(skrt.core.Archive):
         roi_kwargs['no_ylabel'] = no_ylabel
         roi_kwargs['no_xtick_labels'] = no_xtick_labels
         roi_kwargs['no_ytick_labels'] = no_ytick_labels
+        if roi_linewidth is None:
+            roi_linewidth = roi_kwargs.get("linewidth",
+                    mpl.defaultParams["lines.linewidth"][0])
+        roi_kwargs["linewidth"] = roi_linewidth
+        if roi_opacity is None:
+            roi_opacity = roi_kwargs.get("opacity",
+                    0.3 if "filled" in roi_plot_type else 1)
+        roi_kwargs["opacity"] = roi_opacity
+
         if dose_kwargs is None:
             dose_kwargs = {}
         if clb_kwargs is None:
@@ -2117,9 +2138,6 @@ class Image(skrt.core.Archive):
         x_ax, y_ax = _plot_axes[view] 
         roi_handles = []
         if legend and consensus_type is None:
-            linewidth = roi_kwargs.get("linewidth",
-                    mpl.defaultParams["lines.linewidth"][0])
-            opacity = roi_kwargs.get("opacity", 1)
             for roi in plotted_rois:
 
                 # Check whether this ROI is currently visible
@@ -2132,9 +2150,9 @@ class Image(skrt.core.Archive):
                     continue
 
                 # Define ROI handle.
-                color = roi.get_color_from_kwargs(roi_kwargs)
+                roi_color = roi.get_color_from_kwargs(roi_kwargs)
                 roi_handle = roi.get_patch(
-                        roi_plot_type, color, opacity, linewidth)
+                        roi_plot_type, roi_color, roi_opacity, roi_linewidth)
                 if roi_handle:
                     roi_handles.append(roi_handle)
 
@@ -2210,7 +2228,10 @@ class Image(skrt.core.Archive):
             z_ax = _axes[_slice_axes[view]]
             pos = self.idx_to_pos(idx, z_ax)
             im_slice = self.idx_to_slice(idx, z_ax)
-            n_slice = self.get_n_voxels()[_axes.index(z_ax)]
+            if hasattr(self, "get_n_voxels"):
+                n_slice = self.get_n_voxels()[_axes.index(z_ax)]
+            else:
+                n_slice = self.image.get_n_voxels()[_axes.index(z_ax)]
 
             # Set default string, indicating slice index or position.
             if scale_in_mm:

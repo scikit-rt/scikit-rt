@@ -2849,7 +2849,7 @@ class ROI(skrt.core.Archive):
     def plot(
         self,
         view="x-y",
-        plot_type='contour',
+        plot_type=None,
         sl=None,
         idx=None,
         pos=None,
@@ -2965,7 +2965,7 @@ class ROI(skrt.core.Archive):
             return
 
         if plot_type is None:
-            plot_type = self.default_geom_method
+            plot_type = kwargs.get("roi_plot_type", self.default_geom_method)
 
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
@@ -2980,6 +2980,10 @@ class ROI(skrt.core.Archive):
         else:
             color = matplotlib.colors.to_rgba(color)
 
+        if opacity is None:
+            opacity = kwargs.get(
+                    "roi_opacity", 0.3 if "filled" in plot_type else 1)
+
         # Set up axes
         self.set_ax(plot_type, include_image, view, ax, gs, figsize)
 
@@ -2988,7 +2992,8 @@ class ROI(skrt.core.Archive):
             contour_kwargs = {}
         if "centroid" in plot_type or "contour" == plot_type:
             if linewidth is None:
-                linewidth = defaultParams["lines.linewidth"][0]
+                linewidth = kwargs.get("roi_linewidth",
+                        defaultParams["lines.linewidth"][0])
         if "centroid" in plot_type:
             contour_kwargs.setdefault("markersize", 7 * np.sqrt(linewidth))
             contour_kwargs.setdefault("markeredgewidth", np.sqrt(linewidth))
@@ -3048,6 +3053,23 @@ class ROI(skrt.core.Archive):
         # Check whether y axis needs to be inverted
         if view == "x-y" and self.ax.get_ylim()[1] > self.ax.get_ylim()[0]:
             self.ax.invert_yaxis()
+
+        # Draw legend
+        legend = kwargs.get("legend", False)
+        if legend:
+            name = kwargs.get("name", self.name)
+            roi_handle = self.get_patch(
+                    plot_type, color, opacity, linewidth, name)
+            if roi_handle:
+                bbox_to_anchor = kwargs.get("legend_bbox_to_anchor", None)
+                loc = kwargs.get("legend_loc", "lower left")
+
+                self.ax.legend(handles=[roi_handle],
+                        bbox_to_anchor=bbox_to_anchor, loc=loc,
+                        facecolor="white", framealpha=1
+                        )
+
+        # Display image
 
         plt.tight_layout()
         if show:
@@ -3259,8 +3281,8 @@ class ROI(skrt.core.Archive):
                        **mask_kwargs)
 
         # Adjust axes
-        skrt.image.Image.label_ax(self.image, view, idx, **kwargs)
-        skrt.image.Image.zoom_ax(self.image, view, zoom, zoom_centre)
+        skrt.image.Image.label_ax(self, view, idx, **kwargs)
+        skrt.image.Image.zoom_ax(self, view, zoom, zoom_centre)
         if show:
             plt.show()
 
@@ -3331,8 +3353,8 @@ class ROI(skrt.core.Archive):
 
         # Adjust axes
         self.ax.set_aspect("equal")
-        skrt.image.Image.label_ax(self.image, view, idx, **kwargs)
-        skrt.image.Image.zoom_ax(self.image, view, zoom, zoom_centre)
+        skrt.image.Image.label_ax(self, view, idx, **kwargs)
+        skrt.image.Image.zoom_ax(self, view, zoom, zoom_centre)
         if show:
             plt.show()
 
@@ -4838,20 +4860,19 @@ class StructureSet(skrt.core.Archive):
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
 
+        # Ensure that linewidth and opacity for ROI plotting are defined.
+        roi_kwargs = {}
+        plot_type = plot_type or kwargs.get("roi_plot_type", "contour")
+        roi_kwargs["roi_plot_type"] = plot_type
+        if opacity is None:
+            opacity = 0.3 if "filled" in plot_type else 1
+        roi_kwargs["opacity"] = opacity
+        if linewidth is None:
+            linewidth = defaultParams["lines.linewidth"][0]
+        roi_kwargs["linewidth"] = linewidth
+
         # Plot with image
         if include_image and self.image is not None:
-
-            plot_type = plot_type or kwargs.get("roi_plot_type", "contour")
-            kwargs["roi_plot_type"] = plot_type
-            roi_kwargs = {}
-            if opacity is None:
-                roi_kwargs["opacity"] = 0.3 if "filled" in plot_type else 1
-            else:
-                roi_kwargs["opacity"] = opacity
-            if linewidth is None:
-                roi_kwargs["linewidth"] = defaultParams["lines.linewidth"][0]
-            else:
-                roi_kwargs["linewidth"] = linewidth
 
             self.image.plot(
                 view,
@@ -4908,7 +4929,7 @@ class StructureSet(skrt.core.Archive):
                               ax=self.ax, **kwargs)
                 if legend:
                     roi_handles.append(
-                        mpatches.Patch(plot_type, excluded.color, opacity,
+                        excluded.get_patch(plot_type, excluded.color, opacity,
                             linewidth, excluded.name))
 
         # Otherwise, plot first ROI and get axes
