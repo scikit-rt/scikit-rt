@@ -2125,6 +2125,20 @@ class SingleViewer:
                     self.main_ui.extend(self.ui_intensity_list)
                 self.ui_intensity = ipyw.VBox(self.ui_intensity_list)
 
+            # Get initial zoom centres
+            zoom_centre = self.zoom_centre if is_list(self.zoom_centre) \
+                    else [self.zoom_centre] * 3
+            im_centre = list(self.image.get_centre())
+            self.default_centre = {
+                view: [im_centre[ax[0]], im_centre[ax[1]]]
+                for view, ax in _plot_axes.items()
+            }
+            self.current_centre = self.default_centre
+            for view in _plot_axes:
+                for i, ax in enumerate(_plot_axes[view]):
+                    if zoom_centre[ax] is not None:
+                        self.current_centre[view][i] = zoom_centre[ax]
+
             # Make zoom UI
             if self.zoom_ui:
 
@@ -2147,20 +2161,6 @@ class SingleViewer:
                     continuous_update=False,
                     style=_style,
                 )
-
-                # Get initial zoom centres
-                zoom_centre = self.zoom_centre if is_list(self.zoom_centre) \
-                        else [self.zoom_centre] * 3
-                im_centre = list(self.image.get_centre())
-                self.default_centre = {
-                    view: [im_centre[ax[0]], im_centre[ax[1]]]
-                    for view, ax in _plot_axes.items()
-                }
-                self.current_centre = self.default_centre
-                for view in _plot_axes:
-                    for i, ax in enumerate(_plot_axes[view]):
-                        if zoom_centre[ax] is not None:
-                            self.current_centre[view][i] = zoom_centre[ax]
 
                 # Make zoom centre sliders
                 self.ui_zoom_centre_x = ipyw.FloatSlider(
