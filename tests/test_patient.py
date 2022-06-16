@@ -223,7 +223,7 @@ def test_unsorted_images():
     # are as expected, and that the image data can be loaded.
     series_numbers2 = []
     for key, images in s.image_types.items():
-        assert key == modality
+        assert key == modality.lower()
         assert len(images) == len(series_numbers)
         for image in images:
             series_number = image.get_dicom_dataset().SeriesNumber

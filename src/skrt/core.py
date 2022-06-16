@@ -408,12 +408,19 @@ class DicomFile(Data):
         self.set_dates_and_times(elements)
         self.set_slice_thickness()
         self.modality = getattr(self.ds, "Modality", None)
+        if self.modality:
+            self.modality = self.modality.lower()
         self.series_number = getattr(self.ds, "SeriesNumber", None)
         self.series_instance_uid = getattr(self.ds, "SeriesInstanceUID", None)
+        self.referenced_image_sop_instance_uid = get_sequence_value(
+                self.ds, "ReferencedImageSequence", "SOPInstanceUID")
+        self.referenced_structure_set_sop_instance_uid = get_sequence_value(
+                self.ds, "ReferencedStructureSetSequence", "SOPInstanceUID")
+        self.sop_instance_uid = getattr(self.ds, "SOPInstanceUID", None)
 
-    def get_object(self, cls):
+    def get_object(self, cls, **kwargs):
 
-        obj = cls()
+        obj = cls(**kwargs)
         if cls.__name__ == "Study":
             obj.date = self.study_date
             obj.time = self.study_time
@@ -425,8 +432,27 @@ class DicomFile(Data):
 
         obj.series_number = self.series_number
         obj.series_instance_uid = self.series_instance_uid
+        obj.sop_instance_uid = self.sop_instance_uid
 
         return obj
+
+    def get_referenced_object(self, others=None, uid=None, omit_slice=False):
+        referenced_object = None
+        if None not in [others, uid]:
+            if omit_slice:
+                uid1 = get_uid_without_slice(uid)
+            else:
+                uid1 = uid
+
+            for other in others:
+                if omit_slice:
+                    uid2 = get_uid_without_slice(other.sop_instance_uid)
+                else:
+                    uid2 = other.sop_instance_uid
+
+                if uid1 == uid2:
+                    referenced_object = other
+        return referenced_object
 
     def set_dates_and_times(self, elements):
 
@@ -1093,3 +1119,15 @@ def year_fraction(timestamp):
     else:
         year_fraction = None
     return year_fraction
+
+def get_uid_without_slice(uid):
+    return ".".join(uid.split(".")[:-1])
+
+def get_sequence_value(ds=None, sequence=None, tag=None):
+    value = None
+    sequence_data = getattr(ds, sequence, None)
+    if None not in [ds, sequence, tag]:
+        sequence_data = getattr(ds, sequence, None)
+        if sequence_data:
+            value = getattr(sequence_data[-1], tag, None)
+    return value
