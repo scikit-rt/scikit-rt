@@ -349,7 +349,12 @@ and their initial values.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.get_object">
-<span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_object" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_object" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.DicomFile.get_referenced_object">
+<span class="sig-name descname"><span class="pre">get_referenced_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omit_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_referenced_object" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -559,6 +564,11 @@ log_level is set to the value of Defaults().log_level.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_sequence_value">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_sequence_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_sequence_value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_time_and_date">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_time_and_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.get_time_and_date" title="Permalink to this definition"></a></dt>
 <dd><p>Extract time and date separately from timestamp.</p>
@@ -583,6 +593,11 @@ the most recent if True, or the least recent otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_uid_without_slice">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_uid_without_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_uid_without_slice" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.is_list">
