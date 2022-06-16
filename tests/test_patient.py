@@ -1,8 +1,11 @@
 """Check that a patient object can be read."""
 
+from pathlib import Path
+
 import numpy as np
 import os
 import shutil
+import time
 
 from skrt.patient import Patient, Study
 from skrt.simulation import SyntheticImage
@@ -184,3 +187,48 @@ def test_null_study():
     assert(s.subdir == '')
     assert(s.time == '')
     assert(s.timestamp == '')
+
+def test_unsorted_images():
+    '''Test loading to patient object of unsorted DICOM images.'''
+
+    # Create directory for patient data.
+    pid = "test_patient2"
+    pdir = Path("tmp")/pid
+    if pdir.exists():
+        shutil.rmtree(pdir)
+    pdir.mkdir(parents=True)
+
+    # Create set of (duplicate) images and write to patient directory.
+    im = sim.get_image()
+    study_date = time.strftime("%Y%m%d")
+    study_time = time.strftime("%H%M%S")
+    header_extras = {"StudyDate": study_date, "StudyTime": study_time}
+    modality = "CT"
+    series_numbers = range(1, 6)
+    for idx in series_numbers:
+        header_extras["SeriesNumber"] = idx
+        im.write(pdir/str(idx), modality=modality, header_extras=header_extras)
+
+    # Load images to Patient object.
+    p = Patient(pdir, unsorted_dicom=True)
+
+    # Check that there is a single study, then check its date and time.
+    assert len(p.studies) == 1
+    s = p.studies[0]
+    assert s.date == study_date
+    assert s.time == study_time
+
+    # Check that the number of images loaded is correct,
+    # that they have the right modality, that the series numbers
+    # are as expected, and that the image data can be loaded.
+    series_numbers2 = []
+    for key, images in s.image_types.items():
+        assert key == modality
+        assert len(images) == len(series_numbers)
+        for image in images:
+            series_number = image.get_dicom_dataset().SeriesNumber
+            assert series_number in series_numbers
+            series_numbers2.append(series_number)
+            image.load()
+            image.data.shape == im.data.shape
+    assert len(series_numbers) == len(series_numbers2)
