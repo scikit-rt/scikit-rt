@@ -466,15 +466,15 @@ class Image(skrt.core.Archive):
 
         # Try loading from nifti file
         elif isinstance(self.source, str):
-            if not os.path.exists(self.source):
+            if os.path.exists(self.source):
+                if os.path.isfile(self.source):
+                    self.data, affine = load_nifti(self.source)
+                    self.source_type = "nifti"
+                if self.data is not None:
+                    self.affine = affine
+            elif not hasattr(self, "dicom_paths"):
                 raise RuntimeError(
                     f"Image input {self.source} does not exist!")
-            if os.path.isfile(self.source):
-                self.data, affine = load_nifti(self.source)
-                self.source_type = "nifti"
-            if self.data is not None:
-                self.affine = affine
-
         else:
             raise TypeError("Unrecognised image source type:", self.source)
 
@@ -485,8 +485,12 @@ class Image(skrt.core.Archive):
 
         # Try loading from dicom file
         if self.data is None:
+            if hasattr(self, "dicom_paths") and not self.source:
+                paths = self.dicom_paths
+            else:
+                paths = self.source
             self.data, affine, window_centre, window_width, ds, self._z_paths \
-                    = load_dicom(self.source)
+                    = load_dicom(paths)
             self.source_type = "dicom"
             if self.data is not None:
                 self.dicom_dataset = ds
@@ -3602,17 +3606,18 @@ def get_dicom_paths(path):
     return paths
 
 
-def load_dicom(path, debug=False):
+def load_dicom(paths, debug=False):
     """Load a dicom image from one or more dicom files.
 
     **Parameters**:
 
-    path : str
-        Path to a single dicom file or a directory containing multiple dicom
-        files. If path points to a single file that is found to be part of a 
-        series of multiple dicom files corresponding to one image,  the image 
-        will be loaded from all dicom files in the same directory
-        as the first that match its StudyInstanceUID and SeriesNumber.
+    paths : str/list
+        Path to a single dicom file, path to a directory containing multiple
+        dicom files, or list of paths to dicom files. If path points to a
+        single file that is found to be part of a series of multiple dicom
+        files corresponding to one image,  the image will be loaded from
+        all dicom files in the same directory as the first that match its
+        StudyInstanceUID and SeriesNumber.
 
     **Returns**:
 
@@ -3637,7 +3642,7 @@ def load_dicom(path, debug=False):
     """
 
     # Get list of paths corresponding to this image
-    paths = get_dicom_paths(path)
+    paths = paths if isinstance(paths, list) else get_dicom_paths(paths)
     if not len(paths):
         return tuple([None] * 6)
 

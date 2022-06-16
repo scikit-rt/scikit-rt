@@ -393,6 +393,88 @@ class Data:
         self.print_depth = depth
 
 
+class DicomFile(Data):
+
+    def __init__(self, path):
+        self.path = str(path)
+        try:
+            self.ds = pydicom.dcmread(self.path, force=True)
+        except IsADirectoryError:
+            self.ds = None
+        elements = {
+                "study": ["Study", "Content", "InstanceCreation"],
+                "item": ["Instance", "InstanceCreation", "Content", "Series"]
+                }
+        self.set_dates_and_times(elements)
+        self.set_slice_thickness()
+        self.modality = getattr(self.ds, "Modality", None)
+        self.series_number = getattr(self.ds, "SeriesNumber", None)
+        self.series_instance_uid = getattr(self.ds, "SeriesInstanceUID", None)
+
+    def get_object(self, cls):
+
+        obj = cls()
+        if cls.__name__ == "Study":
+            obj.date = self.study_date
+            obj.time = self.study_time
+            obj.timestamp = self.study_timestamp
+        else:
+            obj.date = self.item_date
+            obj.time = self.item_time
+            obj.timestamp = self.item_timestamp
+
+        obj.series_number = self.series_number
+        obj.series_instance_uid = self.series_instance_uid
+
+        return obj
+
+    def set_dates_and_times(self, elements):
+
+        measurements = {"Date": "00000000", "Time": "000000"}
+
+        for element, timed_items in elements.items():
+            for measurement, value in measurements.items():
+                attribute = f"{element}_{measurement.lower()}"
+                if self.ds is None:
+                    setattr(self, attribute, None)
+                    continue
+                setattr(self, attribute, value)
+                for timed_item in timed_items:
+                    target = f"{timed_item}{measurement}"
+                    if hasattr(self.ds, target):
+                        target_value = getattr(self.ds, target)
+                        if target_value:
+                            setattr(self, attribute, target_value.split(".")[0])
+                            break
+
+            if self.ds is None:
+                timestamp = None
+            else:
+                date = getattr(self, f"{element}_date")
+                time = getattr(self, f"{element}_time")
+                setattr(self, f"{element}_timestamp", f"{date}_{time}")
+
+    def get_matched_attributes(self, others, attributes=None):
+        attributes = attributes or []
+        if isinstance(attributes, str):
+            attributes = [attributes]
+        matches = others or []
+
+        for attribute in attributes:
+            matches = [match for match in matches if
+                    (getattr(match, attribute, None)
+                    == getattr(self, attribute, None))]
+
+        return matches 
+
+    def set_slice_thickness(self):
+        self.slice_thickness = ""
+        if hasattr(self.ds, "SliceThickness"):
+            slice_thickness = self.ds.SliceThickness
+            if slice_thickness:
+                self.slice_thickness = f"{self.ds.SliceThickness : .3f}"
+
+
 class PathData(Data):
     """Data with an associated path or directory; has the ability to
     extract a list of dated objects from within this directory."""
@@ -531,6 +613,19 @@ class Dated(PathData):
             if self.date > max_date:
                 return False
         return True
+
+    def get_matched_timestamps(self, others=None, delta_seconds=120):
+        others = others or []
+        matches = []
+        for other in others:
+            try:
+                delta_time = abs(float(other.time) - float(self.time))
+            except NoneType:
+                delta_time = 0
+            if other.date == self.date and delta_time <= delta_seconds:
+                matches.append(other)
+
+        return matches
 
     def __eq__(self, other):
         return self.date == other.date and self.time == other.time

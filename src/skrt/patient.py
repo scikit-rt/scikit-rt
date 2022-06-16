@@ -768,7 +768,7 @@ class Patient(skrt.core.PathData):
     a patient ID, and whose subdirectories contain studies.
     """
 
-    def __init__(self, path="", exclude=["logfiles"]):
+    def __init__(self, path="", exclude=["logfiles"], unsorted_dicom=False):
 
         # Record start time
         tic = timeit.default_timer()
@@ -780,16 +780,20 @@ class Patient(skrt.core.PathData):
         self.id = os.path.basename(self.path)
 
         # Find studies
-        self.studies = self.create_objects(dtype=Study)
-        if not self.studies:
-            if os.path.isdir(self.path):
-                if os.access(self.path, os.R_OK):
-                    subdirs = sorted(os.listdir(self.path))
-                    for subdir in subdirs:
-                        if subdir not in exclude:
-                            self.studies.extend(
-                                self.create_objects(dtype=Study, subdir=subdir)
-                            )
+        if unsorted_dicom:
+            self.sort_dicom()
+        else:
+            self.studies = self.create_objects(dtype=Study)
+            if not self.studies:
+                if os.path.isdir(self.path):
+                    if os.access(self.path, os.R_OK):
+                        subdirs = sorted(os.listdir(self.path))
+                        for subdir in subdirs:
+                            if subdir not in exclude:
+                                self.studies.extend(
+                                        self.create_objects(dtype=Study,
+                                            subdir=subdir)
+                                        )
         
         # Add to data objects a reference to the patient object.
         self.link_study_data_to_patient()
@@ -797,6 +801,56 @@ class Patient(skrt.core.PathData):
         # Record end time, then store initialisation time.
         toc = timeit.default_timer()
         self._init_time = (toc - tic)
+
+    def sort_dicom(self):
+        non_image_modalities = ["RTPLAN", "RTSTRUCT", "RTDOSE"]
+        self.studies = []
+        patient_path = Path(self.path)
+        file_paths = sorted(patient_path.glob("**/*"))
+        for file_path in file_paths:
+            dcm = skrt.core.DicomFile(file_path)
+            if dcm.ds:
+                study = dcm.get_object(Study)
+                study.print_depth = 1
+                matched_timestamps = study.get_matched_timestamps(self.studies)
+                if matched_timestamps:
+                    study = matched_timestamps[0]
+                else:
+                    self.studies.append(study)
+
+                if not dcm.modality in non_image_modalities:
+                    if not dcm.modality in study.image_types:
+                        if not dcm.modality in study.image_types:
+                            study.image_types[dcm.modality] = []
+                            images = f"{dcm.modality}_images"
+                            if not hasattr(study, images):
+                                setattr(study, images, [])
+
+                    matched_attributes = dcm.get_matched_attributes(
+                            study.image_types[dcm.modality],
+                            "series_instance_uid"
+                            )
+                    if matched_attributes:
+                        matched_attributes[0].dicom_paths.append(dcm.path)
+                    else:
+                        dcm.dicom_paths = [dcm.path]
+                        study.image_types[dcm.modality].append(dcm)
+
+        for study in self.studies:
+            for modality in study.image_types:
+                for idx in range(len(study.image_types[modality])):
+                    dcm = study.image_types[modality][idx]
+                    image = dcm.get_object(Image)
+                    image.dicom_paths = list(dcm.dicom_paths)
+                    study.image_types[modality][idx] = image
+
+        for study in self.studies:
+            for modality, images in study.image_types.items():
+                for image in images:
+                    for dicom_path in image.dicom_paths:
+                        dcm = pydicom.dcmread(dicom_path, force=True)
+
+        #print(self.studies)
 
     def link_study_data_to_patient(self):
         '''Add to data objects a reference to the associated patient object.'''
