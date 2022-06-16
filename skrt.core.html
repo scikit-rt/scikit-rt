@@ -268,6 +268,11 @@ automatically from the current date and time if auto_timestamp is True.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.Dated.get_matched_timestamps">
+<span class="sig-name descname"><span class="pre">get_matched_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_matched_timestamps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.get_pandas_timestamp">
 <span class="sig-name descname"><span class="pre">get_pandas_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_pandas_timestamp" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -313,6 +318,48 @@ but add to them, or modify values, from opts dictionary.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.core.Defaults.instance">
 <span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">print_depth:</span> <span class="pre">0</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.core.DicomFile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">DicomFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.DicomFile.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of Data class, allowing initialisation of an
+arbitrary set of attributes.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
+(dictionary keys) and their initial values.</p>
+</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
+and their initial values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.DicomFile.get_matched_attributes">
+<span class="sig-name descname"><span class="pre">get_matched_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_matched_attributes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.DicomFile.get_object">
+<span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_object" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.DicomFile.set_dates_and_times">
+<span class="sig-name descname"><span class="pre">set_dates_and_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_dates_and_times" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.DicomFile.set_slice_thickness">
+<span class="sig-name descname"><span class="pre">set_slice_thickness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_slice_thickness" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -364,7 +411,7 @@ arbitrary set of attributes.</p>
 <dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
 (dictionary keys) and their initial values.</p>
 </dd>
-<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
+<dt><a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
 and their initial values.</p>
 </dd>
 </dl>
@@ -387,7 +434,7 @@ directory will be used.</p>
 <dt>timestamp_only<span class="classifier">bool, default=True</span></dt><dd><p>If True, only files whose names correspond to a timestamp will
 be used to initialise objects.</p>
 </dd>
-<dt><a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs :</dt><dd><p>Keyword arguments to pass to object creation.</p>
+<dt><a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs :</dt><dd><p>Keyword arguments to pass to object creation.</p>
 </dd>
 </dl>
 <p><strong>Returns</strong>:</p>

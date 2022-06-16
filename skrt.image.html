@@ -1939,15 +1939,16 @@ derived from kV and MV CT scans collected in VoxTox study.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.load_dicom">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom" title="Permalink to this definition"></a></dt>
 <dd><p>Load a dicom image from one or more dicom files.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
-<dt>path<span class="classifier">str</span></dt><dd><p>Path to a single dicom file or a directory containing multiple dicom
-files. If path points to a single file that is found to be part of a 
-series of multiple dicom files corresponding to one image,  the image 
-will be loaded from all dicom files in the same directory
-as the first that match its StudyInstanceUID and SeriesNumber.</p>
+<dt>paths<span class="classifier">str/list</span></dt><dd><p>Path to a single dicom file, path to a directory containing multiple
+dicom files, or list of paths to dicom files. If path points to a
+single file that is found to be part of a series of multiple dicom
+files corresponding to one image,  the image will be loaded from
+all dicom files in the same directory as the first that match its
+StudyInstanceUID and SeriesNumber.</p>
 </dd>
 </dl>
 <p><strong>Returns</strong>:</p>
