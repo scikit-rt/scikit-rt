@@ -413,14 +413,21 @@ class DicomFile(Data):
         self.series_number = getattr(self.ds, "SeriesNumber", None)
         self.series_instance_uid = getattr(self.ds, "SeriesInstanceUID", None)
         self.referenced_image_sop_instance_uid = get_sequence_value(
-                self.ds, "ReferencedImageSequence", "SOPInstanceUID")
+                self.ds, "ReferencedImageSequence",
+                "ReferencedSOPInstanceUID")
         self.referenced_structure_set_sop_instance_uid = get_sequence_value(
-                self.ds, "ReferencedStructureSetSequence", "SOPInstanceUID")
+                self.ds, "ReferencedStructureSetSequence",
+                "ReferencedSOPInstanceUID")
         self.sop_instance_uid = getattr(self.ds, "SOPInstanceUID", None)
 
     def get_object(self, cls, **kwargs):
 
+        if cls.__name__ == "Dose":
+            kwargs["path"] = self.path
+            kwargs["load"] = False
+
         obj = cls(**kwargs)
+
         if cls.__name__ == "Study":
             obj.date = self.study_date
             obj.time = self.study_time
@@ -452,6 +459,8 @@ class DicomFile(Data):
 
                 if uid1 == uid2:
                     referenced_object = other
+                    break
+
         return referenced_object
 
     def set_dates_and_times(self, elements):

@@ -854,19 +854,23 @@ class Patient(skrt.core.PathData):
                     study.image_types[modality][idx] = image
                     getattr(study, datastore).append(image)
 
-            for dcm in non_image_objects.get("rtdose", []):
+        for dcm in non_image_objects.get("rtdose", []):
+            image = None
+            for study in self.studies:
                 for modality, images in study.image_types.items():
                     image = dcm.get_referenced_object(
                             images, dcm.referenced_image_sop_instance_uid, True)
-                    if not modality in study.dose_types:
-                        study.dose_types[modality] = []
-                        datastore = f"{modality}_doses"
-                        setattr(study, datastore, [])
-                    dose = dcm.get_object(Dose, image=image)
-                    study.dose_types[modality].append(dose)
-                    getattr(study, datastore).append(dose)
-
-        print(self.studies)
+                    if image:
+                        if not modality in study.dose_types:
+                            study.dose_types[modality] = []
+                            datastore = f"{modality}_doses"
+                            setattr(study, datastore, [])
+                        dose = dcm.get_object(Dose, image=image)
+                        study.dose_types[modality].append(dose)
+                        getattr(study, datastore).append(dose)
+                        break
+                if image:
+                    break
 
     def link_study_data_to_patient(self):
         '''Add to data objects a reference to the associated patient object.'''
