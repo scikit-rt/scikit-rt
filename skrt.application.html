@@ -230,11 +230,22 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.application.Application.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.run" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise analysis, process patient data, finalise analysis.</p>
-<p><strong>Parameter:</strong></p>
+<p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>paths: list, default = []</dt><dd><p>List of paths to folders containing patient data.</p>
+<dt>paths: list, default=[]</dt><dd><p>List of paths to folders containing patient data.</p>
+</dd>
+<dt>unsorted_dicom: bool, default=False</dt><dd><p>If True, examine all files below the top directory, and
+sort into images, structure sets, doses and plans.  If
+False, files are assumed to be organised according to the
+VoxTox model.</p>
+</dd>
+<dt>id_mappings: dict, default=None</dt><dd><p>By default, patient identifiers are taken to be the
+names of the top-level directories containing patient data.
+The dictionary id_mappings can optionally be provided to
+map between the default identifiers (keys) and alternative
+identifiers (values).</p>
 </dd>
 </dl>
 </dd></dl>
