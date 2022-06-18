@@ -1170,10 +1170,11 @@ def get_referenced_image(referrer=None, image_types=None):
         if image:
             break
     if image is None:
-        matched_attributes = DicomFile.get_matched_attributes(
-                referrer, images, "frame_of_reference_uid")
-        if matched_attributes:
-            image = matched_attributes[0]
+        for modality, images in image_types.items():
+            matched_attributes = DicomFile.get_matched_attributes(
+                    referrer, images, "frame_of_reference_uid")
+            if matched_attributes:
+                image = matched_attributes[0]
 
     return image
 
