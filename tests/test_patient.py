@@ -7,6 +7,8 @@ import os
 import shutil
 import time
 
+from pydicom.uid import generate_uid
+
 from skrt.patient import Patient, Study
 from skrt.simulation import SyntheticImage
 
@@ -202,7 +204,12 @@ def test_unsorted_images():
     im = sim.get_image()
     study_date = time.strftime("%Y%m%d")
     study_time = time.strftime("%H%M%S")
-    header_extras = {"StudyDate": study_date, "StudyTime": study_time}
+    study_instance_uid = generate_uid()
+    header_extras = {
+            "StudyDate": study_date,
+            "StudyInstanceUID": study_instance_uid,
+            "StudyTime": study_time
+            }
     modality = "CT"
     series_numbers = range(1, 6)
     for idx in series_numbers:
@@ -215,6 +222,7 @@ def test_unsorted_images():
     # Check that there is a single study, then check its date and time.
     assert len(p.studies) == 1
     s = p.studies[0]
+    assert s.study_instance_uid == study_instance_uid
     assert s.date == study_date
     assert s.time == study_time
 

@@ -419,10 +419,11 @@ class DicomFile(Data):
                 self.ds, "ReferencedStructureSetSequence",
                 "ReferencedSOPInstanceUID")
         self.sop_instance_uid = getattr(self.ds, "SOPInstanceUID", None)
+        self.study_instance_uid = getattr(self.ds, "StudyInstanceUID", None)
 
     def get_object(self, cls, **kwargs):
 
-        if cls.__name__ == "Dose":
+        if cls.__name__ in ["Dose", "Plan", "StructureSet"]:
             kwargs["path"] = self.path
             kwargs["load"] = False
 
@@ -432,14 +433,17 @@ class DicomFile(Data):
             obj.date = self.study_date
             obj.time = self.study_time
             obj.timestamp = self.study_timestamp
+            for item in ["dose", "image", "plan", "structure_set"]:
+                setattr(obj, f"{item}_types", {})
         else:
             obj.date = self.item_date
             obj.time = self.item_time
             obj.timestamp = self.item_timestamp
 
-        obj.series_number = self.series_number
         obj.series_instance_uid = self.series_instance_uid
+        obj.series_number = self.series_number
         obj.sop_instance_uid = self.sop_instance_uid
+        obj.study_instance_uid = self.study_instance_uid
 
         return obj
 
