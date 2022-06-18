@@ -768,7 +768,13 @@ class Patient(skrt.core.PathData):
     a patient ID, and whose subdirectories contain studies.
     """
 
-    def __init__(self, path="", exclude=["logfiles"], unsorted_dicom=False):
+    def __init__(self, path=None, exclude=None, unsorted_dicom=False,
+            id_mappings=None):
+
+        # Initialise parameters.
+        path = path or ""
+        exclude = exclude or ["logfiles"]
+        id_mappings = id_mappings or {}
 
         # Record start time
         tic = timeit.default_timer()
@@ -777,7 +783,8 @@ class Patient(skrt.core.PathData):
         if path is None:
             path = os.getcwd()
         self.path = skrt.core.fullpath(str(path))
-        self.id = os.path.basename(self.path)
+        patient_id = os.path.basename(self.path)
+        self.id = id_mappings.get(patient_id, patient_id)
 
         # Find studies
         if unsorted_dicom:
@@ -1035,6 +1042,7 @@ class Patient(skrt.core.PathData):
             for obj_type in sorted(obj_types):
                 if not obj_type in all_types:
                     all_types.append(obj_type)
+
         all_types.sort()
         return all_types
 
@@ -1188,7 +1196,7 @@ class Patient(skrt.core.PathData):
         info['plan_fraction'] = None
         info['plan_target_dose'] = None
         for study in self.studies:
-            if hasattr(study, 'plan_types'):
+            if hasattr(study, 'plan_types') and study.plan_types:
                 plan_type = sorted(list(study.plan_types.keys()))[0]
                 plan = study.plan_types[plan_type][0]
                 plan.load()
@@ -1365,6 +1373,7 @@ class Patient(skrt.core.PathData):
             images = self.combined_objs(image_label)
             time_separated_images = skrt.core.get_time_separated_objects(
                     images, min_delta=min_delta, unit=unit)
+
             time_last = None
             time_zero = time_separated_images[0].get_pandas_timestamp()
 
@@ -1373,20 +1382,29 @@ class Patient(skrt.core.PathData):
                 info['id'] = self.id
                 info['modality'] = image_type
                 info['timestamp'] = image.get_pandas_timestamp()
-                info['day'] = info['timestamp'].isoweekday()
-                if time_last is not None:
-                    info['time_delta'] = info['timestamp'] - time_last
-                else:
-                    info['time_delta'] = None
-                info['days_delta'] = skrt.core.get_interval_in_days(
-                        time_last, info['timestamp'])
-                info['whole_days_delta'] = skrt.core.get_interval_in_whole_days(
-                        time_last, info['timestamp'])
-                time_last = info['timestamp']
-                info['days_total'] = skrt.core.get_interval_in_days(
-                        time_zero, info['timestamp'])
-                info['whole_days_total'] = skrt.core.get_interval_in_whole_days(
-                        time_zero, info['timestamp'])
+                info['day'] = None
+                info['time_delta'] = None
+                info['days_delta'] = None
+                info['whole_days_delta'] = None
+                info['days_total'] = None
+                info['whole_days_total'] = None
+                if info['timestamp']:
+                    info['day'] = info['timestamp'].isoweekday()
+                    if time_last is not None:
+                        info['time_delta'] = info['timestamp'] - time_last
+                    else:
+                        info['time_delta'] = None
+                    info['days_delta'] = skrt.core.get_interval_in_days(
+                            time_last, info['timestamp'])
+                    info['whole_days_delta'] = (
+                            skrt.core.get_interval_in_whole_days(
+                                time_last, info['timestamp']))
+                    time_last = info['timestamp']
+                    info['days_total'] = skrt.core.get_interval_in_days(
+                            time_zero, info['timestamp'])
+                    info['whole_days_total'] = (
+                            skrt.core.get_interval_in_whole_days(
+                                time_zero, info['timestamp']))
                 all_info.append(info)
 
         return (pd.DataFrame(all_info) if df else all_info)

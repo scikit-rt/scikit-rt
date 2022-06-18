@@ -194,21 +194,35 @@ class Application():
 
         return self.status
 
-    def run(self, paths=[]):
+    def run(self, paths=[], unsorted_dicom=False, id_mappings=None):
         '''
         Initialise analysis, process patient data, finalise analysis.
 
-        **Parameter:**
+        **Parameters:**
 
-        paths: list, default = []
+        paths: list, default=[]
             List of paths to folders containing patient data.
+
+        unsorted_dicom: bool, default=False
+            If True, examine all files below the top directory, and
+            sort into images, structure sets, doses and plans.  If
+            False, files are assumed to be organised according to the
+            VoxTox model.
+
+        id_mappings: dict, default=None
+            By default, patient identifiers are taken to be the
+            names of the top-level directories containing patient data.
+            The dictionary id_mappings can optionally be provided to
+            map between the default identifiers (keys) and alternative
+            identifiers (values).
         '''
 
         if self.status.ok():
             if not paths:
                 self.logger.warning('List of paths to patient data is empty')
             for data_path in paths:
-                patient = Patient(path=data_path)
+                patient = Patient(path=data_path, unsorted_dicom=unsorted_dicom,
+                        id_mappings=id_mappings)
                 self.status = self.execute(patient=patient)
                 if not self.status.ok():
                     break

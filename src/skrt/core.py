@@ -409,7 +409,7 @@ class DicomFile(Data):
         self.set_slice_thickness()
         self.frame_of_reference_uid = getattr(
                 self.ds, "FrameOfReferenceUID", None)
-        self.modality = getattr(self.ds, "Modality", None)
+        self.modality = getattr(self.ds, "Modality", "unknown")
         if self.modality:
             self.modality = self.modality.lower()
         self.series_number = getattr(self.ds, "SeriesNumber", None)
@@ -1041,6 +1041,10 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
         When objects aren't separated by the minimum time interval, keep
         the most recent if True, or the least recent otherwise. 
     '''
+
+    # Deal with cases where the number of input objects is 0 or 1.
+    if len(objs) <= 1:
+        return objs
 
     # Ensure that min_delta is a pandas Timedelta object.
     if not isinstance(min_delta, pd.Timedelta):
