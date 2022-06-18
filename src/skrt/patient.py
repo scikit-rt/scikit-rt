@@ -803,8 +803,17 @@ class Patient(skrt.core.PathData):
         self._init_time = (toc - tic)
 
     def sort_dicom(self):
-        non_image_modalities = ["rtplan", "rtstruct", "rtdose"]
-        non_image_objects = {}
+        data_types = {
+                "rtplan": "plan",
+                "rtstruct": "structure_set",
+                "rtdose": "dose",
+                }
+        data_classes = {
+                "dose": Dose,
+                "image": Image,
+                "plan": Plan,
+                "structure_set": StructureSet,
+                }
         self.studies = []
         patient_path = Path(self.path)
         file_paths = sorted(patient_path.glob("**/*"))
@@ -819,83 +828,102 @@ class Patient(skrt.core.PathData):
                     study = dcm.get_object(Study)
                     self.studies.append(study)
 
-                if dcm.modality in non_image_modalities:
-                    if not dcm.modality in non_image_objects:
-                        non_image_objects[dcm.modality] = []
-                    non_image_objects[dcm.modality].append(dcm)
-                else:
-                    if not dcm.modality in study.image_types:
-                        if not dcm.modality in study.image_types:
-                            study.image_types[dcm.modality] = []
-
+                dstring = data_types.get(dcm.modality, "image")
+                dtypes = getattr(study, f"{dstring}_types")
+                if not dcm.modality in dtypes:
+                    dtypes[dcm.modality] = []
+                if "image" == dstring:
                     matched_attributes = dcm.get_matched_attributes(
-                            study.image_types[dcm.modality],
+                            dtypes[dcm.modality],
                             "series_instance_uid"
                             )
                     if matched_attributes:
                         matched_attributes[0].dicom_paths.append(dcm.path)
                     else:
                         dcm.dicom_paths = [dcm.path]
-                        study.image_types[dcm.modality].append(dcm)
+                        dtypes[dcm.modality].append(dcm)
+                else:
+                    dtypes[dcm.modality].append(dcm)
 
         for study in self.studies:
-            for modality in study.image_types:
-                datastore = f"{modality}_images"
-                setattr(study, datastore, [])
-                for idx in range(len(study.image_types[modality])):
-                    dcm = study.image_types[modality][idx]
-                    image = dcm.get_object(Image)
-                    image.dicom_paths = list(dcm.dicom_paths)
-                    study.image_types[modality][idx] = image
-                    getattr(study, datastore).append(image)
+            for dstring, dclass in data_classes.items():
+                dtypes = getattr(study, f"{dstring}_types")
+                for modality in dtypes:
+                    datastore = f"{modality}_{dstring}s"
+                    setattr(study, datastore, [])
+                    for idx, dcm in enumerate(dtypes[modality]):
+                        obj = dcm.get_object(dclass)
+                        if "image" == dstring:
+                            obj.dicom_paths = list(dcm.dicom_paths)
+                            dtypes[modality][idx] = obj
+                        getattr(study, datastore).append(obj)
 
-        for dcm_modality, dcms in non_image_objects.items():
-            for dcm in dcms:
-                image = None
-                for study in self.studies:
-                    if "rtstruct" == dcm_modality:
-                        cls = StructureSet
-                        obj_types = study.structure_set_types
-                        datastore_type = "structure_sets"
-                    elif "rtplan" == dcm_modality:
-                        cls = Plan
-                        obj_types = study.plan_types
-                        datastore_type = "plans"
-                    elif "rtdose" == dcm_modality:
-                        cls = Dose
-                        obj_types = study.dose_types
-                        datastore_type = "doses"
+        for study in self.studies:
+            if study.plan_types and study.structure_set_types:
+                for plan in study.rtplan_plans:
+                    ss = skrt.core.get_referenced_object(
+                            plan, study.rtstruct_structure_sets,
+                            "referenced_structure_set_sop_instance_uid")
+                    if ss:
+                        plan.set_structure_set(ss)
+
+            if study.plan_types and study.dose_types:
+                for dose in study.rtdose_doses:
+                    plan = skrt.core.get_referenced_object(
+                            dose, study.rtplan_plans,
+                            "referenced_plan_sop_instance_uid")
+                    if plan:
+                        dose.set_plan(plan)
+
+        for study in self.studies:
+            for dcm_modality, dstring in data_types.items():
+                dtypes = getattr(study, f"{dstring}_types")
+                dcm_datastore = f"{dcm_modality}_{dstring}s"
+                orphan_objs = []
+                for obj in getattr(study, dcm_datastore, []):
+                    image = skrt.core.get_referenced_image(
+                            obj, study.image_types)
+                    obj.set_image(image)
+
+            if study.plan_types and study.structure_set_types:
+                for plan in study.rtplan_plans:
+                    if not plan.image:
+                        ss = skrt.core.get_referenced_object(
+                                plan, study.rtstruct_structure_sets,
+                                "referenced_structure_set_sop_instance_uid")
+
+                        image = ss.image if ss is not None else None
+                        plan.set_image(image)
+
+                for ss in study.rtstruct_structure_sets:
+                    if not ss.image:
+                        for plan in ss.plans:
+                            if plan.image:
+                                ss.set_image(plan.image)
+                                break
+
+            for dcm_modality, dstring in data_types.items():
+                dtypes = getattr(study, f"{dstring}_types")
+                dcm_datastore = f"{dcm_modality}_{dstring}s"
+                orphan_objs = []
+                for obj in getattr(study, dcm_datastore, []):
+                    if obj.image:
+                        datastore = f"{image.modality}_{dstring}s"
+                        if not image.modality in dtypes:
+                            dtypes[image.modality] = []
+                            setattr(study, datastore, [])
+                        dtypes[image.modality].append(obj)
+                        getattr(study, datastore).append(obj)
                     else:
-                        cls = None
-                        obj_types = None
-                        datastore_type = None
-                    kwargs = {}
-                    for modality, images in (study.image_types.items()):
-                        image = dcm.get_referenced_object(images,
-                                dcm.referenced_image_sop_instance_uid, True)
-                        if cls in [Dose, StructureSet]:
-                            kwargs["image"] = image
-                        if image:
-                            if not modality in obj_types:
-                                obj_types[modality] = []
-                                datastore = f"{modality}_{datastore_type}"
-                                setattr(study, datastore, [])
-                            obj = dcm.get_object(cls, image=image)
-                            obj_types[modality].append(obj)
-                            getattr(study, datastore).append(obj)
-                            break
-                    if image:
-                        break
-
-                if image is None:
-                            modality = "orphan"
-                            if not modality in obj_types:
-                                obj_types[modality] = []
-                                datastore = f"{modality}_{datastore_type}"
-                                setattr(study, datastore, [])
-                            obj = dcm.get_object(cls, **kwargs)
-                            obj_types[modality].append(obj)
-                            getattr(study, datastore).append(obj)
+                        orphan_objs.append(obj)
+                if orphan_objs:
+                    setattr(study, dcm_datastore, orphan_objs)
+                    dtypes[dcm_modality] = orphan_objs
+                else:
+                    if hasattr(study, dcm_datastore):
+                        delattr(study, dcm_datastore)
+                    if dcm_modality in dtypes:
+                        del dtypes[dcm_modality]
 
     def link_study_data_to_patient(self):
         '''Add to data objects a reference to the associated patient object.'''

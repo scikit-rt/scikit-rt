@@ -407,19 +407,16 @@ class DicomFile(Data):
                 }
         self.set_dates_and_times(elements)
         self.set_slice_thickness()
+        self.frame_of_reference_uid = getattr(
+                self.ds, "FrameOfReferenceUID", None)
         self.modality = getattr(self.ds, "Modality", None)
         if self.modality:
             self.modality = self.modality.lower()
         self.series_number = getattr(self.ds, "SeriesNumber", None)
         self.series_instance_uid = getattr(self.ds, "SeriesInstanceUID", None)
-        self.referenced_image_sop_instance_uid = get_sequence_value(
-                self.ds, "ReferencedImageSequence",
-                "ReferencedSOPInstanceUID")
-        self.referenced_structure_set_sop_instance_uid = get_sequence_value(
-                self.ds, "ReferencedStructureSetSequence",
-                "ReferencedSOPInstanceUID")
         self.sop_instance_uid = getattr(self.ds, "SOPInstanceUID", None)
         self.study_instance_uid = getattr(self.ds, "StudyInstanceUID", None)
+        self.set_referenced_sop_instance_uids()
 
     def get_object(self, cls, **kwargs):
 
@@ -440,32 +437,20 @@ class DicomFile(Data):
             obj.time = self.item_time
             obj.timestamp = self.item_timestamp
 
+        obj.modality = self.modality
+        obj.frame_of_reference_uid = self.frame_of_reference_uid
+        obj.referenced_image_sop_instance_uid = (
+                self.referenced_image_sop_instance_uid)
+        obj.referenced_plan_sop_instance_uid = (
+                self.referenced_plan_sop_instance_uid)
+        obj.referenced_structure_set_sop_instance_uid = (
+                self.referenced_structure_set_sop_instance_uid)
         obj.series_instance_uid = self.series_instance_uid
         obj.series_number = self.series_number
         obj.sop_instance_uid = self.sop_instance_uid
         obj.study_instance_uid = self.study_instance_uid
 
         return obj
-
-    def get_referenced_object(self, others=None, uid=None, omit_slice=False):
-        referenced_object = None
-        if None not in [others, uid]:
-            if omit_slice:
-                uid1 = get_uid_without_slice(uid)
-            else:
-                uid1 = uid
-
-            for other in others:
-                if omit_slice:
-                    uid2 = get_uid_without_slice(other.sop_instance_uid)
-                else:
-                    uid2 = other.sop_instance_uid
-
-                if uid1 == uid2:
-                    referenced_object = other
-                    break
-
-        return referenced_object
 
     def set_dates_and_times(self, elements):
 
@@ -505,6 +490,37 @@ class DicomFile(Data):
                     == getattr(self, attribute, None))]
 
         return matches 
+
+    def set_referenced_sop_instance_uids(self):
+        try:
+            uid = self.ds.ReferencedImageSequence[0].ReferencedSOPInstanceUID
+        except (IndexError, AttributeError):
+            uid = None
+
+        if uid is None:
+            try:
+                uid = (self.ds.ROIContourSequence[0].ContourSequence[0]
+                        .ContourImageSequence[0].ReferencedSOPInstanceUID)
+            except (IndexError, AttributeError):
+                pass
+
+        self.referenced_image_sop_instance_uid = uid
+
+        try:
+            uid = (self.ds.ReferencedStructureSetSequence[0]
+                    .ReferencedSOPInstanceUID)
+        except (IndexError, AttributeError):
+            None
+
+        self.referenced_structure_set_sop_instance_uid = uid
+
+        try:
+            uid = (self.ds.ReferencedRTPlanSequence[0]
+                    .ReferencedSOPInstanceUID)
+        except (IndexError, AttributeError):
+            uid = None
+
+        self.referenced_plan_sop_instance_uid = uid
 
     def set_slice_thickness(self):
         self.slice_thickness = ""
@@ -1144,3 +1160,39 @@ def get_sequence_value(ds=None, sequence=None, tag=None):
         if sequence_data:
             value = getattr(sequence_data[-1], tag, None)
     return value
+
+def get_referenced_image(referrer=None, image_types=None):
+    image_types = image_types or {}
+    image = None
+    for modality, images in image_types.items():
+        image = get_referenced_object(referrer, images,
+                "referenced_image_sop_instance_uid", True)
+        if image:
+            break
+    if image is None:
+        matched_attributes = DicomFile.get_matched_attributes(
+                referrer, images, "frame_of_reference_uid")
+        if matched_attributes:
+            image = matched_attributes[0]
+
+    return image
+
+def get_referenced_object(referrer, others, tag, omit_slice=False):
+    referenced_object = None
+    uid1 = getattr(referrer, tag, None)
+    if uid1:
+        if omit_slice:
+            uid1 = get_uid_without_slice(uid1)
+
+        for other in others:
+            if omit_slice:
+                uid2 = get_uid_without_slice(other.sop_instance_uid)
+            else:
+                uid2 = other.sop_instance_uid
+
+            if uid1 == uid2:
+                referenced_object = other
+                break
+
+    return referenced_object
+
