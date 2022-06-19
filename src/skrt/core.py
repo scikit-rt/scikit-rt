@@ -535,7 +535,7 @@ class PathData(Data):
     extract a list of dated objects from within this directory."""
 
     def __init__(self, path=""):
-        self.path = fullpath(path)
+        self.path = fullpath(str(path))
         self.subdir = ""
 
     def create_objects(

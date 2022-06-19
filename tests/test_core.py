@@ -27,23 +27,29 @@ def test_data():
     data.print()
 
 def test_pathdata():
-    pdata = skrt.core.PathData('.')
-    assert pdata.path == skrt.core.fullpath('.')
-    assert pdata.create_objects(None) == []
+    for path in [".", Path(".")]:
+        pdata = skrt.core.PathData(path)
+        assert pdata.path == skrt.core.fullpath(path)
+        assert pdata.create_objects(None) == []
 
 def test_dated():
-    dated = skrt.core.Dated(path='.')
-    assert not dated.date
-    assert not dated.time
+    for path in [".", Path(".")]:
+        dated = skrt.core.Dated(path)
+        assert not dated.date
+        assert not dated.time
 
 def test_dated_sorting():
-    dated1 = skrt.core.Dated("19990405_120394")
-    dated2 = skrt.core.Dated(auto_timestamp=True)
-    assert dated2 > dated1
+    timestamp = "19990405_120394"
+    for path in [timestamp, Path(timestamp)]:
+        dated1 = skrt.core.Dated(path)
+        dated2 = skrt.core.Dated(auto_timestamp=True)
+        assert dated2 > dated1
 
 def test_dated_interval():
-    dated = skrt.core.Dated("20010502_120358")
-    assert dated.in_date_interval("19991203", "20030402")
+    timestamp = "20010502_120358"
+    for path in [timestamp, Path(timestamp)]:
+        dated = skrt.core.Dated(timestamp)
+        assert dated.in_date_interval("19991203", "20030402")
 
 def test_time_separated_objects():
     # Test filtering of dated objects based on time separation.
@@ -74,12 +80,15 @@ def test_time_separated_objects():
     assert dated2 == objs4[2]
 
 def test_files():
-    file1 = skrt.core.File('afile.txt')
-    file2 = skrt.core.File('bfile.txt')
-    assert file2 > file1
-    file3 = skrt.core.File('afile.txt')
-    assert file3 == file1
-    assert file3 != file2
+    for path1 in ("afile.txt", Path("afile.txt")):
+        for path2 in ("bfile.txt", Path("bfile.txt")):
+            for path3 in ("afile.txt", Path("afile.txt")):
+                file1 = skrt.core.File(path1)
+                file2 = skrt.core.File(path2)
+                assert file2 > file1
+                file3 = skrt.core.File(path3)
+                assert file3 == file1
+                assert file3 != file2
 
 def test_archive():
     timestamp = '19990405_230203'
@@ -92,12 +101,13 @@ def test_archive():
         file.write('testing')
     with open(f'{tdir}/.hidden', 'w') as file:
         file.write('testing')
-    archive = skrt.core.Archive(tdir)
-    assert archive.timestamp == timestamp
-    assert len(archive.files) == 1
-    assert 'some_file' in archive.files[0].path
-    archive2 = skrt.core.Archive(tdir, allow_dirs=True)
-    assert len(archive2.files) == 2
+    for path in [tdir, Path(tdir)]:
+        archive = skrt.core.Archive(path)
+        assert archive.timestamp == timestamp
+        assert len(archive.files) == 1
+        assert 'some_file' in archive.files[0].path
+        archive2 = skrt.core.Archive(path, allow_dirs=True)
+        assert len(archive2.files) == 2
 
 def test_logger(capsys):
     logger = skrt.core.get_logger("test", "INFO")
