@@ -394,6 +394,17 @@ class Data:
 
 
 class DicomFile(Data):
+    '''
+    Class representing files in DICOM format, with conversion to skrt objects.
+
+    **Methods:**
+    - **_Init__()** : Create instance of DicomFile class.
+    - **get_object()** : 
+    - **get_matched_attributes()** : 
+    - **set_dates_and_times()** : 
+    - **set_referenced_sop_instance_uids** :
+    - **set_slice_thickness** :
+    '''
 
     def __init__(self, path):
         self.path = str(path)
@@ -403,7 +414,7 @@ class DicomFile(Data):
             self.ds = None
         elements = {
                 "study": ["Study", "Content", "InstanceCreation"],
-                "item": ["Instance", "InstanceCreation", "Content", "Series"]
+                "item": ["Instance", "Content", "Series", "InstanceCreation"]
                 }
         self.set_dates_and_times(elements)
         self.set_slice_thickness()
@@ -452,6 +463,19 @@ class DicomFile(Data):
 
         return obj
 
+    def get_matched_attributes(self, others, attributes=None):
+        attributes = attributes or []
+        if isinstance(attributes, str):
+            attributes = [attributes]
+        matches = others or []
+
+        for attribute in attributes:
+            matches = [match for match in matches if
+                    (getattr(match, attribute, None)
+                    == getattr(self, attribute, None))]
+
+        return matches 
+
     def set_dates_and_times(self, elements):
 
         measurements = {"Date": "00000000", "Time": "000000"}
@@ -477,19 +501,6 @@ class DicomFile(Data):
                 date = getattr(self, f"{element}_date")
                 time = getattr(self, f"{element}_time")
                 setattr(self, f"{element}_timestamp", f"{date}_{time}")
-
-    def get_matched_attributes(self, others, attributes=None):
-        attributes = attributes or []
-        if isinstance(attributes, str):
-            attributes = [attributes]
-        matches = others or []
-
-        for attribute in attributes:
-            matches = [match for match in matches if
-                    (getattr(match, attribute, None)
-                    == getattr(self, attribute, None))]
-
-        return matches 
 
     def set_referenced_sop_instance_uids(self):
         try:
