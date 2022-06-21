@@ -9,6 +9,7 @@ import time
 
 from pydicom.uid import generate_uid
 
+import skrt
 from skrt.patient import Patient, Study
 from skrt.simulation import SyntheticImage
 
@@ -98,6 +99,20 @@ def test_load_images():
     assert len(images) == 2
     assert images[0] == s.ct_images[0]
     assert images[1] == s.mr_images[0]
+
+def test_unsorted_dicom_defaults():
+    for unsorted_dicom in [True, False]:
+        skrt.core.Defaults().unsorted_dicom = unsorted_dicom
+        p2 = Patient(pdir)
+        print("Helloooooooo", pdir)
+        s = p2.studies[0]
+        assert len(s.ct_images) == 1
+        assert hasattr(s.ct_images[0], "dicom_paths") == unsorted_dicom
+        '''
+        ### Need to understand problems with MR data ###
+        assert len(s.mr_images) == 1
+        assert hasattr(s.mr_images[0], "dicom_paths") == unsorted_dicom
+        '''
 
 def test_write_rois_nifti():
     p.studies = []

@@ -14,6 +14,10 @@ from skrt.image import Image
 from skrt.structures import StructureSet
 from skrt.dose import Dose, Plan
 
+# Default mode for reading patient data.
+skrt.core.Defaults({"unsorted_dicom": False})
+
+
 class Study(skrt.core.Archive):
     """Class representing a single study; can contain images, dose fields,
     and structure sets."""
@@ -768,12 +772,13 @@ class Patient(skrt.core.PathData):
     a patient ID, and whose subdirectories contain studies.
     """
 
-    def __init__(self, path=None, exclude=None, unsorted_dicom=False,
+    def __init__(self, path=None, exclude=None, unsorted_dicom=None,
             id_mappings=None):
 
         # Initialise parameters.
         path = path or ""
         exclude = exclude or ["logfiles"]
+        unsorted_dicom = unsorted_dicom or skrt.core.Defaults().unsorted_dicom
         id_mappings = id_mappings or {}
 
         # Record start time
