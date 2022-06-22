@@ -160,8 +160,8 @@ class DicomWriter:
 
         # Store value of MediaStorageSOPInstanceUID.
         # This will be the root UID when saving data for image slices.
-        self.mediaStorageSOPInstanceUID = (
-                self.ds.file_meta.MediaStorageSOPInstanceUID)
+        self.mediaStorageSOPInstanceUID = getattr(
+                self.ds.file_meta, "MediaStorageSOPInstanceUID", None)
 
     def add_to_image_dataset(self, ds):
         '''
