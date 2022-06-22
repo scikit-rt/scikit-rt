@@ -167,6 +167,84 @@ class Image(skrt.core.Archive):
         if load and (not isinstance(self.source, str) or self.source):
             self.load()
 
+    def __add__(self, other):
+        '''
+        Define image addition.
+
+        The result of the addition of self and other is an Image object
+        that has the same affine matrix as self, and has a data array
+        obtained by summing the data arrays of self and other.
+        '''
+        if not self.has_same_geometry(other):
+            raise RuntimeError("Objects for addition must have same geometry")
+        result = self.__class__(path=(self.get_data() + other.get_data()),
+                affine=self.get_affine())
+        return result
+
+    def __iadd__(self, other):
+        '''
+        Define image addition in place.
+
+        The result of the addition of self and other is an Image object
+        that has the same affine matrix as self, and has a data array
+        obtained by summing the data arrays of self and other.
+        '''
+        if not self.has_same_geometry(other):
+            raise RuntimeError("Objects for addition must have same geometry")
+        return self + other
+
+    def __neg__(self):
+        '''
+        Define unary negative for image.
+
+        The result of the unary negative is an Image object that has the
+        same affine matrix as self, and has a data array obtained by
+        taking the negative of each element of the data array of self.
+        '''
+        result = self.__class__(path=(-self.get_data()),
+                affine=self.get_affine())
+        return result
+
+    def __pos__(self):
+        '''
+        Define unary positive for image.
+
+        The result of the unitary positive is an Image object that has the
+        same affine matrix as self, and has a data array that is the
+        same as the data array of self.
+        '''
+        result = self.__class__(path=(self.get_data()),
+                affine=self.get_affine())
+        return result
+
+    def __sub__(self, other):
+        '''
+        Define image subtraction.
+
+        The result of the subtraction of other from self is an Image object
+        that has the same affine matrix as self, and has a data array
+        obtained by subtracting the data array of other from the data
+        array of other.
+        '''
+        if not self.has_same_geometry(other):
+            raise RuntimeError("Objects for addition must have same geometry")
+        result = self.__class__(path=(self.get_data() - other.get_data()),
+                affine=self.get_affine())
+        return result
+
+    def __isub__(self, other):
+        '''
+        Define image subtraction in place.
+
+        The result of the subtraction of other from self is an Image object
+        that has the same affine matrix as self, and has a data array
+        obtained by subtracting the data array of other from the data
+        array of self.
+        '''
+        if not self.has_same_geometry(other):
+            raise RuntimeError("Objects for addition must have same geometry")
+        return self - other
+
     def astype(self, itype):
         '''
         Return image object with requested type of representation.

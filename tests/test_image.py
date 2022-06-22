@@ -794,3 +794,74 @@ def test_apply_banding():
         v_band = bands[v2]
         assert (((im.get_data() > v1) & (im.get_data() <= v2)).sum()
                 == (im1.get_data() == v_band).sum())
+
+def test_addition():
+    # Define test image.
+    shape = (50, 50, 10)
+    voxel_size = (1, 1, 3)
+    origin = (-62., -62., -10.)
+    im1 = create_test_image(shape, voxel_size, origin)
+
+    # Test addition.
+    im2 = im1 + im1
+    
+    assert im2.get_n_voxels() == im1.get_n_voxels()
+    assert im2.get_voxel_size() == im1.get_voxel_size()
+    assert im2.get_origin() == im1.get_origin()
+    assert np.all(im2.get_data() == 2 * im1.get_data())
+
+    # Test in-place addition.
+    im3 = im1.clone()
+    im3 += im1
+    
+    assert im3.get_n_voxels() == im1.get_n_voxels()
+    assert im3.get_voxel_size() == im1.get_voxel_size()
+    assert im3.get_origin() == im1.get_origin()
+    assert np.all(im3.get_data() == 2 * im1.get_data())
+
+def test_subtraction():
+    # Define test image.
+    shape = (50, 50, 10)
+    voxel_size = (1, 1, 3)
+    origin = (-62., -62., -10.)
+    im1 = create_test_image(shape, voxel_size, origin)
+
+    # Test subtraction.
+    im2 = im1 - im1
+    
+    assert im2.get_n_voxels() == im1.get_n_voxels()
+    assert im2.get_voxel_size() == im1.get_voxel_size()
+    assert im2.get_origin() == im1.get_origin()
+    assert np.all(im2.get_data() == np.zeros(shape))
+
+    # Test in-place subtraction.
+    im3 = im1.clone()
+    im3 -= im1
+    
+    assert im3.get_n_voxels() == im1.get_n_voxels()
+    assert im3.get_voxel_size() == im1.get_voxel_size()
+    assert im3.get_origin() == im1.get_origin()
+    assert np.all(im3.get_data() == np.zeros(shape))
+
+def test_unary_opeartions():
+    # Define test image.
+    shape = (50, 50, 10)
+    voxel_size = (1, 1, 3)
+    origin = (-62., -62., -10.)
+    im1 = create_test_image(shape, voxel_size, origin)
+
+    # Test unary positive.
+    im2 = +im1
+    
+    assert im2.get_n_voxels() == im1.get_n_voxels()
+    assert im2.get_voxel_size() == im1.get_voxel_size()
+    assert im2.get_origin() == im1.get_origin()
+    assert np.all(im2.get_data() == im1.get_data())
+
+    # Test unary negative.
+    im3 = -im1
+    
+    assert im3.get_n_voxels() == im1.get_n_voxels()
+    assert im3.get_voxel_size() == im1.get_voxel_size()
+    assert im3.get_origin() == im1.get_origin()
+    assert np.all(im3.get_data() == -im1.get_data())
