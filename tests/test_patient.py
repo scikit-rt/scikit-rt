@@ -255,3 +255,10 @@ def test_unsorted_images():
             image.load()
             image.data.shape == im.data.shape
     assert len(series_numbers) == len(series_numbers2)
+
+def test_pathlib_path():
+    # Test passing of pathlib.Path.
+    p = Patient(Path())
+    s = Study(Path())
+    assert p.path == skrt.core.fullpath(".")
+    assert s.path == skrt.core.fullpath(".")

@@ -1,5 +1,7 @@
 """Classes for loading and comparing medical images."""
 
+import pathlib
+
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
 import scipy.ndimage
@@ -143,7 +145,7 @@ class Image(skrt.core.Archive):
         # Otherwise, load from source
         self.data = None
         self.title = title
-        self.source = path
+        self.source = str(path) if isinstance(path, pathlib.Path) else path
         self.source_type = None
         self.dicom_dataset = None
         self.voxel_size = list(voxel_size) if voxel_size is not None else None

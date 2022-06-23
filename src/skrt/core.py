@@ -828,7 +828,7 @@ def alphanumeric(in_str: str = "") -> List[str]:
     return elements
 
 
-def fullpath(path: str = "") -> str:
+def fullpath(path=""):
     """Evaluate full path, expanding '~', environment variables, and
     symbolic links."""
 

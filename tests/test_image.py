@@ -1,5 +1,7 @@
 """Test Image class."""
 
+from pathlib import Path
+
 import math
 import os
 import random
@@ -11,7 +13,7 @@ import pydicom
 from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
-from skrt.core import File
+from skrt.core import File, fullpath
 from skrt.image import Image
 from skrt.simulation import SyntheticImage
 
@@ -865,3 +867,8 @@ def test_unary_opeartions():
     assert im3.get_voxel_size() == im1.get_voxel_size()
     assert im3.get_origin() == im1.get_origin()
     assert np.all(im3.get_data() == -im1.get_data())
+
+def test_pathlib_path():
+    # Test passing of pathlib.Path.
+    im_tmp = Image(Path(dcm_file))
+    assert im_tmp.path == fullpath(dcm_file)

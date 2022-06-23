@@ -6,6 +6,7 @@ import pytest
 import numpy as np
 
 from skrt import Dose, Image
+from skrt.core import fullpath
 from skrt.simulation import SyntheticImage
 
 # Make random arrays to use for an image and a dose map
@@ -126,3 +127,9 @@ def test_plot_dvh():
         roi_name = roi_names.pop()
         assert roi_name in labels
         labels.remove(roi_name)
+
+def test_pathlib_path():
+    # Test passing of pathlib.Path.
+    dcm_dir = Path(tmp_path) / 'dose_dcm'
+    dose = Dose(dcm_dir)
+    assert dose.path == fullpath(dcm_dir)

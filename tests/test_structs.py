@@ -6,6 +6,7 @@ import os
 import random
 import shutil
 import pandas as pd
+import pathlib
 import pytest
 import numpy as np
 import matplotlib.colors
@@ -13,6 +14,7 @@ import matplotlib.colors
 from shapely.geometry import Polygon
 from shapely.validation import explain_validity
 
+from skrt.core import fullpath
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour
@@ -925,3 +927,13 @@ def test_mask_image():
 
     # Check mask image for structure set.
     assert ss_voxels == (ss.get_mask_image().get_data() > 0.5).sum()
+
+def test_pathlib_path():
+    # Test passing of pathlib.Path.
+    nii_dir = pathlib.Path("tmp/nii_structs")
+    structs_from_nii = StructureSet(nii_dir)
+    assert structs_from_nii.path == fullpath(nii_dir)
+
+    for roi in structs_from_nii:
+        roi_new = ROI(pathlib.Path(roi.path))
+        assert roi_new.path == roi.path
