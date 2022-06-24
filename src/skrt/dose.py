@@ -52,6 +52,7 @@ class ImageOverlay(skrt.image.Image):
         no_ytick_labels=False,
         include_image=True, 
         opacity=None, 
+        intensity=None,
         mpl_kwargs=None,
         show=True,
         mask=None,
@@ -178,6 +179,13 @@ class ImageOverlay(skrt.image.Image):
             mpl_kwargs = {}
         if opacity is not None:
             mpl_kwargs["alpha"] = opacity
+
+        # Add intensity to mpl_kwargs
+        if mpl_kwargs is None:
+            mpl_kwargs = {}
+        if intensity is not None:
+            mpl_kwargs["vmin"] = intensity[0]
+            mpl_kwargs["vmax"] = intensity[1]
 
         # Plot self
         skrt.image.Image.plot(

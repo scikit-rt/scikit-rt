@@ -509,9 +509,20 @@ class BetterViewer:
             for the grid. See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
             for options.
 
-        jacobian_opacity : float, default=1.0
+        jacobian_opacity : float, default=0.5
             Initial opacity of the overlaid jacobian determinant. Can later
             be changed interactively.
+
+        jacobian_range : list, default=None
+            Min and max jacobian value to plot. This can also be set via the
+            'vmin' and 'xmax' keys in <jacobian_kwargs>; <jacobian_range>
+            will take precedence if set.  If None, the values of
+            jacobian._default_vmin and jacobian._default_vmax are used.
+
+        jacobian_cmap : str, default=None
+            Matplotlib colormap to use for jacobian plotting. Supercedes
+            any cmap in <jacobian_kwargs>.  If None, the value of
+            jacobian._default_cmap is used.
 
         jacobian_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
@@ -798,6 +809,14 @@ class BetterViewer:
         self.jacobian = self.get_input_list(jacobian)
         self.df = self.get_input_list(df)
 
+        self.jacobian_kwargs = kwargs.get("jacobian_kwargs", {})
+        jacobian_cmap = kwargs.get("cmap", None)
+        if jacobian_cmap is not None:
+            self.jacobian_kwargs["cmap"] = jacobian_cmap
+        elif jacobian:
+            self.jacobian_kwargs["cmap"] = self.jacobian_kwargs.get(
+                    "cmap", jacobian._default_cmap)
+
         # Make individual viewers
         self.scale_in_mm = scale_in_mm
         self.viewers = []
@@ -1062,7 +1081,9 @@ class BetterViewer:
                 if "mask" == attr:
                     self.extra_ui.append(getattr(v0, 'ui_mask_invert'))
         if self.any_attr('jacobian'):
-            self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
+            cmap_name = getattr(self.jacobian_kwargs["cmap"], "name", None)
+            if cmap_name != "jacobian":
+                self.extra_ui.extend([v0.ui_jac_opacity, v0.ui_jac_range])
         if self.any_attr('grid'):
             self.extra_ui.extend([v0.ui_grid_opacity])
         if self.any_attr('rois'):
@@ -1590,9 +1611,10 @@ class SingleViewer:
         grid_kwargs=None,
         grid_range=None,
         jacobian=None,
-        jacobian_opacity=1.0,
-        jacobian_kwargs=None,
+        jacobian_opacity=0.5,
         jacobian_range=None,
+        jacobian_cmap=None,
+        jacobian_kwargs=None,
         df=None,
         df_plot_type="grid",
         df_spacing=30,
@@ -1784,8 +1806,27 @@ class SingleViewer:
         self.init_grid_range = grid_range
         self.grid_kwargs = grid_kwargs if grid_kwargs is not None else {}
         self.init_jacobian_opacity = jacobian_opacity
-        self.init_jacobian_range = jacobian_range
         self.jacobian_kwargs = jacobian_kwargs if jacobian_kwargs is not None else {}
+        if jacobian_range is not None:
+            self.jacobian_kwargs["vmin"] = jacobian_range[0]
+            self.jacobian_kwargs["vmax"] = jacobian_range[1]
+        elif jacobian:
+            self.jacobian_kwargs["vmin"] = self.jacobian_kwargs.get(
+                    "vmin", jacobian._default_vmin)
+            self.jacobian_kwargs["vmax"] = self.jacobian_kwargs.get(
+                    "vmax", jacobian._default_vmax)
+
+        if jacobian_cmap is not None:
+            self.jacobian_kwargs["cmap"] = jacobian_cmap
+        elif jacobian:
+            self.jacobian_kwargs["cmap"] = self.jacobian_kwargs.get(
+                    "cmap", jacobian._default_cmap)
+
+        try:
+            self.init_jacobian_range = [self.jacobian_kwargs[key] for
+                    key in ["vmin", "vmax"]]
+        except KeyError:
+            self.init_jacobian_range = None
 
         # ROI settings
         self.roi_plot_type = roi_plot_type
@@ -2279,7 +2320,10 @@ class SingleViewer:
                 readout_format='.1f',
             )
             if self.has_jacobian:
-                self.extra_ui.extend([self.ui_jac_opacity, self.ui_jac_range])
+                cmap_name = getattr(self.jacobian_kwargs["cmap"], "name", None)
+                if cmap_name != "jacobian":
+                    self.extra_ui.extend(
+                            [self.ui_jac_opacity, self.ui_jac_range])
 
             # Deformation field plot type
             #  self.ui_df = ipyw.Dropdown(
@@ -2698,6 +2742,19 @@ class SingleViewer:
         # Update ROI comparison table
         self.update_roi_comparison()
 
+        # Settings for overlays (grid, dose map or jacobian)
+        if self.has_jacobian:
+            jacobian = self.jacobian
+            jacobian_opacity = self.ui_jac_opacity.value
+            jacobian_kwargs = self.jacobian_kwargs
+            jacobian_kwargs["vmin"] = self.ui_jac_range.value[0]
+            jacobian_kwargs["vmax"] = self.ui_jac_range.value[1]
+        else:
+            jacobian = None
+            jacobian_opacity = None
+            jacobian_kwargs = None
+
+        '''
         # Settings for overlay (grid, dose map or jacobian)
         if self.has_grid:
             overlay = self.grid
@@ -2720,6 +2777,7 @@ class SingleViewer:
             overlay = None
             overlay_opacity = None
             overlay_kwargs = None
+        '''
 
         # Make plot
         self.plot_image(
@@ -2753,9 +2811,9 @@ class SingleViewer:
             rois=StructureSet(rois_to_plot),
             roi_plot_type=self.roi_plot_type,
             roi_kwargs=roi_kwargs,
-            dose=overlay,
-            dose_opacity=overlay_opacity,
-            dose_kwargs=overlay_kwargs,
+            dose=self.dose,
+            dose_opacity=self.ui_dose.value,
+            dose_kwargs=self.dose_kwargs,
             legend=self.legend,
             centre_on_roi=self.init_roi,
             shift=self.shift,
@@ -2766,6 +2824,9 @@ class SingleViewer:
             masked=self.ui_mask.value,
             invert_mask=self.ui_mask_invert.value,
             mask_color=self.mask_color,
+            jacobian=jacobian,
+            jacobian_opacity=jacobian_opacity,
+            jacobian_kwargs=jacobian_kwargs,
             **kwargs
         )
         self.plotting = False

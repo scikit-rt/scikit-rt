@@ -1363,9 +1363,10 @@ class Jacobian(ImageOverlay):
 
         # Plot settings specific to Jacobian determinant
         self._default_cmap = get_jacobian_colormap()
-        self._default_colorbar_label = "Jacobian"
+        self._default_colorbar_label = "Jacobian determinant"
         self._default_vmin = -1
         self._default_vmax = 2
+        self._default_opacity = 0.5
         self.load()
         self.data = -self.data
 
@@ -1378,6 +1379,9 @@ class DeformationField:
 
     def __init__(self, path, image=None, **kwargs):
         """Load vector field."""
+
+        # Store path
+        self.path = path
 
         # Initialise own image object
         self._image = skrt.image.Image(path, **kwargs)

@@ -1774,6 +1774,10 @@ class Image(skrt.core.Archive):
         masked=True,
         invert_mask=False,
         mask_color="black",
+        jacobian=None,
+        jacobian_opacity=1.0,
+        jacobian_range=None,
+        jacobian_kwargs=None,
     ):
         """Plot a 2D slice of the image.
 
@@ -2009,6 +2013,25 @@ class Image(skrt.core.Archive):
 
         mask_color : matplotlib color, default="black"
             color in which to plot masked areas.
+
+        jacobian : skrt.registration.Jacobian, default=None
+            Jacobian determinannt to be overlaid on plot.  This parameter
+            is ignored if a non-null value is specified for dose.
+
+        jacobian_opacity : float, default=1.0
+            Initial opacity of the overlaid jacobian determinant. Can later
+            be changed interactively.
+
+        jacobian_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
+            for the jacobian determinant. For options, see:
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
+
+            Some useful keywords are:
+
+            - 'cmap': colormap (default='jacobian' - custom colour map).
+            - 'interpolation': interpolation method (default='antialiased')
+
         """
 
         self.load()
@@ -2109,6 +2132,8 @@ class Image(skrt.core.Archive):
         if clb_label_kwargs is None:
             clb_label_kwargs = {}
 
+        jacobian_kwargs = jacobian_kwargs or {}
+
         # Set defaults for clb_kwargs and clb_label_kwargs
         clb_kwargs['pad'] = clb_kwargs.get('pad', 0.06)
         clb_label_kwargs['labelpad'] = clb_label_kwargs.get('labelpad', 7)
@@ -2120,6 +2145,9 @@ class Image(skrt.core.Archive):
         elif intensity is not None:
             mpl_kwargs["vmin"] = intensity[0]
             mpl_kwargs["vmax"] = intensity[1]
+        else:
+            mpl_kwargs["vmin"] = mpl_kwargs.get("vmin", self._default_vmin)
+            mpl_kwargs["vmax"] = mpl_kwargs.get("vmax", self._default_vmax)
 
         # Ensure colour map is defined, and set mask colour
         cmap = mpl_kwargs.get("cmap", self._default_cmap)
@@ -2149,6 +2177,37 @@ class Image(skrt.core.Archive):
                 no_xtick_labels=no_xtick_labels,
                 no_ytick_labels=no_ytick_labels,
                 mpl_kwargs=dose_kwargs,
+                mask=mask,
+                mask_threshold=mask_threshold,
+                masked=masked,
+                invert_mask=invert_mask,
+                mask_color=mask_color,
+            )
+
+        # Plot the Jacobian determinant.
+        if jacobian and not dose_to_plot:
+            if jacobian_range is not None:
+                jacobian_intensity = jacobian_range
+            elif "vmin" in jacobian_kwargs and "vmax" in jacobian_kwargs:
+                jacobian_intensity = (
+                        jacobian_kwargs["vmin"], jacobian_kwargs["vmax"])
+            else:
+                jacobian_intensity = None
+            jacobian.plot(
+                view=view,
+                idx=idx,
+                ax=self.ax,
+                show=False,
+                colorbar= max((colorbar - 1), 0),
+                include_image=False, 
+                opacity=jacobian_opacity, 
+                intensity=jacobian_intensity,
+                title="",
+                no_xlabel=no_xlabel,
+                no_ylabel=no_ylabel,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels,
+                mpl_kwargs=jacobian_kwargs,
                 mask=mask,
                 mask_threshold=mask_threshold,
                 masked=masked,
@@ -2252,7 +2311,12 @@ class Image(skrt.core.Archive):
         clb_label = colorbar_label if colorbar_label is not None \
                 else self._default_colorbar_label
         if colorbar and mpl_kwargs.get("alpha", 1) > 0:
-            clb = self.fig.colorbar(mesh, ax=self.ax, **clb_kwargs)
+            if "jacobian" == cmap.name:
+                scalar_mappable = matplotlib.cm.ScalarMappable(
+                        norm=matplotlib.colors.Normalize(-1, 2), cmap=cmap)
+            else:
+                scalar_mappable = mesh
+            clb = self.fig.colorbar(scalar_mappable, ax=self.ax, **clb_kwargs)
             clb.set_label(clb_label, **clb_label_kwargs)
             clb.solids.set_edgecolor("face")
 
