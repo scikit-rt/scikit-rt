@@ -1337,8 +1337,8 @@ class Image(skrt.core.Archive):
         '''
         self.load()
         orient = self.get_orientation_vector()
-        axis1 = ''.join([ax * v for ax, v in zip(_axes, orient[:3])])
-        axis2 = ''.join([ax * v for ax, v in zip(_axes, orient[3:])])
+        axis1 = ''.join([ax * abs(v) for ax, v in zip(_axes, orient[:3])])
+        axis2 = ''.join([ax * abs(v) for ax, v in zip(_axes, orient[3:])])
         view = f'{axis1}-{axis2}'
         if view not in _plot_axes:
             view = f'{axis2}-{axis1}'
