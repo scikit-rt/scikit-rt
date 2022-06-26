@@ -2347,7 +2347,7 @@ class DeformationImage(Image):
         # Plot arrows
         if arrows_x.any() or arrows_y.any():
             M = np.hypot(arrows_x, arrows_y)
-            ax.quiver(
+            self.ax.quiver(
                 plot_x,
                 plot_y,
                 arrows_x,
