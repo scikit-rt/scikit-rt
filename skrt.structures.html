@@ -615,8 +615,7 @@ Returns an Image object.</p>
 <dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as 
 [vx, vy]. If &lt;shape&gt; and &lt;voxel_size&gt; are both None, voxel sizes of
 [1, 1] will be used by default. The voxel size in the z direction 
-will be taken from the minimum distance between slice positions in 
-the x-y contours dictionary.</p>
+is defined by &lt;slice_thickness&gt;.</p>
 </dd>
 <dt>shape<span class="classifier">list, default=None</span></dt><dd><p>Number of voxels in the dummy image in the x-y plane, given as
 [nx, ny]. Only used if &lt;voxel_size&gt; is None. 
@@ -627,6 +626,10 @@ number of slices in the x-y contours dictionary.</p>
 </dd>
 <dt>buffer<span class="classifier">int, default=1</span></dt><dd><p>Number of empty buffer voxels to add outside the ROI in each
 direction.</p>
+</dd>
+<dt>slice_thickness<span class="classifier">float, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the z direction.  If None,
+the value used is the minimum distance between slice positions
+in the x-y contours dictionary.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -983,8 +986,55 @@ distance.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_surface_distances">
-<span class="sig-name descname"><span class="pre">get_surface_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_distances" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_surface_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_distances" title="Permalink to this definition"></a></dt>
 <dd><p>Get vector of surface distances between two ROIs.</p>
+<p>Surface distances may be signed or unsigned, and may be for a single
+slice through the ROIs, or for the 3D volumes.</p>
+<p>This function is based on the approach outlined at:
+<a class="reference external" href="https://mlnotebook.github.io/post/surface-distance-function/">https://mlnotebook.github.io/post/surface-distance-function/</a></p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, return surface distances relative to 3D volumes.
+Otherwise, return surface distances for a single image slice.</p>
+</dd>
+<dt>signed<span class="classifier">bool, default=False</span></dt><dd><p>If False, return absolute surface distances.
+If True, return signed surface distances.  A point on the
+surface of &lt;other&gt; is taken to be at a positive distance if
+outside &lt;self&gt;, and at a negative distance if inside.</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice for which to obtaine surface distances.i
+Only used if &lt;single_slice&gt; is True.</p>
+</dd>
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; is supplied but
+&lt;single_slice&gt; is True, the central slice of the ROI will be used.</p>
+</dd>
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; is 
+supplied but &lt;single_slice&gt; is True, the central slice of
+the ROI will be used.</p>
+</dd>
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; is supplied
+but &lt;single_slice&gt; is True, the central slice of the ROI will
+be used.</p>
+</dd>
+<dt>connectivity: int, default=2</dt><dd><p>Integer defining which voxels to consider as neighbours
+when defining ROI surfaces.  This is passed as &lt;connectivity&gt;
+parameter to:
+scipy.ndimage.generate_binary_structure
+For further details, see:
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.generate_binary_structure.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.generate_binary_structure.html</a></p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices for each ROI will be flattened in the given
+orientation, and surface distances relative to the flattened
+slice will be returned.</p>
+</dd>
+<dt>in_slice<span class="classifier">bool, default=True</span></dt><dd><p>If True, only intra-slice connectivity is considered.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
+from which to calculate surface distances.  If None,
+the voxel size of the images associated with each ROI
+is used.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1777,8 +1827,7 @@ StructureSet. Returns an Image object.</p>
 <dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as 
 [vx, vy]. If &lt;shape&gt; and &lt;voxel_size&gt; are both None, voxel sizes of
 [1, 1] will be used by default. The voxel size in the z direction 
-will be taken from the minimum distance between slice positions in 
-the x-y contours dictionary.</p>
+is defined by &lt;slice_thickness&gt;.</p>
 </dd>
 <dt>shape<span class="classifier">list, default=None</span></dt><dd><p>Number of voxels in the dummy image in the x-y plane, given as
 [nx, ny]. Only used if &lt;voxel_size&gt; is None. 
@@ -1789,6 +1838,10 @@ number of slices in the x-y contours dictionary.</p>
 </dd>
 <dt>buffer<span class="classifier">int, default=1</span></dt><dd><p>Number of empty buffer voxels to add outside the ROI in each
 direction.</p>
+</dd>
+<dt>slice_thickness<span class="classifier">float, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the z direction.  If None,
+the value used is the minimum distance between slice positions
+in the x-y contours dictionary.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2108,6 +2161,22 @@ also be called.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.set_image_to_dummy">
+<span class="sig-name descname"><span class="pre">set_image_to_dummy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.set_image_to_dummy" title="Permalink to this definition"></a></dt>
+<dd><p>Set image for self and all ROIs to be a dummy image covering
+the region containing all ROIs in the structure set.  The mask
+and x-z/y-z contours of each ROI will be cleared, so that they
+will be recreated when get_mask() or get_contours() are next called.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>kwargs<span class="classifier"></span></dt><dd><p>Keyword arguments to pass to self.get_dummy_image() when
+creating the dummy image. See documentation of
+StructureSet.get_dummy_image().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fine'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Apply three-dimensional similarity transform to structure-set ROIs.</p>
@@ -2195,7 +2264,7 @@ the polygon is valid.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.create_dummy_image">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">create_dummy_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.create_dummy_image" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">create_dummy_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.create_dummy_image" title="Permalink to this definition"></a></dt>
 <dd><p>Make a dummy image that covers the area spanned by &lt;extents&gt; plus a 
 buffer.</p>
 <p><strong>Parameters:</strong></p>
@@ -2218,7 +2287,7 @@ number of slices in the x-y contours dictionary.</p>
 </dd>
 <dt>fill_val<span class="classifier">int/float, default=1e4</span></dt><dd><p>Value with which the voxels in the dummy image should be filled.</p>
 </dd>
-<dt>buffer<span class="classifier">float, default=1</span></dt><dd><p>Buffer amount of whitespace in mm to add outside the ROI in each 
+<dt>buffer<span class="classifier">float, default=2</span></dt><dd><p>Buffer amount of whitespace in mm to add outside the ROI in each 
 direction.</p>
 </dd>
 </dl>
