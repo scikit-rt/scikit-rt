@@ -2333,40 +2333,113 @@ class ROI(skrt.core.Archive):
         pos=None,
         connectivity=2,
         flatten=False,
+        in_slice=True,
+        voxel_size = None,
     ):
-        """Get vector of surface distances between two ROIs."""
+        """
+        Get vector of surface distances between two ROIs.
 
-        # Ensure both ROIs are loaded
-        self.load()
-        other.load()
+        Surface distances may be signed or unsigned, and may be for a single
+        slice through the ROIs, or for the 3D volumes.  
+
+        This function is based on the approach outlined at:
+        https://mlnotebook.github.io/post/surface-distance-function/
+
+        **Parameters:**
+
+        single_slice : bool, default=False
+            If False, return surface distances relative to 3D volumes.
+            Otherwise, return surface distances for a single image slice.
+
+        signed : bool, default=False
+            If False, return absolute surface distances.
+            If True, return signed surface distances.  A point on the
+            surface of <other> is taken to be at a positive distance if
+            outside <self>, and at a negative distance if inside.
+
+        view : str, default="x-y"
+            Orientation of slice for which to obtaine surface distances.i
+            Only used if <single_slice> is True.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> is supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> is 
+            supplied but <single_slice> is True, the central slice of
+            the ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> is supplied
+            but <single_slice> is True, the central slice of the ROI will
+            be used.
+
+        connectivity: int, default=2
+            Integer defining which voxels to consider as neighbours
+            when defining ROI surfaces.  This is passed as <connectivity>
+            parameter to:
+            scipy.ndimage.generate_binary_structure
+            For further details, see:
+            https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.generate_binary_structure.html
+
+        flatten : bool, default=False
+            If True, all slices for each ROI will be flattened in the given
+            orientation, and surface distances relative to the flattened
+            slice will be returned.
+
+        in_slice : bool, default=True
+            If True, only intra-slice connectivity is considered.
+
+        voxel_size : tuple, default=None
+            Voxel size (dx, dy, dz) in mm to be used for ROI masks
+            from which to calculate surface distances.  If None,
+            the voxel size of the images associated with each ROI
+            is used.
+        """
+
+        # Create ROI clones, for which voxel sizes may be altered.
+        roi1 = self.clone()
+        roi1.load()
+        roi2 = other.clone()
+        roi2.load()
+
+        if voxel_size:
+            StructureSet(rois=[roi1, roi2]).set_image_to_dummy(
+                    slice_thickness=voxel_size[2], voxel_size=voxel_size[:2])
 
         # Check whether ROIs are empty
-        if not np.any(self.get_mask()) or not np.any(other.get_mask()):
+        if not np.any(roi1.get_mask()) or not np.any(roi2.get_mask()):
             return
 
         # Get binary masks and voxel sizes
         if single_slice:
-            voxel_size = [self.voxel_size[i] for i in skrt.image._plot_axes[view]]
-            mask1 = self.get_slice(view, sl=sl, idx=idx, pos=pos)
-            mask2 = other.get_slice(view, sl=sl, idx=idx, pos=pos)
+            voxel_size = [roi1.voxel_size[i]
+                    for i in skrt.image._plot_axes[view]]
+            mask1 = roi1.get_slice(view, sl=sl, idx=idx, pos=pos)
+            mask2 = roi2.get_slice(view, sl=sl, idx=idx, pos=pos)
         else:
             if not flatten:
-                vx, vy, vz = self.voxel_size
+                vx, vy, vz = roi1.voxel_size
                 voxel_size = [vy, vx, vz]
-                mask1 = self.get_mask()
-                mask2 = other.get_mask()
+                mask1 = roi1.get_mask()
+                mask2 = roi2.get_mask()
             else:
-                voxel_size = [self.voxel_size[i] for i in skrt.image._plot_axes[view]]
-                mask1 = self.get_mask(view, flatten=True)
-                mask2 = other.get_mask(view, flatten=True)
+                voxel_size = [roi1.voxel_size[i]
+                        for i in skrt.image._plot_axes[view]]
+                mask1 = roi1.get_mask(view, flatten=True)
+                mask2 = roi2.get_mask(view, flatten=True)
 
         # Make structuring element
         conn2 = ndimage.generate_binary_structure(2, connectivity)
         if mask1.ndim == 2:
             conn = conn2
         else:
-            conn = np.zeros((3, 3, 3), dtype=bool)
-            conn[:, :, 1] = conn2
+            if in_slice:
+                conn = np.zeros((3, 3, 3), dtype=bool)
+                conn[:, :, 1] = conn2
+            else:
+                conn = ndimage.generate_binary_structure(3, connectivity)
 
         # Get outer pixel of binary maps
         surf1 = mask1 ^ ndimage.binary_erosion(mask1, conn)
@@ -3090,8 +3163,7 @@ class ROI(skrt.core.Archive):
             Voxel size in mm in the dummy image in the x-y plane, given as 
             [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
             [1, 1] will be used by default. The voxel size in the z direction 
-            will be taken from the minimum distance between slice positions in 
-            the x-y contours dictionary.
+            is defined by <slice_thickness>.
 
         shape : list, default=None
             Number of voxels in the dummy image in the x-y plane, given as
@@ -3105,10 +3177,17 @@ class ROI(skrt.core.Archive):
         buffer : int, default=1
             Number of empty buffer voxels to add outside the ROI in each
             direction.
+
+        slice_thickness : float, default=None
+            Voxel size in mm in the dummy image in the z direction.  If None,
+            the value used is the minimum distance between slice positions
+            in the x-y contours dictionary.
         """
 
         extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
-        slice_thickness  = self.get_slice_thickness_contours()
+        slice_thickness = kwargs.pop("slice_thickness", None)
+        slice_thickness = (slice_thickness or
+                self.get_slice_thickness_contours())
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
     def set_image_to_dummy(self, **kwargs):
@@ -4235,6 +4314,33 @@ class StructureSet(skrt.core.Archive):
         self.loaded = False
         self.load(force=True)
 
+    def set_image_to_dummy(self, **kwargs):
+        """
+        Set image for self and all ROIs to be a dummy image covering
+        the region containing all ROIs in the structure set.  The mask
+        and x-z/y-z contours of each ROI will be cleared, so that they
+        will be recreated when get_mask() or get_contours() are next called.
+
+        **Parameters:**
+        
+        kwargs : 
+            Keyword arguments to pass to self.get_dummy_image() when
+            creating the dummy image. See documentation of
+            StructureSet.get_dummy_image().
+     """
+        # Make image
+        im = self.get_dummy_image(**kwargs)
+
+        # Clear mask and contours
+        for roi in self.rois:
+            roi.input_contours = roi.contours["x-y"]
+            roi.contours = {"x-y": roi.input_contours}
+            roi.loaded_mask = False
+            roi.mask = None
+
+        # Assign image
+        self.set_image(im)
+
     def set_image(self, image):
         """Set image for self and all ROIs. Image.add_structure_set(self) will
         also be called."""
@@ -5153,8 +5259,7 @@ class StructureSet(skrt.core.Archive):
             Voxel size in mm in the dummy image in the x-y plane, given as 
             [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
             [1, 1] will be used by default. The voxel size in the z direction 
-            will be taken from the minimum distance between slice positions in 
-            the x-y contours dictionary.
+            is defined by <slice_thickness>.
 
         shape : list, default=None
             Number of voxels in the dummy image in the x-y plane, given as
@@ -5168,10 +5273,17 @@ class StructureSet(skrt.core.Archive):
         buffer : int, default=1
             Number of empty buffer voxels to add outside the ROI in each
             direction.
-        """
 
+        slice_thickness : float, default=None
+            Voxel size in mm in the dummy image in the z direction.  If None,
+            the value used is the minimum distance between slice positions
+            in the x-y contours dictionary.
+        """
         extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
-        slice_thickness = self.get_rois(ignore_empty=True)[0].get_slice_thickness_contours()
+        slice_thickness = kwargs.pop("slice_thickness", None)
+        slice_thickness = (slice_thickness or
+                self.get_rois(ignore_empty=True)[0]\
+                        .get_slice_thickness_contours())
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
     def _get_combination(self, name, force, exclude, combo_maker, **kwargs):
@@ -5844,7 +5956,7 @@ def create_dummy_image(
     shape=None, 
     voxel_size=None,
     fill_val=1e4,
-    buffer=1
+    buffer=2
 ):
     """Make a dummy image that covers the area spanned by <extents> plus a 
     buffer.
@@ -5874,7 +5986,7 @@ def create_dummy_image(
     fill_val : int/float, default=1e4
         Value with which the voxels in the dummy image should be filled. 
 
-    buffer : float, default=1
+    buffer : float, default=2
         Buffer amount of whitespace in mm to add outside the ROI in each 
         direction.
     """
