@@ -1030,12 +1030,12 @@ For further details, see:
 orientation, and surface distances relative to the flattened
 slice will be returned.</p>
 </dd>
-<dt>symmetric<span class="classifier">bool, default=False</span></dt><dd><p>If True, the distances returned are from the surface of &lt;other&gt;
+<dt>symmetric<span class="classifier">bool, default=True</span></dt><dd><p>If True, the distances returned are from the surface of &lt;other&gt;
 to the surface of &lt;self&gt; and from the surface of &lt;self&gt; to the
 surface of &lt;other&gt;.  Otherwise, distances are from the surface
 of &lt;other&gt; to the surface of &lt;self&gt; only.</p>
 </dd>
-<dt>in_slice<span class="classifier">bool, default=False</span></dt><dd><p>If True, only intra-slice connectivity is considered when
+<dt>in_slice<span class="classifier">bool, default=True</span></dt><dd><p>If True, only intra-slice connectivity is considered when
 performing erosion to identify ROI surfaces.</p>
 </dd>
 <dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
