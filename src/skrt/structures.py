@@ -2333,8 +2333,10 @@ class ROI(skrt.core.Archive):
         pos=None,
         connectivity=2,
         flatten=False,
+        symmetric=True,
         in_slice=True,
-        voxel_size = None,
+        voxel_size=None,
+        voxel_dim_tolerence=0.1,
     ):
         """
         Get vector of surface distances between two ROIs.
@@ -2342,7 +2344,7 @@ class ROI(skrt.core.Archive):
         Surface distances may be signed or unsigned, and may be for a single
         slice through the ROIs, or for the 3D volumes.  
 
-        This function is based on the approach outlined at:
+        This function uses ideas outlined at:
         https://mlnotebook.github.io/post/surface-distance-function/
 
         **Parameters:**
@@ -2377,8 +2379,8 @@ class ROI(skrt.core.Archive):
 
         connectivity: int, default=2
             Integer defining which voxels to consider as neighbours
-            when defining ROI surfaces.  This is passed as <connectivity>
-            parameter to:
+            when performing erosion operation to identify ROI surfaces.  This
+            is passed as <connectivity> parameter to:
             scipy.ndimage.generate_binary_structure
             For further details, see:
             https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.generate_binary_structure.html
@@ -2388,14 +2390,26 @@ class ROI(skrt.core.Archive):
             orientation, and surface distances relative to the flattened
             slice will be returned.
 
-        in_slice : bool, default=True
-            If True, only intra-slice connectivity is considered.
+        symmetric : bool, default=False
+            If True, the distances returned are from the surface of <other>
+            to the surface of <self> and from the surface of <self> to the
+            surface of <other>.  Otherwise, distances are from the surface
+            of <other> to the surface of <self> only.
+
+        in_slice : bool, default=False
+            If True, only intra-slice connectivity is considered when
+            performing erosion to identify ROI surfaces.
 
         voxel_size : tuple, default=None
             Voxel size (dx, dy, dz) in mm to be used for ROI masks
             from which to calculate surface distances.  If None,
-            the voxel size of the images associated with each ROI
+            the voxel size of the image associated with <self>
             is used.
+
+        voxel_dim_tolerence : float, default=0.1
+            Tolerence used when determining whether <voxel_size> is
+            different from the voxel size of the images associated with
+            each ROI.
         """
 
         # Create ROI clones, for which voxel sizes may be altered.
@@ -2404,8 +2418,19 @@ class ROI(skrt.core.Archive):
         roi2 = other.clone()
         roi2.load()
 
-        if voxel_size:
-            StructureSet(rois=[roi1, roi2]).set_image_to_dummy(
+        # Associate new dummy image with ROIs if requested voxel size
+        # is different from voxel size of either current image,
+        # of if voxel sizes of current images don't match.
+        voxel_size = voxel_size or roi1.get_voxel_size()
+        resize = False
+        for roi in [roi1, roi2]:
+            matches = [dxyz1 for dxyz1, dxyz2 in
+                    zip(voxel_size, roi.voxel_size)
+                    if abs(dxyz1 - dxyz2) < voxel_dim_tolerence]
+            if 3 != len(matches):
+                resize = True
+        if resize:
+            StructureSet([roi1, roi2]).set_image_to_dummy(
                     slice_thickness=voxel_size[2], voxel_size=voxel_size[:2])
 
         # Check whether ROIs are empty
@@ -2455,10 +2480,18 @@ class ROI(skrt.core.Archive):
             dist2 = dist2 * ~mask2 - dist2 * mask2
 
         # Make vector containing all distances
-        sds = np.concatenate([np.ravel(dist1[surf2 != 0]), np.ravel(dist2[surf1 != 0])])
+        sds = np.ravel(dist1[surf2 != 0])
+        if symmetric:
+            sds = np.concatenate([sds, np.ravel(dist2[surf1 != 0])])
         return sds
 
     def get_mean_surface_distance(self, other, **kwargs):
+        '''
+        Obtain mean distance between surface of <other> and surface of <self>.
+
+        For parameters that may be passed, see documentation for:
+        skrt.ROI.get_surface_distances().
+        '''
 
         sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
@@ -3223,6 +3256,16 @@ class ROI(skrt.core.Archive):
 
         self.image = im
         self.contours_only = False
+
+        # If the z-distance between contours is greater than the z-dimension
+        # of the new image, obtain new mask by resizing the current mask.
+        if self.get_slice_thickness_contours() > self.image.get_voxel_size()[2]:
+            self.get_mask()
+            self.mask.match_size(self.image, method="nearest")
+            if hasattr(self.mask, "data"):
+                if not self.mask.data.dtype == bool:
+                    self.mask.data = self.mask.data.astype(bool)
+
         if self.loaded_mask and not im.has_same_geometry(self.mask):
             if getattr(self, "input_contours", None) is None:
                 self.input_contours = self.get_contours("x-y")
@@ -4333,7 +4376,7 @@ class StructureSet(skrt.core.Archive):
 
         # Clear mask and contours
         for roi in self.rois:
-            roi.input_contours = roi.contours["x-y"]
+            roi.input_contours = roi.get_contours("x-y")
             roi.contours = {"x-y": roi.input_contours}
             roi.loaded_mask = False
             roi.mask = None
