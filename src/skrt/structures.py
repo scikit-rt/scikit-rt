@@ -2333,7 +2333,7 @@ class ROI(skrt.core.Archive):
         pos=None,
         connectivity=2,
         flatten=False,
-        symmetric=True,
+        symmetric=None,
         in_slice=True,
         voxel_size=None,
         voxel_dim_tolerence=0.1,
@@ -2390,11 +2390,12 @@ class ROI(skrt.core.Archive):
             orientation, and surface distances relative to the flattened
             slice will be returned.
 
-        symmetric : bool, default=True
+        symmetric : bool, default=None
             If True, the distances returned are from the surface of <other>
             to the surface of <self> and from the surface of <self> to the
-            surface of <other>.  Otherwise, distances are from the surface
-            of <other> to the surface of <self> only.
+            surface of <other>.  If False, distances are from the surface
+            of <other> to the surface of <self> only.  If None, set to
+            the opposiste of <signed>.
 
         in_slice : bool, default=True
             If True, only intra-slice connectivity is considered when
@@ -2417,6 +2418,8 @@ class ROI(skrt.core.Archive):
         roi1.load()
         roi2 = other.clone()
         roi2.load()
+
+        symmetric = bool(-signed) if symmetric is None else symmetric
 
         # Associate new dummy image with ROIs if requested voxel size
         # is different from voxel size of either current image,
