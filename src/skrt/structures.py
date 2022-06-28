@@ -2390,13 +2390,13 @@ class ROI(skrt.core.Archive):
             orientation, and surface distances relative to the flattened
             slice will be returned.
 
-        symmetric : bool, default=False
+        symmetric : bool, default=True
             If True, the distances returned are from the surface of <other>
             to the surface of <self> and from the surface of <self> to the
             surface of <other>.  Otherwise, distances are from the surface
             of <other> to the surface of <self> only.
 
-        in_slice : bool, default=False
+        in_slice : bool, default=True
             If True, only intra-slice connectivity is considered when
             performing erosion to identify ROI surfaces.
 
