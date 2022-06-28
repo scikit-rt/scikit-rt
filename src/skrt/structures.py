@@ -2419,7 +2419,8 @@ class ROI(skrt.core.Archive):
         roi2 = other.clone()
         roi2.load()
 
-        symmetric = bool(-signed) if symmetric is None else symmetric
+        if symmetric is None:
+            symmetric = False if signed is True else True
 
         # Associate new dummy image with ROIs if requested voxel size
         # is different from voxel size of either current image,
