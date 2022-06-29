@@ -2460,6 +2460,54 @@ the background color will be grey.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.structures.get_conformity_index">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_conformity_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ci_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'general'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_conformity_index" title="Permalink to this definition"></a></dt>
+<dd><p>Get conformity index for two or more ROIs.</p>
+<p>The conformity index may be calculated globally or for a single slice.</p>
+<p>The conformity index returned may be any of the three
+types (“general”, “pairs”, “common”) referred to in:
+<a class="reference external" href="https://doi.org/10.1088/0031-9155/54/9/018">https://doi.org/10.1088/0031-9155/54/9/018</a>
+For the case of two ROIs, all are equivalent to the
+Jaccard conformity index.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>rois<span class="classifier">list</span></dt><dd><p>List of two or more skrt.structures.ROI objects for which conformity
+index is to be calculated.</p>
+</dd>
+<dt>ci_type: str, default=general</dt><dd><p>Type of conformity index to calculate.  This should be one
+of “general”, “pairs”, “common”.</p>
+</dd>
+<dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Dice score of the full ROIs will be returned;
+otherwise, the 2D Dice score on a single slice will be returned.</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Dice score. Only used if 
+single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
+the slice in this orientation.</p>
+</dd>
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for Dice score calculation. Can be: 
+- “contour”: get intersections and areas of shapely contours.
+- “mask”: count intersecting voxels in binary masks.
+- None: use the method set in self.default_geom_method.
+For more than two ROIs and &lt;ci_type&gt; “common”, only the “mask”
+method is implemented.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
+the Dice score of the flattened slices will be returned. Only 
+available if method=”mask”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.get_dicom_sequence">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_dicom_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_dicom_sequence" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
