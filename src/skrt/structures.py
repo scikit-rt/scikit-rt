@@ -6,6 +6,7 @@ from scipy import interpolate, ndimage
 from skimage import draw
 from shapely import affinity
 from shapely import geometry
+from shapely import ops
 import fnmatch
 import matplotlib.cm
 import matplotlib.colors
@@ -2220,72 +2221,12 @@ class ROI(skrt.core.Archive):
             available if method="mask".
         """
 
-        self.load()
+        intersection, union, mean_size = self.get_intersection_union_size(
+                other, single_slice, view, sl, idx, pos, method, flatten)
 
-        # Get default slice and method
-        if single_slice:
-            if sl is None and idx is None and pos is None:
-                idx = self.get_mid_idx(view)
-        if method is None:
-            method = self.default_geom_method
-
-        if flatten:  # Flattening only possible with "mask"
-            method = "mask"
-
-        # Calculate intersections and areas from polygons
-        if method == "contour":
-
-            # Get positions of slice(s) on which to compare areas and total areas
-            # on those slice(s)
-            if not single_slice:
-                positions = set(self.get_contours("x-y").keys()).union(
-                        set(other.get_contours("x-y").keys()))
-                areas1 = [self.get_area("x-y", pos=p) for p in positions]
-                area1 = sum([a for a in areas1 if a is not None])
-                areas2 = [other.get_area("x-y", pos=p) for p in positions]
-                area2 = sum([a for a in areas2 if a is not None])
-            else:
-                positions = [
-                    self.idx_to_pos(self.get_idx(view, sl, idx, pos),
-                                    ax=skrt.image._slice_axes[view])
-                ]
-                area1 = self.get_area(view, sl, idx, pos)
-                if area1 is None:
-                    area1 = 0
-                area2 = other.get_area(view, sl, idx, pos)
-                if area2 is None:
-                    area2 = 0
-            
-            # Compute intersecting area on slice(s)
-            intersection = 0
-            for p in positions:
-                polygons1 = self.get_polygons_on_slice(view, pos=p)
-                polygons2 = other.get_polygons_on_slice(view, pos=p)
-                for p1 in polygons1:
-                    for p2 in polygons2:
-                        intersection += p1.intersection(p2).area
-
-        # Calculate intersections and areas from binary mask voxel counts
-        else:
-
-            # Use 3D mask
-            if not single_slice:
-                data1 = self.get_mask(view, flatten, standardise=True)
-                data2 = other.get_mask(view, flatten, standardise=True)
-
-            # Otherwise, use single 2D slice
-            else:
-                data1 = self.get_slice(view, sl, idx, pos)
-                data2 = other.get_slice(view, sl, idx, pos)
-
-            intersection = (data1 & data2).sum()
-            area1 = data1.sum()
-            area2 = data2.sum()
-
-        mean_area = np.mean([area1, area2])
-        if mean_area == 0:
+        if not mean_size:
             return None
-        return intersection / mean_area
+        return intersection / mean_size
 
     def get_volume_ratio(self, other, **kwargs):
         """Get ratio of another ROI's volume with respect to own volume."""
@@ -2340,6 +2281,144 @@ class ROI(skrt.core.Archive):
         if area_diff is None:
             return 
         return area_diff / own_area
+
+    def get_intersection_union_size(
+        self, 
+        other, 
+        single_slice=False,
+        view="x-y", 
+        sl=None, 
+        idx=None, 
+        pos=None, 
+        method=None,
+        flatten=False,
+    ):
+        """
+        Get intersection, union and mean size with respect to another ROI.
+        Values are returned as volumes for the full ROIs,
+        or as areas for a single slice.
+
+        **Parameters:**
+        
+        other : ROI
+            Other ROI to compare with this ROI.
+
+        single_slice : bool, default=False
+            If False, the volumes of intersection and  union of the full ROIs,
+            and the mean ROI volume will be returned;
+            otherwise, the areas of intersection and union on a single slice,
+            and the mean ROI area, will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice on which to get areas of intersection
+            and union, and mean ROI area.  Only used if single_slice=True.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of this ROI will be
+            used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of this ROI will
+            be used.
+
+        method : str, default=None
+            Method to use for calculating intersection, union, and mean
+            size. Can be: 
+                - "contour": get intersections and areas of shapely contours.
+                - "mask": count intersecting voxels in binary masks.
+                - None: use the method set in self.default_geom_method.
+
+        flatten : bool, default=False
+            If True, all slices will be flattened in the given orientation and
+            the areas of intersection and union, and the mean ROI area,
+            will be returned for the flattened slices. Only available
+            if method="mask".
+        """
+
+        self.load()
+
+        # Define voxel volume, and voxel area in view.
+        voxel_volume = 1
+        for dxyz in self.mask.voxel_size:
+            voxel_volume *= dxyz
+        z_ax = skrt.image._slice_axes[view]
+        slice_thickness = self.mask.voxel_size[z_ax]
+        voxel_area = voxel_volume / slice_thickness
+
+        # Get default slice and method
+        if single_slice:
+            if sl is None and idx is None and pos is None:
+                idx = self.get_mid_idx(view)
+        if method is None:
+            method = self.default_geom_method
+
+        if flatten:  # Flattening only possible with "mask"
+            method = "mask"
+
+        # Calculate intersections and areas from polygons
+        if method == "contour":
+
+            # Get positions of slice(s) on which to compare areas and total areas
+            # on those slice(s)
+            if not single_slice:
+                positions = set(self.get_contours("x-y").keys()).union(
+                        set(other.get_contours("x-y").keys()))
+                areas1 = [self.get_area("x-y", pos=p) for p in positions]
+                area1 = sum([a for a in areas1 if a is not None])
+                areas2 = [other.get_area("x-y", pos=p) for p in positions]
+                area2 = sum([a for a in areas2 if a is not None])
+            else:
+                positions = [
+                    self.idx_to_pos(self.get_idx(view, sl, idx, pos),
+                                    ax=skrt.image._slice_axes[view])
+                ]
+                area1 = self.get_area(view, sl, idx, pos)
+                if area1 is None:
+                    area1 = 0
+                area2 = other.get_area(view, sl, idx, pos)
+                if area2 is None:
+                    area2 = 0
+
+            mean_size = 0.5 * (area1 + area2) * voxel_area
+            
+            # Compute areas of intersection and union on slice(s)
+            intersection = 0
+            for p in positions:
+                polygons1 = self.get_polygons_on_slice(view, pos=p)
+                polygons2 = other.get_polygons_on_slice(view, pos=p)
+                for p1 in polygons1:
+                    for p2 in polygons2:
+                        intersection += p1.intersection(p2).area
+            intersection *= voxel_area
+            unary_union = ops.unary_union(polygons1 + polygons2)
+            union = unary_union.area * voxel_area
+
+        # Calculate intersections and areas from binary mask voxel counts
+        else:
+
+            # Use 3D mask
+            if not single_slice:
+                data1 = self.get_mask(view, flatten, standardise=True)
+                data2 = other.get_mask(view, flatten, standardise=True)
+
+            # Otherwise, use single 2D slice
+            else:
+                data1 = self.get_slice(view, sl, idx, pos)
+                data2 = other.get_slice(view, sl, idx, pos)
+
+
+            factor = voxel_area if (single_slice or flatten) else voxel_volume
+            intersection = (data1 & data2).sum() * factor
+            union = (data1 | data2).sum() * factor
+            mean_size = 0.5 * (data1.sum() + data2.sum()) * factor
+
+        return (intersection, union, mean_size)
 
     def match_mask_voxel_size(self, other, voxel_size=None,
             voxel_dim_tolerance=0.1):
