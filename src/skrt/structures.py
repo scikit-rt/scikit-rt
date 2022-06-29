@@ -582,6 +582,25 @@ class ROI(skrt.core.Archive):
         self.load()
         return self.voxel_size
 
+    def get_np_voxel_size(self, view=None):
+        """
+        Get voxel_size for numpy axis ordering and specified view.
+
+        view : str
+            Orientation considered for 2D image or projection.
+            Can be "x-y", "y-z", or "x-z".
+        """
+
+        self.load()
+        if view is None:
+            vx, vy, vz = self.voxel_size
+            voxel_size = [vy, vx, vz]
+        else:
+            voxel_size = [self.voxel_size[i]
+                    for i in skrt.image._plot_axes[view]]
+
+        return voxel_size
+
     def get_origin(self):
         """Load self and get origin."""
 
@@ -2322,6 +2341,53 @@ class ROI(skrt.core.Archive):
             return 
         return area_diff / own_area
 
+    def match_mask_voxel_size(self, other, voxel_size=None,
+            voxel_dim_tolerance=0.1):
+        '''
+        Ensure that the mask voxel sizes of <self> and <other> match.
+
+        The mask voxel_sizes for both may optionally be set to a new
+        common value.
+
+        **Paramters:**
+
+        other : skrt.structures.ROI
+            ROI with which voxel size is to be matched.
+
+        voxel_size : tuple, default=None
+            Voxel size (dx, dy, dz) in mm to be used for ROI masks
+            from which to calculate surface distances.  If None,
+            the mask voxel size of <other> is used.
+
+        voxel_dim_tolerance : float, default=0.1
+            Tolerence used when determining whether <voxel_size> is
+            different from the voxel size of the images associated with
+            each ROI.
+        '''
+
+        # Create ROI clones, for which voxel sizes may be altered.
+        roi1 = self.clone()
+        roi1.load()
+        roi2 = other.clone()
+        roi2.load()
+
+        # Associate new dummy image with ROIs if requested voxel size
+        # is different from voxel size of either current image,
+        # or if voxel sizes of current images don't match.
+        voxel_size = voxel_size or roi2.get_voxel_size()
+        resize = False
+        for roi in [roi1, roi2]:
+            matches = [dxyz1 for dxyz1, dxyz2 in
+                    zip(voxel_size, roi.voxel_size)
+                    if abs(dxyz1 - dxyz2) < voxel_dim_tolerance]
+            if 3 != len(matches):
+                resize = True
+        if resize:
+            StructureSet([roi1, roi2]).set_image_to_dummy(
+                    slice_thickness=voxel_size[2], voxel_size=voxel_size[:2])
+
+        return (roi1, roi2)
+
     def get_surface_distances(
         self,
         other,
@@ -2336,7 +2402,7 @@ class ROI(skrt.core.Archive):
         symmetric=None,
         in_slice=True,
         voxel_size=None,
-        voxel_dim_tolerence=0.1,
+        voxel_dim_tolerance=0.1,
     ):
         """
         Get vector of surface distances between two ROIs.
@@ -2360,8 +2426,8 @@ class ROI(skrt.core.Archive):
             outside <self>, and at a negative distance if inside.
 
         view : str, default="x-y"
-            Orientation of slice for which to obtaine surface distances.i
-            Only used if <single_slice> is True.
+            Orientation of slice for which to obtain surface distances.
+            Only used if either <single_slice> or <flatten> is True.
 
         sl : int, default=None
             Slice number. If none of <sl>, <idx> or <pos> is supplied but
@@ -2404,60 +2470,42 @@ class ROI(skrt.core.Archive):
         voxel_size : tuple, default=None
             Voxel size (dx, dy, dz) in mm to be used for ROI masks
             from which to calculate surface distances.  If None,
-            the voxel size of the image associated with <self>
-            is used.
+            the mask voxel size of <other> is used.
 
-        voxel_dim_tolerence : float, default=0.1
+        voxel_dim_tolerance : float, default=0.1
             Tolerence used when determining whether <voxel_size> is
             different from the voxel size of the images associated with
             each ROI.
         """
 
-        # Create ROI clones, for which voxel sizes may be altered.
-        roi1 = self.clone()
-        roi1.load()
-        roi2 = other.clone()
-        roi2.load()
+        # Set view to None if considering 3D mask.
+        if not single_slice and not flatten:
+            view = None
 
+        # Default to symmetric or one-way distances,
+        # depending on whether distances are signed or unsigned.
         if symmetric is None:
             symmetric = False if signed is True else True
 
-        # Associate new dummy image with ROIs if requested voxel size
-        # is different from voxel size of either current image,
-        # of if voxel sizes of current images don't match.
-        voxel_size = voxel_size or roi1.get_voxel_size()
-        resize = False
-        for roi in [roi1, roi2]:
-            matches = [dxyz1 for dxyz1, dxyz2 in
-                    zip(voxel_size, roi.voxel_size)
-                    if abs(dxyz1 - dxyz2) < voxel_dim_tolerence]
-            if 3 != len(matches):
-                resize = True
-        if resize:
-            StructureSet([roi1, roi2]).set_image_to_dummy(
-                    slice_thickness=voxel_size[2], voxel_size=voxel_size[:2])
+        # Obtain ROI clones, with mask voxel sizes matched to voxel_size
+        # if non-null, or otherwise to the mask voxel size of other.
+        roi1, roi2 = self.match_mask_voxel_size(other, voxel_size,
+                voxel_dim_tolerance)
 
         # Check whether ROIs are empty
         if not np.any(roi1.get_mask()) or not np.any(roi2.get_mask()):
             return
 
-        # Get binary masks and voxel sizes
+        # Get voxel size relative to axes of numpy array.
+        voxel_size = roi1.get_np_voxel_size(view)
+
+        # Get binary masks
         if single_slice:
-            voxel_size = [roi1.voxel_size[i]
-                    for i in skrt.image._plot_axes[view]]
             mask1 = roi1.get_slice(view, sl=sl, idx=idx, pos=pos)
             mask2 = roi2.get_slice(view, sl=sl, idx=idx, pos=pos)
         else:
-            if not flatten:
-                vx, vy, vz = roi1.voxel_size
-                voxel_size = [vy, vx, vz]
-                mask1 = roi1.get_mask()
-                mask2 = roi2.get_mask()
-            else:
-                voxel_size = [roi1.voxel_size[i]
-                        for i in skrt.image._plot_axes[view]]
-                mask1 = roi1.get_mask(view, flatten=True)
-                mask2 = roi2.get_mask(view, flatten=True)
+            mask1 = roi1.get_mask(view, flatten=flatten)
+            mask2 = roi2.get_mask(view, flatten=flatten)
 
         # Make structuring element
         conn2 = ndimage.generate_binary_structure(2, connectivity)
