@@ -12,8 +12,9 @@ methods = ["mask", "contour"]
 
 
 # Create fake image
+delta_y = 2
 centre1 = np.array([5, 4, 5])
-centre2 = np.array([5, 6, 5])
+centre2 = np.array([5, 4 + delta_y, 5])
 side_length = 4
 name1 = 'cube1'
 name2 = 'cube2'
@@ -139,9 +140,7 @@ def test_area_diff():
     assert cube1.get_area_diff(cube2, flatten=True) == 0
 
 def test_mean_surface_distance():
-    print(cube1.get_mean_surface_distance(cube2))
-    print(cube2.get_mean_surface_distance(cube1))
-#    assert cube1.get_mean_surface_distance(cube2) == 1
+    assert cube1.get_mean_surface_distance(cube2) == 1
     assert cube2.get_mean_surface_distance(cube1) \
             == cube1.get_mean_surface_distance(cube2)
 
@@ -233,3 +232,15 @@ def test_surface_distance():
                 voxel_size=(voxel_size), symmetric=False)
         assert sds.min() == approx(delta_r2, abs=precision)
         assert sds.max() == approx(delta_r2, abs=precision)
+
+def test_mean_distance_to_conformity():
+    '''Test calculation of mean distance to conformity.'''
+    conformity = cube1.get_mean_distance_to_conformity(cube2)
+    assert conformity.n_voxel == 2 * side_length**3 - delta_y * side_length**2
+    assert conformity.voxel_size == cube1.voxel_size
+    distances = np.array([dy + 1 for dy in range(delta_y)
+            for idx in range(int(side_length)**2)])
+    mean_distance = distances.sum() / conformity.n_voxel
+    assert conformity.mean_under_contouring == mean_distance
+    assert conformity.mean_over_contouring == mean_distance
+    assert conformity.mean_distance_to_conformity == 2 * mean_distance

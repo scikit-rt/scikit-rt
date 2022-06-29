@@ -2400,6 +2400,7 @@ class ROI(skrt.core.Archive):
         connectivity=2,
         flatten=False,
         symmetric=None,
+        conformity=False,
         in_slice=True,
         voxel_size=None,
         voxel_dim_tolerance=0.1,
@@ -2463,6 +2464,13 @@ class ROI(skrt.core.Archive):
             of <other> to the surface of <self> only.  If None, set to
             the opposiste of <signed>.
 
+         conformity : bool, default=False
+             If True, distances returned are signed distances to conformity,
+             as defined in:
+             https://doi.org/10.1259/bjr/27674581
+             In this case, the values of <signed> and <symmetric>
+             are disregarded.
+
         in_slice : bool, default=True
             If True, only intra-slice connectivity is considered when
             performing erosion to identify ROI surfaces.
@@ -2481,6 +2489,11 @@ class ROI(skrt.core.Archive):
         # Set view to None if considering 3D mask.
         if not single_slice and not flatten:
             view = None
+
+        # Set to False parameters that are to be ignored
+        # when calculating distances to conformity.
+        if conformity:
+            symmetric = signed = False
 
         # Default to symmetric or one-way distances,
         # depending on whether distances are signed or unsigned.
@@ -2522,19 +2535,24 @@ class ROI(skrt.core.Archive):
         surf1 = mask1 ^ ndimage.binary_erosion(mask1, conn)
         surf2 = mask2 ^ ndimage.binary_erosion(mask2, conn)
 
-        # Make arrays of distances to surface of each pixel
+        # Make arrays of distances to surface of each ROI
         dist1 = ndimage.distance_transform_edt(~surf1, voxel_size)
         dist2 = ndimage.distance_transform_edt(~surf2, voxel_size)
 
-        # Get signed arrays
+        # Get signed distances
         if signed:
             dist1 = dist1 * ~mask1 - dist1 * mask1
             dist2 = dist2 * ~mask2 - dist2 * mask2
 
         # Make vector containing all distances
-        sds = np.ravel(dist1[surf2 != 0])
-        if symmetric:
-            sds = np.concatenate([sds, np.ravel(dist2[surf1 != 0])])
+        if conformity:
+            dist1[mask1 & mask2] = 0
+            dist1[mask1 & ~mask2] = -dist2[mask1 & ~mask2]
+            sds = np.ravel(dist1[mask1 | mask2])
+        else:
+            sds = np.ravel(dist1[surf2 != 0])
+            if symmetric:
+                sds = np.concatenate([sds, np.ravel(dist2[surf1 != 0])])
         return sds
 
     def get_mean_surface_distance(self, other, **kwargs):
@@ -2563,6 +2581,66 @@ class ROI(skrt.core.Archive):
         if sds is None:
             return
         return sds.max()
+
+    def get_mean_distance_to_conformity(self, other, **kwargs):
+        '''
+        Obtain mean distance to conformity for <other> relative to <self>.
+
+        The mean distance to conformity is as defined in:
+        https://doi.org/10.1259/bjr/27674581
+
+        This function returns a skrt.core.Data object, with the following
+        information:
+
+        n_voxel : number of voxels in the union of the ROIs considered.
+
+        voxel_size : voxel size (dx, dy, dz) in millimetres, in the
+        ROI masks used in distance calculations.
+
+        mean_under_contouring : sum of absolute values of negative distances
+        to conformity, divided by n_voxel.
+
+        mean_over_contouring : sum of positive distances to conformity,
+        divided by n_voxel.
+
+        mean_distance_to_conformity : sum of mean_under_contouring and
+        mean_over_contouring.
+
+        For parameters that may be passed, see documentation for:
+        skrt.ROI.get_surface_distances().
+        '''
+
+        # Obtain distances to conformity.
+        kwargs["conformity"] = True
+        sds = self.get_surface_distances(other, **kwargs)
+        if sds is None:
+            return
+
+        # Obtain mask array representing union or ROIs.
+        union = StructureSet([self, other]).combine_rois()
+        view = kwargs.get("view", "x-y")
+        if kwargs.get("single_slice", False):
+            sl = kwargs.get("sl", None)
+            idx = kwargs.get("idx", None)
+            pos = kwargs.get("pos", None)
+            mask_data = union.get_slice(view, sl, idx, pos)
+        else:
+            flatten = kwargs.get("flatten", False)
+            mask_data = union.get_mask(view, flatten)
+
+        # Calculate conformity scores.
+        conformity = skrt.core.Data()
+        conformity.n_voxel = mask_data.sum()
+        conformity.voxel_size = union.get_voxel_size()
+        conformity.mean_under_contouring = (abs(sds[sds < 0].sum())
+                / conformity.n_voxel)
+        conformity.mean_over_contouring = (sds[sds > 0].sum()
+                / conformity.n_voxel)
+        conformity.mean_distance_to_conformity = (
+                conformity.mean_under_contouring +
+                conformity.mean_over_contouring)
+
+        return conformity
 
     def get_surface_distance_metrics(self, other, **kwargs):
         """Get the mean surface distance, RMS surface distance, and Hausdorff
