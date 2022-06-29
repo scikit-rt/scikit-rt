@@ -869,6 +869,27 @@ recalculated.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_mean_distance_to_conformity">
+<span class="sig-name descname"><span class="pre">get_mean_distance_to_conformity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mean_distance_to_conformity" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain mean distance to conformity for &lt;other&gt; relative to &lt;self&gt;.</p>
+<p>The mean distance to conformity is as defined in:
+<a class="reference external" href="https://doi.org/10.1259/bjr/27674581">https://doi.org/10.1259/bjr/27674581</a></p>
+<p>This function returns a skrt.core.Data object, with the following
+information:</p>
+<p>n_voxel : number of voxels in the union of the ROIs considered.</p>
+<p>voxel_size : voxel size (dx, dy, dz) in millimetres, in the
+ROI masks used in distance calculations.</p>
+<p>mean_under_contouring : sum of absolute values of negative distances
+to conformity, divided by n_voxel.</p>
+<p>mean_over_contouring : sum of positive distances to conformity,
+divided by n_voxel.</p>
+<p>mean_distance_to_conformity : sum of mean_under_contouring and
+mean_over_contouring.</p>
+<p>For parameters that may be passed, see documentation for:
+skrt.ROI.get_surface_distances().</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_mean_surface_distance">
 <span class="sig-name descname"><span class="pre">get_mean_surface_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mean_surface_distance" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain mean distance between surface of &lt;other&gt; and surface of &lt;self&gt;.</p>
@@ -1000,14 +1021,14 @@ distance.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_surface_distances">
-<span class="sig-name descname"><span class="pre">get_surface_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_dim_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_distances" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_surface_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_dim_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_distances" title="Permalink to this definition"></a></dt>
 <dd><p>Get vector of surface distances between two ROIs.</p>
 <p>Surface distances may be signed or unsigned, and may be for a single
 slice through the ROIs, or for the 3D volumes.</p>
 <p>This function uses ideas outlined at:
 <a class="reference external" href="https://mlnotebook.github.io/post/surface-distance-function/">https://mlnotebook.github.io/post/surface-distance-function/</a></p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, return surface distances relative to 3D volumes.
 Otherwise, return surface distances for a single image slice.</p>
 </dd>
@@ -1041,11 +1062,21 @@ For further details, see:
 orientation, and surface distances relative to the flattened
 slice will be returned.</p>
 </dd>
-<dt>symmetric<span class="classifier">bool, default=None</span></dt><dd><p>If True, the distances returned are from the surface of &lt;other&gt;
+<dt>symmetric<span class="classifier">bool, default=None</span></dt><dd><blockquote>
+<div><p>If True, the distances returned are from the surface of &lt;other&gt;
 to the surface of &lt;self&gt; and from the surface of &lt;self&gt; to the
 surface of &lt;other&gt;.  If False, distances are from the surface
 of &lt;other&gt; to the surface of &lt;self&gt; only.  If None, set to
 the opposiste of &lt;signed&gt;.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>conformity<span class="classifier">bool, default=False</span></dt><dd><p>If True, distances returned are signed distances to conformity,
+as defined in:
+<a class="reference external" href="https://doi.org/10.1259/bjr/27674581">https://doi.org/10.1259/bjr/27674581</a>
+In this case, the values of &lt;signed&gt; and &lt;symmetric&gt;
+are disregarded.</p>
+</dd>
+</dl>
 </dd>
 <dt>in_slice<span class="classifier">bool, default=True</span></dt><dd><p>If True, only intra-slice connectivity is considered when
 performing erosion to identify ROI surfaces.</p>
