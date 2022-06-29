@@ -889,6 +889,17 @@ skrt.ROI.get_surface_distances().</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_np_voxel_size">
+<span class="sig-name descname"><span class="pre">get_np_voxel_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_np_voxel_size" title="Permalink to this definition"></a></dt>
+<dd><p>Get voxel_size for numpy axis ordering and specified view.</p>
+<dl class="simple">
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation considered for 2D image or projection.
+Can be “x-y”, “y-z”, or “x-z”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_nz_contours">
 <span class="sig-name descname"><span class="pre">get_nz_contours</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_nz_contours" title="Permalink to this definition"></a></dt>
 <dd><p>Get number of voxels in the z direction using positions of contours.</p>
@@ -989,7 +1000,7 @@ distance.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_surface_distances">
-<span class="sig-name descname"><span class="pre">get_surface_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_dim_tolerence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_distances" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_surface_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_dim_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_distances" title="Permalink to this definition"></a></dt>
 <dd><p>Get vector of surface distances between two ROIs.</p>
 <p>Surface distances may be signed or unsigned, and may be for a single
 slice through the ROIs, or for the 3D volumes.</p>
@@ -1005,8 +1016,8 @@ If True, return signed surface distances.  A point on the
 surface of &lt;other&gt; is taken to be at a positive distance if
 outside &lt;self&gt;, and at a negative distance if inside.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice for which to obtaine surface distances.i
-Only used if &lt;single_slice&gt; is True.</p>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice for which to obtain surface distances.
+Only used if either &lt;single_slice&gt; or &lt;flatten&gt; is True.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; is supplied but
 &lt;single_slice&gt; is True, the central slice of the ROI will be used.</p>
@@ -1041,10 +1052,9 @@ performing erosion to identify ROI surfaces.</p>
 </dd>
 <dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
 from which to calculate surface distances.  If None,
-the voxel size of the image associated with &lt;self&gt;
-is used.</p>
+the mask voxel size of &lt;other&gt; is used.</p>
 </dd>
-<dt>voxel_dim_tolerence<span class="classifier">float, default=0.1</span></dt><dd><p>Tolerence used when determining whether &lt;voxel_size&gt; is
+<dt>voxel_dim_tolerance<span class="classifier">float, default=0.1</span></dt><dd><p>Tolerence used when determining whether &lt;voxel_size&gt; is
 different from the voxel size of the images associated with
 each ROI.</p>
 </dd>
@@ -1203,6 +1213,27 @@ self.loaded to True.</p>
 <dt class="sig sig-object py" id="skrt.structures.ROI.mask_to_contours">
 <span class="sig-name descname"><span class="pre">mask_to_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.mask_to_contours" title="Permalink to this definition"></a></dt>
 <dd><p>Create contours from a mask.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.match_mask_voxel_size">
+<span class="sig-name descname"><span class="pre">match_mask_voxel_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_dim_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.match_mask_voxel_size" title="Permalink to this definition"></a></dt>
+<dd><p>Ensure that the mask voxel sizes of &lt;self&gt; and &lt;other&gt; match.</p>
+<p>The mask voxel_sizes for both may optionally be set to a new
+common value.</p>
+<p><strong>Paramters:</strong></p>
+<dl class="simple">
+<dt>other<span class="classifier">skrt.structures.ROI</span></dt><dd><p>ROI with which voxel size is to be matched.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
+from which to calculate surface distances.  If None,
+the mask voxel size of &lt;other&gt; is used.</p>
+</dd>
+<dt>voxel_dim_tolerance<span class="classifier">float, default=0.1</span></dt><dd><p>Tolerence used when determining whether &lt;voxel_size&gt; is
+different from the voxel size of the images associated with
+each ROI.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
