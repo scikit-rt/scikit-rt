@@ -800,6 +800,53 @@ position.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_intersection_union_size">
+<span class="sig-name descname"><span class="pre">get_intersection_union_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_intersection_union_size" title="Permalink to this definition"></a></dt>
+<dd><p>Get intersection, union and mean size with respect to another ROI.
+Values are returned as volumes for the full ROIs,
+or as areas for a single slice.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
+</dd>
+<dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the volumes of intersection and  union of the full ROIs,
+and the mean ROI volume will be returned;
+otherwise, the areas of intersection and union on a single slice,
+and the mean ROI area, will be returned.</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get areas of intersection
+and union, and mean ROI area.  Only used if single_slice=True.</p>
+</dd>
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied
+but &lt;single_slice&gt; is True, the central slice of this ROI will be
+used.</p>
+</dd>
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied
+but &lt;single_slice&gt; is True, the central slice of this ROI will
+be used.</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for calculating intersection, union, and mean
+size. Can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“contour”: get intersections and areas of shapely contours.</p></li>
+<li><p>“mask”: count intersecting voxels in binary masks.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</div></blockquote>
+</dd>
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
+the areas of intersection and union, and the mean ROI area,
+will be returned for the flattened slices. Only available
+if method=”mask”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_length">
 <span class="sig-name descname"><span class="pre">get_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_length" title="Permalink to this definition"></a></dt>
 <dd><p>Get ROI length along a given axis. If single_slice=False (i.e. a 
