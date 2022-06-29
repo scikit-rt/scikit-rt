@@ -6441,3 +6441,141 @@ def compare_roi_pairs(
     if html:
         return df_to_html(df)
     return df
+
+def get_conformity_index(
+    rois,
+    ci_type="general",
+    single_slice=False,
+    view="x-y", 
+    sl=None, 
+    idx=None, 
+    pos=None, 
+    method=None,
+    flatten=False,
+    ):
+    """
+    Get conformity index for two or more ROIs.
+
+    The conformity index may be calculated globally or for a single slice.
+
+    The conformity index returned may be any of the three
+    types ("general", "pairs", "common") referred to in:
+    https://doi.org/10.1088/0031-9155/54/9/018
+    For the case of two ROIs, all are equivalent to the
+    Jaccard conformity index.
+
+    **Parameters:**
+        
+    rois : list
+        List of two or more skrt.structures.ROI objects for which conformity
+        index is to be calculated.
+
+    ci_type: str, default=general
+        Type of conformity index to calculate.  This should be one
+        of "general", "pairs", "common".
+
+    single_slice : bool, default=False
+        If False, the global 3D Dice score of the full ROIs will be returned;
+        otherwise, the 2D Dice score on a single slice will be returned.
+
+    view : str, default="x-y"
+        Orientation of slice on which to get Dice score. Only used if 
+        single_slice=True. If using, <ax> must be an axis that lies along
+        the slice in this orientation.
+
+    sl : int, default=None
+        Slice number. If none of <sl>, <idx> or <pos> are supplied but
+        <single_slice> is True, the central slice of this ROI will be used.
+
+    idx : int, default=None
+        Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+        <single_slice> is True, the central slice of this ROI will be used.
+
+    pos : float, default=None
+        Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+        <single_slice> is True, the central slice of this ROI will be used.
+
+    method : str, default=None
+        Method to use for Dice score calculation. Can be: 
+        - "contour": get intersections and areas of shapely contours.
+        - "mask": count intersecting voxels in binary masks.
+        - None: use the method set in self.default_geom_method.
+        For more than two ROIs and <ci_type> "common", only the "mask"
+        method is implemented.
+
+    flatten : bool, default=False
+        If True, all slices will be flattened in the given orientation and
+        the Dice score of the flattened slices will be returned. Only 
+        available if method="mask".
+    """
+
+    # Require valid inputs.
+    if len(rois) < 2 or ci_type not in ["common", "general", "pairs"]:
+        return
+
+    if ci_type in ["general", "pairs"]:
+        # Deal with cases "general" and "pairs".
+        #
+        # For "general", the conformity index is calculated as the ratio of
+        # (1) the sum of the intersections for all pairs to (2) the sum of
+        # the unions # for all pairs.
+        #
+        # For "pairs, the conformity index is calcualted as the mean of the
+        # Jaccard conformity indices for all pairs.
+
+        numerator = 0
+        denominator = 0
+        ci = 0
+        n_pair = 0
+        for idx1 in range(len(rois) - 1):
+            for idx2 in range(idx + 1, range(len(rois))):
+                roi1 = rois[idx1]
+                roi2 = rois[idx2]
+                intersection, union, mean_size = (
+                        roi1.get_intersection_union_size(roi2, single_slice,
+                            view, sl, idx, pos, method, flatten))
+                n_pair += 1
+                if "general" == ci_type:
+                    numerator += intersection
+                    denominator += union
+                elif "pairs" == ci_type:
+                    ci += intersection / union
+
+        if "general" == ci_type:
+            ci = numerator / denominator
+        elif "pairs" == ci_type:
+            ci /= n_pair
+
+    elif "common" == ci_type:
+        # Deal with case "common".
+        #
+        # The conformity index is calculated as the ratio of
+        # (1) the common intersection of all ROIs to (2) the combined union
+        # of all ROIs.
+        if 2 == len(rois):
+            intersection, union, mean_size = (
+                    rois[0].get_intersection_union_size(rois[1], single_slice,
+                            view, sl, idx, pos, method, flatten))
+        else:
+            if not single_slice:
+                mask_intersection = rois[0].clone().get_mask(
+                        view, flatten, standardise=True)
+                mask_union = rois[0].clone().get_mask(
+                        view, flatten, standardise=True)
+            else:
+                mask_intersection = rois[0].clone().get_slice(
+                        view, sl, idx, pos)
+                mask_union = rois[0].clone().get_slice(view, sl, idx, pos)
+
+            for roi in rois[1:]:
+                if not single_slice:
+                    mask = roi.get_mask(view, flatten, standardise=True)
+                else:
+                    mask = roi.get_slice(view, sl, idx, pos)
+
+                mask_intersection = (mask_intersection & mask)
+                mask_union = (mask_union | mask)
+
+            ci = mask_intersection.sum() / mask_union.sum()
+
+    return ci
