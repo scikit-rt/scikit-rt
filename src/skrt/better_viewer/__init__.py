@@ -1084,6 +1084,8 @@ class BetterViewer:
         for attr in ["mask", "dose", "df"]:
             if self.any_attr(attr):
                 self.extra_ui.append(getattr(v0, 'ui_' + attr))
+                if "df" == attr:
+                    self.extra_ui.append(getattr(v0, 'ui_df_spacing'))
                 if "mask" == attr:
                     self.extra_ui.append(getattr(v0, 'ui_mask_invert'))
         if self.any_attr('jacobian'):
@@ -2348,13 +2350,24 @@ class SingleViewer:
                     self.extra_ui.extend(
                             [self.ui_jac_opacity, self.ui_jac_range])
 
-            # Plot type for deformation field.
+            # Plot type and spacing for deformation field.
             self.ui_df = ipyw.Dropdown(
                 options=['grid', 'quiver', 'none'],
                 value=self.df_plot_type,
                 description='Deformation field',
                 style=_style,
                 )
+
+            self.ui_df_spacing = ipyw.FloatSlider(
+                value=self.df_spacing,
+                min=5,
+                max=30,
+                step=1,
+                description='Deformation-field spacing',
+                continuous_update=self.continuous_update,
+                readout_format='.0f',
+                style=_style,
+            )
 
             # ROI UI
             # ROI plot type
@@ -2440,6 +2453,7 @@ class SingleViewer:
                 'ui_jac_opacity',
                 'ui_jac_range',
                 'ui_df',
+                'ui_df_spacing',
                 'ui_roi_plot_type',
                 'ui_roi_consensus_switch',
                 'ui_roi_consensus_type',
@@ -2767,7 +2781,7 @@ class SingleViewer:
         if self.has_df and self.ui_df.value in ["grid", "quiver"]:
             df = self.df
             df_plot_type = self.ui_df.value
-            df_spacing = self.df_spacing
+            df_spacing = self.ui_df_spacing.value
             df_kwargs = self.df_kwargs
         else:
             df = None

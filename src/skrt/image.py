@@ -2237,8 +2237,8 @@ class Image(skrt.core.Archive):
                     masked=masked,
                     invert_mask=invert_mask,
                     mask_color=mask_color,
-                    plot_type=df_plot_type,
-                    spacing=df_spacing,
+                    df_plot_type=df_plot_type,
+                    df_spacing=df_spacing,
                     **df_kwargs,
                     )
 

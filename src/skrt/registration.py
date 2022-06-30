@@ -1424,9 +1424,9 @@ class DeformationField:
         sl=None,
         idx=None,
         pos=None,
-        plot_type="quiver",
+        df_plot_type="quiver",
         include_image=False,
-        spacing=30,
+        df_spacing=30,
         ax=None,
         gs=None,
         figsize=None,
@@ -1475,7 +1475,7 @@ class DeformationField:
             ylim = self.ax.get_ylim()
 
         # Get spacing in each direction in number of voxels
-        spacing = self.convert_spacing(spacing, scale_in_mm)
+        df_spacing = self.convert_spacing(df_spacing, scale_in_mm)
 
         # Get vectors and positions on this slice
         data_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos, 
@@ -1488,12 +1488,12 @@ class DeformationField:
         aspect = im_kwargs["aspect"]
 
         # Create plot
-        if plot_type == "quiver":
-            self._plot_quiver(view, data_slice, spacing, mpl_kwargs)
-        elif plot_type == "grid":
-            self._plot_grid(view, data_slice, spacing, mpl_kwargs)
+        if df_plot_type == "quiver":
+            self._plot_quiver(view, data_slice, df_spacing, mpl_kwargs)
+        elif df_plot_type == "grid":
+            self._plot_grid(view, data_slice, df_spacing, mpl_kwargs)
         else:
-            print(f"Unrecognised plot type '{plot_type}'")
+            print(f"Unrecognised plot type '{df_plot_type}'")
 
         # Set plot's pre-zoom aspect ratio and axis limits.
         self.ax.set_aspect(aspect)
@@ -1584,6 +1584,37 @@ class DeformationField:
         for j in np.arange(0, x.shape[1], spacing[x_ax]):
             self.ax.plot(grid_x[:, j], grid_y[:, j], **default_kwargs)
 
+    def view(self, include_image=False, **kwargs):
+        """
+        View the deformation field.
+
+        **Parameters:**
+        
+        include_image : bool, default=True
+            If True, the image associated with the deformation field will
+            be displayed as underlay.
+
+        Any ``**kwargs`` will be passed to BetterViewer initialisation.
+        """
+
+        from skrt.better_viewer import BetterViewer
+        self.load()
+
+        # Ensure that df keyword isn't passed also via kwargs.
+        kwargs.pop("df", None)
+
+        # Define image for display: the image associated with
+        # the deformation field, or a dummy image of the same size.
+        if include_image and self.image is not None:
+            im = self.image
+        else:
+            im = skrt.image.Image(
+                    np.ones(self._image.get_data().shape[0: 3]) * 1e4,
+                    affine=self._image.get_affine())
+        
+        # Create viewer
+        return BetterViewer(im, df=self, **kwargs)
+    
     def convert_spacing(self, spacing, scale_in_mm):
         """Convert grid spacing in mm or voxels to list containing grid spacing 
         in voxels in each dimension."""
