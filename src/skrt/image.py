@@ -1778,6 +1778,10 @@ class Image(skrt.core.Archive):
         jacobian_opacity=1.0,
         jacobian_range=None,
         jacobian_kwargs=None,
+        df=None,
+        df_plot_type="grid",
+        df_spacing=30,
+        df_kwargs=None,
     ):
         """Plot a 2D slice of the image.
 
@@ -2032,6 +2036,35 @@ class Image(skrt.core.Archive):
             - 'cmap': colormap (default='jacobian' - custom colour map).
             - 'interpolation': interpolation method (default='antialiased')
 
+        df_plot_type : str, default='grid'
+            Option for plotting of deformation field. Can be 'grid',
+            'quiver', or 'none'.
+
+        df_spacing : int/tuple, default=30
+            Spacing between arrows on the quiver plot/gridlines on the grid
+            plot of a deformation field. Can be a single value for spacing in
+            all directions, or a tuple with values for (x, y, z). Dimensions
+            are mm if <scale_in_mm> is True, or voxels if <scale_in_mm> is
+            False.
+
+        df : str/skrt.registration.DeformationField/list, default=None
+            Source(s) of deformation field(s) to overlay on each plot.
+
+        df_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to matplotlib when plotting
+            the deformation field.
+
+            For grid plotting options, see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html.
+            Some useful keywords are:
+
+            - 'linewidth': default=2
+            - 'color': default='green'
+
+            For quiver plotting options, see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.quiver.html.
+
+        roi_plot_type : str, default='contour'
+            Option for initial plot of ROIs. Can be 'contour', 'mask',
+            'filled', or 'none'.
         """
 
         self.load()

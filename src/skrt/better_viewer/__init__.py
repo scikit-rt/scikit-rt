@@ -21,7 +21,7 @@ from skrt.image import (
     _default_figsize,
 )
 from skrt.dose import Dose
-from skrt.registration import Grid, Jacobian
+from skrt.registration import Grid, DeformationField, Jacobian
 from skrt.structures import (
     StructureSet, 
     ROI, 
@@ -809,6 +809,12 @@ class BetterViewer:
         self.jacobian = self.get_input_list(jacobian)
         self.df = self.get_input_list(df)
 
+        # Set options for deformation field.
+        self.df_kwargs = kwargs.get("df_kwargs", {})
+        self.df_plot_type = kwargs.get("df_plot_type", "grid")
+        self.df_spacing = kwargs.get("df_spacing", 30)
+
+        # Set options for Jacobian determinant.
         self.jacobian_kwargs = kwargs.get("jacobian_kwargs", {})
         jacobian_cmap = kwargs.get("cmap", None)
         if jacobian_cmap is not None:
@@ -1075,7 +1081,7 @@ class BetterViewer:
 
         # Make extra UI list
         self.extra_ui = []
-        for attr in ["mask", "dose"]:#['mask', 'dose', 'df']:
+        for attr in ["mask", "dose", "df"]:
             if self.any_attr(attr):
                 self.extra_ui.append(getattr(v0, 'ui_' + attr))
                 if "mask" == attr:
@@ -1663,6 +1669,7 @@ class SingleViewer:
 
         # Load additional overlays
         self.load_dose(dose)
+        self.load_df(df)
         self.load_jacobian(jacobian)
         self.load_grid(grid)
 
@@ -1828,6 +1835,8 @@ class SingleViewer:
         except KeyError:
             self.init_jacobian_range = None
 
+        self.df_plot_type = df_plot_type
+
         # ROI settings
         self.roi_plot_type = roi_plot_type
         self.roi_mask_opacity = 1
@@ -1899,6 +1908,18 @@ class SingleViewer:
             self.dose = Dose(dose)
 
         self.has_dose = self.dose is not None
+
+    def load_df(self, df):
+        """Load deformation field."""
+
+        if df is None:
+            self.df = None
+        elif isinstance(df, DeformationField):
+            self.df = df
+        else:
+            self.df = DeformationField(df)
+
+        self.has_df = self.df is not None
 
     def load_rois(
         self, 
@@ -2325,15 +2346,13 @@ class SingleViewer:
                     self.extra_ui.extend(
                             [self.ui_jac_opacity, self.ui_jac_range])
 
-            # Deformation field plot type
-            #  self.ui_df = ipyw.Dropdown(
-                #  options=['grid', 'quiver', 'none'],
-                #  value=self.df_plot_type,
-                #  description='Deformation field',
-                #  style=_style,
-            #  )
-            #  if self.image.has_df:
-                #  self.extra_ui.append(self.ui_df)
+            # Plot type for deformation field.
+            self.ui_df = ipyw.Dropdown(
+                options=['grid', 'quiver', 'none'],
+                value=self.df_plot_type,
+                description='Deformation field',
+                style=_style,
+                )
 
             # ROI UI
             # ROI plot type
@@ -2418,7 +2437,7 @@ class SingleViewer:
                 'ui_dose',
                 'ui_jac_opacity',
                 'ui_jac_range',
-                #  'ui_df',
+                'ui_df',
                 'ui_roi_plot_type',
                 'ui_roi_consensus_switch',
                 'ui_roi_consensus_type',
@@ -2742,6 +2761,18 @@ class SingleViewer:
         # Update ROI comparison table
         self.update_roi_comparison()
 
+        # Settings for deformation field
+        if self.has_df:
+            df = self.df
+            df_plot_type = self.ui_df
+            df_spacing = self.df_spacing
+            df_kwargs = df_kwargs
+        else:
+            df = None
+            df_plot_type = None
+            df_spacing = None
+            df_kwargs = None
+
         # Settings for overlays (grid, dose map or jacobian)
         if self.has_jacobian:
             jacobian = self.jacobian
@@ -2827,6 +2858,10 @@ class SingleViewer:
             jacobian=jacobian,
             jacobian_opacity=jacobian_opacity,
             jacobian_kwargs=jacobian_kwargs,
+            df=df,
+            df_plot_type=df_plot_type,
+            df_spacing=df_spacing,
+            df_kwargs=df_kwargs,
             **kwargs
         )
         self.plotting = False
