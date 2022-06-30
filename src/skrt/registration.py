@@ -1435,7 +1435,23 @@ class DeformationField:
         show=True,
         save_as=None,
         scale_in_mm=True,
-        **kwargs
+        title=None,
+        colorbar=False,
+        no_xlabel=False,
+        no_ylabel=False,
+        no_xtick_labels=False,
+        no_ytick_labels=False,
+        annotate_slice=False,
+        major_ticks=None,
+        minor_ticks=None,
+        ticks_all_sides=False,
+        no_axis_labels=False,
+        mask=None,
+        mask_threshold=0.5,
+        masked=True,
+        invert_mask=False,
+        mask_color="black",
+        **mpl_kwargs
     ):
 
         # Set up axes
@@ -1447,7 +1463,14 @@ class DeformationField:
 
         # Plot the underlying image
         if include_image and self.image is not None:
-            self.image.plot(view, ax=self.ax, show=False)
+            self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
+                    show=False, title="", colorbar=max((colorbar - 1), 0),
+                    no_xlabel=no_xlabel, no_ylabel=no_ylabel,
+                    no_xtick_labels=no_xtick_labels,
+                    no_ytick_labels=no_ytick_labels,
+                    mask=mask, mask_threshold=mask_threshold,
+                    masked=masked, invert_mask=invert_mask,
+                    mask_color=mask_color)
             xlim = self.ax.get_xlim()
             ylim = self.ax.get_ylim()
 
@@ -1459,18 +1482,18 @@ class DeformationField:
                                     scale_in_mm=scale_in_mm)
 
         # Define plot's pre-zoom aspect ratio and axis limits.
-        mpl_kwargs = self._image.get_mpl_kwargs(view, None, scale_in_mm)
-        xlim = xlim or mpl_kwargs["extent"][0: 2]
-        ylim = ylim or mpl_kwargs["extent"][2: 4]
-        aspect = mpl_kwargs["aspect"]
+        im_kwargs = self._image.get_mpl_kwargs(view, None, scale_in_mm)
+        xlim = xlim or im_kwargs["extent"][0: 2]
+        ylim = ylim or im_kwargs["extent"][2: 4]
+        aspect = im_kwargs["aspect"]
 
         # Create plot
         if plot_type == "quiver":
-            self._plot_quiver(view, data_slice, spacing, kwargs)
+            self._plot_quiver(view, data_slice, spacing, mpl_kwargs)
         elif plot_type == "grid":
-            self._plot_grid(view, data_slice, spacing, kwargs)
+            self._plot_grid(view, data_slice, spacing, mpl_kwargs)
         else:
-            raise ValueError(f"Unrecognised plot type {plot_type}")
+            print(f"Unrecognised plot type '{plot_type}'")
 
         # Set plot's pre-zoom aspect ratio and axis limits.
         self.ax.set_aspect(aspect)
@@ -1479,7 +1502,12 @@ class DeformationField:
 
         # Label and zoom axes
         idx = self._image.get_idx(view, sl=sl, idx=idx, pos=pos)
-        self._image.label_ax(view, idx=idx, scale_in_mm=scale_in_mm, **kwargs)
+        self._image.label_ax(view, idx=idx, scale_in_mm=scale_in_mm,
+                title=title, no_xlabel=no_xlabel, no_ylabel=no_ylabel,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels, annotate_slice=annotate_slice,
+                major_ticks=major_ticks, ticks_all_sides=ticks_all_sides,
+                no_axis_labels=no_axis_labels, **mpl_kwargs)
         self._image.zoom_ax(view, zoom, zoom_centre)
 
         # Display image

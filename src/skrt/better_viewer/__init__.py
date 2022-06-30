@@ -1835,7 +1835,9 @@ class SingleViewer:
         except KeyError:
             self.init_jacobian_range = None
 
+        self.df_kwargs = df_kwargs
         self.df_plot_type = df_plot_type
+        self.df_spacing = df_spacing
 
         # ROI settings
         self.roi_plot_type = roi_plot_type
@@ -2762,11 +2764,11 @@ class SingleViewer:
         self.update_roi_comparison()
 
         # Settings for deformation field
-        if self.has_df:
+        if self.has_df and self.ui_df.value in ["grid", "quiver"]:
             df = self.df
-            df_plot_type = self.ui_df
+            df_plot_type = self.ui_df.value
             df_spacing = self.df_spacing
-            df_kwargs = df_kwargs
+            df_kwargs = self.df_kwargs
         else:
             df = None
             df_plot_type = None

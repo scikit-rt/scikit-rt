@@ -2166,6 +2166,7 @@ class Image(skrt.core.Archive):
             clb_label_kwargs = {}
 
         jacobian_kwargs = jacobian_kwargs or {}
+        df_kwargs = df_kwargs or {}
 
         # Set defaults for clb_kwargs and clb_label_kwargs
         clb_kwargs['pad'] = clb_kwargs.get('pad', 0.06)
@@ -2216,6 +2217,30 @@ class Image(skrt.core.Archive):
                 invert_mask=invert_mask,
                 mask_color=mask_color,
             )
+
+        # Plot the deformation field.
+        if df:
+            df.plot(
+                    view=view,
+                    idx=idx,
+                    ax=self.ax,
+                    show=False,
+                    colorbar= max((colorbar - 1), 0),
+                    include_image=False, 
+                    title="",
+                    no_xlabel=no_xlabel,
+                    no_ylabel=no_ylabel,
+                    no_xtick_labels=no_xtick_labels,
+                    no_ytick_labels=no_ytick_labels,
+                    mask=mask,
+                    mask_threshold=mask_threshold,
+                    masked=masked,
+                    invert_mask=invert_mask,
+                    mask_color=mask_color,
+                    plot_type=df_plot_type,
+                    spacing=df_spacing,
+                    **df_kwargs,
+                    )
 
         # Plot the Jacobian determinant.
         if jacobian and not dose_to_plot:
