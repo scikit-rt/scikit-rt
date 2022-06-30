@@ -1442,10 +1442,14 @@ class DeformationField:
         self._image.set_ax(view, ax, gs, figsize, zoom)
         self.ax = self._image.ax
         self.fig = self._image.fig
+        xlim = None
+        ylim = None
 
         # Plot the underlying image
         if include_image and self.image is not None:
             self.image.plot(view, ax=self.ax, show=False)
+            xlim = self.ax.get_xlim()
+            ylim = self.ax.get_ylim()
 
         # Get spacing in each direction in number of voxels
         spacing = self.convert_spacing(spacing, scale_in_mm)
@@ -1454,13 +1458,24 @@ class DeformationField:
         data_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos, 
                                     scale_in_mm=scale_in_mm)
 
+        # Define plot's pre-zoom aspect ratio and axis limits.
+        mpl_kwargs = self._image.get_mpl_kwargs(view, None, scale_in_mm)
+        xlim = xlim or mpl_kwargs["extent"][0: 2]
+        ylim = ylim or mpl_kwargs["extent"][2: 4]
+        aspect = mpl_kwargs["aspect"]
+
         # Create plot
         if plot_type == "quiver":
-            self._plot_quiver(view, data_slice, spacing, **kwargs)
+            self._plot_quiver(view, data_slice, spacing, kwargs)
         elif plot_type == "grid":
-            self._plot_grid(view, data_slice, spacing, **kwargs)
+            self._plot_grid(view, data_slice, spacing, kwargs)
         else:
             raise ValueError(f"Unrecognised plot type {plot_type}")
+
+        # Set plot's pre-zoom aspect ratio and axis limits.
+        self.ax.set_aspect(aspect)
+        self.ax.set_xlim(xlim)
+        self.ax.set_ylim(ylim)
 
         # Label and zoom axes
         idx = self._image.get_idx(view, sl=sl, idx=idx, pos=pos)
