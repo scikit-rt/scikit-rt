@@ -1764,6 +1764,9 @@ class Image(skrt.core.Archive):
         dose=None,
         dose_opacity=0.5,
         dose_kwargs=None,
+        grid=None,
+        grid_opacity=1.0,
+        grid_kwargs=None,
         flatten=False,
         xlim=None,
         ylim=None,
@@ -2065,6 +2068,17 @@ class Image(skrt.core.Archive):
         roi_plot_type : str, default='contour'
             Option for initial plot of ROIs. Can be 'contour', 'mask',
             'filled', or 'none'.
+        grid : string/nifti/array/list, default=None
+            Source(s) of grid array(s) to overlay on image
+            (see valid image sources for <images>).
+
+        grid_opacity : float, default=1.0
+            Opacity of the overlaid grid.
+
+        grid_kwargs : dict, default=None
+            Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
+            for the grid. See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html
+            for options.
         """
 
         self.load()
@@ -2167,6 +2181,7 @@ class Image(skrt.core.Archive):
 
         jacobian_kwargs = jacobian_kwargs or {}
         df_kwargs = df_kwargs or {}
+        grid_kwargs = grid_kwargs or {}
 
         # Set defaults for clb_kwargs and clb_label_kwargs
         clb_kwargs['pad'] = clb_kwargs.get('pad', 0.06)
@@ -2266,6 +2281,28 @@ class Image(skrt.core.Archive):
                 no_xtick_labels=no_xtick_labels,
                 no_ytick_labels=no_ytick_labels,
                 mpl_kwargs=jacobian_kwargs,
+                mask=mask,
+                mask_threshold=mask_threshold,
+                masked=masked,
+                invert_mask=invert_mask,
+                mask_color=mask_color,
+            )
+
+        # Plot the grid array.
+        if grid and not dose_to_plot:
+            grid.plot(
+                view=view,
+                idx=idx,
+                ax=self.ax,
+                show=False,
+                include_image=False, 
+                opacity=grid_opacity, 
+                title="",
+                no_xlabel=no_xlabel,
+                no_ylabel=no_ylabel,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels,
+                mpl_kwargs=grid_kwargs,
                 mask=mask,
                 mask_threshold=mask_threshold,
                 masked=masked,

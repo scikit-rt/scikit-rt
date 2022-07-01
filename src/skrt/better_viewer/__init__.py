@@ -1617,7 +1617,6 @@ class SingleViewer:
         grid=None,
         grid_opacity=1.0,
         grid_kwargs=None,
-        grid_range=None,
         jacobian=None,
         jacobian_opacity=0.5,
         jacobian_range=None,
@@ -1812,7 +1811,6 @@ class SingleViewer:
         if dose_cmap is not None:
             self.dose_kwargs["cmap"] = dose_cmap
         self.init_grid_opacity = grid_opacity
-        self.init_grid_range = grid_range
         self.grid_kwargs = grid_kwargs if grid_kwargs is not None else {}
         self.init_jacobian_opacity = jacobian_opacity
         self.jacobian_kwargs = jacobian_kwargs if jacobian_kwargs is not None else {}
@@ -2801,6 +2799,15 @@ class SingleViewer:
             jacobian_opacity = None
             jacobian_kwargs = None
 
+        if self.has_grid:
+            grid = self.grid
+            grid_opacity = self.ui_grid_opacity.value
+            grid_kwargs = self.grid_kwargs
+        else:
+            grid = None
+            grid_opacity = None
+            grid_kwargs = None
+
         '''
         # Settings for overlay (grid, dose map or jacobian)
         if self.has_grid:
@@ -2878,6 +2885,9 @@ class SingleViewer:
             df_plot_type=df_plot_type,
             df_spacing=df_spacing,
             df_kwargs=df_kwargs,
+            grid=grid,
+            grid_opacity=grid_opacity,
+            grid_kwargs=grid_kwargs,
             **kwargs
         )
         self.plotting = False
