@@ -370,8 +370,7 @@ def test_add_default_pfile():
     reg.add_default_pfile("MI_Affine", 
                           params={"MaximumNumberOfIterations": 300})
     assert len(reg.steps) == init_len + 1
-    assert reg.steps[-1] == "MI_Affine"
+    assert reg.steps[-1] == "MI_Affine_1"
     pars = reg.get_input_parameters(-1)
     assert pars["MaximumNumberOfIterations"] == 300
     assert pars["Transform"] == "AffineTransform"
-

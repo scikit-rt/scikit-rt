@@ -9,7 +9,7 @@ import subprocess
 
 import skrt.image
 from skrt.structures import ROI, StructureSet
-from skrt.core import get_logger, Data, to_list, Defaults
+from skrt.core import fullpath, get_logger, Data, to_list, Defaults
 from skrt.dose import ImageOverlay, Dose
 from skrt.simulation import make_grid
 
@@ -106,7 +106,7 @@ class Registration(Data):
         self.capture_output = capture_output
 
         # Set up directory
-        self.path = path
+        self.path = fullpath(path)
         if not os.path.exists(path):
             os.makedirs(path)
         elif overwrite:
@@ -256,7 +256,7 @@ class Registration(Data):
             if isinstance(pfile, dict):
                 print("If passing parameters from dict, <name> must be set.")
                 return
-            name = os.path.basename(pfile).replace(".txt", "")
+            name = os.path.basename(fullpath(pfile)).replace(".txt", "")
 
         # Check whether name already exists and add counter if so
         i = 1
