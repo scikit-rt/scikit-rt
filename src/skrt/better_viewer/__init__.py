@@ -820,8 +820,15 @@ class BetterViewer:
         if jacobian_cmap is not None:
             self.jacobian_kwargs["cmap"] = jacobian_cmap
         elif jacobian:
-            self.jacobian_kwargs["cmap"] = self.jacobian_kwargs.get(
-                    "cmap", jacobian._default_cmap)
+            for item in self.jacobian:
+                if item is not None:
+                    if isinstance(item, Jacobian):
+                        jac = item
+                    else:
+                        jac = Jacobian(item)
+                    self.jacobian_kwargs["cmap"] = self.jacobian_kwargs.get(
+                            "cmap", jac._default_cmap)
+                    break
 
         # Make individual viewers
         self.scale_in_mm = scale_in_mm
