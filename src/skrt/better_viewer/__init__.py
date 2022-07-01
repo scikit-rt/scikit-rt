@@ -2448,6 +2448,7 @@ class SingleViewer:
                 'ui_mask',
                 'ui_mask_invert',
                 'ui_dose',
+                'ui_grid_opacity',
                 'ui_jac_opacity',
                 'ui_jac_range',
                 'ui_df',
