@@ -1641,7 +1641,7 @@ def set_elastix_dir(path):
 
     # Set directory
     global _ELASTIX_DIR
-    _ELASTIX_DIR = path
+    _ELASTIX_DIR = fullpath(path)
 
     # Find elastix exectuable
     global _ELASTIX
