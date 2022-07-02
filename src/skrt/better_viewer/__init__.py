@@ -533,7 +533,7 @@ class BetterViewer:
             - 'cmap': colormap (default='seismic').
             - 'interpolation': interpolation method (default='antialiased')
 
-        df_plot_type : str, default='grid'
+        df_plot_type : str, default='quiver'
             Option for initial plotting of deformation field. Can be 'grid',
             'quiver', or 'none'. Can later be changed interactively.
 
@@ -811,7 +811,7 @@ class BetterViewer:
 
         # Set options for deformation field.
         self.df_kwargs = kwargs.get("df_kwargs", {})
-        self.df_plot_type = kwargs.get("df_plot_type", "grid")
+        self.df_plot_type = kwargs.get("df_plot_type", "quiver")
         self.df_spacing = kwargs.get("df_spacing", 30)
 
         # Set options for Jacobian determinant.
@@ -1630,7 +1630,7 @@ class SingleViewer:
         jacobian_cmap=None,
         jacobian_kwargs=None,
         df=None,
-        df_plot_type="grid",
+        df_plot_type="quiver",
         df_spacing=30,
         df_kwargs=None,
         rois=None,

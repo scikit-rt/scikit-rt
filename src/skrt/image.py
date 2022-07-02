@@ -1782,7 +1782,7 @@ class Image(skrt.core.Archive):
         jacobian_range=None,
         jacobian_kwargs=None,
         df=None,
-        df_plot_type="grid",
+        df_plot_type="quiver",
         df_spacing=30,
         df_kwargs=None,
     ):
@@ -2039,7 +2039,7 @@ class Image(skrt.core.Archive):
             - 'cmap': colormap (default='jacobian' - custom colour map).
             - 'interpolation': interpolation method (default='antialiased')
 
-        df_plot_type : str, default='grid'
+        df_plot_type : str, default='quiver'
             Option for plotting of deformation field. Can be 'grid',
             'quiver', or 'none'.
 
