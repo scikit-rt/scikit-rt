@@ -188,7 +188,7 @@ class Registration(Data):
             im = skrt.image.Image(im)
         path = getattr(self, f"{category}_path")
         if not os.path.exists(path) or force:
-            skrt.image.Image.write(im, path)
+            skrt.image.Image.write(im, path, verbose=(self.logger.level < 30))
         if 'grid' in category or 'mask' in category:
             setattr(self, f"{category}", skrt.image.Image(path))
         else:
@@ -221,8 +221,8 @@ class Registration(Data):
         for category in ["fixed", "moving"]:
             path = getattr(self, f"{category}_path")
             if not os.path.exists(path):
-                print(
-                    f"Warning: no {category} image found at {path}! "
+                self.logger.warning(
+                    f"No {category} image found at {path}! "
                     f"Make sure you run Registration.set_{category}_image"
                     " before running a registration."
                 )
@@ -254,7 +254,8 @@ class Registration(Data):
         # Infer name from parameter file name if name is None
         if name is None:
             if isinstance(pfile, dict):
-                print("If passing parameters from dict, <name> must be set.")
+                self.logger.warning(
+                        "If passing parameters from dict, <name> must be set.")
                 return
             name = os.path.basename(fullpath(pfile)).replace(".txt", "")
 
@@ -322,7 +323,8 @@ class Registration(Data):
         if not filename.endswith(".txt"):
             filename += ".txt"
         if filename not in files:
-            print(f"Default file {name} not found. Available files:")
+            self.logger.warning(
+                    f"Default file {name} not found. Available files:")
             self.list_default_pfiles(self)
             return
         full_files = get_default_pfiles(False)
@@ -350,7 +352,8 @@ class Registration(Data):
         if not filename.endswith(".txt"):
             filename += ".txt"
         if filename not in files:
-            print(f"Default file {name} not found. Available files:")
+            self.logger.warning(
+                    f"Default file {name} not found. Available files:")
             self.list_default_pfiles(self)
             return
 
@@ -388,8 +391,8 @@ class Registration(Data):
         for step in steps:
             outdir = os.path.join(self.path, step)
             if not os.path.exists(outdir):
-                print(
-                    f"Warning: no output directory ({self.path}/{step}) "
+                self.logger.warning(
+                    f"No output directory ({self.path}/{step}) "
                     f"found for registration step {step} listed in "
                     f"{self.steps_file}. This step will be ignored."
                 )
@@ -397,8 +400,8 @@ class Registration(Data):
 
             pfile = os.path.join(outdir, "InputParameters.txt")
             if not os.path.exists(pfile):
-                print(
-                    f"Warning: no parameter file ({outdir}/InputParameters.txt) "
+                self.logger.warning(
+                    f"No parameter file ({outdir}/InputParameters.txt) "
                     f"found for registration step {step} listed in "
                     f"{self.steps_file}. This step will be ignored."
                 )
@@ -468,8 +471,8 @@ class Registration(Data):
         if use_previous_tfile and i > 0:
             prev_step = self.steps[i - 1]
             if prev_step not in self.tfiles:
-                print(
-                    f"Warning: previous step {prev_step} has not yet "
+                self.logger.warning(
+                    f"Previous step {prev_step} has not yet "
                     f"been performed! Input transform file for step {step}"
                     " will not be used."
                 )
@@ -583,8 +586,8 @@ class Registration(Data):
         # Check whether registration succeeded
         if code:
             logfile = os.path.join(self.outdirs[step], "elastix.log")
-            print(
-                f"Warning: registration step {step} failed! See "
+            self.logger.warning(
+                f"Registration step {step} failed! See "
                 f"{logfile} or run Registration.print_log({step}) for "
                 " more info."
             )
@@ -642,7 +645,8 @@ class Registration(Data):
         elif isinstance(to_transform, StructureSet):
             return self.transform_structure_set(to_transform, **kwargs)
         else:
-            print(f"Unrecognised transform input type {type(to_transform)}")
+            self.logger.warning(
+                    f"Unrecognised transform input type {type(to_transform)}")
 
     def transform_image(self, im, step=-1, outfile=None, params=None, rois=None,
             ):
@@ -689,7 +693,7 @@ class Registration(Data):
             im_path = im.path
         else:
             im_path = os.path.join(self._tmp_dir, "image.nii.gz")
-            im.write(im_path, verbose=False)
+            im.write(im_path, verbose=(self.logger.level < 30))
 
         # Transform the nifti file
         result_path = self.transform_data(im_path, step, params)
@@ -767,8 +771,8 @@ class Registration(Data):
             if os.path.exists(logfile):
                 os.remove(logfile)
             shutil.move(os.path.join(self._tmp_dir, "transformix.log"), self.path)
-            print(
-                f"Warning: image transformation failed! See "
+            self.logger.warning(
+                f"Image transformation failed! See "
                 f"{logfile} for more info."
             )
             return
@@ -824,7 +828,7 @@ class Registration(Data):
         else:
             ext = 'txt' if transform_points else 'nii.gz'
             roi_path = os.path.join(self._tmp_dir, f"{roi.name}.{ext}")
-            roi.write(roi_path, verbose=False)
+            roi.write(roi_path, verbose=(self.logger.level < 30))
 
         # Set default parameters
         default_params = {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
@@ -904,7 +908,7 @@ class Registration(Data):
 
         # Write structure set if outname is given
         if outfile is not None:
-            final.write(outfile)
+            final.write(outfile, verbose=(self.logger.level < 30))
             return
 
         # Otherwise, return structure set
@@ -1081,7 +1085,7 @@ class Registration(Data):
             if len(self.steps) == 1:
                 step = self.steps[0]
             else:
-                print(
+                self.logger.warning(
                     "This registration has more than one step. The step to "
                     "be manually adjusted must be specified when running "
                     "Registration.manually_adjust_transform()."
@@ -1091,13 +1095,14 @@ class Registration(Data):
 
         # Check registration has been run
         if not self.is_registered(step):
-            print(f"Registration for {step} has not yet been performed.")
+            self.logger.warning(
+                    f"Registration for {step} has not yet been performed.")
             return
 
         # Check the tfile contains a 3-parameter translation
         pars = read_parameters(self.tfiles[step])
         if pars["Transform"] != "TranslationTransform":
-            print(
+            self.logger.warning(
                 f"Can only manually adjust a translation step. Incorrect "
                 f"transform type for step {step}: {pars['Transform']}"
             )
@@ -1135,7 +1140,8 @@ class Registration(Data):
 
         step = self.get_step_name(step)
         if not self.is_registered(step):
-            print(f"Registration step {step} has not yet been performed.")
+            self.logger.warning(
+                    f"Registration step {step} has not yet been performed.")
             return
         return read_parameters(self.tfiles[step])
 
@@ -1493,7 +1499,7 @@ class DeformationField:
         elif df_plot_type == "grid":
             self._plot_grid(view, data_slice, df_spacing, mpl_kwargs)
         else:
-            print(f"Unrecognised plot type '{df_plot_type}'")
+            self.logger.warning(f"Unrecognised plot type '{df_plot_type}'")
 
         # Set plot's pre-zoom aspect ratio and axis limits.
         self.ax.set_aspect(aspect)
@@ -1767,7 +1773,7 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
     pars = read_parameters(infile)
     init = pars["TransformParameters"]
     if pars["Transform"] != "TranslationTransform":
-        print(
+        self.logger.warning(
             f"Can only manually adjust a translation step. Incorrect "
             f"transform type: {pars['Transform']}"
         )
