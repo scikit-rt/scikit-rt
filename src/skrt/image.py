@@ -1778,7 +1778,7 @@ class Image(skrt.core.Archive):
         invert_mask=False,
         mask_color="black",
         jacobian=None,
-        jacobian_opacity=1.0,
+        jacobian_opacity=0.8,
         jacobian_range=None,
         jacobian_kwargs=None,
         df=None,
@@ -2025,7 +2025,7 @@ class Image(skrt.core.Archive):
             Jacobian determinannt to be overlaid on plot.  This parameter
             is ignored if a non-null value is specified for dose.
 
-        jacobian_opacity : float, default=1.0
+        jacobian_opacity : float, default=0.8
             Initial opacity of the overlaid jacobian determinant. Can later
             be changed interactively.
 

@@ -1372,7 +1372,7 @@ class Jacobian(ImageOverlay):
         self._default_colorbar_label = "Jacobian determinant"
         self._default_vmin = -1
         self._default_vmax = 2
-        self._default_opacity = 0.5
+        self._default_opacity = 0.8
         self.load()
         self.data = -self.data
 
