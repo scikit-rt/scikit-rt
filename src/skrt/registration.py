@@ -1,5 +1,6 @@
 """Tools for performing image registration."""
 import matplotlib.pyplot as plt
+import matplotlib.cm
 import matplotlib.colors
 import numpy as np
 import os
@@ -1547,21 +1548,32 @@ class DeformationField:
         default_kwargs = {"cmap": "jet"}
         if mpl_kwargs is not None:
             default_kwargs.update(mpl_kwargs)
+        default_dot_colour = matplotlib.cm.get_cmap(default_kwargs["cmap"])(0)
 
         # Plot arrows
         if arrows_x.any() or arrows_y.any():
-            M = np.hypot(arrows_x, arrows_y)
-            self.ax.quiver(
-                plot_x,
-                plot_y,
-                arrows_x,
-                arrows_y,
-                M,
-                **default_kwargs
-            )
+            if "color" in default_kwargs:
+                self.ax.quiver(
+                        plot_x,
+                        plot_y,
+                        arrows_x,
+                        arrows_y,
+                        **default_kwargs
+                        )
+            else:
+                M = np.hypot(arrows_x, arrows_y)
+                self.ax.quiver(
+                        plot_x,
+                        plot_y,
+                        arrows_x,
+                        arrows_y,
+                        M,
+                        **default_kwargs
+                        )
         else:
             # If arrow lengths are zero, plot dots
-            ax.scatter(plot_x, plot_y, c="navy", marker=".")
+            dot_colour = default_kwargs.get("color", default_dot_colour)
+            ax.scatter(plot_x, plot_y, c=dot_colour, marker=".")
 
     def _plot_grid(
         self, 
