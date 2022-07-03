@@ -1784,6 +1784,7 @@ class Image(skrt.core.Archive):
         df=None,
         df_plot_type="quiver",
         df_spacing=30,
+        df_opacity=None,
         df_kwargs=None,
     ):
         """Plot a 2D slice of the image.
@@ -2040,8 +2041,11 @@ class Image(skrt.core.Archive):
             - 'interpolation': interpolation method (default='antialiased')
 
         df_plot_type : str, default='quiver'
-            Option for plotting of deformation field. Can be 'grid',
-            'quiver', or 'none'.
+            Option for initial plotting of deformation field. Can be 'quiver',
+            'grid', 'x-displacement', 'y-displacement',
+            'z-displacement', '3d-displacement', or 'none'.
+            All quantities relate to the mapping of points from
+            fixed image to moving image in image registration.
 
         df_spacing : int/tuple, default=30
             Spacing between arrows on the quiver plot/gridlines on the grid
@@ -2049,6 +2053,9 @@ class Image(skrt.core.Archive):
             all directions, or a tuple with values for (x, y, z). Dimensions
             are mm if <scale_in_mm> is True, or voxels if <scale_in_mm> is
             False.
+
+        df_opacity : float, default=0.5
+            Initial opacity of the overlaid deformation field.
 
         df : str/skrt.registration.DeformationField/list, default=None
             Source(s) of deformation field(s) to overlay on each plot.
@@ -2242,6 +2249,7 @@ class Image(skrt.core.Archive):
                     show=False,
                     colorbar= max((colorbar - 1), 0),
                     include_image=False, 
+                    df_opacity=df_opacity, 
                     title="",
                     no_xlabel=no_xlabel,
                     no_ylabel=no_ylabel,

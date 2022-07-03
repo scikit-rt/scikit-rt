@@ -534,8 +534,12 @@ class BetterViewer:
             - 'interpolation': interpolation method (default='antialiased')
 
         df_plot_type : str, default='quiver'
-            Option for initial plotting of deformation field. Can be 'grid',
-            'quiver', or 'none'. Can later be changed interactively.
+            Option for initial plotting of deformation field. Can be 'quiver',
+            'grid', 'x-displacement', 'y-displacement',
+            'z-displacement', '3d-displacement', or 'none'.
+            Can later be changed interactively.
+            All quantities relate to the mapping of points from
+            fixed image to moving image in image registration.
 
         df_spacing : int/tuple, default=30
             Spacing between arrows on the quiver plot/gridlines on the grid
@@ -544,9 +548,15 @@ class BetterViewer:
             are mm if <scale_in_mm> is True, or voxels if <scale_in_mm> is
             False.
 
+        df_opacity : float, default=0.5
+            Initial opacity of the overlaid deformation field. Can later
+            be changed interactively.
+
+
         df_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib when plotting
-            the deformation field.
+            the deformation field.  Note that different keyword arguments
+            are accepted for different plot types.
 
             For grid plotting options, see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html.
             Some useful keywords are:
@@ -1092,9 +1102,9 @@ class BetterViewer:
             if self.any_attr(attr):
                 self.extra_ui.append(getattr(v0, 'ui_' + attr))
                 if "df" == attr:
-                    self.extra_ui.append(getattr(v0, 'ui_df_spacing'))
+                    self.extra_ui.extend([v0.ui_df_spacing, v0.ui_df_opacity])
                 if "mask" == attr:
-                    self.extra_ui.append(getattr(v0, 'ui_mask_invert'))
+                    self.extra_ui.append(v0.ui_mask_invert)
         if self.any_attr('jacobian'):
             cmap_name = getattr(self.jacobian_kwargs["cmap"], "name", None)
             if cmap_name == "jacobian":
@@ -1633,6 +1643,7 @@ class SingleViewer:
         jacobian_kwargs=None,
         df=None,
         df_plot_type="quiver",
+        df_opacity=None,
         df_spacing=30,
         df_kwargs=None,
         rois=None,
@@ -1845,6 +1856,7 @@ class SingleViewer:
             self.init_jacobian_range = None
 
         self.df_kwargs = df_kwargs
+        self.init_df_opacity = df_opacity if df_opacity is not None else 0.5
         self.df_plot_type = df_plot_type
         self.df_spacing = df_spacing
 
@@ -2357,9 +2369,11 @@ class SingleViewer:
                     self.extra_ui.extend(
                             [self.ui_jac_opacity, self.ui_jac_range])
 
-            # Plot type and spacing for deformation field.
+            # Plot type, spacing, and opacity for deformation field.
             self.ui_df = ipyw.Dropdown(
-                options=['grid', 'quiver', 'none'],
+                options=['quiver', 'grid', 'x-displacement',
+                    'y-displacement', 'z-displacement', '3d-displacement',
+                    'none'],
                 value=self.df_plot_type,
                 description='Deformation field',
                 style=_style,
@@ -2373,6 +2387,17 @@ class SingleViewer:
                 description='Deformation-field spacing',
                 continuous_update=self.continuous_update,
                 readout_format='.0f',
+                style=_style,
+            )
+
+            self.ui_df_opacity = ipyw.FloatSlider(
+                value=self.init_df_opacity,
+                min=0,
+                max=1,
+                step=0.05,
+                description='Deformation-field opacity',
+                continuous_update=self.continuous_update,
+                readout_format='.2f',
                 style=_style,
             )
 
@@ -2462,6 +2487,7 @@ class SingleViewer:
                 'ui_jac_range',
                 'ui_df',
                 'ui_df_spacing',
+                'ui_df_opacity',
                 'ui_roi_plot_type',
                 'ui_roi_consensus_switch',
                 'ui_roi_consensus_type',
@@ -2786,15 +2812,19 @@ class SingleViewer:
         self.update_roi_comparison()
 
         # Settings for deformation field
-        if self.has_df and self.ui_df.value in ["grid", "quiver"]:
+        if self.has_df and self.ui_df.value in ["quiver", "grid",
+                "x-displacement", "y-displacement", "z-displacement",
+                "3d-displacement"]:
             df = self.df
             df_plot_type = self.ui_df.value
             df_spacing = self.ui_df_spacing.value
+            df_opacity = self.ui_df_opacity.value
             df_kwargs = self.df_kwargs
         else:
             df = None
             df_plot_type = None
             df_spacing = None
+            df_opacity = None
             df_kwargs = None
 
         # Settings for overlays (grid, dose map or jacobian)
@@ -2894,6 +2924,7 @@ class SingleViewer:
             df=df,
             df_plot_type=df_plot_type,
             df_spacing=df_spacing,
+            df_opacity=df_opacity,
             df_kwargs=df_kwargs,
             grid=grid,
             grid_opacity=grid_opacity,

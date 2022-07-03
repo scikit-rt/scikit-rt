@@ -10,7 +10,7 @@ import subprocess
 
 import skrt.image
 from skrt.structures import ROI, StructureSet
-from skrt.core import fullpath, get_logger, Data, to_list, Defaults
+from skrt.core import fullpath, get_logger, Data, to_list, Defaults, PathData
 from skrt.dose import ImageOverlay, Dose
 from skrt.simulation import make_grid
 
@@ -1381,20 +1381,30 @@ class Jacobian(ImageOverlay):
         return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
 
 
-class DeformationField:
+class DeformationField(PathData):
     """Class representing a vector field."""
 
     def __init__(self, path, image=None, **kwargs):
         """Load vector field."""
 
-        # Store path
-        self.path = path
+        # Perform base-class initialisation.
+        super().__init__(path)
 
         # Initialise own image object
         self._image = skrt.image.Image(path, **kwargs)
 
         # Assign an associated Image
         self.image = image
+
+        # Initialise store for displacement images
+        self.displacement_images = {"x": None, "y": None, "z": None, "3d": None}
+
+        # Set some default plotting values.
+        self._default_cmap = "seismic"
+        self._default_colorbar_label = "Displacement (mm)"
+        self._default_opacity = 0.8
+        self._default_vmin = -15
+        self._default_vmax = 15
 
     def load(self, force=False):
 
@@ -1425,6 +1435,47 @@ class DeformationField:
         y = y.T
         return x, y, df_x, df_y
 
+    def get_displacement_image(self, displacement="3d"):
+        """
+        Get skrt.dose.ImageOverlay object representing point displacements.
+
+        **Parameter:**
+
+        displacement : str, default="3d"
+            Point displacement to be represented:
+            - 'x': displacement along x-axis;
+            - 'y': displacement along y-axis;
+            - 'z': displacement along z-axis;
+            - '3d': magnitude of 3d displacement.
+        """
+
+        # Check that type of information requested is unknown.
+        if displacement not in self.displacement_images:
+            print(f"Displacement type not known: '{displacement}'")
+            print(f"Known displacement types: {list(self.displacement_images)}")
+            return
+
+        # Check if OverlayImage of displacement requested is already stored.
+        # If not, then create and store it.
+        if self.displacement_images[displacement] is None:
+            im_data = self._image.clone().get_data()
+            idx = "xyz".find(displacement)
+            if -1 == idx:
+                # Magnitudes of 3d displacements.
+                im_data = np.sqrt(np.sum(np.square(im_data), axis=idx))
+            else:
+                # Signed displacements along axis.
+                im_data = np.squeeze(im_data[:, :, :, idx])
+            im = ImageOverlay(im_data, affine=self._image.get_affine())
+            im._default_cmap = self._default_cmap
+            im._default_colorbar_label = self._default_colorbar_label
+            im._default_opacity = self._default_opacity
+            im._default_vmin = self._default_vmin
+            im._default_vmax = self._default_vmax
+            self.displacement_images[displacement] = im
+
+        return self.displacement_images[displacement]
+
     def plot(
         self,
         view="x-y",
@@ -1433,6 +1484,7 @@ class DeformationField:
         pos=None,
         df_plot_type="quiver",
         include_image=False,
+        df_opacity=None,
         df_spacing=30,
         ax=None,
         gs=None,
@@ -1470,7 +1522,7 @@ class DeformationField:
 
         # Plot the underlying image
         if include_image and self.image is not None:
-            self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
+            self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax, gs=gs,
                     show=False, title="", colorbar=max((colorbar - 1), 0),
                     no_xlabel=no_xlabel, no_ylabel=no_ylabel,
                     no_xtick_labels=no_xtick_labels,
@@ -1494,13 +1546,34 @@ class DeformationField:
         ylim = ylim or im_kwargs["extent"][2: 4]
         aspect = im_kwargs["aspect"]
 
+        # Define plot opacity.
+        if df_opacity is not None:
+            mpl_kwargs["alpha"] = df_opacity
+        if df_plot_type in ["quiver", "grid"]:
+            mpl_kwargs["alpha"] = mpl_kwargs.get("alpha", 0.8)
+
         # Create plot
         if df_plot_type == "quiver":
             self._plot_quiver(view, data_slice, df_spacing, mpl_kwargs)
         elif df_plot_type == "grid":
             self._plot_grid(view, data_slice, df_spacing, mpl_kwargs)
+        elif df_plot_type in ["x-displacement", "y-displacement",
+                "z-displacement", "3d-displacement"]:
+            self._plot_displacement(df_plot_type=df_plot_type,
+                    view=view, sl=sl, idx=idx, pos=pos,
+                    include_image=False, ax=self.ax, gs=gs, show=False,
+                    title="", colorbar=colorbar, no_xlabel=no_xlabel,
+                    no_ylabel=no_ylabel, no_xtick_labels=no_xtick_labels,
+                    no_ytick_labels=no_ytick_labels,
+                    annotate_slice=annotate_slice,
+                    major_ticks=major_ticks, minor_ticks=minor_ticks,
+                    ticks_all_sides=ticks_all_sides,
+                    no_axis_labels=no_axis_labels, mask=mask,
+                    mask_threshold=mask_threshold, masked=masked,
+                    invert_mask=invert_mask, mask_color=mask_color,
+                    mpl_kwargs = mpl_kwargs)
         else:
-            self.logger.warning(f"Unrecognised plot type '{df_plot_type}'")
+            print(f"Unrecognised plot type '{df_plot_type}'")
 
         # Set plot's pre-zoom aspect ratio and axis limits.
         self.ax.set_aspect(aspect)
@@ -1602,6 +1675,41 @@ class DeformationField:
         for j in np.arange(0, x.shape[1], spacing[x_ax]):
             self.ax.plot(grid_x[:, j], grid_y[:, j], **default_kwargs)
 
+    def _plot_displacement(self, df_plot_type="3d-displacement", **kwargs):
+        """
+        Plot displacements along an axis, or magnitudes of 3d displacements.
+
+        **Parameter:**
+
+        df_plot_type : str, default="3d-displacement"
+            Type of plot to produce for deformation field.
+            This function handles the plot types:
+            'x-displacement', 'y-displacement', 'z-displacement',
+            '3d-displacement'
+        """
+
+        if not df_plot_type.endswith("-displacement"):
+            print(f"df_plot_type not recognised: {df_plot_type}")
+            return
+
+        displacement = df_plot_type.split("-")[0]
+        im = self.get_displacement_image(displacement)
+        if im is not None:
+
+            # Set default values for vmin, vmax, cmap, alpha.
+            kwargs["mpl_kwargs"] = kwargs.get("mpl_kwargs", {})
+            vmax = max(abs(im._default_vmax), abs(im.get_data().max()),
+                    abs(im._default_vmin), abs(im.get_data().min()), 0)
+
+            mpl_kwargs = {"vmin": -vmax, "vmax": vmax,
+                    "cmap": im._default_cmap, "alpha": im._default_opacity}
+            for key, default_value in mpl_kwargs.items():
+                kwargs["mpl_kwargs"][key] = (
+                        kwargs["mpl_kwargs"].get(key, default_value))
+
+            # Plot image.
+            im.plot(**kwargs)
+
     def view(self, include_image=False, **kwargs):
         """
         View the deformation field.
@@ -1629,6 +1737,10 @@ class DeformationField:
             im = skrt.image.Image(
                     np.ones(self._image.get_data().shape[0: 3]) * 1e4,
                     affine=self._image.get_affine())
+            im._default_cmap = self._default_cmap
+            im._default_colorbar_label = self._default_colorbar_label
+            im._default_vmin = self._default_vmin
+            im._default_vmax = self._default_vmax
         
         # Create viewer
         return BetterViewer(im, df=self, **kwargs)
