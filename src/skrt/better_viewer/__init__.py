@@ -69,6 +69,7 @@ class BetterViewer:
         suptitle=None,
         show=True,
         include_image=False,
+        no_ui=False,
         **kwargs,
     ):
         '''
@@ -800,6 +801,13 @@ class BetterViewer:
         include_image : bool, default=False
             If True, and image has associated image, overlay former on the
             latter.
+
+        no_ui : bool, default=False
+            If True, omit user-interface elements (Jupyter widgets)
+            for interaction with viewed image(s).  This can be useful
+            for including graphics in stored notebooks.  On GitHub, for
+            example, static plots in notebooks are rendered correctly,
+            but Jupyter widgets can cause problems.
         '''
 
         # Get image file inputs
@@ -818,6 +826,9 @@ class BetterViewer:
         self.grid = self.get_input_list(grid)
         self.jacobian = self.get_input_list(jacobian)
         self.df = self.get_input_list(df)
+
+        # Define whether to omit user-interface elements.
+        self.no_ui = no_ui
 
         # Set options for deformation field.
         self.df_kwargs = kwargs.get("df_kwargs", {})
@@ -2723,7 +2734,7 @@ class SingleViewer:
     def show(self, show=True):
         '''Display plot and UI.'''
 
-        if self.in_notebook:
+        if self.in_notebook and not self.no_ui:
             SingleViewer.show_in_notebook(self, show)
         else:
             self.plot()
