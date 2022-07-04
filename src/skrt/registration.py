@@ -141,8 +141,8 @@ class Registration(Data):
         self.transformed_images = {}
         self.jacobians = {}
         self.deformation_fields = {}
-        if isinstance(pfiles, str):
-            pfiles = [pfiles]
+        if isinstance(pfiles, (str, Path)):
+            pfiles = [str(pfiles)]
         if pfiles is not None:
             self.add_pfiles(pfiles)
         else:
@@ -1912,12 +1912,15 @@ def get_default_pfiles(basename_only=True):
     import skrt
 
     rel_path = "data/elastix_parameter_files".split("/")
-    pdir = os.path.join(skrt.__path__[0], *rel_path)
+    pdir = fullpath(os.path.join(skrt.__path__[0], *rel_path))
     files = [file for file in os.listdir(pdir) if file.endswith(".txt")]
     if basename_only:
         return files
     return [os.path.join(pdir, file) for file in files]
 
+def get_default_pfiles_dir():
+    """Get path to directory containing default parameter files."""
+    return str(Path(get_default_pfiles(basename_only=False)[0]).parent)
 
 def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
     '''

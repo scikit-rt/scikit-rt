@@ -362,6 +362,20 @@ def test_get_default_pfiles():
     assert len(default)
     assert "MI_Affine.txt" in default
 
+def test_get_default_pfiles_dir():
+    """Test getting list of default parameter files via parent directory."""
+
+    from skrt.registration import get_default_pfiles, get_default_pfiles_dir
+    pfiles1 = get_default_pfiles()
+    pfiles_dir = Path(get_default_pfiles_dir())
+    pfiles2 = list(Path(get_default_pfiles_dir()).iterdir())
+    assert pfiles_dir.is_dir()
+    assert len(pfiles2)
+    assert len(pfiles1) == len(pfiles2)
+
+    for pfile in pfiles2:
+        assert pfile.name in pfiles1
+
 def test_add_default_pfile():
     """Test adding a default parameter file."""
 
