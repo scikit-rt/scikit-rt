@@ -1348,8 +1348,8 @@ class BetterViewer:
     def make_fig(self, view_changed):
 
         # Get relative width of each subplot
-        width_ratios = [
-            v.image.get_plot_aspect_ratio(self.view, self.zoom, self.colorbar)
+        width_ratios = [v.image.get_plot_aspect_ratio(
+            self.view, self.zoom, abs(self.colorbar))
             for v in self.viewers
         ]
 

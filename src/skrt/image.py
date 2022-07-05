@@ -2217,6 +2217,11 @@ class Image(skrt.core.Archive):
             image_slice, **self.get_mpl_kwargs(view, mpl_kwargs, scale_in_mm)
         )
 
+        # If colour bar isn't to be plotted for current image,
+        # use kwargs values relating to colour bar for overlay image.
+        clb_kwargs2 = clb_kwargs if colorbar == -1 else {}
+        clb_label_kwargs2 = clb_label_kwargs if colorbar == -1 else {}
+
         # Plot the dose 
         if dose is not None:
             dose_to_plot.plot(
@@ -2224,7 +2229,7 @@ class Image(skrt.core.Archive):
                 idx=idx,
                 ax=self.ax,
                 show=False,
-                colorbar= max((colorbar - 1), 0),
+                colorbar= max((colorbar - 1), -colorbar, 0),
                 include_image=False, 
                 opacity=dose_opacity, 
                 title="",
@@ -2238,6 +2243,8 @@ class Image(skrt.core.Archive):
                 masked=masked,
                 invert_mask=invert_mask,
                 mask_color=mask_color,
+                clb_kwargs=clb_kwargs2,
+                clb_label_kwargs=clb_label_kwargs2,
             )
 
         # Plot the deformation field.
@@ -2247,7 +2254,7 @@ class Image(skrt.core.Archive):
                     idx=idx,
                     ax=self.ax,
                     show=False,
-                    colorbar= max((colorbar - 1), 0),
+                    colorbar= max((colorbar - 1), -colorbar, 0),
                     include_image=False, 
                     df_opacity=df_opacity, 
                     title="",
@@ -2262,6 +2269,8 @@ class Image(skrt.core.Archive):
                     mask_color=mask_color,
                     df_plot_type=df_plot_type,
                     df_spacing=df_spacing,
+                    clb_kwargs=clb_kwargs2,
+                    clb_label_kwargs=clb_label_kwargs2,
                     **df_kwargs,
                     )
 
@@ -2279,7 +2288,7 @@ class Image(skrt.core.Archive):
                 idx=idx,
                 ax=self.ax,
                 show=False,
-                colorbar= max((colorbar - 1), 0),
+                colorbar=(max((colorbar - 1), -colorbar, 0)),
                 include_image=False, 
                 opacity=jacobian_opacity, 
                 intensity=jacobian_intensity,
@@ -2294,6 +2303,8 @@ class Image(skrt.core.Archive):
                 masked=masked,
                 invert_mask=invert_mask,
                 mask_color=mask_color,
+                clb_kwargs=clb_kwargs2,
+                clb_label_kwargs=clb_label_kwargs2,
             )
 
         # Plot the grid array.
@@ -2316,6 +2327,8 @@ class Image(skrt.core.Archive):
                 masked=masked,
                 invert_mask=invert_mask,
                 mask_color=mask_color,
+                clb_kwargs=clb_kwargs2,
+                clb_label_kwargs=clb_label_kwargs2,
             )
 
         # Plot ROIs
@@ -2413,7 +2426,7 @@ class Image(skrt.core.Archive):
         # Add colorbar
         clb_label = colorbar_label if colorbar_label is not None \
                 else self._default_colorbar_label
-        if colorbar and mpl_kwargs.get("alpha", 1) > 0:
+        if colorbar > 0 and mpl_kwargs.get("alpha", 1) > 0:
             if "jacobian" == cmap.name:
                 scalar_mappable = matplotlib.cm.ScalarMappable(
                         norm=matplotlib.colors.Normalize(-1, 2), cmap=cmap)
