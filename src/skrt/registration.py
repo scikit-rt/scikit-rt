@@ -1498,6 +1498,8 @@ class DeformationField(PathData):
         colorbar=False,
         no_xlabel=False,
         no_ylabel=False,
+        no_xticks=False,
+        no_yticks=False,
         no_xtick_labels=False,
         no_ytick_labels=False,
         annotate_slice=False,
@@ -1525,6 +1527,7 @@ class DeformationField(PathData):
             self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax, gs=gs,
                     show=False, title="", colorbar=max((colorbar - 1), 0),
                     no_xlabel=no_xlabel, no_ylabel=no_ylabel,
+                    no_xticks=no_xticks, no_yticks=no_yticks,
                     no_xtick_labels=no_xtick_labels,
                     no_ytick_labels=no_ytick_labels,
                     mask=mask, mask_threshold=mask_threshold,
@@ -1563,7 +1566,8 @@ class DeformationField(PathData):
                     view=view, sl=sl, idx=idx, pos=pos,
                     include_image=False, ax=self.ax, gs=gs, show=False,
                     title="", colorbar=colorbar, no_xlabel=no_xlabel,
-                    no_ylabel=no_ylabel, no_xtick_labels=no_xtick_labels,
+                    no_ylabel=no_ylabel, no_xticks=no_xticks,
+                    no_yticks=no_yticks, no_xtick_labels=no_xtick_labels,
                     no_ytick_labels=no_ytick_labels,
                     annotate_slice=annotate_slice,
                     major_ticks=major_ticks, minor_ticks=minor_ticks,
@@ -1584,6 +1588,7 @@ class DeformationField(PathData):
         idx = self._image.get_idx(view, sl=sl, idx=idx, pos=pos)
         self._image.label_ax(view, idx=idx, scale_in_mm=scale_in_mm,
                 title=title, no_xlabel=no_xlabel, no_ylabel=no_ylabel,
+                no_xticks=no_xticks, no_yticks=no_yticks,
                 no_xtick_labels=no_xtick_labels,
                 no_ytick_labels=no_ytick_labels, annotate_slice=annotate_slice,
                 major_ticks=major_ticks, ticks_all_sides=ticks_all_sides,
@@ -1605,6 +1610,8 @@ class DeformationField(PathData):
         view, 
         data_slice,
         spacing,
+        clb_kwargs=None,
+        clb_label_kwargs=None,
         mpl_kwargs=None, 
     ):
         """Draw a quiver plot."""

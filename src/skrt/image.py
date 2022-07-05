@@ -1741,6 +1741,8 @@ class Image(skrt.core.Archive):
         title=None,
         no_xlabel=False,
         no_ylabel=False,
+        no_xticks=False,
+        no_yticks=False,
         no_xtick_labels=False,
         no_ytick_labels=False,
         annotate_slice=False,
@@ -1874,6 +1876,12 @@ class Image(skrt.core.Archive):
 
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
+
+        no_xticks : bool, default=False
+            If True, ticks (and their labels) on the x axis will not be shown.
+
+        no_yticks : bool, default=False
+            If True, ticks (and their labels) on the y axis will not be shown.
 
         no_xtick_labels : bool, default=False
             If True, ticks on the x axis will not be labelled.
@@ -2168,6 +2176,8 @@ class Image(skrt.core.Archive):
             roi_kwargs = {}
         roi_kwargs['no_xlabel'] = no_xlabel
         roi_kwargs['no_ylabel'] = no_ylabel
+        roi_kwargs['no_xticks'] = no_xticks
+        roi_kwargs['no_yticks'] = no_yticks
         roi_kwargs['no_xtick_labels'] = no_xtick_labels
         roi_kwargs['no_ytick_labels'] = no_ytick_labels
         if roi_linewidth is None:
@@ -2235,6 +2245,8 @@ class Image(skrt.core.Archive):
                 title="",
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
+                no_xticks=no_xticks,
+                no_yticks=no_yticks,
                 no_xtick_labels=no_xtick_labels,
                 no_ytick_labels=no_ytick_labels,
                 mpl_kwargs=dose_kwargs,
@@ -2260,6 +2272,8 @@ class Image(skrt.core.Archive):
                     title="",
                     no_xlabel=no_xlabel,
                     no_ylabel=no_ylabel,
+                    no_xticks=no_xticks,
+                    no_yticks=no_yticks,
                     no_xtick_labels=no_xtick_labels,
                     no_ytick_labels=no_ytick_labels,
                     mask=mask,
@@ -2295,6 +2309,8 @@ class Image(skrt.core.Archive):
                 title="",
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
+                no_xticks=no_xticks,
+                no_yticks=no_yticks,
                 no_xtick_labels=no_xtick_labels,
                 no_ytick_labels=no_ytick_labels,
                 mpl_kwargs=jacobian_kwargs,
@@ -2319,6 +2335,8 @@ class Image(skrt.core.Archive):
                 title="",
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
+                no_xticks=no_xticks,
+                no_yticks=no_yticks,
                 no_xtick_labels=no_xtick_labels,
                 no_ytick_labels=no_ytick_labels,
                 mpl_kwargs=grid_kwargs,
@@ -2375,6 +2393,8 @@ class Image(skrt.core.Archive):
             title,
             no_xlabel,
             no_ylabel,
+            no_xticks,
+            no_yticks,
             no_xtick_labels,
             no_ytick_labels,
             annotate_slice,
@@ -2454,6 +2474,8 @@ class Image(skrt.core.Archive):
         title=None,
         no_xlabel=False,
         no_ylabel=False,
+        no_xticks=False,
+        no_yticks=False,
         no_xtick_labels=False,
         no_ytick_labels=False,
         annotate_slice=False,
@@ -2478,12 +2500,16 @@ class Image(skrt.core.Archive):
         # Previously passed: labelpad=0
         if not no_xlabel:
             self.ax.set_xlabel(f"${_axes[x_ax]}${units}")
-        if no_xtick_labels:
+        if no_xticks:
             self.ax.set_xticks([], [])
+        elif no_xtick_labels:
+            self.ax.set_xticklabels([])
         if not no_ylabel:
             self.ax.set_ylabel(f"${_axes[y_ax]}${units}")
-        if no_ytick_labels:
+        if no_yticks:
             self.ax.set_yticks([], [])
+        elif no_ytick_labels:
+            self.ax.set_yticklabels([])
 
         #else:
 

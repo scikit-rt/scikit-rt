@@ -70,6 +70,10 @@ class BetterViewer:
         show=True,
         include_image=False,
         no_ui=False,
+        ylabel_first_only=True,
+        yticks_first_only=False,
+        ytick_labels_first_only=True,
+        colorbar_last_only=True,
         **kwargs,
     ):
         '''
@@ -430,6 +434,10 @@ class BetterViewer:
             or overlay;
             - 0 or False: no colour bar.
 
+        colorbar_last_only : bool, default=True
+            If True, and multiple plots are to be drawn, colorbar is
+            set to False for all plots except the last.
+
         colorbar_label : str, default=None
             Label for the colorbar and range slider. If None, will default to
             either 'intensity' if an image file is given, or 'Dose (Gy)' if a dose
@@ -448,14 +456,42 @@ class BetterViewer:
         no_xlabel : bool, default=False
             If True, the x axis will not be labelled.
 
+        no_xticks : bool, default=False
+            If True, ticks and tick labels on the x axis will not
+            be shown.
+
+        no_xtick_labels : bool, default=False
+            If True ticks on the x axis will not be labelled.
+            Disregarded if <no_xticks> is True.
+
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
 
-        no_xtick_labels : bool, default=False
-            If True, ticks on the x axis will not be labelled.
+        no_yticks : bool, default=False
+            If True, ticks and tick labels on the y axis will not
+            be shown.
 
         no_ytick_labels : bool, default=False
-            If True, ticks on the y axis will not be labelled.
+            If True ticks on the y axis will not be labelled.
+            Disregarded if <no_yticks> is True.
+
+        ylabel_first_only : bool, default=True
+            If True, and multiple plots are to be displayed,
+            the y axis will be labelled only for the first plot only.
+            If <no_ylabel> is True, the y axis won't be labelled
+            for any plot.
+
+        yticks_first_only : bool, default=False
+            If True, and multiple plots are to be displayed,
+            ticks on the y axis will be shown for the first plot only.
+            If <no_yticks> is True, ticks on the y axis won't be
+            shown for any plot.
+
+        ytick_labels_first_only : bool, default=True
+            If True, and multiple plots are to be displayed, ticks
+            on the y axis will be labelled only for the first plot only.
+            If <no_ytick_labels> is True, ticks on the y axis won't be
+            labelled for any plot.
 
         mpl_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to matplotlib.pyplot.imshow
@@ -830,6 +866,8 @@ class BetterViewer:
         # Define whether to omit user-interface elements.
         self.no_ui = no_ui
 
+        self.colorbar = kwargs.pop('colorbar', False)
+
         # Set options for deformation field.
         self.df_kwargs = kwargs.get("df_kwargs", {})
         self.df_plot_type = kwargs.get("df_plot_type", "quiver")
@@ -851,6 +889,13 @@ class BetterViewer:
                             "cmap", jac._default_cmap)
                     break
 
+        # Define default handling for y-axis label, y-axis tick labels,
+        # and colour bar.
+        no_ylabel_default = kwargs.pop("no_ylabel", False)
+        no_yticks_default = kwargs.pop("no_yticks", False)
+        no_ytick_labels_default = kwargs.pop("no_ytick_labels", False)
+        colorbar_default = self.colorbar
+
         # Make individual viewers
         self.scale_in_mm = scale_in_mm
         self.viewers = []
@@ -859,7 +904,16 @@ class BetterViewer:
         mask_threshold = kwargs.get("mask_threshold", 0.5)
 
         for i in range(self.n):
-              
+            
+            no_ylabel = (no_ylabel_default if
+                    (i == 0 or not ylabel_first_only) else True)
+            no_yticks = (no_yticks_default if
+                    (i == 0 or not yticks_first_only) else True)
+            no_ytick_labels = (no_ytick_labels_default if
+                    (i == 0 or not ytick_labels_first_only) else True)
+            colorbar = (colorbar_default if
+                    (i + 1 == self.n or not colorbar_last_only) else False)
+
             viewer = viewer_type(
                 self.images[i],
                 title=self.title[i],
@@ -875,6 +929,10 @@ class BetterViewer:
                 legend_bbox_to_anchor=legend_bbox_to_anchor,
                 legend_loc=legend_loc,
                 include_image=include_image,
+                colorbar=colorbar,
+                no_ylabel=no_ylabel,
+                no_yticks=no_yticks,
+                no_ytick_labels=no_ytick_labels,
                 **kwargs,
             )
             self.viewers.append(viewer)
@@ -912,7 +970,6 @@ class BetterViewer:
         else:
             self.figsize = to_inches(figsize)
             self.figwidth = 'auto'
-        self.colorbar = kwargs.get('colorbar', False)
         self.comp_colorbar = self.colorbar and self.comparison_only
         self.zoom = kwargs.get('zoom', None)
         self.plots_per_row = plots_per_row
@@ -1573,6 +1630,8 @@ class BetterViewer:
                     clb_label_kwargs=self.viewers[0].clb_label_kwargs,
                     no_xlabel=self.viewers[0].no_xlabel,
                     no_ylabel=self.viewers[0].no_ylabel,
+                    no_xticks=self.viewers[0].no_xticks,
+                    no_yticks=self.viewers[0].no_yticks,
                     no_xtick_labels=self.viewers[0].no_xtick_labels,
                     no_ytick_labels=self.viewers[0].no_ytick_labels,
                     show_mse=self.show_mse,
@@ -1632,6 +1691,8 @@ class SingleViewer:
         clb_label_kwargs=None,
         no_xlabel=False,
         no_ylabel=False,
+        no_xticks=False,
+        no_yticks=False,
         no_xtick_labels=False,
         no_ytick_labels=False,
         mpl_kwargs=None,
@@ -1798,6 +1859,8 @@ class SingleViewer:
         self.clb_label_kwargs = clb_label_kwargs
         self.no_xlabel = no_xlabel
         self.no_ylabel = no_ylabel
+        self.no_xticks = no_xticks
+        self.no_yticks = no_yticks
         self.no_xtick_labels = no_xtick_labels
         self.no_ytick_labels = no_ytick_labels
         self.annotate_slice = annotate_slice
@@ -2900,6 +2963,8 @@ class SingleViewer:
             clb_label_kwargs=self.clb_label_kwargs,
             no_xlabel=self.no_xlabel,
             no_ylabel=self.no_ylabel,
+            no_xticks=self.no_xticks,
+            no_yticks=self.no_yticks,
             no_xtick_labels=self.no_xtick_labels,
             no_ytick_labels=self.no_ytick_labels,
             legend_bbox_to_anchor=self.legend_bbox_to_anchor,

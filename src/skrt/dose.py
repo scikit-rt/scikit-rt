@@ -48,6 +48,8 @@ class ImageOverlay(skrt.image.Image):
         colorbar=False,
         no_xlabel=False,
         no_ylabel=False,
+        no_xticks=False,
+        no_yticks=False,
         no_xtick_labels=False,
         no_ytick_labels=False,
         include_image=True, 
@@ -119,6 +121,12 @@ class ImageOverlay(skrt.image.Image):
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
 
+        no_xticks : bool, default=False
+            If True, ticks (and their labels) on the x axis will not be shown.
+
+        no_yticks : bool, default=False
+            If True, ticks (and their labels) on the y axis will not be shown.
+
         no_xtick_labels : bool, default=False
             If True, ticks on the x axis will not be labelled.
 
@@ -164,6 +172,7 @@ class ImageOverlay(skrt.image.Image):
             self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
                     show=False, title="", colorbar=max((colorbar - 1), 0),
                     no_xlabel=no_xlabel, no_ylabel=no_ylabel,
+                    no_xticks=no_xticks, no_yticks=no_yticks,
                     no_xtick_labels=no_xtick_labels,
                     no_ytick_labels=no_ytick_labels,
                     mask=mask, mask_threshold=mask_threshold,
@@ -201,6 +210,8 @@ class ImageOverlay(skrt.image.Image):
             show=show, 
             no_xlabel=no_xlabel,
             no_ylabel=no_ylabel,
+            no_xticks=no_xticks,
+            no_yticks=no_yticks,
             no_xtick_labels=no_xtick_labels,
             no_ytick_labels=no_ytick_labels,
             mask=mask,
