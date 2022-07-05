@@ -1405,6 +1405,7 @@ class DeformationField(PathData):
         self._default_opacity = 0.8
         self._default_vmin = -15
         self._default_vmax = 15
+        self._quiver_colorbar_label = "2D displacement magnitude (mm)"
 
     def load(self, force=False):
 
@@ -1550,14 +1551,17 @@ class DeformationField(PathData):
         aspect = im_kwargs["aspect"]
 
         # Define plot opacity.
-        if df_opacity is not None:
-            mpl_kwargs["alpha"] = df_opacity
-        if df_plot_type in ["quiver", "grid"]:
-            mpl_kwargs["alpha"] = mpl_kwargs.get("alpha", 0.8)
+        mpl_kwargs["alpha"] = df_opacity or mpl_kwargs.get(
+                "alpha", self._default_opacity)
+
+        # Extract kwargs for colour bar and label.
+        clb_kwargs = mpl_kwargs.pop("clb_kwargs", {})
+        clb_label_kwargs = mpl_kwargs.pop("clb_label_kwargs", {})
 
         # Create plot
         if df_plot_type == "quiver":
-            self._plot_quiver(view, data_slice, df_spacing, mpl_kwargs)
+            self._plot_quiver(view, data_slice, df_spacing, colorbar,
+                    clb_kwargs, clb_label_kwargs, mpl_kwargs)
         elif df_plot_type == "grid":
             self._plot_grid(view, data_slice, df_spacing, mpl_kwargs)
         elif df_plot_type in ["x-displacement", "y-displacement",
@@ -1610,6 +1614,7 @@ class DeformationField(PathData):
         view, 
         data_slice,
         spacing,
+        colorbar=0,
         clb_kwargs=None,
         clb_label_kwargs=None,
         mpl_kwargs=None, 
@@ -1625,10 +1630,15 @@ class DeformationField(PathData):
         plot_y = y[:: spacing[y_ax], :: spacing[x_ax]]
 
         # Make plotting kwargs
+        mpl_kwargs = mpl_kwargs or {}
+        vmin = mpl_kwargs.pop("vmin", 0)
+        vmax = mpl_kwargs.pop("vmax",
+                self.get_displacement_image("3d").get_data().max() * 1.1)
         default_kwargs = {"cmap": "jet"}
-        if mpl_kwargs is not None:
-            default_kwargs.update(mpl_kwargs)
+        default_kwargs.update(mpl_kwargs)
         default_dot_colour = matplotlib.cm.get_cmap(default_kwargs["cmap"])(0)
+        clb_kwargs = clb_kwargs or None
+        clb_label_kwargs = clb_label_kwargs or None
 
         # Plot arrows
         if arrows_x.any() or arrows_y.any():
@@ -1642,7 +1652,7 @@ class DeformationField(PathData):
                         )
             else:
                 M = np.hypot(arrows_x, arrows_y)
-                self.ax.quiver(
+                quiver = self.ax.quiver(
                         plot_x,
                         plot_y,
                         arrows_x,
@@ -1650,10 +1660,22 @@ class DeformationField(PathData):
                         M,
                         **default_kwargs
                         )
+                # Add colorbar
+                if colorbar > 0 and mpl_kwargs.get(
+                        "alpha", self._default_opacity) > 0:
+                    scalar_mappable = matplotlib.cm.ScalarMappable(
+                            norm=matplotlib.colors.Normalize(vmin, vmax),
+                            cmap=default_kwargs["cmap"])
+                    clb = self.fig.colorbar(scalar_mappable, ax=self.ax,
+                            **clb_kwargs)
+                    clb.set_label(self._quiver_colorbar_label,
+                            **clb_label_kwargs)
+                    clb.solids.set_edgecolor("face")
         else:
             # If arrow lengths are zero, plot dots
             dot_colour = default_kwargs.get("color", default_dot_colour)
             ax.scatter(plot_x, plot_y, c=dot_colour, marker=".")
+
 
     def _plot_grid(
         self, 
