@@ -52,7 +52,6 @@ mpl.rcParams["font.serif"] = "Times New Roman"
 mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
-
 class Image(skrt.core.Archive):
     """Loads and stores a medical image and its geometrical properties, either
     from a dicom/nifti file or a numpy array."""
@@ -3673,10 +3672,22 @@ class ImageComparison(Image):
             if legend:
                 patch_color = cmaps[n].lower()[:-1]
                 alpha = 1 - opacity if alphas[n] == 1 else opacity
+                title = self.ims[i].title
+                name = pathlib.Path(self.ims[i].path).name
+                if title == name:
+                    title = name.split(".")[0].capitalize()
                 handles.append(
                     mpatches.Patch(
-                        color=patch_color, alpha=alpha, label=self.ims[i].title
+                        color=patch_color, alpha=alpha, label=title
                     )
+                )
+
+        # Draw legend
+        if handles:
+            self.ax.legend(
+                    handles=handles, bbox_to_anchor=legend_bbox_to_anchor,
+                    loc=legend_loc, facecolor="white",
+                    framealpha=1
                 )
 
     def get_difference(self, view=None, sl=None, idx=None, pos=None, 
