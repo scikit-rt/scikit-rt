@@ -1401,7 +1401,8 @@ class DeformationField(PathData):
 
         # Set some default plotting values.
         self._default_cmap = "seismic"
-        self._default_colorbar_label = "Displacement (mm)"
+        self._default_colorbar_label = "displacement (mm)"
+        self._3d_colorbar_label = "3D displacement magnitude (mm)"
         self._default_opacity = 0.8
         self._default_vmin = -15
         self._default_vmax = 15
@@ -1469,7 +1470,11 @@ class DeformationField(PathData):
                 im_data = np.squeeze(im_data[:, :, :, idx])
             im = ImageOverlay(im_data, affine=self._image.get_affine())
             im._default_cmap = self._default_cmap
-            im._default_colorbar_label = self._default_colorbar_label
+            if "3d" == displacement:
+                im._default_colorbar_label = self._3d_colorbar_label
+            else:
+                im._default_colorbar_label = (
+                        f"{displacement}-{self._default_colorbar_label}")
             im._default_opacity = self._default_opacity
             im._default_vmin = self._default_vmin
             im._default_vmax = self._default_vmax
@@ -1698,6 +1703,11 @@ class DeformationField(PathData):
         if mpl_kwargs is not None:
             default_kwargs.update(mpl_kwargs)
 
+        # Disregard kwargs that aren't valid here,
+        # but are valid for other representations of deformation field.
+        for key in ["cmap", "vmin", "vmax"]:
+            default_kwargs.pop(key, None)
+
         # Plot gridlines
         for i in np.arange(0, x.shape[0], spacing[y_ax]):
             self.ax.plot(grid_x[i, :], grid_y[i, :], **default_kwargs)
@@ -1735,6 +1745,11 @@ class DeformationField(PathData):
             for key, default_value in mpl_kwargs.items():
                 kwargs["mpl_kwargs"][key] = (
                         kwargs["mpl_kwargs"].get(key, default_value))
+
+            # Disregard kwargs that aren't valid here,
+            # but are valid for other representations of deformation field.
+            for key in ["color"]:
+                kwargs["mpl_kwargs"].pop(key, None)
 
             # Plot image.
             im.plot(**kwargs)
