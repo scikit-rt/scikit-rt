@@ -1,5 +1,8 @@
 FROM jupyter/minimal-notebook
 
+# Install mahotas.
+RUN conda install mahotas
+
 # Install scikit-rt.
 RUN git clone https://github.com/scikit-rt/scikit-rt && \
     pip install -e scikit-rt && \
