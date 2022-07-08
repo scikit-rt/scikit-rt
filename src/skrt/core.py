@@ -4,7 +4,6 @@ from collections.abc import Iterable
 from pathlib import Path
 
 import copy
-import functools
 import os
 import re
 import time
@@ -622,7 +621,7 @@ class PathData(Data):
         # Only 1 data file associated with a non-Archive object.
         return 1
 
-@functools.total_ordering
+
 class Dated(PathData):
     """PathData with an associated date and time, which can be used for
     sorting multiple Dateds."""
@@ -693,32 +692,14 @@ class Dated(PathData):
 
         return matches
 
-    def __eq__(self, other):
-        return self.date == other.date and self.time == other.time
-
-    def __ne__(self, other):
-        return self.date == other.date or self.time == other.time
-
-    def __lt__(self, other):
-        if self.date == other.date:
-            if self.time == other.time:
-                return self.path < other.path
-            return self.time < other.time
-        return self.date < other.date
-
     def __gt__(self, other):
-        if self.date == other.date:
-            if self.time == other.time:
-                return self.path > other.path
-            return self.time > other.time
-        return self.date > other.date
+        for attribute in ["date", "time", "path"]:
+            if getattr(self, attribute) != getattr(other, attribute):
+                return getattr(self, attribute) > getattr(other, attribute)
+            return False
 
-    def __le__(self, other):
-        if self.date == other.date:
-            if self.time == other.time:
-                return self.path < other.path
-            return self.time < other.time
-        return self.date < other.date
+    def __ge__(self, other):
+        return (self > other) or (self == other)
 
 
 class MachineData(Dated):

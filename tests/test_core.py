@@ -44,6 +44,11 @@ def test_dated_sorting():
         dated1 = skrt.core.Dated(path)
         dated2 = skrt.core.Dated(auto_timestamp=True)
         assert dated2 > dated1
+        assert dated2 >= dated1
+        assert dated1 < dated2
+        assert dated1 <= dated2
+        assert dated1 == dated1
+        assert dated1 != dated2 
 
 def test_dated_interval():
     timestamp = "20010502_120358"
