@@ -1827,7 +1827,12 @@ def set_elastix_dir(path):
         _transformix = os.path.join(_ELASTIX_DIR, "transformix.exe")
         lib_dir = os.path.join(os.path.dirname(_ELASTIX_DIR), 'lib')
     else:
-        self.logger.warning(f"No elastix executable found in {_ELASTIX_DIR}!")
+        print(f"WARNING: No elastix executable found in {_ELASTIX_DIR}!")
+        cmd = f"which {_ELASTIX}".split()
+        stdout = subprocess.run(cmd, capture_output=True).stdout
+        if stdout:
+            exe_dir = str(Path(stdout.decode()).parent)
+            print(f"INFO: Using elastix executable found in {exe_dir}")
         _ELASTIX_DIR = None
 
     # Cover Linux and MacOS
