@@ -14,7 +14,6 @@ from skrt.core import fullpath, get_logger, Data, to_list, Defaults, PathData
 from skrt.dose import ImageOverlay, Dose
 from skrt.simulation import make_grid
 
-_ELASTIX_DIR = None
 _ELASTIX = "elastix"
 _transformix = "transformix"
 
@@ -1814,7 +1813,6 @@ class DeformationField(PathData):
 def set_elastix_dir(path):
 
     # Set directory
-    global _ELASTIX_DIR
     _ELASTIX_DIR = fullpath(path)
 
     # Find elastix exectuable
@@ -1829,12 +1827,13 @@ def set_elastix_dir(path):
         _transformix = os.path.join(_ELASTIX_DIR, "transformix.exe")
         lib_dir = os.path.join(os.path.dirname(_ELASTIX_DIR), 'lib')
     else:
-        raise RuntimeError(f"No elastix executable found in {_ELASTIX_DIR}!")
-
+        self.logger.warning(f"No elastix executable found in {_ELASTIX_DIR}!")
+        _ELASTIX_DIR = None
 
     # Cover Linux and MacOS
-    prepend_path('DYLD_FALLBACK_LIBRARY_PATH', lib_dir)
-    prepend_path('LD_LIBRARY_PATH', lib_dir)
+    if _ELASTIX_DIR:
+        prepend_path('DYLD_FALLBACK_LIBRARY_PATH', lib_dir)
+        prepend_path('LD_LIBRARY_PATH', lib_dir)
 
 def prepend_path(variable, path, path_must_exist=True):
     '''
