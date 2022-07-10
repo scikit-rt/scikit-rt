@@ -35,23 +35,25 @@ class Algorithm():
     * **set_attributes()**: Set values for algorithm attributes.
     '''
 
-    def __init__(self, opts={}, name=None, log_level=None):
+    def __init__(self, opts=None, name=None, log_level=None):
         '''
         Create instance of Algorithm class.
 
         **Parameters:**
 
-        opts: dict, default={}
-            Dictionary for setting algorithm attributes.
+        opts: dict, default=None
+            Dictionary for setting algorithm attributes.  If null,
+            set to empty dictionary.
 
-        name: str, default=''
-            Name for identifying algorithm instance.
+        name: str, default=None
+            Name for identifying algorithm instance.  If null, set to
+            class name.
 
         log_level: str/int/None, default=None
             Severity level for event logging.  If the value is None,
             log_level is set to the value of skrt.core.Defaults().log_level.
         '''
-        self.opts = opts
+        self.opts = opts or {}
         class_name = type(self).__name__
         self.name = class_name if name is None else name
         self.log_level = \
@@ -60,7 +62,7 @@ class Algorithm():
         self.status = Status(name=self.name)
 
         # Initialise algorithm attributes.
-        self.set_attributes(opts)
+        self.set_attributes(self.opts)
 
     def execute(self, patient=None):
         '''
@@ -114,21 +116,22 @@ class Application():
     * **run()**: Initialise analysis, process patient data, finalise analysis.
     '''
 
-    def __init__(self, algs=[], log_level=None):
+    def __init__(self, algs=None, log_level=None):
         '''
         Create instance of Application class.
 
         **Parameters:**
 
-        algs: list, default=[]
+        algs: list, default=None
             List of algorithms to be managed.  Algorithms are processed
-            in the order in which they are specified in the list.
+            in the order in which they are specified in the list.  If null,
+            set to empty list.
 
         log_level: str/int/None, default=None
             Severity level for event logging.  If the value is None,
             log_level is set to the value of skrt.core.Defaults().log_level.
         '''
-        self.algs = algs
+        self.algs = algs or []
         class_name = type(self).__name__
         self.log_level = \
                 Defaults().log_level if log_level is None else log_level
@@ -194,14 +197,15 @@ class Application():
 
         return self.status
 
-    def run(self, paths=[], unsorted_dicom=False, id_mappings=None):
+    def run(self, paths=None, unsorted_dicom=False, id_mappings=None):
         '''
         Initialise analysis, process patient data, finalise analysis.
 
         **Parameters:**
 
-        paths: list, default=[]
-            List of paths to folders containing patient data.
+        paths: list, default=None
+            List of paths to folders containing patient data.  If null,
+            set to empty list.
 
         unsorted_dicom: bool, default=False
             If True, examine all files below the top directory, and
@@ -218,6 +222,7 @@ class Application():
         '''
 
         if self.status.ok():
+            paths = paths or []
             if not paths:
                 self.logger.warning('List of paths to patient data is empty')
             for data_path in paths:
@@ -243,7 +248,7 @@ class Status():
     * **ok()**: Return boolean, indicating whether status is okay.
     '''
 
-    def __init__(self, code=0, name='', reason=''):
+    def __init__(self, code=0, name=None, reason=None):
         '''
         Create instance of Status class.
 
@@ -255,15 +260,15 @@ class Status():
         code: int, default=0
             Value for exit status.
 
-        name: str, default=''
-            Name for exit status.
+        name: str, default=None
+            Name for exit status.  If null, set to empty string.
 
-        reason: str, default=''
-            Reason for exit status.
+        reason: str, default=None
+            Reason for exit status.  If null, set to empty string.
         '''
         self.code = code
-        self.name = name
-        self.reason = reason
+        self.name = name or ""
+        self.reason = reason or ""
 
     def ok(self):
         '''
