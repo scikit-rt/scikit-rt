@@ -1640,6 +1640,7 @@ class DeformationField(PathData):
                 self.get_displacement_image("3d").get_data().max() * 1.1)
         default_kwargs = {"cmap": "jet"}
         default_kwargs.update(mpl_kwargs)
+        default_kwargs["clim"] = default_kwargs.get("clim", (vmin, vmax))
         default_dot_colour = matplotlib.cm.get_cmap(default_kwargs["cmap"])(0)
         clb_kwargs = clb_kwargs or None
         clb_label_kwargs = clb_label_kwargs or None
@@ -1667,10 +1668,7 @@ class DeformationField(PathData):
                 # Add colorbar
                 if colorbar > 0 and mpl_kwargs.get(
                         "alpha", self._default_opacity) > 0:
-                    scalar_mappable = matplotlib.cm.ScalarMappable(
-                            norm=matplotlib.colors.Normalize(vmin, vmax),
-                            cmap=default_kwargs["cmap"])
-                    clb = self.fig.colorbar(scalar_mappable, ax=self.ax,
+                    clb = self.fig.colorbar(quiver, ax=self.ax,
                             **clb_kwargs)
                     clb.set_label(self._quiver_colorbar_label,
                             **clb_label_kwargs)
@@ -1679,7 +1677,6 @@ class DeformationField(PathData):
             # If arrow lengths are zero, plot dots
             dot_colour = default_kwargs.get("color", default_dot_colour)
             ax.scatter(plot_x, plot_y, c=dot_colour, marker=".")
-
 
     def _plot_grid(
         self, 
