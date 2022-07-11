@@ -3126,15 +3126,26 @@ class Image(skrt.core.Archive):
         self.set_geometry()
         return None
 
+    def has_same_data(self, im, max_diff=0.005):
+        """Check whether this Image has the same data as
+        another Image <im> (i.e. same array shape and same data values),
+        with tolerance <max_diff> on agreement of data values."""
+
+        same = self.get_data().shape == im.get_data().shape
+        if same:
+            same *= np.all(abs(self.get_data() - im.get_data()) < max_diff)
+
+        return same
+
     def has_same_geometry(self, im, max_diff=0.005):
-        """Check whether this Image has the same geometric properties,
+        """Check whether this Image has the same geometric properties as
         another Image <im> (i.e. same origin, voxel sizes, and shape),
         with tolerance <max_diff> on agreement of origins."""
         
         same = self.get_data().shape == im.get_data().shape
-        same *= all([abs(self.origin[i] - im.origin[i]) < max_diff
+        same *= np.all([abs(self.origin[i] - im.origin[i]) < max_diff
             for i in range(3)])
-        same *= all([abs(self.voxel_size[i] - im.voxel_size[i]) < max_diff
+        same *= np.all([abs(self.voxel_size[i] - im.voxel_size[i]) < max_diff
             for i in range(3)])
     
         return same
@@ -4633,3 +4644,67 @@ def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
         if mask.data.dtype != bool:
             mask.data = mask.data > mask_threshold
         return mask
+
+def remove_duplicate_images(images=None):
+    '''
+    Remove duplicates from a list of image objects.
+
+    Image instance image1 is taken to be a duplicate of image2 if
+    image1.has_same_data(image2) is True.
+
+    **Parameter:**
+    images: list, default=None
+        List of image objects, from which duplicates are to be removed.
+    '''
+    images = images or []
+    filtered_images = []
+
+    # Add to list of filtered images each image that isn't a duplicate
+    # of an image already in the list.
+    while images:
+        image1 = images.pop()
+        duplicate_image = False
+        for image2 in filtered_images:
+            if image1.has_same_data(image2):
+                duplicate_image = True
+                break
+        if not duplicate_image:
+            filtered_images.append(image1)
+
+    return filtered_images
+
+def sum_images(images=None):
+    '''
+    Sum images of the same geometry.
+
+    If not all images have the same same geometry (shape, origin,
+    voxel size), None is returned.  Otherwise, an Image object is
+    returned that has the same geometry as the input images, and
+    where array values are the sums of the array values of
+    the input images.
+
+    **Parameter:**
+    images: list, default=None
+        List of Image objects to be summed.
+    '''
+
+    # Check that a list of at least two Image objects has been passed
+    # as input.  If not, return something reasonable.
+    if issubclass(type(images), Image):
+        return images
+    if not isinstance(images, (list, set, tuple)):
+        return None
+    if not len(images):
+        return None
+    if 1 == len(images):
+        return images[0]
+
+    # Sum images.
+    image_sum = images[0].clone()
+    for image in images[1: ]:
+        if not image.has_same_geometry(image_sum):
+            image_sum = None
+            break
+        image_sum += image
+
+    return image_sum
