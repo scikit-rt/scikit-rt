@@ -796,9 +796,17 @@ even if it has previously been computed.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.has_same_data">
+<span class="sig-name descname"><span class="pre">has_same_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.has_same_data" title="Permalink to this definition"></a></dt>
+<dd><p>Check whether this Image has the same data as
+another Image &lt;im&gt; (i.e. same array shape and same data values),
+with tolerance &lt;max_diff&gt; on agreement of data values.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.has_same_geometry">
 <span class="sig-name descname"><span class="pre">has_same_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.has_same_geometry" title="Permalink to this definition"></a></dt>
-<dd><p>Check whether this Image has the same geometric properties,
+<dd><p>Check whether this Image has the same geometric properties as
 another Image &lt;im&gt; (i.e. same origin, voxel sizes, and shape),
 with tolerance &lt;max_diff&gt; on agreement of origins.</p>
 </dd></dl>
@@ -2146,6 +2154,19 @@ from which that slice of the image was read.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.remove_duplicate_images">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">remove_duplicate_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.remove_duplicate_images" title="Permalink to this definition"></a></dt>
+<dd><p>Remove duplicates from a list of image objects.</p>
+<p>Image instance image1 is taken to be a duplicate of image2 if
+image1.has_same_data(image2) is True.</p>
+<p><strong>Parameter:</strong>
+images: list, default=None</p>
+<blockquote>
+<div><p>List of image objects, from which duplicates are to be removed.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.rescale_dicom_data">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">rescale_dicom_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.rescale_dicom_data" title="Permalink to this definition"></a></dt>
 <dd><p>Rescale an array according to rescaling info in a dicom dataset.</p>
@@ -2181,6 +2202,22 @@ the effective value is determined from PatientOrientation, if present.</p>
 <dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>DICOM dataset.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.sum_images">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">sum_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.sum_images" title="Permalink to this definition"></a></dt>
+<dd><p>Sum images of the same geometry.</p>
+<p>If not all images have the same same geometry (shape, origin,
+voxel size), None is returned.  Otherwise, an Image object is
+returned that has the same geometry as the input images, and
+where array values are the sums of the array values of
+the input images.</p>
+<p><strong>Parameter:</strong>
+images: list, default=None</p>
+<blockquote>
+<div><p>List of Image objects to be summed.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py function">
