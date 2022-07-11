@@ -446,8 +446,14 @@ class Image(skrt.core.Archive):
 
     def get_plans(self):
         """Return list of Plan objects associated with this Image."""
+        if hasattr(self, "plans"):
+            plans = self.plans
+        elif hasattr(self, "plan"):
+            plans = [self.plan]
+        else:
+            plans = []
 
-        return self.plans
+        return plans
 
     def load(self, force=False):
         """Load pixel array from image source. If already loaded and <force> 
