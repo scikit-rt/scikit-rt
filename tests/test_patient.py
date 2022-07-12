@@ -104,7 +104,6 @@ def test_unsorted_dicom_defaults():
     for unsorted_dicom in [True, False]:
         skrt.core.Defaults().unsorted_dicom = unsorted_dicom
         p2 = Patient(pdir)
-        print("Helloooooooo", pdir)
         s = p2.studies[0]
         assert len(s.ct_images) == 1
         assert hasattr(s.ct_images[0], "dicom_paths") == unsorted_dicom
@@ -262,3 +261,10 @@ def test_pathlib_path():
     s = Study(Path())
     assert p.path == skrt.core.fullpath(".")
     assert s.path == skrt.core.fullpath(".")
+
+def test_id_mappings():
+    p_test = Patient(pdir)
+    mapped_id = "new_id"
+    id_mappings = {p_test.id: mapped_id}
+    p_mapped = Patient(pdir, id_mappings=id_mappings)
+    assert p_mapped.id == mapped_id
