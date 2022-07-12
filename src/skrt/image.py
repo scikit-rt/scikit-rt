@@ -416,6 +416,40 @@ class Image(skrt.core.Archive):
         self.load()
         return self.n_voxels
 
+    def get_volume(self, units="mm"):
+        """Get image volume in specified units.
+
+        **Parameter:**
+        
+        units : str, default="mm"
+            Units of volume. Can be any of:
+                - "mm": return volume in millimetres cubed.
+                - "ml": return volume in millilitres.
+                - "voxels": return volume in number of voxels.
+        """
+
+        # Obtain volume as number of voxels.
+        volume = np.prod(self.get_n_voxels())
+
+        # Convert to volume in cubic millimetres.
+        if units != "voxels":
+            volume *= np.prod(self.get_voxel_size())
+
+        # Convert to volume in millilitres.
+        if units == "ml":
+            volume /= 1000
+
+        return volume
+
+    def get_extents(self):
+        """
+        Get minimum and maximum extent of the image in mm along all three axes,
+        returned in order [x, y, z].
+        """
+
+        self.load()
+        return self.image_extent
+
     def get_affine(self, standardise=False, force_standardise=True):
         """Return affine matrix.
 

@@ -872,3 +872,9 @@ def test_pathlib_path():
     # Test passing of pathlib.Path.
     im_tmp = Image(Path(dcm_file))
     assert im_tmp.path == fullpath(dcm_file)
+
+def test_get_volume():
+    # Test calculation of image volume.
+    assert np.prod(shape) == im.get_volume("voxels")
+    assert np.prod(shape) * np.prod(voxel_size) == im.get_volume("mm")
+    assert (np.prod(shape) * np.prod(voxel_size) / 1000) == im.get_volume("ml")
