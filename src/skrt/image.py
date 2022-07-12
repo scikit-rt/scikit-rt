@@ -4155,7 +4155,6 @@ def load_dicom_single_file(path):
     # Try to ensure that dataset has attribute ImageOrientationPatient
     set_image_orientation_patient(ds)
 
-
     affine = get_dicom_affine(ds, image_positions)
     return data, affine, ds
 
@@ -4245,7 +4244,7 @@ def get_dicom_affine(ds, image_positions=None):
     orientation, axes = get_dicom_orientation(ds)
 
     # Get slice-related matrix elements
-    if image_positions is not None:
+    if image_positions:
         sorted_slices = sorted(list(image_positions.keys()))
         zmin = sorted_slices[0]
         zmax = sorted_slices[-1]

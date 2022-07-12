@@ -434,7 +434,7 @@ class DicomWriter:
             self.ds.DoseSummationType = None
             self.ds.GridFrameOffsetVector = []
             for idx in range(self.data.shape[2]):
-                self.ds.GridFrameOffsetVector.append(idx * self.affine[2,2])
+                self.ds.GridFrameOffsetVector.append(-idx * self.affine[2,2])
 
     def set_image(self):
         '''
