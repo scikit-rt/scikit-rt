@@ -4136,15 +4136,27 @@ def load_dicom_single_file(path):
     data = ds.pixel_array
     if data.ndim == 2:
         data = data[..., np.newaxis]
+        image_positions = {}
     elif data.ndim == 3:
-        data = data.transpose((1, 2, 0))[:, :, ::-1]
+        # If DICOM dataset has GridFrameOffsetVector defined,
+        # use this to determine slice positions.
+        offsets = getattr(ds, "GridFrameOffsetVector", [])
+        origin = getattr(ds, "ImagePositionPatient", [0, 0, 0])
+        image_positions = {origin[2] + offset:
+                (origin[0], origin[1], origin[2] + offset)
+                for offset in offsets}
+        data = data.transpose((1, 2, 0))
+        # Invert z-axis if offsets are decreasing as slice index increases.
+        if offsets and offsets[0] > offsets[-1]:
+            data = data[:, :, ::-1]
     else:
         raise RuntimeError(f"Unrecognised number of image dimensions: {data.ndim}")
 
     # Try to ensure that dataset has attribute ImageOrientationPatient
     set_image_orientation_patient(ds)
 
-    affine = get_dicom_affine(ds)
+
+    affine = get_dicom_affine(ds, image_positions)
     return data, affine, ds
 
 
