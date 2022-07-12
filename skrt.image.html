@@ -442,6 +442,13 @@ None.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_extents">
+<span class="sig-name descname"><span class="pre">get_extents</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_extents" title="Permalink to this definition"></a></dt>
+<dd><p>Get minimum and maximum extent of the image in mm along all three axes,
+returned in order [x, y, z].</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_box_mask">
 <span class="sig-name descname"><span class="pre">get_foreground_box_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_box_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Slice by slice, create rectangular mask encolosing foreground mask.</p>
@@ -781,6 +788,24 @@ even if it has previously been computed.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.get_structure_sets">
 <span class="sig-name descname"><span class="pre">get_structure_sets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_structure_sets" title="Permalink to this definition"></a></dt>
 <dd><p>Return list of StructureSet objects associated with this Image.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_volume">
+<span class="sig-name descname"><span class="pre">get_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_volume" title="Permalink to this definition"></a></dt>
+<dd><p>Get image volume in specified units.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>units<span class="classifier">str, default=”mm”</span></dt><dd><dl class="simple">
+<dt>Units of volume. Can be any of:</dt><dd><ul class="simple">
+<li><p>“mm”: return volume in millimetres cubed.</p></li>
+<li><p>“ml”: return volume in millilitres.</p></li>
+<li><p>“voxels”: return volume in number of voxels.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
