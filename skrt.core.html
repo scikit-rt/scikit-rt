@@ -97,7 +97,7 @@
              
   <section id="module-skrt.core">
 <span id="skrt-core-module"></span><h1>skrt.core module<a class="headerlink" href="#module-skrt.core" title="Permalink to this heading"></a></h1>
-<p>Core data classes and functions.</p>
+<p>Scikit-rt core data classes and functions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.Archive">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Archive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive" title="Permalink to this definition"></a></dt>
@@ -270,12 +270,22 @@ automatically from the current date and time if auto_timestamp is True.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.get_matched_timestamps">
 <span class="sig-name descname"><span class="pre">get_matched_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_matched_timestamps" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Identify Dated objects that have matching timestamps, within tolerance.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>others<span class="classifier">list, default=None</span></dt><dd><p>List of objects to be checked for matching timestamps.</p>
+</dd>
+<dt>delta_seconds<span class="classifier">int/float, default=120</span></dt><dd><p>Maximum time difference (seconds) between timestamps for
+the timestamps to be considered matched.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.get_pandas_timestamp">
 <span class="sig-name descname"><span class="pre">get_pandas_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_pandas_timestamp" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Obtain own timestamp as a pandas.Timestamp object.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.in_date_interval">
@@ -328,8 +338,8 @@ but add to them, or modify values, from opts dictionary.</p>
 <dd><p>Bases: <a class="reference internal" href="#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
 <p>Class representing files in DICOM format, with conversion to skrt objects.</p>
 <p><strong>Methods:</strong>
-- <strong>_Init__()</strong> : Create instance of DicomFile class.
-- <strong>get_object()</strong> : 
+- <strong>_init__()</strong> : Create instance of DicomFile class.
+- <strong>get_object()</strong> : Instantiate specified Scikit-rt class.
 - <strong>get_matched_attributes()</strong> : 
 - <strong>set_dates_and_times()</strong> : 
 - <strong>set_referenced_sop_instance_uids</strong> :
@@ -337,15 +347,10 @@ but add to them, or modify values, from opts dictionary.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Constructor of Data class, allowing initialisation of an
-arbitrary set of attributes.</p>
-<p><strong>Parameters:</strong></p>
+<dd><p>Create instance of DicomFile class.</p>
+<p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
-(dictionary keys) and their initial values.</p>
-</dd>
-<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
-and their initial values.</p>
+<dt>path<span class="classifier">str/pathlib.Path</span></dt><dd><p>Relative or absolute path to DICOM file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -358,7 +363,23 @@ and their initial values.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.get_object">
 <span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_object" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Instantiate specified Scikit-rt class.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>cls<span class="classifier">Class</span></dt><dd><p>Class to be instantiated.  In principle this could be an
+arbitrary class, but this method is intended for the
+instatiation of:
+- skrt.dose.Dose;
+- skrt.dose.Plan;
+- skrt.image.Image;
+- skrt.patient.Study;
+- skrt.structures.StructureSet.</p>
+</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">**</span></a>kwrgs</dt><dd><p>Keyword arguments to be passed to contstructor of class
+that’s instantiated.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.set_dates_and_times">
@@ -424,7 +445,7 @@ arbitrary set of attributes.</p>
 <dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
 (dictionary keys) and their initial values.</p>
 </dd>
-<dt><a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
+<dt><a href="#id9"><span class="problematic" id="id10">`</span></a><a href="#id11"><span class="problematic" id="id12">**</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
 and their initial values.</p>
 </dd>
 </dl>
@@ -447,7 +468,7 @@ directory will be used.</p>
 <dt>timestamp_only<span class="classifier">bool, default=True</span></dt><dd><p>If True, only files whose names correspond to a timestamp will
 be used to initialise objects.</p>
 </dd>
-<dt><a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs :</dt><dd><p>Keyword arguments to pass to object creation.</p>
+<dt><a href="#id15"><span class="problematic" id="id16">`</span></a><a href="#id17"><span class="problematic" id="id18">**</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>kwargs :</dt><dd><p>Keyword arguments to pass to object creation.</p>
 </dd>
 </dl>
 <p><strong>Returns</strong>:</p>
@@ -615,7 +636,8 @@ the most recent if True, or the least recent otherwise.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_uid_without_slice">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_uid_without_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_uid_without_slice" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Obtain copy of &lt;uid&gt;, truncated to before final dot.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.is_list">
