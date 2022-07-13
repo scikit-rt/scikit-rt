@@ -340,10 +340,10 @@ but add to them, or modify values, from opts dictionary.</p>
 <p><strong>Methods:</strong>
 - <strong>_init__()</strong> : Create instance of DicomFile class.
 - <strong>get_object()</strong> : Instantiate specified Scikit-rt class.
-- <strong>get_matched_attributes()</strong> : 
-- <strong>set_dates_and_times()</strong> : 
-- <strong>set_referenced_sop_instance_uids</strong> :
-- <strong>set_slice_thickness</strong> :</p>
+- <strong>get_matched_attributes()</strong> : Identify objects with matched attributes.
+- <strong>set_dates_and_times()</strong> : Store timing for specified elements.
+- <strong>set_referenced_sop_instance_uids</strong> : Store UIDs of referenced objects.
+- <strong>set_slice_thickness</strong> : Store slice thickness for 3D imaging data.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.__init__" title="Permalink to this definition"></a></dt>
@@ -358,7 +358,17 @@ but add to them, or modify values, from opts dictionary.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.get_matched_attributes">
 <span class="sig-name descname"><span class="pre">get_matched_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_matched_attributes" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Identify objects with attribute values matching own attribute values.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>others<span class="classifier">list</span></dt><dd><p>List of objects to be checked for matches.</p>
+</dd>
+<dt>attributes<span class="classifier">list/str, default=None</span></dt><dd><p>List of strings corresponding to attributes whose values
+are to be checked.  If passed as a string, this is converted
+to a single-element list.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.get_object">
@@ -384,17 +394,27 @@ that’s instantiated.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.set_dates_and_times">
 <span class="sig-name descname"><span class="pre">set_dates_and_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_dates_and_times" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Store timing information for specified elements.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>elements: dict</dt><dd><p>Dictionary where keys are element names - for example,
+“study”, “item” - and values are DICOM dataset attributes
+to be checked, in the order listed, for date and time information.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.set_referenced_sop_instance_uids">
 <span class="sig-name descname"><span class="pre">set_referenced_sop_instance_uids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_referenced_sop_instance_uids" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Store SOP instance UIDs for referenced image, structure set, and plan.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.set_slice_thickness">
 <span class="sig-name descname"><span class="pre">set_slice_thickness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_slice_thickness" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Store slice thickness for 3D imaging data.</p>
+</dd></dl>
 
 </dd></dl>
 
