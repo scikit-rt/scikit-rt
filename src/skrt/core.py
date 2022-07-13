@@ -398,7 +398,7 @@ class DicomFile(Data):
 
     **Methods:**
     - **_init__()** : Create instance of DicomFile class.
-    - **get_object()** : Instantiate specified Scikit-rt class.
+    - **get_object()** : Instantiate object of specified Scikit-rt class.
     - **get_matched_attributes()** : Identify objects with matched attributes.
     - **set_dates_and_times()** : Store timing for specified elements.
     - **set_referenced_sop_instance_uids** : Store UIDs of referenced objects.
@@ -446,14 +446,14 @@ class DicomFile(Data):
 
     def get_object(self, cls, **kwargs):
         '''
-        Instantiate specified Scikit-rt class.
+        Instantiate object of specified Scikit-rt class.
 
         **Parameters:**
 
         cls : Class
-            Class to be instantiated.  In principle this could be an
-            arbitrary class, but this method is intended for the
-            instatiation of:
+            Class from which object is to be instantiated.  In principle
+            this could be an arbitrary class, but this method is intended
+            for use with:
             - skrt.dose.Dose;
             - skrt.dose.Plan;
             - skrt.image.Image;
@@ -461,8 +461,8 @@ class DicomFile(Data):
             - skrt.structures.StructureSet.
 
         **kwrgs
-            Keyword arguments to be passed to contstructor of class
-            that's instantiated.
+            Keyword arguments to be passed to contstructor of the class
+            from which object is to be instantiated.
         '''
         # Set class-specific keyword arguments.
         if cls.__name__ in ["Dose", "Plan", "StructureSet"]:
@@ -485,7 +485,7 @@ class DicomFile(Data):
             obj.timestamp = self.item_timestamp
 
         # Set attributes for all.
-        # Some values may be null, depending on class instantiated.
+        # Some values may be null, depending on object instantiated.
         obj.modality = self.modality
         obj.frame_of_reference_uid = self.frame_of_reference_uid
         obj.referenced_image_sop_instance_uid = (
