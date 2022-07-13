@@ -339,7 +339,7 @@ but add to them, or modify values, from opts dictionary.</p>
 <p>Class representing files in DICOM format, with conversion to skrt objects.</p>
 <p><strong>Methods:</strong>
 - <strong>_init__()</strong> : Create instance of DicomFile class.
-- <strong>get_object()</strong> : Instantiate specified Scikit-rt class.
+- <strong>get_object()</strong> : Instantiate object of specified Scikit-rt class.
 - <strong>get_matched_attributes()</strong> : Identify objects with matched attributes.
 - <strong>set_dates_and_times()</strong> : Store timing for specified elements.
 - <strong>set_referenced_sop_instance_uids</strong> : Store UIDs of referenced objects.
@@ -373,20 +373,20 @@ to a single-element list.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.get_object">
 <span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_object" title="Permalink to this definition"></a></dt>
-<dd><p>Instantiate specified Scikit-rt class.</p>
+<dd><p>Instantiate object of specified Scikit-rt class.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>cls<span class="classifier">Class</span></dt><dd><p>Class to be instantiated.  In principle this could be an
-arbitrary class, but this method is intended for the
-instatiation of:
+<dt>cls<span class="classifier">Class</span></dt><dd><p>Class from which object is to be instantiated.  In principle
+this could be an arbitrary class, but this method is intended
+for use with:
 - skrt.dose.Dose;
 - skrt.dose.Plan;
 - skrt.image.Image;
 - skrt.patient.Study;
 - skrt.structures.StructureSet.</p>
 </dd>
-<dt><a href="#id7"><span class="problematic" id="id8">**</span></a>kwrgs</dt><dd><p>Keyword arguments to be passed to contstructor of class
-that’s instantiated.</p>
+<dt><a href="#id7"><span class="problematic" id="id8">**</span></a>kwrgs</dt><dd><p>Keyword arguments to be passed to contstructor of the class
+from which object is to be instantiated.</p>
 </dd>
 </dl>
 </dd></dl>
