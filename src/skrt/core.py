@@ -1263,6 +1263,7 @@ def get_uid_without_slice(uid):
     """Obtain copy of <uid>, truncated to before final dot."""
     return ".".join(uid.split(".")[:-1])
 
+'''
 def get_sequence_value(ds=None, sequence=None, tag=None):
     value = None
     sequence_data = getattr(ds, sequence, None)
@@ -1271,15 +1272,34 @@ def get_sequence_value(ds=None, sequence=None, tag=None):
         if sequence_data:
             value = getattr(sequence_data[-1], tag, None)
     return value
+'''
 
 def get_referenced_image(referrer=None, image_types=None):
+    '''
+    Retrieve from <image_types> image object referred to by <referrer>.
+
+    **Parameters:**
+
+    referrer : object, default=None
+        Object that references an image object via its SOP instance UID.
+
+    image_types : dict, default=None
+        Dictionary where keys are imaging modalities and values are lists
+        of image objects for this modality.
+    '''
     image_types = image_types or {}
     image = None
+
+    # Search for referenced image based on matching
+    # referenced image SOP instance UID.
     for modality, images in image_types.items():
         image = get_referenced_object(referrer, images,
                 "referenced_image_sop_instance_uid", True)
         if image:
             break
+
+    # Search for referenced image based on matching
+    # frame-of-reference UID.
     if image is None:
         for modality, images in image_types.items():
             matched_attributes = DicomFile.get_matched_attributes(
@@ -1290,21 +1310,51 @@ def get_referenced_image(referrer=None, image_types=None):
     return image
 
 def get_referenced_object(referrer, others, tag, omit_slice=False):
+    '''
+    Retrieve from <others> object referred to via <tag> by <referrer>.
+
+    **Parameters:**
+
+    referrer : object
+        Object that references another object via a tag.  This tag
+        should be a reference to a SOP instance UID.
+
+    others : list
+        List of objects to be considered for identifying referenced object.
+
+    tag : str
+        String identifying object attribute that references a SOP instance UID.
+        Valid values are those defined in
+        skrt.DicomFile.set_referenced_sop_instance_uids(), namely:
+        'referenced_image_sop_instance_uid';
+        'referenced_structure_set_sop_instance_uid';
+        'referenced_plan_sop_instance_uid'.
+
+    omit_slice : bool, default=False
+        If True, disregard the last part of all UIDs, meaning the part from
+        the last dot onwards.  For imaging data, this part distinguishes
+        between different slices.
+    '''
     referenced_object = None
+
+    # Obtain SOP instance UID of referenced object.
     uid1 = getattr(referrer, tag, None)
     if uid1:
+        # Optionally omit part of UID from last dot onwards.
         if omit_slice:
             uid1 = get_uid_without_slice(uid1)
 
+        # Loop over list of objects.
         for other in others:
+            # Obtain object's SOP instance UID.
             if omit_slice:
                 uid2 = get_uid_without_slice(other.sop_instance_uid)
             else:
                 uid2 = other.sop_instance_uid
 
+            # Check for match between referenced UID and object's UID.
             if uid1 == uid2:
                 referenced_object = other
                 break
 
     return referenced_object
-
