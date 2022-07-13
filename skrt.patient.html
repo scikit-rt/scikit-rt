@@ -107,15 +107,26 @@ a patient ID, and whose subdirectories contain studies.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Constructor of Data class, allowing initialisation of an
-arbitrary set of attributes.</p>
+<dd><p>Create instance of Patient class.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>opts: dict, default={}</dt><dd><p>Dictionary to be used in setting instance attributes
-(dictionary keys) and their initial values.</p>
+<dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Relative or absolute path to a directory containing patient data.
+If None, the path used is the path to the current working
+directory.</p>
 </dd>
-<dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs</dt><dd><p>Keyword-value pairs to be used in setting instance attributes
-and their initial values.</p>
+<dt>exclude<span class="classifier">list, default=None</span></dt><dd><p>List of first-level sub-directories to disregard when
+loading patient data organised accoding to the VoxTox model
+(patient -&gt; studies -&gt; modalites).  If None, then set to
+[“logfiles”].  Ignored if &lt;unsorted_dicom&gt; set to True.</p>
+</dd>
+<dt>unsorted_dicom<span class="classifier">bool, default=False</span></dt><dd><p>If True, don’t assume that patient data are organised
+accoridng to the VoxTox model, and create data hierarchy
+based on information read from DICOM files.</p>
+</dd>
+<dt>id_mappings<span class="classifier">dict, default=None</span></dt><dd><p>By default, the patient identifier is set to be the name
+of the directory that contains the patient data.  The
+id_mappings dictionary allows mapping from the default
+name (dictionary key) to a different name (associated value).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -334,7 +345,11 @@ date interval.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.sort_dicom">
 <span class="sig-name descname"><span class="pre">sort_dicom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.sort_dicom" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Create patient tree of data objects from unsorted DICOM files.</p>
+<p>This method creates the hierarchy patient -&gt; studies -&gt; modalities,
+sorting through all files in the directory pointed to be the
+patient object’s path attribute, and in all sub-directories.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.write">
@@ -445,7 +460,7 @@ inferred from the subdirectory from which the objects were created.</p>
 </dd>
 <dt>attr_name<span class="classifier">str</span></dt><dd><p>Name of attribute to which loaded objects should be assigned.</p>
 </dd>
-<dt><a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to object initialisation.</p>
+<dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to object initialisation.</p>
 </dd>
 </dl>
 </dd></dl>
