@@ -399,10 +399,10 @@ class DicomFile(Data):
     **Methods:**
     - **_init__()** : Create instance of DicomFile class.
     - **get_object()** : Instantiate specified Scikit-rt class.
-    - **get_matched_attributes()** : 
-    - **set_dates_and_times()** : 
-    - **set_referenced_sop_instance_uids** :
-    - **set_slice_thickness** :
+    - **get_matched_attributes()** : Identify objects with matched attributes.
+    - **set_dates_and_times()** : Store timing for specified elements.
+    - **set_referenced_sop_instance_uids** : Store UIDs of referenced objects.
+    - **set_slice_thickness** : Store slice thickness for 3D imaging data.
     '''
 
     def __init__(self, path):
@@ -502,11 +502,28 @@ class DicomFile(Data):
         return obj
 
     def get_matched_attributes(self, others, attributes=None):
+        """
+        Identify objects with attribute values matching own attribute values.
+
+        **Parameters:**
+
+        others : list
+            List of objects to be checked for matches.
+
+        attributes : list/str, default=None
+            List of strings corresponding to attributes whose values
+            are to be checked.  If passed as a string, this is converted
+            to a single-element list.
+        """
+        # Initialise list of attributes to check.
         attributes = attributes or []
         if isinstance(attributes, str):
             attributes = [attributes]
+
+        # Initialise list of matches to all input objects.
         matches = others or []
 
+        # Loop over attributes, filtering list of matches at each iteration.
         for attribute in attributes:
             matches = [match for match in matches if
                     (getattr(match, attribute, None)
@@ -515,16 +532,33 @@ class DicomFile(Data):
         return matches 
 
     def set_dates_and_times(self, elements):
+        '''
+        Store timing information for specified elements.
 
+        **Parameter:**
+
+        elements: dict
+            Dictionary where keys are element names - for example,
+            "study", "item" - and values are DICOM dataset attributes
+            to be checked, in the order listed, for date and time information.
+        '''
+        # Define time measurements of interest, and values to be used
+        # in case of missing information.
         measurements = {"Date": "00000000", "Time": "000000"}
 
+        # Set time-measurement values for each element.
         for element, timed_items in elements.items():
             for measurement, value in measurements.items():
+                # Initialise time-measurement attribute
+                # to None (no dataset available) or fallback value.
                 attribute = f"{element}_{measurement.lower()}"
                 if self.ds is None:
                     setattr(self, attribute, None)
                     continue
                 setattr(self, attribute, value)
+
+                # Reset time-measurement attribute to value of
+                # first target attribute found in DICOM dataset.
                 for timed_item in timed_items:
                     target = f"{timed_item}{measurement}"
                     if hasattr(self.ds, target):
@@ -533,6 +567,7 @@ class DicomFile(Data):
                             setattr(self, attribute, target_value.split(".")[0])
                             break
 
+            # Set timestamp.
             if self.ds is None:
                 timestamp = None
             else:
@@ -541,6 +576,11 @@ class DicomFile(Data):
                 setattr(self, f"{element}_timestamp", f"{date}_{time}")
 
     def set_referenced_sop_instance_uids(self):
+        '''
+        Store SOP instance UIDs for referenced image, structure set, and plan.
+        '''
+
+        # Store SOP instance UID for referenced image.
         try:
             uid = self.ds.ReferencedImageSequence[0].ReferencedSOPInstanceUID
         except (IndexError, AttributeError):
@@ -555,6 +595,7 @@ class DicomFile(Data):
 
         self.referenced_image_sop_instance_uid = uid
 
+        # Store SOP instance UID for referenced structure set.
         try:
             uid = (self.ds.ReferencedStructureSetSequence[0]
                     .ReferencedSOPInstanceUID)
@@ -563,6 +604,7 @@ class DicomFile(Data):
 
         self.referenced_structure_set_sop_instance_uid = uid
 
+        # Store SOP instance UID for referenced plan.
         try:
             uid = (self.ds.ReferencedRTPlanSequence[0]
                     .ReferencedSOPInstanceUID)
@@ -572,7 +614,13 @@ class DicomFile(Data):
         self.referenced_plan_sop_instance_uid = uid
 
     def set_slice_thickness(self):
+        '''
+        Store slice thickness for 3D imaging data.
+        '''
+        # Initialise slice thickness.
         self.slice_thickness = ""
+
+        # Set slice thickness from DICOM dataset.
         if hasattr(self.ds, "SliceThickness"):
             slice_thickness = self.ds.SliceThickness
             if slice_thickness:
