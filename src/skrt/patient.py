@@ -774,6 +774,33 @@ class Patient(skrt.core.PathData):
 
     def __init__(self, path=None, exclude=None, unsorted_dicom=None,
             id_mappings=None):
+        '''
+        Create instance of Patient class.
+
+        **Parameters:**
+
+        path : str/pathlib.Path, default=None
+            Relative or absolute path to a directory containing patient data.
+            If None, the path used is the path to the current working
+            directory.
+
+        exclude : list, default=None
+            List of first-level sub-directories to disregard when
+            loading patient data organised accoding to the VoxTox model
+            (patient -> studies -> modalites).  If None, then set to
+            ["logfiles"].  Ignored if <unsorted_dicom> set to True.
+
+        unsorted_dicom : bool, default=False
+            If True, don't assume that patient data are organised
+            accoridng to the VoxTox model, and create data hierarchy
+            based on information read from DICOM files.
+
+        id_mappings : dict, default=None
+            By default, the patient identifier is set to be the name
+            of the directory that contains the patient data.  The
+            id_mappings dictionary allows mapping from the default
+            name (dictionary key) to a different name (associated value).
+        '''
 
         # Initialise parameters.
         path = path or ""
@@ -815,23 +842,43 @@ class Patient(skrt.core.PathData):
         self._init_time = (toc - tic)
 
     def sort_dicom(self):
+        '''
+        Create patient tree of data objects from unsorted DICOM files.
+
+        This method creates the hierarchy patient -> studies -> modalities,
+        sorting through all files in the directory pointed to be the
+        patient object's path attribute, and in all sub-directories.
+        '''
+
+        # Mapping between non-imaging DICOM modalities and
+        # terms used in Patient attributes.
         data_types = {
                 "rtplan": "plan",
                 "rtstruct": "structure_set",
                 "rtdose": "dose",
                 }
+
+        # Mapping between terms used in Patient attributes and
+        # Scikit-rt classes to which they refer.
         data_classes = {
                 "dose": Dose,
                 "image": Image,
                 "plan": Plan,
                 "structure_set": StructureSet,
                 }
+
+        # Loop through files in the directory pointed to path attribute,
+        # and in sub-directories.  Use each file to try to instantiate
+        # a skrt.core.DicomFile object.  Use instantiated objects to
+        # identify studies, then group objects by study, modality,
+        # series.
         self.studies = []
         patient_path = Path(self.path)
         file_paths = sorted(patient_path.glob("**/*"))
         for file_path in file_paths:
             dcm = skrt.core.DicomFile(file_path)
             if dcm.ds:
+                # Add to patient's list of Study objects.
                 matched_attributes = dcm.get_matched_attributes(self.studies,
                         "study_instance_uid")
                 if matched_attributes:
@@ -840,11 +887,17 @@ class Patient(skrt.core.PathData):
                     study = dcm.get_object(Study)
                     self.studies.append(study)
 
+                # Add to study objects dictionary of types for each modality.
+                # All modalities not used as keys in the data_types dictionary
+                # are mapped to modality "image".
                 dstring = data_types.get(dcm.modality, "image")
                 dtypes = getattr(study, f"{dstring}_types")
                 if not dcm.modality in dtypes:
                     dtypes[dcm.modality] = []
+
                 if "image" == dstring:
+                    # For "image" modality, group DicomFile objects
+                    # by series instance.
                     matched_attributes = dcm.get_matched_attributes(
                             dtypes[dcm.modality],
                             "series_instance_uid"
@@ -855,22 +908,36 @@ class Patient(skrt.core.PathData):
                         dcm.dicom_paths = [dcm.path]
                         dtypes[dcm.modality].append(dcm)
                 else:
+                    # For modalities other than "image",
+                    # add DicomFile objects to the relevant list
+                    # of the types dictionary.
                     dtypes[dcm.modality].append(dcm)
 
+        # First loop over studies: create Scikit-rt objects;
+        # group objects by modality.
         for study in self.studies:
             for dstring, dclass in data_classes.items():
                 dtypes = getattr(study, f"{dstring}_types")
                 for modality in dtypes:
+                    # Define datastore for each modality.
                     datastore = f"{modality}_{dstring}s"
                     setattr(study, datastore, [])
                     for idx, dcm in enumerate(dtypes[modality]):
+                        # Instantiate Scikit-rt object.
                         obj = dcm.get_object(dclass)
                         if "image" == dstring:
+                            # Transfer list of source files
+                            # from DicomFile object to Image object.
                             obj.dicom_paths = list(dcm.dicom_paths)
+                            # Subsitute Image object for DicomFile object
+                            # in dictionary of image types.
                             dtypes[modality][idx] = obj
                         getattr(study, datastore).append(obj)
 
+        # Second loop over studies: link structure sets, plans, doses.
         for study in self.studies:
+
+            # Link structure sets and plans.
             if study.plan_types and study.structure_set_types:
                 for plan in study.rtplan_plans:
                     ss = skrt.core.get_referenced_object(
@@ -879,6 +946,7 @@ class Patient(skrt.core.PathData):
                     if ss:
                         plan.set_structure_set(ss)
 
+            # Link doses and plans.
             if study.plan_types and study.dose_types:
                 for dose in study.rtdose_doses:
                     plan = skrt.core.get_referenced_object(
@@ -887,19 +955,25 @@ class Patient(skrt.core.PathData):
                     if plan:
                         dose.set_plan(plan)
 
+        # Third loop over studies: link images and non-imaging data;
+        # group non-imaging data by modality of linked image.
         for study in self.studies:
+
+            # Link images and non-imaging data.
             for dcm_modality, dstring in data_types.items():
                 dtypes = getattr(study, f"{dstring}_types")
                 dcm_datastore = f"{dcm_modality}_{dstring}s"
-                orphan_objs = []
                 for obj in getattr(study, dcm_datastore, []):
                     image = skrt.core.get_referenced_image(
                             obj, study.image_types)
                     obj.set_image(image)
 
+            # Reinforce linking of images, plans and structure sets.
             if study.plan_types and study.structure_set_types:
                 for plan in study.rtplan_plans:
                     if not plan.image:
+                        # If plan and image not directly linked,
+                        # try to link via structure set.
                         ss = skrt.core.get_referenced_object(
                                 plan, study.rtstruct_structure_sets,
                                 "referenced_structure_set_sop_instance_uid")
@@ -909,11 +983,17 @@ class Patient(skrt.core.PathData):
 
                 for ss in study.rtstruct_structure_sets:
                     if not ss.image:
+                        # If structure set and image not directly linked,
+                        # try to link via plan.
                         for plan in ss.plans:
                             if plan.image:
                                 ss.set_image(plan.image)
                                 break
 
+            # Group non-imaging data by both their own modality and
+            # the modality of linked image.  Where there is no
+            # linked image, group non-imaging data by their own
+            # modality only.
             for dcm_modality, dstring in data_types.items():
                 dtypes = getattr(study, f"{dstring}_types")
                 dcm_datastore = f"{dcm_modality}_{dstring}s"
@@ -932,6 +1012,8 @@ class Patient(skrt.core.PathData):
                     setattr(study, dcm_datastore, orphan_objs)
                     dtypes[dcm_modality] = orphan_objs
                 else:
+                    # Discard datastores not needed
+                    # if all non-imaging data has linked image.
                     if hasattr(study, dcm_datastore):
                         delattr(study, dcm_datastore)
                     if dcm_modality in dtypes:
