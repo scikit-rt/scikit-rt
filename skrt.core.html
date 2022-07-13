@@ -615,17 +615,41 @@ log_level is set to the value of Defaults().log_level.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_referenced_image">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_referenced_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">referrer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_referenced_image" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Retrieve from &lt;image_types&gt; image object referred to by &lt;referrer&gt;.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>referrer<span class="classifier">object, default=None</span></dt><dd><p>Object that references an image object via its SOP instance UID.</p>
+</dd>
+<dt>image_types<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where keys are imaging modalities and values are lists
+of image objects for this modality.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_referenced_object">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_referenced_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">referrer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">others</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omit_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_referenced_object" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.core.get_sequence_value">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_sequence_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_sequence_value" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Retrieve from &lt;others&gt; object referred to via &lt;tag&gt; by &lt;referrer&gt;.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>referrer<span class="classifier">object</span></dt><dd><p>Object that references another object via a tag.  This tag
+should be a reference to a SOP instance UID.</p>
+</dd>
+<dt>others<span class="classifier">list</span></dt><dd><p>List of objects to be considered for identifying referenced object.</p>
+</dd>
+<dt>tag<span class="classifier">str</span></dt><dd><p>String identifying object attribute that references a SOP instance UID.
+Valid values are those defined in
+skrt.DicomFile.set_referenced_sop_instance_uids(), namely:
+‘referenced_image_sop_instance_uid’;
+‘referenced_structure_set_sop_instance_uid’;
+‘referenced_plan_sop_instance_uid’.</p>
+</dd>
+<dt>omit_slice<span class="classifier">bool, default=False</span></dt><dd><p>If True, disregard the last part of all UIDs, meaning the part from
+the last dot onwards.  For imaging data, this part distinguishes
+between different slices.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_time_and_date">
