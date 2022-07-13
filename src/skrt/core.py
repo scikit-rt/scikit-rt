@@ -1,4 +1,4 @@
-"""Core data classes and functions."""
+"""Scikit-rt core data classes and functions."""
 
 from collections.abc import Iterable
 from pathlib import Path
@@ -397,8 +397,8 @@ class DicomFile(Data):
     Class representing files in DICOM format, with conversion to skrt objects.
 
     **Methods:**
-    - **_Init__()** : Create instance of DicomFile class.
-    - **get_object()** : 
+    - **_init__()** : Create instance of DicomFile class.
+    - **get_object()** : Instantiate specified Scikit-rt class.
     - **get_matched_attributes()** : 
     - **set_dates_and_times()** : 
     - **set_referenced_sop_instance_uids** :
@@ -406,15 +406,31 @@ class DicomFile(Data):
     '''
 
     def __init__(self, path):
-        self.path = str(path)
+        '''
+        Create instance of DicomFile class.
+
+        **Parameter:**
+
+        path : str/pathlib.Path
+            Relative or absolute path to DICOM file.
+        '''
+        # Store absolute file path as string.
+        self.path = fullpath(path)
+
+        # Attempt to read DICOM dataset.
         try:
             self.ds = pydicom.dcmread(self.path, force=True)
         except IsADirectoryError:
             self.ds = None
+
+        # Define prefixes of dataset attributes to be used
+        # to set study and item timestamps.
         elements = {
                 "study": ["Study", "Content", "InstanceCreation"],
                 "item": ["Instance", "Content", "Series", "InstanceCreation"]
                 }
+
+        # Set object attributes.
         self.set_dates_and_times(elements)
         self.set_slice_thickness()
         self.frame_of_reference_uid = getattr(
@@ -429,13 +445,34 @@ class DicomFile(Data):
         self.set_referenced_sop_instance_uids()
 
     def get_object(self, cls, **kwargs):
+        '''
+        Instantiate specified Scikit-rt class.
 
+        **Parameters:**
+
+        cls : Class
+            Class to be instantiated.  In principle this could be an
+            arbitrary class, but this method is intended for the
+            instatiation of:
+            - skrt.dose.Dose;
+            - skrt.dose.Plan;
+            - skrt.image.Image;
+            - skrt.patient.Study;
+            - skrt.structures.StructureSet.
+
+        **kwrgs
+            Keyword arguments to be passed to contstructor of class
+            that's instantiated.
+        '''
+        # Set class-specific keyword arguments.
         if cls.__name__ in ["Dose", "Plan", "StructureSet"]:
             kwargs["path"] = self.path
             kwargs["load"] = False
 
+        # Instantiate class.
         obj = cls(**kwargs)
 
+        # Set attributes specific to Study and non-Study objects.
         if cls.__name__ == "Study":
             obj.date = self.study_date
             obj.time = self.study_time
@@ -447,6 +484,8 @@ class DicomFile(Data):
             obj.time = self.item_time
             obj.timestamp = self.item_timestamp
 
+        # Set attributes for all.
+        # Some values may be null, depending on class instantiated.
         obj.modality = self.modality
         obj.frame_of_reference_uid = self.frame_of_reference_uid
         obj.referenced_image_sop_instance_uid = (
@@ -660,6 +699,7 @@ class Dated(PathData):
             self.timestamp = f"{self.date}_{self.time}"
 
     def get_pandas_timestamp(self):
+        """Obtain own timestamp as a pandas.Timestamp object."""
         try:
             timestamp = pd.Timestamp(''.join([self.date, self.time]))
         except ValueError:
@@ -680,8 +720,22 @@ class Dated(PathData):
         return True
 
     def get_matched_timestamps(self, others=None, delta_seconds=120):
+        """
+        Identify Dated objects that have matching timestamps, within tolerance.
+
+        **Parameters:**
+
+        others : list, default=None
+            List of objects to be checked for matching timestamps.
+
+        delta_seconds : int/float, default=120
+            Maximum time difference (seconds) between timestamps for
+            the timestamps to be considered matched.
+        """
         others = others or []
         matches = []
+
+        # Loop over input objects, checking for match with self.
         for other in others:
             try:
                 delta_time = abs(float(other.time) - float(self.time))
@@ -693,12 +747,24 @@ class Dated(PathData):
         return matches
 
     def __gt__(self, other):
+        '''
+        Define whether <self> is greater than <other>.
+
+        The comparison is based first on object date, then on time,
+        then on path.
+        '''
         for attribute in ["date", "time", "path"]:
             if getattr(self, attribute) != getattr(other, attribute):
                 return getattr(self, attribute) > getattr(other, attribute)
             return False
 
     def __ge__(self, other):
+        '''
+        Define whether <self> is greater than, or equal to, <other>.
+
+        The comparison is based first on object date, then on time,
+        then on path.
+        '''
         return (self > other) or (self == other)
 
 
@@ -1146,6 +1212,7 @@ def year_fraction(timestamp):
     return year_fraction
 
 def get_uid_without_slice(uid):
+    """Obtain copy of <uid>, truncated to before final dot."""
     return ".".join(uid.split(".")[:-1])
 
 def get_sequence_value(ds=None, sequence=None, tag=None):
