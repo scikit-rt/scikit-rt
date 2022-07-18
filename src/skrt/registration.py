@@ -227,6 +227,50 @@ class Registration(Data):
                 return
             self.set_image(path, category, force=False)
 
+    def define_translation(self, dxdydz):
+        # Define translation parameters that are enough to allow
+        # application before a registration step.
+        translation = {
+                "Transform": "TranslationTransform",
+                "NumberOfParameters": 3,
+                "TransformParameters": dxdydz,
+                "InitialTransformParametersFileName": "NoInitialTransform",
+                "UseBinaryFormatForTransformationParameters": False,
+                "HowToCombineTransforms": "Compose"
+                }
+
+        if not self.fixed:
+            return translation
+
+        '''
+        # Define translation parameters needed to allow warping
+        # of the moving image.
+        affine = self.fixed.get_standardised_affine()
+
+        // Image specific
+        FixedImageDimension 3
+        MovingImageDimension 3
+        FixedInternalImagePixelType "float"
+        MovingInternalImagePixelType "float"
+        Size 512 512 67
+        Index 0 0 0
+        Spacing 1.3669999838 1.3669999838 5.0000000000
+        Origin -350.0000000000 348.5369873047 -155.0000000000
+        Direction 1.0000000000 0.0000000000 0.0000000000 0.0000000000 -1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000
+        UseDirectionCosines "true")
+
+        // ResampleInterpolator specific
+        ResampleInterpolator "FinalBSplineInterpolator"
+        FinalBSplineInterpolationOrder 3
+
+        // Resampler specific
+       Resampler "DefaultResampler"
+       DefaultPixelValue 0.000000
+       ResultImageFormat "nii"
+       ResultImagePixelType "short"
+       CompressResultImage "false"
+        '''
+
     def add_file(self, file, name=None, params=None, ftype="p"):
         """Add a single file of type <ftype> to the list of registration steps.
         This file can optionally be modified by providing a dict
@@ -234,11 +278,13 @@ class Registration(Data):
 
         **Parameters:**
 
-        pfile : str/dict
+        file : str/dict/tuple/list
             Path to the elastix parameter file to copy into the registration
             directory. Can also be a dict containing parameters and values,
             which will be used to create a parameter file from scratch. In this
-            case, the <name> argument must also be provided.
+            case, the <name> argument must also be provided.  For a transform
+            file (<ftype> of 't'), can also be a three element tuple or list,
+            specifying the x, y, z components of a translation.
 
         name : str, default=None
             Name for this step of the registration. If None, a name will
@@ -260,13 +306,31 @@ class Registration(Data):
             return
         ftype = ftype.lower()
 
+        # Only allow file to be passed as a list or tuple
+        # if it has exactly three elements and is for a transform file.
+        if isinstance(file, (tuple, list)):
+            if len(file) != 3:
+                self.logger.warning("Input for file: '{file}'")
+                self.logger.warning("Translation passed as list or tuple "
+                        "must contain exactly 3 elements")
+                return
+            if ftype != 't':
+                self.logger.warning(f"Translation may only be passes as list "
+                        "or tuple for transform")
+                return
+
         # If name is null, infer from file name.
         if not name:
-            if isinstance(file, dict):
+            if isinstance(file, (dict, tuple, list)):
                 self.logger.warning(
-                        "If passing parameters from dict, <name> must be set.")
+                        "If passing parameters from dict, tuple or list, "
+                        "<name> must be set.")
                 return
             name = Path(file).stem
+
+        # Create dictionary for translation from list or tuple
+        if isinstance(file, (tuple, list)):
+            file = self.define_translation(file)
 
         # Check whether name already exists and add counter if so
         i = 1
@@ -1210,7 +1274,7 @@ class Registration(Data):
         else:
             step = self.steps[step]
 
-        if not self.pfiles[step] and not self.tfiles[step]:
+        if not self.pfiles.get(step, None) and not self.tfiles.get(step, None):
             raise RuntimeError(f"Step {step} not a valid registration step"
                     f"\nStep{step} has neither pfile nor tfile assigned")
         
@@ -1983,17 +2047,20 @@ def write_parameters(outfile, params):
 
     file = open(outfile, "w")
     for name, param in params.items():
-        line = f"({name}"
-        if isinstance(param, str):
-            line += f' "{param}")'
-        elif isinstance(param, list):
-            for item in param:
-                line += " " + str(item)
-            line += ")"
-        elif isinstance(param, bool):
-            line += f' "{str(param).lower()}")'
+        if "//" == name:
+            line = f"\n{name} {param}"
         else:
-            line += " " + str(param) + ")"
+            line = f"({name}"
+            if isinstance(param, str):
+                line += f' "{param}")'
+            elif isinstance(param, list):
+                for item in param:
+                    line += " " + str(item)
+                line += ")"
+            elif isinstance(param, bool):
+                line += f' "{str(param).lower()}")'
+            else:
+                line += " " + str(param) + ")"
         file.write(line + "\n")
     file.close()
 
