@@ -23,7 +23,7 @@ class Registration(Data):
     def __init__(
         self, path, fixed=None, moving=None, fixed_mask=None,
         moving_mask=None, pfiles=None, auto=False, overwrite=False,
-        tfiles={}, capture_output=False, log_level=None):
+        tfiles=None, capture_output=False, log_level=None):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -81,11 +81,12 @@ class Registration(Data):
             If True and <path> already contains files, these will be deleted,
             meaning that no prior registration results will be loaded.
 
-        tfiles: dict, default={}
-            Dictionary of pre-defined transforms, where a keys is a
+        tfiles: dict, default=None
+            Dictionary of pre-defined transforms, where a key is a
             registration step and the associated value is the path to
-            a pre-defined registration transform.  This parameter is
-            considered only if pfiles is null.
+            a pre-defined registration transform.  Transformations
+            are performed, in the order given in the dictionary,
+            before any registration step is performed.
 
         capture_output : bool, default=False
             If True, capture to stdout messages from performing
@@ -140,19 +141,16 @@ class Registration(Data):
         self.transformed_images = {}
         self.jacobians = {}
         self.deformation_fields = {}
-        if isinstance(pfiles, (str, Path)):
-            pfiles = [str(pfiles)]
-        if pfiles is not None:
-            self.add_pfiles(pfiles)
-        else:
-            self.load_pfiles()
+        self.file_types = {'t': tfiles, 'p': pfiles}
+        for ftype, files in self.file_types.items():
+            if isinstance(files, (str, Path)):
+                files = [str(files)]
+            if files is not None:
+                self.add_files(files, ftype)
+        if not self.pfiles and not self.tfiles:
+            self.load_files()
         self.moving_grid_path = os.path.join(self.path, "moving_grid.nii.gz")
         self.transformed_grids = {}
-
-        if not self.pfiles:
-            self.tfiles = tfiles
-            for step in sorted(tfiles):
-                self.steps.append(step)
 
         # Perform registration
         if auto:
@@ -229,9 +227,9 @@ class Registration(Data):
                 return
             self.set_image(path, category, force=False)
 
-    def add_pfile(self, pfile, name=None, params=None):
-        """Add a single parameter file to the list of registration steps.
-        This parameter file can optionally be modified by providing a dict
+    def add_file(self, file, name=None, params=None, ftype="p"):
+        """Add a single file of type <ftype> to the list of registration steps.
+        This file can optionally be modified by providing a dict
         of parameter names and new values in <params>.
 
         **Parameters:**
@@ -249,15 +247,26 @@ class Registration(Data):
         params : dict, default=None
             Dictionary of parameter names and replacement values with which
             the input parameter file will be modified.
-        """
 
-        # Infer name from parameter file name if name is None
-        if name is None:
-            if isinstance(pfile, dict):
+        ftype : str, default='p'
+            String indicating whether the file to be added is a parameter
+            file ('p') or a transform file ('t').
+        """
+        # Check that file type is recognised.
+        if not ftype.lower() in self.file_types:
+            self.logger.warning(f"File ignored: '{file}'")
+            self.logger.warning(f"File type not recognised: '{ftype}'")
+            self.logger.warning(f"\nValid file types are: '{self.file_types}'")
+            return
+        ftype = ftype.lower()
+
+        # If name is null, infer from file name.
+        if not name:
+            if isinstance(file, dict):
                 self.logger.warning(
                         "If passing parameters from dict, <name> must be set.")
                 return
-            name = os.path.basename(fullpath(pfile)).replace(".txt", "")
+            name = Path(file).stem
 
         # Check whether name already exists and add counter if so
         i = 1
@@ -276,29 +285,44 @@ class Registration(Data):
         os.mkdir(outdir)
         self.outdirs[name] = outdir
 
-        # If pfile already exists, copy it into output dir
-        path = f"{outdir}/InputParameters.txt"
-        shutil.copy(pfile, path)
-        self.pfiles[name] = path
+        # Define and store file path in step output directory.
+        if "p" == ftype.lower():
+            path = f"{outdir}/InputParameters.txt"
+            self.pfiles[name] = path
+        elif "t" == ftype.lower():
+            path = f"{outdir}/TransformParameters.0.txt"
+            self.tfiles[name] = path
 
-        # Modify the pfile if custom parameters are given
+        # Create new file, or copy existing file.
+        if isinstance(file, dict):
+            Path(path).touch()
+            self.adjust_file(name, file, ftype)
+        else:
+            shutil.copy(file, path)
+
+        # Modify the file if custom parameters are given
         if params is not None:
-            self.adjust_pfile(name, params)
+            self.adjust_file(name, params, ftype)
 
         # Rewrite text file containing list of steps
         self.write_steps()
 
-    def add_pfiles(self, pfiles):
-        """Add multiple parameter files to the list of registration steps,
-        then write list of registration steps to a file."""
+    def add_files(self, files, ftype='p'):
+        """Add multiple files of type <ftype> to the list of registration steps,
+        then write list of registration steps to a file.
 
-        for p in pfiles:
-            if isinstance(pfiles, dict):
-                name = p
-                p = pfiles[p]
+        The valid values for <ftype? are:
+        - 'p': parameter file;
+        - 't': transform file.
+        """
+
+        for f in files:
+            if isinstance(files, dict):
+                name = f
+                f = files[f]
             else:
                 name = None
-            self.add_pfile(p, name=name)
+            self.add_file(f, name=name, ftype=ftype)
 
         self.write_steps()
 
@@ -359,7 +383,7 @@ class Registration(Data):
 
         full_files = get_default_pfiles(False)
         pfile = full_files[files.index(filename)]
-        self.add_pfile(pfile, params=params)
+        self.add_file(pfile, params=params, ftype="p")
 
     def write_steps(self):
         """Write list of registration steps to a file at
@@ -369,7 +393,7 @@ class Registration(Data):
             for step in self.steps:
                 file.write(step + "\n")
 
-    def load_pfiles(self):
+    def load_files(self):
         """Attempt to load registration steps from a registration step
         file."""
 
@@ -399,20 +423,21 @@ class Registration(Data):
                 continue
 
             pfile = os.path.join(outdir, "InputParameters.txt")
-            if not os.path.exists(pfile):
+            tfile = os.path.join(outdir, "TransformParameters.0.txt")
+            if not os.path.exists(pfile) and not os.path.exists(tfile):
                 self.logger.warning(
-                    f"No parameter file ({outdir}/InputParameters.txt) "
+                    f"No parameter file ({pfile}) "
+                    f"and no transform file ({tfile}) "
                     f"found for registration step {step} listed in "
                     f"{self.steps_file}. This step will be ignored."
                 )
                 continue
 
+            # Add step to the list.
             self.steps.append(step)
             self.outdirs[step] = outdir
-            self.pfiles[step] = pfile
-
-            # Check for transform parameter files
-            tfile = os.path.join(outdir, "TransformParameters.0.txt")
+            if os.path.exists(pfile):
+                self.pfiles[step] = pfile
             if os.path.exists(tfile):
                 self.tfiles[step] = tfile
 
@@ -541,7 +566,8 @@ class Registration(Data):
             self.register_step(step, force=force, use_previous_tfile=True)
 
     def register_step(self, step, force=False, use_previous_tfile=True):
-        """Run a single registration step. Note that if use_previous_tfile=True,
+        """Run a single registration step, if it has a parameter file
+        assigned. Note that if use_previous_tfile=True,
         any prior steps that have not yet been run will be run.
 
         **Parameters:**
@@ -552,7 +578,9 @@ class Registration(Data):
 
         force : bool, default=None
             If False and a registration has already been performed for the
-            given step, the registration will not be re-run. Note that setting
+            given step, the registration will not be re-run. Ignored
+            if the step has no parameter file assigned (in which case
+            the step must have a pre-defined transform file).  Note that setting
             force=True will only force rerunning of the chosen step, not of
             any preceding steps needed for the input transform file. To enforce
             rerunning of multiple steps, call self.register(step, force=True)
@@ -569,10 +597,16 @@ class Registration(Data):
         # Check if the registration has already been performed
         if self.is_registered(step) and not force:
             return
-
-        # Check that previous step has been run if needed
+        
+        # Obtain step index and name.
         i = self.get_step_number(step)
         step = self.get_step_name(step)
+
+        # Check that step has pfile assigned (i.e. it can be run/rerun).
+        if not self.pfiles[step]:
+            return
+
+        # Check that previous step has been run if needed
         if use_previous_tfile and i > 0:
             if not self.is_registered(i - 1):
                 self.register(i, use_previous_tfile=True)
@@ -983,8 +1017,8 @@ class Registration(Data):
         if os.path.exists(self._tmp_dir):
             shutil.rmtree(self._tmp_dir)
 
-    def adjust_pfile(self, step, params, reset=True):
-        """Adjust parameters in an input parameter file for a given step. 
+    def adjust_file(self, step, params, ftype='p', reset=True):
+        """Adjust parameters in a parameter or transform file for a given step. 
 
         **Parameters:**
 
@@ -999,13 +1033,32 @@ class Registration(Data):
             Parameters in the existing file but not in <params> will remain
             unchanged.
 
+        ftype : str, default='p'
+            String indicating whether the file to be added is a parameter
+            file ('p') or a transform file ('t').
+
         reset : bool, default=True
-            If True, this will remove existing registration results.
+            If True, and the step can be rerun (that is, it has a
+            parameter file assigne), this will remove existing
+            registration transforms.
         """
+        # Check that file type is recognised.
+        if not ftype.lower() in self.file_types:
+            self.logger.warning(f"File ignored: '{file}'")
+            self.logger.warning(f"File type not recognised: '{ftype}'")
+            self.logger.warning(f"\nValid file types are: '{self.file_types}'")
+            return
+        ftype = ftype.lower()
 
         step = self.get_step_name(step)
-        adjust_parameters(self.pfiles[step], self.pfiles[step], params)
-        if reset and step in self.tfiles:
+
+        if "p" == ftype:
+            adjust_parameters(self.pfiles[step], self.pfiles[step], params)
+        elif "t" == ftype:
+            adjust_parameters(self.tfiles[step], self.tfiles[step], params)
+
+        if (reset and step in self.tfiles
+                and os.path.exists(self.pfiles[step])):
             del self.tfiles[step]
 
     def view_init(self, **kwargs):
@@ -1147,15 +1200,21 @@ class Registration(Data):
 
     def get_step_name(self, step):
         """Convert <step> to a string containing a step name. If <step> is
-        already a string, check it's a valid step and return it; otherwise
-        if <step> is an integer, return the corresponding step name."""
+        already a string, use this; otherwise if <step> is an integer,
+        obtain the corresponding step name.  Check that step has
+        a parameter file and/or a transform file assigned."""
 
         if isinstance(step, str):
-            if step not in self.steps:
+            if not step in self.steps:
                 raise RuntimeError(f"Step {step} not a valid registration step")
-            return step
+        else:
+            step = self.steps[step]
+
+        if not self.pfiles[step] and not self.tfiles[step]:
+            raise RuntimeError(f"Step {step} not a valid registration step"
+                    f"\nStep{step} has neither pfile nor tfile assigned")
         
-        return self.steps[step]
+        return step
 
     def get_step_number(self, step):
         """Convert <step> to an int containing the number of a given step.
@@ -1881,11 +1940,16 @@ def adjust_parameters(infile, outfile, params):
         Dictionary of parameter names and new values.
     """
 
+    # Check that file to be adjusted exists.
+    if not os.path.exists(infile):
+        self.logger.warning(f"File not found: '{infile}'")
+        self.logger.warning("\nNo parameter-adjustment performed")
+        return
+
     # Read input
     original_params = read_parameters(infile)
     original_params.update(params)
     write_parameters(outfile, original_params)
-
 
 def read_parameters(infile):
     """Get dictionary of parameters from an elastix parameter file."""

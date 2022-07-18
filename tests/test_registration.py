@@ -145,12 +145,12 @@ def test_load_overwrite():
     assert len(reg.pfiles) == 0
     assert len(reg.outdirs) == 0
 
-def test_add_pfiles():
+def test_add_files():
     """Test adding a registration step to an existing Registration object."""
 
     reg = Registration(reg_dir, im1, im2, overwrite=True)
     assert len(reg.steps) == 0
-    reg.add_pfile("pfiles/MI_Translation.txt")
+    reg.add_file("pfiles/MI_Translation.txt")
     assert len(reg.steps) == 1
     assert len(reg.pfiles) == 1
     assert len(reg.outdirs) == 1
