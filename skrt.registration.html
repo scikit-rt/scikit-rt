@@ -312,11 +312,11 @@ initialisation.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.registration.Registration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Load data for an image registration and run the registration if
 auto_seg=True.</p>
 <p><strong>Parameters:</strong></p>
@@ -364,10 +364,11 @@ steps.</p>
 <dt>overwrite<span class="classifier">bool, default=False</span></dt><dd><p>If True and &lt;path&gt; already contains files, these will be deleted,
 meaning that no prior registration results will be loaded.</p>
 </dd>
-<dt>tfiles: dict, default={}</dt><dd><p>Dictionary of pre-defined transforms, where a keys is a
+<dt>tfiles: dict, default=None</dt><dd><p>Dictionary of pre-defined transforms, where a key is a
 registration step and the associated value is the path to
-a pre-defined registration transform.  This parameter is
-considered only if pfiles is null.</p>
+a pre-defined registration transform.  Transformations
+are performed, in the order given in the dictionary,
+before any registration step is performed.</p>
 </dd>
 <dt>capture_output<span class="classifier">bool, default=False</span></dt><dd><p>If True, capture to stdout messages from performing
 registration and transformation.  This suppresses
@@ -398,10 +399,10 @@ the input parameter file will be modified.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Registration.add_pfile">
-<span class="sig-name descname"><span class="pre">add_pfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.add_pfile" title="Permalink to this definition"></a></dt>
-<dd><p>Add a single parameter file to the list of registration steps.
-This parameter file can optionally be modified by providing a dict
+<dt class="sig sig-object py" id="skrt.registration.Registration.add_file">
+<span class="sig-name descname"><span class="pre">add_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'p'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.add_file" title="Permalink to this definition"></a></dt>
+<dd><p>Add a single file of type &lt;ftype&gt; to the list of registration steps.
+This file can optionally be modified by providing a dict
 of parameter names and new values in &lt;params&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -416,20 +417,26 @@ be taken from the parameter file name.</p>
 <dt>params<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of parameter names and replacement values with which
 the input parameter file will be modified.</p>
 </dd>
+<dt>ftype<span class="classifier">str, default=’p’</span></dt><dd><p>String indicating whether the file to be added is a parameter
+file (‘p’) or a transform file (‘t’).</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Registration.add_pfiles">
-<span class="sig-name descname"><span class="pre">add_pfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pfiles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.add_pfiles" title="Permalink to this definition"></a></dt>
-<dd><p>Add multiple parameter files to the list of registration steps,
+<dt class="sig sig-object py" id="skrt.registration.Registration.add_files">
+<span class="sig-name descname"><span class="pre">add_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'p'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.add_files" title="Permalink to this definition"></a></dt>
+<dd><p>Add multiple files of type &lt;ftype&gt; to the list of registration steps,
 then write list of registration steps to a file.</p>
+<p>The valid values for &lt;ftype? are:
+- ‘p’: parameter file;
+- ‘t’: transform file.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Registration.adjust_pfile">
-<span class="sig-name descname"><span class="pre">adjust_pfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.adjust_pfile" title="Permalink to this definition"></a></dt>
-<dd><p>Adjust parameters in an input parameter file for a given step.</p>
+<dt class="sig sig-object py" id="skrt.registration.Registration.adjust_file">
+<span class="sig-name descname"><span class="pre">adjust_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'p'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.adjust_file" title="Permalink to this definition"></a></dt>
+<dd><p>Adjust parameters in a parameter or transform file for a given step.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>step<span class="classifier">str/int</span></dt><dd><p>Name or number of step for which the parameter file should be 
@@ -441,7 +448,12 @@ new values. Any parameters not in the existing file will be added.
 Parameters in the existing file but not in &lt;params&gt; will remain
 unchanged.</p>
 </dd>
-<dt>reset<span class="classifier">bool, default=True</span></dt><dd><p>If True, this will remove existing registration results.</p>
+<dt>ftype<span class="classifier">str, default=’p’</span></dt><dd><p>String indicating whether the file to be added is a parameter
+file (‘p’) or a transform file (‘t’).</p>
+</dd>
+<dt>reset<span class="classifier">bool, default=True</span></dt><dd><p>If True, and the step can be rerun (that is, it has a
+parameter file assigne), this will remove existing
+registration transforms.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -502,8 +514,9 @@ force=True).</p>
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_step_name">
 <span class="sig-name descname"><span class="pre">get_step_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_step_name" title="Permalink to this definition"></a></dt>
 <dd><p>Convert &lt;step&gt; to a string containing a step name. If &lt;step&gt; is
-already a string, check it’s a valid step and return it; otherwise
-if &lt;step&gt; is an integer, return the corresponding step name.</p>
+already a string, use this; otherwise if &lt;step&gt; is an integer,
+obtain the corresponding step name.  Check that step has
+a parameter file and/or a transform file assigned.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -590,8 +603,8 @@ inside self.path. Print a warning if not found.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Registration.load_pfiles">
-<span class="sig-name descname"><span class="pre">load_pfiles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.load_pfiles" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.registration.Registration.load_files">
+<span class="sig-name descname"><span class="pre">load_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.load_files" title="Permalink to this definition"></a></dt>
 <dd><p>Attempt to load registration steps from a registration step
 file.</p>
 </dd></dl>
@@ -658,7 +671,8 @@ step as an initial transform.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.register_step">
 <span class="sig-name descname"><span class="pre">register_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register_step" title="Permalink to this definition"></a></dt>
-<dd><p>Run a single registration step. Note that if use_previous_tfile=True,
+<dd><p>Run a single registration step, if it has a parameter file
+assigned. Note that if use_previous_tfile=True,
 any prior steps that have not yet been run will be run.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -666,7 +680,9 @@ any prior steps that have not yet been run will be run.</p>
 performed. Available steps are listed in self.steps.</p>
 </dd>
 <dt>force<span class="classifier">bool, default=None</span></dt><dd><p>If False and a registration has already been performed for the
-given step, the registration will not be re-run. Note that setting
+given step, the registration will not be re-run. Ignored
+if the step has no parameter file assigned (in which case
+the step must have a pre-defined transform file).  Note that setting
 force=True will only force rerunning of the chosen step, not of
 any preceding steps needed for the input transform file. To enforce
 rerunning of multiple steps, call self.register(step, force=True)
