@@ -406,10 +406,12 @@ This file can optionally be modified by providing a dict
 of parameter names and new values in &lt;params&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>pfile<span class="classifier">str/dict</span></dt><dd><p>Path to the elastix parameter file to copy into the registration
+<dt>file<span class="classifier">str/dict/tuple/list</span></dt><dd><p>Path to the elastix parameter file to copy into the registration
 directory. Can also be a dict containing parameters and values,
 which will be used to create a parameter file from scratch. In this
-case, the &lt;name&gt; argument must also be provided.</p>
+case, the &lt;name&gt; argument must also be provided.  For a transform
+file (&lt;ftype&gt; of ‘t’), can also be a three element tuple or list,
+specifying the x, y, z components of a translation.</p>
 </dd>
 <dt>name<span class="classifier">str, default=None</span></dt><dd><p>Name for this step of the registration. If None, a name will
 be taken from the parameter file name.</p>
@@ -463,6 +465,11 @@ registration transforms.</p>
 <span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.clear" title="Permalink to this definition"></a></dt>
 <dd><p>Remove all registration steps and their output directories.</p>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.define_translation">
+<span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.define_translation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.ensure_registered">
