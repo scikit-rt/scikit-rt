@@ -469,7 +469,13 @@ registration transforms.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.define_translation">
 <span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.define_translation" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Define Elastix translation parameters from 3-element tuple or list.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>dxdydz<span class="classifier">tuple/list</span></dt><dd><p>Three-element tuple or list, giving translation in order (x, y, z).</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.ensure_registered">
@@ -652,7 +658,7 @@ last step).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.register">
-<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_transformed_moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register" title="Permalink to this definition"></a></dt>
 <dd><p>Run a registration. By default the registration will be run for
 all steps in self.steps, but can optionally be run for just one step
 by setting &lt;step&gt; to a step name or number. Note that if
@@ -672,12 +678,16 @@ given step(s), the registration will not be re-run.</p>
 <dt>use_previous_tfile<span class="classifier">bool, default=True</span></dt><dd><p>If True, each step will use the transform file from the previous
 step as an initial transform.</p>
 </dd>
+<dt>ensure_transformed_moving<span class="classifier">bool, default=True</span></dt><dd><p>Ensure that a transformed moving image is created for each
+registration step.  This may mean forcing the image creation
+for a step with a pre-defined transform file.</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.register_step">
-<span class="sig-name descname"><span class="pre">register_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register_step" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">register_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_transformed_moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.register_step" title="Permalink to this definition"></a></dt>
 <dd><p>Run a single registration step, if it has a parameter file
 assigned. Note that if use_previous_tfile=True,
 any prior steps that have not yet been run will be run.</p>
@@ -699,6 +709,10 @@ where &lt;steps&gt; is a list of steps to run.</p>
 step as an initial transform, unless it is the first step. Note
 that this will cause any prior steps that have not yet been run
 to be run.</p>
+</dd>
+<dt>ensure_transformed_moving<span class="classifier">bool, default=True</span></dt><dd><p>Ensure that a transformed moving image is created for the
+registration step.  This may mean forcing the image creation
+for a step with a pre-defined transform file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -954,6 +968,17 @@ file.</p>
 <dt class="sig sig-object py" id="skrt.registration.get_default_pfiles_dir">
 <span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles_dir" title="Permalink to this definition"></a></dt>
 <dd><p>Get path to directory containing default parameter files.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.registration.get_image_transform_parameters">
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_image_transform_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_image_transform_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Define Elastix parameters for warping an image to the space of image &lt;im&gt;.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>im<span class="classifier">skrt.image.Image</span></dt><dd><p>Image object representing a fixed image in the context of registration.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
