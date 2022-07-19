@@ -228,6 +228,14 @@ class Registration(Data):
             self.set_image(path, category, force=False)
 
     def define_translation(self, dxdydz):
+        """
+        Define Elastix translation parameters from 3-element tuple or list.
+
+        **Parameter:**
+
+        dxdydz : tuple/list
+            Three-element tuple or list, giving translation in order (x, y, z).
+        """
         # Define translation parameters that are enough to allow
         # application before a registration step.
         translation = {
@@ -239,37 +247,11 @@ class Registration(Data):
                 "HowToCombineTransforms": "Compose"
                 }
 
-        if not self.fixed:
-            return translation
+        if hasattr(self, "fixed_image"):
+            # Add parameters needed to allow warping of the moving image.
+            translation.update(get_image_transform_parameters(self.fixed_image))
 
-        '''
-        # Define translation parameters needed to allow warping
-        # of the moving image.
-        affine = self.fixed.get_standardised_affine()
-
-        // Image specific
-        FixedImageDimension 3
-        MovingImageDimension 3
-        FixedInternalImagePixelType "float"
-        MovingInternalImagePixelType "float"
-        Size 512 512 67
-        Index 0 0 0
-        Spacing 1.3669999838 1.3669999838 5.0000000000
-        Origin -350.0000000000 348.5369873047 -155.0000000000
-        Direction 1.0000000000 0.0000000000 0.0000000000 0.0000000000 -1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000
-        UseDirectionCosines "true")
-
-        // ResampleInterpolator specific
-        ResampleInterpolator "FinalBSplineInterpolator"
-        FinalBSplineInterpolationOrder 3
-
-        // Resampler specific
-       Resampler "DefaultResampler"
-       DefaultPixelValue 0.000000
-       ResultImageFormat "nii"
-       ResultImagePixelType "short"
-       CompressResultImage "false"
-        '''
+        return translation
 
     def add_file(self, file, name=None, params=None, ftype="p"):
         """Add a single file of type <ftype> to the list of registration steps.
@@ -587,7 +569,8 @@ class Registration(Data):
 
         return cmd
 
-    def register(self, step=None, force=False, use_previous_tfile=True):
+    def register(self, step=None, force=False, use_previous_tfile=True,
+            ensure_transformed_moving=True):
         """Run a registration. By default the registration will be run for
         all steps in self.steps, but can optionally be run for just one step
         by setting <step> to a step name or number. Note that if
@@ -610,6 +593,11 @@ class Registration(Data):
         use_previous_tfile : bool, default=True
             If True, each step will use the transform file from the previous
             step as an initial transform.
+
+        ensure_transformed_moving : bool, default=True
+            Ensure that a transformed moving image is created for each
+            registration step.  This may mean forcing the image creation
+            for a step with a pre-defined transform file.
         """
 
         # Make list of steps to run
@@ -627,9 +615,12 @@ class Registration(Data):
 
         # Run registration for each step
         for step in steps:
-            self.register_step(step, force=force, use_previous_tfile=True)
+            self.register_step(step, force=force,
+                    use_previous_tfile=use_previous_tfile,
+                    ensure_transformed_moving=ensure_transformed_moving)
 
-    def register_step(self, step, force=False, use_previous_tfile=True):
+    def register_step(self, step, force=False, use_previous_tfile=True,
+            ensure_transformed_moving=True):
         """Run a single registration step, if it has a parameter file
         assigned. Note that if use_previous_tfile=True,
         any prior steps that have not yet been run will be run.
@@ -655,11 +646,18 @@ class Registration(Data):
             step as an initial transform, unless it is the first step. Note
             that this will cause any prior steps that have not yet been run
             to be run.
+
+        ensure_transformed_moving : bool, default=True
+            Ensure that a transformed moving image is created for the
+            registration step.  This may mean forcing the image creation
+            for a step with a pre-defined transform file.
         """
         global _ELASTIX
 
         # Check if the registration has already been performed
         if self.is_registered(step) and not force:
+            if ensure_transformed_moving:
+                self.transform_moving_image(step)
             return
         
         # Obtain step index and name.
@@ -673,7 +671,7 @@ class Registration(Data):
         # Check that previous step has been run if needed
         if use_previous_tfile and i > 0:
             if not self.is_registered(i - 1):
-                self.register(i, use_previous_tfile=True)
+                self.register(i - 1, use_previous_tfile=True)
 
         # Run
         cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
@@ -1122,7 +1120,7 @@ class Registration(Data):
             adjust_parameters(self.tfiles[step], self.tfiles[step], params)
 
         if (reset and step in self.tfiles
-                and os.path.exists(self.pfiles[step])):
+                and os.path.exists(self.pfiles.get(step, ""))):
             del self.tfiles[step]
 
     def view_init(self, **kwargs):
@@ -2019,7 +2017,8 @@ def read_parameters(infile):
     """Get dictionary of parameters from an elastix parameter file."""
 
     lines = [line for line in open(infile).readlines() if line.startswith("(")]
-    lines = [line[line.find("(") + 1 : line.find(")")].split() for line in lines]
+    lines = [line[line.find("(") + 1 : line.rfind(")")].split()
+            for line in lines]
     params = {line[0]: " ".join(line[1:]) for line in lines}
     for name, param in params.items():
         if '"' in param:
@@ -2029,7 +2028,7 @@ def read_parameters(infile):
             elif params[name] == "true":
                 params[name] = True
         elif len(param.split()) > 1:
-            params[name] = [p for p in param.split()]
+            params[name] = [p for p in param.rstrip("(").split()]
             if "." in params[name][0]:
                 params[name] = [float(p) for p in params[name]]
             else:
@@ -2053,7 +2052,7 @@ def write_parameters(outfile, params):
             line = f"({name}"
             if isinstance(param, str):
                 line += f' "{param}")'
-            elif isinstance(param, list):
+            elif isinstance(param, (list, tuple)):
                 for item in param:
                     line += " " + str(item)
                 line += ")"
@@ -2216,3 +2215,48 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
             segmentdata=cdict)
 
     return cmap
+
+def get_image_transform_parameters(im):
+    """
+    Define Elastix parameters for warping an image to the space of image <im>.
+
+    **Parameter:**
+    
+    im : skrt.image.Image
+        Image object representing a fixed image in the context of registration.
+    """
+    # Use affine matrix for defining origin and direction cosines.
+    # Seem to need to reverse sign of first two rows for agreement with
+    # convention used in Elastix - may not work for arbitrary image orientation.
+    affine = im.get_affine()
+    affine[0:2, :] = -affine[0:2, :]
+    
+    # Spacings need to be positive.
+    # Signs taken into account via direction cosines. 
+    voxel_size = [abs(dxyz) for dxyz in im.get_voxel_size()]
+
+    image_transform_parameters = {
+            "//": "Image specific",
+            "FixedImageDimension": 3,
+            "MovingImageDimension": 3,
+            "FixedInternalImagePixelType": "float",
+            "MovingInternalImagePixelType": "float",
+            "Size": im.get_n_voxels(),
+            "Index": (0, 0, 0),
+            "Spacing": voxel_size,
+            "Origin": [0 + affine[row, 3] for row in range(3)],
+            "Direction": [0 + affine[row, col] / voxel_size[col]
+                for col in range(3) for row in range(3)],
+            "UseDirectionCosines": True,
+            "//": "ResampleInterpolator specific",
+            "ResampleInterpolator": "FinalBSplineInterpolator",
+            "FinalBSplineInterpolationOrder": 3,
+            "//": "Resampler specific",
+            "Resampler": "DefaultResampler",
+            "DefaultPixelValue": 0,
+            "ResultImageFormat": "nii",
+            "ResultImagePixelType": "short",
+            "CompressResultImage": False,
+            }
+
+    return image_transform_parameters

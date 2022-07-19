@@ -8,7 +8,7 @@ import subprocess
 
 from skrt import Image
 from skrt.simulation import SyntheticImage
-from skrt.registration import Registration
+from skrt.registration import Registration, read_parameters
 
 from test_structs import compare_rois
 
@@ -388,3 +388,31 @@ def test_add_default_pfile():
     pars = reg.get_input_parameters(-1)
     assert pars["MaximumNumberOfIterations"] == 300
     assert pars["Transform"] == "BSplineTransform"
+
+def test_translation_tfile():
+    """Test creation of translation tfile from 3-element list."""
+
+    translation = [5, 10, -5]
+    reg = Registration("tmp/reg2", tfiles={"translation": translation})
+    assert  len(reg.tfiles) == 1
+    assert Path(reg.tfiles["translation"]).exists()
+    parameters = read_parameters(reg.tfiles["translation"])
+    assert parameters["TransformParameters"] == translation
+
+def test_translation_tfile_with_image():
+    """Test creation of translation tfile, with fixed image defined."""
+
+    translation = [5, 10, -5]
+    reg = Registration("tmp/reg2", fixed=im1,
+            tfiles={"translation": translation})
+    affine = im1.get_standardised_affine()
+    voxel_size = [abs(dxyz) for dxyz in im1.get_voxel_size()]
+    directions = [0 + affine[row, col] / voxel_size[col]
+                for col in range(3) for row in range(3)]
+    assert  len(reg.tfiles) == 1
+    assert Path(reg.tfiles["translation"]).exists()
+    parameters = read_parameters(reg.tfiles["translation"])
+    assert parameters["TransformParameters"] == translation
+    assert parameters["Size"] == im1.get_n_voxels()
+    assert parameters["Spacing"] == voxel_size
+    assert parameters["Direction"] == directions
