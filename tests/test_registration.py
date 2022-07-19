@@ -405,7 +405,8 @@ def test_translation_tfile_with_image():
     translation = [5, 10, -5]
     reg = Registration("tmp/reg2", fixed=im1,
             tfiles={"translation": translation})
-    affine = im1.get_standardised_affine()
+    affine = im1.astype("nii").get_affine()
+    affine[0:2, :] = -affine[0:2, :]
     voxel_size = [abs(dxyz) for dxyz in im1.get_voxel_size()]
     directions = [0 + affine[row, col] / voxel_size[col]
                 for col in range(3) for row in range(3)]
