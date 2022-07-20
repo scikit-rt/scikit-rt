@@ -14,7 +14,7 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import File, fullpath
-from skrt.image import Image
+from skrt.image import Image, get_mask_bbox
 from skrt.simulation import SyntheticImage
 
 try:
@@ -749,6 +749,26 @@ def test_create_foreground_mask():
         assert mask1.max() == mask2.max()
         assert mask1.sum() == mask2.sum()
     assert np.all(mask1 == mask2)
+
+@needs_mahotas
+def test_mask_bbox():
+    """Test calculation of mask bounding box."""
+
+    # Create synthetic image featuring a sphere.
+    sim = SyntheticImage((100, 100, 40))
+    centre = (80, 20, 12)
+    radius = 10
+    sim.add_sphere(radius=radius, name="sphere", centre=centre, intensity=50)
+
+    # Create foreground mask, and obtain it's bounding box.
+    mask = sim.get_foreground_mask(threshold=45)
+    bbox = get_mask_bbox(mask)
+
+    # Test that the bounding box is consistent with the sphere dimensions,
+    # allowing tolreance of +/-1.
+    for idx1 in range(3):
+        for idx2 in range(2):
+            assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
 
 def test_same_geometry():
     # Test identification of geometry differences

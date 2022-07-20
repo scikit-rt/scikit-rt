@@ -4523,7 +4523,7 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
     if not _has_mahotas:
         print('WARNING: Module mahotas unavailable')
         print('WARNING: Unable to execute function '\
-                + 'skrt.image.Image.get_box_mas_from_mask()')
+                + 'skrt.image.Image.get_box_mask_from_mask()')
 
     # Retrieve image data and numbers of voxels.
     mask_array = in_image.get_data()
@@ -4759,3 +4759,30 @@ def sum_images(images=None):
         image_sum += image
 
     return image_sum
+
+def get_mask_bbox(mask):
+    """
+    Obtain bounding box of labelled area of label mask.
+
+    The bounding box is returned as [(xmin, xmax), (ymin, ymax), (zmin, zmax)],
+    with values in mm.
+
+    **Parameter:**
+
+    mask : skrt.image.Image
+        Image object representing label mask for which bounding box is
+        to be obtained.
+    """
+    if not _has_mahotas:
+        print('WARNING: Module mahotas unavailable')
+        print('WARNING: Unable to execute function '\
+                + 'skrt.image.get_mask_bbox()')
+
+    jmin, jmax, imin, imax, kmin, kmax = mahotas.bbox(mask.get_data())
+    bbox = []
+    for axis, idxs in enumerate([(imin, imax), (jmin, jmax), (kmin, kmax)]):
+        bbox.append(tuple(sorted(
+            [mask.idx_to_pos(idxs[0], axis), mask.idx_to_pos(idxs[1], axis)]
+            )))
+
+    return bbox
