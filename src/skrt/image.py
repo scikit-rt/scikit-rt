@@ -4786,3 +4786,97 @@ def get_mask_bbox(mask):
             )))
 
     return bbox
+
+def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
+        foreground_threshold=None):
+    """
+    Determine translation for aligning <im1> to <im2>.
+
+    **Parameters:**
+
+    im1 : skrt.image.Image
+        Image that is to be translated to achieve the alignment.
+
+    im2 : skrt.image.Image
+        Image with which alignment is to be performed.
+
+    alignments : dict, default=None
+        Dictionary indicating how alignment is to be performed along each
+        axis, where keys are axis identifiers ('x', 'y', 'z'), and values
+        are the types of alignment.  The valid alignment values are:
+        - 1: align on lowest coordinates (right, posterior, inferior);
+        - 2: align on centre coodinates;
+        - 3: align on highest coordinates (left, anterior, superior).
+        If an axis isn't included in the dictionary, or is included with
+        an invalid alignment type, the value of <default_alignment> is
+        used for this axis.
+
+    default_alignment : int, default=2
+        Type of alignment to be applied along any axis not included in
+        the <alignments> dictionary.
+
+    foreground_threshold : int/float, default=None
+        If None, alignment is with respect to the whole images.  If an
+        integer or float, alignment is with respect to the masks
+        returned for the images by skrt.image.Image.get_foreground_mask(),
+        using foreground_threshold as the threshold parameter for
+        mask creation.
+    """
+    # Create message logger for this function.
+    logger = get_logger(identifier="funcName")
+
+    # Initialise dictionaries of alignments.
+    alignments = alignments or {}
+    checked_alignments = {}
+
+    # Ensure that the default_alignment is valid.
+    valid_alignments = [1, 2, 3]
+    fallback_alignment = 2
+    if default_aligment not in valid_alignments:
+        logger.warning(f"Invalid default_alignment: {default_alignment}")
+        logger.warning(f"Valid alignment values are: {valid_alignments}")
+        logger.warning(f"Setting default_alignment={fallback_alignment}")
+        default_alignment = fallback_alignment
+
+    # Check alignment values, and store the ones that are valid.
+    for axis, alignment in sorted(alignments.items()):
+        if isinstance(axis, str) and axis.lower() in _axes:
+            if isinstance(alignment, int) and isinstance in [1, 2, 3]:
+                checked_alignments[axis.lower()] = alignment
+            else:
+                logger.warning(f"Axis {axis}, disregarding invalid "
+                        f"alignment value: {alignment}")
+                logger.info("Valid alignment values are: 1, 2, 3")
+        else:
+            logger.warning(f"Disregarding invalid axis label: {axis}")
+            logger.info(f"Valid axis labels are: {_axes}")
+    
+    # Determine image bounding boxes.
+    xyz_lims = {}
+    for image in [im1, im2]:
+        if foreground_threshold is not None:
+            # Obtain bounding box for foreground mask.
+            yxz_lims[image] = get_mask_bbox(
+                    image.get_foreground_mask(foreground_threshold))
+        else:
+            # Obtain bounding box for whole image.
+            yxz_lims[image] = image.get_extents()
+
+    # Determine translation along each axis, for type of alignment specified.
+    translation = []
+    for idx, axis in enumerate(axes):
+        alignment = checked_alignments.get(axis, default_alignment)
+
+        # Lower alignment.
+        if 1 == alignment:
+            dxyz = xyz_lims[im2][idx][0] - xyz_lims[im1][idx][0]
+        # Centre alignment.
+        elif 2 == alignment:
+            dxyz = 0.5 * (sum(xyz_lims[im2][idx]) - sum(xyz_lims[im1][idx]))
+        # Upper alignment.
+        elif 3 == alignment:
+            dxyz = xyz_lims[im2][idx][1] - xyz_lims[im1][idx][1]
+
+        translation.append(dxyz)
+
+    return tuple(translation)
