@@ -2072,6 +2072,20 @@ this image.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_mask_bbox">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_mask_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_mask_bbox" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain bounding box of labelled area of label mask.</p>
+<p>The bounding box is returned as [(xmin, xmax), (ymin, ymax), (zmin, zmax)],
+with values in mm.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>mask<span class="classifier">skrt.image.Image</span></dt><dd><p>Image object representing label mask for which bounding box is
+to be obtained.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.kv_to_mv">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">kv_to_mv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.kv_to_mv" title="Permalink to this definition"></a></dt>
 <dd><p>Map radiodensity in Hounsfield units from kV CT scan to MV CT scan.</p>
