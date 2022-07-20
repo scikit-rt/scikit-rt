@@ -2086,6 +2086,38 @@ to be obtained.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_translation_to_align">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foreground_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_translation_to_align" title="Permalink to this definition"></a></dt>
+<dd><p>Determine translation for aligning &lt;im1&gt; to &lt;im2&gt;.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>im1<span class="classifier">skrt.image.Image</span></dt><dd><p>Image that is to be translated to achieve the alignment.</p>
+</dd>
+<dt>im2<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with which alignment is to be performed.</p>
+</dd>
+<dt>alignments<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary indicating how alignment is to be performed along each
+axis, where keys are axis identifiers (‘x’, ‘y’, ‘z’), and values
+are the types of alignment.  The valid alignment values are:
+- 1: align on lowest coordinates (right, posterior, inferior);
+- 2: align on centre coodinates;
+- 3: align on highest coordinates (left, anterior, superior).
+If an axis isn’t included in the dictionary, or is included with
+an invalid alignment type, the value of &lt;default_alignment&gt; is
+used for this axis.</p>
+</dd>
+<dt>default_alignment<span class="classifier">int, default=2</span></dt><dd><p>Type of alignment to be applied along any axis not included in
+the &lt;alignments&gt; dictionary.</p>
+</dd>
+<dt>foreground_threshold<span class="classifier">int/float, default=None</span></dt><dd><p>If None, alignment is with respect to the whole images.  If an
+integer or float, alignment is with respect to the masks
+returned for the images by skrt.image.Image.get_foreground_mask(),
+using foreground_threshold as the threshold parameter for
+mask creation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.kv_to_mv">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">kv_to_mv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.kv_to_mv" title="Permalink to this definition"></a></dt>
 <dd><p>Map radiodensity in Hounsfield units from kV CT scan to MV CT scan.</p>
