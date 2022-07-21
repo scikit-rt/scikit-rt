@@ -23,7 +23,8 @@ class Registration(Data):
     def __init__(
         self, path, fixed=None, moving=None, fixed_mask=None,
         moving_mask=None, pfiles=None, auto=False, overwrite=False,
-        tfiles=None, capture_output=False, log_level=None):
+        tfiles=None, initial_alignment=None, initial_transform_name=None,
+        capture_output=False, log_level=None):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -60,7 +61,6 @@ class Registration(Data):
             None and an image file 'moving_mask.nii.gz' exists at <path>
             then this will be used.  Setting a mask is optional.
 
-
         pfiles : str/list/dict, default=None
             Path(s) to elastix parameter file(s) to be used in each step of the
             registration. If a list of more than one path, the parameter files
@@ -81,12 +81,31 @@ class Registration(Data):
             If True and <path> already contains files, these will be deleted,
             meaning that no prior registration results will be loaded.
 
-        tfiles: dict, default=None
+        tfiles : dict, default=None
             Dictionary of pre-defined transforms, where a key is a
             registration step and the associated value is the path to
             a pre-defined registration transform.  Transformations
             are performed, in the order given in the dictionary,
             before any registration step is performed.
+
+        initial_alignment : dict/str, default=None
+            Alignment to be performed before any registration steps
+            are run.  This can be a dictionary specifying parameters
+            and values to be passed to skrt.image.get_translation_to_align(),
+            which defines a translation for aligning fixed and moving image.
+            It can also be one of the strings "top", "centre", "bottom",
+            in which case skrt.image.get_translation_to align() is called
+            to define a translationg wuch that fixed and moving image have
+            their (x, y) centres aligned, and have z positions aligned at
+            image top, centre or bottom.  The result of the initial
+            alignment is stored as the first entry of <self.tfiles",
+            with key "initial_alignment".  If <initial_alignment> is set
+            to None, no initial alignment is performed.
+
+        initial_transform_name : str, default=None
+            Name to be used in registration steps for transform corresponding
+            to <initial_alignment>.  If None, the name 'initial_alignment'
+            is used.
 
         capture_output : bool, default=False
             If True, capture to stdout messages from performing
@@ -131,6 +150,14 @@ class Registration(Data):
                 self.set_moving_mask(moving_mask)
         if fixed is None and moving is None:
             self.load_existing_input_images()
+
+        # Set initial transform corresponding to initial alignment.
+        initial_translation = self.get_initial_translation(initial_alignment)
+        if initial_translation:
+            initial_transform_name = (initial_transform_name
+                    or "initial_alignment")
+            tfiles = tfiles or {}
+            tfiles = {initial_transform_name: initial_translation, **tfiles}
 
         # Set up registration steps
         self.steps = []
@@ -226,6 +253,55 @@ class Registration(Data):
                 )
                 return
             self.set_image(path, category, force=False)
+
+    def get_initial_translation(self, initial_alignment=None):
+        """
+        Obtain translation corresponding to intial alignemnt.
+
+        initial_alignment : dict/str, default=None
+            Alignment to be performed before any registration steps
+            are run.  This can be a dictionary specifying parameters
+            and values to be passed to skrt.image.get_translation_to_align(),
+            which defines a translation for aligning fixed and moving image.
+            It can also be one of the strings "top", "centre", "bottom",
+            in which case skrt.image.get_translation_to align() is called
+            to define a translationg wuch that fixed and moving image have
+            their (x, y) centres aligned, and have z positions aligned at
+            image top, centre or bottom.  The result of the initial
+            alignment is stored as the first entry of <self.tfiles",
+            with key "initial_alignment".  If <initial_alignment> is set
+            to None, no initial alignment is performed.
+        """
+        if not (initial_alignment and self.fixed_image and self.moving_image):
+            return
+
+        # If needed, create alignment dictionary based on string.
+        valid_alignments = ["bottom", "centre", "top"]
+        if initial_alignment in valid_alignments:
+            initial_alignment = {"alignments": {"x": 2, "y": 2, "z":
+                    1 + valid_alignments.index(initial_alignment)}}
+
+        # Try to determine translation for initial alignment.
+        if isinstance(initial_alignment, dict):
+            # Need to use standardised versions of fixed and moving image.
+            initial_translation = skrt.image.get_translation_to_align(
+                  skrt.image.Image(
+                       self.fixed_image.get_standardised_data(),
+                       affine=self.fixed_image.get_standardised_affine()),
+                   skrt.image.Image(
+                       self.moving_image.get_standardised_data(),
+                       affine=self.moving_image.get_standardised_affine()),
+                        **initial_alignment)
+        else:
+            initial_translation = None
+            logger.warning(
+                    f"Invalid initial_alignment: {initial_alignment}")
+            logger.warning("Value for initial alignment should be "
+                    "a dictionary to be passed to "
+                    "skrt.image.get_translation_to_align()")
+            logger.warning(f"or one of the strings: {valid_alignments}")
+
+        return initial_translation
 
     def define_translation(self, dxdydz):
         """
