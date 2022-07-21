@@ -4788,7 +4788,7 @@ def get_mask_bbox(mask):
     return bbox
 
 def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
-        foreground_threshold=None):
+        threshold=None):
     """
     Determine translation for aligning <im1> to <im2>.
 
@@ -4815,12 +4815,11 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
         Type of alignment to be applied along any axis not included in
         the <alignments> dictionary.
 
-    foreground_threshold : int/float, default=None
+    threshold : int/float, default=None
         If None, alignment is with respect to the whole images.  If an
         integer or float, alignment is with respect to the masks
         returned for the images by skrt.image.Image.get_foreground_mask(),
-        using foreground_threshold as the threshold parameter for
-        mask creation.
+        using value specified as the threshold parameter for mask creation.
     """
     # Create message logger for this function.
     logger = skrt.core.get_logger(identifier="funcName")
@@ -4854,10 +4853,10 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
     # Determine image bounding boxes.
     xyz_lims = {}
     for image in [im1, im2]:
-        if foreground_threshold is not None:
+        if threshold is not None:
             # Obtain bounding box for foreground mask.
             xyz_lims[image] = get_mask_bbox(
-                    image.get_foreground_mask(foreground_threshold))
+                    image.get_foreground_mask(threshold))
         else:
             # Obtain bounding box for whole image.
             xyz_lims[image] = image.get_extents()
