@@ -2087,7 +2087,7 @@ to be obtained.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.get_translation_to_align">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foreground_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_translation_to_align" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_translation_to_align" title="Permalink to this definition"></a></dt>
 <dd><p>Determine translation for aligning &lt;im1&gt; to &lt;im2&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -2108,11 +2108,10 @@ used for this axis.</p>
 <dt>default_alignment<span class="classifier">int, default=2</span></dt><dd><p>Type of alignment to be applied along any axis not included in
 the &lt;alignments&gt; dictionary.</p>
 </dd>
-<dt>foreground_threshold<span class="classifier">int/float, default=None</span></dt><dd><p>If None, alignment is with respect to the whole images.  If an
+<dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>If None, alignment is with respect to the whole images.  If an
 integer or float, alignment is with respect to the masks
 returned for the images by skrt.image.Image.get_foreground_mask(),
-using foreground_threshold as the threshold parameter for
-mask creation.</p>
+using value specified as the threshold parameter for mask creation.</p>
 </dd>
 </dl>
 </dd></dl>
