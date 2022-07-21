@@ -935,7 +935,7 @@ def fullpath(path=""):
         expanded = os.path.realpath(tmp)
     return expanded
 
-def get_logger(name="", log_level=None):
+def get_logger(name="", log_level=None, identifier="name"):
     """
     Retrieve named event logger.
 
@@ -947,13 +947,20 @@ def get_logger(name="", log_level=None):
     log_level: string/integer/None, default=None
         Severity level for event logging.  If the value is None,
         log_level is set to the value of Defaults().log_level.
+
+    identifier: str, default="name"
+        Attribute to use to identify logger messages.  Possibilities
+        include "name", "filename", "funcName".  For a list of available
+        attributes, not all of which make sense as identifiers, see:
+        https://docs.python.org/3/library/logging.html#logrecord-attributes
     """
-    formatter = Formatter("%(name)s - %(levelname)s - %(message)s")
+    formatter = Formatter(f"%({identifier})s - %(levelname)s - %(message)s")
     handler = StreamHandler()
     handler.setFormatter(formatter)
     logger = getLogger(name)
     if not logger.handlers:
         logger.addHandler(handler)
+    log_level = log_level or Defaults().log_level
     logger.setLevel(log_level)
     return logger
 
