@@ -14,7 +14,7 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import File, fullpath
-from skrt.image import Image, get_mask_bbox
+from skrt.image import Image, get_mask_bbox, get_translation_to_align
 from skrt.simulation import SyntheticImage
 
 try:
@@ -769,6 +769,62 @@ def test_mask_bbox():
     for idx1 in range(3):
         for idx2 in range(2):
             assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
+
+@needs_mahotas
+def test_translation_to_align():
+    """Test calculation of translation to align pair of images."""
+
+    # Create synthetic images featuring a sphere.
+    shapes = [(100, 100, 40), (80, 80, 50)]
+    origins = [(-50, 40, -20), (0, -10, 30)]
+    centres = [(30, 80, 0), (60, 40, 50)]
+    radii = (10, 15)
+    intensity=50
+    sims = []
+    for idx in range(len(shapes)):
+        sims.append(SyntheticImage(shapes[idx], origin=origins[idx]))
+        sims[idx].add_sphere(radius=radii[idx], name="sphere",
+                centre=centres[idx], intensity=intensity)
+
+    # Define expected translations for whole-image alignment:
+    # (1) upper coordinates; (2) centre coordinates; (3) lower coordinates.
+    translations = {
+            1 : tuple([origins[1][idx] - origins[0][idx] for idx in range(3)]),
+            2 : tuple([origins[1][idx] + 0.5 * shapes[1][idx]
+                - origins[0][idx] - 0.5 * shapes[0][idx] for idx in range(3)]),
+            3 : tuple([origins[1][idx] + shapes[1][idx]
+                - origins[0][idx] - shapes[0][idx] for idx in range(3)]),
+            }
+
+    # Check translations for whole-image alignment.
+    for alignment, translation in translations.items():
+        # Perform alignment based on default alignment type.
+        assert translation == get_translation_to_align(
+                sims[0], sims[1], None, alignment, None)
+        # Perform alignment based on dictionary of alignment types.
+        alignments = {axis: alignment for axis in ("x", "y", "z")}
+        assert translation == get_translation_to_align(
+                sims[0], sims[1], alignments, None, None)
+
+    # Define expected translations for foreground alignment:
+    # (1) upper coordinates; (2) centre coordinates; (3) lower coordinates.
+    translations = {
+            1 : tuple([centres[1][idx] - radii[1] - centres[0][idx] + radii[0]
+                for idx in range(3)]),
+            2 : tuple([centres[1][idx] - centres[0][idx] for idx in range(3)]),
+            3 : tuple([centres[1][idx] + radii[1] - centres[0][idx] - radii[0]
+                for idx in range(3)]),
+            }
+
+    # Check translations for foreground alignment.
+    for alignment, translation in translations.items():
+        # Perform alignment based on default alignment type.
+        assert translation == get_translation_to_align(
+                sims[0], sims[1], None, alignment, intensity - 5)
+        alignments = {axis: alignment for axis in ("x", "y", "z")}
+        # Perform alignment based on dictionary of alignment types.
+        assert translation == get_translation_to_align(
+                sims[0], sims[1], alignments, None, intensity - 5)
 
 def test_same_geometry():
     # Test identification of geometry differences

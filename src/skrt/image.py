@@ -4823,7 +4823,7 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
         mask creation.
     """
     # Create message logger for this function.
-    logger = get_logger(identifier="funcName")
+    logger = skrt.core.get_logger(identifier="funcName")
 
     # Initialise dictionaries of alignments.
     alignments = alignments or {}
@@ -4832,7 +4832,7 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
     # Ensure that the default_alignment is valid.
     valid_alignments = [1, 2, 3]
     fallback_alignment = 2
-    if default_aligment not in valid_alignments:
+    if default_alignment not in valid_alignments:
         logger.warning(f"Invalid default_alignment: {default_alignment}")
         logger.warning(f"Valid alignment values are: {valid_alignments}")
         logger.warning(f"Setting default_alignment={fallback_alignment}")
@@ -4841,30 +4841,30 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
     # Check alignment values, and store the ones that are valid.
     for axis, alignment in sorted(alignments.items()):
         if isinstance(axis, str) and axis.lower() in _axes:
-            if isinstance(alignment, int) and isinstance in [1, 2, 3]:
+            if isinstance(alignment, int) and alignment in [1, 2, 3]:
                 checked_alignments[axis.lower()] = alignment
             else:
                 logger.warning(f"Axis {axis}, disregarding invalid "
                         f"alignment value: {alignment}")
-                logger.info("Valid alignment values are: 1, 2, 3")
+                logger.warning("Valid alignment values are: 1, 2, 3")
         else:
             logger.warning(f"Disregarding invalid axis label: {axis}")
-            logger.info(f"Valid axis labels are: {_axes}")
+            logger.warning(f"Valid axis labels are: {_axes}")
     
     # Determine image bounding boxes.
     xyz_lims = {}
     for image in [im1, im2]:
         if foreground_threshold is not None:
             # Obtain bounding box for foreground mask.
-            yxz_lims[image] = get_mask_bbox(
+            xyz_lims[image] = get_mask_bbox(
                     image.get_foreground_mask(foreground_threshold))
         else:
             # Obtain bounding box for whole image.
-            yxz_lims[image] = image.get_extents()
+            xyz_lims[image] = image.get_extents()
 
     # Determine translation along each axis, for type of alignment specified.
     translation = []
-    for idx, axis in enumerate(axes):
+    for idx, axis in enumerate(_axes):
         alignment = checked_alignments.get(axis, default_alignment)
 
         # Lower alignment.
