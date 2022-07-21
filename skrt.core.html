@@ -589,7 +589,7 @@ dictionary keys.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_logger">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_logger" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_logger" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve named event logger.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -597,6 +597,11 @@ dictionary keys.</p>
 </dd>
 <dt>log_level: string/integer/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
 log_level is set to the value of Defaults().log_level.</p>
+</dd>
+<dt>identifier: str, default=”name”</dt><dd><p>Attribute to use to identify logger messages.  Possibilities
+include “name”, “filename”, “funcName”.  For a list of available
+attributes, not all of which make sense as identifiers, see:
+<a class="reference external" href="https://docs.python.org/3/library/logging.html#logrecord-attributes">https://docs.python.org/3/library/logging.html#logrecord-attributes</a></p>
 </dd>
 </dl>
 </dd></dl>
