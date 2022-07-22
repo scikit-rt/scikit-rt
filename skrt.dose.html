@@ -601,6 +601,35 @@ idx_dose is ignored.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.dose.remove_duplicate_doses">
+<span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">remove_duplicate_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.remove_duplicate_doses" title="Permalink to this definition"></a></dt>
+<dd><p>Remove duplicates from a list of dose objects.</p>
+<p>Dose instance dose1 is taken to be a duplicate of dose2 if
+dose1.has_same_data(dose2) is True.</p>
+<p><strong>Parameter:</strong>
+doses: list, default=None</p>
+<blockquote>
+<div><p>List of dose objects, from which duplicates are to be removed.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.dose.sum_doses">
+<span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">sum_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.sum_doses" title="Permalink to this definition"></a></dt>
+<dd><p>Sum doses of the same geometry.</p>
+<p>If not all doses have the same same geometry (shape, origin,
+voxel size), None is returned.  Otherwise, a Dose object is
+returned that has the same geometry as the input doses, and
+where array values are the sums of the array values of
+the input doses.</p>
+<p><strong>Parameter:</strong>
+doses: list, default=None</p>
+<blockquote>
+<div><p>List of Dose objects to be summed.</p>
+</div></blockquote>
+</dd></dl>
+
 </section>
 
 
