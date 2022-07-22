@@ -788,3 +788,31 @@ class Constraint(Data):
 
         super().__init__(opts, **kwargs)
 
+def remove_duplicate_doses(doses=None):
+    '''
+    Remove duplicates from a list of dose objects.
+
+    Dose instance dose1 is taken to be a duplicate of dose2 if
+    dose1.has_same_data(dose2) is True.
+
+    **Parameter:**
+    doses: list, default=None
+        List of dose objects, from which duplicates are to be removed.
+    '''
+    return skrt.images.remove_duplicate_images(doses)
+
+def sum_doses(doses=None):
+    '''
+    Sum doses of the same geometry.
+
+    If not all doses have the same same geometry (shape, origin,
+    voxel size), None is returned.  Otherwise, a Dose object is
+    returned that has the same geometry as the input doses, and
+    where array values are the sums of the array values of
+    the input doses.
+
+    **Parameter:**
+    doses: list, default=None
+        List of Dose objects to be summed.
+    '''
+    return skrt.image.sum_images(doses)
