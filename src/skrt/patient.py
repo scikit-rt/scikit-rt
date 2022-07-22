@@ -12,7 +12,7 @@ import pandas as pd
 import skrt.core
 from skrt.image import Image
 from skrt.structures import StructureSet
-from skrt.dose import Dose, Plan
+from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
 
 # Default mode for reading patient data.
 skrt.core.Defaults({"unsorted_dicom": False})
@@ -837,9 +837,28 @@ class Patient(skrt.core.PathData):
         # Add to data objects a reference to the patient object.
         self.link_study_data_to_patient()
 
+        # Initialise dose sum (outside of any study).
+        self.dose_sum = None
+
         # Record end time, then store initialisation time.
         toc = timeit.default_timer()
         self._init_time = (toc - tic)
+
+    def __gt__(self, other):
+        '''
+        Define whether <self> is greater than <other>.
+
+        The comparison is based on id.
+        '''
+        return self.id > other.id
+
+    def __ge__(self, other):
+        '''
+        Define whether <self> is greater than, or equal to, <other>.
+
+        The comparison is based on id.
+        '''
+        return (self > other) or (self == other)
 
     def sort_dicom(self):
         '''
@@ -1602,6 +1621,77 @@ class Patient(skrt.core.PathData):
                 all_info.append(info)
 
         return (pd.DataFrame(all_info) if df else all_info)
+
+    def get_dose_sum(self, strategies=[("FRACTION", "PLAN",), ("BEAM",)],
+            set_image=True, force=False):
+        """
+        Get dose summed over dose objects.
+
+        This method has been tested using datasets for patients from the IMPORT
+        trials.  It may not be generally valid.
+
+        **Parameters:**
+
+        strategies : list, default=[("FRACTION", "PLAN",), ("BEAM",)]
+            List of tuples of dose summation types to be used in a
+            summation strategy.  Each strategy is considered in turn,
+            until a non-zero dose sum is obtained.  The default strategy
+            if first to try summing doses with summation type "FRACTION"
+            or "PLAN", and if this gives a null result to try summing
+            doses with summation type "BEAM".
+
+        set_image : bool/skrt.image.Image, default=True
+            If True or an Image object, associate an image to the
+            summed dose, and resize the summed dose as needed to match the
+            image geometry.  The image associated is the input Image object,
+            of for boolean input is the image with most voxels associated
+            with any of the doses in the sum.
+
+        force : bool, default=False
+            If False, return the result of any previous dose summation.  If
+            True, sum doses independently of any previous result.
+        """
+
+        # If not forcing summation, return any previous result.
+        if self.dose_sum is not None and not force:
+            return self.dose_sum
+
+        # Obtain dose objects across studies, disregarding any duplicates.
+        doses = remove_duplicate_doses(self.combined_objs("dose_types"))
+
+        # Try to sum doses using defined strategies.
+        for strategy in strategies:
+            filtered_doses = remove_duplicate_doses([dose for dose in doses
+                if dose.get_dose_summation_type() in strategy])
+
+            if filtered_doses:
+                self.dose_sum = sum_doses(filtered_doses)
+                break
+
+        # Define image to be associated with dose sum,
+        # and/or to be used in alternative summation strategy.
+        image = None
+        if set_image or not self.dose_sum:
+            if isinstance(set_image, Image):
+                image = set_image
+            else:
+                image = skrt.core.get_associated_image(filtered_doses)
+
+        # Try alternative summation strategy,
+        # allowing for the dose arrays to be summed having different shapes.
+        if not self.dose_sum and image:
+            doses_to_sum = []
+            for dose in filtered_doses:
+                doses_to_sum.append(dose.clone().match_size(image))
+            self.dose_sum = sum_images(doses_to_sum)
+
+        # Associate image with summed dose,
+        # and resize summed dose as needed to match image size.
+        if set_image and self.dose_sum:
+            self.dose_sum.set_image(image)
+            self.dose_sum.match_size(image)
+
+        return self.dose_sum
 
     def get_subdir_studies(self, subdir=""):
         """Get list of studies within a given subdirectory."""

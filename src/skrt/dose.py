@@ -799,7 +799,7 @@ def remove_duplicate_doses(doses=None):
     doses: list, default=None
         List of dose objects, from which duplicates are to be removed.
     '''
-    return skrt.images.remove_duplicate_images(doses)
+    return skrt.image.remove_duplicate_images(doses)
 
 def sum_doses(doses=None):
     '''

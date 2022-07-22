@@ -1365,3 +1365,48 @@ def get_referenced_object(referrer, others, tag, omit_slice=False):
                 break
 
     return referenced_object
+
+def get_associated_image(objs, voxel_selection="most"):
+    """
+    Identify an image associated with at least one of a set of objects.
+    
+    If none of the input objects has an image attribute, None is returned.
+
+    **Parameters:**
+
+    objs : list
+        List of objects, which potentially have an image attribute,
+        identifying an associated image.
+
+    voxel_selection : str, default="most"
+        Criterion used for selecting associated image is cases where there
+        is more than one candidate.  Possible values are:
+        - None: return first image encountered;
+        - "most": return image with the highest number of voxels;
+        - "least": return image with the lowest number of voxels.
+    """
+    # Initialise variables.
+    if voxel_selection not in ["least", "most"]:
+        voxel_selection = None
+    associated_image = None
+    associated_images = {}
+
+    for obj in objs:
+        # If not selection, return first image encountered.
+        associated_image = getattr(obj, "image", None)
+        if associated_image and not voxel_selection:
+            break
+        # Store image in dictionary, with number of voxels as key.
+        if associated_image:
+            n_voxel = np.prod(associated_image.get_n_voxels())
+            associated_images[n_voxel] = associated_image
+
+    # Return image based on selection criterion.
+    if associated_images:
+        if voxel_selection == "most":
+            key = max(list(associated_images.keys()))
+        else:
+            key = min(list(associated_images.keys()))
+        associated_image = associated_images[key]
+
+    return associated_image
