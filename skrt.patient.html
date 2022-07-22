@@ -232,6 +232,33 @@ If True, return summary information as a pandas dataframe.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_dose_sum">
+<span class="sig-name descname"><span class="pre">get_dose_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[('FRACTION',</span> <span class="pre">'PLAN'),</span> <span class="pre">('BEAM',)]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_dose_sum" title="Permalink to this definition"></a></dt>
+<dd><p>Get dose summed over dose objects.</p>
+<p>This method has been tested using datasets for patients from the IMPORT
+trials.  It may not be generally valid.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>strategies<span class="classifier">list, default=[(“FRACTION”, “PLAN”,), (“BEAM”,)]</span></dt><dd><p>List of tuples of dose summation types to be used in a
+summation strategy.  Each strategy is considered in turn,
+until a non-zero dose sum is obtained.  The default strategy
+if first to try summing doses with summation type “FRACTION”
+or “PLAN”, and if this gives a null result to try summing
+doses with summation type “BEAM”.</p>
+</dd>
+<dt>set_image<span class="classifier">bool/skrt.image.Image, default=True</span></dt><dd><p>If True or an Image object, associate an image to the
+summed dose, and resize the summed dose as needed to match the
+image geometry.  The image associated is the input Image object,
+of for boolean input is the image with most voxels associated
+with any of the doses in the sum.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False, return the result of any previous dose summation.  If
+True, sum doses independently of any previous result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_image_info">
 <span class="sig-name descname"><span class="pre">get_image_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_image_info" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve information about images.</p>

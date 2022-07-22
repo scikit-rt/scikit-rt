@@ -533,6 +533,25 @@ symbolic links.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_associated_image">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_associated_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'most'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_associated_image" title="Permalink to this definition"></a></dt>
+<dd><p>Identify an image associated with at least one of a set of objects.</p>
+<p>If none of the input objects has an image attribute, None is returned.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>objs<span class="classifier">list</span></dt><dd><p>List of objects, which potentially have an image attribute,
+identifying an associated image.</p>
+</dd>
+<dt>voxel_selection<span class="classifier">str, default=”most”</span></dt><dd><p>Criterion used for selecting associated image is cases where there
+is more than one candidate.  Possible values are:
+- None: return first image encountered;
+- “most”: return image with the highest number of voxels;
+- “least”: return image with the lowest number of voxels.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_data_by_filename">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_data_by_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_data_by_filename" title="Permalink to this definition"></a></dt>
 <dd><p>Create dictionary of data_objects from list.</p>
