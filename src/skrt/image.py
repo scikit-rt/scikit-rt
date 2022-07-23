@@ -1291,6 +1291,74 @@ class Image(skrt.core.Archive):
         self.load()
         return self.data.max()
 
+    def get_centroid_idx(self, view="x-y", fraction=1):
+        """
+        Get array index of slice containing centroid of above-threshold voxels.
+
+        The centroid coordinate along a given axis is calculated as the
+        unweighted mean of the coordinates of voxels with an intensity at
+        least a given fraction of the maximum.
+
+        **Parameters:**
+
+        view : str, default="x-y"
+            Orientation; can be "x-y", "y-z", or "x-z".
+
+        fraction : float, default=1
+            Minimum fraction of the maximum intensity that a voxel must record
+            to be considered in the centroid calculation.
+        """
+        self.load()
+
+        # Obtain indices of voxels with above-threshold intensity.
+        indices = np.where(self.get_standardised_data()
+                >= (self.get_standardised_data().max() * fraction))
+
+        # Calculate means of indicies of voxels with above-threshold intensity.
+        iy, ix, iz = [round(indices[idx].mean()) for idx in range(3)]
+
+        return [ix, iy, iz][_slice_axes[view]]
+
+    def get_centroid_pos(self, view="x-y", fraction=1):
+        """
+        Get position of slice containing centroid of above-threshold voxels.
+
+        The centroid coordinate along a given axis is calculated as the
+        unweighted mean of the coordinates of voxels with an intensity at
+        least a given fraction of the maximum.
+
+        **Parameters:**
+
+        view : str, default="x-y"
+            Orientation; can be "x-y", "y-z", or "x-z".
+
+        fraction : float, default=1
+            Minimum fraction of the maximum intensity that a voxel must record
+            to be considered in the centroid calculation.
+        """
+        return self.idx_to_pos(
+                self.get_centroid_idx(view, fraction), _slice_axes[view])
+
+    def get_centroid_slice(self, view="x-y", fraction=1):
+        """
+        Get number of slice containing centroid of above-threshold voxels.
+
+        The centroid coordinate along a given axis is calculated as the
+        unweighted mean of the coordinates of voxels with an intensity at
+        least a given fraction of the maximum.
+
+        **Parameters:**
+
+        view : str, default="x-y"
+            Orientation; can be "x-y", "y-z", or "x-z".
+
+        fraction : float, default=1
+            Minimum fraction of the maximum intensity that a voxel must record
+            to be considered in the centroid calculation.
+        """
+        return self.idx_to_slice(
+                self.get_centroid_idx(view, fraction), _slice_axes[view])
+
     def get_orientation_codes(self, affine=None, source_type=None):
         """Get image orientation codes in order [row, column, slice] if 
         image was loaded in dicom-style orientation, or [column, row, slice] 
@@ -4745,6 +4813,7 @@ def sum_images(images=None):
         return images
     if not isinstance(images, (list, set, tuple)):
         return None
+    images = [image for image in images if issubclass(type(image), Image)]
     if not len(images):
         return None
     if 1 == len(images):
