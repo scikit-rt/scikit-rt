@@ -357,6 +357,57 @@ of [row, column, slice].</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_centroid_idx">
+<span class="sig-name descname"><span class="pre">get_centroid_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_centroid_idx" title="Permalink to this definition"></a></dt>
+<dd><p>Get array index of slice containing centroid of above-threshold voxels.</p>
+<p>The centroid coordinate along a given axis is calculated as the
+unweighted mean of the coordinates of voxels with an intensity at
+least a given fraction of the maximum.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “y-z”, or “x-z”.</p>
+</dd>
+<dt>fraction<span class="classifier">float, default=1</span></dt><dd><p>Minimum fraction of the maximum intensity that a voxel must record
+to be considered in the centroid calculation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_centroid_pos">
+<span class="sig-name descname"><span class="pre">get_centroid_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_centroid_pos" title="Permalink to this definition"></a></dt>
+<dd><p>Get position of slice containing centroid of above-threshold voxels.</p>
+<p>The centroid coordinate along a given axis is calculated as the
+unweighted mean of the coordinates of voxels with an intensity at
+least a given fraction of the maximum.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “y-z”, or “x-z”.</p>
+</dd>
+<dt>fraction<span class="classifier">float, default=1</span></dt><dd><p>Minimum fraction of the maximum intensity that a voxel must record
+to be considered in the centroid calculation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_centroid_slice">
+<span class="sig-name descname"><span class="pre">get_centroid_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_centroid_slice" title="Permalink to this definition"></a></dt>
+<dd><p>Get number of slice containing centroid of above-threshold voxels.</p>
+<p>The centroid coordinate along a given axis is calculated as the
+unweighted mean of the coordinates of voxels with an intensity at
+least a given fraction of the maximum.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “y-z”, or “x-z”.</p>
+</dd>
+<dt>fraction<span class="classifier">float, default=1</span></dt><dd><p>Minimum fraction of the maximum intensity that a voxel must record
+to be considered in the centroid calculation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_coordinate_arrays">
 <span class="sig-name descname"><span class="pre">get_coordinate_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_coordinate_arrays" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain (x, y, z) arrays of coordinates of voxel centres.</p>
