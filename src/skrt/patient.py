@@ -839,6 +839,7 @@ class Patient(skrt.core.PathData):
 
         # Initialise dose sum (outside of any study).
         self.dose_sum = None
+        self._dose_sum_time = None
 
         # Record end time, then store initialisation time.
         toc = timeit.default_timer()
@@ -1656,13 +1657,16 @@ class Patient(skrt.core.PathData):
         if self.dose_sum is not None and not force:
             return self.dose_sum
 
+        # Record start time
+        tic = timeit.default_timer()
+
         # Obtain dose objects across studies, disregarding any duplicates.
         doses = remove_duplicate_doses(self.combined_objs("dose_types"))
 
         # Try to sum doses using defined strategies.
         for strategy in strategies:
-            filtered_doses = remove_duplicate_doses([dose for dose in doses
-                if dose.get_dose_summation_type() in strategy])
+            filtered_doses = [dose for dose in doses
+                if dose.get_dose_summation_type() in strategy]
 
             if filtered_doses:
                 self.dose_sum = sum_doses(filtered_doses)
@@ -1682,14 +1686,20 @@ class Patient(skrt.core.PathData):
         if not self.dose_sum and image:
             doses_to_sum = []
             for dose in filtered_doses:
-                doses_to_sum.append(dose.clone().match_size(image))
-            self.dose_sum = sum_images(doses_to_sum)
+                dose_clone = dose.clone()
+                dose_clone.match_size(image)
+                doses_to_sum.append(dose_clone)
+            self.dose_sum = sum_doses(doses_to_sum)
 
         # Associate image with summed dose,
         # and resize summed dose as needed to match image size.
         if set_image and self.dose_sum:
             self.dose_sum.set_image(image)
             self.dose_sum.match_size(image)
+
+        # Record end time, then store time for dose summation.
+        toc = timeit.default_timer()
+        self._dose_sum_time = (toc - tic)
 
         return self.dose_sum
 
