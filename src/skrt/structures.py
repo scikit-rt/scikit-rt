@@ -3466,6 +3466,13 @@ class ROI(skrt.core.Archive):
         self.image = im
         self.contours_only = False
 
+        # If mask voxel size not set, set it now to be the image voxel size,
+        # and create the mask.
+        if not self.voxel_size:
+            self.voxel_size = self.image.get_voxel_size()
+            self.shape = self.image.get_data().shape
+            self.create_mask()
+
         # If the z-distance between contours is greater than the z-dimension
         # of the new image, obtain new mask by resizing the current mask.
         if self.get_slice_thickness_contours() > self.image.get_voxel_size()[2]:
