@@ -785,6 +785,10 @@ class ROI(skrt.core.Archive):
                 pos_to_idx_vec = np.vectorize(self.pos_to_idx)
                 for points in contours:
 
+                    # Require at least 3 points to define a polygon.
+                    if len(points) < 3:
+                        continue
+
                     # Convert (x, y) positions to array indices
                     points_idx = np.zeros((points.shape[0], 2))
                     for i in range(2):
