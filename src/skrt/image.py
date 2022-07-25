@@ -4150,7 +4150,7 @@ def load_dicom_many_files(paths):
                 continue
 
         # Fill empty TransferSyntaxUID 
-        if not hasattr(ds, "TransferSyntaxUID"):
+        if not hasattr(ds.file_meta, "TransferSyntaxUID"):
             ds.file_meta.TransferSyntaxUID = \
                 pydicom.uid.ImplicitVRLittleEndian
 
