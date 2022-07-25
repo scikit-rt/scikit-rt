@@ -828,7 +828,10 @@ class ROI(skrt.core.Archive):
                             mask[ix, iy] = overlap > self.overlap_level
 
                     # Add to 3D mask
-                    self.mask.data[:, :, iz] += mask.T
+                    try:
+                        self.mask.data[:, :, iz] += mask.T
+                    except IndexError:
+                        pass
 
         # Convert to boolean mask
         if hasattr(self.mask, "data"):
@@ -3463,6 +3466,7 @@ class ROI(skrt.core.Archive):
         shape doesn't match the image. 
         """
 
+        self.load()
         self.image = im
         self.contours_only = False
 
@@ -3471,12 +3475,13 @@ class ROI(skrt.core.Archive):
         if not self.voxel_size:
             self.voxel_size = self.image.get_voxel_size()
             self.shape = self.image.get_data().shape
-            self.create_mask()
+
+        # Ensure that mask is created.
+        self.create_mask()
 
         # If the z-distance between contours is greater than the z-dimension
         # of the new image, obtain new mask by resizing the current mask.
         if self.get_slice_thickness_contours() > self.image.get_voxel_size()[2]:
-            self.get_mask()
             self.mask.match_size(self.image, method="nearest")
             if hasattr(self.mask, "data"):
                 if not self.mask.data.dtype == bool:
