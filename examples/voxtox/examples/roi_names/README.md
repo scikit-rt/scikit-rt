@@ -19,7 +19,7 @@ Files may need to be manually edited to group lists of ROI names
 into collections.  (This has been done for `data_mvct.py`.)
 
 2. A module similar to `sort_head_and_neck.py` or `sort_prostate.py`,
-which rely on functions defined in `sort_rois.py` should created.
+which rely on functions defined in `sort_rois.py` should be created.
 This module should read in the saved output from `get_roi_names.py`,
 and should define how actual ROI names are to be matched to
 standardised names.  It is then run to produce the standardisation
