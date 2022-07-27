@@ -1106,10 +1106,11 @@ class Patient(skrt.core.PathData):
 
         return files
 
-    def combined_objs(self, attr):
+    def combined_objs(self, attr, subdir=None):
         '''
-        Get list of objects across all studies associated with
-        this patient.
+        Get list of objects across all studies associated with this patient.
+
+        Optionally restrict to studies within a given sub-directory.
 
         **Parameters:**
 
@@ -1117,34 +1118,46 @@ class Patient(skrt.core.PathData):
             Attribute name, identifying list of objects associated with a study.
             If attr ends with '_types', then objects of all listed types
             are retrieved.
+
+        subdir : str, default=None
+            Subdirectory grouping studies.  If specified, only studies in this
+            subdirectory are considered.
         '''
         all_objs = []
+        studies = self.get_subdir_studies(subdir) if subdir else self.studies
         if attr.endswith('_types'):
             dtype = attr.replace('_types', 's')
-            for study in self.studies:
+            for study in studies:
                 obj_types = getattr(study, attr, [])
                 for obj_type in sorted(obj_types):
                     all_objs.extend(getattr(study, f'{obj_type}_{dtype}'))
         else:
-            for study in self.studies:
+            for study in studies:
                 objs = getattr(study, attr, None)
                 if objs:
                     all_objs.extend(objs)
         all_objs.sort()
         return all_objs
 
-    def combined_types(self, cls):
+    def combined_types(self, cls, subdir=None):
         '''
         Get list of object types across all studies, for a given class.
+
+        Optionally restrict to studies within a given sub-directory.
 
         **Parameters:**
 
         cls : str
             Class name (case insensitive), for which types of object are
             to be retrieved.
+
+        subdir : str, default=None
+            Subdirectory grouping studies.  If specified, only studies in this
+            subdirectory are considered.
         '''
         all_types = []
-        for study in self.studies:
+        studies = self.get_subdir_studies(subdir) if subdir else self.studies
+        for study in studies:
             obj_types = getattr(study, f'{cls.lower()}_types', [])
             for obj_type in sorted(obj_types):
                 if not obj_type in all_types:
@@ -1693,7 +1706,7 @@ class Patient(skrt.core.PathData):
 
         # Associate image with summed dose,
         # and resize summed dose as needed to match image size.
-        if set_image and self.dose_sum:
+        if set_image and self.dose_sum and image:
             self.dose_sum.set_image(image)
             self.dose_sum.match_size(image)
 
