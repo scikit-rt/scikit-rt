@@ -1625,7 +1625,7 @@ class ROI(skrt.core.Archive):
         if method == "contour":
 
             # Calculate full z extent from contour positions
-            if ax == "z" and not single_slice:
+            if (ax == "z" or ax == 2) and not single_slice:
                 z_keys = list(self.get_contours("x-y").keys())
                 vz = self.get_slice_thickness_contours()
                 z_max = max(z_keys) +  vz / 2
@@ -3474,23 +3474,31 @@ class ROI(skrt.core.Archive):
         self.image = im
         self.contours_only = False
 
-        # If mask voxel size not set, set it now to be the image voxel size,
-        # and create the mask.
-        if not self.voxel_size:
-            self.voxel_size = self.image.get_voxel_size()
-            self.shape = self.image.get_data().shape
+        # Set ROI voxel size to that of new image.
+        # It will be needed to define slice thickness
+        # in the case of an ROI with contour(s) at a single z-position.
+        self.voxel_size = im.get_voxel_size()
 
-        # Ensure that mask is created.
-        self.create_mask()
-
-        # If the z-distance between contours is greater than the z-dimension
-        # of the new image, obtain new mask by resizing the current mask.
+        # If the z-distance between contours is greater than the voxel
+        # z-dimension for the new image, first ensure that the ROI
+        # mask is created with the inter-contour z-distance, then resize
+        # to the image voxel size.
         if self.get_slice_thickness_contours() > self.image.get_voxel_size()[2]:
+            if not (self.mask and (self.voxel_size == self.mask.voxel_size)):
+                self.create_mask(voxel_size=self.voxel_size[0:2], force=True)
+                # The mask creation will have redefined the image association,
+                # so reassign the new image.
+                self.image = im
             self.mask.match_size(self.image, method="nearest")
             if hasattr(self.mask, "data"):
                 if not self.mask.data.dtype == bool:
                     self.mask.data = self.mask.data.astype(bool)
 
+        # If a mask has been loaded, but doesn't match the image geometry,
+        # delete the mask data.  (This should mean that the z-distance
+        # between contours is less that the voxel z-dimension for the
+        # new image.)  A new mask will be created at the next call
+        # to access the mask data.
         if self.loaded_mask and not im.has_same_geometry(self.mask):
             if getattr(self, "input_contours", None) is None:
                 self.input_contours = self.get_contours("x-y")
