@@ -181,7 +181,7 @@ def test_surface_distance():
     # Define acceptable level of agreement agreement
     # between true and calculated surface distances.
     # Don't expect exact agreement, because of voxelisation for calculations.
-    precision = 1.5
+    precision = 2
 
     # Run test required number of times.
     for idx_test in range(n_test):
