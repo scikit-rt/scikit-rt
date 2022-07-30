@@ -1231,7 +1231,7 @@ class Patient(skrt.core.PathData):
         return self.birth_date
 
     def get_info(self, collections=None, data_labels=None, image_types=None,
-            plan_image_type=None, treatment_image_type=None,
+            dose_types=None, plan_image_type=None, treatment_image_type=None,
             min_delta=4, unit='hour', df=False):
         '''
         Retrieve patient summary information.
@@ -1289,6 +1289,13 @@ class Patient(skrt.core.PathData):
         if image_types is None:
             image_types = self.combined_types('image')
 
+        # Ensure that list is defined for dose_types.
+        if dose_types is None:
+            dose_types = self.combined_types('dose')
+
+        # Create set combining image_types and dose_types.
+        target_types = set(image_types).union(set(dose_types))
+
         # Create dictionary for information to be returned.
         info = {}
 
@@ -1343,7 +1350,7 @@ class Patient(skrt.core.PathData):
                     # For dose data, also store information on:
                     # - maximum dose.
                     for data_type, objs in sorted(data_types.items()):
-                        if data_type not in image_types:
+                        if data_type not in target_types:
                             continue
                         file_label = f'{data_label}_{data_type}_file'
                         size_label = f'{data_label}_{data_type}_size'
@@ -1381,16 +1388,20 @@ class Patient(skrt.core.PathData):
         # Store time of image used for plan creation.
         if plan_images:
             info['plan_image_time'] = plan_images[0].get_pandas_timestamp()
+            info['plan_image_day'] = info['plan_image_time'].isoweekday()
         else:
             info['plan_image_time'] = None
+            info['plan_image_day'] = None
         info['plan_image_year'] = skrt.core.year_fraction(
                 info['plan_image_time']) 
 
         # Store time of plan creation.
         if info['plan_fraction'] is not None:
             info['plan_time'] = plan.get_pandas_timestamp()
+            info['plan_day'] = info['plan_time'].isoweekday()
         else:
             info['plan_time'] = None
+            info['plan_day'] = None
         info['plan_year'] = skrt.core.year_fraction(
                 info['plan_time']) 
 
@@ -1406,9 +1417,13 @@ class Patient(skrt.core.PathData):
         if treatment_images:
             info['treatment_start'] = treatment_images[0].get_pandas_timestamp()
             info['treatment_end'] = treatment_images[-1].get_pandas_timestamp()
+            info['treatment_start_day'] = info['treatment_start'].isoweekday()
+            info['treatment_end_day'] = info['treatment_end'].isoweekday()
         else:
             info['treatment_start'] = None
             info['treatment_end'] = None
+            info['treatment_start_day'] = None
+            info['treatment_end_day'] = None
         info['treatment_start_year'] = skrt.core.year_fraction(
                 info['treatment_start']) 
         info['treatment_end_year'] = skrt.core.year_fraction(
@@ -1503,6 +1518,7 @@ class Patient(skrt.core.PathData):
                 info['modality'] = image_type
                 info['timestamp'] = image.get_pandas_timestamp()
                 info['day'] = None
+                info['hour_in_day'] = None
                 info['time_delta'] = None
                 info['days_delta'] = None
                 info['whole_days_delta'] = None
@@ -1510,6 +1526,8 @@ class Patient(skrt.core.PathData):
                 info['whole_days_total'] = None
                 if info['timestamp']:
                     info['day'] = info['timestamp'].isoweekday()
+                    info['hour_in_day'] = skrt.core.get_hour_in_day(
+                            info['timestamp'])
                     if time_last is not None:
                         info['time_delta'] = info['timestamp'] - time_last
                     else:
@@ -1565,6 +1583,7 @@ class Patient(skrt.core.PathData):
                 info['dose_units'] = dose.get_dose_units()
                 info['dose_type'] = dose.get_dose_type()
                 info['linked_plan'] = hasattr(dose, 'plan')
+                info['modality'] = dose_type
                 if hasattr(dose, 'plan'):
                     info['linked_plan_status'] = dose.plan.get_approval_status()
                     info['linked_plan_fraction'] = dose.plan.get_n_fraction()
@@ -1575,7 +1594,7 @@ class Patient(skrt.core.PathData):
 
         return (pd.DataFrame(all_info) if df else all_info)
 
-    def get_plan_info(self, plan_types=None, df=False):
+    def get_plan_info(self, plan_types=None, df=False, plan_filter=None):
         '''
         Retrieve information about treatment plans.
 
@@ -1589,6 +1608,13 @@ class Patient(skrt.core.PathData):
         df : bool, default=False
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
+
+        plan_filter : str, default=None
+            String specifying if filtering is to be performed:
+            - "first_only" : retrieve information only for first plan found;
+            - "first_of_each_type" : retrieve information only for the
+              first plan found of each type;
+            - any other value : no filtering.
         '''
 
         # Ensure that list is defined for plan_types.
@@ -1606,7 +1632,7 @@ class Patient(skrt.core.PathData):
                 info['timestamp'] = plan.get_pandas_timestamp()
                 info['day'] = (info['timestamp'].isoweekday()
                         if info['timestamp'] else None)
-                info['plan_type'] = plan_type
+                info['modality'] = plan_type
                 info['plan_name'] = plan.get_name()
                 info['plan_description'] = plan.get_description()
                 info['plan_prescription_description'] = (
@@ -1633,6 +1659,11 @@ class Patient(skrt.core.PathData):
                     info['linked_dose_max'] = '_'.join(max_doses)
 
                 all_info.append(info)
+
+                if "first_of_each_type" == plan_filter:
+                    break
+            if "first_only" == plan_filter:
+                break
 
         return (pd.DataFrame(all_info) if df else all_info)
 

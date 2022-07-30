@@ -1197,6 +1197,18 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
 
     return time_separated_objs
 
+def get_hour_in_day(timestamp):
+    '''
+    Return a timestamp's hour in day, including fractional part.
+
+    **Parameter:**
+
+    timestamp : pandas.Timestamp
+        Timestamp for which hour in day is to be returned.
+    '''
+    if isinstance(timestamp, pd.Timestamp):
+        return timestamp.hour + timestamp.minute / 60 + timestamp.second / 3600
+
 def get_interval_in_days(timestamp1, timestamp2):
     '''
     Return interval in days between two timestamps.

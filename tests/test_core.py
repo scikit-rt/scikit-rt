@@ -221,6 +221,23 @@ def test_intervals():
             14 + 18 / 24)
     assert skrt.core.get_interval_in_whole_days(timestamp1, timestamp2) == 15
 
+    timestamp1 = pd.Timestamp("20220205115900")
+    timestamp2 = pd.Timestamp("20220205120100")
+    assert skrt.core.get_interval_in_whole_days(timestamp1, timestamp2) == 0
+
+    timestamp1 = pd.Timestamp("20220205235900")
+    timestamp2 = pd.Timestamp("20220206000100")
+    assert skrt.core.get_interval_in_whole_days(timestamp1, timestamp2) == 1
+
+def test_hour_in_day():
+    '''Test determinations of hour in day.'''
+
+    timestamp = 1
+    assert skrt.core.get_hour_in_day(timestamp) == None
+
+    timestamp = pd.Timestamp("20220205123522")
+    assert skrt.core.get_hour_in_day(timestamp) == 12 + 35 / 60 + 22 / 3600
+
 def test_year_fraction():
     '''Test conversion from timestamp to year fraction'''
 
