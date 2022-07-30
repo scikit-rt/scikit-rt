@@ -292,7 +292,7 @@ If True, return summary information as a pandas dataframe.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_info">
-<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dose_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment_image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_info" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve patient summary information.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -332,16 +332,26 @@ If True, return summary information as a pandas dataframe.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_plan_info">
-<span class="sig-name descname"><span class="pre">get_plan_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_plan_info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_plan_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plan_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_plan_info" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve information about treatment plans.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>plan_types<span class="classifier">list, default=None</span></dt><dd><p>List of strings indicating types of plan for which information
 is to be retrieved.  If None, information is retrieved for
 all plan types in the patient dataset.</p>
 </dd>
 <dt>df<span class="classifier">bool, default=False</span></dt><dd><p>If False, return summary information as a dictionary.
 If True, return summary information as a pandas dataframe.</p>
+</dd>
+<dt>plan_filter<span class="classifier">str, default=None</span></dt><dd><p>String specifying if filtering is to be performed:
+- “first_only” : retrieve information only for first plan found;
+- “first_of_each_type” : retrieve information only for the</p>
+<blockquote>
+<div><p>first plan found of each type;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>any other value : no filtering.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
