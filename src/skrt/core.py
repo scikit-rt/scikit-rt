@@ -1404,7 +1404,7 @@ def get_associated_image(objs, voxel_selection="most"):
     associated_images = {}
 
     for obj in objs:
-        # If not selection, return first image encountered.
+        # If no selection, return first image encountered.
         associated_image = getattr(obj, "image", None)
         if associated_image and not voxel_selection:
             break
