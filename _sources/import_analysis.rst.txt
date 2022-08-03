@@ -1,0 +1,17 @@
+import\_analysis package
+========================
+
+Submodules
+----------
+
+.. toctree::
+
+   import_analysis.patient
+
+Module contents
+---------------
+
+.. automodule:: import_analysis
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+import\_analysis.patient module
+===============================
+
+.. automodule:: import_analysis.patient
+   :members:
+   :undoc-members:
+   :show-inheritance:
