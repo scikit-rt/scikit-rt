@@ -37,16 +37,19 @@ pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/
 pin uninstall -y jinja2
 pip install jinja2==3.0.3
 
-# Install scikit-rt and voxtox
+# Install scikit-rt, voxtox, and import
 pip install -e ..
 pip install -e ../examples/voxtox
+pip install -e ../examples/import
 
 # Delete package rst files, and recreate
-EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py"
+EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py ../examples/import/setup.py"
 rm -f source/skrt*.rst
 rm -f source/voxtox*.rst
+rm -f source/import*.rst
 sphinx-apidoc -e -f --tocfile skrt_modules -o source ../src/skrt ${EXCLUDE_PATTERN}
 sphinx-apidoc -e -f --tocfile voxtox_modules -o source ../examples/voxtox/src/voxtox ${EXCLUDE_PATTERN}
+sphinx-apidoc -e -f --tocfile import_modules -o source ../examples/import/src/import_analysis ${EXCLUDE_PATTERN}
 
 # Copy markdown files and images to be used in creating documentation.
 rm -rf source/*.md
