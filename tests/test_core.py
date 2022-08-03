@@ -1,6 +1,7 @@
 '''Test core data classes and functions.'''
 
 from pathlib import Path
+from pytest import approx
 
 import os
 import time
@@ -229,6 +230,7 @@ def test_intervals():
     timestamp2 = pd.Timestamp("20220206000100")
     assert skrt.core.get_interval_in_whole_days(timestamp1, timestamp2) == 1
 
+small_number = 1.e-10
 def test_hour_in_day():
     '''Test determinations of hour in day.'''
 
@@ -236,7 +238,30 @@ def test_hour_in_day():
     assert skrt.core.get_hour_in_day(timestamp) == None
 
     timestamp = pd.Timestamp("20220205123522")
-    assert skrt.core.get_hour_in_day(timestamp) == 12 + 35 / 60 + 22 / 3600
+    assert skrt.core.get_hour_in_day(timestamp) == approx(
+            12 + 35 / 60 + 22 / 3600, small_number)
+
+def test_hour_in_week():
+    '''Test determinations of hour in week.'''
+
+    timestamp = 1
+    assert skrt.core.get_hour_in_week(timestamp) == None
+
+    # 20220205 is a Saturday (day 6).
+    timestamp = pd.Timestamp("20220205123522")
+    assert skrt.core.get_hour_in_week(timestamp) == approx(
+            5 * 24 + skrt.core.get_hour_in_day(timestamp), small_number)
+
+def test_day_in_week():
+    '''Test determinations of day in week.'''
+
+    timestamp = 1
+    assert skrt.core.get_day_in_week(timestamp) == None
+
+    # 20220205 is a Saturday (day 6).
+    timestamp = pd.Timestamp("20220205123522")
+    assert skrt.core.get_day_in_week(timestamp) == approx(
+            5 + skrt.core.get_hour_in_day(timestamp) / 24, small_number)
 
 def test_year_fraction():
     '''Test conversion from timestamp to year fraction'''

@@ -1519,6 +1519,7 @@ class Patient(skrt.core.PathData):
                 info['timestamp'] = image.get_pandas_timestamp()
                 info['day'] = None
                 info['hour_in_day'] = None
+                info['hour_in_week'] = None
                 info['time_delta'] = None
                 info['days_delta'] = None
                 info['whole_days_delta'] = None
@@ -1527,6 +1528,10 @@ class Patient(skrt.core.PathData):
                 if info['timestamp']:
                     info['day'] = info['timestamp'].isoweekday()
                     info['hour_in_day'] = skrt.core.get_hour_in_day(
+                            info['timestamp'])
+                    info['hour_in_week'] = skrt.core.get_hour_in_week(
+                            info['timestamp'])
+                    info['day_in_week'] = skrt.core.get_day_in_week(
                             info['timestamp'])
                     if time_last is not None:
                         info['time_delta'] = info['timestamp'] - time_last

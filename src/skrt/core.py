@@ -1209,6 +1209,30 @@ def get_hour_in_day(timestamp):
     if isinstance(timestamp, pd.Timestamp):
         return timestamp.hour + timestamp.minute / 60 + timestamp.second / 3600
 
+def get_hour_in_week(timestamp):
+    '''
+    Return a timestamp's hour in week, including fractional part.
+
+    **Parameter:**
+
+    timestamp : pandas.Timestamp
+        Timestamp for which hour in week is to be returned.
+    '''
+    if isinstance(timestamp, pd.Timestamp):
+        return (24 * (timestamp.isoweekday() - 1) + get_hour_in_day(timestamp))
+
+def get_day_in_week(timestamp):
+    '''
+    Return a timestamp's day in week, including fractional part.
+
+    **Parameter:**
+
+    timestamp : pandas.Timestamp
+        Timestamp for which day in week is to be returned.
+    '''
+    if isinstance(timestamp, pd.Timestamp):
+        return get_hour_in_week(timestamp) / 24
+
 def get_interval_in_days(timestamp1, timestamp2):
     '''
     Return interval in days between two timestamps.
