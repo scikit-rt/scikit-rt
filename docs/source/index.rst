@@ -20,6 +20,7 @@ Scikit-rt
 
    skrt_modules
    voxtox_modules
+   import_analysis_modules
 
 Indices and tables
 ------------------

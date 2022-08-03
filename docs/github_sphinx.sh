@@ -49,7 +49,7 @@ rm -f source/voxtox*.rst
 rm -f source/import*.rst
 sphinx-apidoc -e -f --tocfile skrt_modules -o source ../src/skrt ${EXCLUDE_PATTERN}
 sphinx-apidoc -e -f --tocfile voxtox_modules -o source ../examples/voxtox/src/voxtox ${EXCLUDE_PATTERN}
-sphinx-apidoc -e -f --tocfile import_modules -o source ../examples/import/src/import_analysis ${EXCLUDE_PATTERN}
+sphinx-apidoc -e -f --tocfile import_analysis_modules -o source ../examples/import/src/import_analysis ${EXCLUDE_PATTERN}
 
 # Copy markdown files and images to be used in creating documentation.
 rm -rf source/*.md

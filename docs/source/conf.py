@@ -21,17 +21,18 @@
 # print(f'cwd: {os.getcwd()}')
 # print(f'sys.path: {sys.path}')
 
+import import_analysis
 import skrt
 import voxtox
 
 # -- Project information -----------------------------------------------------
 
 project = 'Scikit-rt'
-copyright = '2021'
+copyright = '2022'
 #author = ''
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.3'
+release = '0.3.15'
 
 
 # -- General configuration ---------------------------------------------------
