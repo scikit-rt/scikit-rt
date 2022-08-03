@@ -367,9 +367,10 @@ def test_get_default_pfiles_dir():
 
     from skrt.registration import get_default_pfiles, get_default_pfiles_dir
     pfiles1 = get_default_pfiles()
-    pfiles_dir = Path(get_default_pfiles_dir())
-    pfiles2 = list(Path(get_default_pfiles_dir()).iterdir())
+    pfiles_dir = get_default_pfiles_dir()
+    pfiles2 = list(get_default_pfiles_dir().iterdir())
     assert pfiles_dir.is_dir()
+    assert "elastix" in pfiles_dir.name
     assert len(pfiles2)
     assert len(pfiles1) == len(pfiles2)
 

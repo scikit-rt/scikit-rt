@@ -5,6 +5,7 @@ import matplotlib.colors
 import numpy as np
 import os
 from pathlib import Path
+from pkg_resources import resource_filename
 import shutil
 import subprocess
 
@@ -294,12 +295,12 @@ class Registration(Data):
                         **initial_alignment)
         else:
             initial_translation = None
-            logger.warning(
+            self.logger.warning(
                     f"Invalid initial_alignment: {initial_alignment}")
-            logger.warning("Value for initial alignment should be "
+            self.logger.warning("Value for initial alignment should be "
                     "a dictionary to be passed to "
                     "skrt.image.get_translation_to_align()")
-            logger.warning(f"or one of the strings: {valid_alignments}")
+            self.logger.warning(f"or one of the strings: {valid_alignments}")
 
         return initial_translation
 
@@ -504,7 +505,7 @@ class Registration(Data):
             return
 
         full_files = get_default_pfiles(False)
-        pfile = full_files[files.index(filename)]
+        pfile = str(full_files[files.index(filename)])
         self.add_file(pfile, params=params, ftype="p")
 
     def write_steps(self):
@@ -2157,21 +2158,30 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
     pars["TransformParameters"] = [init[0] - dx, init[1] - dy, init[2] - dz]
     write_parameters(outfile, pars)
 
-
-def get_default_pfiles(basename_only=True):
-
-    import skrt
-
-    rel_path = "data/elastix_parameter_files".split("/")
-    pdir = fullpath(os.path.join(skrt.__path__[0], *rel_path))
-    files = [file for file in os.listdir(pdir) if file.endswith(".txt")]
-    if basename_only:
-        return files
-    return [os.path.join(pdir, file) for file in files]
+def get_data_dir():
+    """Return path to data directory within the Scikit-rt package."""
+    return Path(resource_filename("skrt", "data"))
 
 def get_default_pfiles_dir():
-    """Get path to directory containing default parameter files."""
-    return str(Path(get_default_pfiles(basename_only=False)[0]).parent)
+    """Return path to directory containing default parameter files."""
+    return get_data_dir() / "elastix_parameter_files"
+
+def get_default_pfiles(basename_only=True):
+    """
+    Get list of default parameter files.
+
+    **Parameter:**
+
+    basename_only : bool, default=True
+        If True, return list of filenames only.  If True, return list
+        of paths, as pathlib.Path objects.
+    """
+
+    files = [file for file in get_default_pfiles_dir().iterdir()
+        if str(file).endswith(".txt")]
+    if basename_only:
+        return [file.name for file in files]
+    return files
 
 def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
     '''
