@@ -17,7 +17,7 @@ class ImportPatient(Patient):
     """
 
     def __init__(self, path=None, exclude=None, unsorted_dicom=True,
-            id_mappings=None, load_dose_sum=True):
+            id_mappings=None, load_dose_sum=True, load_masks=True):
         """
         Create instance of ImportPatient class.
 
@@ -49,6 +49,12 @@ class ImportPatient(Patient):
             If True, load planned dose, summed over contributions,
             at initialisation time.  If False, leave loading until
             dose sum is requested via call to getter method (get_dose_sum()).
+
+        load_masks : bool, default=True
+            If True, create foreground masks for patient's plan and
+            relapse CT images at initialisation time, using default
+            parameters.  If False, leave mask creation until requested
+            via vall to getter method (get_mask_plan(), get_mask_relapse()).
         """
         # Record start time
         tic = timeit.default_timer()
@@ -69,12 +75,10 @@ class ImportPatient(Patient):
 
     def get_ct_plan(self):
         """Get CT scan for treatment planning"""
-        self.load_key_data()
         return self.ct_plan
 
     def get_ct_relapse(self):
         """Get CT scan for relapse"""
-        self.load_key_data()
         return self.ct_relapse
 
     def get_dose_sum(self, image=None):
@@ -87,7 +91,6 @@ class ImportPatient(Patient):
             Image to be associated with the dose sum.  If None,
             the associated image will be the CT planning scan (self.ct_plan).
         """
-        self.load_key_data()
         image = image or self.ct_plan
         if (self.dose_sum is None or
                 not self.dose_sum.image.has_same_geometry(image)):
@@ -109,6 +112,62 @@ class ImportPatient(Patient):
             doses = self.combined_objs('dose_types')
         return [dose.get_dose_summation_type() for dose in doses]
 
+    def get_mask_plan(self, threshold=-500, convex_hull=False,
+            fill_holes=True, dxy=5, force=False):
+        """
+        Get foreground mask for CT planning scan.
+
+        **Parameters:**
+
+        threshold : int/float, default=-500
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If False, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=True
+            If False, fill holes in the slice foreground masks initially
+            obtained.
+
+        force : bool, default=False
+            If True, force mask creation, overwriting any mask
+            created previously.
+        """
+        if self.ct_plan and (force or not self.mask_plan):
+            self.mask_plan = self.ct_plan.get_foreground_mask(
+                    threshold, convex_hull, fill_holes, dxy)
+        return self.mask_plan
+
+    def get_mask_relapse(self, threshold=-500, convex_hull=False,
+            fill_holes=True, dxy=5, force=False):
+        """
+        Get foreground mask for CT planning scan.
+
+        **Parameters:**
+
+        threshold : int/float, default=-500
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If False, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=True
+            If False, fill holes in the slice foreground masks initially
+            obtained.
+
+        force : bool, default=False
+            If True, force mask creation, overwriting any mask
+            created previously.
+        """
+        if self.ct_relapse and (force or not self.mask_relapse):
+            self.mask_relapse = self.ct_relapse.get_foreground_mask(
+                    threshold, convex_hull, fill_holes, dxy)
+        return self.mask_relapse
+
     def get_ss_clinical(self, image=None):
         """
         Get clinical structure set for CT planning scan.
@@ -119,7 +178,6 @@ class ImportPatient(Patient):
             Image to be associated with the structure set.  If None,
             the associated image will be the CT planning scan (self.ct_plan).
         """
-        self.load_key_data()
         self.ss_clinical.set_image(image or self.get_ct_plan())
         return self.ss_clinical
 
@@ -133,7 +191,6 @@ class ImportPatient(Patient):
             Image to be associated with the structure set.  If None,
             the associated image will be the CT planning scan (self.ct_plan).
         """
-        self.load_key_data()
         self.ss_plan.set_image(image or self.get_ct_plan())
         return self.ss_plan
 
@@ -147,11 +204,10 @@ class ImportPatient(Patient):
             Image to be associated with the structure set.  If None,
             the associated image will be the CT relapse scan (self.ct_relapse).
         """
-        self.load_key_data()
         self.ss_relapse.set_image(image or self.get_ct_relapse())
         return self.ss_relapse
 
-    def load_key_data(self, load_dose_sum=True, force=False):
+    def load_key_data(self, load_dose_sum=True, load_masks=True, force=False):
         """
         Perform loading of key data relevant to IMPORT study.
 
@@ -185,6 +241,12 @@ class ImportPatient(Patient):
             If True, load planned dose, summed over contributions,
             at initialisation time.  If False, leave loading until
             dose sum is requested via call to getter method (get_dose_sum()).
+
+        load_masks : bool, default=True
+            If True, create foreground masks for patient's plan and
+            relapse CT images at initialisation time.  If False, leave
+            mask creation until requested via vall to getter method
+            (get_mask_plan(), get_mask_relapse()).
 
         force : bool, default=False
             If True, load data from source, even if previously loaded.
@@ -310,5 +372,12 @@ class ImportPatient(Patient):
         self.ss_plan.set_image(self.ct_plan)
         self.ss_relapse.set_image(self.ct_relapse)
         self.ss_clinical.set_image(self.ct_plan)
+
+        # Optionally create foreground masks.
+        self.mask_plan = None
+        self.mask_relapse = None
+        if load_masks:
+            self.get_mask_plan()
+            self.get_mask_relapse()
 
         self.key_data_loaded = True
