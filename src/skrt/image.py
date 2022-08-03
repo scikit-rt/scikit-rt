@@ -4594,11 +4594,11 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
                 + 'skrt.image.Image.get_box_mask_from_mask()')
 
     # Retrieve image data and numbers of voxels.
-    mask_array = in_image.get_data()
-    nx, ny, nz = in_image.get_n_voxels()
+    mask_array = image.get_data()
+    nx, ny, nz = image.get_n_voxels()
 
     # Initialise output array.
-    out_array = np.zeros((ny, nx, nz)), np.int8
+    out_array = np.zeros((ny, nx, nz), np.int8)
 
     # Slice by slice, determine bounding box of mask, and fill with ones.
     for iz in range(nz):
@@ -4610,7 +4610,7 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
         out_array[jmin: jmax, imin: imax, iz] = 1
 
     # Create clone of input image, then assign box mask as its data.
-    out_image = Image(in_image)
+    out_image = Image(image)
     out_image.data = out_array
 
     return out_image
