@@ -89,7 +89,7 @@
 <span id="import-analysis-patient-module"></span><h1>import_analysis.patient module<a class="headerlink" href="#module-import_analysis.patient" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">import_analysis.patient.</span></span><span class="sig-name descname"><span class="pre">ImportPatient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">import_analysis.patient.</span></span><span class="sig-name descname"><span class="pre">ImportPatient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.patient.html#skrt.patient.Patient" title="skrt.patient.Patient"><code class="xref py py-class docutils literal notranslate"><span class="pre">Patient</span></code></a></p>
 <p>Class that adds to the methods of skrt.patient.Patient.</p>
 <p>The additional functionality provided is aimed at simplifying
@@ -98,7 +98,7 @@ analysis of data from the IMPORT study.</p>
 data as unsorted DICOM.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Create instance of ImportPatient class.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -123,6 +123,11 @@ name (dictionary key) to a different name (associated value).</p>
 <dt>load_dose_sum<span class="classifier">bool, default=True</span></dt><dd><p>If True, load planned dose, summed over contributions,
 at initialisation time.  If False, leave loading until
 dose sum is requested via call to getter method (get_dose_sum()).</p>
+</dd>
+<dt>load_masks<span class="classifier">bool, default=True</span></dt><dd><p>If True, create foreground masks for patient’s plan and
+relapse CT images at initialisation time, using default
+parameters.  If False, leave mask creation until requested
+via vall to getter method (get_mask_plan(), get_mask_relapse()).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -164,6 +169,48 @@ shape and dose values).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_mask_plan">
+<span class="sig-name descname"><span class="pre">get_mask_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_mask_plan" title="Permalink to this definition"></a></dt>
+<dd><p>Get foreground mask for CT planning scan.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>threshold<span class="classifier">int/float, default=-500</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
+regions for determination of foreground.</p>
+</dd>
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If False, create mask from the convex hulls of the
+slice foreground masks initially obtained.</p>
+</dd>
+<dt>fill_holes<span class="classifier">bool, default=True</span></dt><dd><p>If False, fill holes in the slice foreground masks initially
+obtained.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, force mask creation, overwriting any mask
+created previously.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_mask_relapse">
+<span class="sig-name descname"><span class="pre">get_mask_relapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_mask_relapse" title="Permalink to this definition"></a></dt>
+<dd><p>Get foreground mask for CT planning scan.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>threshold<span class="classifier">int/float, default=-500</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
+regions for determination of foreground.</p>
+</dd>
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If False, create mask from the convex hulls of the
+slice foreground masks initially obtained.</p>
+</dd>
+<dt>fill_holes<span class="classifier">bool, default=True</span></dt><dd><p>If False, fill holes in the slice foreground masks initially
+obtained.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, force mask creation, overwriting any mask
+created previously.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ss_clinical">
 <span class="sig-name descname"><span class="pre">get_ss_clinical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_clinical" title="Permalink to this definition"></a></dt>
 <dd><p>Get clinical structure set for CT planning scan.</p>
@@ -201,7 +248,7 @@ the associated image will be the CT relapse scan (self.ct_relapse).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.load_key_data">
-<span class="sig-name descname"><span class="pre">load_key_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.load_key_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_key_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.load_key_data" title="Permalink to this definition"></a></dt>
 <dd><p>Perform loading of key data relevant to IMPORT study.</p>
 <p>This method sets the following:</p>
 <dl class="simple">
@@ -227,6 +274,11 @@ and recurrence outlined on the relapse scan.</p>
 <dt>load_dose_sum<span class="classifier">bool, default=True</span></dt><dd><p>If True, load planned dose, summed over contributions,
 at initialisation time.  If False, leave loading until
 dose sum is requested via call to getter method (get_dose_sum()).</p>
+</dd>
+<dt>load_masks<span class="classifier">bool, default=True</span></dt><dd><p>If True, create foreground masks for patient’s plan and
+relapse CT images at initialisation time.  If False, leave
+mask creation until requested via vall to getter method
+(get_mask_plan(), get_mask_relapse()).</p>
 </dd>
 <dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, load data from source, even if previously loaded.</p>
 </dd>
