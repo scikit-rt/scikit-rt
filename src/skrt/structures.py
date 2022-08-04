@@ -2441,34 +2441,40 @@ class ROI(skrt.core.Archive):
         voxel_size : tuple, default=None
             Voxel size (dx, dy, dz) in mm to be used for ROI masks
             from which to calculate surface distances.  If None,
-            the mask voxel size of <other> is used.
+            the mask voxel size of <other> is used if not None;
+            otherwise the default voxel size for dummy images,
+            namely (1, 1, 1), is used.
 
         voxel_dim_tolerance : float, default=0.1
             Tolerence used when determining whether <voxel_size> is
             different from the voxel size of the images associated with
             each ROI.
         '''
-
         # Create ROI clones, for which voxel sizes may be altered.
         roi1 = self.clone()
-        roi1.create_mask()
         roi2 = other.clone()
-        roi2.create_mask()
 
         # Associate new dummy image with ROIs if requested voxel size
         # is different from voxel size of either current image,
         # or if voxel sizes of current images don't match.
-        voxel_size = voxel_size or roi2.get_voxel_size()
-        resize = False
-        for roi in [roi1, roi2]:
-            matches = [dxyz1 for dxyz1, dxyz2 in
-                    zip(voxel_size, roi.voxel_size)
-                    if abs(dxyz1 - dxyz2) < voxel_dim_tolerance]
-            if 3 != len(matches):
-                resize = True
+        voxel_size = voxel_size if voxel_size else roi2.get_voxel_size()
+        resize = not roi1.get_voxel_size() or not roi2.get_voxel_size()
+        if not resize:
+            for roi in [roi1, roi2]:
+                matches = [dxyz1 for dxyz1, dxyz2 in
+                        zip(voxel_size, roi.voxel_size)
+                        if abs(dxyz1 - dxyz2) < voxel_dim_tolerance]
+                if 3 != len(matches):
+                    resize = True
         if resize:
+            if voxel_size:
+                slice_thickness = voxel_size[2]
+                voxel_size_2d = voxel_size[:2]
+            else:
+                slice_thickness = voxel_size_2d = None
+
             StructureSet([roi1, roi2]).set_image_to_dummy(
-                    slice_thickness=voxel_size[2], voxel_size=voxel_size[:2])
+                    slice_thickness=slice_thickness, voxel_size=voxel_size_2d)
 
         return (roi1, roi2)
 

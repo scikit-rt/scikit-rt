@@ -937,3 +937,30 @@ def test_pathlib_path():
     for roi in structs_from_nii:
         roi_new = ROI(pathlib.Path(roi.path))
         assert roi_new.path == roi.path
+
+def test_match_mask_voxel_size():
+    """Check that an ROI object can be created from shapely polygons."""
+
+    # Create dictionary of voxels sizes.
+    voxel_sizes = {idx: [idx, idx, idx] for idx in range(1, 4)}
+
+    # Match voxel sizes of ROIs created without voxel sizes specified,
+    # meaing that they default to [1, 1, 1].
+    roi1 = ROI(cube.get_contours())
+    roi2 = ROI(cube.get_contours())
+    assert roi1.voxel_size is None
+    assert roi2.voxel_size is None
+    roi1, roi2 = roi1.match_mask_voxel_size(roi2)
+    assert roi1.voxel_size == voxel_sizes[1]
+    assert roi2.voxel_size == voxel_sizes[1]
+
+    # Match voxel sizes of ROIs created with initially different voxel sizes.
+    roi1 = ROI(cube.get_contours(), origin=cube.get_origin(),
+            voxel_size=voxel_sizes[2])
+    roi2 = ROI(cube.get_contours(), origin=cube.get_origin(),
+            voxel_size=voxel_sizes[3])
+    assert roi1.voxel_size == voxel_sizes[2]
+    assert roi2.voxel_size == voxel_sizes[3]
+    roi1, roi2 = roi1.match_mask_voxel_size(roi2)
+    assert roi1.voxel_size == voxel_sizes[3]
+    assert roi2.voxel_size == voxel_sizes[3]
