@@ -133,6 +133,25 @@ via vall to getter method (get_mask_plan(), get_mask_relapse()).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_centroid_translation">
+<span class="sig-name descname"><span class="pre">get_centroid_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_centroid_translation" title="Permalink to this definition"></a></dt>
+<dd><p>Get centroid translation between plan and relapse scans of named ROI.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi_name<span class="classifier">str</span></dt><dd><p>Standardised name of control structure.  Should be one of
+“carina”, “spinal_canal”, “sternum”.</p>
+</dd>
+<dt>reverse<span class="classifier">bool, default=False</span></dt><dd><p>By default, the (dx, dy, dz) tuple returned represents the
+amount by which the centroid of the ROI in the relapse scan is
+translated with respect to the centroid of the ROI in the
+planning scan.  If &lt;reverse&gt; is True, the translation
+returned is of the ROI in the planning scan with respect
+to the ROI in the relapse scan</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ct_plan">
 <span class="sig-name descname"><span class="pre">get_ct_plan</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ct_plan" title="Permalink to this definition"></a></dt>
 <dd><p>Get CT scan for treatment planning</p>
@@ -225,7 +244,7 @@ the associated image will be the CT planning scan (self.ct_plan).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ss_plan">
 <span class="sig-name descname"><span class="pre">get_ss_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_plan" title="Permalink to this definition"></a></dt>
-<dd><p>Get research structure set for CT planning scan.</p>
+<dd><p>Get control-structures structure set for CT planning scan.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image to be associated with the structure set.  If None,
@@ -237,7 +256,7 @@ the associated image will be the CT planning scan (self.ct_plan).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ss_relapse">
 <span class="sig-name descname"><span class="pre">get_ss_relapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_relapse" title="Permalink to this definition"></a></dt>
-<dd><p>Get research structure set for CT relapse scan.</p>
+<dd><p>Get control-structures structure set for CT relapse scan.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image to be associated with the structure set.  If None,
@@ -254,19 +273,22 @@ the associated image will be the CT relapse scan (self.ct_relapse).</p>
 <dl class="simple">
 <dt>self.ct_plan<span class="classifier">skrt.image.Image</span></dt><dd><p>CT scan used in treatment planning.</p>
 </dd>
-<dt>self.ss_plan<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>Research structure set, containing control structures
-outlined on the planning scan.</p>
-</dd>
-<dt>self.ss_clinical<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>Clinical structure set, containing structures used in
-treatment planning.</p>
+<dt>self.ct_relapase<span class="classifier">skrt.image.Image</span></dt><dd><p>CT scan recorded at the time of relapse.</p>
 </dd>
 <dt>self.dose_sum<span class="classifier">skrt.dose.Dose</span></dt><dd><p>Planned dose, summed over contributions.  Initialised
 to None if &lt;load_dose_sum&gt; is False.</p>
 </dd>
-<dt>self.ct_relapase<span class="classifier">skrt.image.Image</span></dt><dd><p>CT scan recorded at the time of relapse.</p>
+<dt>self.ss_clinical<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>Clinical structure set, containing structures used in
+treatment planning.</p>
+</dd>
+<dt>self.ss_plan<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>Research structure set, containing control structures
+outlined on the planning scan.</p>
+</dd>
+<dt>self.ss_recurrence<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>Research structure set, containing recurrence
+outlined on the relapse scan.</p>
 </dd>
 <dt>self.ss_relapase<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>Research structure set, containing control structures
-and recurrence outlined on the relapse scan.</p>
+and outlined on the relapse scan.</p>
 </dd>
 </dl>
 <p><strong>Parameters:</strong></p>
