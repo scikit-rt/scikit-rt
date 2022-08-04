@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    import_analysis.patient
+   import_analysis.roi_names
 
 Module contents
 ---------------
