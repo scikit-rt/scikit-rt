@@ -2350,14 +2350,6 @@ class ROI(skrt.core.Archive):
 
         self.load()
 
-        # Define voxel volume, and voxel area in view.
-        voxel_volume = 1
-        for dxyz in self.mask.voxel_size:
-            voxel_volume *= dxyz
-        z_ax = skrt.image._slice_axes[view]
-        slice_thickness = self.mask.voxel_size[z_ax]
-        voxel_area = voxel_volume / slice_thickness
-
         # Get default slice and method
         if single_slice:
             if sl is None and idx is None and pos is None:
@@ -2392,7 +2384,7 @@ class ROI(skrt.core.Archive):
                 if area2 is None:
                     area2 = 0
 
-            mean_size = 0.5 * (area1 + area2) * voxel_area
+            mean_size = 0.5 * (area1 + area2)
             
             # Compute areas of intersection and union on slice(s)
             intersection = 0
@@ -2402,9 +2394,8 @@ class ROI(skrt.core.Archive):
                 for p1 in polygons1:
                     for p2 in polygons2:
                         intersection += p1.intersection(p2).area
-            intersection *= voxel_area
             unary_union = ops.unary_union(polygons1 + polygons2)
-            union = unary_union.area * voxel_area
+            union = unary_union.area
 
         # Calculate intersections and areas from binary mask voxel counts
         else:
@@ -2419,6 +2410,13 @@ class ROI(skrt.core.Archive):
                 data1 = self.get_slice(view, sl, idx, pos)
                 data2 = other.get_slice(view, sl, idx, pos)
 
+            # Define voxel volume, and voxel area in view.
+            voxel_volume = 1
+            for dxyz in self.mask.voxel_size:
+                voxel_volume *= dxyz
+            z_ax = skrt.image._slice_axes[view]
+            slice_thickness = self.mask.voxel_size[z_ax]
+            voxel_area = voxel_volume / slice_thickness
 
             factor = voxel_area if (single_slice or flatten) else voxel_volume
             intersection = (data1 & data2).sum() * factor
