@@ -1306,7 +1306,9 @@ common value.</p>
 </dd>
 <dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
 from which to calculate surface distances.  If None,
-the mask voxel size of &lt;other&gt; is used.</p>
+the mask voxel size of &lt;other&gt; is used if not None;
+otherwise the default voxel size for dummy images,
+namely (1, 1, 1), is used.</p>
 </dd>
 <dt>voxel_dim_tolerance<span class="classifier">float, default=0.1</span></dt><dd><p>Tolerence used when determining whether &lt;voxel_size&gt; is
 different from the voxel size of the images associated with
