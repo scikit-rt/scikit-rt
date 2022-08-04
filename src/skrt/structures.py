@@ -2451,9 +2451,9 @@ class ROI(skrt.core.Archive):
 
         # Create ROI clones, for which voxel sizes may be altered.
         roi1 = self.clone()
-        roi1.load()
+        roi1.create_mask()
         roi2 = other.clone()
-        roi2.load()
+        roi2.create_mask()
 
         # Associate new dummy image with ROIs if requested voxel size
         # is different from voxel size of either current image,
