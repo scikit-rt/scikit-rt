@@ -3473,6 +3473,8 @@ class ROI(skrt.core.Archive):
         self.load()
         self.image = im
         self.contours_only = False
+        if im is None:
+            return
 
         # Set ROI voxel size to that of new image.
         # It will be needed to define slice thickness
