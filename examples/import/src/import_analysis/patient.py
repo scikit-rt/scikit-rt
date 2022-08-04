@@ -4,6 +4,7 @@ from skrt.core import get_associated_image
 from skrt.dose import remove_duplicate_doses
 from skrt.patient import Patient
 
+from import_analysis.roi_names import controls, recurrences
 
 class ImportPatient(Patient):
     """
@@ -221,7 +222,7 @@ class ImportPatient(Patient):
         self.ss_plan.set_image(image or self.get_ct_plan())
         return self.ss_plan
 
-    def get_ss_relapse(self, image=None):
+    def get_ss_recurrence(self, image=None):
         """
         Get recurrence structure set for CT relapse scan.
 
@@ -409,23 +410,15 @@ class ImportPatient(Patient):
                 self.ct_relapse = image
                 break
 
-        # Standardise ROI names, except in clinical structure sets.
-        control_names = {
-                "carina": ["Carina"],
-                "spinal_canal": ["Spinal canal", "Spinal Canal", "Spinal cord",
-                    "Spinal canal on the same slice as bottom of sternum"],
-                "sternum": ["Top of sternum", "Top of Sternum",
-                    "Bottom of sternum"]}
-        recurrence_names = {"recurrence": ["left", "possible recurrence",
-            "Recurrance", "Recurrence", "recurrence", "recurrence???",
-            "recurrence (plus liver mets)", "right", "right breast",
-            "right_breast"]}
+        # Standardise ROI names.
         self.ss_clinical = ss_clinical
         self.ss_clinical.name = "clinical_structures"
-        self.ss_plan = ss_plan.filtered_copy(control_names,
+        self.ss_plan = ss_plan.filtered_copy(controls,
                 "plan_control_structures", keep_renamed_only=True)
-        self.ss_recurrence = ss_relapse.filtered_copy(recurrence_names,
+        self.ss_recurrence = ss_relapse.filtered_copy(recurrences,
                 "recurrence", keep_renamed_only=True)
+        if True:
+            return
         self.ss_relapse = ss_relapse.filtered_copy(control_names,
                 "relapse_control_structures", keep_renamed_only=True)
 
