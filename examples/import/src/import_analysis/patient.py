@@ -73,6 +73,33 @@ class ImportPatient(Patient):
         toc = timeit.default_timer()
         self._init_time = (toc - tic)
 
+    def get_centroid_translation(self, roi_name, reverse=False):
+        """
+        Get centroid translation between plan and relapse scans of named ROI.
+
+        **Parameters:**
+
+        roi_name : str
+            Standardised name of control structure.  Should be one of
+            "carina", "spinal_canal", "sternum".
+
+        reverse : bool, default=False
+            By default, the (dx, dy, dz) tuple returned represents the
+            amount by which the centroid of the ROI in the relapse scan is
+            translated with respect to the centroid of the ROI in the
+            planning scan.  If <reverse> is True, the translation
+            returned is of the ROI in the planning scan with respect
+            to the ROI in the relapse scan
+        """
+        if (roi_name in self.get_ss_relapse().get_roi_names() and
+                roi_name in self.get_ss_relapse().get_roi_names()):
+
+            displacement = self.get_ss_plan()[roi_name].get_centroid_distance(
+                    self.get_ss_relapse()[roi_name])
+            sign = -1 if reverse else 1
+
+            return tuple(sign * displacement)
+
     def get_ct_plan(self):
         """Get CT scan for treatment planning"""
         return self.ct_plan
@@ -183,7 +210,7 @@ class ImportPatient(Patient):
 
     def get_ss_plan(self, image=None):
         """
-        Get research structure set for CT planning scan.
+        Get control-structures structure set for CT planning scan.
 
         **Parameter:**
 
@@ -196,7 +223,20 @@ class ImportPatient(Patient):
 
     def get_ss_relapse(self, image=None):
         """
-        Get research structure set for CT relapse scan.
+        Get recurrence structure set for CT relapse scan.
+
+        **Parameter:**
+
+        image : skrt.image.Image, default=None
+            Image to be associated with the structure set.  If None,
+            the associated image will be the CT relapse scan (self.ct_relapse).
+        """
+        self.ss_recurrence.set_image(image or self.get_ct_relapse())
+        return self.ss_recurrence
+
+    def get_ss_relapse(self, image=None):
+        """
+        Get control-structures structure set for CT relapse scan.
 
         **Parameter:**
 
@@ -216,24 +256,28 @@ class ImportPatient(Patient):
         self.ct_plan : skrt.image.Image
             CT scan used in treatment planning.
 
-        self.ss_plan : skrt.structures.StructureSet
-            Research structure set, containing control structures
-            outlined on the planning scan.
-
-        self.ss_clinical : skrt.structures.StructureSet
-            Clinical structure set, containing structures used in
-            treatment planning.
+        self.ct_relapase : skrt.image.Image
+            CT scan recorded at the time of relapse.
 
         self.dose_sum : skrt.dose.Dose
             Planned dose, summed over contributions.  Initialised
             to None if <load_dose_sum> is False.
 
-        self.ct_relapase : skrt.image.Image
-            CT scan recorded at the time of relapse.
+        self.ss_clinical : skrt.structures.StructureSet
+            Clinical structure set, containing structures used in
+            treatment planning.
+
+        self.ss_plan : skrt.structures.StructureSet
+            Research structure set, containing control structures
+            outlined on the planning scan.
+
+        self.ss_recurrence : skrt.structures.StructureSet
+            Research structure set, containing recurrence
+            outlined on the relapse scan.
 
         self.ss_relapase : skrt.structures.StructureSet
             Research structure set, containing control structures
-            and recurrence outlined on the relapse scan.
+            and outlined on the relapse scan.
 
         **Parameters:**
 
@@ -297,10 +341,10 @@ class ImportPatient(Patient):
             structure_sets.pop(0)
         
         # The plan research structure set should be the one with fewest ROIs.
-        self.ss_plan = structure_sets[0]
-        assert len(self.ss_plan.get_roi_names()) == len(control_rois)
+        ss_plan = structure_sets[0]
+        assert len(ss_plan.get_roi_names()) == len(control_rois)
         for names in control_rois:
-            assert [name in self.ss_plan.get_roi_names()
+            assert [name in ss_plan.get_roi_names()
                     for name in names].count(True) == 1
 
         # Remove from the list of structure sets the cases where the number
@@ -313,7 +357,7 @@ class ImportPatient(Patient):
         # at least one recurrence outline.
         # Among the structure sets that don't include the control
         # structures, the clinical structure set should be the largest.
-        self.ss_relapse = self.ss_clinical = None
+        ss_relapse = ss_clinical = None
         for structure_set in structure_sets:
             has_control_rois = has_additional_control_rois = True
             for names in control_rois:
@@ -331,31 +375,28 @@ class ImportPatient(Patient):
             # contains additional control structures only.
             if has_additional_control_rois:
                 if has_control_rois:
-                    self.ss_plan = structure_set
+                    ss_plan = structure_set
                 else:
-                    self.ss_relapse = structure_set
+                    ss_relapse = structure_set
 
             # Deal with standard cases: relapse structure set contains control
             # structures and recurrence outline; clinical structure set doesn't
             # contain control structures.
             elif has_control_rois:
-                if ((not self.ss_relapse) or
-                        (len(self.ss_relapse.get_roi_names())
+                if ((not ss_relapse) or (len(ss_relapse.get_roi_names())
                             > len(structure_set.get_roi_names()))):
-                    self.ss_relapse = structure_set
+                    ss_relapse = structure_set
             else:
-                if ((not self.ss_clinical) or
-                        (len(self.ss_clinical.get_roi_names())
+                if ((not ss_clinical) or (len(ss_clinical.get_roi_names())
                             > len(structure_set.get_roi_names()))):
-                    self.ss_clinical = structure_set
+                    ss_clinical = structure_set
                 
         # If relapse structure set doesn't include recurrence outline,
         # substitute for it the structure set containing
         # recurrence outline only.
-        if ss_recurrence and (not self.ss_relapse
-                or ss_recurrence.get_roi_names()[0]
-                not in self.ss_relapse.get_roi_names()):
-            self.ss_relapse = ss_recurrence
+        if ss_recurrence and (not ss_relapse or ss_recurrence.get_roi_names()[0]
+                not in ss_relapse.get_roi_names()):
+            ss_relapse = ss_recurrence
 
         # Take CT image for relapse structure set to be the first image
         # that has at least 20 slices, and doesn't have the same number
@@ -368,10 +409,31 @@ class ImportPatient(Patient):
                 self.ct_relapse = image
                 break
 
-        # Set structure-set images.
-        self.ss_plan.set_image(self.ct_plan)
-        self.ss_relapse.set_image(self.ct_relapse)
+        # Standardise ROI names, except in clinical structure sets.
+        control_names = {
+                "carina": ["Carina"],
+                "spinal_canal": ["Spinal canal", "Spinal Canal", "Spinal cord",
+                    "Spinal canal on the same slice as bottom of sternum"],
+                "sternum": ["Top of sternum", "Top of Sternum",
+                    "Bottom of sternum"]}
+        recurrence_names = {"recurrence": ["left", "possible recurrence",
+            "Recurrance", "Recurrence", "recurrence", "recurrence???",
+            "recurrence (plus liver mets)", "right", "right breast",
+            "right_breast"]}
+        self.ss_clinical = ss_clinical
+        self.ss_clinical.name = "clinical_structures"
+        self.ss_plan = ss_plan.filtered_copy(control_names,
+                "plan_control_structures", keep_renamed_only=True)
+        self.ss_recurrence = ss_relapse.filtered_copy(recurrence_names,
+                "recurrence", keep_renamed_only=True)
+        self.ss_relapse = ss_relapse.filtered_copy(control_names,
+                "relapse_control_structures", keep_renamed_only=True)
+
+        # Set associated images.
         self.ss_clinical.set_image(self.ct_plan)
+        self.ss_plan.set_image(self.ct_plan)
+        self.ss_recurrence.set_image(self.ct_relapse)
+        self.ss_relapse.set_image(self.ct_relapse)
 
         # Optionally create foreground masks.
         self.mask_plan = None
