@@ -68,7 +68,7 @@ class ImportPatient(Patient):
 
         # Perform loading of key data relevant to IMPORT study.
         self.key_data_loaded = False
-        self.load_key_data(load_dose_sum=load_dose_sum)
+        self.load_key_data(load_dose_sum=load_dose_sum, load_masks=load_masks)
 
         # Record end time, then store initialisation time.
         toc = timeit.default_timer()
@@ -414,13 +414,14 @@ class ImportPatient(Patient):
         self.ss_clinical = ss_clinical
         self.ss_clinical.name = "clinical_structures"
         self.ss_plan = ss_plan.filtered_copy(controls,
-                "plan_control_structures", keep_renamed_only=True)
+                "plan_control_structures", to_keep=list(controls.keys()),
+                copy_roi_data=False)
+        self.ss_relapse = ss_relapse.filtered_copy(controls,
+                "relapse_control_structures", to_keep=list(controls.keys()),
+                copy_roi_data=False)
         self.ss_recurrence = ss_relapse.filtered_copy(recurrences,
-                "recurrence", keep_renamed_only=True)
-        if True:
-            return
-        self.ss_relapse = ss_relapse.filtered_copy(control_names,
-                "relapse_control_structures", keep_renamed_only=True)
+                "recurrence", to_keep=list(recurrences.keys()),
+                copy_roi_data=False)
 
         # Set associated images.
         self.ss_clinical.set_image(self.ct_plan)
