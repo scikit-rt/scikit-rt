@@ -321,7 +321,7 @@ initialisation.</p>
 <dd><p>Load data for an image registration and run the registration if
 auto_seg=True.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>path<span class="classifier">str</span></dt><dd><p>Path to directory where the data for this image registration is
 stored. Can either be a non-existing directory, in which case
 registration will be performed from scratch, or a directory already
@@ -371,18 +371,27 @@ a pre-defined registration transform.  Transformations
 are performed, in the order given in the dictionary,
 before any registration step is performed.</p>
 </dd>
-<dt>initial_alignment<span class="classifier">dict/str, default=None</span></dt><dd><p>Alignment to be performed before any registration steps
-are run.  This can be a dictionary specifying parameters
-and values to be passed to skrt.image.get_translation_to_align(),
-which defines a translation for aligning fixed and moving image.
-It can also be one of the strings “top”, “centre”, “bottom”,
-in which case skrt.image.get_translation_to align() is called
-to define a translationg wuch that fixed and moving image have
+<dt>initial_alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Alignment to be performed before any registration steps
+are run.  This can be any of the following:
+- a tuple indicating the amounts (dx, dy, dz) by which</p>
+<blockquote>
+<div><p>a point in the fixed image must be translated to align
+with the corresponding point in the moving image;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>a dictionary specifying parameters and values to be passed
+to skrt.image.get_translation_to_align(), which defines
+a translation for aligning fixed and moving image;</p></li>
+<li><p>one of the strings “top”, “centre”, “bottom”, in which case
+skrt.image.get_translation_to align() is called to define
+a translationg such that fixed and moving image have
 their (x, y) centres aligned, and have z positions aligned at
-image top, centre or bottom.  The result of the initial
-alignment is stored as the first entry of &lt;self.tfiles”,
-with key “initial_alignment”.  If &lt;initial_alignment&gt; is set
-to None, no initial alignment is performed.</p>
+image top, centre or bottom.</p></li>
+</ul>
+<p>The result of the initial alignment is stored as the first
+entry of &lt;self.tfiles”, with key &lt;initial_alignment_name&gt;.  If
+&lt;initial_alignment&gt; is set to None, no initial alignment
+is performed.</p>
 </dd>
 <dt>initial_transform_name<span class="classifier">str, default=None</span></dt><dd><p>Name to be used in registration steps for transform corresponding
 to &lt;initial_alignment&gt;.  If None, the name ‘initial_alignment’
@@ -528,19 +537,28 @@ registration step.</p>
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_initial_translation">
 <span class="sig-name descname"><span class="pre">get_initial_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_initial_translation" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain translation corresponding to intial alignemnt.</p>
-<dl class="simple">
-<dt>initial_alignment<span class="classifier">dict/str, default=None</span></dt><dd><p>Alignment to be performed before any registration steps
-are run.  This can be a dictionary specifying parameters
-and values to be passed to skrt.image.get_translation_to_align(),
-which defines a translation for aligning fixed and moving image.
-It can also be one of the strings “top”, “centre”, “bottom”,
-in which case skrt.image.get_translation_to align() is called
-to define a translationg wuch that fixed and moving image have
+<dl>
+<dt>initial_alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Alignment to be performed before any registration steps
+are run.  This can be any of the following:
+- a tuple indicating the amounts (dx, dy, dz) by which</p>
+<blockquote>
+<div><p>a point in the fixed image must be translated to align
+with the corresponding point in the moving image;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>a dictionary specifying parameters and values to be passed
+to skrt.image.get_translation_to_align(), which defines
+a translation for aligning fixed and moving image;</p></li>
+<li><p>one of the strings “top”, “centre”, “bottom”, in which case
+skrt.image.get_translation_to align() is called to define
+a translationg such that fixed and moving image have
 their (x, y) centres aligned, and have z positions aligned at
-image top, centre or bottom.  The result of the initial
-alignment is stored as the first entry of &lt;self.tfiles”,
-with key “initial_alignment”.  If &lt;initial_alignment&gt; is set
-to None, no initial alignment is performed.</p>
+image top, centre or bottom.</p></li>
+</ul>
+<p>The result of the initial alignment is stored as the first
+entry of &lt;self.tfiles”, with key &lt;initial_alignment_name&gt;.  If
+&lt;initial_alignment&gt; is set to None, no initial alignment
+is performed.</p>
 </dd>
 </dl>
 </dd></dl>
