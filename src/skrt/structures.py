@@ -1825,18 +1825,12 @@ class ROI(skrt.core.Archive):
 
                 - "centroid": 3D centre-of-mass of ROI; will be split into
                   three columns corresponding to the three axes.
-                - "centroid_x": 3D centre-of-mass of ROI along the x-axis.
-                - "centroid_y": 3D centre-of-mass of ROI along the y-axis.
-                - "centroid_z": 3D centre-of-mass of ROI along the z-axis.
                 - "centroid_slice": 2D centre of mass on a single slice. Will
                   be split into two columns corresponding to the two axes on
                   the slice.
 
                 - "length": lengths of the ROI in each direction; will be split
                   into three columns corresponding to the three axes.
-                - "length_x": length of the ROI along the x-axis.
-                - "length_y": length of the ROI along the y-axis.
-                - "length_z": length of the ROI along the z-axis.
                 - "length_slice": length of the ROI on a single slice; will be
                   split into two columns corresponding to the two axes on the
                   slice.
@@ -2690,10 +2684,10 @@ class ROI(skrt.core.Archive):
         ROI masks used in distance calculations.
 
         mean_under_contouring : sum of absolute values of negative distances
-        to conformity, divided by volume in <vol_units>.
+        to conformity, divided by volume in union of ROIs considered.
 
         mean_over_contouring : sum of positive distances to conformity,
-        divided by volume in <vol_units>.
+        divided by volume in union of ROIs considered.
 
         mean_distance_to_conformity : sum of mean_under_contouring and
         mean_over_contouring.
@@ -2809,19 +2803,16 @@ class ROI(skrt.core.Archive):
                 * "centroid_slice": 2D centroid distance vector on a single slice.
                 * "abs_centroid_slice": magnitude of 2D centroid distance 
                   vector on a single slice.
-                * "centroid_x": x component of 3D centroid distance vector.
-                * "centroid_y": y component of 3D centroid distance vector.
-                * "centroid_z": z component of 3D centroid distance vector.
 
                 * "volume_diff": volume difference (own volume - other volume).
                 * "rel_volume_diff": volume difference divided by own volume.
-                * "volume ratio": volume ratio (own volume / other volume).
+                * "volume_ratio": volume ratio (own volume / other volume).
 
                 * "area_diff": area difference (own area - other area) on a 
                   single slice.
                 * "rel_area_diff": area difference divided by own area on a 
                   single slice.
-                * "area ratio": area ratio (own area / other area).
+                * "area_ratio": area ratio (own area / other area).
                 * "area_diff_flat": area difference of ROIs flattened in the
                   orientation specified in <view>.
                 * "rel_area_diff_flat": relative area difference of ROIs
@@ -2838,7 +2829,22 @@ class ROI(skrt.core.Archive):
                 * "hausdorff_distance": Hausdorff distance.
                 * "hausdorff_distance_flat": Hausdorff distance of ROIs
                   flattened in the orientation specified in <view>.
-
+                * "mean_under_contouring": Sum of absolute values of
+                  negative distances to conformity, divided by volume
+                  in union of ROIs compared.
+                * "mean_under_contouring_flat": Sum of absolute values of
+                  negative distances to conformity, divided by volume,
+                  flattened in the orientation specified in <view>.
+                  in union of ROIs compared.
+                * "mean_over_contouring": Sum of positive distances
+                  to conformity, divided by volume in union of ROIs compared.
+                * "mean_over_contouring_flat": Sum of positive distances
+                  to conformity, divided by volume in union of ROIs compared,
+                  flattened in the orientation specified in <view>.
+                * "mean_distance_to_conformity": Sum of mean_under_contouring
+                  and mean_over_contouring.
+                * "mean_distance_to_conformity_flat": Sum of
+                  mean_under_contouring_flat and mean_over_contouring_flat.
 
             If None, defaults to ["dice", "centroid"].
 
@@ -2914,6 +2920,10 @@ class ROI(skrt.core.Archive):
         if metrics is None:
             metrics = ["dice", "centroid"]
 
+        # Initialise variables for distance-to-conformity metrics
+        conformity = None
+        conformity_flat = None
+
         # Compute metrics
         comp = {}
         slice_kwargs = {
@@ -2971,11 +2981,11 @@ class ROI(skrt.core.Archive):
                     method=method,
                     **slice_kwargs
                 )
-                for i, i_ax in enumerate(skrt.image._plot_axes):
-                    ax = skrt.image.axes[i_ax]
+                for i, i_ax in enumerate(skrt.image._plot_axes[view]):
+                    ax = skrt.image._axes[i_ax]
                     comp[f"centroid_slice_{ax}"] = centroid[i]
             elif m == "abs_centroid_slice":
-                centroid = self.get_abs_centroid_distance(
+                comp[m] = self.get_abs_centroid_distance(
                     roi,
                     units=centroid_units,
                     method=method,
@@ -3023,6 +3033,14 @@ class ROI(skrt.core.Archive):
                     method=method,
                     **slice_kwargs
                 )
+            elif m == "area_diff_flat":
+                comp[m] = self.get_area_diff(
+                    roi,
+                    units=area_units,
+                    method=method,
+                    view=view,
+                    flatten=True,
+                )
             elif m == "rel_area_diff_flat":
                 comp[m] = self.get_relative_area_diff(
                     roi,
@@ -3042,16 +3060,41 @@ class ROI(skrt.core.Archive):
             elif m == "mean_surface_distance":
                 comp[m] = self.get_mean_surface_distance(roi)
             elif m == "mean_surface_distance_flat":
-                comp[m] = self.get_mean_surface_distance(roi, flatten=True)
+                comp[m] = self.get_mean_surface_distance(roi, view=view,
+                        flatten=True)
             elif m == "rms_surface_distance":
                 comp[m] = self.get_rms_surface_distance(roi)
             elif m == "rms_surface_distance_flat":
-                comp[m] = self.get_rms_surface_distance(roi, flatten=True)
+                comp[m] = self.get_rms_surface_distance(roi, view=view,
+                        flatten=True)
             elif m == "hausdorff_distance":
                 comp[m] = self.get_hausdorff_distance(roi)
             elif m == "hausdorff_distance_flat":
-                comp[m] = self.get_hausdorff_distance(roi, flatten=True)
-
+                comp[m] = self.get_hausdorff_distance(roi, view=view,
+                        flatten=True)
+            elif m in ["mean_under_contouring", "mean_over_contouring",
+                    "mean_distance_to_conformity"]:
+                conformity = (conformity
+                        or self.get_mean_distance_to_conformity(
+                            roi, vol_units))
+                if m == "mean_under_contouring":
+                    comp[m] = conformity.mean_under_contouring
+                if m == "mean_over_contouring":
+                    comp[m] = conformity.mean_over_contouring
+                if m == "mean_distance_to_conformity":
+                    comp[m] = conformity.mean_distance_to_conformity
+            elif m in ["mean_under_contouring_flat",
+                    "mean_over_contouring_flat",
+                    "mean_distance_to_conformity_flat"]:
+                conformity_flat = (conformity_flat
+                        or self.get_mean_distance_to_conformity(
+                            roi, vol_units, view=view, flatten=True))
+                if m == "mean_under_contouring_flat":
+                    comp[m] = conformity_flat.mean_under_contouring
+                if m == "mean_over_contouring_flat":
+                    comp[m] = conformity_flat.mean_over_contouring
+                if m == "mean_distance_to_conformity_flat":
+                    comp[m] = conformity_flat.mean_distance_to_conformity
             else:
                 found = False
 
@@ -3065,7 +3108,7 @@ class ROI(skrt.core.Archive):
                             units=centroid_units,
                             method=method,
                             force=force
-                        )[i]
+                        )
                         found = True
 
                 if not found:
