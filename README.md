@@ -13,7 +13,7 @@ allows for scikit-rt code to be used from a jupyter notebook.
 
 ### Package installation
 
-Installation via a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and [pip](https://pypi.org/project/pip/).
+Installation inside a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and [pip](https://pypi.org/project/pip/).
 
 #### 1. Miniconda setup (recommended)
 
@@ -36,6 +36,7 @@ conda activate skrt
 ```
 pip install scikit-rt
 ```
+<!---
 4. If using Windows, you will also need to install shapely by running:
 ```
 conda install -c conda-forge shapely
@@ -44,7 +45,7 @@ conda install -c conda-forge shapely
 ```
 pip install simpleitk
 ```
-
+--->
 
 #### 3. Using scikit-rt in code
 
