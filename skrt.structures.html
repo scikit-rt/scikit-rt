@@ -918,23 +918,35 @@ recalculated.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_mean_distance_to_conformity">
-<span class="sig-name descname"><span class="pre">get_mean_distance_to_conformity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mean_distance_to_conformity" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_mean_distance_to_conformity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mean_distance_to_conformity" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain mean distance to conformity for &lt;other&gt; relative to &lt;self&gt;.</p>
 <p>The mean distance to conformity is as defined in:
-<a class="reference external" href="https://doi.org/10.1259/bjr/27674581">https://doi.org/10.1259/bjr/27674581</a></p>
+<a class="reference external" href="https://doi.org/10.1259/bjr/27674581">https://doi.org/10.1259/bjr/27674581</a>
+Technically the mean distance to conformity isn’t a distance,
+but is a distance divided by a volume.</p>
 <p>This function returns a skrt.core.Data object, with the following
 information:</p>
 <p>n_voxel : number of voxels in the union of the ROIs considered.</p>
 <p>voxel_size : voxel size (dx, dy, dz) in millimetres, in the
 ROI masks used in distance calculations.</p>
 <p>mean_under_contouring : sum of absolute values of negative distances
-to conformity, divided by n_voxel.</p>
+to conformity, divided by volume in &lt;vol_units&gt;.</p>
 <p>mean_over_contouring : sum of positive distances to conformity,
-divided by n_voxel.</p>
+divided by volume in &lt;vol_units&gt;.</p>
 <p>mean_distance_to_conformity : sum of mean_under_contouring and
 mean_over_contouring.</p>
-<p>For parameters that may be passed, see documentation for:
-skrt.ROI.get_surface_distances().</p>
+<p><strong>Parameters:</strong>
+vol_units : str, default=”mm”</p>
+<blockquote>
+<div><p>Units to use for volume in denominator when calculating
+mean_under_contouring and mean_overcontouring. Can be
+“mm” (=mm^3), “ml”, or “voxels”.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>kwargs</dt><dd><p>Keyword arguments are passed to skrt.ROI.get_surface_distances().
+See documentation of this method for valid parameters.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
