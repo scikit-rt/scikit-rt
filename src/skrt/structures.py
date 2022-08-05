@@ -2672,12 +2672,14 @@ class ROI(skrt.core.Archive):
             return
         return sds.max()
 
-    def get_mean_distance_to_conformity(self, other, **kwargs):
+    def get_mean_distance_to_conformity(self, other, vol_units="mm", **kwargs):
         '''
         Obtain mean distance to conformity for <other> relative to <self>.
 
         The mean distance to conformity is as defined in:
         https://doi.org/10.1259/bjr/27674581
+        Technically the mean distance to conformity isn't a distance,
+        but is a distance divided by a volume.
 
         This function returns a skrt.core.Data object, with the following
         information:
@@ -2688,16 +2690,23 @@ class ROI(skrt.core.Archive):
         ROI masks used in distance calculations.
 
         mean_under_contouring : sum of absolute values of negative distances
-        to conformity, divided by n_voxel.
+        to conformity, divided by volume in <vol_units>.
 
         mean_over_contouring : sum of positive distances to conformity,
-        divided by n_voxel.
+        divided by volume in <vol_units>.
 
         mean_distance_to_conformity : sum of mean_under_contouring and
         mean_over_contouring.
 
-        For parameters that may be passed, see documentation for:
-        skrt.ROI.get_surface_distances().
+        **Parameters:**
+        vol_units : str, default="mm"
+            Units to use for volume in denominator when calculating
+            mean_under_contouring and mean_overcontouring. Can be
+            "mm" (=mm^3), "ml", or "voxels".
+
+        kwargs
+            Keyword arguments are passed to skrt.ROI.get_surface_distances().
+            See documentation of this method for valid parameters.
         '''
 
         # Obtain distances to conformity.
@@ -2723,9 +2732,9 @@ class ROI(skrt.core.Archive):
         conformity.n_voxel = mask_data.sum()
         conformity.voxel_size = union.get_voxel_size()
         conformity.mean_under_contouring = (abs(sds[sds < 0].sum())
-                / conformity.n_voxel)
+                / union.get_volume(vol_units))
         conformity.mean_over_contouring = (sds[sds > 0].sum()
-                / conformity.n_voxel)
+                / union.get_volume(vol_units))
         conformity.mean_distance_to_conformity = (
                 conformity.mean_under_contouring +
                 conformity.mean_over_contouring)
