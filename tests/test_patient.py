@@ -103,6 +103,7 @@ def test_load_images():
 def test_unsorted_dicom_defaults():
     for unsorted_dicom in [True, False]:
         skrt.core.Defaults().unsorted_dicom = unsorted_dicom
+        time.sleep(10)
         p2 = Patient(pdir)
         s = p2.studies[0]
         assert len(s.ct_images) == 1
