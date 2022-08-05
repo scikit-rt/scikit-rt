@@ -160,7 +160,7 @@
 allows for scikit-rt code to be used from a jupyter notebook.</p>
 <section id="package-installation">
 <h3>Package installation<a class="headerlink" href="#package-installation" title="Permalink to this heading"></a></h3>
-<p>Installation via a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and <a class="reference external" href="https://pypi.org/project/pip/">pip</a>.</p>
+<p>Installation inside a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and <a class="reference external" href="https://pypi.org/project/pip/">pip</a>.</p>
 <section id="miniconda-setup-recommended">
 <h4>1. Miniconda setup (recommended)<a class="headerlink" href="#miniconda-setup-recommended" title="Permalink to this heading"></a></h4>
 <ol class="arabic simple">
@@ -188,18 +188,16 @@ allows for scikit-rt code to be used from a jupyter notebook.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="4">
-<li><p>If using Windows, you will also need to install shapely by running:</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">shapely</span>
-</pre></div>
-</div>
-<ol class="arabic simple" start="5">
-<li><p>If you want to be able to calculate the STAPLE consensus of contours, you must also install SimpleITK:</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">simpleitk</span>
-</pre></div>
-</div>
+<!---
+4. If using Windows, you will also need to install shapely by running:
+```
+conda install -c conda-forge shapely
+```
+5. If you want to be able to calculate the STAPLE consensus of contours, you must also install SimpleITK:
+```
+pip install simpleitk
+```
+--->
 </section>
 <section id="using-scikit-rt-in-code">
 <h4>3. Using scikit-rt in code<a class="headerlink" href="#using-scikit-rt-in-code" title="Permalink to this heading"></a></h4>
