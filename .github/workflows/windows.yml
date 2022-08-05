@@ -1,4 +1,4 @@
-# Workflow for running scikit-rt on Windows.
+# Workflow for running Scikit-rt tests on Windows.
 
 name: Windows test
 
