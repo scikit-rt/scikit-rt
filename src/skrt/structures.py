@@ -2860,6 +2860,11 @@ class ROI(skrt.core.Archive):
                   specified in <view>.
                 * "dice_slice": Dice score on a single slice.
 
+                * "jaccard" : global Jaccard index.
+                * "jaccard_flat": Jaccard index of ROIs flattened in
+                  the orientation specified in <view>.
+                * "jaccard_slice": Jaccard index on a single slice.
+
                 * "centroid": 3D centroid distance vector.
                 * "abs_centroid": magnitude of 3D centroid distance vector.
                 * "abs_centroid_flat": magnitude of 3D centroid distance vector
@@ -3011,6 +3016,19 @@ class ROI(skrt.core.Archive):
                 )
             elif m == "dice_slice":
                 comp[m] = self.get_dice(roi, method=method, **slice_kwargs)
+
+            # Jaccard index
+            elif m == "jaccard":
+                comp[m] = self.get_jaccard(roi, method=method)
+            elif m == "jaccard_flat":
+                comp[m] = self.get_jaccard(
+                    roi, 
+                    view=view,
+                    method=method,
+                    flatten=True, 
+                )
+            elif m == "jaccard_slice":
+                comp[m] = self.get_jaccard(roi, method=method, **slice_kwargs)
 
             # Centroid distances
             elif m == "centroid":

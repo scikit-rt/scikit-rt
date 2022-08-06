@@ -260,10 +260,12 @@ def test_plot_consensus():
                            include_image=include_image)
 
 def test_get_comparison():
-    metrics = ["dice", "dice_flat", "dice_slice", "centroid",
-            "abs_centroid", "abs_centroid_flat", "centroid_slice",
-            "abs_centroid_slice", "volume_diff", "rel_volume_diff",
-            "volume_ratio", "area_diff", "rel_area_diff", "area_ratio",
+    metrics = ["dice", "dice_flat", "dice_slice",
+            "jaccard", "jaccard_flat", "jaccard_slice",
+            "centroid", "abs_centroid", "abs_centroid_flat",
+            "centroid_slice", "abs_centroid_slice",
+            "volume_diff", "rel_volume_diff", "volume_ratio",
+            "area_diff", "rel_area_diff", "area_ratio",
             "area_diff_flat", "rel_area_diff_flat", "area_ratio_flat",
             "mean_surface_distance", "mean_surface_distance_flat",
             "rms_surface_distance", "rms_surface_distance_flat",
