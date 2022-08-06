@@ -855,6 +855,48 @@ if method=”mask”.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_jaccard">
+<span class="sig-name descname"><span class="pre">get_jaccard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_jaccard" title="Permalink to this definition"></a></dt>
+<dd><p>Get Jaccard index with respect to another ROI.</p>
+<p>The Jaccard index may be obtained either globally or on a 
+single slice.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
+</dd>
+<dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Dice score of the full ROIs will be returned;
+otherwise, the 2D Dice score on a single slice will be returned.</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Dice score. Only used if 
+single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
+the slice in this orientation.</p>
+</dd>
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
+<dt>Method to use for Dice score calculation. Can be: </dt><dd><ul class="simple">
+<li><p>“contour”: get intersections and areas of shapely contours.</p></li>
+<li><p>“mask”: count intersecting voxels in binary masks.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
+the Dice score of the flattened slices will be returned. Only 
+available if method=”mask”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_length">
 <span class="sig-name descname"><span class="pre">get_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_length" title="Permalink to this definition"></a></dt>
 <dd><p>Get ROI length along a given axis. If single_slice=False (i.e. a 
