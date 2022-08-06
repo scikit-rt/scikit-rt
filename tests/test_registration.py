@@ -8,9 +8,13 @@ import subprocess
 
 from skrt import Image
 from skrt.simulation import SyntheticImage
-from skrt.registration import Registration, read_parameters
+from skrt.registration import (Registration, get_default_pfiles,
+        get_default_pfiles_dir, read_parameters)
 
 from test_structs import compare_rois
+
+# Define directory containing default parameter files.
+pfiles_dir = get_default_pfiles_dir()
 
 # Directory to store test registration data
 reg_dir = "tmp/reg"
@@ -91,7 +95,8 @@ def test_init_with_pfiles():
     """Test creation of a new Registration object with images and parameter
     files."""
 
-    pfiles = ["pfiles/MI_Translation.txt", "pfiles/MI_Affine.txt"]
+    pfiles = get_default_pfiles(basename_only=False)
+    assert len(pfiles) > 0
     reg = Registration(reg_dir, im1, im2, pfiles=pfiles, overwrite=True)
     assert len(reg.steps) == len(pfiles)
     assert os.path.isfile(reg.steps_file)
@@ -105,8 +110,8 @@ def test_init_pfiles_custom_names():
     """Test loading of parameter files with a dict containing custom names."""
 
     pfiles = {
-        "translation": "pfiles/MI_Translation.txt", 
-        "affine": "pfiles/MI_Affine.txt"
+        "translation": pfiles_dir / "MI_Translation.txt", 
+        "affine": pfiles_dir / "MI_Affine.txt"
     }
     reg = Registration(reg_dir, im1, im2, pfiles=pfiles, overwrite=True)
     assert reg.steps == list(pfiles.keys())
@@ -150,7 +155,7 @@ def test_add_files():
 
     reg = Registration(reg_dir, im1, im2, overwrite=True)
     assert len(reg.steps) == 0
-    reg.add_file("pfiles/MI_Translation.txt")
+    reg.add_file(pfiles_dir / "MI_Translation.txt")
     assert len(reg.steps) == 1
     assert len(reg.pfiles) == 1
     assert len(reg.outdirs) == 1
@@ -295,7 +300,7 @@ def test_read_parameters():
     """Test reading elastix parameter file into dict."""
 
     from skrt.registration import read_parameters
-    params = read_parameters("pfiles/MI_Translation.txt")
+    params = read_parameters(pfiles_dir / "MI_Translation.txt")
     assert params["NumberOfResolutions"] == 4
     assert params["UseDirectionCosines"]
     assert isinstance(params["UseDirectionCosines"], bool)
@@ -326,7 +331,7 @@ def test_write_parameters():
 def test_adjust_parameters():
     """Test adjustment of an elastix parameter file."""
     
-    pfile = "pfiles/MI_Translation.txt"
+    pfile = pfiles_dir / "MI_Translation.txt"
     init_text = open(pfile).read()
     assert "(DefaultPixelValue 0)" in init_text
     from skrt.registration import adjust_parameters
