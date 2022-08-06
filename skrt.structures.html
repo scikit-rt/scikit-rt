@@ -950,8 +950,9 @@ mean_under_contouring and mean_overcontouring. Can be
 “mm” (=mm^3), “ml”, or “voxels”.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>kwargs</dt><dd><p>Keyword arguments are passed to skrt.ROI.get_surface_distances().
-See documentation of this method for valid parameters.</p>
+<dt>kwargs</dt><dd><p>Keyword arguments are passed to
+skrt.structures.ROI.get_surface_distances().
+See documentation of this method for parameter details.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1951,6 +1952,25 @@ ROI.get_comparison() documentation for details.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_conformity_index">
+<span class="sig-name descname"><span class="pre">get_conformity_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_conformity_index" title="Permalink to this definition"></a></dt>
+<dd><p>Get conformity index for ROIs of the StructureSet.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>names<span class="classifier">list, default=None</span></dt><dd><p>List of strings corresponding to ROI names.  If non-null,
+The conformity index is calculated relative for the ROIs
+with the listed names only.  Otherwise, the conformity
+index is calculated relative to all ROIs in the structure
+set.</p>
+</dd>
+<dt>kwargs</dt><dd><p>Keyword arguments are passed to
+skrt.structures.get_conformity_index()..get_surface_distances().
+See documentation of this function for parameter details.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_consensus">
 <span class="sig-name descname"><span class="pre">get_consensus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consensus_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_consensus" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -2483,21 +2503,24 @@ the background color will be grey.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.get_conformity_index">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_conformity_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ci_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'general'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_conformity_index" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_conformity_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ci_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_conformity_index" title="Permalink to this definition"></a></dt>
 <dd><p>Get conformity index for two or more ROIs.</p>
 <p>The conformity index may be calculated globally or for a single slice.</p>
-<p>The conformity index returned may be any of the three
-types (“general”, “pairs”, “common”) referred to in:
+<p>This function returns either the value of one of the three types
+of conformity index (“gen” (for generalised), “pairs”, “common”)
+referred to in:
 <a class="reference external" href="https://doi.org/10.1088/0031-9155/54/9/018">https://doi.org/10.1088/0031-9155/54/9/018</a>
-For the case of two ROIs, all are equivalent to the
-Jaccard conformity index.</p>
+or a skrt.core.Data object with the values of all three.
+For the case of two ROIs, the three metrics are all equivalent
+to the Jaccard conformity index.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>rois<span class="classifier">list</span></dt><dd><p>List of two or more skrt.structures.ROI objects for which conformity
 index is to be calculated.</p>
 </dd>
-<dt>ci_type: str, default=general</dt><dd><p>Type of conformity index to calculate.  This should be one
-of “general”, “pairs”, “common”.</p>
+<dt>ci_type: str, default=”gen”</dt><dd><p>Type of conformity index to be returned, from “gen” (for generalised),
+“pairs”, “common”.  If set to “all”, a skrt.core.Data object with
+values for the three types of conformity index is returned.</p>
 </dd>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Dice score of the full ROIs will be returned;
 otherwise, the 2D Dice score on a single slice will be returned.</p>
