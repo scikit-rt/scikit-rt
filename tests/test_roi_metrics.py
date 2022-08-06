@@ -4,8 +4,10 @@ import numpy as np
 from pytest import approx
 import random
 
+from skrt import StructureSet
 from skrt.simulation import SyntheticImage
 from skrt.image import _plot_axes, _slice_axes, _axes
+from skrt.structures import get_conformity_index
 
 views = list(_slice_axes.keys())
 methods = ["mask", "contour"]
@@ -244,3 +246,43 @@ def test_mean_distance_to_conformity():
     assert conformity.mean_under_contouring == mean_distance
     assert conformity.mean_over_contouring == mean_distance
     assert conformity.mean_distance_to_conformity == 2 * mean_distance
+
+def test_conformity_index():
+    """Test calculations of conformity index."""
+    # Create test image, featuring overlapping cubes.
+    sim2 = SyntheticImage((20, 20, 20), origin=(0.5, 0.5, 0.5))
+    sim2.add_cube(8, centre=(10, 10, 8), name="cube1")
+    sim2.add_cube(8, centre=(10, 10, 9), name="cube2")
+    sim2.add_cube(8, centre=(10, 10, 11), name="cube3")
+    sim2.add_cube(8, centre=(10, 10, 12), name="cube4")
+
+    # For two ROIs, all conformity indices reduce to the Jaccard index.
+    rois = [sim2.get_roi(f"cube{idx}") for idx in [1, 4]]
+    jci = 4/12
+    # Calculation for list of ROIs.
+    ci = get_conformity_index(rois, "all")
+    assert jci == ci.common
+    assert jci == ci.gen
+    assert jci == ci.pairs
+
+    # For two ROIs, all conformity indices reduce to the Jaccard index.
+    rois = [sim2.get_roi(f"cube{idx}") for idx in [2, 3]]
+    jci = 6/10
+    # Calculation for structure set.
+    ci = StructureSet(rois).get_conformity_index(ci_type="all")
+    assert jci == ci.common
+    assert jci == ci.gen
+    assert jci == ci.pairs
+
+    # Conformity indices relative to the four ROIs defined.
+    rois = [sim2.get_roi(f"cube{idx}") for idx in [1, 2, 3, 4]]
+    ci_common = 4/12
+    ci_pairs = (7/9 + 5/11 + 4/12 + 6/10 + 5/11 + 7/9) / 6
+    ci_gen = (7 + 5 + 4 + 6 + 5 + 7) / (9 + 11 + 12 + 10 + 11 + 9)
+    ci = StructureSet(rois).get_conformity_index(ci_type="all")
+    assert ci.common == ci_common
+    assert ci.gen == ci_gen
+    assert ci.pairs == ci_pairs
+    assert get_conformity_index(rois, "common") == ci_common
+    assert get_conformity_index(rois, "pairs") == ci_pairs
+    assert get_conformity_index(rois, "gen") == ci_gen

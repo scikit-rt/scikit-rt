@@ -2699,8 +2699,9 @@ class ROI(skrt.core.Archive):
             "mm" (=mm^3), "ml", or "voxels".
 
         kwargs
-            Keyword arguments are passed to skrt.ROI.get_surface_distances().
-            See documentation of this method for valid parameters.
+            Keyword arguments are passed to
+            skrt.structures.ROI.get_surface_distances().
+            See documentation of this method for parameter details.
         '''
 
         # Obtain distances to conformity.
@@ -4984,6 +4985,26 @@ class StructureSet(skrt.core.Archive):
         self.load()
         return (self.name)
 
+    def get_conformity_index(self, names=None, **kwargs):
+        """
+        Get conformity index for ROIs of the StructureSet.
+
+        **Parameters:**
+
+        names : list, default=None
+            List of strings corresponding to ROI names.  If non-null,
+            The conformity index is calculated relative for the ROIs
+            with the listed names only.  Otherwise, the conformity
+            index is calculated relative to all ROIs in the structure
+            set.
+
+        kwargs
+            Keyword arguments are passed to
+            skrt.structures.get_conformity_index()..get_surface_distances().
+            See documentation of this function for parameter details.
+        """
+        return get_conformity_index(self.get_rois(names), **kwargs)
+
     def get_geometry(
         self, 
         name_as_index=True, 
@@ -6526,7 +6547,7 @@ def compare_roi_pairs(
 
 def get_conformity_index(
     rois,
-    ci_type="general",
+    ci_type="gen",
     single_slice=False,
     view="x-y", 
     sl=None, 
@@ -6540,11 +6561,13 @@ def get_conformity_index(
 
     The conformity index may be calculated globally or for a single slice.
 
-    The conformity index returned may be any of the three
-    types ("general", "pairs", "common") referred to in:
+    This function returns either the value of one of the three types
+    of conformity index ("gen" (for generalised), "pairs", "common")
+    referred to in:
     https://doi.org/10.1088/0031-9155/54/9/018
-    For the case of two ROIs, all are equivalent to the
-    Jaccard conformity index.
+    or a skrt.core.Data object with the values of all three.
+    For the case of two ROIs, the three metrics are all equivalent
+    to the Jaccard conformity index.
 
     **Parameters:**
         
@@ -6552,9 +6575,10 @@ def get_conformity_index(
         List of two or more skrt.structures.ROI objects for which conformity
         index is to be calculated.
 
-    ci_type: str, default=general
-        Type of conformity index to calculate.  This should be one
-        of "general", "pairs", "common".
+    ci_type: str, default="gen"
+        Type of conformity index to be returned, from "gen" (for generalised),
+        "pairs", "common".  If set to "all", a skrt.core.Data object with
+        values for the three types of conformity index is returned.
 
     single_slice : bool, default=False
         If False, the global 3D Dice score of the full ROIs will be returned;
@@ -6592,72 +6616,69 @@ def get_conformity_index(
     """
 
     # Require valid inputs.
-    if len(rois) < 2 or ci_type not in ["common", "general", "pairs"]:
+    if len(rois) < 2 or ci_type not in ["common", "gen", "pairs", "all"]:
         return
 
-    if ci_type in ["general", "pairs"]:
-        # Deal with cases "general" and "pairs".
-        #
-        # For "general", the conformity index is calculated as the ratio of
-        # (1) the sum of the intersections for all pairs to (2) the sum of
-        # the unions # for all pairs.
-        #
-        # For "pairs, the conformity index is calcualted as the mean of the
-        # Jaccard conformity indices for all pairs.
+    # Initialise Data object for conformity indices.
+    ci = skrt.core.Data({"common": 0, "gen":0, "pairs":0})
 
-        numerator = 0
-        denominator = 0
-        ci = 0
-        n_pair = 0
-        for idx1 in range(len(rois) - 1):
-            for idx2 in range(idx + 1, range(len(rois))):
-                roi1 = rois[idx1]
-                roi2 = rois[idx2]
-                intersection, union, mean_size = (
-                        roi1.get_intersection_union_size(roi2, single_slice,
-                            view, sl, idx, pos, method, flatten))
-                n_pair += 1
-                if "general" == ci_type:
-                    numerator += intersection
-                    denominator += union
-                elif "pairs" == ci_type:
-                    ci += intersection / union
+    # Deal with cases "gen" and "pairs".
+    #
+    # For "gen", the conformity index is calculated as the ratio of
+    # (1) the sum of the intersections for all pairs to (2) the sum of
+    # the unions for all pairs.
+    #
+    # For "pairs, the conformity index is calcualted as the mean of the
+    # Jaccard conformity indices for all pairs.
 
-        if "general" == ci_type:
-            ci = numerator / denominator
-        elif "pairs" == ci_type:
-            ci /= n_pair
-
-    elif "common" == ci_type:
-        # Deal with case "common".
-        #
-        # The conformity index is calculated as the ratio of
-        # (1) the common intersection of all ROIs to (2) the combined union
-        # of all ROIs.
-        if 2 == len(rois):
+    numerator = 0
+    denominator = 0
+    n_pair = 0
+    for idx1 in range(len(rois) - 1):
+        for idx2 in range(idx1 + 1, len(rois)):
+            roi1 = rois[idx1]
+            roi2 = rois[idx2]
             intersection, union, mean_size = (
-                    rois[0].get_intersection_union_size(rois[1], single_slice,
-                            view, sl, idx, pos, method, flatten))
+                    roi1.get_intersection_union_size(roi2, single_slice,
+                        view, sl, idx, pos, method, flatten))
+            numerator += intersection
+            denominator += union
+            ci.pairs += intersection / union
+            n_pair += 1
+
+    ci.gen = numerator / denominator
+    ci.pairs /= n_pair
+
+    # Deal with case "common".
+    #
+    # The conformity index is calculated as the ratio of
+    # (1) the common intersection of all ROIs to (2) the combined union
+    # of all ROIs.
+    if 2 == len(rois):
+        intersection, union, mean_size = (
+                rois[0].get_intersection_union_size(rois[1], single_slice,
+                        view, sl, idx, pos, method, flatten))
+        ci.common = intersection / union
+    else:
+        if not single_slice:
+            mask_intersection = rois[0].clone().get_mask(
+                    view, flatten, standardise=True)
+            mask_union = rois[0].clone().get_mask(
+                    view, flatten, standardise=True)
         else:
+            mask_intersection = rois[0].clone().get_slice(
+                    view, sl, idx, pos)
+            mask_union = rois[0].clone().get_slice(view, sl, idx, pos)
+
+        for roi in rois[1:]:
             if not single_slice:
-                mask_intersection = rois[0].clone().get_mask(
-                        view, flatten, standardise=True)
-                mask_union = rois[0].clone().get_mask(
-                        view, flatten, standardise=True)
+                mask = roi.get_mask(view, flatten, standardise=True)
             else:
-                mask_intersection = rois[0].clone().get_slice(
-                        view, sl, idx, pos)
-                mask_union = rois[0].clone().get_slice(view, sl, idx, pos)
+                mask = roi.get_slice(view, sl, idx, pos)
 
-            for roi in rois[1:]:
-                if not single_slice:
-                    mask = roi.get_mask(view, flatten, standardise=True)
-                else:
-                    mask = roi.get_slice(view, sl, idx, pos)
+            mask_intersection = (mask_intersection & mask)
+            mask_union = (mask_union | mask)
 
-                mask_intersection = (mask_intersection & mask)
-                mask_union = (mask_union | mask)
+        ci.common = mask_intersection.sum() / mask_union.sum()
 
-            ci = mask_intersection.sum() / mask_union.sum()
-
-    return ci
+    return getattr(ci, ci_type, ci)
