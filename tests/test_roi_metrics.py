@@ -125,6 +125,23 @@ def test_dice_contour_slice():
 def test_dice_flattened():
     assert cube1.get_dice(cube2, flatten=True) == 0.5
 
+def test_jaccard_slice():
+    assert cube1.get_jaccard(cube2, single_slice=True, view='x-y', 
+                          idx=cube1.get_mid_idx()) ==  1/3
+
+def test_jaccard_contour():
+    d1 = cube1.get_jaccard(cube2, method="contour")
+    d2 = cube1.get_jaccard(cube2, method="mask")
+    assert abs(d1 - d2) / d1 < 0.1
+
+def test_jaccard_contour_slice():
+    d1 = cube1.get_jaccard(cube2, method="contour", single_slice=True)
+    d2 = cube1.get_jaccard(cube2, method="mask", single_slice=True)
+    assert abs(d1 - d2) / d1 < 0.1
+
+def test_jaccard_flattened():
+    assert cube1.get_jaccard(cube2, flatten=True) == 1/3
+
 def test_volume_ratio():
     assert cube1.get_volume_ratio(cube2) == 1
 
@@ -286,3 +303,27 @@ def test_conformity_index():
     assert get_conformity_index(rois, "common") == ci_common
     assert get_conformity_index(rois, "pairs") == ci_pairs
     assert get_conformity_index(rois, "gen") == ci_gen
+
+def test_intersection_union_size():
+    """Check intersection, union, mean size for pairs of ROIs."""
+    # Calculate expected values of intersection, union, mean size
+    # for pair of cubes.
+    intersection0 = ((side_length - delta_y) * side_length * side_length)
+    union0 = ((side_length + delta_y) * side_length * side_length)
+    size0 = side_length * side_length * side_length
+
+    # Calculate intersection, union, mean size from contours.
+    # (Contours created from cube masks, as here, have limited accuracy.)
+    intersection, union, size = cube1.get_intersection_union_size(
+            cube2, method="contour")
+    precision = 2
+    assert intersection == approx(intersection0, abs=precision)
+    assert union == approx(union0, abs=precision)
+    assert size == size0
+
+    # Calculate intersection, union, mean size from masks.
+    intersection, union, size = cube1.get_intersection_union_size(
+            cube2, method="mask")
+    assert intersection == intersection0
+    assert union == union0
+    assert size == size0

@@ -2229,6 +2229,66 @@ class ROI(skrt.core.Archive):
             return None
         return intersection / mean_size
 
+    def get_jaccard(
+        self, 
+        other, 
+        single_slice=False,
+        view="x-y", 
+        sl=None, 
+        idx=None, 
+        pos=None, 
+        method=None,
+        flatten=False,
+    ):
+        """
+        Get Jaccard index with respect to another ROI.
+
+        The Jaccard index may be obtained either globally or on a 
+        single slice.
+
+        **Parameters:**
+        
+        other : ROI
+            Other ROI to compare with this ROI.
+
+        single_slice : bool, default=False
+            If False, the global 3D Dice score of the full ROIs will be returned;
+            otherwise, the 2D Dice score on a single slice will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice on which to get Dice score. Only used if 
+            single_slice=True. If using, <ax> must be an axis that lies along
+            the slice in this orientation.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        method : str, default=None
+            Method to use for Dice score calculation. Can be: 
+                - "contour": get intersections and areas of shapely contours.
+                - "mask": count intersecting voxels in binary masks.
+                - None: use the method set in self.default_geom_method.
+
+        flatten : bool, default=False
+            If True, all slices will be flattened in the given orientation and
+            the Dice score of the flattened slices will be returned. Only 
+            available if method="mask".
+        """
+
+        intersection, union, mean_size = self.get_intersection_union_size(
+                other, single_slice, view, sl, idx, pos, method, flatten)
+
+        return (intersection / union if union else None)
+
     def get_volume_ratio(self, other, **kwargs):
         """Get ratio of another ROI's volume with respect to own volume."""
 
@@ -2342,7 +2402,15 @@ class ROI(skrt.core.Archive):
             if method="mask".
         """
 
-        self.load()
+        self.create_mask()
+
+        # Define voxel volume, and voxel area in view.
+        voxel_volume = 1
+        for dxyz in self.mask.voxel_size:
+            voxel_volume *= dxyz
+        z_ax = skrt.image._slice_axes[view]
+        slice_thickness = self.mask.voxel_size[z_ax]
+        voxel_area = voxel_volume / slice_thickness
 
         # Get default slice and method
         if single_slice:
@@ -2357,15 +2425,18 @@ class ROI(skrt.core.Archive):
         # Calculate intersections and areas from polygons
         if method == "contour":
 
-            # Get positions of slice(s) on which to compare areas and total areas
-            # on those slice(s)
+            # Get positions of slice(s)
+            # on which to compare areas and total areas.
             if not single_slice:
                 positions = set(self.get_contours("x-y").keys()).union(
                         set(other.get_contours("x-y").keys()))
                 areas1 = [self.get_area("x-y", pos=p) for p in positions]
-                area1 = sum([a for a in areas1 if a is not None])
+                volumes1 = [a * slice_thickness for a in areas1 if a]
+                volume1 = sum(volumes1)
                 areas2 = [other.get_area("x-y", pos=p) for p in positions]
-                area2 = sum([a for a in areas2 if a is not None])
+                volumes2 = [a * slice_thickness for a in areas2 if a]
+                volume2 = sum(volumes2)
+                mean_size = 0.5 * (volume1 + volume2)
             else:
                 positions = [
                     self.idx_to_pos(self.get_idx(view, sl, idx, pos),
@@ -2377,19 +2448,19 @@ class ROI(skrt.core.Archive):
                 area2 = other.get_area(view, sl, idx, pos)
                 if area2 is None:
                     area2 = 0
-
-            mean_size = 0.5 * (area1 + area2)
+                mean_size = 0.5 * (area1 + area2)
             
             # Compute areas of intersection and union on slice(s)
             intersection = 0
+            union = 0
+            factor = 1 if (single_slice or flatten) else slice_thickness
             for p in positions:
                 polygons1 = self.get_polygons_on_slice(view, pos=p)
                 polygons2 = other.get_polygons_on_slice(view, pos=p)
                 for p1 in polygons1:
                     for p2 in polygons2:
-                        intersection += p1.intersection(p2).area
-            unary_union = ops.unary_union(polygons1 + polygons2)
-            union = unary_union.area
+                        intersection += p1.intersection(p2).area * factor
+                        union += p1.union(p2).area * factor
 
         # Calculate intersections and areas from binary mask voxel counts
         else:
@@ -2403,14 +2474,6 @@ class ROI(skrt.core.Archive):
             else:
                 data1 = self.get_slice(view, sl, idx, pos)
                 data2 = other.get_slice(view, sl, idx, pos)
-
-            # Define voxel volume, and voxel area in view.
-            voxel_volume = 1
-            for dxyz in self.mask.voxel_size:
-                voxel_volume *= dxyz
-            z_ax = skrt.image._slice_axes[view]
-            slice_thickness = self.mask.voxel_size[z_ax]
-            voxel_area = voxel_volume / slice_thickness
 
             factor = voxel_area if (single_slice or flatten) else voxel_volume
             intersection = (data1 & data2).sum() * factor
