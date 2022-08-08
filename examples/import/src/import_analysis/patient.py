@@ -18,7 +18,7 @@ class ImportPatient(Patient):
     """
 
     def __init__(self, path=None, exclude=None, unsorted_dicom=True,
-            id_mappings=None, load_dose_sum=True, load_masks=True):
+            id_mappings=None, load_dose_sum=True, load_masks=False):
         """
         Create instance of ImportPatient class.
 
