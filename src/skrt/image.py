@@ -3570,6 +3570,27 @@ class ImageComparison(Image):
 
         self.override_title = title
         self.gs = None
+        self.loaded = False
+
+    def load(self, force=False):
+        """
+        Load associated images, and set array limits in [x, y, z] directions.
+
+        **Parameter:**
+        
+        force : bool, default=True
+            If True, associated images will be reloaded from source, even if
+            previously loaded.
+        """
+        if (self.loaded and not force) or (not self.ims):
+            return
+
+        for im in self.ims:
+            im.load(force=force)
+
+        self.lims = self.ims[0].lims
+
+        self.loaded = True
 
     def view(self, **kwargs):
         """View self with BetterViewer."""
