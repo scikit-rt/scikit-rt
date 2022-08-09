@@ -473,6 +473,20 @@ class Image(skrt.core.Archive):
 
         return self.structure_sets
 
+    def get_rois(self, name):
+        """
+        Get all instances of ROIs with specified name in image structure sets.
+
+        **Parameter:**
+        name : str
+            Name for which ROI instances are to be returned.
+        """
+        rois = []
+        for ss in self.get_structure_sets():
+            if name in ss.get_roi_names():
+                rois.append(ss.get_roi(name))
+        return rois
+
     def get_doses(self):
         """Return list of Dose objects associated with this Image."""
 

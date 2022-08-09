@@ -11,7 +11,8 @@ import subprocess
 
 import skrt.image
 from skrt.structures import ROI, StructureSet
-from skrt.core import fullpath, get_logger, Data, to_list, Defaults, PathData
+from skrt.core import (fullpath, get_logger, Data, is_list, to_list,
+        Defaults, PathData)
 from skrt.dose import ImageOverlay, Dose
 from skrt.simulation import make_grid
 
@@ -146,19 +147,22 @@ class Registration(Data):
         self.moving_mask_path = os.path.join(self.path, "moving_mask.nii.gz")
         self.fixed_source = fixed
         self.moving_source = moving
+        im_fixed = None
+        im_moving = None
         if fixed is not None:
-            self.set_fixed_image(fixed)
+            im_fixed = self.set_fixed_image(fixed)
             if fixed_mask is not None:
                 self.set_fixed_mask(fixed_mask)
         if moving is not None:
-            self.set_moving_image(moving)
+            im_moving = self.set_moving_image(moving)
             if moving_mask is not None:
                 self.set_moving_mask(moving_mask)
         if fixed is None and moving is None:
             self.load_existing_input_images()
 
         # Set initial transform corresponding to initial alignment.
-        initial_translation = self.get_initial_translation(initial_alignment)
+        initial_translation = self.get_initial_translation(
+                initial_alignment, im_fixed, im_moving)
         if initial_translation:
             initial_transform_name = (initial_transform_name
                     or "initial_alignment")
@@ -225,25 +229,28 @@ class Registration(Data):
         else:
             setattr(self, f"{category}_image", skrt.image.Image(path))
 
+        return im
+
     def set_fixed_image(self, im):
         """Assign a fixed image."""
-        self.set_image(im, "fixed")
+        return self.set_image(im, "fixed")
+        
 
     def set_fixed_mask(self, im):
         """Assign a fixed-image mask."""
-        self.set_image(im, "fixed_mask")
+        return self.set_image(im, "fixed_mask")
 
     def set_moving_image(self, im):
         """Assign a moving image."""
-        self.set_image(im, "moving")
+        return self.set_image(im, "moving")
 
     def set_moving_mask(self, im):
         """Assign a moving-image mask."""
-        self.set_image(im, "moving_mask")
+        return self.set_image(im, "moving_mask")
 
     def set_moving_grid(self, im):
         """Assign a grid in the reference system of the moving image."""
-        self.set_image(im, "moving_grid")
+        return self.set_image(im, "moving_grid")
 
     def load_existing_input_images(self):
         """Attempt to load images from fixed.nii.gz and moving.nii.gz from
@@ -260,43 +267,127 @@ class Registration(Data):
                 return
             self.set_image(path, category, force=False)
 
-    def get_initial_translation(self, initial_alignment=None):
+    def get_initial_translation(self, initial_alignment=None,
+            im_fixed=None, im_moving=None):
         """
         Obtain translation corresponding to intial alignemnt.
 
+        The result of the initial alignment is stored as the first
+        entry of <self.tfiles", with key <initial_alignment_name>.  If
+        <initial_alignment> is set to None, no initial alignment
+        is performed.
+
+        **Parameters:**
+
+        im_fixed : skrt.image.Image / default=None
+            Image object representing the fixed image.  This is
+            only needed for ROI-based alignment (see below),
+            and the Image object must have an associated structure
+            set containing the ROI on which to align.
+
+        im_moving : skrt.image.Image / default=None
+            Image object representing the moving image.  This is
+            only needed for ROI-based alignment (see below),
+            and the Image object must have an associated structure
+            set containing the ROI on which to align.
+
         initial_alignment : tuple/dict/str, default=None
             Alignment to be performed before any registration steps
-            are run.  This can be any of the following:
-            - a tuple indicating the amounts (dx, dy, dz) by which
-              a point in the fixed image must be translated to align
-              with the corresponding point in the moving image;
-            - a dictionary specifying parameters and values to be passed
-              to skrt.image.get_translation_to_align(), which defines
-              a translation for aligning fixed and moving image;
-            - one of the strings "top", "centre", "bottom", in which case
-              skrt.image.get_translation_to align() is called to define
-              a translationg such that fixed and moving image have
-              their (x, y) centres aligned, and have z positions aligned at
-              image top, centre or bottom.
-            The result of the initial alignment is stored as the first
-            entry of <self.tfiles", with key <initial_alignment_name>.  If
-            <initial_alignment> is set to None, no initial alignment
-            is performed.
+            are run.  This can be translation-based, image-based
+            or ROI-based.
+
+            - Translation-based initial alignment:
+              This is specified by:
+              - A tuple indicating the amounts (dx, dy, dz) by which a
+                point in the fixed image must be translated to align
+                with the corresponding point in the moving image;
+
+            - Image-based alignment:
+              This can be specified by:
+              - A dictionary indicating how fixed and moving image are
+                to be aligned along each axis, where keys are axis
+                identifiers ('x', 'y', 'z'), and values are the types
+                of alignment:
+                - 1: align on lowest coordinates (right, posterior, inferior);
+                - 2: align on centre coodinates;
+                - 3: align on highest coordinates (left, anterior, superior).
+                If an axis isn't included in the dictionary, or is included
+                with an invalid alignment type, the alignment type defaults
+                to 2.
+              - One of the strings "_top_", "_centre_", "_bottom_",
+                in which case fixed and moving image have their (x, y)
+                centres aligned, and have z positions aligned at
+                image top, centre or bottom.
+
+            - ROI-based alignment:
+              This defines a translation of the fixed image so that
+              an ROI associated with the fixed image is aligned with
+              an ROI associated with the second image.  For each image,
+              the alignment point is defined by an ROI name and an
+              optional position.  If the optional position is omitted
+              of is None, the alginment point is the centroid of the
+              ROI as a whole.  Otherwise, the alignment point is the
+              centroid of an (x, y) slice through the ROI at the
+              specified relative position along the z-axis.  This
+              relative position must be in the interval [0, 1], where
+              0 corresponds to the most-inferior point (lowest z) and
+              1 corresponds to the most-superior point (highest z).
+              
+              The full ROI-based alignment specification is a
+              tuple of two two-element tuples:
+              (("fixed_roi_name", fixed_roi_position),
+              ("moving_roi_name", moving_roi_position)).
+              If a position is omitted, it defaults to None, and the
+              ROI name can be given either as a string or as a
+              one-element tuple.  If information is given only for
+              the fixed image, the same information is used for the
+              the moving image.
+
+              The following are examples of valid ROI-based alignment
+              specifications, and how they're interpreted:
+
+              - "roi":
+                align "roi" of fixed image with "roi" of moving image,
+                aligning on volume centroids;
+
+              - ("roi1", "roi2"):
+                align "roi1" of fixed image with "roi2" of moving image,
+                aligning on volume centroids;
+             
+              - ("roi", 1):
+                align "roi" of fixed image with "roi" of moving image,
+                aligning on centroids of top slices;
+
+              - (("roi1", 0.75), "roi2"):
+                align "roi1" of fixed image with "roi2" of moving image,
+                aligning centroid of slice three quarters of the way
+                up "roi1" with the volume centroid of "roi2".
+
+              Note that ROI-based alignment relies on the named
+              ROIs being contained in structure sets associated with
+              fixed and moving images.  Association of structure sets
+              to images may be performed automatically when loading
+              DICOM data to Patient objects, or may be performed
+              manually using an Image object's set_structure_set() method.
         """
         if not (initial_alignment and self.fixed_image and self.moving_image):
             return
+        
+        # Initialise translation tuple.
+        initial_translation = None
 
-        # If initial alignment specified as a tuple, return this.
-        if isinstance(initial_alignment, tuple):
+        # If initial alignment specified as a 3-element list-like object,
+        # return this as the initial translation.
+        if is_list(initial_alignment) and len(initial_alignment) == 3:
             return initial_alignment
 
         # If needed, create alignment dictionary based on string.
-        valid_alignments = ["bottom", "centre", "top"]
-        if initial_alignment in valid_alignments:
+        image_alignments = ["_bottom_", "_centre_", "_top_"]
+        if initial_alignment in image_alignments:
             initial_alignment = {"alignments": {"x": 2, "y": 2, "z":
-                    1 + valid_alignments.index(initial_alignment)}}
+                    1 + image_alignments.index(initial_alignment)}}
 
-        # Define translation for initial alignment.
+        # Define translation for image-based initial alignment.
         if isinstance(initial_alignment, dict):
             # Need to use standardised versions of fixed and moving image.
             initial_translation = skrt.image.get_translation_to_align(
@@ -307,14 +398,78 @@ class Registration(Data):
                        self.moving_image.get_standardised_data(),
                        affine=self.moving_image.get_standardised_affine()),
                         **initial_alignment)
-        else:
-            initial_translation = None
+
+        # Define translation for roi-based initial alignment.
+        if (im_fixed and im_moving) and not initial_translation:
+            roi_alignments = None
+
+            # Initial alignment passed as name only for a single ROI.
+            if isinstance(initial_alignment, str):
+                roi_alignments = [(initial_alignment, None),
+                        (initial_alignment, None)]
+
+            # Initial alignment passed as list-like object.
+            elif is_list(initial_alignment):
+                # Name given for a single ROI.
+                if len(initial_alignment) == 1:
+                    roi_alignments = [(initial_alignment[0], None),
+                            (initial_alignment[0], None)]
+                # Information for two ROIs,
+                # or name and position for a single ROI.
+                elif len(initial_alignment) == 2:
+                    if is_list(initial_alignment[0]):
+                        # Name and position passed for two ROIs
+                        if is_list(initial_alignment[1]):
+                            roi_alignments = initial_alignment
+                        # Name and position passed for first ROI,
+                        # Name only passed for second ROI.
+                        else:
+                            roi_alignments = [initial_alignment[0],
+                                    (initial_alignment[1], None)]
+                    else:
+                        # Name only passed for first ROI,
+                        # Name and position passed for second ROI.
+                        if is_list(initial_alignment[1]):
+                            roi_alignments = [(initial_alignment[0], None),
+                                    initial_alignment[1]]
+                        else:
+                            # Name passed for two ROIs.
+                            if isinstance(initial_alignment[1], str):
+                                roi_alignments = [(initial_alignment[0], None),
+                                        (initial_alignment[1], None)]
+                            # Name and position passed for one ROI.
+                            else:
+                                roi_alignments = [initial_alignment,
+                                        initial_alignment]
+
+            # Align on ROIs defined for fixed and moving image.
+            if roi_alignments:
+                centroids = []
+                for idx, image in enumerate([im_fixed, im_moving]):
+                    # Define ROI on which to align,
+                    # and optional alignment position for image.
+                    name, z_fraction = roi_alignments[idx]
+                    rois = image.get_rois(name)
+                    if rois:
+                        # Calculate centroid for the whole ROI volume.
+                        if z_fraction is None:
+                            centroids.append(rois[0].get_centroid())
+                        # Calculate centroid for slice at specified position.
+                        else:
+                            centroids.append(rois[0].get_roi_slice(
+                                z_fraction).get_centroid())
+                    else:
+                        # Warn if ROI not found.
+                        self.logger.warning(f"ROI with name {name} not found "
+                                f"in structure sets associated with {image}")
+
+                # Determine translation if two centroids calculated.
+                if len(centroids) == 2:
+                    initial_translation = tuple(centroids[1] - centroids[0])
+
+        if not initial_translation:
             self.logger.warning(
-                    f"Invalid initial_alignment: {initial_alignment}")
-            self.logger.warning("Value for initial alignment should be "
-                    "a dictionary to be passed to "
-                    "skrt.image.get_translation_to_align()")
-            self.logger.warning(f"or one of the strings: {valid_alignments}")
+                    "Unable to perform initial_alignment: {initial_alignment}")
 
         return initial_translation
 

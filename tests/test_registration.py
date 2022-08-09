@@ -437,12 +437,12 @@ def test_initial_alignment_from_string():
     # For initial alignment from string, fixed and moving image
     # have their (x, y) centres aligned, and have z positions aligned
     # at image top, centre, or bottom.
-    translations = {"centre" : [origins[1][idx] + 0.5 * shapes[1][idx]
+    translations = {"_centre_" : [origins[1][idx] + 0.5 * shapes[1][idx]
         - origins[0][idx] - 0.5 * shapes[0][idx] for idx in range(3)]}
-    dx, dy, dz = translations["centre"]
+    dx, dy, dz = translations["_centre_"]
     translations.update({
-        "bottom" : [dx, dy, origins[1][2] - origins[0][2]],
-        "top" : [dx, dy,
+        "_bottom_" : [dx, dy, origins[1][2] - origins[0][2]],
+        "_top_" : [dx, dy,
             origins[1][2] + shapes[1][2] - origins[0][2] - shapes[0][2]],
             })
 
@@ -492,6 +492,53 @@ def test_initial_alignment_from_dict():
         alignments = {axis: alignment for axis in ("x", "y", "z")}
         initial_alignment = {"alignments": alignments, "threshold": intensity-5}
         reg = Registration(reg2_dir, fixed=sims[0].get_image(), moving=sims[1].get_image(),
+                initial_alignment=initial_alignment)
+        assert len(reg.tfiles) == 1
+        assert(Path(reg.tfiles["initial_alignment"]).exists())
+        parameters = read_parameters(reg.tfiles["initial_alignment"])
+        assert parameters["TransformParameters"] == translation
+
+def test_initial_alignment_using_rois():
+    """Test initial alignment defined by string."""
+
+    # Create synthetic images featuring a sphere.
+    shapes = [(100, 100, 40), (80, 80, 50)]
+    origins = [(-50, 40, -20), (0, -10, 30)]
+    centres = [(30, 80, 0), (60, 40, 50)]
+    radii = (10, 15)
+    intensity=50
+    sims = []
+    for idx in range(len(shapes)):
+        sims.append(SyntheticImage(shapes[idx], origin=origins[idx]))
+        sims[idx].add_sphere(radius=radii[idx], name="sphere",
+                centre=centres[idx], intensity=intensity)
+        sims[idx].add_sphere(radius=radii[idx], name=f"sphere{idx}",
+                centre=centres[idx], intensity=intensity)
+
+    # Define expected translations for foreground alignment:
+    # (1) upper coordinates; (2) centre coordinates; (3) lower coordinates.
+    translations = {
+            "sphere" : [centres[1][idx] - centres[0][idx] for idx in range(3)],
+            ("sphere0", "sphere1") : [centres[1][idx] - centres[0][idx]
+                for idx in range(3)],
+            (("sphere0", None), "sphere1") : [centres[1][idx] - centres[0][idx]
+                for idx in range(3)],
+            ("sphere0", ("sphere1", None)) : [centres[1][idx] - centres[0][idx]
+                for idx in range(3)],
+            (("sphere0", None), ("sphere1", None)) : [
+                centres[1][idx] - centres[0][idx] for idx in range(3)],
+            ("sphere", None) : [centres[1][idx] - centres[0][idx]
+                for idx in range(3)],
+            }
+
+    # Check translations for initial alignment.
+    for alignment, translation in translations.items():
+        reg2_dir = "tmp/reg2"
+        if Path(reg2_dir).exists():
+            shutil.rmtree(reg2_dir)
+        initial_alignment = alignment
+        reg = Registration(reg2_dir, fixed=sims[0].get_image(),
+                moving=sims[1].get_image(),
                 initial_alignment=initial_alignment)
         assert len(reg.tfiles) == 1
         assert(Path(reg.tfiles["initial_alignment"]).exists())
