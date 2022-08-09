@@ -98,7 +98,6 @@
              
   <section id="module-skrt.structures">
 <span id="skrt-structures-module"></span><h1>skrt.structures module<a class="headerlink" href="#module-skrt.structures" title="Permalink to this heading"></a></h1>
-<p>Classes related to ROIs and structure sets.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.structures.ROI">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">ROI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_geom_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI" title="Permalink to this definition"></a></dt>
@@ -1114,6 +1113,29 @@ will be used.</p>
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_rms_surface_distance">
 <span class="sig-name descname"><span class="pre">get_rms_surface_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_rms_surface_distance" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_roi_slice">
+<span class="sig-name descname"><span class="pre">get_roi_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_roi_slice" title="Permalink to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Get ROI object corresponding to x-y slice through this ROI.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>z_fraction<span class="classifier">float, default=1</span></dt><dd><p>Position along z axis at which to take slice through ROI.
+The position is specified as the fractional distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>suffix<span class="classifier">str, default=None</span></dt><dd><p>Suffix to append to own name, to form name of output ROI.  If
+None, append z_fraction, with value given to two decimal places.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_slice">
@@ -2602,6 +2624,28 @@ available if method=”mask”.</p>
 <dt class="sig sig-object py" id="skrt.structures.get_dicom_sequence">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_dicom_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_dicom_sequence" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.structures.get_roi_slice">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_roi_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_roi_slice" title="Permalink to this definition"></a></dt>
+<dd><p>Get ROI object corresponding to x-y slice through input ROI.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi<span class="classifier">skrt.structures.ROI</span></dt><dd><p>ROI object for which slice is to be obtained.</p>
+</dd>
+<dt>z_fraction<span class="classifier">float, default=1</span></dt><dd><p>Position along z axis at which to take slice through ROI.
+The position is specified as the fractional distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
+</dd>
+<dt>suffix<span class="classifier">str, default=None</span></dt><dd><p>Suffix to append to name of input ROI, to form name
+of output ROI.  If None, append z_fraction, with value
+given to two decimal places.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.interpolate_points_single_contour">
