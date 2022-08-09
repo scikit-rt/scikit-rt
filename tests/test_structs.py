@@ -982,3 +982,31 @@ def test_match_mask_voxel_size():
     roi1, roi2 = roi1.match_mask_voxel_size(roi2)
     assert roi1.voxel_size == voxel_sizes[3]
     assert roi2.voxel_size == voxel_sizes[3]
+
+def test_get_roi_slice():
+    """Test retrieval of slice through ROI."""
+    # Define relative and absolute positions at which ROI slice is to be taken.
+    z_fraction = 0.75
+    pos1, pos2 = cube.get_extent()
+    pos = pos1 + z_fraction * (pos2 - pos1)
+
+    # Retrieve slice through ROI, and extract contours.
+    roi_slice = cube.get_roi_slice(z_fraction)
+    contours = roi_slice.get_contours()
+
+    # Check name of ROI slice.
+    assert roi_slice.name == f"{cube.name}_{z_fraction:.2f}"
+
+    # Check that contours are at a single z-position.
+    assert len(contours) == 1
+
+    # Check that contours are at expected z-position,
+    # to within half the distance between contours.
+    assert list(contours.keys())[0] == pytest.approx(
+            pos, 0.5 * cube.get_slice_thickness_contours())
+
+    # Check that exception is raised if relative position is
+    # outside allowed interval [0, 1].
+    with pytest.raises(RuntimeError) as error_info:
+        cube.get_roi_slice(5)
+    assert "outside allowed interval" in str(error_info.value)

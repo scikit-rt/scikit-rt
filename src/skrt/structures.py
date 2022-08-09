@@ -1,4 +1,4 @@
-"""Classes related to ROIs and structure sets."""
+contours = """Classes related to ROIs and structure sets."""
 
 from pathlib import Path
 
@@ -880,6 +880,26 @@ class ROI(skrt.core.Archive):
         if data.dtype != bool:
             data = data.astype(bool)
         return data
+
+    def get_roi_slice(self, z_fraction=1, suffix=None):
+        """
+        Get ROI object corresponding to x-y slice through this ROI.
+
+        **Parameter:**
+
+        z_fraction : float, default=1
+            Position along z axis at which to take slice through ROI.
+            The position is specified as the fractional distance
+            from the ROI's most-inferior point: 0 corresponds to
+            the most-inferior point (lowest z); 1 corresponds to the
+            most-superior point (highest z).  Values for z_fraction
+            outside the interval [0, 1] result in a RuntimeError.
+
+    suffix : str, default=None
+        Suffix to append to own name, to form name of output ROI.  If
+        None, append z_fraction, with value given to two decimal places.
+        """
+        return get_roi_slice(self, z_fraction)
 
     def get_indices(self, view="x-y", method=None):
         """Get list of slice indices on which this ROI exists."""
@@ -6763,3 +6783,47 @@ def get_conformity_index(
         ci.common = mask_intersection.sum() / mask_union.sum()
 
     return getattr(ci, ci_type, ci)
+
+def get_roi_slice(roi, z_fraction=1, suffix=None):
+    """
+    Get ROI object corresponding to x-y slice through input ROI.
+
+    **Parameters:**
+
+    roi : skrt.structures.ROI
+        ROI object for which slice is to be obtained.
+
+    z_fraction : float, default=1
+        Position along z axis at which to take slice through ROI.
+        The position is specified as the fractional distance
+        from the ROI's most-inferior point: 0 corresponds to
+        the most-inferior point (lowest z); 1 corresponds to the
+        most-superior point (highest z).  Values for z_fraction
+        outside the interval [0, 1] result in a RuntimeError.
+
+    suffix : str, default=None
+        Suffix to append to name of input ROI, to form name
+        of output ROI.  If None, append z_fraction, with value
+        given to two decimal places.
+    """
+    # Check that z_fraction is in allowed interval.
+    if z_fraction < 0 or z_fraction > 1:
+        raise RuntimeError(f"z_fraction={z_fraction}"
+                            " outside allowed interval [0, 1]")
+
+    # Determine the index of the image slice at which to take ROI slice.
+    pos1, pos2 = roi.get_extent()
+    pos = pos1 + z_fraction * (pos2 - pos1)
+    idx = roi.pos_to_idx(pos, "z")
+
+    # Obtain contours for required slice, and convert to ROI object.
+    contours = roi.get_contours(idx_as_key=True)[idx]
+    roi_slice = ROI({roi.idx_to_pos(idx, "z"): contours})
+
+    suffix = f"{z_fraction:.2f}" if suffix is None else suffix
+    if suffix:
+        roi_slice.name = f"{roi.name}_{suffix}"
+    else:
+        roi_slice.name = str(roi.name)
+
+    return roi_slice
