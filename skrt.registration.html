@@ -535,30 +535,104 @@ registration step.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_initial_translation">
-<span class="sig-name descname"><span class="pre">get_initial_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_initial_translation" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_initial_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_initial_translation" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain translation corresponding to intial alignemnt.</p>
-<dl>
-<dt>initial_alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Alignment to be performed before any registration steps
-are run.  This can be any of the following:
-- a tuple indicating the amounts (dx, dy, dz) by which</p>
-<blockquote>
-<div><p>a point in the fixed image must be translated to align
-with the corresponding point in the moving image;</p>
-</div></blockquote>
-<ul class="simple">
-<li><p>a dictionary specifying parameters and values to be passed
-to skrt.image.get_translation_to_align(), which defines
-a translation for aligning fixed and moving image;</p></li>
-<li><p>one of the strings “top”, “centre”, “bottom”, in which case
-skrt.image.get_translation_to align() is called to define
-a translationg such that fixed and moving image have
-their (x, y) centres aligned, and have z positions aligned at
-image top, centre or bottom.</p></li>
-</ul>
 <p>The result of the initial alignment is stored as the first
 entry of &lt;self.tfiles”, with key &lt;initial_alignment_name&gt;.  If
 &lt;initial_alignment&gt; is set to None, no initial alignment
 is performed.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>im_fixed<span class="classifier">skrt.image.Image / default=None</span></dt><dd><p>Image object representing the fixed image.  This is
+only needed for ROI-based alignment (see below),
+and the Image object must have an associated structure
+set containing the ROI on which to align.</p>
+</dd>
+<dt>im_moving<span class="classifier">skrt.image.Image / default=None</span></dt><dd><p>Image object representing the moving image.  This is
+only needed for ROI-based alignment (see below),
+and the Image object must have an associated structure
+set containing the ROI on which to align.</p>
+</dd>
+<dt>initial_alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Alignment to be performed before any registration steps
+are run.  This can be translation-based, image-based
+or ROI-based.</p>
+<ul>
+<li><p>Translation-based initial alignment:
+This is specified by:
+- A tuple indicating the amounts (dx, dy, dz) by which a</p>
+<blockquote>
+<div><p>point in the fixed image must be translated to align
+with the corresponding point in the moving image;</p>
+</div></blockquote>
+</li>
+<li><p>Image-based alignment:
+This can be specified by:
+- A dictionary indicating how fixed and moving image are</p>
+<blockquote>
+<div><p>to be aligned along each axis, where keys are axis
+identifiers (‘x’, ‘y’, ‘z’), and values are the types
+of alignment:
+- 1: align on lowest coordinates (right, posterior, inferior);
+- 2: align on centre coodinates;
+- 3: align on highest coordinates (left, anterior, superior).
+If an axis isn’t included in the dictionary, or is included
+with an invalid alignment type, the alignment type defaults
+to 2.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>One of the strings “_top_”, “_centre_”, “_bottom_”,
+in which case fixed and moving image have their (x, y)
+centres aligned, and have z positions aligned at
+image top, centre or bottom.</p></li>
+</ul>
+</li>
+<li><p>ROI-based alignment:
+This defines a translation of the fixed image so that
+an ROI associated with the fixed image is aligned with
+an ROI associated with the second image.  For each image,
+the alignment point is defined by an ROI name and an
+optional position.  If the optional position is omitted
+of is None, the alginment point is the centroid of the
+ROI as a whole.  Otherwise, the alignment point is the
+centroid of an (x, y) slice through the ROI at the
+specified relative position along the z-axis.  This
+relative position must be in the interval [0, 1], where
+0 corresponds to the most-inferior point (lowest z) and
+1 corresponds to the most-superior point (highest z).</p>
+<p>The full ROI-based alignment specification is a
+tuple of two two-element tuples:
+((“fixed_roi_name”, fixed_roi_position),
+(“moving_roi_name”, moving_roi_position)).
+If a position is omitted, it defaults to None, and the
+ROI name can be given either as a string or as a
+one-element tuple.  If information is given only for
+the fixed image, the same information is used for the
+the moving image.</p>
+<p>The following are examples of valid ROI-based alignment
+specifications, and how they’re interpreted:</p>
+<ul class="simple">
+<li><p>“roi”:
+align “roi” of fixed image with “roi” of moving image,
+aligning on volume centroids;</p></li>
+<li><p>(“roi1”, “roi2”):
+align “roi1” of fixed image with “roi2” of moving image,
+aligning on volume centroids;</p></li>
+<li><p>(“roi”, 1):
+align “roi” of fixed image with “roi” of moving image,
+aligning on centroids of top slices;</p></li>
+<li><p>((“roi1”, 0.75), “roi2”):
+align “roi1” of fixed image with “roi2” of moving image,
+aligning centroid of slice three quarters of the way
+up “roi1” with the volume centroid of “roi2”.</p></li>
+</ul>
+<p>Note that ROI-based alignment relies on the named
+ROIs being contained in structure sets associated with
+fixed and moving images.  Association of structure sets
+to images may be performed automatically when loading
+DICOM data to Patient objects, or may be performed
+manually using an Image object’s set_structure_set() method.</p>
+</li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
