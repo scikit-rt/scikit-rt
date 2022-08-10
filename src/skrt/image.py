@@ -3026,7 +3026,7 @@ class Image(skrt.core.Archive):
         if outname.endswith(".nii") or outname.endswith(".nii.gz"):
             data, affine = self.get_nifti_array_and_affine(standardise)
             if data.dtype == bool:
-                data = data.copy().astype(int)
+                data = data.copy().astype(np.int8)
             write_nifti(outname, data, affine)
             if verbose:
                 print("Wrote to NIfTI file:", outname)
