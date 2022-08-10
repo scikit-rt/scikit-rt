@@ -420,7 +420,7 @@ class Registration(Data):
                     if is_list(initial_alignment[0]):
                         # Name and position passed for two ROIs
                         if is_list(initial_alignment[1]):
-                            roi_alignments = initial_alignment
+                            roi_alignments = list(initial_alignment)
                         # Name and position passed for first ROI,
                         # Name only passed for second ROI.
                         else:
@@ -441,6 +441,12 @@ class Registration(Data):
                             else:
                                 roi_alignments = [initial_alignment,
                                         initial_alignment]
+
+                    # Deal with ROI name passed as single-element tuples.
+                    for idx in range(len(roi_alignments)):
+                        if 1 == len(roi_alignments[idx]):
+                            roi_alignments[idx] = [
+                                    roi_alignments[idx][0], None]
 
             # Align on ROIs defined for fixed and moving image.
             if roi_alignments:

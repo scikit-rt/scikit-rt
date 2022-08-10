@@ -521,6 +521,8 @@ def test_initial_alignment_using_rois():
             "sphere" : [centres[1][idx] - centres[0][idx] for idx in range(3)],
             ("sphere0", "sphere1") : [centres[1][idx] - centres[0][idx]
                 for idx in range(3)],
+            (("sphere0",), ("sphere1",)) : [centres[1][idx] - centres[0][idx]
+                for idx in range(3)],
             (("sphere0", None), "sphere1") : [centres[1][idx] - centres[0][idx]
                 for idx in range(3)],
             ("sphere0", ("sphere1", None)) : [centres[1][idx] - centres[0][idx]
