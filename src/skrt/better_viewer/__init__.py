@@ -1449,6 +1449,10 @@ class BetterViewer:
             return
 
         # Make new figure
+        # !!!!
+        # Not clear why, but the following call seems to change
+        # the value of mpl.rcParams["font.size"]
+        # !!!!
         self.fig = plt.figure(figsize=(width, height))
 
         # Make gridspec
