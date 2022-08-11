@@ -1322,6 +1322,8 @@ class Patient(skrt.core.PathData):
         info['plan_prescription_description'] = None
         info['plan_fraction'] = None
         info['plan_target_dose'] = None
+        info['plan_targets'] = None
+        info['plan_organs_at_risk'] = None
         for study in self.studies:
             if hasattr(study, 'plan_types') and study.plan_types:
                 plan_type = sorted(list(study.plan_types.keys()))[0]
@@ -1333,6 +1335,8 @@ class Patient(skrt.core.PathData):
                         plan.prescription_description)
                 info['plan_fraction'] = plan.n_fraction
                 info['plan_target_dose'] = plan.target_dose
+                info['plan_targets'] = len(plan.get_targets())
+                info['plan_organs_at_risk'] = len(plan.get_organs_at_risk())
                 break
 
         # Store information about all data types, across all studies.
@@ -1374,16 +1378,27 @@ class Patient(skrt.core.PathData):
                             info[file_label] += obj.get_n_file()
                             info[size_label] += obj.get_file_size()
 
-        # Create lists of image objects for planning and for treatment.
+        # Create lists of Image objects for planning and for treatment,
+        # and list of StructureSet objects for planning.
         if plan_image_type:
             plan_images = self.combined_objs(f'{plan_image_type}_images')
+            plan_structure_sets = self.combined_objs(
+                    f'{plan_image_type}_structure_sets')
         else:
             plan_images = None
+            plan_structure_sets = None
         if treatment_image_type:
             treatment_images = self.combined_objs(
                     f'{treatment_image_type}_images')
         else:
             treatment_images = None
+
+        # Store number of ROIs outlined on planning scan.
+        if plan_structure_sets:
+            if plan_structure_sets:
+                info['plan_image_rois'] = len(plan_structure_sets[0].get_rois())
+            else:
+                info['plan_image_rois'] = None
 
         # Store time of image used for plan creation.
         if plan_images:
