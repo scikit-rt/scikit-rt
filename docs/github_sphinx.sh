@@ -27,8 +27,8 @@ cd docs
 pip install --upgrade pip
 
 # Workaraound for not being able to install mahotas from pypi
-#grep -v mahotas ../setup.cfg > ./setup.cfg
-#mv ./setup.cfg ../setup.cfg
+grep -v mahotas ../setup.cfg > ./setup.cfg
+mv ./setup.cfg ../setup.cfg
 
 # Workaround for having SimpleITK installation with Python 3.10
 #pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
