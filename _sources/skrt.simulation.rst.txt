@@ -1,7 +1,0 @@
-skrt.simulation module
-======================
-
-.. automodule:: skrt.simulation
-   :members:
-   :undoc-members:
-   :show-inheritance:

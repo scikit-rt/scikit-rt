@@ -1,7 +1,0 @@
-skrt.viewer.core module
-=======================
-
-.. automodule:: skrt.viewer.core
-   :members:
-   :undoc-members:
-   :show-inheritance:

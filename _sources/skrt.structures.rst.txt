@@ -1,7 +1,0 @@
-skrt.structures module
-======================
-
-.. automodule:: skrt.structures
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,7 +1,0 @@
-skrt.patient module
-===================
-
-.. automodule:: skrt.patient
-   :members:
-   :undoc-members:
-   :show-inheritance:

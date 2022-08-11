@@ -1,7 +1,0 @@
-skrt.application module
-=======================
-
-.. automodule:: skrt.application
-   :members:
-   :undoc-members:
-   :show-inheritance:
