@@ -1335,8 +1335,10 @@ class Patient(skrt.core.PathData):
                         plan.prescription_description)
                 info['plan_fraction'] = plan.n_fraction
                 info['plan_target_dose'] = plan.target_dose
-                info['plan_targets'] = len(plan.get_targets())
-                info['plan_organs_at_risk'] = len(plan.get_organs_at_risk())
+                if skrt.core.is_list(plan.targets):
+                    info['plan_targets'] = len(plan.targets)
+                if skrt.core.is_list(plan.organs_at_risk):
+                    info['plan_organs_at_risk'] = len(plan.organs_at_risk)
                 break
 
         # Store information about all data types, across all studies.
@@ -1395,10 +1397,9 @@ class Patient(skrt.core.PathData):
 
         # Store number of ROIs outlined on planning scan.
         if plan_structure_sets:
-            if plan_structure_sets:
-                info['plan_image_rois'] = len(plan_structure_sets[0].get_rois())
-            else:
-                info['plan_image_rois'] = None
+            info['plan_image_rois'] = len(plan_structure_sets[0].get_rois())
+        else:
+            info['plan_image_rois'] = None
 
         # Store time of image used for plan creation.
         if plan_images:
