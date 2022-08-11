@@ -1,9 +1,6 @@
-name: skrt
+name: test
 dependencies:
-  - ipython
-  - jupyter
-  - jupyterlab
-  - pip
-  - python=3.8
+  - pip=22.1.2
+  - python=3.8.13
   - pip:
     - -e .
