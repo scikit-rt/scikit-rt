@@ -1,0 +1,7 @@
+import\_analysis.roi\_names module
+==================================
+
+.. automodule:: import_analysis.roi_names
+   :members:
+   :undoc-members:
+   :show-inheritance:

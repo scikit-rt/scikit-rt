@@ -1,0 +1,18 @@
+voxtox.roi\_names package
+=========================
+
+Submodules
+----------
+
+.. toctree::
+
+   voxtox.roi_names.head_and_neck_roi_names
+   voxtox.roi_names.prostate_roi_names
+
+Module contents
+---------------
+
+.. automodule:: voxtox.roi_names
+   :members:
+   :undoc-members:
+   :show-inheritance:
