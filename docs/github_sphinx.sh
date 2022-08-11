@@ -27,15 +27,15 @@ cd docs
 pip install --upgrade pip
 
 # Workaraound for not being able to install mahotas from pypi
-grep -v mahotas ../setup.cfg > ./setup.cfg
-mv ./setup.cfg ../setup.cfg
+#grep -v mahotas ../setup.cfg > ./setup.cfg
+#mv ./setup.cfg ../setup.cfg
 
 # Workaround for having SimpleITK installation with Python 3.10
-pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
+#pip install --upgrade --pre SimpleITK --find-links https://github.com/SimpleITK/SimpleITK/releases/tag/latest
 
 # Install older version of jinja2 for compatibility with sphinx
-pin uninstall -y jinja2
-pip install jinja2==3.0.3
+#pin uninstall -y jinja2
+#pip install jinja2==3.0.3
 
 # Install scikit-rt, voxtox, and import
 pip install -e ..
