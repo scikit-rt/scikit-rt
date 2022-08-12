@@ -754,6 +754,25 @@ the most recent if True, or the least recent otherwise.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.relative_path">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">relative_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.relative_path" title="Permalink to this definition"></a></dt>
+<dd><p>Return relative path.</p>
+<p>The returned path will be relative to the user’s top-level directory,
+or will include a specified number of directory levels.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>nlevel<span class="classifier">int, default=None</span></dt><dd><p>If None, indicates that the returned path should be relative to
+the user’s top-level directory.  Otherwise, this specifies the
+number of directory levels to include in the returned path.
+If nlevel is positive, the top-most nlevels, up to the number
+of directory levels in the path, are omitted.  If nlevel is
+negative, the bottom-most abs(nlevels), up to the number of
+directory levels in the path, are retained.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.to_list">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_none_single</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.to_list" title="Permalink to this definition"></a></dt>
 <dd><p>Ensure that a value is a list of n items.</p>
