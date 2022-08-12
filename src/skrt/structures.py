@@ -3022,6 +3022,12 @@ class ROI(skrt.core.Archive):
             "idx": idx,
             "pos": pos
         }
+
+        for m in metrics:
+            if m not in get_comparison_metrics():
+                raise RuntimeError(f"Metric {m} not recognised by "
+                        "ROI.get_comparison()")
+
         for m in metrics:
 
             # Dice score
@@ -3198,6 +3204,8 @@ class ROI(skrt.core.Archive):
                 if m == "mean_distance_to_conformity_flat":
                     comp[m] = conformity_flat.mean_distance_to_conformity
             else:
+                # This code block can be reached if this method doesn't handle
+                # a metric that's listed by get_comparison_metrics().
                 found = False
 
                 # Axis-specific metrics
@@ -6896,3 +6904,47 @@ def get_roi_slice(roi, z_fraction=1, suffix=None):
         roi_slice.name = str(roi.name)
 
     return roi_slice
+
+def get_comparison_metrics():
+    """
+    Get list of comparison metrics.
+
+    All metrics listed here should be recognised by ROI.get_comparison(),
+    and all metrics recognised by ROI.get_comparison() should be listed here.
+    """
+    metrics = [
+            "abs_centroid",
+            "abs_centroid_flat",
+            "abs_centroid_slice",
+            "area_diff",
+            "area_diff_flat",
+            "area_ratio",
+            "area_ratio_flat",
+            "centroid",
+            "centroid_slice",
+            "dice",
+            "dice_flat",
+            "dice_slice",
+            "hausdorff_distance",
+            "hausdorff_distance_flat",
+            "jaccard",
+            "jaccard_flat",
+            "jaccard_slice",
+            "mean_distance_to_conformity",
+            "mean_distance_to_conformity_flat",
+            "mean_surface_distance",
+            "mean_surface_distance_flat",
+            "mean_over_contouring",
+            "mean_over_contouring_flat",
+            "mean_under_contouring",
+            "mean_under_contouring_flat",
+            "rel_area_diff",
+            "rel_area_diff_flat",
+            "rel_volume_diff",
+            "rms_surface_distance",
+            "rms_surface_distance_flat",
+            "volume_diff",
+            "volume_ratio",
+            ]
+
+    return metrics

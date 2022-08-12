@@ -17,7 +17,8 @@ from shapely.validation import explain_validity
 from skrt.core import fullpath
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
-        StructureSet, ROI, interpolate_points_single_contour
+        StructureSet, ROI, interpolate_points_single_contour, \
+        get_comparison_metrics
 
 
 # Make temporary test dir
@@ -295,27 +296,21 @@ def test_plot_consensus():
                            include_image=include_image)
 
 def test_get_comparison():
-    metrics = ["dice", "dice_flat", "dice_slice",
-            "jaccard", "jaccard_flat", "jaccard_slice",
-            "centroid", "abs_centroid", "abs_centroid_flat",
-            "centroid_slice", "abs_centroid_slice",
-            "volume_diff", "rel_volume_diff", "volume_ratio",
-            "area_diff", "rel_area_diff", "area_ratio",
-            "area_diff_flat", "rel_area_diff_flat", "area_ratio_flat",
-            "mean_surface_distance", "mean_surface_distance_flat",
-            "rms_surface_distance", "rms_surface_distance_flat",
-            "hausdorff_distance", "hausdorff_distance_flat",
-            "mean_under_contouring", "mean_over_contouring",
-            "mean_distance_to_conformity", "mean_under_contouring_flat",
-            "mean_over_contouring_flat", "mean_distance_to_conformity_flat"]
+    metrics = get_comparison_metrics()
     comp = structure_set.get_comparison(metrics=metrics)
     assert isinstance(comp, pd.DataFrame)
     assert comp.shape[0] == len(structure_set.get_comparison_pairs())
     # Have (x, y, z) componnts for "centroid",
-    # and two in-slice componetns for "centroid_slice",
+    # and two in-slice components for "centroid_slice",
     # so expect number of dataframe columns to be
     # three greater than number of metrics.
     assert comp.shape[1] == len(metrics) + 3
+
+    # Check that exception is raised if relative position is
+    # outside allowed interval [0, 1].
+    with pytest.raises(RuntimeError) as error_info:
+        comp = structure_set.get_comparison(metrics=["unknown_metric"])
+    assert "Metric unknown_metric not recognised" in str(error_info.value)
 
 def test_plot_comparisons():
     plot_dir = "tmp/struct_plots"
