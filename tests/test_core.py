@@ -271,3 +271,13 @@ def test_year_fraction():
             == (2022 + 20 / 365))
     assert (skrt.core.year_fraction(pd.Timestamp("20200229"))
             == (2020 + 59 / 366))
+
+def test_relative_path():
+    """Test relative path."""
+    user_path = Path("~").expanduser()
+    non_user_path = Path("/non/user/path")
+    sub_path = "path/to/file"
+    assert skrt.core.relative_path(user_path / sub_path) == sub_path
+    assert skrt.core.relative_path(non_user_path) == str(non_user_path)
+    assert skrt.core.relative_path(non_user_path / sub_path, 3) == sub_path
+    assert skrt.core.relative_path(user_path / sub_path, -3) == sub_path

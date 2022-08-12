@@ -1446,3 +1446,37 @@ def get_associated_image(objs, voxel_selection="most"):
         associated_image = associated_images[key]
 
     return associated_image
+
+def relative_path(path, nlevel=None):
+    """
+    Return relative path.
+
+    The returned path will be relative to the user's top-level directory,
+    or will include a specified number of directory levels.
+
+    **Parameter:**
+
+    nlevel : int, default=None
+        If None, indicates that the returned path should be relative to
+        the user's top-level directory.  Otherwise, this specifies the
+        number of directory levels to include in the returned path.
+        If nlevel is positive, the top-most nlevels, up to the number
+        of directory levels in the path, are omitted.  If nlevel is
+        negative, the bottom-most abs(nlevels), up to the number of
+        directory levels in the path, are retained.
+    """
+    # Return path relative to the user's top-level directory.
+    if nlevel is None:
+        try:
+            return str(Path(path).relative_to(Path("~").expanduser()))
+        except ValueError:
+            pass
+
+    # Return input path.
+    if not nlevel:
+        return str(path)
+
+    # Return relative path with the number of directory levels specified.
+    elements = fullpath(path).split(os.sep)
+    idx = min(nlevel + 1, len(elements) - 1) if nlevel > 0 else nlevel
+    return os.sep.join(elements[idx:])
