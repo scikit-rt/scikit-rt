@@ -4572,6 +4572,7 @@ class StructureSet(skrt.core.Archive):
             name = Path(self.path).name.split('_')[0].lower()
             if name[0].isalpha():
                 self.name = name
+        self.summed_names = []
 
         self.loaded = False
         if load:
@@ -4585,6 +4586,74 @@ class StructureSet(skrt.core.Archive):
 
     def __iter__(self):
         return StructureSetIterator(self)
+
+    def __add__(self, other):
+        '''
+        Define addition of StructureSet instances.
+
+        The result of the addition of self and other is a StructureSet
+        object that contains the (cloned) ROIs of both.  A result ROI
+        will be prefixed by the name of the StructureSet from which it
+        originates.  If the ROI name before the addition has the StructureSet
+        name as prefix, no new prefix is added.  There is no requirement
+        that ROIs or their names be unique within a StructureSet.  Adding
+        a StructureSet to itself will give a result including duplicate
+        ROIs with duplicate names.
+        '''
+        # Ensure that StructureSet data are loaded.
+        self.load()
+        other.load()
+
+        # Create new StructureSet instance for sum,
+        # and store names of contributors.
+        result = StructureSet()
+        result.summed_names = list(set(self.summed_names + other.summed_names
+            + [self.name] + [other.name]))
+
+        # Loop over StructureSets and their ROIs.
+        for ss in [self, other]:
+            for roi in ss.get_rois():
+                roi_clone = roi.clone()
+                # Try to prefix ROI name with the name of the StructureSet
+                # from which it originates.
+                if (roi.name.split("_")[0] in result.summed_names
+                        or ss.name is None):
+                    roi_clone.name = roi.name
+                else:
+                    roi_clone.name = "_".join([ss.name, roi.name])
+                # Add ROI to the result.
+                result.add_roi(roi_clone)
+
+        # As result image set the image of self if non-null,
+        # or othwise the image of other.
+        image = self.image if self.image else other.image
+        result.set_image(image)
+
+        # Set the result name to be the concatenation of the names
+        # of the contributors.
+        names = sorted([name for name in result.summed_names
+            if isinstance(name, str)])
+        if len(names) == 1:
+            result.name = names[0]
+        elif len(names) > 1:
+            result.name = "_".join(names)
+
+        return result
+
+    def __iadd__(self, other):
+        '''
+        Define in-place of StructureSet instances.
+
+        The result of the addition of self and other is a StructureSet
+        object that contains the (cloned) ROIs of both.  A result ROI
+        will be prefixed by the name of the StructureSet from which it
+        originates.  If the ROI name before the addition has the StructureSet
+        name as prefix, no new prefix is added.  There is no requirement
+        that ROIs or their names be unique within a StructureSet.  Adding
+        a StructureSet to itself will give a result including duplicate
+        ROIs with duplicate names.
+        '''
+        return self + other
 
     def load(self, sources=None, force=False):
         """Load structure set from source(s). If None, will load from own

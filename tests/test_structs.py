@@ -79,6 +79,41 @@ def test_structure_set_from_rois():
     for key in sdict1:
         assert key in sdict2
 
+def test_structure_set_addition():
+    """Test addition of structure sets."""
+
+    # Clone previously defined structure set,
+    # giving each clone a different name.
+    ss_clone1 = structure_set.clone()
+    ss_clone1.name = "ss1"
+    ss_clone2 = structure_set.clone()
+
+    # Test with name null or non-null for one of the structure sets.
+    for ss2_name in ["ss2", None]:
+        ss_clone2.name = ss2_name
+
+        # Add structure sets.
+        ss3_name = ("_".join(sorted([ss_clone1.name, ss_clone2.name]))
+                if ss_clone2.name else ss_clone1.name)
+    
+        for ss1, ss2 in [(ss_clone1, ss_clone2), (ss_clone2, ss_clone1)]:
+            ss3 = ss1 + ss2
+
+            # Check name.
+            assert ss3.name == ss3_name
+
+            # Check number of ROIs.
+            assert len(ss3.get_rois()) > 0
+            assert len(ss3.get_rois()) == (
+                    len(ss1.get_rois()) + len(ss2.get_rois()))
+
+            # Check that ROIs of summed structure sets are present in the sum,
+            # with expected names.
+            for ss in ss1, ss2:
+                for roi in ss.get_rois():
+                    prefix = f"{ss.name}_" if ss.name else ""
+                    assert f"{prefix}{roi.name}" in ss3.get_roi_names()
+
 def test_rename():
     new_names = {
         "cube2": ["cube", "test"],
