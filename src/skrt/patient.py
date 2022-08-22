@@ -948,7 +948,8 @@ class Patient(skrt.core.PathData):
                         if "image" == dstring:
                             # Transfer list of source files
                             # from DicomFile object to Image object.
-                            obj.dicom_paths = list(dcm.dicom_paths)
+                            obj.dicom_paths = sorted(list(dcm.dicom_paths),
+                                    key=skrt.core.alphanumeric)
                             # Subsitute Image object for DicomFile object
                             # in dictionary of image types.
                             dtypes[modality][idx] = obj
