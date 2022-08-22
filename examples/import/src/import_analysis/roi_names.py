@@ -4,14 +4,14 @@ controls = {}
 controls["carina"] = [
         "Carina"]
 controls["spinal_canal"] = [
+        "Spinal canal on the same slice as bottom of sternum",
         "Spinal canal",
         "Spinal Canal",
-        "Spinal cord",
-        "Spinal canal on the same slice as bottom of sternum"]
+        "Spinal cord"]
 controls["sternum"] = [
+        "Bottom of sternum",
         "Top of sternum",
-        "Top of Sternum",
-        "Bottom of sternum"]
+        "Top of Sternum"]
 
 recurrences = {}
 recurrences["recurrence"] = [
@@ -23,4 +23,5 @@ recurrences["recurrence"] = [
         "recurrence???",
         "recurrence (plus liver mets)",
         "right",
+        "right breast",
         "right_breast"]
