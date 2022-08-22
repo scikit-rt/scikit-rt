@@ -433,6 +433,7 @@ class DicomFile(Data):
         # Set object attributes.
         self.set_dates_and_times(elements)
         self.set_slice_thickness()
+        self.acquisition_number = getattr(self.ds, "AcquisitionNumber", None)
         self.frame_of_reference_uid = getattr(
                 self.ds, "FrameOfReferenceUID", None)
         self.modality = getattr(self.ds, "Modality", "unknown")
