@@ -323,30 +323,33 @@ class ImportPatient(Patient):
         # in the research structure sets.
         control_rois = [["Carina"], ["Spinal canal", "Spinal Canal",
             "Spinal cord"], ["Top of sternum", "Top of Sternum"]]
-        additional_control_rois = [
-                ["Spinal canal on the same slice as bottom of sternum"],
-                ["Bottom of sternum"]]
+        # Identify non-standard control ROI (used in one case only)
+        non_standard_control_roi = "Bottom of sternum"
     
         # Remove from the list of structure sets the cases where
         # the number of ROIs saved is less than the number of control
         # structures.
-        # If one of the structure sets contains a single ROI,
-        # labelled "recurrence", save this structure set in case it's
-        # the only one with the recurrence outlined.
-        ss_recurrence = None
-        while len(structure_sets[0].get_roi_names()) == 1:
-            if "recurrence" == structure_sets[0].get_roi_names()[0]:
-                ss_recurrence = structure_sets[0]
-            structure_sets.pop(0)   
         while len(structure_sets[0].get_roi_names()) < len(control_rois):
             structure_sets.pop(0)
+
+        # Deal with non-standard case.  Plan and relapse
+        # research structure sets both contain non_standard_control_roi;
+        # relapse research structure set contains fewer ROIs.
+        research_structure_sets = [ss for ss in structure_sets
+                if non_standard_control_roi in ss.get_roi_names()]
+        if research_structure_sets:
+            ss_relapse, ss_plan = research_structure_sets
+        else:
+            ss_relapse = ss_plan = None
         
-        # The plan research structure set should be the one with fewest ROIs.
-        ss_plan = structure_sets[0]
-        assert len(ss_plan.get_roi_names()) == len(control_rois)
-        for names in control_rois:
-            assert [name in ss_plan.get_roi_names()
-                    for name in names].count(True) == 1
+        # In standard cases, the plan research structure set
+        # should be the one with fewest ROIs.
+        if ss_plan is None:
+            ss_plan = structure_sets[0]
+            assert len(ss_plan.get_roi_names()) == len(control_rois)
+            for names in control_rois:
+                assert [name in ss_plan.get_roi_names()
+                        for name in names].count(True) == 1
 
         # Remove from the list of structure sets the cases where the number
         # of ROIs saved is equal to the number of control structures.
@@ -358,32 +361,17 @@ class ImportPatient(Patient):
         # at least one recurrence outline.
         # Among the structure sets that don't include the control
         # structures, the clinical structure set should be the largest.
-        ss_relapse = ss_clinical = None
+        ss_clinical = None
         for structure_set in structure_sets:
-            has_control_rois = has_additional_control_rois = True
+            has_control_rois = True
             for names in control_rois:
                 has_control_rois *= ([name in structure_set.get_roi_names()
                     for name in names].count(True) == 1)
-            for names in additional_control_rois:
-                has_additional_control_rois *= (
-                        [name in structure_set.get_roi_names()
-                            for name in names].count(True) == 1)
-
-            # Deal with structure sets where additional control structures
-            # are present.
-            # In practice, in the cases, a plan structure set contains both
-            # standard and additional control structures; a relapse structure set
-            # contains additional control structures only.
-            if has_additional_control_rois:
-                if has_control_rois:
-                    ss_plan = structure_set
-                else:
-                    ss_relapse = structure_set
 
             # Deal with standard cases: relapse structure set contains control
             # structures and recurrence outline; clinical structure set doesn't
             # contain control structures.
-            elif has_control_rois:
+            if has_control_rois:
                 if ((not ss_relapse) or (len(ss_relapse.get_roi_names())
                             > len(structure_set.get_roi_names()))):
                     ss_relapse = structure_set
@@ -392,23 +380,15 @@ class ImportPatient(Patient):
                             > len(structure_set.get_roi_names()))):
                     ss_clinical = structure_set
                 
-        # If relapse structure set doesn't include recurrence outline,
-        # substitute for it the structure set containing
-        # recurrence outline only.
-        if ss_recurrence and (not ss_relapse or ss_recurrence.get_roi_names()[0]
-                not in ss_relapse.get_roi_names()):
-            ss_relapse = ss_recurrence
-
-        # Take CT image for relapse structure set to be the first image
-        # that has at least 20 slices, and doesn't have the same number
+        # Take CT image for relapse structure set to be the image with
+        # most slices among the images that don't have the same number
         # of slices as the image associated with the dose.  (For the IMPORT
         # data, images for a patient that have the same number of slices
-        # tend to be the same image, possible resampled.)
-        for image in self.combined_objs("image_types"):
-            if (len(image.dicom_paths) >= 20 and image.get_n_voxels()[2]
-                    != self.ct_plan.get_n_voxels()[2]):
-                self.ct_relapse = image
-                break
+        # tend to be the same image, possibly resampled.)
+        self.ct_relapse = max(
+                [image for image in self.combined_objs("image_types")
+                if len(image.dicom_paths) != self.ct_plan.get_n_voxels()[2]],
+                key=(lambda image: len(image.dicom_paths)))
 
         # Standardise ROI names.
         self.ss_clinical = ss_clinical
