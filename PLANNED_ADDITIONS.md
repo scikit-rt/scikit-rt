@@ -55,7 +55,9 @@ are to be extended:
 - calculation of conformity indicies for comparison of multiple ROIs ([https://doi.org/10.1088/0031-9155/54/9/018](https://doi.org/10.1088/0031-9155/54/9/018));
 - calculation of distances to conformity ([https://doi.org/10.1259/bjr/27674581](https://doi.org/10.1259/bjr/27674581));
 - calculation of elements of confusion matrix, and metrics based on these;
-- slice-by-slice comparisons for all image slices through compared ROIs.
+- slice-by-slice comparisons for all image slices through compared ROIs;
+- visualisation of posterior probabilities and uncertianties (Shannon entropy)
+  from auto-segmentation with [Inner-Eye Deep-Learning framework](https://innereye-deeplearning.readthedocs.io/).
 
 ## Analysis of radiation doses
 
