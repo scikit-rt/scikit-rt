@@ -917,10 +917,10 @@ class Patient(skrt.core.PathData):
 
                 if "image" == dstring:
                     # For "image" modality, group DicomFile objects
-                    # by series instance and acquisition number.
+                    # by series instance uid.
                     matched_attributes = dcm.get_matched_attributes(
                             dtypes[dcm.modality],
-                            ["acquisition_number", "series_instance_uid"]
+                            ["series_instance_uid"]
                             )
                     if matched_attributes:
                         matched_attributes[0].dicom_paths.append(dcm.path)
