@@ -55,7 +55,7 @@ class BetterViewer:
         scale_in_mm=True,
         comparison=None,
         comparison_only=False,
-        cb_splits=2,
+        cb_splits=8,
         overlay_opacity=0.5,
         overlay_legend=False,
         legend_bbox_to_anchor=None,
@@ -292,7 +292,7 @@ class BetterViewer:
             will be shown. If no comparison options are selected, this
             parameter will be ignored.
 
-        cb_splits : int, default=2
+        cb_splits : int, default=8
             Number of sections to show for chequerboard image. Minimum = 1
             (corresponding to no chequerboard). Can later be changed
             interactively.

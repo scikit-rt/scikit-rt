@@ -3629,7 +3629,7 @@ class ImageComparison(Image):
         zoom=None,
         zoom_centre=None,
         plot_type=None,
-        cb_splits=2,
+        cb_splits=8,
         overlay_opacity=0.5,
         overlay_legend=False,
         overlay_legend_bbox_to_anchor=None,
@@ -3765,7 +3765,7 @@ class ImageComparison(Image):
         self,
         view,
         invert=False,
-        cb_splits=2,
+        cb_splits=8,
     ):
 
         # Get masked image
@@ -3782,6 +3782,10 @@ class ImageComparison(Image):
             i2: np.ma.masked_where(cb_mask < 0.5, self.slices[i2]),
         }
 
+        # Ensure that overlay masked sections are transparent
+        # (otherwise underlay image won't be visible).
+        self.cmap.set_bad(alpha=0)
+
         # Plot
         for i in [i1, i2]:
             kwargs = self.ims[i].get_mpl_kwargs(view)
@@ -3792,6 +3796,7 @@ class ImageComparison(Image):
                 to_show[i],
                 **kwargs
             )
+
         return mesh
 
     def _plot_overlay(
