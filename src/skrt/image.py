@@ -503,6 +503,40 @@ class Image(skrt.core.Archive):
 
         return plans
 
+    def get_translation_to_align(self, im, alignments=None, default_alignment=2,
+            threshold=None):
+        """
+        Determine translation for aligning <self> to <im>.
+
+        **Parameters:**
+
+        im : skrt.image.Image
+            Image with which alignment is to be performed.
+
+        alignments : dict, default=None
+            Dictionary indicating how alignment is to be performed along each
+            axis, where keys are axis identifiers ('x', 'y', 'z'), and values
+            are the types of alignment.  The valid alignment values are:
+            - 1: align on lowest coordinates (right, posterior, inferior);
+            - 2: align on centre coodinates;
+            - 3: align on highest coordinates (left, anterior, superior).
+            If an axis isn't included in the dictionary, or is included with
+            an invalid alignment type, the value of <default_alignment> is
+            used for this axis.
+
+        default_alignment : int, default=2
+            Type of alignment to be applied along any axis not included in
+            the <alignments> dictionary.
+
+        threshold : int/float, default=None
+            If None, alignment is with respect to the whole images.  If an
+            integer or float, alignment is with respect to the masks
+            returned for the images by skrt.image.Image.get_foreground_mask(),
+            using value specified as the threshold parameter for mask creation.
+        """
+        return get_translation_to_align(self, im, alignments,
+                default_alignment, threshold)
+
     def load(self, force=False):
         """Load pixel array from image source. If already loaded and <force> 
         is False, nothing will happen.
