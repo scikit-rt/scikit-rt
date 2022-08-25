@@ -577,6 +577,42 @@ class ROI(skrt.core.Archive):
                                          **kwargs)
         return self.affine
 
+    def get_translation_to_align(
+            self, other, z_fraction1=None, z_fraction2=None):
+        """
+        Determine translation for aligning <self> to <other>.
+
+        **Parameters:**
+
+        other : ROI/StructureSet/list
+            ROI with which alignment is to be performed.  This can be
+            specified directly as a single ROI.  Alternatively, it can
+            be a StructureSet, or a list or ROI/StructureSet objects,
+            in which case the individual ROIs will be combined.
+
+        z_fraction1 : float, default=None
+            Position along z axis of slice through <self> on which
+            to align.  If None, alignment is to the centroid of the
+            whole ROI volume.  Otherwise, alignment is to the
+            centroid of the slice at the specified distance
+            from the ROI's most-inferior point: 0 corresponds to
+            the most-inferior point (lowest z); 1 corresponds to the
+            most-superior point (highest z).  Values for z_fraction
+            outside the interval [0, 1] result in a RuntimeError.
+
+        z_fraction2 : float, default=None
+            Position along z axis of slice through <other> on which
+            to align.  If None, alignment is to the centroid of the
+            whole ROI volume.  Otherwise, alignment is to the
+            centroid of the slice at the specified distance
+            from the ROI's most-inferior point: 0 corresponds to
+            the most-inferior point (lowest z); 1 corresponds to the
+            most-superior point (highest z).  Values for z_fraction
+            outside the interval [0, 1] result in a RuntimeError.
+            """
+        return get_translation_to_align(
+                self, other, z_fraction1, z_fraction2)
+
     def get_voxel_size(self):
         """Load self and get voxel_size."""
 
@@ -5163,6 +5199,42 @@ class StructureSet(skrt.core.Archive):
         self.load()
         return (self.name)
 
+    def get_translation_to_align(
+            self, other, z_fraction1=None, z_fraction2=None):
+        """
+        Determine translation for aligning <self> to <other>.
+
+        **Parameters:**
+
+        other : ROI/StructureSet/list
+            ROI with which alignment is to be performed.  This can be
+            specified directly as a single ROI.  Alternatively, it can
+            be a StructureSet, or a list or ROI/StructureSet objects,
+            in which case the individual ROIs will be combined.
+
+        z_fraction1 : float, default=None
+            Position along z axis of slice through <self> on which
+            to align.  If None, alignment is to the centroid of the
+            whole ROI volume.  Otherwise, alignment is to the
+            centroid of the slice at the specified distance
+            from the ROI's most-inferior point: 0 corresponds to
+            the most-inferior point (lowest z); 1 corresponds to the
+            most-superior point (highest z).  Values for z_fraction
+            outside the interval [0, 1] result in a RuntimeError.
+
+        z_fraction2 : float, default=None
+            Position along z axis of slice through <other> on which
+            to align.  If None, alignment is to the centroid of the
+            whole ROI volume.  Otherwise, alignment is to the
+            centroid of the slice at the specified distance
+            from the ROI's most-inferior point: 0 corresponds to
+            the most-inferior point (lowest z); 1 corresponds to the
+            most-superior point (highest z).  Values for z_fraction
+            outside the interval [0, 1] result in a RuntimeError.
+            """
+        return get_translation_to_align(
+                self, other, z_fraction1, z_fraction2)
+
     def get_conformity_index(self, names=None, **kwargs):
         """
         Get conformity index for ROIs of the StructureSet.
@@ -6977,3 +7049,66 @@ def get_all_rois(objs=None):
                 all_rois.append(roi)
 
     return all_rois
+
+def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
+    """
+    Determine translation for aligning <roi1> to <roi2>.
+
+    **Parameters:**
+
+    roi1 : ROI/StructureSet/list
+        ROI that is to be translation to achieve the alignment.  This
+        can be specified directly as a single ROI.  Alternatively,
+        it can be a StructureSet, or a list or ROI/StructureSet objects,
+        in which case the individual ROIs will be combined.
+
+    roi2 : ROI/StructureSet/list
+        ROI with which alignment is to be performed.  This can be
+        specified directly as a single ROI.  Alternatively, it can
+        be a StructureSet, or a list or ROI/StructureSet objects,
+        in which case the individual ROIs will be combined.
+
+    z_fraction1 : float, default=None
+        Position along z axis of slice through <roi1> on which
+        to align.  If None, alignment is to the centroid of the
+        whole ROI volume.  Otherwise, alignment is to the
+        centroid of the slice at the specified distance
+        from the ROI's most-inferior point: 0 corresponds to
+        the most-inferior point (lowest z); 1 corresponds to the
+        most-superior point (highest z).  Values for z_fraction
+        outside the interval [0, 1] result in a RuntimeError.
+
+    z_fraction2 : float, default=None
+        Position along z axis of slice through <roi2> on which
+        to align.  If None, alignment is to the centroid of the
+        whole ROI volume.  Otherwise, alignment is to the
+        centroid of the slice at the specified distance
+        from the ROI's most-inferior point: 0 corresponds to
+        the most-inferior point (lowest z); 1 corresponds to the
+        most-superior point (highest z).  Values for z_fraction
+        outside the interval [0, 1] result in a RuntimeError.
+        """
+    # Create list of two single ROIs.
+    rois = []
+    for roi in [roi1, roi2]:
+        if isinstance(roi, ROI):
+            # Store single ROI directly.
+            rois.append(roi)
+        elif isinstance(roi, StructureSet):
+            # Combine ROIs of StructureSet.
+            rois.append(roi.combine_rois())
+        else:
+            # Combine ROIs from list.
+            rois.append(StructureSet(get_all_rois(roi)).combine_rois())
+
+    # Calculate alignment points.
+    centroids = []
+    for roi, z_fraction in zip(rois, [z_fraction1, z_fraction2]):
+        # Calculate centroid for the whole ROI volume.
+        if z_fraction is None:
+            centroids.append(roi.get_centroid())
+        # Calculate centroid for slice at specified position.
+        else:
+            centroids.append(roi.get_roi_slice(z_fraction).get_centroid())
+
+    return tuple(centroids[1] - centroids[0])

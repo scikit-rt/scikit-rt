@@ -1040,3 +1040,43 @@ def test_get_roi_slice():
     with pytest.raises(RuntimeError) as error_info:
         cube.get_roi_slice(5)
     assert "outside allowed interval" in str(error_info.value)
+
+def test_get_translation_to_align():
+    """Test calculation of translation to align ROIs."""
+    # Define side lengths of image and embedded cube.
+    nxyz = 100
+    side_length = 20
+
+    # Define number of tests to run.
+    n_test = 2
+
+    # Initialise random-number seed.
+    np.random.seed(1)
+
+    # Loop over tests.
+    for idx in range(n_test):
+        # Create synthetic image,
+        # then add two cubes, with randomly chosen centres.
+        sim4 = SyntheticImage((nxyz, nxyz, nxyz))
+        centres = []
+        cubes = []
+        for j in range(2):
+            centres.append(np.random.randint(
+                side_length, nxyz - side_length, 3))
+            name = f"cube{j + 1}"
+            sim.add_cube(side_length=side_length, name=name, centre=centres[j],
+                intensity=10)
+            cubes.append(sim.get_structure_set().get_roi(name))
+
+        # Test alignment to different ROI positions.
+        for z1, z2 in [(None, None), np.random.uniform(0, 1, 2)]:
+            dz1 = 0.5 if z1 is None else z1 - 0.5
+            dz2 = 0.5 if z2 is None else z2 - 0.5
+            t1 = tuple(centres[1] - centres[0])
+            # Test different ways of passing ROI to which to align.
+            for other in (cubes[1], StructureSet([cubes[1]]), [cubes[1]]):
+                t2 = cubes[0].get_translation_to_align(other, z1, z2)
+                assert t1[0] == t2[0]
+                assert t1[1] == t2[1]
+                assert ((t1[2] + (dz2 - dz1) * side_length)
+                        == pytest.approx(t2[2], 1e6))
