@@ -506,36 +506,30 @@ class Image(skrt.core.Archive):
     def get_translation_to_align(self, im, alignments=None, default_alignment=2,
             threshold=None):
         """
-        Determine translation for aligning <self> to <im>.
+        Determine translation for aligning <self> to <other>.
 
-        **Parameters:**
+        This method calls the function of the same name,
+        with <self> and <other> as <im1> and <im2> respectively.
 
-        im : skrt.image.Image
-            Image with which alignment is to be performed.
-
-        alignments : dict, default=None
-            Dictionary indicating how alignment is to be performed along each
-            axis, where keys are axis identifiers ('x', 'y', 'z'), and values
-            are the types of alignment.  The valid alignment values are:
-            - 1: align on lowest coordinates (right, posterior, inferior);
-            - 2: align on centre coodinates;
-            - 3: align on highest coordinates (left, anterior, superior).
-            If an axis isn't included in the dictionary, or is included with
-            an invalid alignment type, the value of <default_alignment> is
-            used for this axis.
-
-        default_alignment : int, default=2
-            Type of alignment to be applied along any axis not included in
-            the <alignments> dictionary.
-
-        threshold : int/float, default=None
-            If None, alignment is with respect to the whole images.  If an
-            integer or float, alignment is with respect to the masks
-            returned for the images by skrt.image.Image.get_foreground_mask(),
-            using value specified as the threshold parameter for mask creation.
+        For explanation of parameters, see documentation of
+        skrt.image.get_translation_to_align().
         """
         return get_translation_to_align(self, im, alignments,
                 default_alignment, threshold)
+
+    def get_translation_to_align_image_rois(self, other, roi_name1, roi_name2,
+            z_fraction1=None, z_fraction2=None):
+        """
+        Determine translation for aligning ROI of <self> to ROI of <other>.
+
+        This method calls the function of the same name,
+        with <self> and <other> as <im1> and <im2> respectively.
+
+        For explanation of parameters, see documentation of
+        skrt.image.get_translation_to_align_image_rois().
+    """
+        return self.get_rois(roi_name1)[0].get_translation_to_align(
+                other.get_rois(roi_name2)[0], z_fraction1, z_fraction2)
 
     def load(self, force=False):
         """Load pixel array from image source. If already loaded and <force> 
@@ -5022,3 +5016,48 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
         translation.append(dxyz)
 
     return tuple(translation)
+
+def get_translation_to_align_image_rois(im1, im2, roi_name1, roi_name2,
+        z_fraction1=None, z_fraction2=None):
+    """
+    Determine translation for aligning ROI of <im1> to ROI of <im2>.
+
+    **Parameters:**
+    im1 : skrt.image.Image
+        Image with linked StructureSet containing ROI to be
+        translated to achieve the alignment.
+
+    im2 : skrt.image.Image
+        Image with linked StructureSet containing ROI with
+        which alignment is to be performed.
+
+    roi_name1 : str
+        Name of ROI contained in StructureSet linked to <im1>,
+        and that it to be translated to achieve the alignment.
+
+    roi_name2 : str
+        Name of ROI contained in StructureSet linked to <im2>,
+        and with which alignment is to be performed.
+
+    z_fraction1 : float, default=None
+        For ROI identified by <roi_name1>, position along z axis
+        of iROI slice on which to align.  If None, alignment is
+        to the centroid of the whole ROI volume.  Otherwise, alignment
+        is to the centroid of the slice at the specified distance
+        from the ROI's most-inferior point: 0 corresponds to
+        the most-inferior point (lowest z); 1 corresponds to the
+        most-superior point (highest z).  Values for z_fraction
+        outside the interval [0, 1] result in a RuntimeError.
+
+    z_fraction2 : float, default=None
+        For ROI identified by <roi_name2>, position along z axis
+        of ROI slice on which to align.  If None, alignment is
+        to the centroid of the whole ROI volume.  Otherwise, alignment
+        is to the centroid of the slice at the specified distance
+        from the ROI's most-inferior point: 0 corresponds to
+        the most-inferior point (lowest z); 1 corresponds to the
+        most-superior point (highest z).  Values for z_fraction
+        outside the interval [0, 1] result in a RuntimeError.
+    """
+    return im1.get_rois(roi_name1)[0].get_translation_to_align(
+            im2.get_rois(roi_name2)[0], z_fraction1, z_fraction2)

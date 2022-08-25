@@ -975,3 +975,36 @@ def test_get_centroid():
         assert sim.get_centroid_idx(view, fraction) ==  idx_centre[idx]
         assert sim.get_centroid_slice(view, fraction) ==  sl_centre[idx]
         assert sim.get_centroid_pos(view, fraction) ==  pos_centre[idx]
+
+def test_get_translation_to_align_image_rois():
+    """Test calculation of translation to align image ROIs."""
+
+    # Create synthetic images featuring a sphere.
+    shapes = [(100, 100, 40), (80, 80, 50)]
+    origins = [(-50, 40, -20), (0, -10, 30)]
+    centres = [(30, 80, 0), (60, 40, 50)]
+    radii = (10, 15)
+    intensity=50
+    ims = []
+    for idx in range(len(shapes)):
+        sim = SyntheticImage(shapes[idx], origin=origins[idx])
+        sim.add_sphere(radius=radii[idx], name="sphere",
+                centre=centres[idx], intensity=intensity)
+        ss = sim.get_structure_set()
+        ims.append(Image(sim))
+        ss.set_image(ims[idx])
+
+    # Initialise random-number seed.
+    np.random.seed(1)
+
+    # Check that translations for aligning sphere centres are as expected.
+    for z1, z2 in [(None, None), np.random.uniform(0, 1, 2)]:
+        dz1 = 0.5 if z1 is None else z1 - 0.5
+        dz2 = 0.5 if z2 is None else z2 - 0.5
+        t1 = [centres[1][idx] - centres[0][idx] for idx in range(3)]
+        t2 = ims[0].get_translation_to_align_image_rois(ims[1],
+                "sphere", "sphere", z1, z2)
+        assert t1[0] == t2[0]
+        assert t1[1] == t2[1]
+        assert ((t1[2] + (dz2 * radii[1] - dz1 * radii[0]))
+                == pytest.approx(t2[2], 1e6))
