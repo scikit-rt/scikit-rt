@@ -6948,3 +6948,32 @@ def get_comparison_metrics():
             ]
 
     return metrics
+
+def get_all_rois(objs=None):
+    """
+    Create list of ROIs from arbitrary combination of ROIs and StructureSets.
+
+    **Parameters:**
+
+    objs : ROI/StructureSet/list, default=None
+        Object(s) from which a list of ROIs is to be created.  The
+        object(s) can be ca single skrt.structures.ROI object, a single
+        skrt.structures.StructureSet object, or a list containing any
+        combination of ROI and StructureSet objects.
+    """
+    # Ensure that objs is a list
+    if issubclass(type(objs), (ROI, StructureSet)):
+        objs = [objs]
+
+    # Create a list containing all unique rois.
+    all_rois = []
+    for item in objs:
+        if issubclass(type(item), ROI):
+            candidate_rois = [item]
+        elif issubclass(type(item), StructureSet):
+            candidate_rois = item.get_rois()
+        for roi in candidate_rois:
+            if not roi in all_rois:
+                all_rois.append(roi)
+
+    return all_rois

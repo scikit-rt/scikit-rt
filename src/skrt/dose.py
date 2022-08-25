@@ -381,21 +381,8 @@ class Dose(ImageOverlay):
             Name of file for saving output.
         '''
 
-        # Ensure that rois is a list.
-        if issubclass(type(rois),
-                (skrt.structures.ROI, skrt.structures.StructureSet)):
-            rois = [rois]
-
-        # Create a list containing all unique rois.
-        all_rois = []
-        for item in rois:
-            if issubclass(type(item), skrt.structures.ROI):
-                candidate_rois = [item]
-            elif issubclass(type(item), skrt.structures.StructureSet):
-                candidate_rois = item.get_rois()
-            for roi in candidate_rois:
-                if not roi in all_rois:
-                    all_rois.append(roi)
+        # Obtain a list containing all unique rois.
+        all_rois = skrt.structures.get_all_rois(rois)
 
         # Determine the maximum dose for the input roi(s).
         if dose_max is None:
