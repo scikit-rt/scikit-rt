@@ -1229,6 +1229,38 @@ each ROI.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_translation_to_align">
+<span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_translation_to_align" title="Permalink to this definition"></a></dt>
+<dd><p>Determine translation for aligning &lt;self&gt; to &lt;other&gt;.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>other<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI with which alignment is to be performed.  This can be
+specified directly as a single ROI.  Alternatively, it can
+be a StructureSet, or a list or ROI/StructureSet objects,
+in which case the individual ROIs will be combined.</p>
+</dd>
+<dt>z_fraction1<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;self&gt; on which
+to align.  If None, alignment is to the centroid of the
+whole ROI volume.  Otherwise, alignment is to the
+centroid of the slice at the specified distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
+</dd>
+<dt>z_fraction2<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;other&gt; on which
+to align.  If None, alignment is to the centroid of the
+whole ROI volume.  Otherwise, alignment is to the
+centroid of the slice at the specified distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_volume">
 <span class="sig-name descname"><span class="pre">get_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_volume" title="Permalink to this definition"></a></dt>
 <dd><p>Get ROI volume. The calculated volume will be cached in 
@@ -2259,6 +2291,38 @@ representing the combination.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_translation_to_align">
+<span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_translation_to_align" title="Permalink to this definition"></a></dt>
+<dd><p>Determine translation for aligning &lt;self&gt; to &lt;other&gt;.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>other<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI with which alignment is to be performed.  This can be
+specified directly as a single ROI.  Alternatively, it can
+be a StructureSet, or a list or ROI/StructureSet objects,
+in which case the individual ROIs will be combined.</p>
+</dd>
+<dt>z_fraction1<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;self&gt; on which
+to align.  If None, alignment is to the centroid of the
+whole ROI volume.  Otherwise, alignment is to the
+centroid of the slice at the specified distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
+</dd>
+<dt>z_fraction2<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;other&gt; on which
+to align.  If None, alignment is to the centroid of the
+whole ROI volume.  Otherwise, alignment is to the
+centroid of the slice at the specified distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.interpolate_points">
 <span class="sig-name descname"><span class="pre">interpolate_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothness_per_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.interpolate_points" title="Permalink to this definition"></a></dt>
 <dd><p>Return new StructureSet object, with interpolated contour points.</p>
@@ -2665,6 +2729,43 @@ outside the interval [0, 1] result in a RuntimeError.</p>
 <dt>suffix<span class="classifier">str, default=None</span></dt><dd><p>Suffix to append to name of input ROI, to form name
 of output ROI.  If None, append z_fraction, with value
 given to two decimal places.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.structures.get_translation_to_align">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_translation_to_align" title="Permalink to this definition"></a></dt>
+<dd><p>Determine translation for aligning &lt;roi1&gt; to &lt;roi2&gt;.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi1<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI that is to be translation to achieve the alignment.  This
+can be specified directly as a single ROI.  Alternatively,
+it can be a StructureSet, or a list or ROI/StructureSet objects,
+in which case the individual ROIs will be combined.</p>
+</dd>
+<dt>roi2<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI with which alignment is to be performed.  This can be
+specified directly as a single ROI.  Alternatively, it can
+be a StructureSet, or a list or ROI/StructureSet objects,
+in which case the individual ROIs will be combined.</p>
+</dd>
+<dt>z_fraction1<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;roi1&gt; on which
+to align.  If None, alignment is to the centroid of the
+whole ROI volume.  Otherwise, alignment is to the
+centroid of the slice at the specified distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
+</dd>
+<dt>z_fraction2<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;roi2&gt; on which
+to align.  If None, alignment is to the centroid of the
+whole ROI volume.  Otherwise, alignment is to the
+centroid of the slice at the specified distance
+from the ROI’s most-inferior point: 0 corresponds to
+the most-inferior point (lowest z); 1 corresponds to the
+most-superior point (highest z).  Values for z_fraction
+outside the interval [0, 1] result in a RuntimeError.</p>
 </dd>
 </dl>
 </dd></dl>
