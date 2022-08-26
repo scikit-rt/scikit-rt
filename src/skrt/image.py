@@ -3283,7 +3283,7 @@ class Image(skrt.core.Archive):
             Translation in mm in the [x, y, z] directions.
         """
         self.load()
-        self.origin = [self.get_origin[i] + translation[i] for i in range(3)]
+        self.origin = [self.get_origin()[i] + translation[i] for i in range(3)]
         self.affine = None
         self.set_geometry()
         return None
@@ -3382,6 +3382,34 @@ class Image(skrt.core.Archive):
         """
         bounds = roi.get_extents(buffer, buffer_units, method)
         self.crop(*bounds)
+
+    def crop_to_image(self, image, alignment=None):
+        """
+        Crop to extents of another image, optionally after image alignment.
+
+        **Parameters:**
+
+        image : skrt.image.Image
+            Image to whose extents to perform cropping.
+
+        alignment : tuple/dict/str, default=None
+            Strategy to be used for image alignment prior to cropping.
+            For further details, see documentation of
+            skrt.image.get_alignment_translation().
+        """
+        # Calculate any translation to be applied prior to cropping.
+        translation = np.array(self.get_alignment_translation(image, alignment))
+
+        # Apply translation to image origin.
+        if translation is not None:
+            self.translate_origin(translation)
+
+        # Perform cropping.
+        self.crop(*image.get_extents())
+
+        # Apply reverse translation to origin of cropped image.
+        if translation is not None:
+            self.translate_origin(-translation)
 
     def map_hu(self, mapping='kv_to_mv'):
         '''
@@ -5214,7 +5242,7 @@ def get_alignment_strategy(alignment=None):
     Extract information defining strategy for image alignment.
 
     alignment : tuple/dict/str, default=None
-        Strategy to be used for image alignment.  For further explanation,
+        Strategy to be used for image alignment.  For defailts,
         see documentation of skrt.image.get_alignment_translation().
     """
     # If null alignment passed, return None.

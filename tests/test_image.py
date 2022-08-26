@@ -717,6 +717,23 @@ def test_crop_to_roi():
     for i in range(2):
         assert set(roi.get_extents()[i]) == set(im.image_extent[i])
 
+def test_crop_to_image():
+    # Create test images.
+    sim1 = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5))
+    im1 = sim1.get_image()
+    sim2 = SyntheticImage((12, 14, 12), origin=(5.5, 5.5, 5.5))
+    im2 = sim2.get_image()
+
+    # Perform cropping, after aligning image centres.
+    im2.crop_to_image(im1, alignment="_centre_")
+
+    # Check that images have the same lengths along each axis.
+    for idx in range(3):
+        assert im1.get_length(idx) == im2.get_length(idx)
+
+    # Check that cropping has shifted origin by expected amount.
+    assert im2.get_origin() == [6.5, 6.5, 6.5]
+
 def test_dicom_dicom_slice():
     shape_single = (shape[0], shape[1], 1)
     im = create_test_image(shape_single, voxel_size, origin)
