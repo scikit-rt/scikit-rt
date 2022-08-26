@@ -310,6 +310,21 @@ image will not be cropped in that direction.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.crop_to_image">
+<span class="sig-name descname"><span class="pre">crop_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_to_image" title="Permalink to this definition"></a></dt>
+<dd><p>Crop to extents of another image, optionally after image alignment.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image to whose extents to perform cropping.</p>
+</dd>
+<dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for image alignment prior to cropping.
+For further details, see documentation of
+skrt.image.get_alignment_translation().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.crop_to_roi">
 <span class="sig-name descname"><span class="pre">crop_to_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_to_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Crop image to region covered by an ROI.</p>
@@ -2049,7 +2064,7 @@ for options.</p>
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_alignment_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_alignment_strategy" title="Permalink to this definition"></a></dt>
 <dd><p>Extract information defining strategy for image alignment.</p>
 <dl class="simple">
-<dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for image alignment.  For further explanation,
+<dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for image alignment.  For defailts,
 see documentation of skrt.image.get_alignment_translation().</p>
 </dd>
 </dl>
