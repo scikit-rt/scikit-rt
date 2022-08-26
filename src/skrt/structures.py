@@ -6259,10 +6259,9 @@ class StructureSet(skrt.core.Archive):
         if name is None:
             name = '+'.join(roi_names)
 
-        # Clone one of the ROIs as a starting point.
-        roi_new = ROI(self.get_roi(roi_names[0]))
-        roi_new.name = name
-        roi_new.create_mask()
+        # Use data from one of the ROIs as a starting point.
+        roi0 = self.get_roi(roi_names[0])
+        roi_new = ROI(source=roi0.get_mask(), image=roi0.image, name=name)
 
         # Combine with data from the other ROIs.
         for i in range(1, len(roi_names)):
