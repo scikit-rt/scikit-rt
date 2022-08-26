@@ -3380,7 +3380,8 @@ class Image(skrt.core.Archive):
                   binary mask.
                 * None: use the method set in self.default_geom_method.
         """
-        bounds = roi.get_extents(buffer, buffer_units, method)
+        bounds = roi.get_extents(buffer=buffer, buffer_units=buffer_units,
+                method=method)
         self.crop(*bounds)
 
     def crop_to_image(self, image, alignment=None):
