@@ -338,6 +338,16 @@ to the [x, y, z] axes.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_alignment_translation">
+<span class="sig-name descname"><span class="pre">get_alignment_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_alignment_translation" title="Permalink to this definition"></a></dt>
+<dd><p>Determine translation for aligning &lt;self&gt; to &lt;other&gt;.</p>
+<p>This method calls the function of the same name,
+with &lt;self&gt; and &lt;other&gt; as &lt;im1&gt; and &lt;im2&gt; respectively.</p>
+<p>For explanation of parameters, see documentation of
+skrt.image.get_alignment_translation().</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_axes">
 <span class="sig-name descname"><span class="pre">get_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_axes" title="Permalink to this definition"></a></dt>
 <dd><p>Return list of axis numbers in order [column, row, slice] if
@@ -855,7 +865,7 @@ even if it has previously been computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_translation_to_align">
-<span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_translation_to_align" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_translation_to_align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_translation_to_align" title="Permalink to this definition"></a></dt>
 <dd><p>Determine translation for aligning &lt;self&gt; to &lt;other&gt;.</p>
 <p>This method calls the function of the same name,
 with &lt;self&gt; and &lt;other&gt; as &lt;im1&gt; and &lt;im2&gt; respectively.</p>
@@ -2014,6 +2024,107 @@ for options.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_alignment_strategy">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_alignment_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_alignment_strategy" title="Permalink to this definition"></a></dt>
+<dd><p>Extract information defining strategy for image alignment.</p>
+<dl class="simple">
+<dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for image alignment.  For further explanation,
+see documentation of skrt.image.get_alignment_translation().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_alignment_translation">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_alignment_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_alignment_translation" title="Permalink to this definition"></a></dt>
+<dd><p>Determine translation for aligning &lt;im1&gt; to &lt;im2&gt;, based on &lt;alignment&gt;.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>im1<span class="classifier">skrt.image.Image</span></dt><dd><p>Image that is to be translated to achieve the alignment.</p>
+</dd>
+<dt>im2<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with which alignment is to be performed.</p>
+</dd>
+<dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for image alignment.  This can be
+translation-based, image-based or ROI-based.</p>
+</dd>
+</dl>
+<ul>
+<li><p>Translation-based initial alignment:
+This is specified by:
+- A tuple indicating the amounts (dx, dy, dz) by which a</p>
+<blockquote>
+<div><p>point in &lt;im1&gt; must be translated to align with
+the corresponding point in &lt;im2&gt;;</p>
+</div></blockquote>
+</li>
+<li><p>Image-based alignment:
+This can be specified by:
+- A dictionary indicating how &lt;im1&gt; and &lt;im2&gt; are</p>
+<blockquote>
+<div><p>to be aligned along each axis, where keys are axis
+identifiers (‘x’, ‘y’, ‘z’), and values are the types
+of alignment:
+- 1: align on lowest coordinates (right, posterior, inferior);
+- 2: align on centre coodinates;
+- 3: align on highest coordinates (left, anterior, superior).
+If an axis isn’t included in the dictionary, or is included
+with an invalid alignment type, the alignment type defaults to 2.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>One of the strings “_top_”, “_centre_”, “_bottom_”,
+in which case &lt;im1&gt; and &lt;im2&gt; have their (x, y)
+centres aligned, and have z positions aligned at
+image top, centre or bottom.</p></li>
+</ul>
+</li>
+<li><p>ROI-based alignment:
+This defines a translation of &lt;im1&gt; so that an ROI associated
+with &lt;im1&gt; is aligned with an ROI associated with &lt;im2&gt;.  For
+each image, the alignment point is defined by an ROI name and an
+optional position.  If the optional position is omitted
+of is None, the alginment point is the centroid of the
+ROI as a whole.  Otherwise, the alignment point is the
+centroid of an (x, y) slice through the ROI at the
+specified relative position along the z-axis.  This
+relative position must be in the interval [0, 1], where
+0 corresponds to the most-inferior point (lowest z) and
+1 corresponds to the most-superior point (highest z).</p>
+<p>The full ROI-based alignment specification is a
+tuple of two two-element tuples:
+((“im1_roi_name”, im1_roi_position),
+(“im2_roi_name”, im2_roi_position)).
+If a position is omitted, it defaults to None, and the
+ROI name can be given either as a string or as a
+one-element tuple.  If information is given only for
+&lt;im1&gt;, the same information is used for the &lt;im2&gt;.</p>
+<p>The following are examples of valid ROI-based alignment
+specifications, and how they’re interpreted:</p>
+<ul class="simple">
+<li><p>“roi”:
+align “roi” of &lt;im1&gt; with “roi” of &lt;im2&gt;,
+aligning on volume centroids;</p></li>
+<li><p>(“roi1”, “roi2”):
+align “roi1” of &lt;im1&gt; with “roi2” of &lt;im2&gt;,
+aligning on volume centroids;</p></li>
+<li><p>(“roi”, 1):
+align “roi” of &lt;im1&gt; with “roi” of &lt;im2&gt;,
+aligning on centroids of top slices;</p></li>
+<li><p>((“roi1”, 0.75), “roi2”):
+align “roi1” of &lt;im1&gt; with “roi2” of &lt;im2&gt;,
+aligning centroid of slice three quarters of the way
+up “roi1” with the volume centroid of “roi2”.</p></li>
+</ul>
+<p>Note that ROI-based alignment relies on the named
+ROIs being contained in structure sets associated with
+&lt;im1&gt; and &lt;im2&gt;.  Association of structure sets
+to images may be performed automatically when loading
+DICOM data to Patient objects, or may be performed
+manually using an Image object’s set_structure_set() method.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.get_box_mask_from_mask">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_box_mask_from_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_box_mask_from_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Slice by slice, create box masks enclosing an arbitrarily shaped mask.</p>
@@ -2215,13 +2326,11 @@ using value specified as the threshold parameter for mask creation.</p>
 <dt class="sig sig-object py" id="skrt.image.get_translation_to_align_image_rois">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_translation_to_align_image_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_name1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_name2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_fraction2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_translation_to_align_image_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Determine translation for aligning ROI of &lt;im1&gt; to ROI of &lt;im2&gt;.</p>
-<p><strong>Parameters:</strong>
-im1 : skrt.image.Image</p>
-<blockquote>
-<div><p>Image with linked StructureSet containing ROI to be
-translated to achieve the alignment.</p>
-</div></blockquote>
+<p><strong>Parameters:</strong></p>
 <dl class="simple">
+<dt>im1<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with linked StructureSet containing ROI to be
+translated to achieve the alignment.</p>
+</dd>
 <dt>im2<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with linked StructureSet containing ROI with
 which alignment is to be performed.</p>
 </dd>
