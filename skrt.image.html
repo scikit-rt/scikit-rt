@@ -311,8 +311,29 @@ image will not be cropped in that direction.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.crop_to_roi">
-<span class="sig-name descname"><span class="pre">crop_to_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_to_roi" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">crop_to_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_to_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Crop image to region covered by an ROI.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>roi<span class="classifier">skrt.structures.ROI</span></dt><dd><p>ROI to which image will be cropped.</p>
+</dd>
+<dt>buffer<span class="classifier">float, default=None</span></dt><dd><p>Optional buffer to add to the &lt;roi&gt; extents before cropping.
+Units set by &lt;buffer_units&gt;.</p>
+</dd>
+<dt>buffer_units<span class="classifier">str, default=”mm”</span></dt><dd><p>Units for buffer, if using. Can be “mm”, “voxels”, or “frac” (which
+applies buffer as a fraction of total length in each dimension).</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for calculating extent of &lt;roi&gt; region. Can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“contour”: get extent from min/max positions of contour(s).</p></li>
+<li><p>“mask”: get extent from min/max positions of voxels in the 
+binary mask.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
