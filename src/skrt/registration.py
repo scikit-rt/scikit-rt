@@ -99,11 +99,23 @@ class Registration(Data):
             - a dictionary specifying parameters and values to be passed
               to skrt.image.get_translation_to_align(), which defines
               a translation for aligning fixed and moving image;
-            - one of the strings "top", "centre", "bottom", in which case
+            - one of the strings "_top_", "_centre_", "_bottom_", in which case
               skrt.image.get_translation_to align() is called to define
               a translationg such that fixed and moving image have
               their (x, y) centres aligned, and have z positions aligned at
-              image top, centre or bottom.
+              image top, centre or bottom;
+            - a string specifying the name of an ROI associated with both
+              fixed and moving image, with ROI centroids to be aligned;
+            - a tuple of strings specifying names of an ROI associated with
+              the fixed image and an ROI associated with the moving image,
+              with ROI centroids to be aligned;
+            - a tuple specifying ROI name and relative position along z-axis
+              on which to align (0 most-inferior slice of ROI, 1 most-superior
+              slice), with the same ROI name and relative position used for
+              fixed and moving image;
+            - a tuple of tuples specifying ROI name and relative position
+              along z-axis on which to align, with one tuple for the fixed
+              image and one tuple for the moving image.
             The result of the initial alignment is stored as the first
             entry of <self.tfiles", with key <initial_alignment_name>.  If
             <initial_alignment> is set to None, no initial alignment
