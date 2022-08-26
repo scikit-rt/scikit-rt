@@ -3361,8 +3361,8 @@ class Image(skrt.core.Archive):
 
         **Parameters:**
 
-        roi : skrt.structures.ROI
-            ROI to which image will be cropped.
+        roi : skrt.structures.ROI/skirt.structures.StructureSet
+            ROI or StructureSet to which image will be cropped.
 
         buffer : float, default=None
             Optional buffer to add to the <roi> extents before cropping.
