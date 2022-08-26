@@ -503,8 +503,20 @@ class Image(skrt.core.Archive):
 
         return plans
 
-    def get_translation_to_align(self, im, alignments=None, default_alignment=2,
-            threshold=None):
+    def get_alignment_translation(self, other, alignment=None):
+        """
+        Determine translation for aligning <self> to <other>.
+
+        This method calls the function of the same name,
+        with <self> and <other> as <im1> and <im2> respectively.
+
+        For explanation of parameters, see documentation of
+        skrt.image.get_alignment_translation().
+        """
+        return get_alignment_translation(self, other, alignment)
+
+    def get_translation_to_align(self, other, alignments=None,
+            default_alignment=2, threshold=None):
         """
         Determine translation for aligning <self> to <other>.
 
@@ -514,7 +526,7 @@ class Image(skrt.core.Archive):
         For explanation of parameters, see documentation of
         skrt.image.get_translation_to_align().
         """
-        return get_translation_to_align(self, im, alignments,
+        return get_translation_to_align(self, other, alignments,
                 default_alignment, threshold)
 
     def get_translation_to_align_image_rois(self, other, roi_name1, roi_name2,
@@ -5023,6 +5035,7 @@ def get_translation_to_align_image_rois(im1, im2, roi_name1, roi_name2,
     Determine translation for aligning ROI of <im1> to ROI of <im2>.
 
     **Parameters:**
+
     im1 : skrt.image.Image
         Image with linked StructureSet containing ROI to be
         translated to achieve the alignment.
@@ -5061,3 +5074,180 @@ def get_translation_to_align_image_rois(im1, im2, roi_name1, roi_name2,
     """
     return im1.get_rois(roi_name1)[0].get_translation_to_align(
             im2.get_rois(roi_name2)[0], z_fraction1, z_fraction2)
+
+def get_alignment_translation(im1, im2, alignment=None):
+    """
+    Determine translation for aligning <im1> to <im2>, based on <alignment>.
+
+    **Parameters:**
+
+    im1 : skrt.image.Image
+        Image that is to be translated to achieve the alignment.
+
+    im2 : skrt.image.Image
+        Image with which alignment is to be performed.
+
+    alignment : tuple/dict/str, default=None
+        Strategy to be used for image alignment.  This can be
+        translation-based, image-based or ROI-based.
+
+    - Translation-based initial alignment:
+      This is specified by:
+      - A tuple indicating the amounts (dx, dy, dz) by which a
+        point in <im1> must be translated to align with
+        the corresponding point in <im2>;
+
+    - Image-based alignment:
+      This can be specified by:
+      - A dictionary indicating how <im1> and <im2> are
+        to be aligned along each axis, where keys are axis
+        identifiers ('x', 'y', 'z'), and values are the types
+        of alignment:
+        - 1: align on lowest coordinates (right, posterior, inferior);
+        - 2: align on centre coodinates;
+        - 3: align on highest coordinates (left, anterior, superior).
+        If an axis isn't included in the dictionary, or is included
+        with an invalid alignment type, the alignment type defaults to 2.
+      - One of the strings "_top_", "_centre_", "_bottom_",
+        in which case <im1> and <im2> have their (x, y)
+        centres aligned, and have z positions aligned at
+        image top, centre or bottom.
+
+    - ROI-based alignment:
+      This defines a translation of <im1> so that an ROI associated
+      with <im1> is aligned with an ROI associated with <im2>.  For
+      each image, the alignment point is defined by an ROI name and an
+      optional position.  If the optional position is omitted
+      of is None, the alginment point is the centroid of the
+      ROI as a whole.  Otherwise, the alignment point is the
+      centroid of an (x, y) slice through the ROI at the
+      specified relative position along the z-axis.  This
+      relative position must be in the interval [0, 1], where
+      0 corresponds to the most-inferior point (lowest z) and
+      1 corresponds to the most-superior point (highest z).
+          
+      The full ROI-based alignment specification is a
+      tuple of two two-element tuples:
+      (("im1_roi_name", im1_roi_position),
+      ("im2_roi_name", im2_roi_position)).
+      If a position is omitted, it defaults to None, and the
+      ROI name can be given either as a string or as a
+      one-element tuple.  If information is given only for
+      <im1>, the same information is used for the <im2>.
+
+      The following are examples of valid ROI-based alignment
+      specifications, and how they're interpreted:
+
+      - "roi":
+        align "roi" of <im1> with "roi" of <im2>,
+        aligning on volume centroids;
+
+      - ("roi1", "roi2"):
+        align "roi1" of <im1> with "roi2" of <im2>,
+        aligning on volume centroids;
+             
+      - ("roi", 1):
+        align "roi" of <im1> with "roi" of <im2>,
+        aligning on centroids of top slices;
+
+      - (("roi1", 0.75), "roi2"):
+        align "roi1" of <im1> with "roi2" of <im2>,
+        aligning centroid of slice three quarters of the way
+        up "roi1" with the volume centroid of "roi2".
+
+      Note that ROI-based alignment relies on the named
+      ROIs being contained in structure sets associated with
+      <im1> and <im2>.  Association of structure sets
+      to images may be performed automatically when loading
+      DICOM data to Patient objects, or may be performed
+      manually using an Image object's set_structure_set() method.
+   """
+    # If alignment specified as a 3-element list-like object,
+    # return this as the translation.
+    if skrt.core.is_list(alignment) and len(alignment) == 3:
+        return alignment
+
+    # Parse alignment string.
+    alignments = get_alignment_strategy(alignment)
+    if not alignments:
+        return
+
+    # Define translation for image-based alignment.
+    if isinstance(alignments, dict):
+        # Always use standardised data.
+        return get_translation_to_align(
+            Image(im1.get_standardised_data(),
+                affine=im1.get_standardised_affine()),
+            Image(im2.get_standardised_data(),
+                affine=im2.get_standardised_affine()),
+            **alignments)
+
+    # Define translation for roi-based alignment.
+    return get_translation_to_align_image_rois(
+        im1, im2, alignments[0][0], alignments[1][0],
+        alignments[0][1], alignments[1][1])
+
+def get_alignment_strategy(alignment=None):
+    """
+    Extract information defining strategy for image alignment.
+
+    alignment : tuple/dict/str, default=None
+        Strategy to be used for image alignment.  For further explanation,
+        see documentation of skrt.image.get_alignment_translation().
+    """
+    # If null alignment passed, return None.
+    if not alignment:
+        return
+
+    # If alignment passed as a dictionary, return this.
+    if isinstance(alignment, dict):
+        return alignment
+
+    # If alignment passed as a position string,
+    # create alignment dictionary based on this.
+    image_alignments = ["_bottom_", "_centre_", "_top_"]
+    if alignment in image_alignments:
+        return {"alignments": {"x": 2, "y": 2, "z":
+            1 + image_alignments.index(alignment)}}
+
+    # Alignment passed as name only for a single ROI.
+    roi_alignments = None
+    if isinstance(alignment, str):
+        roi_alignments = [(alignment, None), (alignment, None)]
+
+    # Alignment passed as list-like object.
+    elif skrt.core.is_list(alignment):
+        # Name given for a single ROI.
+        if len(alignment) == 1:
+            roi_alignments = [(alignment[0], None), (alignment[0], None)]
+        # Information for two ROIs,
+        # or name and position for a single ROI.
+        elif len(alignment) == 2:
+            if skrt.core.is_list(alignment[0]):
+                # Name and position passed for two ROIs
+                if skrt.core.is_list(alignment[1]):
+                    roi_alignments = list(alignment)
+                # Name and position passed for first ROI,
+                # Name only passed for second ROI.
+                else:
+                    roi_alignments = [alignment[0], (alignment[1], None)]
+            else:
+                # Name only passed for first ROI,
+                # Name and position passed for second ROI.
+                if skrt.core.is_list(alignment[1]):
+                    roi_alignments = [(alignment[0], None), alignment[1]]
+                else:
+                    # Name passed for two ROIs.
+                    if isinstance(alignment[1], str):
+                        roi_alignments = [(alignment[0], None),
+                                (alignment[1], None)]
+                    # Name and position passed for one ROI.
+                    else:
+                        roi_alignments = [alignment, alignment]
+
+            # Deal with ROI name passed as single-element tuples.
+            for idx in range(len(roi_alignments)):
+                if 1 == len(roi_alignments[idx]):
+                    roi_alignments[idx] = [roi_alignments[idx][0], None]
+
+    return roi_alignments
