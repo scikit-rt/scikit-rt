@@ -3354,11 +3354,33 @@ class Image(skrt.core.Archive):
         self.affine = None
         self.set_geometry()
 
-    def crop_to_roi(self, roi, **kwargs):
+    def crop_to_roi(self, roi, buffer=None, buffer_units="mm",
+            method=None):
         """
         Crop image to region covered by an ROI.
+
+        **Parameters:**
+
+        roi : skrt.structures.ROI
+            ROI to which image will be cropped.
+
+        buffer : float, default=None
+            Optional buffer to add to the <roi> extents before cropping.
+            Units set by <buffer_units>.
+
+        buffer_units : str, default="mm"
+            Units for buffer, if using. Can be "mm", "voxels", or "frac" (which
+            applies buffer as a fraction of total length in each dimension).
+
+        method : str, default=None
+            Method to use for calculating extent of <roi> region. Can be: 
+
+                * "contour": get extent from min/max positions of contour(s).
+                * "mask": get extent from min/max positions of voxels in the 
+                  binary mask.
+                * None: use the method set in self.default_geom_method.
         """
-        bounds = roi.get_extents(**kwargs)
+        bounds = roi.get_extents(buffer, buffer_units, method)
         self.crop(*bounds)
 
     def map_hu(self, mapping='kv_to_mv'):
