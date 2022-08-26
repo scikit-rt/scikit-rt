@@ -382,11 +382,23 @@ with the corresponding point in the moving image;</p>
 <li><p>a dictionary specifying parameters and values to be passed
 to skrt.image.get_translation_to_align(), which defines
 a translation for aligning fixed and moving image;</p></li>
-<li><p>one of the strings “top”, “centre”, “bottom”, in which case
+<li><p>one of the strings “_top_”, “_centre_”, “_bottom_”, in which case
 skrt.image.get_translation_to align() is called to define
 a translationg such that fixed and moving image have
 their (x, y) centres aligned, and have z positions aligned at
-image top, centre or bottom.</p></li>
+image top, centre or bottom;</p></li>
+<li><p>a string specifying the name of an ROI associated with both
+fixed and moving image, with ROI centroids to be aligned;</p></li>
+<li><p>a tuple of strings specifying names of an ROI associated with
+the fixed image and an ROI associated with the moving image,
+with ROI centroids to be aligned;</p></li>
+<li><p>a tuple specifying ROI name and relative position along z-axis
+on which to align (0 most-inferior slice of ROI, 1 most-superior
+slice), with the same ROI name and relative position used for
+fixed and moving image;</p></li>
+<li><p>a tuple of tuples specifying ROI name and relative position
+along z-axis on which to align, with one tuple for the fixed
+image and one tuple for the moving image.</p></li>
 </ul>
 <p>The result of the initial alignment is stored as the first
 entry of &lt;self.tfiles”, with key &lt;initial_alignment_name&gt;.  If
