@@ -5854,6 +5854,38 @@ class StructureSet(skrt.core.Archive):
             all_extents.extend(roi.get_extent(**kwargs))
         return min(all_extents), max(all_extents)
 
+    def get_extents(self, roi_names=None, buffer=None, buffer_units="mm",
+            method=None):
+        """
+        Get minimum and maximum extent of StructureSet ROIs,
+        in mm along all three axes, returned in order [x, y, z].
+        Optionally apply a buffer to the extents such that they cover
+        more than the region of the ROIs.
+
+        **Parameters:**
+
+        roi_names : list, default=None
+            List of names of ROIs to be considered.  If None, all of the
+            structure set's ROIs are considered.
+
+        buffer : float, default=None
+            Optional buffer to add to the extents. Units set by `buffer_units`.
+
+        buffer_units : str, default="mm"
+            Units for buffer, if using. Can be "mm", "voxels", or "frac" (which
+            applies buffer as a fraction of total length in each dimension).
+
+        method : str, default=None
+            Method to use for extent calculation. Can be: 
+
+                * "contour": get extent from min/max positions of contour(s).
+                * "mask": get extent from min/max positions of voxels in the 
+                  binary mask.
+                * None: use the method set in self.default_geom_method.
+        """
+        return self.combine_rois(roi_names).get_extents(
+                buffer, buffer_units, method)
+
     def get_dummy_image(self, **kwargs):
         """Make a dummy image that covers the area spanned by all ROIs in this
         StructureSet. Returns an Image object.
