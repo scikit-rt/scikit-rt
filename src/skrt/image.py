@@ -1104,8 +1104,8 @@ class Image(skrt.core.Archive):
         self.data[mask.get_data() == False] = background
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
-            fill_value=None, image_size_unit=None, keep_centre=False,
-            method='linear'):
+            fill_value=None, image_size_unit=None, centre=None,
+            keep_centre=False, method='linear'):
         '''
         Resize image to specified image size, voxel size and origin.
 
@@ -1119,10 +1119,11 @@ class Image(skrt.core.Archive):
             via image_size_unit.  If the size is in mm, and isn't an
             integer multiple of voxel_size, resizing won't be exact.
 
-        origin : tuple/list/None, default=(0, 0, 0)
+        origin : tuple/list/None, default=None
             Origin position in mm in order (x, y, z).  If None, the image's
             existing origin is kept.  If a value in the tuple/list is None,
-            the relevant existing value is kept.
+            the relevant existing value is kept.  Disregarded if centre
+            isn't None, or if keep_centre is True.
 
         voxel_size : tuple/list/None, default=None
             Voxel sizes in mm in order (x, y, z).  If None, the image's
@@ -1138,9 +1139,17 @@ class Image(skrt.core.Archive):
             Unit of measurement ('voxel' or 'mm') for image_size.  If None,
             use 'voxel'.
 
+        centre : tuple/list/None, default=None
+            Position (x, y, z) in mm in the original image to be set as
+            centre for the resized image.  Disregarded if None.  Otherwise
+            takes priority over origin and keep_centre.  If a value in
+            the tuple/list is None, the relevant value from the original
+            image centre is kept.
+
         keep_centre: bool, default=False
             If True, make the centre of the initial image the centre of
             the resized image, disregarding the value passed to origin.
+            Disregarded if the value of the centre parameter isn't None.
 
         method: str, default='linear'
             Interpolation method to use.  Valid values are 'linear' and
@@ -1166,6 +1175,11 @@ class Image(skrt.core.Archive):
         if voxel_size is None:
             voxel_size = self.get_voxel_size()
 
+        if centre is None:
+            centre = self.get_centre()
+        else:
+            keep_centre = True
+
         # Allow for two-dimensional images
         if 2 == len(self.get_data().shape):
             ny, nx = self.get_data().shape
@@ -1176,6 +1190,7 @@ class Image(skrt.core.Archive):
         image_size = list(image_size)
         origin = list(origin)
         voxel_size = list(voxel_size)
+        centre = list(centre)
 
         # Replace any None values among resizing parameters
         for i in range(3):
@@ -1185,6 +1200,8 @@ class Image(skrt.core.Archive):
                 origin[i] = self.get_origin()[i]
             if voxel_size[i] is None:
                 voxel_size[i] = self.get_voxel_size()[i]
+            if centre[i] is None:
+                centre[i] = self.get_centre()[i]
 
         # Convert to voxel units
         if 'mm' == image_size_unit:
@@ -1194,7 +1211,6 @@ class Image(skrt.core.Archive):
 
         # Redefine origin to fix centre position.
         if keep_centre:
-            centre = self.get_centre()
             origin = [centre[i] - (0.5 * image_size[i] - 0.5)
                     * voxel_size[i] for i in range(3)]
 
@@ -1209,7 +1225,6 @@ class Image(skrt.core.Archive):
             # If slice thickness not known, set to the requested value
             if self.get_voxel_size()[2] is None:
                 self.voxel_size[2] = image.voxel_size[2]
-
 
             # Set fill value
             if fill_value is None:
