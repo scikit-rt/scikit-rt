@@ -1,6 +1,6 @@
 name: test
 dependencies:
-  - pip=22.1.2
-  - python=3.8.13
+  - pip
+  - python=3.8
   - pip:
     - -e .
