@@ -1445,7 +1445,7 @@ then it’s taken to specify the voxel size in mm along all axes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.resize">
-<span class="sig-name descname"><span class="pre">resize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.resize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">resize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.resize" title="Permalink to this definition"></a></dt>
 <dd><p>Resize image to specified image size, voxel size and origin.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1456,9 +1456,10 @@ kept.  The unit of measurement (‘voxel’ or ‘mm’) is specified
 via image_size_unit.  If the size is in mm, and isn’t an
 integer multiple of voxel_size, resizing won’t be exact.</p>
 </dd>
-<dt>origin<span class="classifier">tuple/list/None, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z).  If None, the image’s
+<dt>origin<span class="classifier">tuple/list/None, default=None</span></dt><dd><p>Origin position in mm in order (x, y, z).  If None, the image’s
 existing origin is kept.  If a value in the tuple/list is None,
-the relevant existing value is kept.</p>
+the relevant existing value is kept.  Disregarded if centre
+isn’t None, or if keep_centre is True.</p>
 </dd>
 <dt>voxel_size<span class="classifier">tuple/list/None, default=None</span></dt><dd><p>Voxel sizes in mm in order (x, y, z).  If None, the image’s
 existing voxel size is kept.  If a value in the tuple/list is None,
@@ -1471,8 +1472,15 @@ the minimum intensity value of the original image is used.</p>
 <dt>image_size_unit: str, default=None</dt><dd><p>Unit of measurement (‘voxel’ or ‘mm’) for image_size.  If None,
 use ‘voxel’.</p>
 </dd>
+<dt>centre<span class="classifier">tuple/list/None, default=None</span></dt><dd><p>Position (x, y, z) in mm in the original image to be set as
+centre for the resized image.  Disregarded if None.  Otherwise
+takes priority over origin and keep_centre.  If a value in
+the tuple/list is None, the relevant value from the original
+image centre is kept.</p>
+</dd>
 <dt>keep_centre: bool, default=False</dt><dd><p>If True, make the centre of the initial image the centre of
-the resized image, disregarding the value passed to origin.</p>
+the resized image, disregarding the value passed to origin.
+Disregarded if the value of the centre parameter isn’t None.</p>
 </dd>
 <dt>method: str, default=’linear’</dt><dd><p>Interpolation method to use.  Valid values are ‘linear’ and
 ‘nearest’</p>
