@@ -392,12 +392,12 @@ class ImportPatient(Patient):
 
         # Standardise ROI names.
         self.ss_clinical = ss_clinical
-        self.ss_clinical.name = "clinical_structures"
+        self.ss_clinical.name = "clinical"
         self.ss_plan = ss_plan.filtered_copy(controls,
-                "plan_control_structures", to_keep=list(controls.keys()),
+                "plan", to_keep=list(controls.keys()),
                 copy_roi_data=False)
         self.ss_relapse = ss_relapse.filtered_copy(controls,
-                "relapse_control_structures", to_keep=list(controls.keys()),
+                "relapse", to_keep=list(controls.keys()),
                 copy_roi_data=False)
         self.ss_recurrence = ss_relapse.filtered_copy(recurrences,
                 "recurrence", to_keep=list(recurrences.keys()),
