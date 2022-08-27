@@ -1079,7 +1079,7 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.
     
         convex_hull : bool, default=False
-            If False, create mask from the convex hulls of the
+            If True, create mask from the convex hulls of the
             slice foreground masks initially obtained.
 
         fill_holes : bool, default=False
@@ -1381,7 +1381,9 @@ class Image(skrt.core.Archive):
 
         # Obtain indices of voxels with above-threshold intensity.
         indices = np.where(self.get_standardised_data()
-                >= (self.get_standardised_data().max() * fraction))
+                >= (self.get_standardised_data().min()
+                    + (self.get_standardised_data().max()
+                        - self.get_standardised_data().min()) * fraction))
 
         # Calculate means of indicies of voxels with above-threshold intensity.
         iy, ix, iz = [round(indices[idx].mean()) for idx in range(3)]
