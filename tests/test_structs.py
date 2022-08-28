@@ -688,6 +688,15 @@ def test_get_extent():
     assert ext[1] == [2, 8]
     assert ext[2] == [0, 10]
 
+def test_get_bbox_centre_and_widths():
+    sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
+    side_lengths = [4, 2, 6]
+    sim.add_cuboid(side_lengths, name="cube")
+    roi = sim.get_roi("cube")
+    centre, widths = roi.get_bbox_centre_and_widths()
+    assert centre == list(sim.get_centre())
+    assert widths == side_lengths
+
 # Make structure set with nearby structs for consensus calculation
 sim2 = SyntheticImage((50, 50, 10))
 sim2.add_sphere(radius=5, centre=(25, 25, 5), name="sphere1")

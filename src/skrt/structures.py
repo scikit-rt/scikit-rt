@@ -1569,6 +1569,22 @@ class ROI(skrt.core.Archive):
             area *= xy_area
         return area
 
+    def get_bbox_centre_and_widths(self,
+            buffer=None, buffer_units="mm", method=None):
+        """
+        Get centre and widths in mm along all three axes of a
+        bounding box enclosing the ROI and optional buffer.  Centre
+        and widths are returned as a tuple ([x, y, z], [dx, dy, dz]).
+
+        Method parameters are passed to skrt.structures.ROI.get_extents()
+        to obtain ROI extents.  For parameter explanations, see
+        skrt.structures.ROI.get_extents() documentation.
+        """
+        extents = self.get_extents(buffer, buffer_units, method) 
+        centre = [0.5 * (extent[0] + extent[1]) for extent in extents]
+        widths = [(extent[1] - extent[0]) for extent in extents]
+        return (centre, widths)
+
     def get_extents(self, buffer=None, buffer_units="mm", method=None):
         """
         Get minimum and maximum extent of the ROI in mm along all three axes,
@@ -5885,6 +5901,23 @@ class StructureSet(skrt.core.Archive):
         """
         return self.combine_rois(roi_names).get_extents(
                 buffer, buffer_units, method)
+
+    def get_bbox_centre_and_widths(self,
+            roi_names=None, buffer=None, buffer_units="mm", method=None):
+        """
+        Get centre and widths in mm along all three axes of a bounding box
+        enclosing StructureSet ROIs and optional buffer.  Centre
+        and widths are returned as a tuple ([x, y, z], [dx, dy, dz]).
+
+        Method parameters are passed to
+        skrt.structures.StructureSet.get_extents() to obtain StructureSet
+        extents.  For parameter explanations, see
+        skrt.structures.StructureSet.get_extents() documentation.
+        """
+        extents = self.get_extents(roi_names, buffer, buffer_units, method) 
+        centre = [0.5 * (extent[0] + extent[1]) for extent in extents]
+        widths = [(extent[1] - extent[0]) for extent in extents]
+        return (centre, widths)
 
     def get_dummy_image(self, **kwargs):
         """Make a dummy image that covers the area spanned by all ROIs in this

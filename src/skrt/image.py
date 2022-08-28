@@ -937,6 +937,37 @@ class Image(skrt.core.Archive):
 
         return foreground_box_mask
 
+    def get_foreground_bbox(self, threshold=None, convex_hull=False,
+            fill_holes=True, dxy=0):
+        """
+        Obtain bounding box of image foreground.
+
+        The bounding box is returned as
+        [(xmin, xmax), (ymin, ymax), (zmin, zmax)], with values in mm.
+
+        Method parameters are passed to skrt.image.Image.get_foreground_mask()
+        to obtain a mask defining the image foreground.  For parameter
+        explanations, see skrt.image.Image.get_foreground_mask() documentation.
+        """
+        return (get_mask_bbox(
+            self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy)))
+
+    def get_foreground_bbox_centre_and_widths(self,
+            threshold=None, convex_hull=False, fill_holes=True, dxy=0):
+        """
+        Get centre and widths in mm along all three axes of a
+        bounding box enclosing the image foreground.  Centre
+        and widths are returned as a tuple ([x, y, z], [dx, dy, dz]).
+
+        Method parameters are passed to skrt.image.Image.get_foreground_mask()
+        to obtain a mask defining the image foreground.  For parameter
+        explanations, see skrt.image.Image.get_foreground_mask() documentation.
+        """
+        extents = self.get_foreground_bbox()
+        centre = [0.5 * (extent[0] + extent[1]) for extent in extents]
+        widths = [(extent[1] - extent[0]) for extent in extents]
+        return (centre, widths)
+
     def get_foreground_mask(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0):
         '''

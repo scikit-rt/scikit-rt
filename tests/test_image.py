@@ -804,6 +804,45 @@ def test_mask_bbox():
             assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
 
 @needs_mahotas
+def test_foreground_bbox():
+    """Test calculation of foreground bounding box."""
+
+    # Create synthetic image featuring a sphere.
+    sim = SyntheticImage((100, 100, 40))
+    centre = (80, 20, 12)
+    radius = 10
+    sim.add_sphere(radius=radius, name="sphere", centre=centre, intensity=50)
+
+    # Obtain bounding box of foreground.
+    bbox = sim.get_foreground_bbox(threshold=45)
+
+    # Test that the bounding box is consistent with the sphere dimensions,
+    # allowing tolreance of +/-1.
+    for idx1 in range(3):
+        for idx2 in range(2):
+            assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
+
+@needs_mahotas
+def test_foreground_bbox_centre_and_widths():
+    """Test calculation of centre and widths for foreground bounding box."""
+
+    # Create synthetic image featuring a sphere.
+    sim = SyntheticImage((100, 100, 40))
+    centre = (80, 20, 12)
+    radius = 10
+    sim.add_sphere(radius=radius, name="sphere", centre=centre, intensity=50)
+
+    # Calculate centre and widths of foreground bounding box.
+    bb_centre, bb_widths = sim.get_foreground_bbox_centre_and_widths(
+            threshold=45)
+
+    # Test that the centre and widths of the bounding box are consistent
+    # with the sphere dimensions, allowing tolreance of +/-1.
+    for idx in range(3):
+        assert abs(bb_centre[idx] - centre[idx]) <= 1
+        assert abs(bb_widths[idx] - 2 * radius) <= 1
+
+@needs_mahotas
 def test_translation_to_align():
     """Test calculation of translation to align pair of images."""
 
