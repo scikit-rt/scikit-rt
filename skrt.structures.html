@@ -345,6 +345,17 @@ if method=”mask”.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_bbox_centre_and_widths">
+<span class="sig-name descname"><span class="pre">get_bbox_centre_and_widths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_bbox_centre_and_widths" title="Permalink to this definition"></a></dt>
+<dd><p>Get centre and widths in mm along all three axes of a
+bounding box enclosing the ROI and optional buffer.  Centre
+and widths are returned as a tuple ([x, y, z], [dx, dy, dz]).</p>
+<p>Method parameters are passed to skrt.structures.ROI.get_extents()
+to obtain ROI extents.  For parameter explanations, see
+skrt.structures.ROI.get_extents() documentation.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_centre">
 <span class="sig-name descname"><span class="pre">get_centre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_centre" title="Permalink to this definition"></a></dt>
 <dd><p>Get centre position in 2D or 3D in mm.</p>
@@ -1972,6 +1983,18 @@ Only used if &lt;copy_rois&gt; is True</p>
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.find_most_populated_slice">
 <span class="sig-name descname"><span class="pre">find_most_populated_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.find_most_populated_slice" title="Permalink to this definition"></a></dt>
 <dd><p>Find the index of the slice with the most ROIs on it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_bbox_centre_and_widths">
+<span class="sig-name descname"><span class="pre">get_bbox_centre_and_widths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_bbox_centre_and_widths" title="Permalink to this definition"></a></dt>
+<dd><p>Get centre and widths in mm along all three axes of a bounding box
+enclosing StructureSet ROIs and optional buffer.  Centre
+and widths are returned as a tuple ([x, y, z], [dx, dy, dz]).</p>
+<p>Method parameters are passed to
+skrt.structures.StructureSet.get_extents() to obtain StructureSet
+extents.  For parameter explanations, see
+skrt.structures.StructureSet.get_extents() documentation.</p>
 </dd></dl>
 
 <dl class="py method">
