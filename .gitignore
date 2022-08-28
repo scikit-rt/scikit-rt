@@ -14,6 +14,7 @@ build
 *.csv
 tests/tmp
 examples/*/tests/tmp
+examples/import/notebooks/results
 docs/build/*
 docs/source/skrt*
 docs/source/voxtox*
