@@ -234,23 +234,22 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.application.Application.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PatientClass=&lt;class</span> <span class="pre">'skrt.patient.Patient'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.run" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise analysis, process patient data, finalise analysis.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>paths: list, default=None</dt><dd><p>List of paths to folders containing patient data.  If null,
 set to empty list.</p>
 </dd>
-<dt>unsorted_dicom: bool, default=False</dt><dd><p>If True, examine all files below the top directory, and
-sort into images, structure sets, doses and plans.  If
-False, files are assumed to be organised according to the
-VoxTox model.</p>
+<dt>PatientClass: class, default=skrt.patient.Patient</dt><dd><p>Class to be used to create objects representing patient
+datasets.  The class constructor must have a parameter
+&lt;path&gt;, which will be passed, one by one, the elements of
+&lt;paths&gt;.  The class constructor may have any number of
+additional parameters, values for which can be passed
+via &lt;<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs&gt;.</p>
 </dd>
-<dt>id_mappings: dict, default=None</dt><dd><p>By default, patient identifiers are taken to be the
-names of the top-level directories containing patient data.
-The dictionary id_mappings can optionally be provided to
-map between the default identifiers (keys) and alternative
-identifiers (values).</p>
+<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs:</dt><dd><p>Keyword arguments that will be passed to the &lt;PatientClass&gt;
+constructor.</p>
 </dd>
 </dl>
 </dd></dl>
