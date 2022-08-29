@@ -147,7 +147,6 @@ class Application():
                     self.status.code = alg.status.code
                     self.status.reason = f'{alg.name}: {alg.status.reason}'
 
-
     def execute(self, patient=None):
         '''
         For each patient, call each algorithm's execute method.
@@ -197,7 +196,7 @@ class Application():
 
         return self.status
 
-    def run(self, paths=None, unsorted_dicom=False, id_mappings=None):
+    def run(self, paths=None, PatientClass=Patient, **kwargs):
         '''
         Initialise analysis, process patient data, finalise analysis.
 
@@ -207,18 +206,17 @@ class Application():
             List of paths to folders containing patient data.  If null,
             set to empty list.
 
-        unsorted_dicom: bool, default=False
-            If True, examine all files below the top directory, and
-            sort into images, structure sets, doses and plans.  If
-            False, files are assumed to be organised according to the
-            VoxTox model.
+        PatientClass: class, default=skrt.patient.Patient
+            Class to be used to create objects representing patient
+            datasets.  The class constructor must have a parameter
+            <path>, which will be passed, one by one, the elements of
+            <paths>.  The class constructor may have any number of
+            additional parameters, values for which can be passed
+            via <**kwargs>.
 
-        id_mappings: dict, default=None
-            By default, patient identifiers are taken to be the
-            names of the top-level directories containing patient data.
-            The dictionary id_mappings can optionally be provided to
-            map between the default identifiers (keys) and alternative
-            identifiers (values).
+        **kwargs:
+            Keyword arguments that will be passed to the <PatientClass>
+            constructor.
         '''
 
         if self.status.ok():
@@ -226,8 +224,7 @@ class Application():
             if not paths:
                 self.logger.warning('List of paths to patient data is empty')
             for data_path in paths:
-                patient = Patient(path=data_path, unsorted_dicom=unsorted_dicom,
-                        id_mappings=id_mappings)
+                patient = PatientClass(path=data_path, **kwargs)
                 self.status = self.execute(patient=patient)
                 if not self.status.ok():
                     break
