@@ -21,3 +21,4 @@ docs/source/voxtox*
 docs/source/*.md
 makefile
 !docs/Makefile
+skrt_conda.sh
