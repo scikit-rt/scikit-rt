@@ -196,7 +196,7 @@ class Application():
 
         return self.status
 
-    def run(self, paths=None, PatientClass=Patient, **kwargs):
+    def run(self, paths=None, PatientClass=None, **kwargs):
         '''
         Initialise analysis, process patient data, finalise analysis.
 
@@ -206,13 +206,14 @@ class Application():
             List of paths to folders containing patient data.  If null,
             set to empty list.
 
-        PatientClass: class, default=skrt.patient.Patient
+        PatientClass: class, default=None
             Class to be used to create objects representing patient
             datasets.  The class constructor must have a parameter
             <path>, which will be passed, one by one, the elements of
             <paths>.  The class constructor may have any number of
             additional parameters, values for which can be passed
-            via <**kwargs>.
+            via <**kwargs>.  If a null value is given, the class
+            used is skrt.patient.Patient.
 
         **kwargs:
             Keyword arguments that will be passed to the <PatientClass>
@@ -220,6 +221,7 @@ class Application():
         '''
 
         if self.status.ok():
+            PatientClass = PatientClass or Patient
             paths = paths or []
             if not paths:
                 self.logger.warning('List of paths to patient data is empty')
