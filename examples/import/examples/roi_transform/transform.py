@@ -325,7 +325,7 @@ if 'Ganga' in __name__:
     opts = ganga_app.algs[0].opts
 
     # Define the patient data to be analysed
-    paths = get_paths(1)
+    paths = get_paths()
     input_data = PatientDataset(paths=paths)
 
     # Define processing system
