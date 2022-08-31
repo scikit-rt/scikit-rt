@@ -266,7 +266,8 @@ def get_paths(max_path=None):
 
     # Define the patient data to be analysed
     if "Linux" == platform.system():
-        data_dir = Path("20220726_import_data_selection_plus_cam")
+        data_dir = Path(
+                "/r02/radnet/import/20220726_import_data_selection_plus_cam")
     else:
         data_dir = Path("~/data/20220331_import_data_selection").expanduser()
 
