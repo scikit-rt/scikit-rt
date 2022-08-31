@@ -22,3 +22,4 @@ docs/source/*.md
 makefile
 !docs/Makefile
 skrt_conda.sh
+registration_results/
