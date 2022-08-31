@@ -217,7 +217,7 @@ def get_app(setup_script=''):
     opts = {}
     if "Linux" == platform.system():
         opts["elastix_dir"] = "~/sw20/elastix-5.0.1"
-        opts["self.registration_outdir"] = (
+        opts["registration_outdir"] = (
                 "/r02/radnet/import/registration_results")
     else:
         opts["elastix_dir"] = "~/sw/elastix-5.0.1"
