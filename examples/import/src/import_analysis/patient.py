@@ -3,6 +3,7 @@ import timeit
 from skrt.core import get_associated_image
 from skrt.dose import remove_duplicate_doses
 from skrt.patient import Patient
+from skrt.structures import ROI
 
 from import_analysis.roi_names import controls, recurrences
 
@@ -402,6 +403,14 @@ class ImportPatient(Patient):
         self.ss_recurrence = ss_relapse.filtered_copy(recurrences,
                 "recurrence", to_keep=list(recurrences.keys()),
                 copy_roi_data=False)
+
+        # Ensure that each control structure is defined by a single contour.
+        # (This is almost always the case already.)
+        for ss in [self.ss_plan, self.ss_relapse]:
+            for idx, roi in enumerate(ss.rois):
+                if len(roi.get_contours()) != 1:
+                    z_max = max(roi.get_contours().keys())
+                    roi.reset_contours({z_max: roi.get_contours()[z_max]})
 
         # Set associated images.
         self.ss_clinical.set_image(self.ct_plan)
