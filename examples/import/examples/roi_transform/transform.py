@@ -153,7 +153,7 @@ class Transform(Algorithm):
 
         # Define registration strategy.
         reg = Registration(
-            Path(self.registration_outdir) / registration_subdir / patient.id,
+            Path(self.registration_outdir) / patient.id,
             fixed=fixed,
             moving=moving,
             initial_alignment=self.alignment,
@@ -344,15 +344,33 @@ if 'Ganga' in __name__:
     # Define list of outputs to be saved
     outbox = [opts["comparisons_csv"]]
 
+    registration_outdir = Path(opts["registration_outdir"])
+
     for strategy in ["push", "pull"]:
-        # Update algorithm options
-        opts["strategy"] = strategy
+        for alignment in ["spinal_canal", "sternum", "carina"]:
+            for crop_buffer in [50, 100, 200]:
+                for crop_to_match_size in [True]:
+                    if crop_buffer and not crop_to_match_size:
+                        continue
+                    if alignment == "_top_" and (
+                        crop_buffer is not None or crop_to_match_size):
+                        continue
 
-        # Define job name
-        name = f'{opts["strategy"]}_rois'
+                    # Define job name
+                    name = (f"{strategy}_{alignment}_{crop_buffer}_"
+                            f"{crop_to_match_size}")
 
-        # Create the job, and submit to processing system
-        j = Job(application=ganga_app, backend=backend, inputdata=input_data,
-                outputfiles=outbox, splitter=splitter,
-                postprocessors=postprocessors, name=name)
-        j.submit()
+                    # Update algorithm options
+                    opts["strategy"] = strategy
+                    opts["alignment"] = alignment
+                    opts["crop_buffer"] = crop_buffer
+                    opts["crop_to_match_size"] = crop_to_match_size
+                    opts["registration_outdir"] = str(registration_outdir
+                        / name)
+
+                    # Create the job, and submit to processing system
+                    j = Job(application=ganga_app, backend=backend,
+                            inputdata=input_data,
+                            outputfiles=outbox, splitter=splitter,
+                            postprocessors=postprocessors, name=name)
+                    j.submit()
