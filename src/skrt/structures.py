@@ -338,13 +338,19 @@ class ROI(skrt.core.Archive):
                     x_point, y_point, z_point = points[point]['OutputPoint']
                     key = f'{z_point:.2f}'
                     if not key in contours:
-                        contours[key] = []
-                    contours[key].append([x_point, y_point])
+                        contours[key] = {}
+                    c_index = points[point]['ContourIndex']
+                    if not c_index in contours[key]:
+                        contours[key][c_index] = []
+                    contours[key][c_index].append([x_point, y_point])
 
-                # Store the list of contours (one contour per slice per roi).
+                # Store the list of contours.
                 self.input_contours = {}
                 for key in sorted(contours):
-                    self.input_contours[float(key)] = [np.array(contours[key])]
+                    self.input_contours[float(key)] = []
+                    for c_index in sorted(contours[key]):
+                        self.input_contours[float(key)].append(
+                            np.array(contours[key][c_index]))
                 rois.append(self.name)
 
             elif os.path.isdir(self.source) or not self.source.endswith('.nii'):
@@ -447,6 +453,17 @@ class ROI(skrt.core.Archive):
                     output_index_fixed)
             points[point]['OutputPoint'] = get_coordinates(output_point)
             points[point]['Deformation'] = get_coordinates(deformation)
+
+            # If the Transformix input was written using ROI.write(),
+            # a point z-coordinate will have six digits after the decimal
+            # point, with the contour index in the last three.
+            # (Input points are written to the Transformix output
+            # with six digits after the decimal point for all coordinates.)
+            zd_in = re.findall(r'[-\d\.]+', input_point)[-1].rsplit(".", 1)[-1]
+            if len(zd_in) == 6:
+                points[point]["ContourIndex"] = int(zd_in[3:])
+            else:
+                points[point]["ContourIndex"] = 0
 
         # After application of a registration transform, points originally
         # in the same may end up with slightly different z-coordinates.
@@ -4134,9 +4151,15 @@ class ROI(skrt.core.Archive):
 
             points = []
             for z, contours in self.contours["x-y"].items():
-                for contour in contours:
+                for idx, contour in enumerate(contours):
                     for point in contour:
-                        points.append(f"{point[0]:.3f} {point[1]:.3f} {z:.3f}")
+                        # Add three digits to store the contour index,
+                        # which is unlikely to need more than a single digit.
+                        # This has negligible effect on precision,
+                        # and allows contour-point associations
+                        # to be identified in Transformix output.
+                        z_out = f"{z:.3f}{idx:03}"
+                        points.append(f"{point[0]:.3f} {point[1]:.3f} {z_out}")
 
             with open(outname, "w") as file:
                 file.write("point\n")
@@ -6423,7 +6446,10 @@ def contour_to_polygon(contour):
     if not polygon.is_valid:
         tmp = geometry.Polygon(polygon)
         buffer = 0.
-        while not polygon.is_valid:
+        # The idea here is to increase the buffer distance until
+        # a valid polygon is obtained.  This generally seems to work...
+        while (isinstance(polygon, geometry.MultiPolygon)
+                or not polygon.is_valid):
             buffer += delta
             polygon = tmp.buffer(buffer)
         points = []
