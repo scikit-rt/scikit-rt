@@ -840,6 +840,12 @@ is set to True.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_size">
+<span class="sig-name descname"><span class="pre">get_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_size" title="Permalink to this definition"></a></dt>
+<dd><p>Return image sizes in mm in order [x, y, z].</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_slice">
 <span class="sig-name descname"><span class="pre">get_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_slice" title="Permalink to this definition"></a></dt>
 <dd><p>Get a slice of the data in the correct orientation for plotting. 
@@ -1577,6 +1583,8 @@ half a voxel size.</p>
 <dt>Plot extent (self.plot_extent):</dt><dd><p>Dict of plot extents for each orientation. Given in the form
 of a list [x1, x2, y1, y2], which is the format needed for 
 the &lt;extent&gt; argument for matplotlib plotting.</p>
+</dd>
+<dt>Image sizes (self.image_size):</dt><dd><p>List of [x, y, z] image sizes in mm.</p>
 </dd>
 </dl>
 </div></blockquote>
