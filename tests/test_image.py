@@ -14,7 +14,8 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import File, fullpath
-from skrt.image import Image, get_mask_bbox, get_translation_to_align
+from skrt.image import (Image, get_mask_bbox, get_translation_to_align,
+        match_image_voxel_sizes)
 from skrt.simulation import SyntheticImage
 
 try:
@@ -391,6 +392,30 @@ def test_resize_and_match_size():
         image_diff = np.absolute(image1.data - image2.data)
         assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
                 0.5 * image_diff.size, rel=0.02)
+
+def test_match_image_voxel_sizes():
+    """Test resampling images to match voxel sizes."""
+
+    # Define image voxel sizes and shapes.
+    vs1 = [1, 1, 4]
+    vs2 = [2, 2, 2]
+    vs3 = [3, 3, 3]
+    shape1 = [40, 40, 20]
+    shape2 = [10, 10, 55]
+
+    # Create test images.
+    im1 = SyntheticImage(shape1, voxel_size=vs1).get_image()
+    im2 = SyntheticImage(shape2, voxel_size=vs2).get_image()
+
+    # Test different options for matching voxel sizes.
+    for vs_in, vs_out in (("dz_max", vs1), ("dz_min", vs2), (vs3, vs3)):
+        im1a, im2a = match_image_voxel_sizes(im1.clone(), im2.clone(), vs_in)
+        # Check that voxel sizes are as expected.
+        assert im1a.get_voxel_size() == vs_out
+        assert im2a.get_voxel_size() == vs_out
+        # Check that image centres haven't changed.
+        assert all(im1a.get_centre() == im1.get_centre())
+        assert all(im2a.get_centre() == im2.get_centre())
 
 def test_clone():
     """Test cloning an image."""

@@ -1329,6 +1329,10 @@ class Image(skrt.core.Archive):
         """Resample to match z-axis voxel size with that of another Image
         object.
 
+        Note: This method matches voxel size along z-axis only.
+              To match voxel sizes in all dimensions, use the function
+              skrt.images.match_image_voxel_sizes().
+
         **Parameters:**
         
         image : Image
@@ -5350,3 +5354,66 @@ def get_alignment_strategy(alignment=None):
                     roi_alignments[idx] = [roi_alignments[idx][0], None]
 
     return roi_alignments
+
+def match_image_voxel_sizes(im1, im2, voxel_size=None, method="linear"):
+    """
+    Resample pair of images to same voxel size.
+
+    **Parameters:**
+
+    im1, im2 : skrt.image.Image
+        Images to resample.
+
+    voxel_size : tuple/str, default=None
+         Specification of voxel size for image resampling.
+         Possible values are:
+         - None: no resizing performed;
+         - "dz_max": the image with smaller slice thickness is resampled
+             to have the same voxel size as the image sith larger
+             slice thickness;
+         - "dz_min": the image with larger slice thickness is resampled
+             to have the same voxel size as the image sith smaller
+             slice thickness;
+         - (dx, dy, dz): both images are resampled, to have voxels with the
+             specified dimensions in mm.
+
+    method: str, default='linear'
+        Interpolation method to use in resampling.  Valid values are
+        'linear' and 'nearest'
+    """
+    # No resampling needed:V
+    if voxel_size is None:
+        return
+
+    # Initialise voxel sizes for resampled images.
+    vs1 = None
+    vs2 = None
+
+    # Set target voxel size to be the same for both images.
+    if skrt.core.is_list(voxel_size):
+        if im1.get_voxel_size() != list(voxel_size):
+            vs1 = voxel_size
+        if im2.get_voxel_size() != list(voxel_size):
+            vs2 = voxel_size
+
+    # Resample to voxel size of image with smaller slice thickness.
+    elif "dz_min" == voxel_size:
+        if im1.get_voxel_size()[2] > im2.get_voxel_size()[2]:
+            vs1 = im2.get_voxel_size()
+        elif im1.get_voxel_size()[2] < im2.get_voxel_size()[2]:
+            vs2 = im1.get_voxel_size()
+
+    # Resample to voxel size of image with larger slice thickness.
+    elif "dz_max" == voxel_size:
+        if im1.get_voxel_size()[2] < im2.get_voxel_size()[2]:
+            vs1 = im2.get_voxel_size()
+        elif im1.get_voxel_size()[2] > im2.get_voxel_size()[2]:
+            vs2 = im1.get_voxel_size()
+
+    # Perform the resampling.
+    # Either or both of vs1, vs2 may be None.  This is dealt with
+    # in the resize() method.
+    im1.resize(voxel_size=vs1, keep_centre=True, method=method)
+    im2.resize(voxel_size=vs2, keep_centre=True, method=method)
+
+    return (im1, im2)
