@@ -404,6 +404,13 @@ class Image(skrt.core.Archive):
         self.load()
         return self.voxel_size
 
+    def get_size(self):
+
+        """Return image sizes in mm in order [x, y, z]."""
+
+        self.load()
+        return self.image_size
+
     def get_origin(self):
         """Return origin position in mm in order [x, y, z]."""
 
@@ -1629,6 +1636,9 @@ class Image(skrt.core.Archive):
                 Dict of plot extents for each orientation. Given in the form
                 of a list [x1, x2, y1, y2], which is the format needed for 
                 the <extent> argument for matplotlib plotting.
+
+            Image sizes (self.image_size):
+                List of [x, y, z] image sizes in mm.
         """
 
         # Ensure either affine or voxel sizes + origin are set
@@ -1670,6 +1680,10 @@ class Image(skrt.core.Archive):
             view: self.image_extent[x_ax] + self.image_extent[y_ax][::-1]
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
+        self.image_size = [
+                self.n_voxels[i] * self._svoxel_size[i]
+                for i in range(3)
+                ]
 
     def get_length(self, ax):
         """Get image length along a given axis.

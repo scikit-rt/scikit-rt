@@ -1046,6 +1046,12 @@ def test_pathlib_path():
     im_tmp = Image(Path(dcm_file))
     assert im_tmp.path == fullpath(dcm_file)
 
+def test_get_size():
+    # Test calculation of image size.
+    for idx in range(3):
+        assert (im.get_n_voxels()[idx] * im.get_voxel_size()[idx]
+                == im.get_size()[idx])
+
 def test_get_volume():
     # Test calculation of image volume.
     assert np.prod(shape) == im.get_volume("voxels")
