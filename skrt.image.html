@@ -1115,6 +1115,11 @@ the minimum intensity value of the original image is used.</p>
 <span class="sig-name descname"><span class="pre">match_voxel_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'self'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.match_voxel_size" title="Permalink to this definition"></a></dt>
 <dd><p>Resample to match z-axis voxel size with that of another Image
 object.</p>
+<dl class="simple">
+<dt>Note: This method matches voxel size along z-axis only.</dt><dd><p>To match voxel sizes in all dimensions, use the function
+skrt.images.match_image_voxel_sizes().</p>
+</dd>
+</dl>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>image<span class="classifier">Image</span></dt><dd><p>Other image to which z-axis voxel size should be matched.</p>
@@ -2526,6 +2531,42 @@ from which that slice of the image was read.</p>
 <dt class="sig sig-object py" id="skrt.image.load_npy">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_npy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_npy" title="Permalink to this definition"></a></dt>
 <dd><p>Load a numpy array from a .npy file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.match_image_voxel_sizes">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">match_image_voxel_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.match_image_voxel_sizes" title="Permalink to this definition"></a></dt>
+<dd><p>Resample pair of images to same voxel size.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>im1, im2<span class="classifier">skrt.image.Image</span></dt><dd><p>Images to resample.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple/str, default=None</span></dt><dd><p>Specification of voxel size for image resampling.
+Possible values are:
+- None: no resizing performed;
+- “dz_max”: the image with smaller slice thickness is resampled</p>
+<blockquote>
+<div><p>to have the same voxel size as the image sith larger
+slice thickness;</p>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>“dz_min”: the image with larger slice thickness is resampled</dt><dd><p>to have the same voxel size as the image sith smaller
+slice thickness;</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>(dx, dy, dz): both images are resampled, to have voxels with the</dt><dd><p>specified dimensions in mm.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>method: str, default=’linear’</dt><dd><p>Interpolation method to use in resampling.  Valid values are
+‘linear’ and ‘nearest’</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
