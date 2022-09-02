@@ -132,9 +132,9 @@ class RoiTransform(Algorithm):
         '''
 
         # Print details of current patient.
-        print(f"\nPatient id: {patient.id}")
+        print(f"Patient id: {patient.id}")
         print(f"Folder path: {patient.path}")
-        print(f"Initialisation time: {patient._init_time:.2f} s")
+        self.logger.info(f"Initialisation time: {patient._init_time:.2f} s")
 
         # Define references to planning and relapse scans.
         ct_plan = patient.get_ct_plan()
@@ -159,7 +159,7 @@ class RoiTransform(Algorithm):
         toc = timeit.default_timer()
         if (self.crop_buffer is not None or self.crop_to_match_size
                 or self.voxel_size):
-            print(f"Resizing time: {toc - tic:.2f} s")
+            self.logger.info(f"Resizing time: {toc - tic:.2f} s")
 
         # Choose fixed and moving image based on transform strategy.
         if "push" == self.strategy:
@@ -186,7 +186,7 @@ class RoiTransform(Algorithm):
         tic = timeit.default_timer()
         reg.register()
         toc = timeit.default_timer()
-        print(f"Registration time: {toc - tic:.2f} s")
+        self.logger.info(f"Registration time: {toc - tic:.2f} s")
 
         # RoiTransform ROIs.
         tic = timeit.default_timer()
@@ -199,7 +199,7 @@ class RoiTransform(Algorithm):
             ss_relapse_transformed = reg.transform(patient.get_ss_relapse())
         ss_relapse_transformed.set_image(ct_plan)
         toc = timeit.default_timer()
-        print(f"RoiTransformation time: {toc - tic:.2f} s")
+        self.logger.info(f"RoiTransformation time: {toc - tic:.2f} s")
 
         if self.metrics:
             # Compare transformed relapse ROIs and planning ROIs
@@ -372,10 +372,10 @@ if 'Ganga' in __name__:
 
                         # Define job name.
                         if is_list(voxel_size):
-                            vs = "x".join(str(dxyz) for dxyz in voxel_size)
+                            vs = "x".join([str(dxyz) for dxyz in voxel_size])
                         else:
                             vs = str(voxel_size)
-                        name = (f"{strategy}_{alignment.replace("_", "")}_"
+                        name = (f"{strategy}_{alignment.replace('_', '')}_"
                                 f"{crop_buffer}_{crop_to_match_size}_{vs}")
 
                         # Update algorithm options.
