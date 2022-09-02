@@ -1202,10 +1202,11 @@ class Image(skrt.core.Archive):
 
         # Ensure that resizing values are defined.
         allowed_unit = ['mm', 'voxel']
-        if image_size_unit is None or image_size_unit not in allowed_unit:
-            image_size_unit = 'voxel'
         if image_size is None:
+            image_size_unit = "mm"
             image_size = self.get_size()
+        elif image_size_unit is None or image_size_unit not in allowed_unit:
+            image_size_unit = 'voxel'
 
         if origin is None:
             origin = self.get_origin()
@@ -1244,8 +1245,8 @@ class Image(skrt.core.Archive):
         # Convert to voxel units
         if 'mm' == image_size_unit:
             for i in range(3):
-                image_size[i] = (math.ceil(image_size[i] * self.voxel_size[i]
-                    / voxel_size[i]))
+                image_size[i] = max(
+                        1, math.floor(image_size[i] / voxel_size[i]))
 
         # Redefine origin to fix centre position.
         if keep_centre:
