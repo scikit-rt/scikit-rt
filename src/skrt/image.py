@@ -1151,7 +1151,7 @@ class Image(skrt.core.Archive):
         
         image_size : tuple/list/None, default=None
             Image sizes in order (x,y,z) to which image is to be resized.
-            If None, the image's existing size is kept.  If a value
+            If None, the image's existing size in mm is kept.  If a value
             in the tuple/list is None, the relevant existing value is
             kept.  The unit of measurement ('voxel' or 'mm') is specified
             via image_size_unit.  If the size is in mm, and isn't an
@@ -1205,7 +1205,7 @@ class Image(skrt.core.Archive):
         if image_size_unit is None or image_size_unit not in allowed_unit:
             image_size_unit = 'voxel'
         if image_size is None:
-            image_size = self.get_n_voxels()
+            image_size = self.get_size()
 
         if origin is None:
             origin = self.get_origin()
