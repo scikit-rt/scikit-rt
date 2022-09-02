@@ -11,24 +11,25 @@ from pathlib import Path
 import pandas as pd
 
 from skrt.application import Algorithm, Application
-from skrt.core import Data, fullpath
+from skrt.core import Data, fullpath, is_list
+from skrt.image import match_image_voxel_sizes
 from skrt.registration import (get_default_pfiles_dir, Registration,
         set_elastix_dir)
 from import_analysis import ImportPatient
 
-class Transform(Algorithm):
+class RoiTransform(Algorithm):
     '''
     Algorithm subclass, for mapping ROIs between reference frames.
 
     Methods:
-        __init__ -- Return instance of Transform class,
+        __init__ -- Return instance of RoiTransform class,
                     with properties set according to options dictionary.
         execute  -- Perform ROI mappings.
     '''
 
     def __init__(self, opts={}, name=None, log_level=None):
         '''
-        Return instance of Transform class.
+        Return instance of RoiTransform class.
 
         opts: dict, default={}
             Dictionary for setting algorithm attributes.
@@ -54,6 +55,19 @@ class Transform(Algorithm):
         # to the same size prior to registration.  Size matching is performed
         # after cropping of relapse scan to structure sets.
         self.crop_to_match_size = False
+
+        # Define voxel size for image resizing prior to registration.
+        # Possible values are:
+        # None - no resizing performed;
+        # "dz_max" - the image with smaller slice thickness is resized
+        #     to have the same voxel size as the image sith larger
+        #     slice thickness;
+        # "dz_min" - the image with larger slice thickness is resized
+        #     to have the same voxel size as the image sith smaller
+        #     slice thickness;
+        # (dx, dy, dz) - images are resized to have voxels with the
+        #     specified dimensions in mm.
+        self.voxel_size = None
 
         # Path to registration output directory.
         self.registration_outdir = "registration_results"
@@ -137,9 +151,15 @@ class Transform(Algorithm):
             # Crop planning and relapse scan to same size.
             ct_plan.crop_to_image(ct_relapse, alignment=self.alignment)
             ct_relapse.crop_to_image(ct_plan, alignment=self.alignment)
+
+        if self.voxel_size:
+            # Resample images to same voxel size.
+            match_image_voxel_sizes(ct_plan, ct_relapse, self.voxel_size)
+
         toc = timeit.default_timer()
-        if self.crop_buffer is not None or self.crop_to_match_size:
-            print(f"Cropping time: {toc - tic:.2f} s")
+        if (self.crop_buffer is not None or self.crop_to_match_size
+                or self.voxel_size):
+            print(f"Resizing time: {toc - tic:.2f} s")
 
         # Choose fixed and moving image based on transform strategy.
         if "push" == self.strategy:
@@ -168,7 +188,7 @@ class Transform(Algorithm):
         toc = timeit.default_timer()
         print(f"Registration time: {toc - tic:.2f} s")
 
-        # Transform ROIs.
+        # RoiTransform ROIs.
         tic = timeit.default_timer()
         if "push" == self.strategy:
             # Push ROI contours from relapse frame to planning frame.
@@ -179,18 +199,17 @@ class Transform(Algorithm):
             ss_relapse_transformed = reg.transform(patient.get_ss_relapse())
         ss_relapse_transformed.set_image(ct_plan)
         toc = timeit.default_timer()
-        print(f"Transformation time: {toc - tic:.2f} s")
+        print(f"RoiTransformation time: {toc - tic:.2f} s")
 
         if self.metrics:
             # Compare transformed relapse ROIs and planning ROIs
             df = patient.get_ss_plan().get_comparison(
                     other=ss_relapse_transformed, metrics=self.metrics)
 
-            # Set "patient_id", "strategy", "roi" as indices.
+            # Set "patient_id" and "roi" as indices.
             df.index.name = "roi"
             df.set_index([
                 pd.Series(df.shape[0] * [patient.id], name="patient_id"),
-                pd.Series(df.shape[0] * [self.strategy], name="strategy"),
                 df.index], inplace=True)
 
             if self.df_comparisons is None:
@@ -242,7 +261,7 @@ def get_app(setup_script=''):
     log_level = 'INFO'
 
     # Create algorithm object
-    alg = Transform(opts=opts, name=None, log_level=log_level)
+    alg = RoiTransform(opts=opts, name=None, log_level=log_level)
 
     # Create the list of algorithms to be run (here just the one)
     algs = [alg]
@@ -305,15 +324,15 @@ if '__main__' == __name__:
     # Define class and options for loading patient datasets.
     PatientClass, patient_class, patient_opts = get_data_loader()
 
-    # Define the patient data to be analysed
+    # Define the patient data to be analysed.
     paths = get_paths(1)
 
-    # Run application for the selected data
+    # Run application for the selected data.
     app.run(paths, PatientClass, **patient_opts)
 
 
 if 'Ganga' in __name__:
-    # Define script for setting analysis environment
+    # Define script for setting analysis environment.
     setup_script = fullpath('skrt_conda.sh')
 
     # Define class and options for loading patient datasets.
@@ -324,53 +343,56 @@ if 'Ganga' in __name__:
             patient_class, patient_opts)
     opts = ganga_app.algs[0].opts
 
-    # Define the patient data to be analysed
+    # Define the patient data to be analysed.
     paths = get_paths()
     input_data = PatientDataset(paths=paths)
 
-    # Define processing system
+    # Define processing system.
     # backend = Local()
     backend = Condor()
 
-    # Define how job should be split into subjobs
+    # Define how job should be split into subjobs.
     splitter = PatientDatasetSplitter(patients_per_subjob=1)
 
-    # Define merging of subjob outputs
+    # Define merging of subjob outputs.
     merger = SmartMerger()
-    merger.files = ['stderr', 'stdout', opts["comparisons_csv"]]
     merger.ignorefailed = True
     postprocessors = [merger]
 
-    # Define list of outputs to be saved
+    # Define list of outputs to be saved.
     outbox = [opts["comparisons_csv"]]
 
     registration_outdir = Path(opts["registration_outdir"])
 
     for strategy in ["push", "pull"]:
-        for alignment in ["spinal_canal", "sternum", "carina"]:
-            for crop_buffer in [50, 100, 200]:
+        for alignment in ["sternum"]:
+            for crop_buffer in [200]:
                 for crop_to_match_size in [True]:
-                    if crop_buffer and not crop_to_match_size:
-                        continue
-                    if alignment == "_top_" and (
-                        crop_buffer is not None or crop_to_match_size):
-                        continue
+                    for voxel_size in [None, (2, 2, 2)]:
 
-                    # Define job name
-                    name = (f"{strategy}_{alignment}_{crop_buffer}_"
-                            f"{crop_to_match_size}")
+                        # Define job name.
+                        if is_list(voxel_size):
+                            vs = "x".join(str(dxyz) for dxyz in voxel_size)
+                        else:
+                            vs = str(voxel_size)
+                        name = (f"{strategy}_{alignment.replace("_", "")}_"
+                                f"{crop_buffer}_{crop_to_match_size}_{vs}")
 
-                    # Update algorithm options
-                    opts["strategy"] = strategy
-                    opts["alignment"] = alignment
-                    opts["crop_buffer"] = crop_buffer
-                    opts["crop_to_match_size"] = crop_to_match_size
-                    opts["registration_outdir"] = str(registration_outdir
-                        / name)
+                        # Update algorithm options.
+                        opts["strategy"] = strategy
+                        opts["alignment"] = alignment
+                        opts["crop_buffer"] = crop_buffer
+                        opts["crop_to_match_size"] = crop_to_match_size
+                        opts["voxel_size"] = voxel_size
+                        opts["registration_outdir"] = str(registration_outdir
+                            / name)
+                        opts["comparisons_csv"] = f"{name}.csv"
 
-                    # Create the job, and submit to processing system
-                    j = Job(application=ganga_app, backend=backend,
-                            inputdata=input_data,
-                            outputfiles=outbox, splitter=splitter,
-                            postprocessors=postprocessors, name=name)
-                    j.submit()
+                        merger.files = ['stderr', 'stdout',
+                                opts["comparisons_csv"]]
+                        # Create the job, and submit to processing system.
+                        j = Job(application=ganga_app, backend=backend,
+                                inputdata=input_data,
+                                outputfiles=outbox, splitter=splitter,
+                                postprocessors=postprocessors, name=name)
+                        j.submit()
