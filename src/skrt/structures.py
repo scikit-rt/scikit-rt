@@ -3736,7 +3736,7 @@ class ROI(skrt.core.Archive):
         # between contours is less that the voxel z-dimension for the
         # new image.)  A new mask will be created at the next call
         # to access the mask data.
-        if self.loaded_mask and not im.has_same_geometry(self.mask):
+        if self.mask and not im.has_same_geometry(self.mask):
             if getattr(self, "input_contours", None) is None:
                 self.input_contours = self.get_contours("x-y")
             self.mask = None
