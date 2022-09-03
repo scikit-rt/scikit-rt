@@ -847,6 +847,8 @@ class Image(skrt.core.Archive):
         order: int, default = 1
             Order of the b-spline used in interpolating voxel intensity values.
         '''
+        if not voxel_size:
+            return
 
         self.load()
         if not (isinstance(voxel_size, list) or isinstance(voxel_size, tuple)):
@@ -5370,7 +5372,7 @@ def get_alignment_strategy(alignment=None):
 
     return roi_alignments
 
-def match_image_voxel_sizes(im1, im2, voxel_size=None, method="linear"):
+def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     """
     Resample pair of images to same voxel size.
 
@@ -5382,7 +5384,7 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, method="linear"):
     voxel_size : tuple/str, default=None
          Specification of voxel size for image resampling.
          Possible values are:
-         - None: no resizing performed;
+         - None: no resampling performed;
          - "dz_max": the image with smaller slice thickness is resampled
              to have the same voxel size as the image sith larger
              slice thickness;
@@ -5392,12 +5394,11 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, method="linear"):
          - (dx, dy, dz): both images are resampled, to have voxels with the
              specified dimensions in mm.
 
-    method: str, default='linear'
-        Interpolation method to use in resampling.  Valid values are
-        'linear' and 'nearest'
+    order: int, default = 1
+        Order of the b-spline used in interpolating voxel intensity values.
     """
     # No resampling needed:V
-    if voxel_size is None:
+    if not voxel_size:
         return
 
     # Initialise voxel sizes for resampled images.
@@ -5427,8 +5428,8 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, method="linear"):
 
     # Perform the resampling.
     # Either or both of vs1, vs2 may be None.  This is dealt with
-    # in the resize() method.
-    im1.resize(voxel_size=vs1, keep_centre=True, method=method)
-    im2.resize(voxel_size=vs2, keep_centre=True, method=method)
+    # in the resample() method.
+    im1.resample(vs1, order)
+    im2.resample(vs2, order)
 
     return (im1, im2)
