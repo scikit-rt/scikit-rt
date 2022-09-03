@@ -272,7 +272,7 @@ def get_app(setup_script=''):
     return app
 
 
-def get_paths(max_path=None):
+def get_paths(max_path=None, ids=None):
     """
     Get list of paths to patient datasets.
 
@@ -281,6 +281,10 @@ def get_paths(max_path=None):
     max_path : int, default=None
         Maximum number of paths to return.  If None, return paths to all
         directories in data directory (currently hardcoded in this function).
+
+    ids : str/list, default=None
+        Patient identifier, or list of patient identifiers.  If non-null,
+        only return dataset paths for the specified identifier(s).
     """
 
     # Define the patient data to be analysed
@@ -294,6 +298,11 @@ def get_paths(max_path=None):
     paths = sorted([str(path) for path in chain.from_iterable(
             [data_dir.glob(pattern) for pattern in patterns])
             if path.is_dir()])
+    if ids:
+        if not is_list(ids):
+            ids = [ids]
+        paths = [path for path in paths
+                if any([Path(path).match(id) for id in ids])]
 
     max_path = min(max_path if max_path is not None else len(paths), len(paths))
 
