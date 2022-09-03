@@ -413,9 +413,9 @@ def test_match_image_voxel_sizes():
         # Check that voxel sizes are as expected.
         assert im1a.get_voxel_size() == vs_out
         assert im2a.get_voxel_size() == vs_out
-        # Check that image centres haven't changed.
-        assert all(im1a.get_centre() == im1.get_centre())
-        assert all(im2a.get_centre() == im2.get_centre())
+        # Check that image centres have stayed approximately the same.
+        assert im1a.get_centre() == pytest.approx(im1.get_centre(), 0.5)
+        assert im2a.get_centre() == pytest.approx(im2.get_centre(), 0.5)
 
 def test_clone():
     """Test cloning an image."""
