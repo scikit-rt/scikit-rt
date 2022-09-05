@@ -99,6 +99,9 @@ class RoiTransform(Algorithm):
         # and planning ROIs.
         self.metrics = None
 
+        # File to which to write dataframe of comparison metrics.
+        self.comparisons_csv = "roi_comparisons.csv"
+
         # Override default properties, based on contents of opts dictionary.
         super().__init__(opts, name, log_level)
 
@@ -117,11 +120,7 @@ class RoiTransform(Algorithm):
         # Dataframe for comparison metrics.
         self.df_comparisons = None
 
-        # File to which to write dataframe of comparison metrics.
-        self.comparisons_csv = "roi_comparisons.csv"
-
     def execute(self, patient=None):
-
         '''
         Map ROIs from relapse scan to planning scan.
 
