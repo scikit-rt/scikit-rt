@@ -199,8 +199,18 @@ class Registration(Data):
                 files = [str(files)]
             if files is not None:
                 self.add_files(files, ftype)
-        if not self.pfiles and not self.tfiles:
+
+        if not self.outdirs:
+            # No parameter files or transform files defined:
+            # try to load registration steps from a step file.
             self.load_files()
+        else:
+            # Link any pre-existing transform files for registration steps.
+            for step, outdir in self.outdirs.items():
+                path = f"{outdir}/TransformParameters.0.txt"
+                if step in self.pfiles and os.path.exists(path):
+                    self.tfiles[step] = path
+
         self.moving_grid_path = os.path.join(self.path, "moving_grid.nii.gz")
         self.transformed_grids = {}
 
@@ -352,7 +362,7 @@ class Registration(Data):
                         "must contain exactly 3 elements")
                 return
             if ftype != 't':
-                self.logger.warning(f"Translation may only be passes as list "
+                self.logger.warning(f"Translation may only be passed as list "
                         "or tuple for transform")
                 return
 
@@ -379,11 +389,10 @@ class Registration(Data):
         # Add to list of registration steps
         self.steps.append(name)
 
-        # Make output directory, overwriting if it already exists
+        # Ensure that output directory exists.
         outdir = os.path.join(self.path, name)
-        if os.path.exists(outdir):
-            shutil.rmtree(outdir)
-        os.mkdir(outdir)
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
         self.outdirs[name] = outdir
 
         # Define and store file path in step output directory.
@@ -988,15 +997,10 @@ class Registration(Data):
 
         # Transform the nifti file or point cloud
         result_path = self.transform_data(roi_path, step, default_params)
-        if result_path is None:
-            return result_path
-
-        # Copy to output dir if outfile is set
-        if outfile is not None:
-            shutil.copy(result_path, outfile)
+        if result_path is None or not os.path.exists(str(result_path)):
             return
 
-        # Otherwise, return ROI object
+        # Identify image to be associated with the transformed ROI.
         if transform_points:
             if issubclass(skrt.image.Image, type(self.moving_source)):
                 image = self.moving_source
@@ -1006,9 +1010,21 @@ class Registration(Data):
                 image = getattr(self, 'moving_image', None)
         else:
             image = self.get_transformed_image(step)
+
+        # Create ROI object, and check that it has contours defined.
         roi = ROI(result_path, name=roi.name, color=roi.color, image=image)
+        if not roi.get_contours():
+            return
+
+        # Copy to output dir if outfile is set
+        if outfile is not None:
+            shutil.copy(result_path, outfile)
+            return
+
+        # Delete the temporary directory.
         self.rm_tmp_dir()
 
+        # Return ROI object
         return roi
 
     def transform_structure_set(
