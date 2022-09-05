@@ -249,8 +249,10 @@ def get_app(setup_script=''):
     opts["capture_output"] = True
     opts["overwrite"] = True
 
-    opts["metrics"] = ["centroid", "mean_surface_distance_flat",
-                "rel_area_diff_flat"]
+    opts["metrics"] = ["area_diff_flat", "centroid", "dice_flat",
+            "hausdorff_distance_flat", "mean_overcontouring_flat",
+            "mean_overcontouring_flat", "mean_surface_distance_flat",
+            "jaccard_flat", "rel_area_diff_flat", "rms_surface_distance_flat"]
     opts["comparisons_csv"] = "roi_comparisons.csv"
 
     if 'Ganga' in __name__:
