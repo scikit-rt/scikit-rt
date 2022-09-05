@@ -250,8 +250,8 @@ def get_app(setup_script=''):
     opts["overwrite"] = True
 
     opts["metrics"] = ["area_diff_flat", "centroid", "dice_flat",
-            "hausdorff_distance_flat", "mean_overcontouring_flat",
-            "mean_overcontouring_flat", "mean_surface_distance_flat",
+            "hausdorff_distance_flat", "mean_over_contouring_flat",
+            "mean_under_contouring_flat", "mean_surface_distance_flat",
             "jaccard_flat", "rel_area_diff_flat", "rms_surface_distance_flat"]
     opts["comparisons_csv"] = "roi_comparisons.csv"
 
