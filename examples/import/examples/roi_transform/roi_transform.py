@@ -84,7 +84,7 @@ class RoiTransform(Algorithm):
         # Parameter files to be used in registration.
         self.pfiles={
                 "rigid": self.pfiles_dir / "MI_Rigid.txt",
-                "affine": self.pfiles_dir / "MI_BSpline30.txt",
+                "bspline": self.pfiles_dir / "MI_BSpline30.txt",
             }
 
         # Strategy for transforming ROIs from frame of relapse scan
