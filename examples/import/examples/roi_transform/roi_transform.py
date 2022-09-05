@@ -240,7 +240,7 @@ def get_app(setup_script=''):
                 "/r02/radnet/import/registration_results")
     else:
         opts["elastix_dir"] = "~/sw/elastix-5.0.1"
-        opts["self.registration_outdir"] = "registration_results"
+        opts["registration_outdir"] = "registration_results"
 
     opts["alignment"] = "_top_"
     opts["crop_buffer"] = None
@@ -353,26 +353,30 @@ if 'Ganga' in __name__:
     opts = ganga_app.algs[0].opts
 
     # Define the patient data to be analysed.
-    paths = get_paths()
+    if "Linux" == platform.system():
+        paths = get_paths()
+    else:
+        paths = get_paths(1)
     input_data = PatientDataset(paths=paths)
 
     # Define processing system.
-    # backend = Local()
-    backend = Condor()
+    if "Linux" == platform.system():
+        backend = Condor()
+    else:
+        backend = Local()
 
     # Define how job should be split into subjobs.
     splitter = PatientDatasetSplitter(patients_per_subjob=1)
 
-    # Define merging of subjob outputs.
+    # Set up output merging.
     merger = SmartMerger()
     merger.ignorefailed = True
     postprocessors = [merger]
 
-    # Define list of outputs to be saved.
-    outbox = [opts["comparisons_csv"]]
-
+    # Define output directory.
     registration_outdir = Path(opts["registration_outdir"])
 
+    # Loop over transformation options.
     for strategy in ["push", "pull"]:
         for alignment in ["sternum"]:
             for crop_buffer in [200]:
@@ -397,8 +401,13 @@ if 'Ganga' in __name__:
                             / name)
                         opts["comparisons_csv"] = f"{name}.csv"
 
+                        # Define list of outputs to be saved.
+                        outbox = [opts["comparisons_csv"]]
+
+                        # Define files to be merged.
                         merger.files = ['stderr', 'stdout',
                                 opts["comparisons_csv"]]
+
                         # Create the job, and submit to processing system.
                         j = Job(application=ganga_app, backend=backend,
                                 inputdata=input_data,
