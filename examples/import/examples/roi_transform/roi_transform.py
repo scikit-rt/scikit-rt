@@ -139,6 +139,15 @@ class RoiTransform(Algorithm):
         ct_plan = patient.get_ct_plan()
         ct_relapse = patient.get_ct_relapse()
 
+        # If alignment ROI defined,
+        # check that this is contained in structure sets.
+        if (isinstance(self.alignment, str)
+                and self.alignment not in ["_top_", "_middle_", "_bottom_"]):
+            if self.alignment not in patient.get_ss_relapse().get_roi_names():
+                return self.status
+            if self.alignment not in patient.get_ss_plan().get_roi_names():
+                return self.status
+
         tic = timeit.default_timer()
         if self.crop_buffer is not None:
             # Crop relapse scan to include structure-set ROIs plus margin.
@@ -201,8 +210,8 @@ class RoiTransform(Algorithm):
         self.logger.info(f"RoiTransformation time: {toc - tic:.2f} s")
 
         if self.metrics:
-            # Clone the plan structure set - this may have a new image linked.
-            ss_plan = patient.get_ss_plan().clone()
+            # Define reference to plan structure set.
+            ss_plan = patient.get_ss_plan()
 
             if "push" == self.strategy:
                 # When ROI contours have been pushed, ensure that the
