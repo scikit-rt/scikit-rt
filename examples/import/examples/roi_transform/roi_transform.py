@@ -201,8 +201,22 @@ class RoiTransform(Algorithm):
         self.logger.info(f"RoiTransformation time: {toc - tic:.2f} s")
 
         if self.metrics:
+            # Clone the plan structure set - this may have a new image linked.
+            ss_plan = patient.get_ss_plan().clone()
+
+            if "push" == self.strategy:
+                # When ROI contours have been pushed, ensure that the
+                # image used for creating ROI masks is large enough 
+                # to include all contours.
+                dummy_image =  (
+                        ss_plan + ss_relapse_transformed).get_dummy_image(
+                                voxel_size=ct_plan.get_voxel_size()[0: 2],
+                                slice_thickness=ct_plan.get_voxel_size()[2])
+                ss_plan.set_image(dummy_image)
+                ss_relapse_transformed.set_image(dummy_image)
+
             # Compare transformed relapse ROIs and planning ROIs
-            df = patient.get_ss_plan().get_comparison(
+            df = ss_plan.get_comparison(
                     other=ss_relapse_transformed, metrics=self.metrics)
 
             # Set "patient_id" and "roi" as indices.
