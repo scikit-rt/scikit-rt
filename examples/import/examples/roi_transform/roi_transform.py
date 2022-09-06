@@ -196,6 +196,12 @@ class RoiTransform(Algorithm):
         toc = timeit.default_timer()
         self.logger.info(f"Registration time: {toc - tic:.2f} s")
 
+        # Exit if registration failed for any step:
+        for step in reg.steps:
+            if not step in reg.tfiles:
+                self.logger.error(f"Registration failed for step: {step}")
+                return self.status
+
         # RoiTransform ROIs.
         tic = timeit.default_timer()
         if "push" == self.strategy:
