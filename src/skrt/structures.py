@@ -6883,7 +6883,7 @@ def compare_roi_pairs(
 
         dfs.append(df_row)
 
-    df = pd.concat(dfs)
+    df = pd.concat(dfs) if dfs else None
     if html:
         return df_to_html(df)
     return df

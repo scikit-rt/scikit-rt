@@ -219,17 +219,18 @@ class RoiTransform(Algorithm):
             df = ss_plan.get_comparison(
                     other=ss_relapse_transformed, metrics=self.metrics)
 
-            # Set "patient_id" and "roi" as indices.
-            df.index.name = "roi"
-            df.set_index([
-                pd.Series(df.shape[0] * [patient.id], name="patient_id"),
-                df.index], inplace=True)
+            if df is not None:
+                # Set "patient_id" and "roi" as indices.
+                df.index.name = "roi"
+                df.set_index([
+                    pd.Series(df.shape[0] * [patient.id], name="patient_id"),
+                    df.index], inplace=True)
 
-            if self.df_comparisons is None:
-                self.df_comparisons = df
-            else:
-                self.df_comparisons = pd.concat([self.df_comparisons, df],
-                        axis=1)
+                if self.df_comparisons is None:
+                    self.df_comparisons = df
+                else:
+                    self.df_comparisons = pd.concat([self.df_comparisons, df],
+                            axis=1)
 
         return self.status
 
