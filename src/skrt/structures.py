@@ -2859,8 +2859,6 @@ class ROI(skrt.core.Archive):
         # Obtain distances to conformity.
         kwargs["conformity"] = True
         sds = self.get_surface_distances(other, **kwargs)
-        if sds is None:
-            return
 
         # Obtain mask array representing union or ROIs.
         union = StructureSet([self, other]).combine_rois()
@@ -2878,13 +2876,18 @@ class ROI(skrt.core.Archive):
         conformity = skrt.core.Data()
         conformity.n_voxel = mask_data.sum()
         conformity.voxel_size = union.get_voxel_size()
-        conformity.mean_under_contouring = (abs(sds[sds < 0].sum())
-                / union.get_volume(vol_units))
-        conformity.mean_over_contouring = (sds[sds > 0].sum()
-                / union.get_volume(vol_units))
-        conformity.mean_distance_to_conformity = (
-                conformity.mean_under_contouring +
-                conformity.mean_over_contouring)
+        if sds is None:
+            conformity.mean_under_contouring = None
+            conformity.mean_over_contouring = None
+            conformity.mean_distance_to_conformity = None
+        else:
+            conformity.mean_under_contouring = (abs(sds[sds < 0].sum())
+                    / union.get_volume(vol_units))
+            conformity.mean_over_contouring = (sds[sds > 0].sum()
+                    / union.get_volume(vol_units))
+            conformity.mean_distance_to_conformity = (
+                    conformity.mean_under_contouring +
+                    conformity.mean_over_contouring)
 
         return conformity
 
