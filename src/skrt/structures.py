@@ -1116,6 +1116,8 @@ class ROI(skrt.core.Archive):
     def on_slice(self, view, sl=None, idx=None, pos=None):
         """Check whether this ROI exists on a given slice."""
 
+        if sl is None and idx is None and pos is None:
+            return False
         idx = self.get_idx(view, sl, idx, pos)
         if idx is None:
             return False
