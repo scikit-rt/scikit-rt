@@ -280,7 +280,7 @@ class Image(skrt.core.Archive):
         if nii_type or dcm_type:
             # Ensure that image is loaded, and created clone.
             self.load()
-            im = Image(self)
+            im = self.__class__(self)
 
             # Modify image data if source_type isn't the requested type.
             if ((nii_type and 'nifti' not in self.source_type)
