@@ -117,6 +117,9 @@ class RoiTransform(Algorithm):
                     f"Invalid transformation strategy: {self.strategy}; "
                     f"strategy should be one of {valid_strategies}")
 
+        # Ensure that output file is always created, even if empty.
+        Path(self.comparisons_csv).touch()
+
         # Dataframe for comparison metrics.
         self.df_comparisons = None
 
