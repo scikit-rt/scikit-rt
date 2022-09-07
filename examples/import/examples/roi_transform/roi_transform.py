@@ -99,8 +99,11 @@ class RoiTransform(Algorithm):
         # and planning ROIs.
         self.metrics = None
 
+        # Define whether to perform dose analysis.
+        self.dose_analysis = False
+
         # File to which to write dataframe of comparison metrics.
-        self.comparisons_csv = "roi_comparisons.csv"
+        self.analysis_csv = "analysis.csv"
 
         # Override default properties, based on contents of opts dictionary.
         super().__init__(opts, name, log_level)
@@ -118,10 +121,10 @@ class RoiTransform(Algorithm):
                     f"strategy should be one of {valid_strategies}")
 
         # Ensure that output file is always created, even if empty.
-        Path(self.comparisons_csv).touch()
+        Path(self.analysis_csv).touch()
 
-        # Dataframe for comparison metrics.
-        self.df_comparisons = None
+        # Dataframe for comparison metrics and/or dose analysis.
+        self.df_analysis = None
 
     def execute(self, patient=None):
         '''
@@ -138,24 +141,26 @@ class RoiTransform(Algorithm):
         print(f"Folder path: {patient.path}")
         self.logger.info(f"Initialisation time: {patient._init_time:.2f} s")
 
-        # Define references to planning and relapse scans.
+        # Define references to scans and structure sets.
         ct_plan = patient.get_ct_plan()
         ct_relapse = patient.get_ct_relapse()
+        ss_plan = patient.get_ss_plan()
+        ss_relapse = patient.get_ss_relapse()
+        ss_recurrence = patient.get_ss_recurrence()
 
         # If alignment ROI defined,
         # check that this is contained in structure sets.
         if (isinstance(self.alignment, str)
                 and self.alignment not in ["_top_", "_middle_", "_bottom_"]):
-            if self.alignment not in patient.get_ss_relapse().get_roi_names():
+            if self.alignment not in ss_relapse.get_roi_names():
                 return self.status
-            if self.alignment not in patient.get_ss_plan().get_roi_names():
+            if self.alignment not in ss_plan.get_roi_names():
                 return self.status
 
         tic = timeit.default_timer()
         if self.crop_buffer is not None:
             # Crop relapse scan to include structure-set ROIs plus margin.
-            ct_relapse.crop_to_roi(
-                    patient.get_ss_relapse() + patient.get_ss_recurrence(),
+            ct_relapse.crop_to_roi(ss_relapse + ss_recurrence,
                     buffer=self.crop_buffer)
 
         if self.crop_to_match_size:
@@ -166,6 +171,11 @@ class RoiTransform(Algorithm):
         if self.voxel_size:
             # Resample images to same voxel size.
             match_image_voxel_sizes(ct_plan, ct_relapse, self.voxel_size)
+
+        # Now that any resizing has been performed, set structure-set images.
+        ss_plan.set_image(ct_plan)
+        ss_relapse.set_image(ct_relapse)
+        ss_recurrence.set_image(ct_relapse)
 
         toc = timeit.default_timer()
         if (self.crop_buffer is not None or self.crop_to_match_size
@@ -210,18 +220,16 @@ class RoiTransform(Algorithm):
         if "push" == self.strategy:
             # Push ROI contours from relapse frame to planning frame.
             ss_relapse_transformed = reg.transform(
-                    patient.get_ss_relapse(), transform_points=True)
+                    ss_relapse, transform_points=True)
         elif "pull" == self.strategy:
             # Pull ROI masks from relapse frame to planning frame.
-            ss_relapse_transformed = reg.transform(patient.get_ss_relapse())
+            ss_relapse_transformed = reg.transform(ss_relapse)
         ss_relapse_transformed.set_image(ct_plan)
         toc = timeit.default_timer()
         self.logger.info(f"RoiTransformation time: {toc - tic:.2f} s")
 
-        if self.metrics:
-            # Define reference to plan structure set.
-            ss_plan = patient.get_ss_plan()
-
+        if self.metrics or self.dose_analysis:
+            """
             if "push" == self.strategy:
                 # When ROI contours have been pushed, ensure that the
                 # image used for creating ROI masks is large enough 
@@ -232,10 +240,64 @@ class RoiTransform(Algorithm):
                                 slice_thickness=ct_plan.get_voxel_size()[2])
                 ss_plan.set_image(dummy_image)
                 ss_relapse_transformed.set_image(dummy_image)
+            """
 
-            # Compare transformed relapse ROIs and planning ROIs
-            df = ss_plan.get_comparison(
-                    other=ss_relapse_transformed, metrics=self.metrics)
+            df = None
+            if self.metrics:
+                # Compare transformed relapse ROIs and planning ROIs
+                df = ss_plan.get_comparison(
+                        other=ss_relapse_transformed, metrics=self.metrics)
+
+            if self.dose_analysis:
+                # Obtain names of ROIs defined for both plan and relapse scans.
+                roi_names = set(ss_plan.get_roi_names()).intersection(
+                        ss_relapse_transformed.get_roi_names())
+
+                # Define reference to plan dose, and resize to plan image.
+                dose_sum = patient.get_dose_sum()
+                dose_sum.match_size(ct_plan)
+
+                # If the relapse scan is the fixed image, transform dose from
+                # frame of planning scan to frame of relapse scan.
+                dose_sum_transformed = (reg.transform(dose_sum).astype("dicom")
+                        if "push" == self.strategy else None)
+
+                # Create dictionary for storing dose information.
+                records = {col: {} for col in
+                        ["plan_dose", "relapse_dose", "relapse_dose_diff",
+                            "transformed_dose", "transformed_dose_diff"]}
+
+                # Loop over ROIs.
+                for roi_name in roi_names:
+                    # Calculate mean doses for plan and relapse ROIs,
+                    # and their difference.
+                    records["plan_dose"][roi_name] = dose_sum.get_mean_dose(
+                            ss_plan[roi_name])
+                    records["relapse_dose"][roi_name] = dose_sum.get_mean_dose(
+                            ss_relapse_transformed[roi_name])
+                    records["relapse_dose_diff"][roi_name] = (
+                            records["relapse_dose"][roi_name] -
+                            records["plan_dose"][roi_name])
+
+                    # Use the transformed dose to recalculate mean dose
+                    # for relapse ROI, and difference from mean dose for
+                    # plan ROI.
+                    if dose_sum_transformed is not None:
+                        records["transformed_dose"][roi_name] = (
+                                dose_sum_transformed.get_mean_dose(
+                                        ss_relapse[roi_name]))
+                        records["transformed_dose_diff"][roi_name] = (
+                                records["transformed_dose"][roi_name] -
+                                records["plan_dose"][roi_name])
+
+                # Create dataframe for dose information.
+                df_dose = pd.DataFrame(records)
+
+                # If metrics dataframe non-null, append dose dataframe.
+                if df is not None:
+                    df = pd.concat([df, df_dose], axis=1)
+                else:
+                    df = df_dose
 
             if df is not None:
                 # Set "patient_id" and "roi" as indices.
@@ -244,18 +306,18 @@ class RoiTransform(Algorithm):
                     pd.Series(df.shape[0] * [patient.id], name="patient_id"),
                     df.index], inplace=True)
 
-                if self.df_comparisons is None:
-                    self.df_comparisons = df
+                # Append dataframe for current patient to global dataframe.
+                if self.df_analysis is None:
+                    self.df_analysis = df
                 else:
-                    self.df_comparisons = pd.concat([self.df_comparisons, df],
-                            axis=1)
+                    self.df_analysis = pd.concat([self.df_analysis, df])
 
         return self.status
 
     def finalise(self):
         # Write comparison table in CSV format.
-        if self.df_comparisons is not None:
-            self.df_comparisons.to_csv(self.comparisons_csv)
+        if self.df_analysis is not None:
+            self.df_analysis.to_csv(self.analysis_csv)
 
         return self.status
 
@@ -277,7 +339,7 @@ def get_app(setup_script=''):
     opts["alignment"] = "_top_"
     opts["crop_buffer"] = None
     opts["crop_to_match_size"] = False
-    opts["strategy"] = "pull"
+    opts["strategy"] = "push"
 
     opts["capture_output"] = True
     opts["overwrite"] = True
@@ -286,7 +348,8 @@ def get_app(setup_script=''):
             "hausdorff_distance_flat", "mean_over_contouring_flat",
             "mean_under_contouring_flat", "mean_surface_distance_flat",
             "jaccard_flat", "rel_area_diff_flat", "rms_surface_distance_flat"]
-    opts["comparisons_csv"] = "roi_comparisons.csv"
+    opts["dose_analysis"] = True
+    opts["analysis_csv"] = "analysis.csv"
 
     if 'Ganga' in __name__:
         opts['alg_module'] = fullpath(sys.argv[0])
@@ -433,14 +496,14 @@ if 'Ganga' in __name__:
                         opts["voxel_size"] = voxel_size
                         opts["registration_outdir"] = str(registration_outdir
                             / name)
-                        opts["comparisons_csv"] = f"{name}.csv"
+                        opts["analysis_csv"] = f"{name}.csv"
 
                         # Define list of outputs to be saved.
-                        outbox = [opts["comparisons_csv"]]
+                        outbox = [opts["analysis_csv"]]
 
                         # Define files to be merged.
                         merger.files = ['stderr', 'stdout',
-                                opts["comparisons_csv"]]
+                                opts["analysis_csv"]]
 
                         # Create the job, and submit to processing system.
                         j = Job(application=ganga_app, backend=backend,
