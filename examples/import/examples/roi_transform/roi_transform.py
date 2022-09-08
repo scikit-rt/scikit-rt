@@ -484,8 +484,8 @@ if 'Ganga' in __name__:
 
     # Loop over transformation options.
     for strategy in ["push", "pull"]:
-        for alignment in ["sternum"]:
-            for crop_buffer in [200]:
+        for alignment in ["carina", "sternum", "spinal_canal", "_top_"]:
+            for crop_buffer in [20, 200]:
                 for crop_to_match_size in [True]:
                     for voxel_size in [None, (2, 2, 2)]:
 
