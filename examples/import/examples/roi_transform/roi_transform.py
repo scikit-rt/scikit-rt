@@ -275,9 +275,13 @@ class RoiTransform(Algorithm):
                             ss_plan[roi_name])
                     records["relapse_dose"][roi_name] = dose_sum.get_mean_dose(
                             ss_relapse_transformed[roi_name])
-                    records["relapse_dose_diff"][roi_name] = (
-                            records["relapse_dose"][roi_name] -
-                            records["plan_dose"][roi_name])
+                    if None in [records["plan_dose"][roi_name],
+                            records["relapse_dose"][roi_name]]:
+                        records["relapse_dose_diff"][roi_name] = None
+                    else:
+                        records["relapse_dose_diff"][roi_name] = (
+                                records["relapse_dose"][roi_name] -
+                                records["plan_dose"][roi_name])
 
                     # Use the transformed dose to recalculate mean dose
                     # for relapse ROI, and difference from mean dose for
@@ -285,10 +289,14 @@ class RoiTransform(Algorithm):
                     if dose_sum_transformed is not None:
                         records["transformed_dose"][roi_name] = (
                                 dose_sum_transformed.get_mean_dose(
-                                        ss_relapse[roi_name]))
-                        records["transformed_dose_diff"][roi_name] = (
-                                records["transformed_dose"][roi_name] -
-                                records["plan_dose"][roi_name])
+                                    ss_relapse[roi_name]))
+                        if None in [records["plan_dose"][roi_name],
+                                records["transformed_dose"][roi_name]]:
+                            records["transformed_dose_diff"][roi_name] = None
+                        else:
+                            records["transformed_dose_diff"][roi_name] = (
+                                    records["transformed_dose"][roi_name] -
+                                    records["plan_dose"][roi_name])
 
                 # Create dataframe for dose information.
                 df_dose = pd.DataFrame(records)
