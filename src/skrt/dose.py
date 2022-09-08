@@ -427,7 +427,11 @@ class Dose(ImageOverlay):
     def get_mean_dose(self, roi):
         """Get mean dose inside an ROI."""
 
-        return np.mean(self.get_dose_in_roi(roi))
+        doses = self.get_dose_in_roi(roi)
+        if doses.size:
+            return np.mean(doses)
+        elif roi.get_volume(method="mask"):
+            return 0
 
 
 class Plan(Archive):
