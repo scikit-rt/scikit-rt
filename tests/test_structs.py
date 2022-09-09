@@ -1089,3 +1089,17 @@ def test_get_translation_to_align():
                 assert t1[1] == t2[1]
                 assert ((t1[2] + (dz2 - dz1) * side_length)
                         == pytest.approx(t2[2], 1e6))
+
+def test_get_mask_to_contour_volume_ratio():
+    """Test ratio of ROI 'mask' volume to ROI 'contour' volume"""
+    # Create synthetic image, fully covering cuboid.
+    sim1 = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
+    sim1.add_cuboid((4, 2, 6), name="cuboid")
+
+    # Create second image, covering only half of the cuboid's z-length.
+    sim2 = SyntheticImage((10, 10, 5), origin=(0.5, 0.5, 0.5))
+
+    roi = ROI(sim1.get_roi("cuboid").get_contours())
+    assert roi.get_mask_to_contour_volume_ratio() == pytest.approx(1, rel=0.1)
+    roi.set_image(sim2)
+    assert roi.get_mask_to_contour_volume_ratio() == pytest.approx(0.5, rel=0.1)

@@ -1495,6 +1495,18 @@ class ROI(skrt.core.Archive):
         # Return volume in the requested units
         return self._volume[units]
 
+    def get_mask_to_contour_volume_ratio(self):
+        """
+        Get ratio to ROI "mask" volume to ROI "contour" volume.
+
+        In principle, volume estimates from "mask" and "contour" methods
+        should be similar.  The two estimates may be different if, for
+        example, the image from which a mask is created doesn't fully cover
+        the contour extents.
+        """
+        return (self.get_volume(method="mask", force=True) /
+                self.get_volume(method="contour", force=True))
+
     def get_area(
         self, 
         view="x-y", 
