@@ -980,6 +980,16 @@ recalculated.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_mask_to_contour_volume_ratio">
+<span class="sig-name descname"><span class="pre">get_mask_to_contour_volume_ratio</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mask_to_contour_volume_ratio" title="Permalink to this definition"></a></dt>
+<dd><p>Get ratio to ROI “mask” volume to ROI “contour” volume.</p>
+<p>In principle, volume estimates from “mask” and “contour” methods
+should be similar.  The two estimates may be different if, for
+example, the image from which a mask is created doesn’t fully cover
+the contour extents.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_mean_distance_to_conformity">
 <span class="sig-name descname"><span class="pre">get_mean_distance_to_conformity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_mean_distance_to_conformity" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain mean distance to conformity for &lt;other&gt; relative to &lt;self&gt;.</p>
