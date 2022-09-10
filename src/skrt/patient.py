@@ -1533,6 +1533,14 @@ class Patient(skrt.core.PathData):
                 info = {}
                 info['id'] = self.id
                 info['modality'] = image_type
+                info['dx'], info['dy'], info['dz'] = image.get_size()
+                info['nx'], info['ny'], info['nz'] = image.get_n_voxels()
+                info['voxel_dx'], info['voxel_dy'], info['voxel_dz'] = (
+                        image.get_voxel_size())
+                ds = image.get_dicom_dataset()
+                info['machine_manufacturer'] = ds.Manufacturer
+                info['machine_model'] = ds.ManufacturerModelName
+                info['station_name'] = getattr(ds, "StationName", None)
                 info['timestamp'] = image.get_pandas_timestamp()
                 info['day'] = None
                 info['hour_in_day'] = None
