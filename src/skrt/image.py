@@ -5384,15 +5384,16 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     voxel_size : tuple/str, default=None
          Specification of voxel size for image resampling.
          Possible values are:
+
          - None: no resampling performed;
          - "dz_max": the image with smaller slice thickness is resampled
-             to have the same voxel size as the image sith larger
-             slice thickness;
+           to have the same voxel size as the image sith larger
+           slice thickness;
          - "dz_min": the image with larger slice thickness is resampled
-             to have the same voxel size as the image sith smaller
-             slice thickness;
+           to have the same voxel size as the image sith smaller
+           slice thickness;
          - (dx, dy, dz): both images are resampled, to have voxels with the
-             specified dimensions in mm.
+           specified dimensions in mm.
 
     order: int, default = 1
         Order of the b-spline used in interpolating voxel intensity values.
