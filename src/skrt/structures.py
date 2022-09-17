@@ -2417,7 +2417,7 @@ class ROI(skrt.core.Archive):
         other_volume = other.get_volume(**kwargs)
         if not own_volume or not other_volume:
             return None
-        return (own_volume - other_volume) / own_volume
+        return (own_volume - other_volume)
 
     def get_relative_volume_diff(self, other, **kwargs):
         """Get relative volume of another ROI with respect to own volume."""

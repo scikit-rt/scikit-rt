@@ -25,10 +25,40 @@ from skrt.structures import contour_to_polygon, polygon_to_contour, \
 if not os.path.exists("tmp"):
     os.mkdir("tmp")
 
-# Create synthetic structure set
-sim = SyntheticImage((100, 100, 100))
-sim.add_cube(side_length=40, name="cube", centre=sim.get_centre(), intensity=1)
-sim.add_sphere(radius=20, name="sphere", centre=sim.get_centre(), intensity=10)
+def get_synthetic_image_with_structure_set(shape=(100, 100, 100),
+        cubes={"cube": 40}, spheres={"sphere": 20}):
+    '''
+    Create synthetic image with associated structure set.
+
+    **Parameters:**
+
+    shape : tuple, default=(100, 100, 100)
+        Shape (x, y, z) of the image array.
+
+    cubes : dict, default={"cube": 40}
+        Dictionary defining cube ROIs to be included in structure set, where
+        a key is an ROI name and the associated value is a cube side length.
+
+    spheres : dict, default={"sphere": 20}
+        Dictionary defining sphere ROIs to be included in structure set, where
+        a key is an ROI name and the associated value is a sphere radius.
+    '''
+    # Create the synthetic image.
+    sim = SyntheticImage(shape)
+
+    # Add cube ROIs.
+    for name, side_length in cubes.items():
+        sim.add_cube(side_length=side_length, name=name,
+                centre=sim.get_centre(), intensity=1)
+
+    # Add sphere ROIs.
+    for name, radius in spheres.items():
+        sim.add_sphere(radius=radius, name=name,
+                centre=sim.get_centre(), intensity=10)
+
+    return sim
+
+sim = get_synthetic_image_with_structure_set()
 structure_set = sim.get_structure_set()
 cube = structure_set.get_roi("cube")
 
@@ -1103,3 +1133,54 @@ def test_get_mask_to_contour_volume_ratio():
     assert roi.get_mask_to_contour_volume_ratio() == pytest.approx(1, rel=0.1)
     roi.set_image(sim2)
     assert roi.get_mask_to_contour_volume_ratio() == pytest.approx(0.5, rel=0.1)
+
+# Define synthetic structure set for tests relating to ROI volumes.
+cubes={"cube": 40}
+spheres={"sphere": 20}
+sim = get_synthetic_image_with_structure_set(cubes=cubes, spheres=spheres)
+structure_set = sim.get_structure_set()
+
+# Extract ROIs from structure set, and calculate volumes.
+shapes = []
+volumes = []
+for name, side_length in cubes.items():
+    shapes.append(structure_set.get_roi(name))
+    volumes.append(side_length**3)
+for name, radius in spheres.items():
+    shapes.append(structure_set.get_roi(name))
+    volumes.append((4. / 3.) * math.pi * radius**3)
+
+# Define factors for converting to volumes in different units.
+factors = [1, 0.001, 1]
+units  = ["mm", "ml", "voxels"]
+
+# Define methods for volume calculations.
+methods = [None, "contour", "mask"]
+
+def test_get_volume():
+    # Test calculation of ROI volume.
+    for shape, volume in zip(shapes, volumes):
+        for unit, factor in zip(units, factors):
+            for method in methods:
+                assert shape.get_volume(unit, method) == pytest.approx(
+                    volume * factor, rel=0.01)
+
+def test_get_volume_diff():
+    # Test calculation of volume difference for pair of ROIs.
+    for shape1, volume1 in zip(shapes, volumes):
+        for shape2, volume2 in zip(shapes, volumes):
+            for unit, factor in zip(units, factors):
+                for method in methods:
+                    assert (shape1.get_volume_diff(
+                        shape2, units=unit, method=method) == pytest.approx(
+                            (volume1 - volume2) * factor, rel=0.01))
+
+def test_get_relative_volume_diff():
+    # Test calculation of relative volume difference for pair of ROIs.
+    for shape1, volume1 in zip(shapes, volumes):
+        for shape2, volume2 in zip(shapes, volumes):
+            for unit in units:
+                for method in methods:
+                    assert (shape1.get_relative_volume_diff(
+                        shape2, units=unit, method=method) == pytest.approx(
+                            (volume1 - volume2) / volume1, rel=0.01))
