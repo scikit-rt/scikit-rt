@@ -319,7 +319,7 @@ def test_intersection_union_size():
     precision = 2
     assert intersection == approx(intersection0, abs=precision)
     assert union == approx(union0, abs=precision)
-    assert size == size0
+    assert size == approx(size0, abs=precision)
 
     # Calculate intersection, union, mean size from masks.
     intersection, union, size = cube1.get_intersection_union_size(
@@ -327,3 +327,54 @@ def test_intersection_union_size():
     assert intersection == intersection0
     assert union == union0
     assert size == size0
+
+def test_intersection_union_size_split_roi():
+    """Check intersection, union, mean size when one ROI is split."""
+
+    # Create synthetic image, featuring cuboid and two non-overlapping cubes,
+    # contained within the cuboid.
+    sim1 = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
+    cuboid_sides = np.array([4, 4, 10])
+    cube_side = cuboid_sides[0]
+    sim1.add_cuboid(cuboid_sides, name="cuboid", centre=(5, 5, 5))
+    sim1.add_cube(cube_side, name="cube1", centre=(5, 5, 2))
+    sim1.add_cube(cube_side, name="cube2", centre=(5, 5, 8))
+
+    # Extracts ROIs for cuboid, and for split_roi combining the two cubes.
+    structure_set = sim1.get_structure_set()
+    cuboid = structure_set.get_roi("cuboid")
+    split_roi = StructureSet(
+            structure_set.get_rois(["cube1", "cube2"])).combine_rois()
+
+    # Calculate volumes of cuboid and split_roi from geometric properties.
+    cuboid_volume_theory = np.prod(cuboid_sides)
+    split_roi_volume_theory = 2 * cube_side**3
+
+    # For different calculation methods, check cuboid-split_roi values
+    # for intersection, union, mean size.
+    # As the split_roi is contained within the cuboid:
+    # - volume of union equals volume of cuboid;
+    # - volume of intersection equals volume of split_roi.
+    for method in ["mask", "contour"]:
+        # Check ROI volumes.
+        # Volumes from "mask" method should be the same as
+        # the volumes calculated from geometric properties.  
+        # Volumes from "contour" method should be slightly smaller,
+        # because of corner rounding in converting from masks to contours.
+        cuboid_volume = cuboid.get_volume(method=method)
+        split_roi_volume = split_roi.get_volume(method=method)
+        if "mask" == method:
+            assert cuboid_volume == cuboid_volume_theory
+            assert split_roi_volume == split_roi_volume_theory
+        else:
+            for volume_ratio in [cuboid_volume / cuboid_volume_theory,
+                    split_roi_volume / split_roi_volume_theory]:
+                assert volume_ratio < 1.000
+                assert volume_ratio > 0.965
+
+        # Check intersection, union and mean size
+        intersection, union, size = cuboid.get_intersection_union_size(
+                split_roi, method=method)
+        assert intersection == split_roi_volume
+        assert union == cuboid_volume
+        assert size == 0.5 * (cuboid_volume + split_roi_volume)

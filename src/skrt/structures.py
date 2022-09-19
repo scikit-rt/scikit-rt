@@ -118,9 +118,10 @@ class ROI(skrt.core.Archive):
                     keys are z positions in mm and values are lists of lists of
                     3D contour points in order (x, y, z) or 2D contour points in
                     order (x, y) on each slice.
-                (f) Dictionary of shapely polygons in the x-y orientation,
-                    where the keys are z positions in  mm and values are lists
-                    of polygons on each slice.
+                (f) Dictionary of shapely polygons and/or multipolygons
+                    in the x-y orientation, where the keys are z positions
+                    in  mm and values are lists of polygons/multipolygons
+                    on each slice.
 
         name : str, default=None
             Name of the ROI. If <source> is a file and no name is given,
@@ -2539,10 +2540,12 @@ class ROI(skrt.core.Archive):
             if not single_slice:
                 positions = set(self.get_contours("x-y").keys()).union(
                         set(other.get_contours("x-y").keys()))
-                areas1 = [self.get_area("x-y", pos=p) for p in positions]
+                areas1 = [self.get_area("x-y", pos=p, method=method)
+                        for p in positions]
                 volumes1 = [a * slice_thickness for a in areas1 if a]
                 volume1 = sum(volumes1)
-                areas2 = [other.get_area("x-y", pos=p) for p in positions]
+                areas2 = [other.get_area("x-y", pos=p, method=method)
+                        for p in positions]
                 volumes2 = [a * slice_thickness for a in areas2 if a]
                 volume2 = sum(volumes2)
                 mean_size = 0.5 * (volume1 + volume2)
@@ -2551,10 +2554,10 @@ class ROI(skrt.core.Archive):
                     self.idx_to_pos(self.get_idx(view, sl, idx, pos),
                                     ax=skrt.image._slice_axes[view])
                 ]
-                area1 = self.get_area(view, sl, idx, pos)
+                area1 = self.get_area(view, sl, idx, pos, method=method)
                 if area1 is None:
                     area1 = 0
-                area2 = other.get_area(view, sl, idx, pos)
+                area2 = other.get_area(view, sl, idx, pos, method=method)
                 if area2 is None:
                     area2 = 0
                 mean_size = 0.5 * (area1 + area2)
@@ -2564,12 +2567,10 @@ class ROI(skrt.core.Archive):
             union = 0
             factor = 1 if (single_slice or flatten) else slice_thickness
             for p in positions:
-                polygons1 = self.get_polygons_on_slice(view, pos=p)
-                polygons2 = other.get_polygons_on_slice(view, pos=p)
-                for p1 in polygons1:
-                    for p2 in polygons2:
-                        intersection += p1.intersection(p2).area * factor
-                        union += p1.union(p2).area * factor
+                set1 = ops.unary_union(self.get_polygons_on_slice(view, pos=p))
+                set2 = ops.unary_union(other.get_polygons_on_slice(view, pos=p))
+                intersection += set1.intersection(set2).area * factor
+                union += set1.union(set2).area * factor
 
         # Calculate intersections and areas from binary mask voxel counts
         else:
