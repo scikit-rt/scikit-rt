@@ -983,14 +983,16 @@ def test_combine_rois():
     sphere = sim.get_roi('sphere')
     ss = sim.get_structure_set()
     
-    # Define composite ROI.
-    cube_and_sphere = ss.combine_rois()
+    # Use different methods for defining composite ROI.
+    for method in ["auto", "mask", "contour"]:
+        cube_and_sphere = ss.combine_rois(method=method)
 
-    assert (cube_and_sphere.get_volume() ==
-            cube.get_volume() + sphere.get_volume())
+        assert (cube_and_sphere.get_volume() == pytest.approx(
+            cube.get_volume() + sphere.get_volume(), rel=0.001))
 
-    assert np.all(cube_and_sphere.get_mask() ==
-            cube.get_mask() + sphere.get_mask())
+        if method != "contour":
+            assert np.all(cube_and_sphere.get_mask() ==
+                    cube.get_mask() + sphere.get_mask())
 
 def test_mask_image():
     '''Test retrieval of image objects repreenting ROI masks.'''
