@@ -6317,8 +6317,7 @@ class StructureSet(skrt.core.Archive):
         # Store the new order of ROIs.
         self.rois = rois
 
-    def combine_rois(self, name=None, roi_names=None, image=None,
-            method=None):
+    def combine_rois(self, name=None, roi_names=None, image=None, method=None):
         '''
         Combine two or more ROIs as a single ROI.
 
@@ -6334,16 +6333,16 @@ class StructureSet(skrt.core.Archive):
             structure set's ROIs are combined.
 
         image : skrt.image.Image, default=None
-            Image to set for the composite ROI.  If None, set the
-            structure-set image.
+            Image to set for the composite ROI.  If None, use the image
+            of the ROI with the first in <roi_names>.
 
         method : str, default=None
             Method to use for combining ROIs.  Can be: 
 
                 - "contour": take unary union of shapely polygons.
                 - "mask": sum binary masks.
-                - "auto": use the method set in the default_geom_method
-                          of the ROI with the first name in <roi_names>.
+                - "auto": use the default_geom_method of the ROI with the
+                          first name in <roi_names>.
 
             If None, "auto" is used.
         '''
@@ -6353,10 +6352,10 @@ class StructureSet(skrt.core.Archive):
             roi_names = self.get_roi_names()
         if name is None:
             name = '+'.join(roi_names)
-        if image is None:
-            image = self.image
         if method in [None, "auto"]:
             method = self[roi_names[0]].default_geom_method
+        if image is None:
+            image = self[roi_names[0]].image
 
         if "contour" == method:
             # Create a dictionary containing polygons for all ROIs.
@@ -6377,14 +6376,12 @@ class StructureSet(skrt.core.Archive):
         else:
             # Use data from one of the ROIs as a starting point.
             roi0 = self.get_roi(roi_names[0])
-            roi_new = ROI(source=roi0.get_mask(), affine=roi0.affine, name=name)
+            roi_new = ROI(source=roi0.get_mask(), affine=roi0.affine,
+                    name=name, image=image)
 
             # Combine with data from the other ROIs.
             for i in range(1, len(roi_names)):
                 roi_new.mask.data += self.get_roi(roi_names[i]).get_mask()
-
-            # Set image.
-            roi_new.set_image(image)
 
         return roi_new
 
