@@ -1922,16 +1922,33 @@ that ROIs are copied if copy_rois=True.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.combine_rois">
-<span class="sig-name descname"><span class="pre">combine_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.combine_rois" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">combine_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.combine_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Combine two or more ROIs as a single ROI.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>name<span class="classifier">str, default=None</span></dt><dd><p>Name to be given to the composite ROI.  If None, the
 name assigned is formed by joining together the names
 of the original ROIs.</p>
 </dd>
 <dt>roi_names<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to be combined.  If None, all of the
 structure set’s ROIs are combined.</p>
+</dd>
+<dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image to set for the composite ROI.  If None, set the
+structure-set image.</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for combining ROIs.  Can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“contour”: take unary union of shapely polygons.</p></li>
+<li><p>“mask”: sum binary masks.</p></li>
+<li><dl class="simple">
+<dt>“auto”: use the method set in the default_geom_method</dt><dd><p>of the ROI with the first name in &lt;roi_names&gt;.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>If None, “auto” is used.</p>
 </dd>
 </dl>
 </dd></dl>
