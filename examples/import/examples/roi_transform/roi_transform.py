@@ -467,7 +467,7 @@ if 'Ganga' in __name__:
     # Define processing system.
     if "Linux" == platform.system():
         backend = Condor()
-        backend.cdf_options["request_memory"]="1G"
+        backend.cdf_options["request_memory"]="8G"
     else:
         backend = Local()
 
