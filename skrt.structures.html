@@ -1934,8 +1934,8 @@ of the original ROIs.</p>
 <dt>roi_names<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to be combined.  If None, all of the
 structure set’s ROIs are combined.</p>
 </dd>
-<dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image to set for the composite ROI.  If None, set the
-structure-set image.</p>
+<dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image to set for the composite ROI.  If None, use the image
+of the ROI with the first in &lt;roi_names&gt;.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for combining ROIs.  Can be:</p>
 <blockquote>
@@ -1943,7 +1943,7 @@ structure-set image.</p>
 <li><p>“contour”: take unary union of shapely polygons.</p></li>
 <li><p>“mask”: sum binary masks.</p></li>
 <li><dl class="simple">
-<dt>“auto”: use the method set in the default_geom_method</dt><dd><p>of the ROI with the first name in &lt;roi_names&gt;.</p>
+<dt>“auto”: use the default_geom_method of the ROI with the</dt><dd><p>first name in &lt;roi_names&gt;.</p>
 </dd>
 </dl>
 </li>
