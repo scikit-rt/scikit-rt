@@ -1873,7 +1873,7 @@ class SingleViewer:
         self.annotate_slice = annotate_slice
         if self.annotate_slice is None and not self.in_notebook:
             self.annotate_slice = True
-        self.save_as = save_as
+        self.save_as = str(save_as) if save_as is not None else None
         self.plotting = False
         self.callbacks_set = False
         self.standalone = standalone
