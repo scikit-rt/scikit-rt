@@ -1111,3 +1111,18 @@ def test_get_translation_to_align_image_rois():
         assert t1[1] == t2[1]
         assert ((t1[2] + (dz2 * radii[1] - dz1 * radii[0]))
                 == pytest.approx(t2[2], 1e6))
+
+def test_dcm_from_single_file():
+    """
+    Check that an Image can be loaded given a single file from a directory.
+    """
+    # Create a list of all files in directory, then randomly choose one
+    # to pass to the Image constructor.
+    paths = list(Path(dcm_file).glob("*.dcm"))
+    assert len(paths) > 0
+    path = random.choice(paths)
+    im_choice = Image(path)
+
+    # Check that the shape of the loaded image is as expected.
+    assert im_choice.get_n_voxels()[2] == len(paths)
+    assert im_choice.get_n_voxels() == im_dcm.get_n_voxels()

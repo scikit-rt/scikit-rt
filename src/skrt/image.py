@@ -4342,12 +4342,17 @@ def load_dicom_many_files(paths):
             orientation, axes = get_dicom_orientation(ds)
 
         # Check attributes are consistent with others
+        attr_ok = True
         for attr in attrs_to_check:
             own_attr = getattr(ds, attr)
             if attr_vals[attr] is None:
                 attr_vals[attr] = own_attr
             elif attr_vals[attr] != own_attr:
-                continue
+                attr_ok = False
+                break
+
+        if not attr_ok:
+            continue
 
         # Fill empty TransferSyntaxUID 
         if not hasattr(ds.file_meta, "TransferSyntaxUID"):
