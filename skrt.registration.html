@@ -172,20 +172,42 @@ be displayed as underlay.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise from a medical image source.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><dl class="simple">
-<dt>Source of image data. Can be either:</dt><dd><ol class="loweralpha simple">
-<li><p>A string containing the path to a dicom or nifti file;</p></li>
-<li><p>A string containing the path to a numpy file containing a
-2D or 3D array;</p></li>
+<dl>
+<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><p>Source of image data. Can be either:</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>A string, optionally with wildcards,
+containing the path to one or multiple dicom files,
+the path to a directory containg dicom files,
+or the path to a single nifti file;</p></li>
+<li><p>A list of paths, optionally with wildcards, to dicom files;</p></li>
+<li><p>A string, optionally containing wildcards, containing
+the path to a single numpy file containing a 2D or 3D array;</p></li>
 <li><p>A 2D or 3D numpy array;</p></li>
 <li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
 <li><p>An existing Image object to be cloned; in this case, all 
 other input args except &lt;title&gt; will be ignored, as these 
 will be taken from the existing Image.</p></li>
 </ol>
-</dd>
-</dl>
+</div></blockquote>
+<p>Notes:</p>
+<ol class="arabic simple">
+<li><p>If path points to a single file, all files in the same
+directory as this file are considered also.</p></li>
+</ol>
+<p>2. When path resolves to multiple dicom files, only files
+that match the values of the first file for the dicom
+attributes: “StudyInstanceUID”, “SeriesNumber”, “Modality”,
+“ImageOrientationPatient”.  When path points to a single file
+in a directory with others, this file is taken as the first
+file.  Otherwise, files are sorted according to natural sort
+order (so “2.dcm” before “11.dcm”).  To load images from files
+in a single directory (or in a directory tree) that may have
+different values for these, it could be better to use the
+skrt.patient.Patient class:</p>
+<p>from skrt import Patient
+p = Patient(“path/to/directory”, unsorted_dicom=True)</p>
+<p>For more details, see documentation of Patient class.</p>
 </dd>
 <dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
 can be loaded later with the load() method.</p>
@@ -246,20 +268,42 @@ initialisation.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise from a medical image source.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><dl class="simple">
-<dt>Source of image data. Can be either:</dt><dd><ol class="loweralpha simple">
-<li><p>A string containing the path to a dicom or nifti file;</p></li>
-<li><p>A string containing the path to a numpy file containing a
-2D or 3D array;</p></li>
+<dl>
+<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><p>Source of image data. Can be either:</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>A string, optionally with wildcards,
+containing the path to one or multiple dicom files,
+the path to a directory containg dicom files,
+or the path to a single nifti file;</p></li>
+<li><p>A list of paths, optionally with wildcards, to dicom files;</p></li>
+<li><p>A string, optionally containing wildcards, containing
+the path to a single numpy file containing a 2D or 3D array;</p></li>
 <li><p>A 2D or 3D numpy array;</p></li>
 <li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
 <li><p>An existing Image object to be cloned; in this case, all 
 other input args except &lt;title&gt; will be ignored, as these 
 will be taken from the existing Image.</p></li>
 </ol>
-</dd>
-</dl>
+</div></blockquote>
+<p>Notes:</p>
+<ol class="arabic simple">
+<li><p>If path points to a single file, all files in the same
+directory as this file are considered also.</p></li>
+</ol>
+<p>2. When path resolves to multiple dicom files, only files
+that match the values of the first file for the dicom
+attributes: “StudyInstanceUID”, “SeriesNumber”, “Modality”,
+“ImageOrientationPatient”.  When path points to a single file
+in a directory with others, this file is taken as the first
+file.  Otherwise, files are sorted according to natural sort
+order (so “2.dcm” before “11.dcm”).  To load images from files
+in a single directory (or in a directory tree) that may have
+different values for these, it could be better to use the
+skrt.patient.Patient class:</p>
+<p>from skrt import Patient
+p = Patient(“path/to/directory”, unsorted_dicom=True)</p>
+<p>For more details, see documentation of Patient class.</p>
 </dd>
 <dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
 can be loaded later with the load() method.</p>
