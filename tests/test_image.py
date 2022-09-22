@@ -1112,7 +1112,7 @@ def test_get_translation_to_align_image_rois():
         assert ((t1[2] + (dz2 * radii[1] - dz1 * radii[0]))
                 == pytest.approx(t2[2], 1e6))
 
-def test_dcm_from_single_file():
+def test_dcm_single_file():
     """
     Check that an Image can be loaded given a single file from a directory.
     """
@@ -1121,8 +1121,43 @@ def test_dcm_from_single_file():
     paths = list(Path(dcm_file).glob("*.dcm"))
     assert len(paths) > 0
     path = random.choice(paths)
-    im_choice = Image(path)
+    im = Image(path)
 
     # Check that the shape of the loaded image is as expected.
-    assert im_choice.get_n_voxels()[2] == len(paths)
-    assert im_choice.get_n_voxels() == im_dcm.get_n_voxels()
+    assert im.get_n_voxels()[2] == len(paths)
+    assert im.get_n_voxels() == im_dcm.get_n_voxels()
+    assert str(Path(im.path).parent) == im_dcm.path
+
+def test_dcm_wildcards():
+    """
+    Check that an Image can be loaded from a path including wildcards.
+    """
+    im = Image("tmp/t*_dcm/*.d?m")
+    assert im.get_n_voxels() == im_dcm.get_n_voxels()
+    assert im.path == im_dcm.path
+
+def test_dcm_list():
+    """
+    Check that an Image can be loaded from a list of file paths.
+    """
+    # Create a list of all files in directory, then randomly choose one
+    # to pass to the Image constructor.
+    paths = list(Path(dcm_file).glob("*.dcm"))
+    assert len(paths) > 0
+    im = Image(paths)
+
+    # Check that the shape of the loaded image is as expected.
+    assert im.get_n_voxels()[2] == len(paths)
+    assert im.get_n_voxels() == im_dcm.get_n_voxels()
+    assert im.path == im_dcm.path
+
+    n_path = 6
+    selected_paths = set()
+    while len(selected_paths) < n_path:
+        selected_paths.add(random.choice(paths))
+    im = Image(selected_paths)
+
+    # Check that the shape of the loaded image is as expected.
+    assert im.get_n_voxels()[2] == len(selected_paths)
+    assert im.get_n_voxels()[0: 2] == im_dcm.get_n_voxels()[0: 2]
+    assert im.path == im_dcm.path

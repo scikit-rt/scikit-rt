@@ -77,14 +77,40 @@ class Image(skrt.core.Archive):
         
         path : str/array/Nifti1Image, default = ""
             Source of image data. Can be either:
-                (a) A string containing the path to a dicom or nifti file;
-                (b) A string containing the path to a numpy file containing a
-                    2D or 3D array;
-                (c) A 2D or 3D numpy array;
-                (d) A nibabel.nifti1.Nifti1Image object;
-                (e) An existing Image object to be cloned; in this case, all 
+
+                (a) A string, optionally with wildcards,
+                    containing the path to one or multiple dicom files,
+                    the path to a directory containg dicom files,
+                    or the path to a single nifti file;
+                (b) A list of paths, optionally with wildcards, to dicom files;
+                (c) A string, optionally containing wildcards, containing
+                    the path to a single numpy file containing a 2D or 3D array;
+                (d) A 2D or 3D numpy array;
+                (e) A nibabel.nifti1.Nifti1Image object;
+                (f) An existing Image object to be cloned; in this case, all 
                     other input args except <title> will be ignored, as these 
                     will be taken from the existing Image.
+
+            Notes:
+
+            1. If path points to a single file, all files in the same
+               directory as this file are considered also.
+
+            2. When path resolves to multiple dicom files, only files
+            that match the values of the first file for the dicom
+            attributes: "StudyInstanceUID", "SeriesNumber", "Modality",
+            "ImageOrientationPatient".  When path points to a single file
+            in a directory with others, this file is taken as the first
+            file.  Otherwise, files are sorted according to natural sort
+            order (so "2.dcm" before "11.dcm").  To load images from files
+            in a single directory (or in a directory tree) that may have
+            different values for these, it could be better to use the
+            skrt.patient.Patient class:
+
+            from skrt import Patient
+            p = Patient("path/to/directory", unsorted_dicom=True)
+
+            For more details, see documentation of Patient class.
 
         load : bool, default=True
             If True, the image data will be immediately loaded. Otherwise, it
@@ -145,6 +171,19 @@ class Image(skrt.core.Archive):
         self.data = None
         self.title = title
         self.source = str(path) if isinstance(path, pathlib.Path) else path
+        if isinstance(self.source, str):
+            self.source = sorted(glob.glob(self.source),
+                    key=skrt.core.alphanumeric)
+            if 1 == len(self.source):
+                self.source = self.source[0]
+            elif not self.source:
+                self.source = ""
+        elif isinstance(self.source, (list, set, tuple)):
+            paths = list(self.source)
+            self.source = []
+            for path in paths:
+                self.source.extend(glob.glob(str(path)))
+
         self.source_type = None
         self.dicom_dataset = None
         self.voxel_size = list(voxel_size) if voxel_size is not None else None
@@ -163,6 +202,16 @@ class Image(skrt.core.Archive):
         self.default_intensity = default_intensity
 
         path = self.source if isinstance(self.source, str) else ""
+        # If self.source is a list of paths, all pointing to the same directory,
+        # set image path to the first path in the list.
+        if isinstance(self.source, list):
+            path = pathlib.Path(self.source[0]).parent
+            for file_path in self.source:
+                if pathlib.Path(file_path).parent != path:
+                    path = ""
+                    break
+            path = str(path)
+
         skrt.core.Archive.__init__(self, path, auto_timestamp)
 
         if load and (not isinstance(self.source, str) or self.source):
@@ -584,27 +633,27 @@ class Image(skrt.core.Archive):
             __init__() was called, self.source_type is set to "nifti array";
             otherwise, self.source_type is set to "array".
 
-            2. If self.source is a string, this is treated as a filepath. 
-            Attempt to load a nifti file from this path using the function
-            load_nifti(). If the path points to a valid nifti file, this will
-            return a pixel array and affine matrix, which are assigned to
-            self.data and self.affine, respectively. Set self.source_type
-            to "nifti".
+            2. If self.source is a string, this string is passed to
+            glob.glob().  The result is assigned to self.source, and 
+            is treated as a list of filepaths.  If the list contains a
+            single element, attempt to load a nifti file from this path
+            using the function load_nifti(). If the path points to a
+            valid nifti file, this will return a pixel array and affine
+            matrix, which are assigned to self.data and self.affine,
+            respectively. Set self.source_type to "nifti".
            
-            3. If self.source is neither a numpy array nor a string, throw a
-            TypeError.
+            3. If no data were loaded in step 2 (i.e. self.data is still None),
+            and self.source contains a single path, attempt to load from
+            a numpy binary file at this path using the function load_npy(). If
+            the path points to a valid numpy binary file, this will return
+            a pixel array, which is assigned to self.data. Set source_type
+            to either "nifti array" or "array", depending on whether
+            <nifti_array> was set to True or False, respectively,
+            when __init__() was called.
 
-            4. If no data were loaded in step 2 (i.e. self.data is still None),
-            attempt to load from a numpy binary file at the path in self.source 
-            using the function load_npy(). If the path points to a valid numpy
-            binary file, this will return a pixel array, which is assigned to
-            self.data. Set source_type to either "nifti array" or "array",
-            depending on whether <nifti_array> was set to True or False, 
-            respectively, when __init__() was called.
-
-            5. If no data were loaded in step 4 (i.e. self.data is still None),
-            attempt to load from a dicom file or directory at the path in
-            self.source using the function load_dicom(). If successful, this 
+            4. If no data were loaded in step 4 (i.e. self.data is still None),
+            attempt to load from dicom file(s) or directory at the path(s) in
+            self.source using the function load_dicom().  If successful, this 
             returns a pixel array, affine matrix, default greyscale window
             centre and width, the last loaded pydicom.dataset.FileDataset 
             object, and a dictionary mapping z positions to paths to the
@@ -612,22 +661,22 @@ class Image(skrt.core.Archive):
             self.data, self.affine, self.dicom_dataset, and self._z_paths; 
             self.source_type is set to "dicom".
 
-            6. If no data were loaded in step 5 (i.e. self.data is still None),
+            5. If no data were loaded in step 5 (i.e. self.data is still None),
             raise a RuntimeError.
 
-            7. If self.data contains a 2D array, convert this to 3D by adding
+            6. If self.data contains a 2D array, convert this to 3D by adding
             an extra axis.
 
-            8. Apply any downsampling as specificied in __init__().
+            7. Apply any downsampling as specificied in __init__().
 
-            9. Run self.set_geometry() in order to compute geometric quantities
+            8. Run self.set_geometry() in order to compute geometric quantities
             for this Image.
 
-            10. If a default window width and window centre were loaded from 
+            9. If a default window width and window centre were loaded from 
             dicom, use these to set self.default_window to a greyscale window 
             range.
 
-            11. If self.title is None and self.source is a filepath, infer
+            10. If self.title is None and self.source is a filepath, infer
             a title from the basename of this path.
 
         """
@@ -655,16 +704,15 @@ class Image(skrt.core.Archive):
             elif not hasattr(self, "dicom_paths"):
                 raise RuntimeError(
                     f"Image input {self.source} does not exist!")
-        else:
-            raise TypeError("Unrecognised image source type:", self.source)
 
-        # Try loading from numpy file
-        if self.data is None:
-            self.data = load_npy(self.source)
-            self.source_type = "nifti array" if self.nifti_array else "array"
+            # Try loading from numpy file
+            if self.data is None:
+                self.data = load_npy(self.source)
+                self.source_type = ("nifti array" if self.nifti_array
+                        else "array")
 
         # Try loading from dicom file
-        if self.data is None:
+        if self.data is None and isinstance(self.source, (str, list)):
             if hasattr(self, "dicom_paths") and not self.source:
                 paths = self.dicom_paths
             else:
