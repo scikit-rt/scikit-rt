@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -96,8 +97,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-skrt.application">
-<span id="skrt-application-module"></span><h1>skrt.application module<a class="headerlink" href="#module-skrt.application" title="Permalink to this heading"></a></h1>
+  <section id="skrt-application-module">
+<h1>skrt.application module<a class="headerlink" href="#skrt-application-module" title="Permalink to this heading"></a></h1>
 <p>Framework for running analysis over patient data.</p>
 <p>This module provides for construction of an analysis application
 as a sequence of algorithms, each of which inherits from the
@@ -110,7 +111,7 @@ Algorithm class.  This defines three methods relating to execution:</p>
 <p>Each method returns an instance of the Status class,
 providing information on whether execution problems were encountered.
 Running of algorithm methods is handled by the Application class.</p>
-<dl class="py class">
+<span class="target" id="module-skrt.application"></span><dl class="py class">
 <dt class="sig sig-object py" id="skrt.application.Algorithm">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>

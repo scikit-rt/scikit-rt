@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -85,7 +86,7 @@
 <li class="toctree-l2"><a class="reference internal" href="skrt.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="skrt.better_viewer.html">skrt.better_viewer package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="skrt.better_viewer.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="skrt.better_viewer.html#module-skrt.better_viewer">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.better_viewer.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.viewer.html">skrt.viewer package</a><ul>
@@ -96,16 +97,162 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="skrt.application.html">skrt.application module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.core.html">skrt.core module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html">skrt.dicom_writer module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.dose.html">skrt.dose module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.image.html">skrt.image module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.multi.html">skrt.multi module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.patient.html">skrt.patient module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.registration.html">skrt.registration module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.simulation.html">skrt.simulation module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.structures.html">skrt.structures module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.application.html">skrt.application module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.application.html#skrt.application.Algorithm"><code class="docutils literal notranslate"><span class="pre">Algorithm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.application.html#skrt.application.Application"><code class="docutils literal notranslate"><span class="pre">Application</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.application.html#skrt.application.Status"><code class="docutils literal notranslate"><span class="pre">Status</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.core.html">skrt.core module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.Archive"><code class="docutils literal notranslate"><span class="pre">Archive</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.Data"><code class="docutils literal notranslate"><span class="pre">Data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.Dated"><code class="docutils literal notranslate"><span class="pre">Dated</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.Defaults"><code class="docutils literal notranslate"><span class="pre">Defaults</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.DicomFile"><code class="docutils literal notranslate"><span class="pre">DicomFile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.File"><code class="docutils literal notranslate"><span class="pre">File</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.MachineData"><code class="docutils literal notranslate"><span class="pre">MachineData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.PathData"><code class="docutils literal notranslate"><span class="pre">PathData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.alphanumeric"><code class="docutils literal notranslate"><span class="pre">alphanumeric()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.fullpath"><code class="docutils literal notranslate"><span class="pre">fullpath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.generate_timestamp"><code class="docutils literal notranslate"><span class="pre">generate_timestamp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_associated_image"><code class="docutils literal notranslate"><span class="pre">get_associated_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_data_by_filename"><code class="docutils literal notranslate"><span class="pre">get_data_by_filename()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_day_in_week"><code class="docutils literal notranslate"><span class="pre">get_day_in_week()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_file_size"><code class="docutils literal notranslate"><span class="pre">get_file_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_hour_in_day"><code class="docutils literal notranslate"><span class="pre">get_hour_in_day()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_hour_in_week"><code class="docutils literal notranslate"><span class="pre">get_hour_in_week()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_interval_in_days"><code class="docutils literal notranslate"><span class="pre">get_interval_in_days()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_interval_in_whole_days"><code class="docutils literal notranslate"><span class="pre">get_interval_in_whole_days()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_n_file"><code class="docutils literal notranslate"><span class="pre">get_n_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_referenced_image"><code class="docutils literal notranslate"><span class="pre">get_referenced_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_referenced_object"><code class="docutils literal notranslate"><span class="pre">get_referenced_object()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_time_and_date"><code class="docutils literal notranslate"><span class="pre">get_time_and_date()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_time_separated_objects"><code class="docutils literal notranslate"><span class="pre">get_time_separated_objects()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.get_uid_without_slice"><code class="docutils literal notranslate"><span class="pre">get_uid_without_slice()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.is_list"><code class="docutils literal notranslate"><span class="pre">is_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.is_timestamp"><code class="docutils literal notranslate"><span class="pre">is_timestamp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.relative_path"><code class="docutils literal notranslate"><span class="pre">relative_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.to_list"><code class="docutils literal notranslate"><span class="pre">to_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.core.html#skrt.core.year_fraction"><code class="docutils literal notranslate"><span class="pre">year_fraction()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html">skrt.dicom_writer module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter"><code class="docutils literal notranslate"><span class="pre">DicomWriter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.dose.html">skrt.dose module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html#skrt.dose.Constraint"><code class="docutils literal notranslate"><span class="pre">Constraint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html#skrt.dose.Dose"><code class="docutils literal notranslate"><span class="pre">Dose</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html#skrt.dose.ImageOverlay"><code class="docutils literal notranslate"><span class="pre">ImageOverlay</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html#skrt.dose.Plan"><code class="docutils literal notranslate"><span class="pre">Plan</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html#skrt.dose.remove_duplicate_doses"><code class="docutils literal notranslate"><span class="pre">remove_duplicate_doses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.dose.html#skrt.dose.sum_doses"><code class="docutils literal notranslate"><span class="pre">sum_doses()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.image.html">skrt.image module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.Image"><code class="docutils literal notranslate"><span class="pre">Image</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.ImageComparison"><code class="docutils literal notranslate"><span class="pre">ImageComparison</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.default_aspect"><code class="docutils literal notranslate"><span class="pre">default_aspect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.downsample"><code class="docutils literal notranslate"><span class="pre">downsample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_alignment_strategy"><code class="docutils literal notranslate"><span class="pre">get_alignment_strategy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_alignment_translation"><code class="docutils literal notranslate"><span class="pre">get_alignment_translation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_box_mask_from_mask"><code class="docutils literal notranslate"><span class="pre">get_box_mask_from_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_dicom_affine"><code class="docutils literal notranslate"><span class="pre">get_dicom_affine()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_dicom_orientation"><code class="docutils literal notranslate"><span class="pre">get_dicom_orientation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_dicom_paths"><code class="docutils literal notranslate"><span class="pre">get_dicom_paths()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_dicom_voxel_size"><code class="docutils literal notranslate"><span class="pre">get_dicom_voxel_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_dicom_window"><code class="docutils literal notranslate"><span class="pre">get_dicom_window()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_geometry"><code class="docutils literal notranslate"><span class="pre">get_geometry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_mask"><code class="docutils literal notranslate"><span class="pre">get_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_mask_bbox"><code class="docutils literal notranslate"><span class="pre">get_mask_bbox()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_translation_to_align"><code class="docutils literal notranslate"><span class="pre">get_translation_to_align()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.get_translation_to_align_image_rois"><code class="docutils literal notranslate"><span class="pre">get_translation_to_align_image_rois()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.kv_to_mv"><code class="docutils literal notranslate"><span class="pre">kv_to_mv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.load_dicom"><code class="docutils literal notranslate"><span class="pre">load_dicom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.load_dicom_many_files"><code class="docutils literal notranslate"><span class="pre">load_dicom_many_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.load_dicom_single_file"><code class="docutils literal notranslate"><span class="pre">load_dicom_single_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.load_nifti"><code class="docutils literal notranslate"><span class="pre">load_nifti()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.load_npy"><code class="docutils literal notranslate"><span class="pre">load_npy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.match_image_voxel_sizes"><code class="docutils literal notranslate"><span class="pre">match_image_voxel_sizes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.pad_transpose"><code class="docutils literal notranslate"><span class="pre">pad_transpose()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.remove_duplicate_images"><code class="docutils literal notranslate"><span class="pre">remove_duplicate_images()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.rescale_dicom_data"><code class="docutils literal notranslate"><span class="pre">rescale_dicom_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.set_ax"><code class="docutils literal notranslate"><span class="pre">set_ax()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.set_image_orientation_patient"><code class="docutils literal notranslate"><span class="pre">set_image_orientation_patient()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.sum_images"><code class="docutils literal notranslate"><span class="pre">sum_images()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.to_inches"><code class="docutils literal notranslate"><span class="pre">to_inches()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.write_nifti"><code class="docutils literal notranslate"><span class="pre">write_nifti()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.image.html#skrt.image.write_npy"><code class="docutils literal notranslate"><span class="pre">write_npy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.multi.html">skrt.multi module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.multi.html#skrt.multi.PatientDataset"><code class="docutils literal notranslate"><span class="pre">PatientDataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.multi.html#skrt.multi.PatientIterator"><code class="docutils literal notranslate"><span class="pre">PatientIterator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.patient.html">skrt.patient module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.patient.html#skrt.patient.Patient"><code class="docutils literal notranslate"><span class="pre">Patient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.patient.html#skrt.patient.Study"><code class="docutils literal notranslate"><span class="pre">Study</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.patient.html#skrt.patient.find_matching_object"><code class="docutils literal notranslate"><span class="pre">find_matching_object()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.registration.html">skrt.registration module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.DeformationField"><code class="docutils literal notranslate"><span class="pre">DeformationField</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.Grid"><code class="docutils literal notranslate"><span class="pre">Grid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.Jacobian"><code class="docutils literal notranslate"><span class="pre">Jacobian</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.Registration"><code class="docutils literal notranslate"><span class="pre">Registration</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.adjust_parameters"><code class="docutils literal notranslate"><span class="pre">adjust_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.get_data_dir"><code class="docutils literal notranslate"><span class="pre">get_data_dir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.get_default_pfiles"><code class="docutils literal notranslate"><span class="pre">get_default_pfiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.get_default_pfiles_dir"><code class="docutils literal notranslate"><span class="pre">get_default_pfiles_dir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.get_image_transform_parameters"><code class="docutils literal notranslate"><span class="pre">get_image_transform_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.get_jacobian_colormap"><code class="docutils literal notranslate"><span class="pre">get_jacobian_colormap()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.prepend_path"><code class="docutils literal notranslate"><span class="pre">prepend_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.read_parameters"><code class="docutils literal notranslate"><span class="pre">read_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.set_elastix_dir"><code class="docutils literal notranslate"><span class="pre">set_elastix_dir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.shift_translation_parameters"><code class="docutils literal notranslate"><span class="pre">shift_translation_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.registration.html#skrt.registration.write_parameters"><code class="docutils literal notranslate"><span class="pre">write_parameters()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.simulation.html">skrt.simulation module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html#skrt.simulation.Cuboid"><code class="docutils literal notranslate"><span class="pre">Cuboid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html#skrt.simulation.Cylinder"><code class="docutils literal notranslate"><span class="pre">Cylinder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html#skrt.simulation.Grid"><code class="docutils literal notranslate"><span class="pre">Grid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html#skrt.simulation.ShapeGroup"><code class="docutils literal notranslate"><span class="pre">ShapeGroup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html#skrt.simulation.Sphere"><code class="docutils literal notranslate"><span class="pre">Sphere</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html#skrt.simulation.SyntheticImage"><code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.simulation.html#skrt.simulation.make_grid"><code class="docutils literal notranslate"><span class="pre">make_grid()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.structures.html">skrt.structures module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.ROI"><code class="docutils literal notranslate"><span class="pre">ROI</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.ROIDefaults"><code class="docutils literal notranslate"><span class="pre">ROIDefaults</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.StructureSet"><code class="docutils literal notranslate"><span class="pre">StructureSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.StructureSetIterator"><code class="docutils literal notranslate"><span class="pre">StructureSetIterator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.best_text_color"><code class="docutils literal notranslate"><span class="pre">best_text_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.compare_roi_pairs"><code class="docutils literal notranslate"><span class="pre">compare_roi_pairs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.contour_to_polygon"><code class="docutils literal notranslate"><span class="pre">contour_to_polygon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.create_dummy_image"><code class="docutils literal notranslate"><span class="pre">create_dummy_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.create_majority_vote"><code class="docutils literal notranslate"><span class="pre">create_majority_vote()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.create_roi_overlap"><code class="docutils literal notranslate"><span class="pre">create_roi_overlap()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.create_roi_sum"><code class="docutils literal notranslate"><span class="pre">create_roi_sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.create_staple"><code class="docutils literal notranslate"><span class="pre">create_staple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.df_to_html"><code class="docutils literal notranslate"><span class="pre">df_to_html()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.dicom_dataset_to_structure_set"><code class="docutils literal notranslate"><span class="pre">dicom_dataset_to_structure_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_all_rois"><code class="docutils literal notranslate"><span class="pre">get_all_rois()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_colored_roi_string"><code class="docutils literal notranslate"><span class="pre">get_colored_roi_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_comparison_metrics"><code class="docutils literal notranslate"><span class="pre">get_comparison_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_conformity_index"><code class="docutils literal notranslate"><span class="pre">get_conformity_index()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_dicom_sequence"><code class="docutils literal notranslate"><span class="pre">get_dicom_sequence()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_roi_slice"><code class="docutils literal notranslate"><span class="pre">get_roi_slice()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_translation_to_align"><code class="docutils literal notranslate"><span class="pre">get_translation_to_align()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.interpolate_points_single_contour"><code class="docutils literal notranslate"><span class="pre">interpolate_points_single_contour()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.load_rois_dicom"><code class="docutils literal notranslate"><span class="pre">load_rois_dicom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.polygon_to_contour"><code class="docutils literal notranslate"><span class="pre">polygon_to_contour()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="skrt.structures.html#skrt.structures.write_structure_set_dicom"><code class="docutils literal notranslate"><span class="pre">write_structure_set_dicom()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.html#module-skrt">Module contents</a></li>

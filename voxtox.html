@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -104,7 +105,12 @@
 <li class="toctree-l3"><a class="reference internal" href="voxtox.data.jes_109.html">voxtox.data.jes_109 module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="voxtox.data.html#module-voxtox.data">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.data.html#module-contents">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.data.html#voxtox.data.get_paths"><code class="docutils literal notranslate"><span class="pre">get_paths()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.data.html#voxtox.data.get_paths_djn_253"><code class="docutils literal notranslate"><span class="pre">get_paths_djn_253()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.data.html#voxtox.data.get_paths_jes_109"><code class="docutils literal notranslate"><span class="pre">get_paths_jes_109()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="voxtox.roi_names.html">voxtox.roi_names package</a><ul>
@@ -113,7 +119,10 @@
 <li class="toctree-l3"><a class="reference internal" href="voxtox.roi_names.prostate_roi_names.html">voxtox.roi_names.prostate_roi_names module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="voxtox.roi_names.html#module-voxtox.roi_names">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.roi_names.html#module-contents">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.roi_names.html#voxtox.roi_names.get_roi"><code class="docutils literal notranslate"><span class="pre">get_roi()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -123,9 +132,39 @@
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="voxtox.core.html">voxtox.core module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="voxtox.image.html">voxtox.image module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="voxtox.structures.html">voxtox.structures module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox.core.html">voxtox.core module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.core.html#voxtox.core.get_couch_rotations"><code class="docutils literal notranslate"><span class="pre">get_couch_rotations()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.core.html#voxtox.core.get_couch_shifts"><code class="docutils literal notranslate"><span class="pre">get_couch_shifts()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.core.html#voxtox.core.get_couch_translations"><code class="docutils literal notranslate"><span class="pre">get_couch_translations()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.core.html#voxtox.core.unpack_couch_shifts"><code class="docutils literal notranslate"><span class="pre">unpack_couch_shifts()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox.image.html">voxtox.image module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.image.html#voxtox.image.Image"><code class="docutils literal notranslate"><span class="pre">Image</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.image.html#voxtox.image.Image.apply_couch_shifts"><code class="docutils literal notranslate"><span class="pre">Image.apply_couch_shifts()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox.structures.html">voxtox.structures module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.ROI"><code class="docutils literal notranslate"><span class="pre">ROI</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.ROI.__init__"><code class="docutils literal notranslate"><span class="pre">ROI.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.ROI.apply_couch_shifts"><code class="docutils literal notranslate"><span class="pre">ROI.apply_couch_shifts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.ROI.load"><code class="docutils literal notranslate"><span class="pre">ROI.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.ROI.write"><code class="docutils literal notranslate"><span class="pre">ROI.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.StructureSet"><code class="docutils literal notranslate"><span class="pre">StructureSet</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.StructureSet.__init__"><code class="docutils literal notranslate"><span class="pre">StructureSet.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.StructureSet.apply_couch_shifts"><code class="docutils literal notranslate"><span class="pre">StructureSet.apply_couch_shifts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.StructureSet.load"><code class="docutils literal notranslate"><span class="pre">StructureSet.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.StructureSet.write"><code class="docutils literal notranslate"><span class="pre">StructureSet.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.contours_mean_z"><code class="docutils literal notranslate"><span class="pre">contours_mean_z()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="voxtox.structures.html#voxtox.structures.get_key"><code class="docutils literal notranslate"><span class="pre">get_key()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
