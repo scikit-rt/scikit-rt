@@ -5193,6 +5193,7 @@ class StructureSet(skrt.core.Archive):
             Only used if <copy_rois> is True
         """
 
+        self.load()
         ss = self.clone(copy_roi_data=copy_roi_data)
         if name is not None:
             ss.name = name
