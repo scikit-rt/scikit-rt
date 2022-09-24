@@ -433,6 +433,13 @@ class Dose(ImageOverlay):
         elif roi.get_volume(method="mask"):
             return 0
 
+    def get_dose_quantile(self, roi, quantile=0.5):
+        """Get specified dose quantile inside an ROI."""
+
+        doses = self.get_dose_in_roi(roi)
+        if doses.size:
+            return np.quantile(doses, quantile)
+
 
 class Plan(Archive):
     def __init__(self, path="", load=True):
