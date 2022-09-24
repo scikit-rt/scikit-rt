@@ -3002,12 +3002,20 @@ class ROI(skrt.core.Archive):
                 * "area_ratio_flat": area ratio of ROIs flattened in the
                   orientation specified in <view>.
 
+                * "mean_signed_surface_distance": mean signed surface distance.
+                * "mean_signed_surface_distance_flat": mean signed surface
+                  distance of ROIs flattened in the orientation specified
+                  in <view>.
                 * "mean_surface_distance": mean surface distance.
                 * "mean_surface_distance_flat": mean surface distance of ROIs
                   flattened in the orientation specified in <view>.
                 * "rms_surface_distance": RMS surface distance.
                 * "rms_surface_distance_flat": RMS surface distance of ROIs
                   flattened in the orientation specified in <view>.
+                * "rms_signed_surface_distance": RMS signed surface distance.
+                * "rms_signed_surface_distance_flat": RMS signed surface
+                  distance of ROIs flattened in the orientation specified
+                  in <view>.
                 * "hausdorff_distance": Hausdorff distance.
                 * "hausdorff_distance_flat": Hausdorff distance of ROIs
                   flattened in the orientation specified in <view>.
@@ -3263,6 +3271,16 @@ class ROI(skrt.core.Archive):
             elif m == "mean_surface_distance_flat":
                 comp[m] = self.get_mean_surface_distance(roi, view=view,
                         flatten=True)
+            elif m == "mean_signed_surface_distance":
+                comp[m] = self.get_mean_surface_distance(roi, signed=True)
+            elif m == "mean_signed_surface_distance_flat":
+                comp[m] = self.get_mean_surface_distance(roi, signed=True,
+                        view=view, flatten=True)
+            elif m == "rms_signed_surface_distance":
+                comp[m] = self.get_rms_surface_distance(roi, signed=True)
+            elif m == "rms_signed_surface_distance_flat":
+                comp[m] = self.get_rms_surface_distance(roi, signed=True,
+                        view=view, flatten=True)
             elif m == "rms_surface_distance":
                 comp[m] = self.get_rms_surface_distance(roi)
             elif m == "rms_surface_distance_flat":
@@ -7155,6 +7173,8 @@ def get_comparison_metrics():
             "jaccard_slice",
             "mean_distance_to_conformity",
             "mean_distance_to_conformity_flat",
+            "mean_signed_surface_distance",
+            "mean_signed_surface_distance_flat",
             "mean_surface_distance",
             "mean_surface_distance_flat",
             "mean_over_contouring",
@@ -7164,6 +7184,8 @@ def get_comparison_metrics():
             "rel_area_diff",
             "rel_area_diff_flat",
             "rel_volume_diff",
+            "rms_signed_surface_distance",
+            "rms_signed_surface_distance_flat",
             "rms_surface_distance",
             "rms_surface_distance_flat",
             "volume_diff",
