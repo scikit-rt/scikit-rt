@@ -1021,11 +1021,11 @@ class Patient(skrt.core.PathData):
                 orphan_objs = []
                 for obj in getattr(study, dcm_datastore, []):
                     if obj.image:
-                        datastore = f"{image.modality}_{dstring}s"
-                        if not image.modality in dtypes:
-                            dtypes[image.modality] = []
+                        datastore = f"{obj.image.modality}_{dstring}s"
+                        if not obj.image.modality in dtypes:
+                            dtypes[obj.image.modality] = []
                             setattr(study, datastore, [])
-                        dtypes[image.modality].append(obj)
+                        dtypes[obj.image.modality].append(obj)
                         getattr(study, datastore).append(obj)
                     else:
                         orphan_objs.append(obj)
