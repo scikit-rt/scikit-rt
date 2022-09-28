@@ -114,12 +114,12 @@ is chosen by the user; the latter is fixed.  Paths should always be absolute
 server port (8888) on the container side.
 
 ## Table of contents
-1) [Images](#1-images)
-2) [Regions of interest (ROIs) and structure sets](#2-rois-and-structure-sets)
-3) [Patients and studies](#3-patients)
-4) [Synthetic data](#4-synthetic-data)
+1) [Images](#images)
+2) [Regions of interest (ROIs) and structure sets](#regions-of-insterest-rois-and-structure-sets)
+3) [Patients and studies](#patients-and-studies)
+4) [Synthetic data](#synthetic-data)
 5) [Image registration](docs/image_registration.md)
-6) [Keyboard shortcuts for pop-out interactive viewer](#6-keyboard-shortcuts-for-pop-out-interactive-viewer)
+6) [Keyboard shortcuts for pop-out interactive viewer](#keyboard-shortcuts-for-pop-out-interactive-viewer)
 
 
 ## 1. Images
