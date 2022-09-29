@@ -333,6 +333,33 @@ image will not be cropped in that direction.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.crop_by_amounts">
+<span class="sig-name descname"><span class="pre">crop_by_amounts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_by_amounts" title="Permalink to this definition"></a></dt>
+<dd><p>Crop image by the amounts dx, dy, dz in mm.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>dx<span class="classifier">float/tuple, default=None</span></dt><dd><p>Amount(s) by which to crop image in x-direction.  If dx
+is a float, the image is cropped by this amount on both sides.
+If dx is a tuple, the image is cropped on the sides at lower
+and higher x by the amounts of the tuple’s first and second
+elements.  No cropping is performed for a crop amount set to None.</p>
+</dd>
+<dt>dy<span class="classifier">float/tuple, default=None</span></dt><dd><p>Amount(s) by which to crop image in y-direction.  If dy
+is a float, the image is cropped by this amount on both sides.
+If dy is a tuple, the image is cropped on the sides at lower
+and higher y by the amounts of the tuple’s first and second
+elements.  No cropping is performed for a crop amount set to None.</p>
+</dd>
+<dt>dz<span class="classifier">float/tuple, default=None</span></dt><dd><p>Amount(s) by which to crop image in z-direction.  If dz
+is a float, the image is cropped by this amount on both sides.
+If dz is a tuple, the image is cropped on the sides at lower
+and higher z by the amounts of the tuple’s first and second
+elements.  No cropping is performed for a crop amount set to None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.crop_to_image">
 <span class="sig-name descname"><span class="pre">crop_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_to_image" title="Permalink to this definition"></a></dt>
 <dd><p>Crop to extents of another image, optionally after image alignment.</p>
