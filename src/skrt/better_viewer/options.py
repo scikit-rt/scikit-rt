@@ -70,7 +70,7 @@ def set_viewer_options():
         "cmap": "gray",
         # Define options for colour bars.  For possibilities, see:
         # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.colorbar.html#matplotlib.pyplot.colorbar
-        "clb_kwargs": {"pad":0.1},
+        "clb_kwargs": {"pad":0.05},
         # Define options for colour-bar labels.  For possibilities, see:
         # https://matplotlib.org/stable/api/colorbar_api.html#matplotlib.colorbar.Colorbar.set_label
         "clb_label_kwargs": {"labelpad": 5},
