@@ -3471,6 +3471,54 @@ class Image(skrt.core.Archive):
         self.affine = None
         self.set_geometry()
 
+    def crop_by_amounts(self, dx=None, dy=None, dz=None):
+        """
+        Crop image by the amounts dx, dy, dz in mm.
+
+        **Parameters:**
+
+        dx : float/tuple, default=None
+            Amount(s) by which to crop image in x-direction.  If dx
+            is a float, the image is cropped by this amount on both sides.
+            If dx is a tuple, the image is cropped on the sides at lower
+            and higher x by the amounts of the tuple's first and second
+            elements.  No cropping is performed for a crop amount set to None.
+
+        dy : float/tuple, default=None
+            Amount(s) by which to crop image in y-direction.  If dy
+            is a float, the image is cropped by this amount on both sides.
+            If dy is a tuple, the image is cropped on the sides at lower
+            and higher y by the amounts of the tuple's first and second
+            elements.  No cropping is performed for a crop amount set to None.
+
+        dz : float/tuple, default=None
+            Amount(s) by which to crop image in z-direction.  If dz
+            is a float, the image is cropped by this amount on both sides.
+            If dz is a tuple, the image is cropped on the sides at lower
+            and higher z by the amounts of the tuple's first and second
+            elements.  No cropping is performed for a crop amount set to None.
+        """
+        # Define lists of initial image extents, and amounts by which to reduce.
+        xyz_lims = [list(extents) for extents in self.get_extents()]
+        xyz_reductions = [skrt.core.to_list(dxyz, 2) for dxyz in [dx, dy, dz]]
+
+        # Crop along each axis in turn.
+        for i_ax, reductions in enumerate(xyz_reductions):
+
+            if (skrt.core.is_list(reductions) and
+                    (reductions[0] or reductions[1])):
+                # Set new image extents, after reductions on each side.
+                if reductions[0]:
+                    xyz_lims[i_ax][0] += reductions[0]
+                if reductions[1]:
+                    xyz_lims[i_ax][1] -= reductions[1]
+            else:
+                # No reduction to be performed, so set null image extents.
+                xyz_lims[i_ax] = None
+
+        # Crop image to new extents.
+        self.crop(*xyz_lims)
+
     def crop_to_roi(self, roi, buffer=None, buffer_units="mm",
             method=None):
         """

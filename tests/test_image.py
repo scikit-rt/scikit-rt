@@ -749,6 +749,26 @@ def test_scale_and_rotation():
     for i in range(3):
         assert n_good[i] >= min_fraction_good
 
+def test_crop_by_amounts():
+    """Test cropping of image by specified amounts."""
+    # Create test image.
+    sim1 = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5))
+    im1 = sim1.get_image()
+
+    # Test null cropping.
+    im2 = im1.clone()
+    im2.crop_by_amounts()
+    assert im1.get_extents() == im2.get_extents()
+
+    # Define amounts by which to crop.
+    dxyz = [(1, 2), (3, 1), (4, 0)]
+    im2.crop_by_amounts(*dxyz)
+
+    for i_ax, reductions in enumerate(dxyz):
+        dv1, dv2 = reductions
+        assert im1.get_extents()[i_ax][0] + dv1 == im2.get_extents()[i_ax][0]
+        assert im1.get_extents()[i_ax][1] - dv2 == im2.get_extents()[i_ax][1]
+
 def test_crop_to_roi():
     sim = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5), noise_std=100)
     sim.add_cuboid((4, 2, 6), name="cuboid")
