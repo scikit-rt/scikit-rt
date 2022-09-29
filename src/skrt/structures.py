@@ -4289,6 +4289,43 @@ class ROI(skrt.core.Archive):
                     centre, resample, restore, 0, fill_value)
             self.reset_mask()
 
+    def crop(self, xlim=None, ylim=None, zlim=None):
+        """
+        Crop ROI to specified range in x, y, z.
+
+        **Parameters:**
+
+        xlim : tuple, default=None
+            Lower and upper bounds in mm for cropping along x-axis.
+            If set to None, no cropping is performed.  If a bound
+            is set to None, that bound is disregarded.
+
+        ylim : tuple, default=None
+            Lower and upper bounds in mm for cropping along y-axis.
+            If set to None, no cropping is performed.  If a bound
+            is set to None, that bound is disregarded.
+
+        zlim : tuple, default=None
+            Lower and upper bounds in mm for cropping along z-axis.
+            If set to None, no cropping is performed.  If a bound
+            is set to None, that bound is disregarded.
+
+        If only zlim is not set to None and the ROI source type is "contour",
+        cropping is performed by discarding contours outside the required
+        range.  Othwise cropping is performed on the ROI mask.
+        """
+
+        if self.source_type == "contour" and zlim and not xlim and not ylim:
+            zlims = skrt.core.to_list(zlim, 2)
+            contours = self.get_contours()
+            if zlims[0] is None:
+                zlims[0] = min(contours) - 1
+            if zlims[1] is None:
+                zlims[1] = max(contours) + 1
+            contours = {z: z_contours for z, z_contours in contours.items()
+                    if (z > zlims[0] and z < zlims[1])}
+            self.reset_contours(contours)
+
     def crop_to_roi(self, roi, **kwargs):
         """
         Crop ROI mask to region covered by an ROI.

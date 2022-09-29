@@ -1186,3 +1186,44 @@ def test_get_relative_volume_diff():
                     assert (shape1.get_relative_volume_diff(
                         shape2, units=unit, method=method) == pytest.approx(
                             (volume1 - volume2) / volume1, rel=0.01))
+
+def test_crop_roi_contours():
+    """Test ROI cropping based on discarding contours."""
+    # Create synthetic image featuring cuboid.
+    shape = 3 * [100]
+    origin = 3 * [-49.5] 
+    sim = SyntheticImage(shape=shape, origin=origin)
+    side_lengths = [4, 8, 20]
+    centre = [5, -10, -5]
+    sim.add_cuboid(side_lengths, centre=centre, name="cuboid1")
+    cuboid1 = sim.get_roi("cuboid1")
+
+    # Check that number of contours of cuboid ROI (from mask) is as expected.
+    assert len(cuboid1.get_contours()) == side_lengths[2]
+
+    # Create cuboid ROI from contours.
+    cuboid2 = ROI(cuboid1.get_contours(), image=sim, name="cuboid2")
+    assert len(cuboid2.get_contours()) == side_lengths[2]
+
+    # Define parameters for ROI cropping along z-axis.
+    zlim1, zlim2 = cuboid2.get_extents()[2]
+    dz1 = 5
+    dz2 = 3
+    zcrop1 = zlim1 + dz1
+    zcrop2 = zlim2 - dz2
+
+    # Create ROI clone, and perform cropping on this.
+    cuboid3 = cuboid2.clone()
+    cuboid3.crop(zlim=(zcrop1, zcrop2))
+
+    # Check that ROI extent after cropping is as expected.
+    assert cuboid3.get_extents()[2][0] == zcrop1
+    assert cuboid3.get_extents()[2][1] == zcrop2
+
+    # Check that cropped ROI has expected contours.
+    nz = 0
+    for z in cuboid2.get_contours():
+        if (zcrop1 < z ) and (z < zcrop2):
+            assert z in cuboid3.get_contours()
+            nz += 1
+    assert nz == len(cuboid3.get_contours())
