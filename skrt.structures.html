@@ -251,6 +251,30 @@ replaced with a blank dummy image of this shape.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.crop">
+<span class="sig-name descname"><span class="pre">crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.crop" title="Permalink to this definition"></a></dt>
+<dd><p>Crop ROI to specified range in x, y, z.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>xlim<span class="classifier">tuple, default=None</span></dt><dd><p>Lower and upper bounds in mm for cropping along x-axis.
+If set to None, no cropping is performed.  If a bound
+is set to None, that bound is disregarded.</p>
+</dd>
+<dt>ylim<span class="classifier">tuple, default=None</span></dt><dd><p>Lower and upper bounds in mm for cropping along y-axis.
+If set to None, no cropping is performed.  If a bound
+is set to None, that bound is disregarded.</p>
+</dd>
+<dt>zlim<span class="classifier">tuple, default=None</span></dt><dd><p>Lower and upper bounds in mm for cropping along z-axis.
+If set to None, no cropping is performed.  If a bound
+is set to None, that bound is disregarded.</p>
+</dd>
+</dl>
+<p>If only zlim is not set to None and the ROI source type is “contour”,
+cropping is performed by discarding contours outside the required
+range.  Othwise cropping is performed on the ROI mask.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.crop_to_roi">
 <span class="sig-name descname"><span class="pre">crop_to_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.crop_to_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Crop ROI mask to region covered by an ROI.</p>
