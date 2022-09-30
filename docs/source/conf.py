@@ -3,6 +3,9 @@
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+#
+# For configuration of myst_parser extension, see:
+# https://myst-parser.readthedocs.io/en/latest/configuration.html
 
 # -- Path setup --------------------------------------------------------------
 
@@ -66,6 +69,9 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Heading level depth to assign HTML anchors (default: None)
+myst_heading_anchors = 2
 
 # Include documentation for special members.
 # Based on suggestin at:
