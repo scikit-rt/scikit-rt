@@ -299,6 +299,22 @@ self passed as object for cropping.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.crop_to_roi_length">
+<span class="sig-name descname"><span class="pre">crop_to_roi_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.crop_to_roi_length" title="Permalink to this definition"></a></dt>
+<dd><p>Crop to length of other ROI along a given axis.</p>
+<p><strong>Parameters:</strong>
+other : skrt.structures.ROI</p>
+<blockquote>
+<div><p>ROI object to which to crop.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>ax<span class="classifier">str/int, default=”z”</span></dt><dd><p>Axis along which to perform cropping. Should be one of
+[“x”, “y”, “z”] or [0, 1, 2].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_abs_centroid_distance">
 <span class="sig-name descname"><span class="pre">get_abs_centroid_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_abs_centroid_distance" title="Permalink to this definition"></a></dt>
 <dd><p>Get absolute centroid distance with respect to another ROI.</p>
