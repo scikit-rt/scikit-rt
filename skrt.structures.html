@@ -275,6 +275,24 @@ range.  Othwise cropping is performed on the ROI mask.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.crop_by_amounts">
+<span class="sig-name descname"><span class="pre">crop_by_amounts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.crop_by_amounts" title="Permalink to this definition"></a></dt>
+<dd><p>Crop ROI by the amounts dx, dy, dz in mm.</p>
+<p>This method calls the function skrt.image.crop_by_amounts(), with
+self passed as object for cropping.</p>
+<p>The amount of cropping along each direction should be one of:
+- float : the ROI is cropped by this amount on both sides;
+- two-element tuple: the ROI is cropped on the sides of lower</p>
+<blockquote>
+<div><p>and higher values by the amounts specified;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>None : no cropping is performed.</p></li>
+</ul>
+<p>For more details, see documentation of skrt.image.crop_by_amounts().</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.crop_to_roi">
 <span class="sig-name descname"><span class="pre">crop_to_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.crop_to_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Crop ROI mask to region covered by an ROI.</p>
