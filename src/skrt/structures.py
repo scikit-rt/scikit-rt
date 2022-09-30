@@ -4389,6 +4389,26 @@ class ROI(skrt.core.Archive):
         """
         skrt.image.crop_by_amounts(self, dx, dy, dz)
 
+    def crop_to_roi_length(self, other, ax="z"):
+        """
+        Crop to length of other ROI along a given axis.
+
+        **Parameters:**
+        other : skrt.structures.ROI
+            ROI object to which to crop.
+           
+        ax : str/int, default="z"
+            Axis along which to perform cropping. Should be one of
+            ["x", "y", "z"] or [0, 1, 2].
+        """
+        # Determine crop range.
+        lims = 3 * [None]
+        i_ax = skrt.image._axes.index(ax) if isinstance(ax, str) else ax
+        lims[i_ax] = other.get_extent(ax=ax)
+
+        # Perform cropping.
+        self.crop(*lims)
+
     def crop_to_roi(self, roi, **kwargs):
         """
         Crop ROI mask to region covered by an ROI.

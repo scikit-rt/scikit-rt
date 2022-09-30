@@ -1213,13 +1213,18 @@ def test_crop_roi_contours():
     zcrop2 = zlim2 - dz2
 
     # Loop over crop methods.
-    for method in ["crop", "crop_by_amounts"]:
+    for method in ["crop", "crop_by_amounts", "crop_to_roi_length"]:
         # Create ROI clone, and perform cropping on this.
-        cuboid3 = cuboid2.clone()
         if "crop" == method:
+            cuboid3 = cuboid2.clone()
             cuboid3.crop(zlim=(zcrop1, zcrop2))
         elif "crop_by_amounts" == method:
+            cuboid3 = cuboid2.clone()
             cuboid3.crop_by_amounts(dz=(dz1, dz2))
+        elif "crop_to_roi_length" == method:
+            cuboid4 = cuboid2.clone()
+            cuboid4.crop_to_roi_length(cuboid3)
+            cuboid3 = cuboid4.clone()
 
         # Check that ROI extent after cropping is as expected.
         assert cuboid3.get_extents()[2][0] == zcrop1
@@ -1280,3 +1285,15 @@ def test_crop_roi_mask():
                 assert z in cuboid2.get_contours()
                 nz += 1
         assert nz == len(cuboid2.get_contours())
+
+    # Loop over axes for cropping to ROI length.
+    for i_ax1 in range(3):
+        cuboid3 = cuboid1.clone()
+        cuboid3.crop_to_roi_length(cuboid2, i_ax1)
+
+        # Check that cropped ROI has expected extents.
+        for i_ax2 in range(3):
+            if i_ax1 == i_ax2:
+                assert cuboid3.get_extent(i_ax2) == lims[i_ax2]
+            else:
+                assert cuboid3.get_extent(i_ax2) == cuboid1.get_extent(i_ax2)
