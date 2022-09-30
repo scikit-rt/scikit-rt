@@ -1227,3 +1227,45 @@ def test_crop_roi_contours():
             assert z in cuboid3.get_contours()
             nz += 1
     assert nz == len(cuboid3.get_contours())
+
+def test_crop_roi_mask():
+    """Test ROI cropping based on cropping mask."""
+    # Create synthetic image featuring cuboid.
+    shape = 3 * [100]
+    origin = 3 * [-49.5] 
+    sim = SyntheticImage(shape=shape, origin=origin)
+    side_lengths = [4, 8, 20]
+    centre = [5, -10, -5]
+    sim.add_cuboid(side_lengths, centre=centre, name="cuboid1")
+    cuboid1 = sim.get_roi("cuboid1")
+
+    # Create ROI clone for cropping.
+    cuboid2 = cuboid1.clone()
+    cuboid2.crop()
+
+    # Test null cropping.
+    assert cuboid1.get_extents() == cuboid2.get_extents()
+
+    # Define (x, y, z) ranges to which to crop.
+    lims = []
+    crop_deltas = [[2, 0], [1, 3], [4, 6]]
+    for i_ax, extents in enumerate(cuboid1.get_extents()):
+        if crop_deltas[i_ax]:
+            lims.append([extents[0] + crop_deltas[i_ax][0],
+                extents[1] - crop_deltas[i_ax][1]])
+        else:
+            lims.append(None)
+
+    # Perform cropping.
+    cuboid2.crop(*lims)
+
+    # Check that cropped ROI has expected extents.
+    assert cuboid2.get_extents() == lims
+
+    # Check that cropped ROI has expected contours.
+    nz = 0
+    for z in cuboid1.get_contours():
+        if (lims[2][0] < z ) and (z < lims[2][1]):
+            assert z in cuboid2.get_contours()
+            nz += 1
+    assert nz == len(cuboid2.get_contours())

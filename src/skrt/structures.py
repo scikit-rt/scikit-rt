@@ -558,6 +558,7 @@ class ROI(skrt.core.Archive):
         elif mask is not None:
             raise TypeError("mask should be an Image or a numpy array")
 
+        self.mask.get_standardised_data(force=True)
         self.loaded_mask = True
         self.contours = {}
         self.empty = not np.any(self.mask.get_data())
@@ -4314,17 +4315,62 @@ class ROI(skrt.core.Archive):
         cropping is performed by discarding contours outside the required
         range.  Othwise cropping is performed on the ROI mask.
         """
-
+        # For cropping along z, and where ROI is defined from contours,
+        # discard contours outside crop range.
         if self.source_type == "contour" and zlim and not xlim and not ylim:
-            zlims = skrt.core.to_list(zlim, 2)
             contours = self.get_contours()
-            if zlims[0] is None:
-                zlims[0] = min(contours) - 1
-            if zlims[1] is None:
-                zlims[1] = max(contours) + 1
+            if zlim[0] is None:
+                zlim[0] = min(contours) - 1
+            if zlim[1] is None:
+                zlim[1] = max(contours) + 1
             contours = {z: z_contours for z, z_contours in contours.items()
-                    if (z > zlims[0] and z < zlims[1])}
+                    if (z > zlim[0] and z < zlim[1])}
+
+            # Reset contours.
             self.reset_contours(contours)
+
+        # For all other cases, frop ROI mask.
+        elif xlim or ylim or zlim:
+            self.create_mask()
+            
+            # Ensure that crop range along each axis is None
+            # or a two-element tuple of floats.
+            lims = [xlim, ylim, zlim]
+            mask_extents = self.mask.get_extents()
+            for i_ax, lim in enumerate(lims):
+                if lim:
+                    for idx in [0, 1]:
+                        if lim[idx] is None:
+                            lims[i_ax][idx] = mask_extents[i_ax][idx]
+                else:
+                    lims[i_ax] = None
+
+            # Loop over axes.
+            for i_ax, lim in enumerate(lims):
+
+                if lim is None:
+                    continue
+
+                # Find array indices at which to crop.
+                i1 = self.mask.pos_to_idx(
+                        lims[i_ax][0], ax=i_ax, return_int=False)
+                i2 = self.mask.pos_to_idx(lims[i_ax][1], ax=i_ax,
+                        return_int=False)
+                i_big, i_small = i2, i1
+                if i1 > i2:
+                    i_big, i_small = i_small, i_big
+                i_small = int(np.floor(i_small + 0.5))
+                i_big = int(np.floor(i_big + 0.5))
+
+                # Crop the mask.
+                ax_to_slice = self.mask.get_axes().index(i_ax)
+                if i_small > 0 and i_small < self.mask.n_voxels[i_ax]:
+                    self.mask.data.swapaxes(0, ax_to_slice)[:i_small, :, :] = 0
+                if i_big > 0 and i_big < self.mask.n_voxels[i_ax]:
+                    self.mask.data.swapaxes(0, ax_to_slice)[i_big:, :, :] = 0
+
+            # Reset mask.
+            self.reset_mask(self.mask)
 
     def crop_to_roi(self, roi, **kwargs):
         """
