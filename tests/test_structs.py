@@ -1212,21 +1212,26 @@ def test_crop_roi_contours():
     zcrop1 = zlim1 + dz1
     zcrop2 = zlim2 - dz2
 
-    # Create ROI clone, and perform cropping on this.
-    cuboid3 = cuboid2.clone()
-    cuboid3.crop(zlim=(zcrop1, zcrop2))
+    # Loop over crop methods.
+    for method in ["crop", "crop_by_amounts"]:
+        # Create ROI clone, and perform cropping on this.
+        cuboid3 = cuboid2.clone()
+        if "crop" == method:
+            cuboid3.crop(zlim=(zcrop1, zcrop2))
+        elif "crop_by_amounts" == method:
+            cuboid3.crop_by_amounts(dz=(dz1, dz2))
 
-    # Check that ROI extent after cropping is as expected.
-    assert cuboid3.get_extents()[2][0] == zcrop1
-    assert cuboid3.get_extents()[2][1] == zcrop2
+        # Check that ROI extent after cropping is as expected.
+        assert cuboid3.get_extents()[2][0] == zcrop1
+        assert cuboid3.get_extents()[2][1] == zcrop2
 
-    # Check that cropped ROI has expected contours.
-    nz = 0
-    for z in cuboid2.get_contours():
-        if (zcrop1 < z ) and (z < zcrop2):
-            assert z in cuboid3.get_contours()
-            nz += 1
-    assert nz == len(cuboid3.get_contours())
+        # Check that cropped ROI has expected contours.
+        nz = 0
+        for z in cuboid2.get_contours():
+            if (zcrop1 < z ) and (z < zcrop2):
+                assert z in cuboid3.get_contours()
+                nz += 1
+        assert nz == len(cuboid3.get_contours())
 
 def test_crop_roi_mask():
     """Test ROI cropping based on cropping mask."""
@@ -1256,16 +1261,22 @@ def test_crop_roi_mask():
         else:
             lims.append(None)
 
-    # Perform cropping.
-    cuboid2.crop(*lims)
+    # Loop over crop methods.
+    for method in ["crop", "crop_by_amounts"]:
+        # Create ROI clone, and perform cropping on this.
+        cuboid2 = cuboid1.clone()
+        if "crop" == method:
+            cuboid2.crop(*lims)
+        elif "crop_by_amounts" == method:
+            cuboid2.crop_by_amounts(*crop_deltas)
 
-    # Check that cropped ROI has expected extents.
-    assert cuboid2.get_extents() == lims
+        # Check that cropped ROI has expected extents.
+        assert cuboid2.get_extents() == lims
 
-    # Check that cropped ROI has expected contours.
-    nz = 0
-    for z in cuboid1.get_contours():
-        if (lims[2][0] < z ) and (z < lims[2][1]):
-            assert z in cuboid2.get_contours()
-            nz += 1
-    assert nz == len(cuboid2.get_contours())
+        # Check that cropped ROI has expected contours.
+        nz = 0
+        for z in cuboid1.get_contours():
+            if (lims[2][0] < z ) and (z < lims[2][1]):
+                assert z in cuboid2.get_contours()
+                nz += 1
+        assert nz == len(cuboid2.get_contours())

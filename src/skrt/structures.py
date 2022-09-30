@@ -4372,6 +4372,23 @@ class ROI(skrt.core.Archive):
             # Reset mask.
             self.reset_mask(self.mask)
 
+    def crop_by_amounts(self, dx=None, dy=None, dz=None):
+        """
+        Crop ROI by the amounts dx, dy, dz in mm.
+
+        This method calls the function skrt.image.crop_by_amounts(), with
+        self passed as object for cropping.
+
+        The amount of cropping along each direction should be one of:
+        - float : the ROI is cropped by this amount on both sides;
+        - two-element tuple: the ROI is cropped on the sides of lower
+          and higher values by the amounts specified;
+        - None : no cropping is performed.
+
+        For more details, see documentation of skrt.image.crop_by_amounts().
+        """
+        skrt.image.crop_by_amounts(self, dx, dy, dz)
+
     def crop_to_roi(self, roi, **kwargs):
         """
         Crop ROI mask to region covered by an ROI.
