@@ -508,7 +508,7 @@ present, provides dictionary of ROI colours.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_comparison">
-<span class="sig-name descname"><span class="pre">get_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_in_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_vs_slice_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_as_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nice_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimal_places</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_comparison" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_in_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_vs_slice_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_as_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nice_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimal_places</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_comparison" title="Permalink to this definition"></a></dt>
 <dd><p>Return a pandas DataFrame of the comparison metrics listed in 
 &lt;metrics&gt; with respect to another ROI.</p>
 <p><strong>Parameters:</strong></p>
@@ -632,6 +632,15 @@ precision will be used.</p>
 <dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If False, global metrics for each ROI (volume, 3D centroid, 
 3D lengths) will only be calculated if they have not been 
 calculated before; if True, all metrics will be recalculated.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=(None, None, None)</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
+from which to calculate surface distances.  If None,
+the mask voxel size of &lt;other&gt; is used.  If an individual
+element is None, the value of the corresponding element for
+the mask voxel size of &lt;other&gt; is used.  A value
+other than None forces creation of masks that just cover
+the volume occupied by the two ROIs being compared,
+potentially reducing the time for surface-distance calculations.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1308,6 +1317,8 @@ performing erosion to identify ROI surfaces.</p>
 </dd>
 <dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
 from which to calculate surface distances.  If None,
+the mask voxel size of &lt;other&gt; is used.  If an individual
+element is None, the value of the corresponding element for
 the mask voxel size of &lt;other&gt; is used.</p>
 </dd>
 <dt>voxel_dim_tolerance<span class="classifier">float, default=0.1</span></dt><dd><p>Tolerence used when determining whether &lt;voxel_size&gt; is
@@ -1517,11 +1528,19 @@ common value.</p>
 from which to calculate surface distances.  If None,
 the mask voxel size of &lt;other&gt; is used if not None;
 otherwise the default voxel size for dummy images,
-namely (1, 1, 1), is used.</p>
+namely (1, 1, 1), is used.  If an element of the
+tuple specifying voxel size is None, the value for
+the corresponding element of the mask voxel size of
+&lt;other&gt; is used.</p>
 </dd>
-<dt>voxel_dim_tolerance<span class="classifier">float, default=0.1</span></dt><dd><p>Tolerence used when determining whether &lt;voxel_size&gt; is
-different from the voxel size of the images associated with
-each ROI.</p>
+<dt>voxel_dim_tolerance<span class="classifier">float, default=0.1</span></dt><dd><p>Maximum accepted value for the absolute difference in voxel size
+(any dimension) of the ROI masks for them to be considered
+as having the same voxel size.  If a negative value is given,
+the absolute difference is never below this, forcing creation
+of new masks with the the specified voxel size.  This can be
+useful for obtaining masks that are just large enough to contain
+both ROIs, potentially reducing the time for surface-distance
+calculations.</p>
 </dd>
 </dl>
 </dd></dl>
