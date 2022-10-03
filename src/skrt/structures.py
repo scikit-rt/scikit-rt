@@ -2981,7 +2981,7 @@ class ROI(skrt.core.Archive):
         nice_columns=False,
         decimal_places=None,
         force=True,
-        voxel_size=(None, None, None)
+        voxel_size=(1, 1, 1)
     ):
         """Return a pandas DataFrame of the comparison metrics listed in 
         <metrics> with respect to another ROI.
@@ -3127,7 +3127,7 @@ class ROI(skrt.core.Archive):
             3D lengths) will only be calculated if they have not been 
             calculated before; if True, all metrics will be recalculated.
 
-        voxel_size : tuple, default=(None, None, None)
+        voxel_size : tuple, default=(1, 1, 1)
             Voxel size (dx, dy, dz) in mm to be used for ROI masks
             from which to calculate surface distances.  If None,
             the mask voxel size of <other> is used.  If an individual
