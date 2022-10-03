@@ -2611,12 +2611,20 @@ class ROI(skrt.core.Archive):
             from which to calculate surface distances.  If None,
             the mask voxel size of <other> is used if not None;
             otherwise the default voxel size for dummy images,
-            namely (1, 1, 1), is used.
+            namely (1, 1, 1), is used.  If an element of the
+            tuple specifying voxel size is None, the value for
+            the corresponding element of the mask voxel size of
+            <other> is used.
 
         voxel_dim_tolerance : float, default=0.1
-            Tolerence used when determining whether <voxel_size> is
-            different from the voxel size of the images associated with
-            each ROI.
+            Maximum accepted value for the absolute difference in voxel size
+            (any dimension) of the ROI masks for them to be considered
+            as having the same voxel size.  If a negative value is given,
+            the absolute difference is never below this, forcing creation
+            of new masks with the the specified voxel size.  This can be
+            useful for obtaining masks that are just large enough to contain
+            both ROIs, potentially reducing the time for surface-distance
+            calculations.
         '''
         # Create ROI clones, for which voxel sizes may be altered.
         roi1 = self.clone()
@@ -2624,8 +2632,12 @@ class ROI(skrt.core.Archive):
 
         # Associate new dummy image with ROIs if requested voxel size
         # is different from voxel size of either current image,
-        # or if voxel sizes of current images don't match.
+        # or if absolute difference in any dimension between voxel sizes
+        # of current images don't match is greater than tolerance.
         voxel_size = voxel_size if voxel_size else roi2.get_voxel_size()
+        if voxel_size and roi2.get_voxel_size():
+            voxel_size = [voxel_size[idx] if voxel_size[idx] is not None
+                    else roi2.get_voxel_size()[idx] for idx in range(3)]
         resize = not roi1.get_voxel_size() or not roi2.get_voxel_size()
         if not resize:
             for roi in [roi1, roi2]:
@@ -2639,7 +2651,8 @@ class ROI(skrt.core.Archive):
                 slice_thickness = voxel_size[2]
                 voxel_size_2d = voxel_size[:2]
             else:
-                slice_thickness = voxel_size_2d = None
+                slice_thickness = None
+                voxel_size_2d = None
 
             StructureSet([roi1, roi2]).set_image_to_dummy(
                     slice_thickness=slice_thickness, voxel_size=voxel_size_2d)
@@ -2736,6 +2749,8 @@ class ROI(skrt.core.Archive):
         voxel_size : tuple, default=None
             Voxel size (dx, dy, dz) in mm to be used for ROI masks
             from which to calculate surface distances.  If None,
+            the mask voxel size of <other> is used.  If an individual
+            element is None, the value of the corresponding element for
             the mask voxel size of <other> is used.
 
         voxel_dim_tolerance : float, default=0.1
@@ -2956,7 +2971,8 @@ class ROI(skrt.core.Archive):
         name_as_index=True,
         nice_columns=False,
         decimal_places=None,
-        force=True
+        force=True,
+        voxel_size=(None, None, None)
     ):
         """Return a pandas DataFrame of the comparison metrics listed in 
         <metrics> with respect to another ROI.
@@ -3101,11 +3117,25 @@ class ROI(skrt.core.Archive):
             If False, global metrics for each ROI (volume, 3D centroid, 
             3D lengths) will only be calculated if they have not been 
             calculated before; if True, all metrics will be recalculated.
-        """
 
-        # If no index given, use central slice
-        if sl is None and idx is None and pos is None:
-            idx = self.get_mid_idx(view)
+        voxel_size : tuple, default=(None, None, None)
+            Voxel size (dx, dy, dz) in mm to be used for ROI masks
+            from which to calculate surface distances.  If None,
+            the mask voxel size of <other> is used.  If an individual
+            element is None, the value of the corresponding element for
+            the mask voxel size of <other> is used.  A value
+            other than None forces creation of masks that just cover
+            the volume occupied by the two ROIs being compared,
+            potentially reducing the time for surface-distance calculations.
+        """
+        if voxel_size is not None:
+            # Create ROI masks, just covering volume occupied
+            # by ROIs being compared, with specified voxel size.
+            roi0, roi = self.match_mask_voxel_size(roi,
+                    voxel_size=voxel_size, voxel_dim_tolerance=-1)
+        else:
+            # Don't explicitly create ROI masks.
+            roi0 = self
 
         # Default metrics
         if metrics is None:
@@ -3118,6 +3148,10 @@ class ROI(skrt.core.Archive):
         distances_flat = None
         signed_distances = None
         signed_distances_flat = None
+
+        # If no index given, use central slice
+        if sl is None and idx is None and pos is None:
+            idx = roi0.get_mid_idx(view)
 
         # Compute metrics
         comp = {}
@@ -3138,33 +3172,33 @@ class ROI(skrt.core.Archive):
 
             # Dice score
             if m == "dice":
-                comp[m] = self.get_dice(roi, method=method)
+                comp[m] = roi0.get_dice(roi, method=method)
             elif m == "dice_flat":
-                comp[m] = self.get_dice(
+                comp[m] = roi0.get_dice(
                     roi, 
                     view=view,
                     method=method,
                     flatten=True, 
                 )
             elif m == "dice_slice":
-                comp[m] = self.get_dice(roi, method=method, **slice_kwargs)
+                comp[m] = roi0.get_dice(roi, method=method, **slice_kwargs)
 
             # Jaccard index
             elif m == "jaccard":
-                comp[m] = self.get_jaccard(roi, method=method)
+                comp[m] = roi0.get_jaccard(roi, method=method)
             elif m == "jaccard_flat":
-                comp[m] = self.get_jaccard(
+                comp[m] = roi0.get_jaccard(
                     roi, 
                     view=view,
                     method=method,
                     flatten=True, 
                 )
             elif m == "jaccard_slice":
-                comp[m] = self.get_jaccard(roi, method=method, **slice_kwargs)
+                comp[m] = roi0.get_jaccard(roi, method=method, **slice_kwargs)
 
             # Centroid distances
             elif m == "centroid":
-                centroid = self.get_centroid_distance(
+                centroid = roi0.get_centroid_distance(
                     roi, 
                     units=centroid_units, 
                     method=method,
@@ -3173,14 +3207,14 @@ class ROI(skrt.core.Archive):
                 for i, ax in enumerate(skrt.image._axes):
                     comp[f"centroid_{ax}"] = centroid[i]
             elif m == "abs_centroid":
-                comp[m] = self.get_abs_centroid_distance(
+                comp[m] = roi0.get_abs_centroid_distance(
                     roi, 
                     units=centroid_units,
                     method=method, 
                     force=force
                 )
             elif m == "abs_centroid_flat":
-                comp[m] = self.get_abs_centroid_distance(
+                comp[m] = roi0.get_abs_centroid_distance(
                     roi,
                     view=view,
                     units=centroid_units,
@@ -3189,7 +3223,7 @@ class ROI(skrt.core.Archive):
                     force=force
                 )
             elif m == "centroid_slice":
-                centroid = self.get_centroid_distance(
+                centroid = roi0.get_centroid_distance(
                     roi,
                     units=centroid_units,
                     method=method,
@@ -3199,7 +3233,7 @@ class ROI(skrt.core.Archive):
                     ax = skrt.image._axes[i_ax]
                     comp[f"centroid_slice_{ax}"] = centroid[i]
             elif m == "abs_centroid_slice":
-                comp[m] = self.get_abs_centroid_distance(
+                comp[m] = roi0.get_abs_centroid_distance(
                     roi,
                     units=centroid_units,
                     method=method,
@@ -3208,20 +3242,20 @@ class ROI(skrt.core.Archive):
 
             # Volume metrics
             elif m == "volume_diff":
-                comp[m] = self.get_volume_diff(
+                comp[m] = roi0.get_volume_diff(
                     roi,
                     units=vol_units,
                     method=method,
                     force=force
                 )
             elif m == "rel_volume_diff":
-                comp[m] = self.get_relative_volume_diff(
+                comp[m] = roi0.get_relative_volume_diff(
                     roi,
                     method=method,
                     force=force
                 )
             elif m == "volume_ratio":
-                comp[m] = self.get_volume_ratio(
+                comp[m] = roi0.get_volume_ratio(
                     roi,
                     method=method,
                     force=force
@@ -3229,26 +3263,26 @@ class ROI(skrt.core.Archive):
 
             # Area metrics
             elif m == "area_diff":
-                comp[m] = self.get_area_diff(
+                comp[m] = roi0.get_area_diff(
                     roi,
                     units=area_units,
                     method=method,
                     **slice_kwargs
                 )
             elif m == "rel_area_diff":
-                comp[m] = self.get_relative_area_diff(
+                comp[m] = roi0.get_relative_area_diff(
                     roi,
                     method=method,
                     **slice_kwargs
                 )
             elif m == "area_ratio":
-                comp[m] = self.get_area_ratio(
+                comp[m] = roi0.get_area_ratio(
                     roi,
                     method=method,
                     **slice_kwargs
                 )
             elif m == "area_diff_flat":
-                comp[m] = self.get_area_diff(
+                comp[m] = roi0.get_area_diff(
                     roi,
                     units=area_units,
                     method=method,
@@ -3256,14 +3290,14 @@ class ROI(skrt.core.Archive):
                     flatten=True,
                 )
             elif m == "rel_area_diff_flat":
-                comp[m] = self.get_relative_area_diff(
+                comp[m] = roi0.get_relative_area_diff(
                     roi,
                     view=view,
                     method=method,
                     flatten=True,
                 )
             elif m == "area_ratio_flat":
-                comp[m] = self.get_area_ratio(
+                comp[m] = roi0.get_area_ratio(
                     roi,
                     view=view,
                     method=method,
@@ -3274,7 +3308,7 @@ class ROI(skrt.core.Archive):
             elif m in ["mean_surface_distance",
                     "rms_surface_distance", "hausdorff_distance"]:
                 distances = (distances
-                        or self.get_surface_distance_metrics(roi))
+                        or roi0.get_surface_distance_metrics(roi))
                 if m == "mean_surface_distance":
                     comp[m] = distances[0]
                 elif m == "rms_surface_distance":
@@ -3284,7 +3318,7 @@ class ROI(skrt.core.Archive):
             elif m in ["mean_surface_distance_flat",
                     "rms_surface_distance_flat", "hausdorff_distance_flat"]:
                 distances_flat = (distances_flat
-                        or self.get_surface_distance_metrics(roi,
+                        or roi0.get_surface_distance_metrics(roi,
                         view=view, flatten=True))
                 if m == "mean_surface_distance_flat":
                     comp[m] = distances_flat[0]
@@ -3295,7 +3329,7 @@ class ROI(skrt.core.Archive):
             elif m in ["mean_signed_surface_distance",
                     "rms_signed_surface_distance"]:
                 signed_distances = (signed_distances
-                        or self.get_surface_distance_metrics(roi, signed=True))
+                        or roi0.get_surface_distance_metrics(roi, signed=True))
                 if m == "mean_signed_surface_distance":
                     comp[m] = signed_distances[0]
                 elif m == "rms_signed_surface_distance":
@@ -3303,7 +3337,7 @@ class ROI(skrt.core.Archive):
             elif m in ["mean_signed_surface_distance_flat",
                     "rms_signed_surface_distance_flat"]:
                 signed_distances_flat = (signed_distances_flat
-                        or self.get_surface_distance_metrics(roi, signed=True,
+                        or roi0.get_surface_distance_metrics(roi, signed=True,
                             view=view, flatten=True))
                 if m == "mean_signed_surface_distance_flat":
                     comp[m] = signed_distances_flat[0]
@@ -3312,7 +3346,7 @@ class ROI(skrt.core.Archive):
             elif m in ["mean_under_contouring", "mean_over_contouring",
                     "mean_distance_to_conformity"]:
                 conformity = (conformity
-                        or self.get_mean_distance_to_conformity(
+                        or roi0.get_mean_distance_to_conformity(
                             roi, vol_units))
                 if m == "mean_under_contouring":
                     comp[m] = conformity.mean_under_contouring
@@ -3324,7 +3358,7 @@ class ROI(skrt.core.Archive):
                     "mean_over_contouring_flat",
                     "mean_distance_to_conformity_flat"]:
                 conformity_flat = (conformity_flat
-                        or self.get_mean_distance_to_conformity(
+                        or roi0.get_mean_distance_to_conformity(
                             roi, vol_units, view=view, flatten=True))
                 if m == "mean_under_contouring_flat":
                     comp[m] = conformity_flat.mean_under_contouring
@@ -3342,7 +3376,7 @@ class ROI(skrt.core.Archive):
 
                     # Global centroid position on a given axis
                     if m == f"centroid_{ax}":
-                        comp[m] = self.get_abs_centroid_distance(
+                        comp[m] = roi0.get_abs_centroid_distance(
                             roi,
                             units=centroid_units,
                             method=method,
@@ -3383,7 +3417,7 @@ class ROI(skrt.core.Archive):
                     comp_named[metric] = float(fmt.format(val=val))
 
         # Convert to pandas DataFrame
-        df = pd.DataFrame(comp_named, index=[self.name])
+        df = pd.DataFrame(comp_named, index=[roi0.name])
 
         # Capitalize column names and remove underscores if requested
         if nice_columns and not global_vs_slice_header:
