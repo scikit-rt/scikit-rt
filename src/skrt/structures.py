@@ -3111,9 +3111,13 @@ class ROI(skrt.core.Archive):
         if metrics is None:
             metrics = ["dice", "centroid"]
 
-        # Initialise variables for distance-to-conformity metrics
+        # Initialise variables for distance metrics.
         conformity = None
         conformity_flat = None
+        distances = None
+        distances_flat = None
+        signed_distances = None
+        signed_distances_flat = None
 
         # Compute metrics
         comp = {}
@@ -3267,31 +3271,44 @@ class ROI(skrt.core.Archive):
                 )
 
             # Surface distance metrics
-            elif m == "mean_surface_distance":
-                comp[m] = self.get_mean_surface_distance(roi)
-            elif m == "mean_surface_distance_flat":
-                comp[m] = self.get_mean_surface_distance(roi, view=view,
-                        flatten=True)
-            elif m == "mean_signed_surface_distance":
-                comp[m] = self.get_mean_surface_distance(roi, signed=True)
-            elif m == "mean_signed_surface_distance_flat":
-                comp[m] = self.get_mean_surface_distance(roi, signed=True,
-                        view=view, flatten=True)
-            elif m == "rms_signed_surface_distance":
-                comp[m] = self.get_rms_surface_distance(roi, signed=True)
-            elif m == "rms_signed_surface_distance_flat":
-                comp[m] = self.get_rms_surface_distance(roi, signed=True,
-                        view=view, flatten=True)
-            elif m == "rms_surface_distance":
-                comp[m] = self.get_rms_surface_distance(roi)
-            elif m == "rms_surface_distance_flat":
-                comp[m] = self.get_rms_surface_distance(roi, view=view,
-                        flatten=True)
-            elif m == "hausdorff_distance":
-                comp[m] = self.get_hausdorff_distance(roi)
-            elif m == "hausdorff_distance_flat":
-                comp[m] = self.get_hausdorff_distance(roi, view=view,
-                        flatten=True)
+            elif m in ["mean_surface_distance",
+                    "rms_surface_distance", "hausdorff_distance"]:
+                distances = (distances
+                        or self.get_surface_distance_metrics(roi))
+                if m == "mean_surface_distance":
+                    comp[m] = distances[0]
+                elif m == "rms_surface_distance":
+                    comp[m] = distances[1]
+                elif m == "hausdorff_distance":
+                    comp[m] = distances[2]
+            elif m in ["mean_surface_distance_flat",
+                    "rms_surface_distance_flat", "hausdorff_distance_flat"]:
+                distances_flat = (distances_flat
+                        or self.get_surface_distance_metrics(roi,
+                        view=view, flatten=True))
+                if m == "mean_surface_distance_flat":
+                    comp[m] = distances_flat[0]
+                elif m == "rms_surface_distance_flat":
+                    comp[m] = distances_flat[1]
+                elif m == "hausdorff_distance_flat":
+                    comp[m] = distances_flat[2]
+            elif m in ["mean_signed_surface_distance",
+                    "rms_signed_surface_distance"]:
+                signed_distances = (signed_distances
+                        or self.get_surface_distance_metrics(roi, signed=True))
+                if m == "mean_signed_surface_distance":
+                    comp[m] = signed_distances[0]
+                elif m == "rms_signed_surface_distance":
+                    comp[m] = signed_distances[1]
+            elif m in ["mean_signed_surface_distance_flat",
+                    "rms_signed_surface_distance_flat"]:
+                signed_distances_flat = (signed_distances_flat
+                        or self.get_surface_distance_metrics(roi, signed=True,
+                            view=view, flatten=True))
+                if m == "mean_signed_surface_distance_flat":
+                    comp[m] = signed_distances_flat[0]
+                elif m == "rms_signed_surface_distance_flat":
+                    comp[m] = signed_distances_flat[1]
             elif m in ["mean_under_contouring", "mean_over_contouring",
                     "mean_distance_to_conformity"]:
                 conformity = (conformity
