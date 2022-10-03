@@ -2650,6 +2650,15 @@ class ROI(skrt.core.Archive):
             if voxel_size:
                 slice_thickness = voxel_size[2]
                 voxel_size_2d = voxel_size[:2]
+                # Ensure that initial voxel size is set.
+                # This is used to define slice thickness
+                # for an ROI that has no associated image,
+                # and is defined by one or more contours on a single
+                # image slice.
+                if not roi1.voxel_size:
+                    roi1.voxel_size = voxel_size
+                if not roi2.voxel_size:
+                    roi2.voxel_size = voxel_size
             else:
                 slice_thickness = None
                 voxel_size_2d = None
