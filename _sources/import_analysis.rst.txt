@@ -8,6 +8,7 @@ Submodules
 
    import_analysis.patient
    import_analysis.roi_names
+   import_analysis.viewer
 
 Module contents
 ---------------
