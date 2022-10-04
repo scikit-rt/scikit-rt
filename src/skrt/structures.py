@@ -5426,13 +5426,15 @@ class StructureSet(skrt.core.Archive):
                 rois.append(roi)
         return rois
 
-    def get_roi_names(self, original=False):
+    def get_roi_names(self, original=False, ignore_empty=False):
         """
         Get list of names of ROIs in this structure set. If <original> is True,
-        get the original names of the ROIs.
+        get the original names of the ROIs.  If <ignore_empty> is True,
+        omit names of empty ROIs.
         """
 
-        return [s.get_name(original) for s in self.get_rois()]
+        return [s.get_name(original) for s in self.get_rois()
+                if not (ignore_empty and s.empty)]
 
     def get_roi_dict(self):
         """Get dict of ROI names and objects."""
@@ -5690,8 +5692,9 @@ class StructureSet(skrt.core.Archive):
         matches = []
         if comp_type in ["auto", "by_name"]:
             matches = [
-                s for s in self.get_roi_names() if s in other.get_roi_names()
-            ]
+                s for s in self.get_roi_names(ignore_empty=True)
+                if s in other.get_roi_names(ignore_empty=True)
+                ]
             if len(matches) or comp_type == "by_name":
                 return [
                     (self.get_roi(name), other.get_roi(name)) for name in matches

@@ -3,6 +3,7 @@ Application to compare structure sets for Osairis datasets.
 """
 from pathlib import Path
 import platform
+import timeit
 
 import pandas as pd
 
@@ -39,6 +40,11 @@ class CompareStructureSets(Algorithm):
         # Metrics to be evaluated for structure-set comparisons.
         self.metrics = []
 
+        # Voxel size (x, y, z) in mm for ROI masks.
+        # If None, the voxel size of the most-recent CT image
+        # in the data directory is used.
+        self.voxel_size = None
+
         # Number of decimal places to retain for comparison metrics.
         self.decimal_places = 5
 
@@ -50,7 +56,7 @@ class CompareStructureSets(Algorithm):
         self.units_in_header = True
 
         # Path to output CSV file.
-        self.comparison_csv = "comparison.csv"
+        self.metrics_csv = "metrics.csv"
 
         # Override default properties, based on contents of opts dictionary.
         super().__init__(opts, name, log_level)
@@ -76,12 +82,18 @@ class CompareStructureSets(Algorithm):
         ct_images = patient.combined_objs("ct_images")
         structure_sets = patient.combined_objs("structure_set_types")
 
-        # The assumption is that each data directory contains a single CT image.
-        # If the assumption isn't valid, raise an exception.
-        if len(ct_images) != 1:
-            raise RuntimeError(f"Number of CT image in {data_dir} is "
-                               f"{len(ct_images)} - don't know what to do "
-                                "with number of images different from 1")
+        # Set voxel size to be used for ROI masks:
+        # - if value set for self.voxel_size, use this;
+        # - if no value set for self.voxel_size and ct_images in non-empty,
+        #   use the voxel size of the last image in ct_image;
+        # - in all other cases, raise exception.
+        if self.voxel_size:
+            voxel_size = self.voxel_size
+        elif ct_images:
+            voxel_size = ct_images[-1].get_voxel_size()
+        else:
+            raise RuntimeError("Unable to determine voxel size for ROI masks - "
+                               "set value for option 'voxel_size'")
 
         # Perform data cleaning for structure sets.
         for ss in structure_sets:
@@ -89,11 +101,6 @@ class CompareStructureSets(Algorithm):
             ss.rename_rois(names=self.roi_names, keep_renamed_only=True)
             # Name the structure set based on the name of the data directory.
             ss.name = Path(ss.path).stem
-            # DICOM Structure sets from auto-segmentation don't always
-            # correctly reference the image to which they relate.
-            # Explicitly set the structure-set image to be the only CT image
-            # in the data directory.
-            ss.set_image(ct_images[0])
 
         # Loop over pairs of structure sets.
         for idx, ss1 in enumerate(structure_sets[:-1]):
@@ -101,23 +108,18 @@ class CompareStructureSets(Algorithm):
                 # Indicate comparison being performed.
                 comparison = f"{ss1.name}_vs_{ss2.name}"
                 comparison = "_".join(comparison.split())
-                print(f"....{comparison}")
+                print(f"....{comparison}", end=" ")
 
-                # Check that the mask shape is the same
-                # for all matched ROIs in the pair of structure sets.
-                # Raise exception if this isn't the case.
-                roi_names = set(ss1.get_roi_names()).intersection(
-                        ss2.get_roi_names())
-                for roi_name in roi_names:
-                    if (ss1[roi_name].get_mask().shape
-                            != ss2[roi_name].get_mask().shape):
-                        raise RuntimeError("Mask mismatch for {roi_name}: "
-                                f"{ss1[roi_name].get_mask().shape} vs "
-                                f"{ss2[roi_name].get_mask().shape}")
-
+                tic = timeit.default_timer()
                 # Obtain dataframe of comparison metrics.
-                df  = ss1.get_comparison(ss2, metrics=self.metrics,
-                        name_as_index=False)
+                df  = ss1.get_comparison(ss2,
+                        name_as_index=False,
+                        metrics=self.metrics,
+                        decimal_places=self.decimal_places,
+                        nice_columns=self.nice_columns,
+                        units_in_header=self.units_in_header,
+                        voxel_size=voxel_size,
+                        )
                 df.insert(0, "comparison", comparison)
                 df.insert(0, "id", patient.id)
 
@@ -127,12 +129,15 @@ class CompareStructureSets(Algorithm):
                 else:
                     self.df = pd.concat([self.df, df], ignore_index=True)
 
+                toc = timeit.default_timer()
+                print(f"({toc - tic:.2f} seconds)")
+
         return self.status
 
     def finalise(self):
         # Write comparison table in CSV format.
         if self.df is not None:
-            self.df.to_csv(self.comparison_csv, index=False)
+            self.df.to_csv(self.metrics_csv, index=False)
 
         return self.status
 
@@ -152,7 +157,10 @@ def get_app():
             "mean_under_contouring", "mean_over_contouring",
             "mean_distance_to_conformity", "jaccard"]
 
-    opts["metrics"] = ["dice", "abs_centroid"]
+    # Voxel size (x, y, z) in mm for ROI masks.
+    # If None, the voxel size of the most-recent CT image
+    # in the data directory is used.
+    opts["voxel_size"] = (1, 1, 1)
 
     # Number of decimal places to retain for comparison metrics.
     opts["decimal_places"] = 5
@@ -165,7 +173,7 @@ def get_app():
     opts["units_in_header"] = True
 
     # Path to output CSV file.
-    opts["comparison_csv"] = "comparison.csv"
+    opts["metrics_csv"] = "metrics.csv"
 
     # Set the severity level for event logging.
     log_level = "INFO"
