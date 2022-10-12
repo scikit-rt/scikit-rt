@@ -178,7 +178,7 @@ of contours or an array, respectively.</p></li>
 <dt>overlap_level<span class="classifier">float, default=None</span></dt><dd><p>Used when converting an input ROI contour to a mask; required 
 overlap of a pixel with the ROI contour in order for the 
 pixel to be added to the mask. If None, the output of 
-shapely.draw.polygon2mask will be returned with no border checks, 
+skimage.draw.polygon2mask will be returned with no border checks, 
 which is faster than performing border checks.</p>
 </dd>
 <dt>kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Extra arguments to pass to the initialisation of the parent
@@ -231,10 +231,10 @@ already been created, nothing will happen unless force=True.</p>
 <dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, the mask will be recreated even if it already exists.</p>
 </dd>
 <dt>overlap_level<span class="classifier">float, default=0.25</span></dt><dd><p>Required overlap of a pixel with the ROI contour in order for the 
-pixel to be added to the mask. Only used if &lt;check_borders&gt; is 
-True. If None, the value of self.overlap_level will be used; otherwise,
+pixel to be added to the mask. If None, the value of
+self.overlap_level will be used; otherwise,
 self.overlap_level will be overwritten with this value. If both are 
-None, the output of shapely.draw.polygon2mask will be returned 
+None, the output of skimage.draw.polygon2mask will be returned 
 with no border checks, which is faster than performing border checks.</p>
 </dd>
 <dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel sizes of the desired mask in the [x, y] direction. Only used if 
