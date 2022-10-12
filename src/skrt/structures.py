@@ -181,7 +181,7 @@ class ROI(skrt.core.Archive):
             Used when converting an input ROI contour to a mask; required 
             overlap of a pixel with the ROI contour in order for the 
             pixel to be added to the mask. If None, the output of 
-            shapely.draw.polygon2mask will be returned with no border checks, 
+            skimage.draw.polygon2mask will be returned with no border checks, 
             which is faster than performing border checks.
 
         kwargs : dict, default=None
@@ -791,10 +791,10 @@ class ROI(skrt.core.Archive):
 
         overlap_level : float, default=0.25
             Required overlap of a pixel with the ROI contour in order for the 
-            pixel to be added to the mask. Only used if <check_borders> is 
-            True. If None, the value of self.overlap_level will be used; otherwise,
+            pixel to be added to the mask. If None, the value of
+            self.overlap_level will be used; otherwise,
             self.overlap_level will be overwritten with this value. If both are 
-            None, the output of shapely.draw.polygon2mask will be returned 
+            None, the output of skimage.draw.polygon2mask will be returned 
             with no border checks, which is faster than performing border checks.
 
         voxel_size : list, default=None
