@@ -1297,3 +1297,44 @@ def test_crop_roi_mask():
                 assert cuboid3.get_extent(i_ax2) == lims[i_ax2]
             else:
                 assert cuboid3.get_extent(i_ax2) == cuboid1.get_extent(i_ax2)
+
+def test_single_voxel_roi():
+
+    # Single-voxel Contour as given in:
+    # https://github.com/scikit-rt/scikit-rt/issues/7
+    contours = {52.0: [np.array([[-32.129,  20.355], [-31.445,  19.671],
+       [-30.762,  20.355], [-31.445,  21.038], [-32.129,  20.355]])]}
+
+    # Define nominal origin and voxel size for ROI mask.
+    origin = (0, 0, 0)
+    voxel_size = (1, 1, 1)
+    voxel_volume = np.prod(np.array(voxel_size))
+
+    # Create ROI object..
+    roi = ROI(source=contours, voxel_size=voxel_size, origin=origin)
+    extents = (roi.get_extents())
+
+    # Check that the ROI volume from contour is less than the voxel volume.
+    assert roi.get_volume(method="contour") < voxel_volume
+    # Check that the ROI volume from mask is equal to the voxel volume.
+    assert roi.get_volume(method="mask") == voxel_volume
+
+    # Recreate mask containing ROI multiple times, varying buffer
+    # at each iteration, and so varying the position of the mask lattice
+    # relative to the ROI.
+    # The ROI extents determined from the mask can vary slightly,
+    # but the ROI should always be represened by a single labelled voxel.
+    n_test = 100
+    random.seed(1)
+    for i_test in range(n_test):
+        roi.set_image_to_dummy(
+                voxel_size=voxel_size[:2], slice_thickness=voxel_size[2],
+                buffer=random.random())
+
+        # Always expect a single labelled voxel.
+        assert 1 == roi.get_mask().sum()
+
+        # Expect variation in extents.
+        for xyz1, xyz2 in zip(extents, roi.get_extents(method="mask")):
+            for v1, v2 in zip(xyz1, xyz2):
+                assert abs(v1 - v2) < 0.7

@@ -865,6 +865,15 @@ class ROI(skrt.core.Archive):
                                              self.mask.data.shape[0]],
                                              points_idx)
 
+                    # If no pixel identified as being inside contour,
+                    # label pixel containing contour centroid.
+                    if not mask.sum():
+                        ix, iy = [int(round(xy[0]))
+                                for xy in polygon.centroid.xy]
+                        if ((ix >= 0 and ix < mask.shape[0])
+                                and (iy >= 0 and iy < mask.shape[1])):
+                            mask[ix, iy] = True
+
                     # Check overlap of edge pixels
                     if self.overlap_level is not None:
                         conn = ndimage.generate_binary_structure(
