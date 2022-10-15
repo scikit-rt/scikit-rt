@@ -227,6 +227,7 @@ class ROI(skrt.core.Archive):
         self.shape = shape
         self.affine, self.voxel_size, self.origin = \
                 skrt.image.get_geometry(affine, voxel_size, origin)
+        self.slice_thickness_contours = None
         self.mask_threshold = mask_threshold
         self.overlap_level = overlap_level
         self.contours = {}
@@ -420,6 +421,7 @@ class ROI(skrt.core.Archive):
         # Store flag for emptiness
         if self.source_type == "contour":
             self.empty = not len(self.input_contours)
+            self.slice_thickness_contours = self.get_slice_thickness_contours()
         elif self.source_type == "mask":
             self.empty = not np.any(self.mask.get_data())
         else:
@@ -1368,13 +1370,28 @@ class ROI(skrt.core.Archive):
         # Return centroid in requested units
         return centroid[units]
 
+    def set_slice_thickness_contours(self, dz):
+        """
+        Set nominal z spacing of contours.
+
+        This may be useful in particular for  single-slice ROIs.
+        """
+
+        self.slice_thickness_contours = dz
+
     def get_slice_thickness_contours(self):
         """Get z voxel size using positions of contours."""
 
         contours = self.get_contours("x-y")
         z_keys = sorted(contours.keys())
         if len(z_keys) < 2:
-            return self.get_voxel_size()[2]
+            if self.source_type == "contour" and self.slice_thickness_contours:
+                return self.slice_thickness_contours
+            else:
+                voxel_size = self.get_voxel_size()
+                if voxel_size is not None:
+                    return voxel_size[2]
+                return
         diffs = [z_keys[i] - z_keys[i - 1] for i in range(1, len(z_keys))]
         return min(diffs)
 
@@ -5112,10 +5129,26 @@ class StructureSet(skrt.core.Archive):
         self.rename_rois(keep_renamed_only=self.keep_renamed_only)
         self.filter_rois()
         self.recolor_rois(self.colors)
+        slice_thicknesses = []
+        rois = []
         for roi in self.rois:
             roi.structure_set = self
             for plan in self.plans:
                 roi.add_plan(plan)
+
+            if roi.source_type == "contour":
+                if roi.slice_thickness_contours is not None:
+                    slice_thicknesses.append(roi.slice_thickness_contours)
+                else:
+                    rois.append(roi)
+
+        # If slice thickness isn't set for an ROI from contours,
+        # set its thickness to the minimum for all other ROIs
+        # in the structure set.
+        if rois and slice_thicknesses:
+            slice_thickness = min(slice_thicknesses)
+            for roi in rois:
+                roi.slice_thickness_contours = slice_thickness
 
         self.loaded = True
 
