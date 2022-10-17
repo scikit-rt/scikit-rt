@@ -1299,7 +1299,7 @@ def test_crop_roi_mask():
                 assert cuboid3.get_extent(i_ax2) == cuboid1.get_extent(i_ax2)
 
 def test_single_voxel_roi():
-
+    """Test mask creation for single-voxel ROI."""
     # Single-voxel Contour as given in:
     # https://github.com/scikit-rt/scikit-rt/issues/7
     contours = {52.0: [np.array([[-32.129,  20.355], [-31.445,  19.671],
@@ -1338,3 +1338,36 @@ def test_single_voxel_roi():
         for xyz1, xyz2 in zip(extents, roi.get_extents(method="mask")):
             for v1, v2 in zip(xyz1, xyz2):
                 assert abs(v1 - v2) < 0.7
+
+def test_slice_thickness_contours():
+    """Test values set for slice_thickness_contours."""
+
+    # Set z-coordinate of first contour, and z-distance between contours.
+    z0 = 2.0
+    dz = 2.0
+
+    # Create null ROI, and check that slice thickness is unset.
+    roi1 = ROI()
+    assert roi1.slice_thickness_contours == None
+
+    # Check that slice thickness can be set.
+    roi1.set_slice_thickness_contours(dz)
+    assert roi1.slice_thickness_contours == dz
+
+    # Create single-slice ROI, and check that slice thickness is unset.
+    contours = {z0: [np.array([[-1, -1], [-1, 1], [1, 1], [1, -1]])]}
+    roi2 = ROI(source=contours)
+    assert roi2.slice_thickness_contours == None
+
+    # Create double-slice ROI, and check that slice thickness is set.
+    contours = {z0: [np.array([[-1, -1], [-1, 1], [1, 1], [1, -1]])],
+            z0 + dz: [np.array([[-1, -1], [-1, 1], [1, 1], [1, -1]])]}
+    roi3 = ROI(source=contours)
+    assert roi3.slice_thickness_contours == dz
+
+    # Create StructureSet from single-slice ROI and double-slice ROI,
+    # then check that the slice thickness of the former is set
+    # to match the slice thickness of the latter.
+    ss = StructureSet([roi2, roi3])
+    for roi in ss.get_rois():
+        assert roi.get_slice_thickness_contours() == dz
