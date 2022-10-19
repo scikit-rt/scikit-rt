@@ -765,6 +765,25 @@ class Study(skrt.core.Archive):
                             idx_add = 1
                     idx += idx_add
 
+    def write_for_innereye(self, out_dir="./innereye_datasets", overwrite=True,
+            image_types=None, **kwargs):
+
+        study_dir = Path(skrt.core.fullpath(out_dir))
+
+        # Obtain set of image types to be saved.
+        save_types = set(image_types or self.image_types).intersection(
+                set(self.image_types))
+        for save_type in save_types:
+            for idx, im in enumerate(self.image_types[save_type]):
+                im_dir=study_dir / f"{im.timestamp}_{idx+1:03}"
+                if im_dir.exists() and overwrite:
+                    shutil.rmtree(im_dir)
+                im_dir.mkdir(parents=True, exist_ok=True)
+                self.save_images_as_nifti(
+                        out_dir=im_dir,
+                        image_types=[save_type],
+                        times={save_type: idx})
+
 
 class Patient(skrt.core.PathData):
     """
@@ -2040,6 +2059,23 @@ class Patient(skrt.core.PathData):
             # Write ROIs to individual files
             elif 'RTSTRUCT' == modality:
                 item.write(outdir=item_dir, ext=ext)
+
+    def write_for_innereye(self,
+            out_dir="./innereye_datasets", study_indices=None, **kwargs):
+
+        patient_dir = Path(skrt.core.fullpath(out_dir)) / self.id
+
+        # Define list of studies to be processed
+        if isinstance(study_indices, int):
+            studies = [self.studies[study_indices]]
+        elif study_indices is None:
+            studies = self.studies
+        else:
+            studies = [self.studies[idx] for idx in study_indices]
+
+        for study in studies:
+            study_dir = patient_dir / study.timestamp
+            study.write_for_innereye(patient_dir / study.timestamp, **kwargs)
 
 def find_matching_object(obj, possible_matches):
     """For a given object <obj> and a list of potential matching objects
