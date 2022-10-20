@@ -3172,11 +3172,13 @@ class ROI(skrt.core.Archive):
             by the value of match_lengths_strategy.
 
         match_lengths_strategy : int, default=1
-            Strategy to use for matching ROI lengths (z-dimensions)
+            Strategy to use for matching ROI lengths (z-dimensions):
+
             - 0 : Crop this ROI to the z-extents of the other ROI;
             - 1 : Crop the other ROI to the z-exents of this ROI;
             - 2 : Crop this ROI to the z-extents of the other ROI, then
                   crop the other ROI to the cropped z-extents of this ROI.
+
             For a value other than 0, 1, 2, no length matching is performed.
         """
         if voxel_size is not None:
