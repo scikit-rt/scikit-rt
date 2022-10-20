@@ -3007,7 +3007,9 @@ class ROI(skrt.core.Archive):
         nice_columns=False,
         decimal_places=None,
         force=True,
-        voxel_size=(1, 1, 1)
+        voxel_size=(1, 1, 1),
+        match_lengths=False,
+        match_lengths_strategy=1
     ):
         """Return a pandas DataFrame of the comparison metrics listed in 
         <metrics> with respect to another ROI.
@@ -3162,15 +3164,46 @@ class ROI(skrt.core.Archive):
             other than None forces creation of masks that just cover
             the volume occupied by the two ROIs being compared,
             potentially reducing the time for surface-distance calculations.
+
+        match_lengths : bool/str/list, default=False
+            If set to True, to the name of the other ROI, or to a list
+            of names including the name of the other ROI, match ROI lengths
+            (z-dimensions) before comparison.  The strategy used is defined
+            by the value of match_lengths_strategy.
+
+        match_lengths_strategy : int, default=1
+            Strategy to use for matching ROI lengths (z-dimensions)
+            - 0 : Crop this ROI to the z-extents of the other ROI;
+            - 1 : Crop the other ROI to the z-exents of this ROI;
+            - 2 : Crop this ROI to the z-extents of the other ROI, then
+                  crop the other ROI to the cropped z-extents of this ROI.
+            For a value other than 0, 1, 2, no length matching is performed.
         """
         if voxel_size is not None:
             # Create ROI masks, just covering volume occupied
             # by ROIs being compared, with specified voxel size.
+            # (The resizing is performed on clones on the ROIs,
+            # without changing the originals.)
             roi0, roi = self.match_mask_voxel_size(roi,
                     voxel_size=voxel_size, voxel_dim_tolerance=-1)
         else:
             # Don't explicitly create ROI masks.
             roi0 = self
+
+        # Optionally match ROI lengths.
+        if ((match_lengths is True) or (roi.name == match_lengths)
+                or (isinstance(match_lengths, (list, tuple, set))
+                    and roi.name in match_lengths)):
+            # Create ROI clones for cropping; the originals will be unchanged.
+            if match_lengths_strategy in [0, 1, 2] and voxel_size is None:
+                roi0 = self.clone()
+                roi = roi.clone()
+            # Crop this ROI to z-extents of other ROI.
+            if match_lengths_strategy in [0, 2]:
+                roi0.crop_to_roi_length(roi)
+            # Crop other ROI to z-extents of this ROI.
+            if match_lengths_strategy in [1, 2]:
+                roi.crop_to_roi_length(roi0)
 
         # Default metrics
         if metrics is None:

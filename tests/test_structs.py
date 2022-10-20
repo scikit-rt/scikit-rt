@@ -1371,3 +1371,36 @@ def test_slice_thickness_contours():
     ss = StructureSet([roi2, roi3])
     for roi in ss.get_rois():
         assert roi.get_slice_thickness_contours() == dz
+
+def test_comparison_with_length_matching():
+    """Test ROI cropping based on cropping mask."""
+    # Create synthetic image featuring cuboids
+    shape = 3 * [100]
+    origin = 3 * [-49.5] 
+    sim = SyntheticImage(shape=shape, origin=origin)
+    side_lengths = [[4, 8, 20], [4, 8, 12]]
+    centres = [[5, -10, -5], [5, -10, 1]]
+    structure_sets = []
+    for idx in [0, 1]:
+        sim.add_cuboid(side_lengths[idx], centre=centres[idx], name="cuboid")
+        structure_sets.append(StructureSet(sim.get_roi("cuboid")))
+
+    # Obtain references to structure sets,
+    # each structure set containing a single cuboid.
+    ss0, ss1 = structure_sets
+
+    # Expected Dice scores for different length-matching strategies.
+    dice_refs = {
+            None: (2 * 10) / (20 + 12),
+            0 : (2 * 10) / (10 + 12),
+            1 : (2 * 10) / (20 + 10),
+            2 : 1,
+            }
+
+    # Loop over values for length matches.
+    for match_lengths_strategy, dice_ref in dice_refs.items():
+        for match_lengths in [True, "cuboid", ["cuboid"]]:
+            dice = ss0.get_comparison(ss1, metrics=["dice"],
+                    match_lengths_strategy=match_lengths_strategy,
+                    match_lengths=match_lengths).loc["cuboid", "dice"]
+            assert dice == dice_ref
