@@ -647,13 +647,16 @@ of names including the name of the other ROI, match ROI lengths
 (z-dimensions) before comparison.  The strategy used is defined
 by the value of match_lengths_strategy.</p>
 </dd>
-<dt>match_lengths_strategy<span class="classifier">int, default=1</span></dt><dd><p>Strategy to use for matching ROI lengths (z-dimensions)
-- 0 : Crop this ROI to the z-extents of the other ROI;
-- 1 : Crop the other ROI to the z-exents of this ROI;
-- 2 : Crop this ROI to the z-extents of the other ROI, then</p>
-<blockquote>
-<div><p>crop the other ROI to the cropped z-extents of this ROI.</p>
-</div></blockquote>
+<dt>match_lengths_strategy<span class="classifier">int, default=1</span></dt><dd><p>Strategy to use for matching ROI lengths (z-dimensions):</p>
+<ul class="simple">
+<li><p>0 : Crop this ROI to the z-extents of the other ROI;</p></li>
+<li><p>1 : Crop the other ROI to the z-exents of this ROI;</p></li>
+<li><dl class="simple">
+<dt>2<span class="classifier">Crop this ROI to the z-extents of the other ROI, then</span></dt><dd><p>crop the other ROI to the cropped z-extents of this ROI.</p>
+</dd>
+</dl>
+</li>
+</ul>
 <p>For a value other than 0, 1, 2, no length matching is performed.</p>
 </dd>
 </dl>
