@@ -1481,3 +1481,35 @@ def relative_path(path, nlevel=None):
     elements = fullpath(path).split(os.sep)
     idx = min(nlevel + 1, len(elements) - 1) if nlevel > 0 else nlevel
     return os.sep.join(elements[idx:])
+
+def get_indexed_objs(objs, indices=True):
+    """
+    Select subset of objects from a list.
+
+    **Parameters:**
+    objs : list
+        List of objects.
+
+    indices : bool/list/int
+        Specification of objects to select from list:
+
+        - True: select all objects;
+        - False: select no objects;
+        - integer: select object with index equal to given integer;
+        - list of integers: select objects with indices equal to given integers.
+    """
+
+    # Select all objects.
+    if indices is True:
+        indexed_objs = objs
+    # Select no objects.
+    elif indices is False:
+        indexed_objs = []
+    # Select object with specified index.
+    elif isinstance(indices, int):
+        indexed_objs = [objs[indices]]
+    # Select objects with specified indices.
+    else:
+        indexed_objs = [objs[idx] for idx in indices]
+
+    return indexed_objs

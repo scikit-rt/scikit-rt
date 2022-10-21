@@ -10,6 +10,7 @@ import timeit
 import pandas as pd
 
 import skrt.core
+from skrt.core import fullpath, get_indexed_objs
 from skrt.image import Image
 from skrt.structures import StructureSet
 from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
@@ -707,8 +708,8 @@ class Study(skrt.core.Archive):
                 # Only consider structure sets with requested indices.
                 if files and structure_sets:
                     if save_type in files and files[save_type]:
-                        structure_sets = [structure_sets[idx]
-                                for idx in files[save_type]]
+                        structure_sets = get_indexed_objs(
+                                structure_sets, files[save_type])
 
                 # Loop over structure sets
                 idx = 0
@@ -766,7 +767,7 @@ class Study(skrt.core.Archive):
                     idx += idx_add
 
     def write_for_innereye(self, out_dir="./innereye_datasets", overwrite=True,
-            image_types=None, **kwargs):
+            image_types=None, structure_set_files=-1, **kwargs):
 
         study_dir = Path(skrt.core.fullpath(out_dir))
 
@@ -783,8 +784,13 @@ class Study(skrt.core.Archive):
                         out_dir=im_dir,
                         image_types=[save_type],
                         times={save_type: idx})
+                self.save_structure_sets_as_nifti(
+                        out_dir=im_dir,
+                        image_types=[save_type],
+                        times={save_type: idx},
+                        files={save_type: structure_set_files})
 
-
+                
 class Patient(skrt.core.PathData):
     """
     Object associated with a top-level directory whose name corresponds to
@@ -2061,19 +2067,12 @@ class Patient(skrt.core.PathData):
                 item.write(outdir=item_dir, ext=ext)
 
     def write_for_innereye(self,
-            out_dir="./innereye_datasets", study_indices=None, **kwargs):
+            out_dir="./innereye_datasets", study_indices=True, **kwargs):
 
-        patient_dir = Path(skrt.core.fullpath(out_dir)) / self.id
+        patient_dir = Path(fullpath(out_dir)) / self.id
 
-        # Define list of studies to be processed
-        if isinstance(study_indices, int):
-            studies = [self.studies[study_indices]]
-        elif study_indices is None:
-            studies = self.studies
-        else:
-            studies = [self.studies[idx] for idx in study_indices]
-
-        for study in studies:
+        # Process selected studies.
+        for study in get_indexed_objs(self.studies, study_indices):
             study_dir = patient_dir / study.timestamp
             study.write_for_innereye(patient_dir / study.timestamp, **kwargs)
 
