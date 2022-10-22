@@ -767,15 +767,25 @@ class Study(skrt.core.Archive):
                     idx += idx_add
 
     def write_for_innereye(self, out_dir="./innereye_datasets", overwrite=True,
-            image_types=None, structure_set_files=-1, **kwargs):
+            image_types=None, image_times=None,
+            structure_set_files=-1, **kwargs):
 
         study_dir = Path(skrt.core.fullpath(out_dir))
 
         # Obtain set of image types to be saved.
         save_types = set(image_types or self.image_types).intersection(
                 set(self.image_types))
+        if isinstance(structure_set_files, dict):
+            files = structure_set_files
+        else:
+            files = {save_type: structure_set_files for save_type in save_types}
+
         for save_type in save_types:
             for idx, im in enumerate(self.image_types[save_type]):
+                if (isinstance(image_times, dict)
+                        and isinstance(image_times.get(save_type, None), list)
+                        and idx not in image_times[save_type]):
+                    continue
                 im_dir=study_dir / f"{im.timestamp}_{idx+1:03}"
                 if im_dir.exists() and overwrite:
                     shutil.rmtree(im_dir)
@@ -788,7 +798,7 @@ class Study(skrt.core.Archive):
                         out_dir=im_dir,
                         image_types=[save_type],
                         times={save_type: idx},
-                        files={save_type: structure_set_files})
+                        files={save_type: files.get(save_type, -1)})
 
                 
 class Patient(skrt.core.PathData):
