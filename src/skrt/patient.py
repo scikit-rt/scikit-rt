@@ -495,7 +495,7 @@ class Study(skrt.core.Archive):
                         dose.set_plan(plan)
 
     def save_images_as_nifti(self, out_dir='.', image_types=None, times=None,
-            verbose=True, image_size=None, voxel_size=None, fill_value=-1024,
+            verbose=True, image_size=None, voxel_size=None, fill_value=None,
             bands=None, require_structure_set=None):
         '''
         Save study's image data as nifti files.
@@ -527,8 +527,9 @@ class Study(skrt.core.Archive):
             Voxel dimensions (dx, dy, dz) in mm for image resizing
             prior to writing.  If None, original voxel size is kept.
 
-        fill_value - int/float, default=-1024
-            Value used when extrapolating image outside data area>
+        fill_value - int/float, default=None
+            Value used when extrapolating image outside data area.
+            If None, use mininum value inside data area.
 
         bands - dict, default=None
             Nested dictionary of value bandings to be applied before
@@ -567,7 +568,7 @@ class Study(skrt.core.Archive):
             save_types = save_types.intersection(set(image_types))
         if verbose:
             if save_types:
-                print(f"Saving imaging data to '{out_dir}':")
+                print(f"Saving image data to '{out_dir}':")
             else:
                 print(f"No data to save for output directory '{out_dir}'")
 
@@ -599,8 +600,10 @@ class Study(skrt.core.Archive):
 
                 # Resize to required image size and voxel size.
                 if image_size is not None or voxel_size is not None:
+                    im_fill_value = (fill_value if fill_value is not None
+                            else out_image.get_min())
                     out_image.resize(image_size=image_size,
-                            voxel_size=voxel_size, fill_value=fill_value)
+                            voxel_size=voxel_size, fill_value=im_fill_value)
 
                 # Apply banding.
                 if save_type in bands:
@@ -766,39 +769,164 @@ class Study(skrt.core.Archive):
                             idx_add = 1
                     idx += idx_add
 
-    def write_for_innereye(self, out_dir="./innereye_datasets", overwrite=True,
-            image_types=None, image_times=None,
-            structure_set_files=-1, **kwargs):
+    def write_for_innereye(self, out_dir="./innereye_datasets",
+            image_types=None, times=None, verbose=True,
+            image_size=None, voxel_size=None, fill_value=None,
+            bands=None, require_structure_set=None, files=-1,
+            roi_names=None, force_roi_nifti=False, bilateral_names=None,
+            overwrite=True):
+        """
+        Save study images and associated structure sets for use by InnerEye.
 
+        Except for <overwrite> parameters are passed on to the methods
+        save_images_as_nifti() and/or save_structure_sets_as_nifti().
+
+        **Parameters:**
+
+        overwrite - bool, default=True
+            If False, skip images with pre-existing output directories.
+            If True, delete pre-existing output directories.
+
+        out_dir - str, default='.'
+            Top-level directory to which nifti files for InnerEye will
+            be written for study.  Each output image will be in a separate
+            sub-directory, along with a file per associated ROI.
+
+        image_types - list/str/None, default=None
+            Images types to be saved: None to save all, otherwise a list
+            of image types to save, or a string specifying a single image
+            type to save.
+
+        times : dict, default=None
+            Dictionary where the keys are image types and the values are
+            lists of timestamp indices for the images to be saved,
+            0 being the earliest and -1 being the most recent.  If set to
+            None, all images are saved.
+
+        verbose - bool, default=True
+           Flag indicating whether to report progress.
+
+        image_size - tuple, default=None
+            Image dimensions (dx, dy, dz) in voxels for image resizing
+            prior to writing.  If None, original image size is kept.
+
+        voxel_size - tuple, default=None
+            Voxel dimensions (dx, dy, dz) in mm for image resizing
+            prior to writing.  If None, original voxel size is kept.
+
+        fill_value - int/float, default=None
+            Value used when extrapolating image outside data area.
+            If None, use mininum value inside data area.
+
+        bands - dict, default=None
+            Nested dictionary of value bandings to be applied before
+            image saving.  The primary key defines the type of image to
+            which the banding applies.  Secondary keys specify band limits,
+            and associated values indicte the values to be assigned.
+            For example:
+
+            - bands{'mvct' : {-100: -1024, 100: 0, 1e10: 1024}}
+
+            will band an image of type 'mvct':
+
+            - value <= -100 => -1024;
+            - -100 < value <= 100 => 0;
+            - 100 < value <= 1e10 => 1024.
+
+        require_structure_set - list, default=None
+            List of image types for which data are to be written only
+            if there is an associated structure set.
+
+        files : dict, default=None
+            Dictionary where the keys are image types and the values are
+            lists of file indices for structure sets to be saved for
+            a given image, 0 being the earliest and -1 being the most recent.
+            If set to None, all of an image's structure sets are saved.
+
+        roi_names : dict, default=None
+            Dictionary of names for renaming ROIs, where the keys are new 
+            names and values are lists of possible names of ROIs that should
+            be assigned the new name. These names can also contain wildcards
+            with the '*' symbol.
+
+        force_roi_nifti : bool, default=False
+            If True, force writing of dummy NIfTI file for all named ROIs
+            not found in structure set.  If False, named ROIs not found in
+            structure set are disregarded.
+
+        bilateral_names : list, default=None
+            List of names of ROIs that should be split into
+            left and right parts.
+        """
+
+        # If require_structure_set is null, set to an empty list.
+        require_structure_set = require_structure_set or []
+
+        # Define study output directory.
         study_dir = Path(skrt.core.fullpath(out_dir))
 
         # Obtain set of image types to be saved.
         save_types = set(image_types or self.image_types).intersection(
                 set(self.image_types))
-        if isinstance(structure_set_files, dict):
-            files = structure_set_files
-        else:
-            files = {save_type: structure_set_files for save_type in save_types}
 
+        # Define structure set(s) to be saved for each image type.
+        if not isinstance(files, dict):
+            files = {save_type: files for save_type in save_types}
+
+        # Loop over image types.
         for save_type in save_types:
+            # Loop over images of current type.
             for idx, im in enumerate(self.image_types[save_type]):
-                if (isinstance(image_times, dict)
-                        and isinstance(image_times.get(save_type, None), list)
-                        and idx not in image_times[save_type]):
+                # Check for associated structure set(s).
+                if (save_type in require_structure_set
+                        and not get_indexed_objs(
+                            im.structure_sets,
+                            files.get(save_type, True))):
                     continue
-                im_dir=study_dir / f"{im.timestamp}_{idx+1:03}"
-                if im_dir.exists() and overwrite:
+                
+                # Check whether image index satisfies requirements.
+                if (isinstance(times, dict)
+                        and isinstance(times.get(save_type, None), list)
+                        and idx not in times[save_type]):
+                    continue
+
+
+                # Check if output directory already exists.
+                im_dir = (study_dir / save_type.upper()
+                        / f"{im.timestamp}_{idx+1:03}")
+                if not overwrite and im_dir.exists():
+                    if verbose:
+                        print("Not overwriting for image with existing "
+                                f"output directory: {str(im_dir)}")
+                    continue
+                if im_dir.exists():
                     shutil.rmtree(im_dir)
                 im_dir.mkdir(parents=True, exist_ok=True)
+
+                # Write image.
                 self.save_images_as_nifti(
                         out_dir=im_dir,
                         image_types=[save_type],
-                        times={save_type: idx})
+                        times={save_type: idx},
+                        verbose=verbose,
+                        image_size=image_size,
+                        voxel_size=voxel_size,
+                        fill_value=fill_value,
+                        bands=bands,
+                        require_structure_set=require_structure_set)
+
+                # Write associated structure set(s).
                 self.save_structure_sets_as_nifti(
                         out_dir=im_dir,
                         image_types=[save_type],
                         times={save_type: idx},
-                        files={save_type: files.get(save_type, -1)})
+                        files={save_type: files.get(save_type, -1)},
+                        verbose=verbose,
+                        image_size=image_size,
+                        voxel_size=voxel_size,
+                        roi_names=roi_names,
+                        force_roi_nifti=force_roi_nifti,
+                        bilateral_names=bilateral_names)
 
                 
 class Patient(skrt.core.PathData):
@@ -2077,9 +2205,38 @@ class Patient(skrt.core.PathData):
                 item.write(outdir=item_dir, ext=ext)
 
     def write_for_innereye(self,
-            out_dir="./innereye_datasets", study_indices=True, **kwargs):
+            out_dir="./innereye_datasets", study_indices=True, verbose=True,
+            **kwargs):
 
+        """
+        Save patient images and associated structure sets for use by InnerEye.
+
+        **Parameters:**
+        out_dir - str, default='.'
+            Top-level output directory.  Within this, there will be a
+            patient sub-directory, containing a sub-directory for each
+            study, containing in turn a sub-directory for each output
+            image along with associated structure set(s).
+
+        study_indices : list, default=None
+            lists of indices of studies for which data are to be written,
+            0 being the earliest study and -1 being the most recent.  If set to
+            None, data for all studies are written.
+
+        verbose - bool, default=True
+           Flag indicating whether to report progress.
+
+        **kwargs
+            Keyword arguments passed on to
+                skrt.patient.Study.write_for_innereye().
+            For details, see this method's documentation.
+        """
+        # Define patient output directory.
         patient_dir = Path(fullpath(out_dir)) / self.id
+
+        # If study_indices is None, set to select all studies.
+        if study_indices is None:
+            study_indices = True
 
         # Process selected studies.
         for study in get_indexed_objs(self.studies, study_indices):
