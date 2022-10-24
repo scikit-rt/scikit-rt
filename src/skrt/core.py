@@ -1515,12 +1515,9 @@ def get_indexed_objs(objs, indices=True):
 
     return indexed_objs
 
-def make_dir(path=".", overwrite=True):
+def make_dir(path=".", overwrite=True, require_empty=False):
     """
     Create a directory if it doesn't exist already, or if overwriting allowed.
-
-    Returns pathlib.Path object for the directory if created successfully.
-    Returns None if the directory exists already and overwriting is not allowed.
 
     **Parameters:**
 
@@ -1530,11 +1527,24 @@ def make_dir(path=".", overwrite=True):
     overwrite : bool, default=True
         If True, delete any pre-existing directory and its contents.
         If False, leave unaltered any pre-existing directory and its contents.
+
+    require_empty : bool, default=False
+        If True, return None if the directory already exists, the directory
+        isn't empty, and <overwrite> is False.
     """
+    # Obtain pathlib.Path object for directory.
     dirpath = Path(fullpath(path))
-    if dirpath.exists() and not overwrite:
-        return
+
     if dirpath.exists():
-        shutil.rmtree(dirpath)
-    dirpath.mkdir(parents=True)
+        # Directory exists, and should be overwritten.
+        if overwrite:
+            shutil.rmtree(dirpath)
+        # Directory exists, and isn't empty.
+        elif require_empty and any(dirpath.iterdir()):
+            dirpath = None
+
+    if dirpath is not None:
+        # Create directory if needed.
+        dirpath.mkdir(parents=True, exist_ok=True)
+    
     return dirpath

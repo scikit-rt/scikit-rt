@@ -284,10 +284,18 @@ def test_relative_path():
 
 def test_make_dir():
     """Text directory creation, with and without overwriting allowed."""
-    tdir = skrt.core.fullpath('tmp/make_dir_test')
+    tdir = Path(skrt.core.fullpath("tmp/make_dir_test"))
+    if tdir.exists():
+        shutil.rmtree(tdir)
     path = skrt.core.make_dir(tdir)
-    assert str(path) == tdir
-    path = skrt.core.make_dir(tdir)
-    assert str(path) == tdir
-    path = skrt.core.make_dir(tdir, overwrite=False)
-    assert path is None
+    assert path == tdir
+
+    # Check different values for parameters overwrite and require_empty.
+    for overwrite in [True, False]:
+        for require_empty in [True, False]:
+            (tdir / "tmp.txt").touch(exist_ok=True)
+            path = skrt.core.make_dir(tdir, overwrite, require_empty)
+            if not overwrite and require_empty:
+                assert path is None
+            else:
+                assert path == tdir
