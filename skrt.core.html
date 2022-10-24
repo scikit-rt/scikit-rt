@@ -776,6 +776,22 @@ the most recent if True, or the least recent otherwise.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.make_dir">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">make_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.make_dir" title="Permalink to this definition"></a></dt>
+<dd><p>Create a directory if it doesn’t exist already, or if overwriting allowed.</p>
+<p>Returns pathlib.Path object for the directory if created successfully.
+Returns None if the directory exists already and overwriting is not allowed.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path<span class="classifier">pathlib.Path/str, default=”.”</span></dt><dd><p>Path to directory.</p>
+</dd>
+<dt>overwrite<span class="classifier">bool, default=True</span></dt><dd><p>If True, delete any pre-existing directory and its contents.
+If False, leave unaltered any pre-existing directory and its contents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.relative_path">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">relative_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.relative_path" title="Permalink to this definition"></a></dt>
 <dd><p>Return relative path.</p>
