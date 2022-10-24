@@ -6,6 +6,7 @@ from pathlib import Path
 import copy
 import os
 import re
+import shutil
 import time
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
@@ -1513,3 +1514,27 @@ def get_indexed_objs(objs, indices=True):
         indexed_objs = [objs[idx] for idx in indices]
 
     return indexed_objs
+
+def make_dir(path=".", overwrite=True):
+    """
+    Create a directory if it doesn't exist already, or if overwriting allowed.
+
+    Returns pathlib.Path object for the directory if created successfully.
+    Returns None if the directory exists already and overwriting is not allowed.
+
+    **Parameters:**
+
+    path : pathlib.Path/str, default="."
+        Path to directory.
+
+    overwrite : bool, default=True
+        If True, delete any pre-existing directory and its contents.
+        If False, leave unaltered any pre-existing directory and its contents.
+    """
+    dirpath = Path(fullpath(path))
+    if dirpath.exists() and not overwrite:
+        return
+    if dirpath.exists():
+        shutil.rmtree(dirpath)
+    dirpath.mkdir(parents=True)
+    return dirpath

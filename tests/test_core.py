@@ -281,3 +281,13 @@ def test_relative_path():
     assert skrt.core.relative_path(non_user_path) == str(non_user_path)
     assert skrt.core.relative_path(non_user_path / sub_path, 3) == str(sub_path)
     assert skrt.core.relative_path(user_path / sub_path, -3) == str(sub_path)
+
+def test_make_dir():
+    """Text directory creation, with and without overwriting allowed."""
+    tdir = skrt.core.fullpath('tmp/make_dir_test')
+    path = skrt.core.make_dir(tdir)
+    assert str(path) == tdir
+    path = skrt.core.make_dir(tdir)
+    assert str(path) == tdir
+    path = skrt.core.make_dir(tdir, overwrite=False)
+    assert path is None
