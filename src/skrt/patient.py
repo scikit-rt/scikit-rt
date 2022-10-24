@@ -494,7 +494,7 @@ class Study(skrt.core.Archive):
                     if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
                         dose.set_plan(plan)
 
-    def save_images_as_nifti(self, out_dir='.', image_types=None, times=None,
+    def save_images_as_nifti(self, outdir='.', image_types=None, times=None,
             verbose=True, image_size=None, voxel_size=None, fill_value=None,
             bands=None, require_structure_set=None):
         '''
@@ -502,7 +502,7 @@ class Study(skrt.core.Archive):
 
         **Parameters:**
 
-        out_dir - str, default='.'
+        outdir - str, default='.'
             Directory to which nifti files will be saved.
 
         image_types - list/str/None, default=None
@@ -558,7 +558,7 @@ class Study(skrt.core.Archive):
             require_structure_set = []
 
         # Obtain full path to output directory.
-        out_dir = skrt.core.fullpath(out_dir)
+        outdir = skrt.core.fullpath(outdir)
 
         # Obtain set of image types to be saved.
         save_types = set(self.image_types)
@@ -568,9 +568,9 @@ class Study(skrt.core.Archive):
             save_types = save_types.intersection(set(image_types))
         if verbose:
             if save_types:
-                print(f"Saving image data to '{out_dir}':")
+                print(f"Saving image data to '{outdir}':")
             else:
-                print(f"No data to save for output directory '{out_dir}'")
+                print(f"No data to save for output directory '{outdir}'")
 
         # Loop over image types to be saved.
         for save_type in save_types:
@@ -611,12 +611,12 @@ class Study(skrt.core.Archive):
                         out_image.apply_bandings(bands[save_type])
 
                 # Define output path and write image.
-                outname = (f'{out_dir}/{save_type.upper()}'
+                outname = (f'{outdir}/{save_type.upper()}'
                            f'_{image.timestamp}_{idx+1:03}'
                            f'_{suffix}.nii.gz')
                 out_image.write(outname=outname, verbose=verbose)
 
-    def save_structure_sets_as_nifti(self, out_dir='.',
+    def save_structure_sets_as_nifti(self, outdir='.',
             image_types=None, times=None, files=None,
             verbose=True, image_size=None, voxel_size=None, roi_names=None,
             force_roi_nifti=False, bilateral_names=None):
@@ -626,7 +626,7 @@ class Study(skrt.core.Archive):
 
         **Parameters:**
 
-        out_dir - str, default='.'
+        outdir - str, default='.'
             Directory to which nifti files will be saved.
 
         image_types - list/str/None, default=None
@@ -675,7 +675,7 @@ class Study(skrt.core.Archive):
         '''
 
         # Obtain full path to output directory.
-        out_dir = skrt.core.fullpath(out_dir)
+        outdir = skrt.core.fullpath(outdir)
 
         # Initialise list or names for bilateral ROIs
         if bilateral_names is None:
@@ -689,9 +689,9 @@ class Study(skrt.core.Archive):
             save_types = save_types.intersection(set(image_types))
         if verbose:
             if save_types:
-                print(f"Saving structure_set data to '{out_dir}':")
+                print(f"Saving structure_set data to '{outdir}':")
             else:
-                print(f"No data to save for output directory '{out_dir}'")
+                print(f"No data to save for output directory '{outdir}'")
 
         # Loop over image types for which structure sets are to be saved.
         for save_type in save_types:
@@ -755,7 +755,7 @@ class Study(skrt.core.Archive):
                         if roi_name in ss.get_roi_names():
                             # Save ROI mask.
                             roi = ss.get_roi(roi_name)
-                            roi.write(outname=outname, outdir=out_dir,
+                            roi.write(outname=outname, outdir=outdir,
                                     ext='nii.gz', verbose=verbose)
                             idx_add = 1
                         elif force_roi_nifti:
@@ -764,12 +764,12 @@ class Study(skrt.core.Archive):
                             im = Image(ss.image)
                             shape = im.get_data().shape
                             im.data = np.zeros(shape)
-                            outname = f'{out_dir}/{outname}'
+                            outname = f'{outdir}/{outname}'
                             ss.image.write(outname=outname, verbose=verbose)
                             idx_add = 1
                     idx += idx_add
 
-    def write_for_innereye(self, out_dir="./innereye_datasets",
+    def write_for_innereye(self, outdir="./innereye_datasets",
             image_types=None, times=None, verbose=True,
             image_size=None, voxel_size=None, fill_value=None,
             bands=None, require_structure_set=None, files=-1,
@@ -787,7 +787,7 @@ class Study(skrt.core.Archive):
             If False, skip images with pre-existing output directories.
             If True, delete pre-existing output directories.
 
-        out_dir - str, default='.'
+        outdir - str, default='.'
             Top-level directory to which nifti files for InnerEye will
             be written for study.  Each output image will be in a separate
             sub-directory, along with a file per associated ROI.
@@ -863,7 +863,7 @@ class Study(skrt.core.Archive):
         require_structure_set = require_structure_set or []
 
         # Define study output directory.
-        study_dir = Path(skrt.core.fullpath(out_dir))
+        study_dir = Path(skrt.core.fullpath(outdir))
 
         # Obtain set of image types to be saved.
         save_types = set(image_types or self.image_types).intersection(
@@ -905,7 +905,7 @@ class Study(skrt.core.Archive):
 
                 # Write image.
                 self.save_images_as_nifti(
-                        out_dir=im_dir,
+                        outdir=im_dir,
                         image_types=[save_type],
                         times={save_type: idx},
                         verbose=verbose,
@@ -917,7 +917,7 @@ class Study(skrt.core.Archive):
 
                 # Write associated structure set(s).
                 self.save_structure_sets_as_nifti(
-                        out_dir=im_dir,
+                        outdir=im_dir,
                         image_types=[save_type],
                         times={save_type: idx},
                         files={save_type: files.get(save_type, -1)},
@@ -2205,14 +2205,14 @@ class Patient(skrt.core.PathData):
                 item.write(outdir=item_dir, ext=ext)
 
     def write_for_innereye(self,
-            out_dir="./innereye_datasets", study_indices=True, verbose=True,
+            outdir="./innereye_datasets", study_indices=True, verbose=True,
             **kwargs):
 
         """
         Save patient images and associated structure sets for use by InnerEye.
 
         **Parameters:**
-        out_dir - str, default='.'
+        outdir - str, default='.'
             Top-level output directory.  Within this, there will be a
             patient sub-directory, containing a sub-directory for each
             study, containing in turn a sub-directory for each output
@@ -2232,7 +2232,7 @@ class Patient(skrt.core.PathData):
             For details, see this method's documentation.
         """
         # Define patient output directory.
-        patient_dir = Path(fullpath(out_dir)) / self.id
+        patient_dir = Path(fullpath(outdir)) / self.id
 
         # If study_indices is None, set to select all studies.
         if study_indices is None:
