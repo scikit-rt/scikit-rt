@@ -14,7 +14,7 @@ to follow the organisation used in the VoxTox study
 are to allow:
 - reading and linking of DICOM files grouped by patient but otherwise
 unsorted;
-- writing out all or part of a DICOM dataset accoding to the VoxTox mode.
+- writing out all or part of a DICOM dataset accoding to the VoxTox model.
 
 The `skrt.patient.Patient` class provides generic data-handling
 capabilities, but individual studies may benefit from subclasses providing
@@ -45,7 +45,7 @@ auto-segmentation:
 - registration of a single moving image to multiple fixed images;
 - simplified workflow for pushing ROI contour points from coordinate system
   of fixed image to coordinate system of moving image;
-- simplified workflor for pulling ROI masks from coordinate system of
+- simplified workflow for pulling ROI masks from coordinate system of
   moving image to coordinate system of fixed image.
 
 ## Evaluation of auto-segmentation performance
