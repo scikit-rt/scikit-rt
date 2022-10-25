@@ -710,6 +710,57 @@ class PathData(Data):
         # Only 1 data file associated with a non-Archive object.
         return 1
 
+    def copy_dicom(self, *args, **kwargs):
+        """
+        Copy source dicom files: to be implemented in derived classes.
+        """
+        raise NotImplementedError(
+                f"Method 'copy_dicom()' not implemented for class {type(self)}")
+
+    def copy_dicom_files(self, data_type=None, index=None, indices=None,
+            outdir="dicom", overwrite=True, sort=True):
+        """
+        Copy DICOM files associated with this object.
+
+        **Parameters:**
+
+        data_type : str, default=None
+            String indicting modality of DICOM data associated with
+            this object, for example 'CT', 'RTSTRUCT', 'RTPLAN'.
+            Ignored if None.
+
+        index : int, default=None
+            Integer representing object position in an ordered
+            list of objects of specified <data_type>.  Ignored if None.
+
+        indices : dict, default=None
+            Dictionary where the keys are data types and the values are
+            lists of indices for the objects whose data is to be written.
+            Ignored if None.
+
+        outdir : pathlib.Path/str, default="dicom"
+            Path to directory to which dicom files are to be copied.
+
+        overwrite : bool, default=True
+            If True, allow copied file(s) to overwrite existing file(s),
+            as defined in derived class's copy_dicom() method.
+
+        sort : bool, default=True
+            If True, files are sorted for copying, as defined in derived
+            class's copy_dicom() method.
+        """
+        # Check whether object index satisfies requirements.
+        if (isinstance(indices, dict)
+                and isinstance(data_type, str)
+                and isinstance(indices.get(data_type, None), list)
+                and isinstance(data_index, int)
+                and data_index not in indices[data_type]):
+            return
+
+        # Create output directory, and copy object files.
+        outdir = make_dir(outdir, overwrite)
+        self.copy_dicom(outdir, overwrite, sort)
+
 
 class Dated(PathData):
     """PathData with an associated date and time, which can be used for
