@@ -3235,20 +3235,20 @@ class Image(skrt.core.Archive):
             if verbose:
                 print("Wrote dicom file(s) to directory:", outdir)
 
-    def copy_dicom(self, outdir=".", overwrite=True, sort=True):
+    def copy_dicom(self, outdir="image_dicom", overwrite=True, sort=True):
         """
         Copy source dicom files.
 
         **Parameters:**
 
-        outdir : pathlib.Path/str, default="."
+        outdir : pathlib.Path/str, default="image_dicom"
             Path to directory to which source files are to be copied.
 
         overwrite : bool, default=True
             If True, delete and recreate <outdir> before copying
             files.  If False and <outdir> exists already, a file
-            is copied to this directory only if this doesn't mean
-            overwriting an existing file.
+            is copied only if this doesn't mean overwriting an
+            existing file.
 
         sort : bool, default=True
             If True, copied dicom files will be named by instance number
@@ -3263,7 +3263,6 @@ class Image(skrt.core.Archive):
         z_paths = getattr(self, "_z_paths", {})
         if not z_paths:
             return
-
 
         # Define the output directory.
         outdir = skrt.core.make_dir(outdir, overwrite)

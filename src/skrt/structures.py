@@ -5879,6 +5879,45 @@ class StructureSet(skrt.core.Archive):
         for s in self.get_rois():
             s.write(outdir=outdir, ext=ext, verbose=verbose, **kwargs)
 
+    def copy_dicom(self, outdir="RTSTRUCT", overwrite=True, sort=True):
+        """
+        Copy source dicom files.
+
+        **Parameters:**
+
+        outdir : pathlib.Path/str, default="."
+            Path to directory to which source file is to be copied.
+
+        overwrite : bool, default=True
+            If True, delete and recreate <outdir> before copying
+            file.  If False and <outdir> exists already, copy
+            file only if this doesn't mean overwriting an existing
+            file.
+
+        sort : bool, default=True
+            If True, the copied dicom file will be given name of form
+            'RTSTRUCT_YYMMDD_hhmmss'.  If False, the file is copied
+            with name unaltered.
+        """
+        self.load()
+
+        # Check that structure set has dicom file to be copied.
+        path = Path(self.path)
+        if not self.dicom_dataset or not path.exists():
+            return
+
+        # Define the output directory.
+        outdir = skrt.core.make_dir(outdir, overwrite)
+
+        # Define path to the output file.
+        name = f"RTSTRUCT_{self.timestamp}.dcm" if sort else path.name()
+        outpath = outdir / name
+
+        # Copy file.
+        if overwrite or not outpath.exists():
+            shutil.copy2(path, outpath)
+            
+
     def plot(
         self,
         view="x-y",

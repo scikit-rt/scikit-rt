@@ -975,21 +975,34 @@ class Study(skrt.core.Archive):
 
         # Loop over image types.
         for save_type in save_types:
-            save_type_dir = skrt.core.make_dir(study_dir / save_type.upper(),
-                    overwrite=overwrite)
             # Loop over images of current type.
-            for idx, im in enumerate(self.image_types[save_type]):
+            for idx1, im in enumerate(self.image_types[save_type]):
                 
                 # Check whether image index satisfies requirements.
                 if (isinstance(times, dict)
                         and isinstance(times.get(save_type, None), list)
-                        and idx not in times[save_type]):
+                        and idx1 not in times[save_type]):
                     continue
 
-                # Check if output directory already exists.
-                im_dir = skrt.core.make_dir(save_type_dir
-                        / f"{im.timestamp}_{idx+1:03}")
+                # Create output directory, and copy image files.
+                im_dir = skrt.core.make_dir(study_dir / save_type.upper()
+                        / f"{im.timestamp}_{idx1+1:03}", overwrite)
                 im.copy_dicom(im_dir, overwrite, sort)
+
+                for idx2, ss in enumerate(im.structure_sets):
+
+                    # Check whether structure-set index satisfies requirements.
+                    if (isinstance(files, dict)
+                            and isinstance(files.get(save_type, None), list)
+                            and idx2 not in files[save_type]):
+                        continue
+
+                    # Create output directory, and copy image files.
+                    ss_dir = skrt.core.make_dir(study_dir / "RTSTRUCT"
+                            / save_type.upper() / f"{im.timestamp}_{idx1+1:03}",
+                            overwrite)
+                    ss.copy_dicom(ss_dir, overwrite, sort)
+
 
 class Patient(skrt.core.PathData):
     """
