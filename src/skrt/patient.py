@@ -928,7 +928,69 @@ class Study(skrt.core.Archive):
                         force_roi_nifti=force_roi_nifti,
                         bilateral_names=bilateral_names)
 
+    def copy_dicom(self, outdir=".",
+            image_types=None, times=None, files=None, overwrite=True,
+            sort=True):
+        """
+        Copy study dicom data.
+
+        **Parameters:**
+
+        overwrite - bool, default=True
+            If False, skip images with pre-existing output directories.
+            If True, delete pre-existing output directories.
+
+        outdir - str, default='.'
+            Top-level directory to which nifti files for InnerEye will
+            be written for study.  Each output image will be in a separate
+            sub-directory, along with a file per associated ROI.
+
+        image_types - list/str/None, default=None
+            Images types to be saved: None to save all, otherwise a list
+            of image types to save, or a string specifying a single image
+            type to save.
+
+        times : dict, default=None
+            Dictionary where the keys are image types and the values are
+            lists of timestamp indices for the images to be saved,
+            0 being the earliest and -1 being the most recent.  If set to
+            None, all images are saved.
+
+        files : dict, default=None
+            Dictionary where the keys are image types and the values are
+            lists of file indices for structure sets to be saved for
+            a given image, 0 being the earliest and -1 being the most recent.
+            If set to None, all of an image's structure sets are saved.
+        """
+        # Ensure that study output directory exists.
+        study_dir = skrt.core.make_dir(outdir, overwrite=overwrite)
+
+        # Obtain set of image types to be saved.
+        save_types = set(image_types or self.image_types).intersection(
+                set(self.image_types))
+
+        # Define structure set(s) to be saved for each image type.
+        if not isinstance(files, dict):
+            files = {save_type: files for save_type in save_types}
+
+        # Loop over image types.
+        for save_type in save_types:
+            save_type_dir = skrt.core.make_dir(study_dir / save_type.upper(),
+                    overwrite=overwrite)
+            # Loop over images of current type.
+            for idx, im in enumerate(self.image_types[save_type]):
                 
+                # Check whether image index satisfies requirements.
+                if (isinstance(times, dict)
+                        and isinstance(times.get(save_type, None), list)
+                        and idx not in times[save_type]):
+                    continue
+
+                # Check if output directory already exists.
+                im_dir = skrt.core.make_dir(save_type_dir
+                        / f"{im.timestamp}_{idx+1:03}")
+                im.copy_dicom(im_dir, overwrite, sort)
+
 class Patient(skrt.core.PathData):
     """
     Object associated with a top-level directory whose name corresponds to
@@ -2242,6 +2304,47 @@ class Patient(skrt.core.PathData):
         for study in get_indexed_objs(self.studies, study_indices):
             study_dir = patient_dir / study.timestamp
             study.write_for_innereye(patient_dir / study.timestamp, **kwargs)
+
+    def copy_dicom(self, outdir=".", study_indices=True, overwrite=True,
+            **kwargs):
+        """
+        Copy patient dicom data.
+
+        **Parameters:**
+        outdir - str, default='.'
+            Top-level output directory.  Within this, there will be a
+            patient sub-directory, containing a sub-directory for each
+            study, containing in turn a sub-directory for each data
+            modality.
+
+        study_indices : list, default=None
+            lists of indices of studies for which data are to be written,
+            0 being the earliest study and -1 being the most recent.  If set to
+            None, data for all studies are written.
+
+        overwrite : bool, default=True
+            If True, delete and recreate patient sub_directory
+            before copying files.  If False and the patient sub-directory
+            exists already, copy files to the existing directory.
+
+        **kwargs
+            Keyword arguments passed on to
+                skrt.patient.Study.copy_dicom().
+            For details, see this method's documentation.
+        """
+        # Define patient output directory.
+        patient_dir = skrt.core.make_dir(Path(fullpath(outdir)) / self.id,
+                overwrite=overwrite)
+
+        # If study_indices is None, set to select all studies.
+        if study_indices is None:
+            study_indices = True
+
+        # Process selected studies.
+        for study in get_indexed_objs(self.studies, study_indices):
+            study_dir = patient_dir / study.timestamp
+            study.copy_dicom(outdir=patient_dir / study.timestamp,
+                    overwrite=overwrite, **kwargs)
 
 def find_matching_object(obj, possible_matches):
     """For a given object <obj> and a list of potential matching objects

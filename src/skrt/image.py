@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import nibabel
 import numpy as np
 import os
+import shutil
 import pydicom
 import tempfile
 import time
@@ -658,8 +659,8 @@ class Image(skrt.core.Archive):
             centre and width, the last loaded pydicom.dataset.FileDataset 
             object, and a dictionary mapping z positions to paths to the
             dicom file for that slice. These outputs are used to assign 
-            self.data, self.affine, self.dicom_dataset, and self._z_paths; 
-            self.source_type is set to "dicom".
+            self.data, self.affine, self.dicom_dataset, self._z_paths,
+            and self._z_instance_numbers; self.source_type is set to "dicom".
 
             5. If no data were loaded in step 5 (i.e. self.data is still None),
             raise a RuntimeError.
@@ -717,8 +718,8 @@ class Image(skrt.core.Archive):
                 paths = self.dicom_paths
             else:
                 paths = self.source
-            self.data, affine, window_centre, window_width, ds, self._z_paths \
-                    = load_dicom(paths)
+            self.data, affine, window_centre, window_width, ds, self._z_paths, \
+                    self._z_instance_numbers = load_dicom(paths)
             self.source_type = "dicom"
             if self.data is not None:
                 self.dicom_dataset = ds
@@ -3234,6 +3235,59 @@ class Image(skrt.core.Archive):
             if verbose:
                 print("Wrote dicom file(s) to directory:", outdir)
 
+    def copy_dicom(self, outdir=".", overwrite=True, sort=True):
+        """
+        Copy source dicom files.
+
+        **Parameters:**
+
+        outdir : pathlib.Path/str, default="."
+            Path to directory to which source files are to be copied.
+
+        overwrite : bool, default=True
+            If True, delete and recreate <outdir> before copying
+            files.  If False and <outdir> exists already, a file
+            is copied to this directory only if this doesn't mean
+            overwriting an existing file.
+
+        sort : bool, default=True
+            If True, copied dicom files will be named by instance number
+            if all files have a different instance number, or else
+            will be numbered sequentially from 1, in order of increasing
+            z-coordinate.  If False, files are copied to the output directory
+            with their names unaltered.
+        """
+        self.load()
+
+        # Check that image has dicom files to be copied.
+        z_paths = getattr(self, "_z_paths", {})
+        if not z_paths:
+            return
+
+
+        # Define the output directory.
+        outdir = skrt.core.make_dir(outdir, overwrite)
+
+        # If sorting, obtain dictionary of file indices.
+        # Use instance numbers as indices of all files have a different,
+        # non-null instance number.  Otherwise, use sequential integers.
+        if sort:
+            z_instance_numbers = getattr(self, "_z_instance_numbers", {}) or {}
+            instance_numbers = list(z_instance_numbers.values())
+            if ((None in instance_numbers) or
+                    (len(instance_numbers) != len(set(instance_numbers)))):
+                z_instance_numbers = {z: idx + 1
+                        for idx, z in enumerate(sorted(z_paths.keys()))}
+
+        # Loop over image files.
+        for z, path in sorted(z_paths.items()): 
+            if sort:
+                outpath = outdir / f"{z_instance_numbers[z]}.dcm"
+            else:
+                outpath = outdir / Path(path).name
+            if overwrite or not outpath.exists():
+                shutil.copy2(path, outpath)
+
     def get_coords(self):
         """Get grids of x, y, and z coordinates for each voxel in the image."""
 
@@ -4320,6 +4374,10 @@ def load_dicom(paths, debug=False):
     z_paths : dict / None
         Dictionary mapping z slice positions in mm to the file corresponding to 
         that slice. If image was loaded from a single file, this will be None.
+
+    z_instance_numbers : dict / None
+        Dictionary mapping z slice positions in mm to the instance number of
+        that slice. If image was loaded from a single file, this will be None.
     """
 
     # Get list of paths corresponding to this image
@@ -4329,10 +4387,12 @@ def load_dicom(paths, debug=False):
 
     # Load image array and pydicom FileDataset object from file(s)
     if len(paths) > 1:
-        data, affine, ds, z_paths = load_dicom_many_files(paths)
+        data, affine, ds, z_paths, z_instance_numbers = load_dicom_many_files(
+                paths)
     else:
         data, affine, ds = load_dicom_single_file(paths[0])
         z_paths = None
+        z_instance_numbers = None
 
     # Load other properties
     window_centre, window_width = get_dicom_window(ds)
@@ -4348,7 +4408,8 @@ def load_dicom(paths, debug=False):
         if window_centre:
             window_centre = -window_centre + vmin + vmax
 
-    return data, affine, window_centre, window_width, ds, z_paths
+    return (data, affine, window_centre, window_width, ds,
+            z_paths, z_instance_numbers)
 
 
 def load_dicom_many_files(paths):
@@ -4374,6 +4435,10 @@ def load_dicom_many_files(paths):
     z_paths : dict
         Dict mapping z slice positions in mm  to the filepath 
         from which that slice of the image was read.
+
+    z_instance_numbers : dict
+        Dict mapping z slice positions in mm  to the instance
+        number of that slice of the image.
     """
 
     # Set attributes to check for consistency between files
@@ -4391,6 +4456,7 @@ def load_dicom_many_files(paths):
     data_slices = {}
     image_positions = {}
     z_paths = {}
+    z_instance_numbers = {}
     for path in paths:
         
         # Load dataset from this file
@@ -4430,6 +4496,7 @@ def load_dicom_many_files(paths):
         z_paths[z] = path
         data_slices[z] = ds.pixel_array
         image_positions[z] = pos
+        z_instance_numbers[z] = getattr(ds, "InstanceNumber", None)
 
     # Stack the 2D arrays into one 3D array
     # Sort by slice position
@@ -4437,10 +4504,11 @@ def load_dicom_many_files(paths):
     sorted_data = [data_slices[z] for z in sorted_slices]
     data = np.stack(sorted_data, axis=-1)
     z_paths = {z : z_paths[z] for z in sorted_slices}
+    z_instance_numbers = {z : z_instance_numbers[z] for z in sorted_slices}
     # Get affine matrix
     affine = get_dicom_affine(ds, image_positions)
 
-    return data, affine, ds, z_paths
+    return data, affine, ds, z_paths, z_instance_numbers
 
 
 def load_dicom_single_file(path):
