@@ -2317,10 +2317,13 @@ class Patient(skrt.core.PathData):
             study, containing in turn a sub-directory for each data
             modality.
 
-        study_indices : list, default=None
-            lists of indices of studies for which data are to be written,
-            0 being the earliest study and -1 being the most recent.  If set to
-            None, data for all studies are written.
+        study_indices : list/dict, default=None
+            List of indices of studies for which data are
+            to be written, 0 being the earliest study and -1 being
+            the most recent: or a dictionary where keys will be used
+            as names of subdirectories grouping studies, and values
+            are indices of studies to be grouped.  If set to
+            None, data for all studies are written, with no grouping.
 
         overwrite : bool, default=True
             If True, delete and recreate patient sub_directory
@@ -2338,13 +2341,15 @@ class Patient(skrt.core.PathData):
 
         # If study_indices is None, set to select all studies.
         if study_indices is None:
-            study_indices = True
+            study_indices = {"": True}
+        elif not isinstance(study_indices, dict):
+            study_indices = {"": study_indices}
 
         # Process selected studies.
-        for study in get_indexed_objs(self.studies, study_indices):
-            study_dir = patient_dir / study.timestamp
-            study.copy_dicom(outdir=patient_dir / study.timestamp,
-                    overwrite=overwrite, **kwargs)
+        for group, indices in study_indices.items():
+            for study in get_indexed_objs(self.studies, indices):
+                study.copy_dicom(outdir=patient_dir / group / study.timestamp,
+                        overwrite=overwrite, **kwargs)
 
 def find_matching_object(obj, possible_matches):
     """For a given object <obj> and a list of potential matching objects
