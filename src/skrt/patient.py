@@ -929,7 +929,8 @@ class Study(skrt.core.Archive):
                         bilateral_names=bilateral_names)
 
     def copy_dicom(self, outdir=".",
-            image_types=None, times=None, files=None, overwrite=True,
+            images_to_copy=None, structure_sets_to_copy=None,
+            doses_to_copy=None, plans_to_copy=None, overwrite=True,
             sort=True):
         """
         Copy study dicom data.
@@ -945,50 +946,72 @@ class Study(skrt.core.Archive):
             be written for study.  Each output image will be in a separate
             sub-directory, along with a file per associated ROI.
 
-        image_types - list/str/None, default=None
-            Images types to be saved: None to save all, otherwise a list
-            of image types to save, or a string specifying a single image
-            type to save.
+        images_to_copy : list/str/dict, default=None
+            String specifiying image type for which all images are
+            to be copied; list of strings specifying image types
+            for which all images are to be copied; dictionary where
+            the keys are image types and the values are lists of
+            timestamp indices for the images to be copied, 0 being
+            the earliest and -1 being the most recent.  If set to
+            None, all images are copied.
 
-        times : dict, default=None
-            Dictionary where the keys are image types and the values are
-            lists of timestamp indices for the images to be saved,
+        structure_sets_to_copy : list/str/dict, default=None
+            String specifiying structure-set type for which all
+            structure sets are to be copied; list of strings
+            specifying structure-set types for which all structure
+            sets are to be copied; dictionary where the keys are
+            structure-set types and the values are lists of
+            timestamp indices for the structure sets to be copied,
             0 being the earliest and -1 being the most recent.  If set to
-            None, all images are saved.
-
-        files : dict, default=None
-            Dictionary where the keys are image types and the values are
-            lists of file indices for structure sets to be saved for
-            a given image, 0 being the earliest and -1 being the most recent.
-            If set to None, all of an image's structure sets are saved.
+            None, all structure sets are copied.
         """
         # Ensure that study output directory exists.
         study_dir = skrt.core.make_dir(outdir, overwrite=overwrite)
 
-        # Obtain set of image types to be saved.
-        save_types = set(image_types or self.image_types).intersection(
-                set(self.image_types))
-
-        # Define structure set(s) to be saved for each image type.
-        if not isinstance(files, dict):
-            files = {save_type: files for save_type in save_types}
+        # Obtain dictionary associating indices to data types.
+        image_indices = get_data_indices(images_to_copy, self.image_types)
+        structure_set_indices = get_data_indices(structure_sets_to_copy,
+                getattr(self, "structure_set_types", []))
+        dose_indices = get_data_indices(doses_to_copy,
+                getattr(self, "dose_types", []))
+        plan_indices = get_data_indices(plans_to_copy,
+                getattr(self, "plan_types", []))
 
         # Loop over image types.
-        for save_type in save_types:
+        for image_type in image_indices:
             # Loop over images of current type.
-            for idx1, im in enumerate(self.image_types[save_type]):
+            for idx1, im in enumerate(self.image_types[image_type]):
                 
-                im.copy_dicom_files(save_type, idx1, times,
-                        study_dir / save_type.upper()
+                # Copy image.
+                im.copy_dicom_files(image_type, idx1, image_indices,
+                        study_dir / image_type.upper()
                         / f"{im.timestamp}_{idx1+1:03}",
                         overwrite, sort)
 
-                for idx2, ss in enumerate(im.structure_sets):
+                # Copy structure sets associated with image.
+                if image_type in structure_set_indices:
+                    for idx2, ss in enumerate(im.structure_sets):
+                        ss.copy_dicom_files(image_type, idx2,
+                                structure_set_indices,
+                                study_dir / "RTSTRUCT" / image_type.upper()
+                                / f"{im.timestamp}_{idx1+1:03}",
+                                overwrite, sort)
 
-                    ss.copy_dicom_files(save_type, idx2, files,
-                            study_dir / "RTSTRUCT" / save_type.upper()
-                            / f"{im.timestamp}_{idx1+1:03}",
-                            overwrite, sort)
+                # Copy doses associated with image.
+                if image_type in dose_indices:
+                    for idx3, dose in enumerate(im.doses):
+                        dose.copy_dicom_files(image_type, idx3, dose_indices,
+                                study_dir / "RTDOSE" / image_type.upper()
+                                / f"{im.timestamp}_{idx1+1:03}",
+                                overwrite, sort)
+
+                # Copy plans associated with image.
+                if image_type in plan_indices:
+                    for idx4, plan in enumerate(im.plans):
+                        dose.copy_dicom_files(image_type, idx4, plan_indices,
+                                study_dir / "RTPLAN" / image_type.upper()
+                                / f"{im.timestamp}_{idx1+1:03}",
+                                overwrite, sort)
 
 
 class Patient(skrt.core.PathData):
@@ -2401,3 +2424,58 @@ def find_matching_object(obj, possible_matches):
                             return (match, structure_set)
 
     return (None, None)
+
+def get_data_indices(in_value, valid_data_types):
+    """
+    Obtain dictionary associating indices with data types.
+
+    This is used in patient.skrt.Study.copy_dicom() to obtain
+    dictionaries from input parameters that may be dictionaries,
+    lists, or None.
+
+    **Parameters:**
+
+    in_value : dict/str/int/list/None
+        Specification of indices associated with data types.
+        list of data types, or None.  If a dictionary, return
+        after removing any keys not in <valid_data_types>.
+        If a string, return a dictionary that associates with
+        it the value True (all file indices) if the string is
+        in <valid_data_types>, or otherwise return an empty
+        dictionary.  If a list, return a dictionary that
+        associates the value True with each listed data type that
+        is in <valid_data_types>.  If None, return a dictionary
+        that associates the value True with all data types
+        of <valid_data_types>.
+
+    valid_data_types : list
+        List of valid data_types.
+    """
+    # Filter out keys that aren't valid data types.
+    if isinstance(in_value, dict):
+        data_indices = {data_type: indices
+                for data_type, indices in in_value.items()
+                if data_type in valid_data_types}
+
+    # Associate specific index with all valid data types.
+    elif isinstance(in_value, int):
+        data_indices = {data_type: in_value for data_type in valid_data_types}
+
+    # Associate value True with specific data type.
+    elif isinstance(in_value, str):
+        data_indices = {in_value: True} if in_value in valid_data_types else {}
+
+    else:
+
+        # Accept all valid data types.
+        if in_value is None:
+            data_types = valid_data_types
+
+        # Accept subset of valid data types.
+        else:
+            data_types = [data_type for data_type in in_value
+                    if data_type in valid_data_types]
+
+        data_indices = {data_type: True for data_type in data_types}
+
+    return data_indices
