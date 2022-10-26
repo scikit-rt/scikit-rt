@@ -710,57 +710,6 @@ class PathData(Data):
         # Only 1 data file associated with a non-Archive object.
         return 1
 
-    def copy_dicom(self, *args, **kwargs):
-        """
-        Copy source dicom files: to be implemented in derived classes.
-        """
-        raise NotImplementedError(
-                f"Method 'copy_dicom()' not implemented for class {type(self)}")
-
-    def copy_dicom_files(self, data_type=None, index=None, indices=None,
-            outdir="dicom", overwrite=True, sort=True):
-        """
-        Copy DICOM files associated with this object.
-
-        **Parameters:**
-
-        data_type : str, default=None
-            String indicting modality of DICOM data associated with
-            this object, for example 'CT', 'RTSTRUCT', 'RTPLAN'.
-            Ignored if None.
-
-        index : int, default=None
-            Integer representing object position in an ordered
-            list of objects of specified <data_type>.  Ignored if None.
-
-        indices : dict, default=None
-            Dictionary where the keys are data types and the values are
-            lists of indices for the objects whose data is to be written.
-            Ignored if None.
-
-        outdir : pathlib.Path/str, default="dicom"
-            Path to directory to which dicom files are to be copied.
-
-        overwrite : bool, default=True
-            If True, allow copied file(s) to overwrite existing file(s),
-            as defined in derived class's copy_dicom() method.
-
-        sort : bool, default=True
-            If True, files are sorted for copying, as defined in derived
-            class's copy_dicom() method.
-        """
-        # Check whether object index satisfies requirements.
-        if (isinstance(indices, dict)
-                and isinstance(data_type, str)
-                and isinstance(indices.get(data_type, None), list)
-                and isinstance(data_index, int)
-                and data_index not in indices[data_type]):
-            return
-
-        # Create output directory, and copy object files.
-        outdir = make_dir(outdir, overwrite)
-        self.copy_dicom(outdir, overwrite, sort)
-
 
 class Dated(PathData):
     """PathData with an associated date and time, which can be used for
@@ -868,6 +817,107 @@ class Dated(PathData):
         '''
         return (self > other) or (self == other)
 
+    def copy_dicom(self, outdir=None, overwrite=True, sort=True):
+        """
+        Copy (single) source dicom file.
+
+        Derived classes may override this method, to provide for
+        copying multiple files.  See, for example:
+            skrt.image.Image.copy_dicom().
+
+        **Parameters:**
+
+        outdir : pathlib.Path/str, default=None
+            Path to directory to which source file is to be copied.
+            if None, this is set to be a directory with name equal
+            to the modality (all upper case) of the dicom data.
+
+        overwrite : bool, default=True
+            If True, delete and recreate <outdir> before copying
+            file.  If False and <outdir> exists already, copy
+            file only if this doesn't mean overwriting an existing
+            file.
+
+        sort : bool, default=True
+            If True, the copied dicom file will be given name of form
+            'MODALITY_YYMMDD_hhmmss'.  If False, the file is copied
+            with name unaltered.
+        """
+        if not callable(getattr(self, "load", None)):
+            raise NotImplementedError(
+                    f"{type(self)}.copy_dicom() failed - "
+                    "class has no load() method")
+            return
+        self.load()
+
+        # Check that object has dicom file to be copied.
+        path = Path(self.path)
+        ds = getattr(self, "dicom_dataset", None)
+        if not ds or not path.exists():
+            raise NotImplementedError(
+                    f"{type(self)}.copy_dicom() failed - "
+                    "object has no associated DICOM file")
+            return
+
+        # Obtain the data modality.
+        modality = getattr(ds, "Modality", "unknown")
+
+        # Define the output directory.
+        outdir = make_dir(outdir or modality, overwrite)
+
+        # Define path to the output file.
+        if sort:
+            name = f"{modality}_{self.timestamp}.dcm" if sort else path.name()
+        outpath = outdir / name
+
+        # Copy file.
+        if overwrite or not outpath.exists():
+            shutil.copy2(path, outpath)
+
+    def copy_dicom_files(self, data_type=None, index=None, indices=None,
+            outdir="dicom", overwrite=True, sort=True):
+        """
+        Copy DICOM file(s) associated with this object.
+
+        **Parameters:**
+
+        data_type : str, default=None
+            String indicting type of data associated with
+            this object.  This may be any key of the <indices>
+            dictionary.  Ignored if not a key of this dictionary,
+            or if None.
+
+        index : int, default=None
+            Integer representing object position in an ordered
+            list of objects of specified <data_type>.  Ignored if None.
+
+        indices : dict, default=None
+            Dictionary where the keys are data types and the values are
+            lists of indices for the objects whose data is to be written.
+            Ignored if None.
+
+        outdir : pathlib.Path/str, default="dicom"
+            Path to directory to which dicom files are to be copied.
+
+        overwrite : bool, default=True
+            If True, allow copied file(s) to overwrite existing file(s),
+            as defined in derived class's copy_dicom() method.
+
+        sort : bool, default=True
+            If True, files are sorted for copying, as defined in derived
+            class's copy_dicom() method.
+        """
+        # Check whether object index satisfies requirements.
+        if (isinstance(indices, dict)
+                and isinstance(data_type, str)
+                and isinstance(indices.get(data_type, None), list)
+                and isinstance(data_index, int)
+                and data_index not in indices[data_type]):
+            return
+
+        # Create output directory, and copy object files.
+        outdir = make_dir(outdir, overwrite)
+        self.copy_dicom(outdir, overwrite, sort)
 
 class MachineData(Dated):
     """Dated object with an associated machine name."""
