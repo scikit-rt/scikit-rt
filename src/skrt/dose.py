@@ -562,21 +562,25 @@ class Plan(skrt.core.Archive):
                 continue
             roi.roi_type = item.DoseReferenceType
             roi.constraint = Constraint()
-            roi.constraint.weight = float(item.ConstraintWeight)
+            roi.constraint.weight = skrt.core.get_float(
+                    item, "ConstraintWeight")
             if 'ORGAN_AT_RISK' == item.DoseReferenceType:
-                roi.constraint.maximum_dose = float(item.OrganAtRiskMaximumDose)
-                roi.constraint.full_volume_dose = float(
-                        item.OrganAtRiskFullVolumeDose)
-                roi.constraint.overdose_volume_fraction = float(
-                        item.OrganAtRiskOverdoseVolumeFraction)
+                roi.constraint.maximum_dose = skrt.core.get_float(
+                        item, "OrganAtRiskMaximumDose")
+                roi.constraint.full_volume_dose = skrt.core.get_float(
+                        item, "OrganAtRiskFullVolumeDose")
+                roi.constraint.overdose_volume_fraction = skrt.core.get_float(
+                        item, "OrganAtRiskOverdoseVolumeFraction")
                 self.organs_at_risk.append(roi)
             elif 'TARGET' == item.DoseReferenceType:
-                roi.constraint.minimum_dose = float(item.TargetMinimumDose)
-                roi.constraint.prescription_dose = float(
-                        item.TargetPrescriptionDose)
-                roi.constraint.maximum_dose = float(item.TargetMaximumDose)
-                roi.constraint.underdose_volume_fraction = float(
-                        item.TargetUnderdoseVolumeFraction)
+                roi.constraint.minimum_dose = skrt.core.get_float(
+                        item, "TargetMinimumDose")
+                roi.constraint.prescription_dose = skrt.core.get_float(
+                        item, "TargetPrescriptionDose")
+                roi.constraint.maximum_dose = skrt.core.get_float(
+                        item, "TargetMaximumDose")
+                roi.constraint.underdose_volume_fraction = skrt.core.get_float(
+                        item, "TargetUnderdoseVolumeFraction")
                 self.targets.append(roi)
 
         self.constraints_loaded = True

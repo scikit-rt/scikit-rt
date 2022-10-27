@@ -1654,3 +1654,25 @@ def make_dir(path=".", overwrite=True, require_empty=False):
         dirpath.mkdir(parents=True, exist_ok=True)
     
     return dirpath
+
+def get_float(obj, attribute, default=None):
+    """
+    Return object attribute as a float.
+
+    **Parameters:**
+
+    obj : Object to be considered.
+
+    attribute : str
+        Name of object attribute to be returned as float.
+
+    default : Value to be returned in case object attribute
+        can't be converted to float.
+    """
+    value = getattr(obj, attribute, default)
+    if value != default:
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            value = default
+    return value
