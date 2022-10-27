@@ -424,6 +424,11 @@ class DicomFile(Data):
         except IsADirectoryError:
             self.ds = None
 
+        # Try to protect against cases where file read isn't a DICOM file.
+        if (not isinstance(self.ds, pydicom.dataset.FileDataset)
+                or len(self.ds) < 2):
+            self.ds = None
+
         # Define prefixes of dataset attributes to be used
         # to set study and item timestamps.
         elements = {

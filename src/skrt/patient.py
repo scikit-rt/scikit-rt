@@ -968,17 +968,23 @@ class Study(skrt.core.Archive):
         # Ensure that study output directory exists.
         study_dir = skrt.core.make_dir(outdir, overwrite=overwrite)
 
-        # Obtain dictionary associating indices to data types.
+        # Obtain dictionary associating indices to images.
         image_indices = get_data_indices(images_to_copy, self.image_types)
-        structure_set_indices = get_data_indices(structure_sets_to_copy,
-                getattr(self, "structure_set_types", []))
-        dose_indices = get_data_indices(doses_to_copy,
-                getattr(self, "dose_types", []))
-        plan_indices = get_data_indices(plans_to_copy,
-                getattr(self, "plan_types", []))
+
+        # Identify non-image data.
+        non_image_data = [
+                ("RTSTRUCT", "structure_sets",
+                    get_data_indices(structure_sets_to_copy,
+                    getattr(self, "structure_set_types", []))),
+                ("RTDOSE", "doses", get_data_indices(doses_to_copy,
+                    getattr(self, "dose_types", []))),
+                ("RTPLAN", "plans", get_data_indices(plans_to_copy,
+                    getattr(self, "plan_types", []))),
+                ]
 
         # Loop over image types.
         for image_type in image_indices:
+
             # Loop over images of current type.
             for idx1, im in enumerate(self.image_types[image_type]):
                 
@@ -988,29 +994,23 @@ class Study(skrt.core.Archive):
                         / f"{im.timestamp}_{idx1+1:03}",
                         overwrite, sort)
 
-                # Copy structure sets associated with image.
-                if image_type in structure_set_indices:
-                    for idx2, ss in enumerate(im.structure_sets):
-                        ss.copy_dicom_files(image_type, idx2,
-                                structure_set_indices,
-                                study_dir / "RTSTRUCT" / image_type.upper()
-                                / f"{im.timestamp}_{idx1+1:03}",
-                                overwrite, sort)
+                # Copy non-image data that matches an image type.
+                for modality, reference, indices in non_image_data:
+                    if image_type in indices:
+                        for idx2, obj in enumerate(getattr(im, reference)):
+                            obj.copy_dicom_files(image_type, idx2, indices,
+                                    study_dir / modality / image_type.upper()
+                                    / f"{im.timestamp}_{idx1+1:03}",
+                                    overwrite, sort)
 
-                # Copy doses associated with image.
-                if image_type in dose_indices:
-                    for idx3, dose in enumerate(im.doses):
-                        dose.copy_dicom_files(image_type, idx3, dose_indices,
-                                study_dir / "RTDOSE" / image_type.upper()
-                                / f"{im.timestamp}_{idx1+1:03}",
-                                overwrite, sort)
-
-                # Copy plans associated with image.
-                if image_type in plan_indices:
-                    for idx4, plan in enumerate(im.plans):
-                        dose.copy_dicom_files(image_type, idx4, plan_indices,
-                                study_dir / "RTPLAN" / image_type.upper()
-                                / f"{im.timestamp}_{idx1+1:03}",
+        # Copy non-image data not matching an image type.
+        for modality, reference, indices in non_image_data:
+            for data_type in indices:
+                if data_type not in image_indices:
+                    for idx3, obj in enumerate(
+                            getattr(self, f"{data_type}_{reference}")):
+                        obj.copy_dicom_files(data_type, idx3, indices,
+                                study_dir / modality / data_type.upper(),
                                 overwrite, sort)
 
 

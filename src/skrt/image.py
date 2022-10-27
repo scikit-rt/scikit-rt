@@ -4606,9 +4606,9 @@ def get_dicom_voxel_size(ds):
     voxel_size : list
         List of voxel sizes in order [row, column, slice].
     """
-
     # Get voxel spacings
-    for attr in ["PixelSpacing", "ImagerPixelSpacing"]:
+    for attr in ["PixelSpacing", "ImagerPixelSpacing",
+            "ImagePlanePixelSpacing"]:
         pixel_size = getattr(ds, attr, None)
         if pixel_size:
             break
@@ -4654,10 +4654,14 @@ def get_dicom_affine(ds, image_positions=None):
         zmin = sorted_slices[0]
         zmax = sorted_slices[-1]
         n = len(sorted_slices)
-        slice_elements = [
-            (image_positions[zmax][i] - image_positions[zmin][i]) / (n - 1)
-            for i in range(3)
-        ]
+        if n > 1:
+            slice_elements = [
+                (image_positions[zmax][i] - image_positions[zmin][i]) / (n - 1)
+                for i in range(3)
+            ]
+        else:
+            slice_elements = [0] * 3
+            slice_elements[axes[2]] = voxel_size[2]
         origin = image_positions[zmin]
     else:
         slice_elements = [0] * 3

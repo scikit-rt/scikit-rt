@@ -7,7 +7,7 @@ import functools
 
 import matplotlib
 
-from skrt.core import Archive, Data
+import skrt.core
 import skrt.image
 import skrt.structures
 
@@ -266,6 +266,18 @@ class Dose(ImageOverlay):
             self.dose_type = getattr(ds, 'DoseType', None)
             self.dose_summation_type = getattr(ds, 'DoseSummationType', None)
 
+    def copy_dicom(self, *args, **kwargs):
+        """
+        Copy (single) source dicom file.
+
+        The present class (skrt.dose.Dose) inherits from skrt.image.Image,
+        which in turn inherits from skrt.core.Dated.  This method
+        forces calling of the copy_dicom() method of the latter.
+        For details of parameters, see documentation for:
+        skrt.core.Dated.copy_dicom().
+        """
+        skrt.core.Dated.copy_dicom(self, *args, **kwargs)
+
     def set_image(self, image):
         """Set associated image. Image.add_dose(self) will also be called."""
 
@@ -441,7 +453,7 @@ class Dose(ImageOverlay):
             return np.quantile(doses, quantile)
 
 
-class Plan(Archive):
+class Plan(skrt.core.Archive):
     def __init__(self, path="", load=True):
 
         self.loaded = False
@@ -459,11 +471,11 @@ class Plan(Archive):
         self.image = None
         self.structure_set = None
         self.doses = []
-        self.objectives = Data()
+        self.objectives = skrt.core.Data()
         for constraint_attribute in Constraint.get_weight_and_objectives():
             setattr(self.objectives, constraint_attribute, None)
 
-        Archive.__init__(self, path)
+        skrt.core.Archive.__init__(self, path)
 
         self.constraints_loaded = False
         if load:
@@ -741,7 +753,7 @@ class Plan(Archive):
         self.doses = []
 
 
-class Constraint(Data):
+class Constraint(skrt.core.Data):
     '''
     Container for data relating to a dose constraint.
     '''
