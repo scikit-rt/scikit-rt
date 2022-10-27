@@ -2328,7 +2328,7 @@ class Patient(skrt.core.PathData):
             study_dir = patient_dir / study.timestamp
             study.write_for_innereye(patient_dir / study.timestamp, **kwargs)
 
-    def copy_dicom(self, outdir=".", studies_to_copy=True, overwrite=True,
+    def copy_dicom(self, outdir=".", studies_to_copy=None, overwrite=True,
             **kwargs):
         """
         Copy patient dicom data.
@@ -2346,7 +2346,8 @@ class Patient(skrt.core.PathData):
             the most recent: or a dictionary where keys will be used
             as names of subdirectories grouping studies, and values
             are indices of studies to be grouped.  If set to
-            None, data for all studies are written, with no grouping.
+            None, data for all studies are written, keeping any
+            existing grouping.
 
         overwrite : bool, default=True
             If True, delete and recreate patient sub_directory
@@ -2364,7 +2365,11 @@ class Patient(skrt.core.PathData):
 
         # If studies_to_copy is None, set to select all studies.
         if studies_to_copy is None:
-            studies_to_copy = {"": True}
+            studies_to_copy = {}
+            for idx, study in enumerate(self.studies):
+                if not study.subdir in studies_to_copy:
+                    studies_to_copy[study.subdir] = []
+                studies_to_copy[study.subdir].append(idx)
         elif not isinstance(studies_to_copy, dict):
             studies_to_copy = {"": studies_to_copy}
 
