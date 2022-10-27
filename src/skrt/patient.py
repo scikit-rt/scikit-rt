@@ -2328,7 +2328,7 @@ class Patient(skrt.core.PathData):
             study_dir = patient_dir / study.timestamp
             study.write_for_innereye(patient_dir / study.timestamp, **kwargs)
 
-    def copy_dicom(self, outdir=".", study_indices=True, overwrite=True,
+    def copy_dicom(self, outdir=".", studies_to_copy=True, overwrite=True,
             **kwargs):
         """
         Copy patient dicom data.
@@ -2340,7 +2340,7 @@ class Patient(skrt.core.PathData):
             study, containing in turn a sub-directory for each data
             modality.
 
-        study_indices : list/dict, default=None
+        studies_to_copy: list/dict, default=None
             List of indices of studies for which data are
             to be written, 0 being the earliest study and -1 being
             the most recent: or a dictionary where keys will be used
@@ -2362,14 +2362,14 @@ class Patient(skrt.core.PathData):
         patient_dir = skrt.core.make_dir(Path(fullpath(outdir)) / self.id,
                 overwrite=overwrite)
 
-        # If study_indices is None, set to select all studies.
-        if study_indices is None:
-            study_indices = {"": True}
-        elif not isinstance(study_indices, dict):
-            study_indices = {"": study_indices}
+        # If studies_to_copy is None, set to select all studies.
+        if studies_to_copy is None:
+            studies_to_copy = {"": True}
+        elif not isinstance(studies_to_copy, dict):
+            studies_to_copy = {"": studies_to_copy}
 
         # Process selected studies.
-        for group, indices in study_indices.items():
+        for group, indices in studies_to_copy.items():
             for study in get_indexed_objs(self.studies, indices):
                 study.copy_dicom(outdir=patient_dir / group / study.timestamp,
                         overwrite=overwrite, **kwargs)
