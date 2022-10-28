@@ -120,10 +120,10 @@ def test_logger(capsys):
     test_msg = "Test message"
     logger.info(test_msg)
     captured = capsys.readouterr()
-    assert test_msg in captured.err
+    assert test_msg in captured.out
     logger.debug(test_msg)
     captured = capsys.readouterr()
-    assert test_msg not in captured.err
+    assert test_msg not in captured.out
 
 def test_null_data():
     x = skrt.core.Data()

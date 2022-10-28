@@ -7,6 +7,7 @@ import copy
 import os
 import re
 import shutil
+import sys
 import time
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
@@ -1063,7 +1064,7 @@ def get_logger(name="", log_level=None, identifier="name"):
         https://docs.python.org/3/library/logging.html#logrecord-attributes
     """
     formatter = Formatter(f"%({identifier})s - %(levelname)s - %(message)s")
-    handler = StreamHandler()
+    handler = StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
     logger = getLogger(name)
     if not logger.handlers:
@@ -1676,3 +1677,10 @@ def get_float(obj, attribute, default=None):
         except (TypeError, ValueError):
             value = default
     return value
+
+def get_qualified_class_name(cls):
+    """
+    Determine qualified name of class <cls>.
+    """
+    if isinstance(cls, type):
+        return f"{cls.__module__}.{cls.__name__}"

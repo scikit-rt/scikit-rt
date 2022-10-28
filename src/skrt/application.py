@@ -12,9 +12,16 @@ Algorithm class.  This defines three methods relating to execution:
 Each method returns an instance of the Status class,
 providing information on whether execution problems were encountered.
 Running of algorithm methods is handled by the Application class.
-'''
 
-from skrt.core import Defaults, get_logger
+This module also provides functions that may be useful within an
+application:
+* **get_data_loader()** - get information for loading patient datasets.
+* **get_paths()** - get list of paths to patient datasets.
+'''
+from itertools import chain
+from pathlib import Path
+
+from skrt.core import Defaults, fullpath, get_logger
 from skrt.patient import Patient
 
 
@@ -279,3 +286,63 @@ class Status():
             is_ok = True
 
         return is_ok
+
+
+def get_paths(data_locations=None, max_path=None, ids=None):
+    """
+    Get list of paths to patient datasets.
+
+    **Parameter:**
+
+    data_locations : pathlib.Path/str/list/dict, default=None
+        Specification of how to identify paths to patient datasets:
+
+        - string pathlib.Path giving path to a single patient dataset;
+        - list of strings or pathlib.Path giving full paths to patient datasets;
+        - dictionary where keys are paths to directories containing
+          patient datasets, and values are strings, or lists of strings,
+          indicating patterns to be matched.
+
+    max_path : int, default=None
+        Maximum number of paths to return.  If None, return paths to all
+        directories in data directory (currently hardcoded in this function).
+
+    ids : str/list, default=None
+        Patient identifier, or list of patient identifiers.  If non-null,
+        only return dataset paths for the specified identifier(s).
+    """
+    # Return empty list if data_locations is None.n
+    paths = []
+    if data_locations is None:
+        return paths
+
+    # If data_locations passed as pathlib.Path or string, convert to list.
+    if isinstance(data_locations, (Path, str)):
+        data_locations = [data_locations]
+
+    # Obtain dataset paths from list of data locations.
+    if isinstance(data_locations, (list, set, tuple)):
+        paths = [str(fullpath(data_location))
+                for data_locations in  data_locations]
+
+    # Obtain dataset paths from dictionary associating directories and patterns.
+    elif isinstance(data_locations, dict):
+        for data_dir, patterns in data_locations.items():
+            paths.extend([str(fullpath(path)) for path in chain.from_iterable(
+                [Path(data_dir).glob(pattern) for pattern in patterns])
+                if path.is_dir()])
+
+    # Filter list of dataset paths.
+    if ids:
+        if not is_list(ids):
+            ids = [ids]
+        paths = [path for path in paths
+                if any([Path(path).match(id) for id in ids])]
+
+    # Sort paths, ensuring that each path is included only once, 
+    paths = sorted(list(set(paths)))
+
+    # Determine maximum number of paths to return.
+    max_path = min(max_path if max_path is not None else len(paths), len(paths))
+
+    return paths[0: max_path]
