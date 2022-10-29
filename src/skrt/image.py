@@ -4613,10 +4613,16 @@ def get_dicom_voxel_size(ds):
         if pixel_size:
             break
 
+    # If not possible to determine pixel size from DICOM data,
+    # set to 1 mm x 1 mm
+    if not pixel_size:
+        pixel_size = [1, 1]
+
     # Get slice thickness
     slice_thickness = getattr(ds, "SliceThickness", 1)
     if not slice_thickness and hasattr(ds, 'GridFrameOffsetVector'):
-        if len(ds.GridFrameOffsetVector) > 1:
+        if (isinstance(ds.GridFrameOffsetVector, pydicom.multival.MultiValue)
+            and len(ds.GridFrameOffsetVector) > 1):
             slice_thickness = abs(
                     ds.GridFrameOffsetVector[1] - ds.GridFrameOffsetVector[0])
 
@@ -4980,14 +4986,20 @@ def set_image_orientation_patient(ds):
             }
     
     if not hasattr(ds, 'ImageOrientationPatient'):
-        patient_orientation =  getattr(ds, 'PatientOrientation', None)
-        if patient_orientation:
+        patient_orientation =  getattr(ds, 'PatientOrientation', [])
+        unknown_orientations = (
+            {"AL", "LA", "PR", "RP"}.intersection(patient_orientation))
+        if patient_orientation and not unknown_orientations:
             ds.ImageOrientationPatient = (
                     direction_cosines[patient_orientation[1]] +
                     direction_cosines[patient_orientation[0]])
         else:
-            print('WARNING: ImageOrientationPatient '
-                  'and PatientOrientation undefined')
+            if unknown_orientations:
+                print('WARNING: PatientOrientation not understood: '
+                      f'{patient_orientation}')
+            else:
+                print('WARNING: ImageOrientationPatient '
+                      'and PatientOrientation undefined')
             patient_position = getattr(ds, 'PatientPosition', None)
             if patient_position:
                 print(f'Patient position: {patient_position}')

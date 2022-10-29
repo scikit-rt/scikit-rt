@@ -1135,6 +1135,9 @@ class Patient(skrt.core.PathData):
                 "structure_set": StructureSet,
                 }
 
+        # Modalities not currently handled.
+        unhandled_modalities = ["rtrecord"]
+
         # Loop through files in the directory pointed to path attribute,
         # and in sub-directories.  Use each file to try to instantiate
         # a skrt.core.DicomFile object.  Use instantiated objects to
@@ -1145,7 +1148,8 @@ class Patient(skrt.core.PathData):
         file_paths = sorted(patient_path.glob("**/*"))
         for file_path in file_paths:
             dcm = skrt.core.DicomFile(file_path)
-            if dcm.ds:
+            if (dcm.ds and (dcm.study_instance_uid is not None)
+                and (dcm.modality not in unhandled_modalities)):
                 # Add to patient's list of Study objects.
                 matched_attributes = dcm.get_matched_attributes(self.studies,
                         "study_instance_uid")
