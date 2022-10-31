@@ -983,6 +983,8 @@ class Study(skrt.core.Archive):
                 ]
 
         # Loop over image types.
+        # Overwriting taken into account at study level,
+        # so don't overwrite at sub-study level.
         for image_type in image_indices:
 
             # Loop over images of current type.
@@ -992,7 +994,7 @@ class Study(skrt.core.Archive):
                 im.copy_dicom_files(image_type, idx1, image_indices,
                         study_dir / image_type.upper()
                         / f"{im.timestamp}_{idx1+1:03}",
-                        overwrite, sort)
+                        overwrite=False, sort=sort)
 
                 # Copy non-image data that matches an image type.
                 for modality, reference, indices in non_image_data:
@@ -1001,7 +1003,7 @@ class Study(skrt.core.Archive):
                             obj.copy_dicom_files(image_type, idx2, indices,
                                     study_dir / modality / image_type.upper()
                                     / f"{im.timestamp}_{idx1+1:03}",
-                                    overwrite, sort)
+                                    overwrite=False, sort=sort)
 
         # Copy non-image data not matching an image type.
         for modality, reference, indices in non_image_data:
@@ -1011,7 +1013,7 @@ class Study(skrt.core.Archive):
                             getattr(self, f"{data_type}_{reference}")):
                         obj.copy_dicom_files(data_type, idx3, indices,
                                 study_dir / modality / data_type.upper(),
-                                overwrite, sort)
+                                overwrite=False, sort=sort)
 
 
 class Patient(skrt.core.PathData):
@@ -2380,8 +2382,10 @@ class Patient(skrt.core.PathData):
         # Process selected studies.
         for group, indices in studies_to_copy.items():
             for study in get_indexed_objs(self.studies, indices):
+                # Overwriting taken into account at patient level,
+                # so don't overwrite at study level.
                 study.copy_dicom(outdir=patient_dir / group / study.timestamp,
-                        overwrite=overwrite, **kwargs)
+                        overwrite=False, **kwargs)
 
 def find_matching_object(obj, possible_matches):
     """For a given object <obj> and a list of potential matching objects
