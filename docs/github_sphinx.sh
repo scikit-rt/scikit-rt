@@ -42,9 +42,6 @@ pip install -e ..
 pip install -e ../examples/voxtox
 pip install -e ../examples/import
 
-pip show numpy
-pip show ipywidgets
-
 # Delete package rst files, and recreate
 EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py ../examples/import/setup.py"
 rm -f source/skrt*.rst

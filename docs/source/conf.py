@@ -24,6 +24,8 @@ sys.path.insert(0, os.path.abspath('../../examples/import_analysis/src'))
 
 print(f'cwd: {os.getcwd()}')
 print(f'sys.path: {sys.path}')
+print(f'{os.listdir("/usr/local/lib/python3.11/site-packages")}')
+print(f'{os.listdir(os.getcwd())}')
 
 import import_analysis
 import skrt
