@@ -2,6 +2,7 @@
 Application for copying DICOM files, with optional sorting.
 '''
 import platform
+import shutil
 import sys
 import timeit
 
@@ -74,7 +75,7 @@ class CopyDicom(Algorithm):
 
     def execute(self, patient=None):
         '''
-        Map ROIs from relapse scan to planning scan.
+        Copy source DICOM files.
 
         **Parameter:**
 
@@ -88,6 +89,7 @@ class CopyDicom(Algorithm):
         self.logger.info(f"Initialisation time: {patient._init_time:.2f} s")
         self.logger.info(f"Output folder {self.outdir}/{patient.id}")
 
+        # Copy patient's DICOM files.
         tic = timeit.default_timer()
         patient.copy_dicom(
                 outdir=self.outdir,
@@ -111,7 +113,7 @@ def get_app(setup_script=''):
 
     opts = {}
     # Specification of studies to copy.
-    opts["studies_to_copy"] = None
+    opts["studies_to_copy"] = {"planning": True}
 
     # Specification of images to copy.
     opts["images_to_copy"] = None
@@ -129,10 +131,21 @@ def get_app(setup_script=''):
     opts["self.sort"] = True
 
     # Path to output directory.
-    opts["outdir"] = fullpath("dicom")
+    if "Linux" == platform.system():
+        opts["outdir"] = fullpath("/r02/radnet/import/dicom")
+    else:
+        opts["outdir"] = fullpath("dicom")
 
     # Indicate whether to overwrite any pre-existing patient directory.
     opts["overwrite"] = True
+    
+    # If pre-existing data are to be overwritten,
+    # delete the output directory and its contents.
+    if opts["overwrite"]:
+        outdir = Path(opts["outdir"])
+        if outdir.exists():
+            shutil.rmtree(outdir)
+        opts["overwrite"] = False
 
     if 'Ganga' in __name__:
         opts['alg_module'] = fullpath(sys.argv[0])
@@ -161,7 +174,8 @@ def get_data_locations():
     else:
         data_dirs = [Path("~/data/20220613_import_cam").expanduser()]
 
-    patterns = ["import_high/R*", "import_high/H*", "import_low/L*"]
+    patterns = [
+        "import_high/R*", "planning/import_high/H*", "planning/import_low/L*"]
 
     return {data_dir: patterns for data_dir in data_dirs}
 
