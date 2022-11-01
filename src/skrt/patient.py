@@ -770,9 +770,9 @@ class Study(skrt.core.Archive):
                     idx += idx_add
 
     def write_for_innereye(self, outdir="./innereye_datasets",
-            image_types=None, times=None, verbose=True,
+            image_types=None, images_to_write=None, verbose=True,
             image_size=None, voxel_size=None, fill_value=None,
-            bands=None, require_structure_set=None, files=-1,
+            bands=None, require_structure_set=None, structure_sets_to_write=-1,
             roi_names=None, force_roi_nifti=False, bilateral_names=None,
             overwrite=True):
         """
@@ -797,7 +797,7 @@ class Study(skrt.core.Archive):
             of image types to save, or a string specifying a single image
             type to save.
 
-        times : dict, default=None
+        images_to_write : dict, default=None
             Dictionary where the keys are image types and the values are
             lists of timestamp indices for the images to be saved,
             0 being the earliest and -1 being the most recent.  If set to
@@ -837,7 +837,7 @@ class Study(skrt.core.Archive):
             List of image types for which data are to be written only
             if there is an associated structure set.
 
-        files : dict, default=None
+        structure_sets_to_write: dict, default=-1
             Dictionary where the keys are image types and the values are
             lists of file indices for structure sets to be saved for
             a given image, 0 being the earliest and -1 being the most recent.
@@ -870,8 +870,9 @@ class Study(skrt.core.Archive):
                 set(self.image_types))
 
         # Define structure set(s) to be saved for each image type.
-        if not isinstance(files, dict):
-            files = {save_type: files for save_type in save_types}
+        if not isinstance(structure_sets_to_write, dict):
+            structure_sets_to_write = {save_type: structure_sets_to_write
+                    for save_type in save_types}
 
         # Loop over image types.
         for save_type in save_types:
@@ -881,13 +882,14 @@ class Study(skrt.core.Archive):
                 if (save_type in require_structure_set
                         and not get_indexed_objs(
                             im.structure_sets,
-                            files.get(save_type, True))):
+                            structure_sets_to_write.get(save_type, True))):
                     continue
                 
                 # Check whether image index satisfies requirements.
-                if (isinstance(times, dict)
-                        and isinstance(times.get(save_type, None), list)
-                        and idx not in times[save_type]):
+                if (isinstance(images_to_write, dict)
+                        and isinstance(images_to_write.get(save_type, None),
+                            list)
+                        and idx not in images_to_write[save_type]):
                     continue
 
 
@@ -907,7 +909,7 @@ class Study(skrt.core.Archive):
                 self.save_images_as_nifti(
                         outdir=im_dir,
                         image_types=[save_type],
-                        times={save_type: idx},
+                        times={save_type: [idx]},
                         verbose=verbose,
                         image_size=image_size,
                         voxel_size=voxel_size,
@@ -919,8 +921,9 @@ class Study(skrt.core.Archive):
                 self.save_structure_sets_as_nifti(
                         outdir=im_dir,
                         image_types=[save_type],
-                        times={save_type: idx},
-                        files={save_type: files.get(save_type, -1)},
+                        times={save_type: [idx]},
+                        files={save_type:
+                            structure_sets_to_write.get(save_type, -1)},
                         verbose=verbose,
                         image_size=image_size,
                         voxel_size=voxel_size,
@@ -989,6 +992,18 @@ class Study(skrt.core.Archive):
 
             # Loop over images of current type.
             for idx1, im in enumerate(self.image_types[image_type]):
+
+                # Check that image can be loaded.
+                # If not, give warning and skip.
+                try:
+                    im.load()
+                except:
+                    im.data = None
+
+                if im.data is None:
+                    print(f"Problems loading: {image_type}")
+                    print(getattr(im, "dicom_paths", []))
+                    continue
                 
                 # Copy image.
                 im.copy_dicom_files(image_type, idx1, image_indices,
@@ -1138,7 +1153,7 @@ class Patient(skrt.core.PathData):
                 }
 
         # Modalities not currently handled.
-        unhandled_modalities = ["rtrecord"]
+        unhandled_modalities = ["pr", "rtrecord", "sr"]
 
         # Loop through files in the directory pointed to path attribute,
         # and in sub-directories.  Use each file to try to instantiate
@@ -2296,7 +2311,7 @@ class Patient(skrt.core.PathData):
                 item.write(outdir=item_dir, ext=ext)
 
     def write_for_innereye(self,
-            outdir="./innereye_datasets", study_indices=True, verbose=True,
+            outdir="./innereye_datasets", studies_to_write=None, verbose=True,
             **kwargs):
 
         """
@@ -2309,8 +2324,8 @@ class Patient(skrt.core.PathData):
             study, containing in turn a sub-directory for each output
             image along with associated structure set(s).
 
-        study_indices : list, default=None
-            lists of indices of studies for which data are to be written,
+        studies_to_write : list, default=None
+            List of indices of studies for which data are to be written,
             0 being the earliest study and -1 being the most recent.  If set to
             None, data for all studies are written.
 
@@ -2326,11 +2341,11 @@ class Patient(skrt.core.PathData):
         patient_dir = Path(fullpath(outdir)) / self.id
 
         # If study_indices is None, set to select all studies.
-        if study_indices is None:
-            study_indices = True
+        if studies_to_write is None:
+            studies_to_write = True
 
         # Process selected studies.
-        for study in get_indexed_objs(self.studies, study_indices):
+        for study in get_indexed_objs(self.studies, studies_to_write):
             study_dir = patient_dir / study.timestamp
             study.write_for_innereye(patient_dir / study.timestamp, **kwargs)
 
