@@ -15,13 +15,16 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../src'))
-sys.path.insert(0, os.path.abspath('../../src/skrt'))
-sys.path.insert(0, os.path.abspath('../../src/skrt/better_viewer'))
-sys.path.insert(0, os.path.abspath('../../src/skrt/viewer'))
-sys.path.insert(0, os.path.abspath('../../examples/voxtox/src'))
-sys.path.insert(0, os.path.abspath('../../examples/import_analysis/src'))
+#sys.path.insert(0, os.path.abspath('../../src'))
+#sys.path.insert(0, os.path.abspath('../../src/skrt'))
+#sys.path.insert(0, os.path.abspath('../../src/skrt/better_viewer'))
+#sys.path.insert(0, os.path.abspath('../../src/skrt/viewer'))
+#sys.path.insert(0, os.path.abspath('../../examples/voxtox/src'))
+#sys.path.insert(0, os.path.abspath('../../examples/import_analysis/src'))
 
+os.system("pip install -e ../..")
+os.system("pip install -e ../../examples/voxtox")
+os.system("pip install -e ../../examples/import")
 print(f'cwd: {os.getcwd()}')
 print(f'sys.path: {sys.path}')
 print(f'{os.listdir("/usr/local/lib/python3.11/site-packages")}')
