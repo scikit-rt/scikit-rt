@@ -24,7 +24,7 @@
 cd docs
 
 # Upgrade pip
-pip install --upgrade pip
+#pip install --upgrade pip
 
 # Workaraound for not being able to install mahotas from pypi
 grep -v mahotas ../setup.cfg > ./setup.cfg
