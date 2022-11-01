@@ -24,7 +24,7 @@
 cd docs
 
 # Upgrade pip
-python3.10 -m pip install --upgrade pip
+pip install --upgrade pip
 
 # Workaraound for not being able to install mahotas from pypi
 grep -v mahotas ../setup.cfg > ./setup.cfg
@@ -38,9 +38,9 @@ mv ./setup.cfg ../setup.cfg
 #pip install jinja2==3.0.3
 
 # Install scikit-rt, voxtox, and import
-python3.10 -m pip install -e ..
-python3.10 -m pip install -e ../examples/voxtox
-python3.10 -m pip install -e ../examples/import
+pip install -e ..
+pip install -e ../examples/voxtox
+pip install -e ../examples/import
 
 # Delete package rst files, and recreate
 EXCLUDE_PATTERN="../setup.py ../examples/voxtox/setup.py ../examples/import/setup.py"
