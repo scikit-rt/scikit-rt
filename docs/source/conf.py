@@ -13,17 +13,17 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('../../src'))
-# sys.path.insert(0, os.path.abspath('../../src/skrt'))
-# sys.path.insert(0, os.path.abspath('../../src/skrt/better_viewer'))
-# sys.path.insert(0, os.path.abspath('../../src/skrt/viewer'))
-# sys.path.insert(0, os.path.abspath('../../examples/voxtox/src'))
-# sys.path.insert(0, os.path.abspath('../../examples/import_analysis/src'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../src'))
+sys.path.insert(0, os.path.abspath('../../src/skrt'))
+sys.path.insert(0, os.path.abspath('../../src/skrt/better_viewer'))
+sys.path.insert(0, os.path.abspath('../../src/skrt/viewer'))
+sys.path.insert(0, os.path.abspath('../../examples/voxtox/src'))
+sys.path.insert(0, os.path.abspath('../../examples/import_analysis/src'))
 
-# print(f'cwd: {os.getcwd()}')
-# print(f'sys.path: {sys.path}')
+print(f'cwd: {os.getcwd()}')
+print(f'sys.path: {sys.path}')
 
 import import_analysis
 import skrt
