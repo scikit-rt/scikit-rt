@@ -31,6 +31,7 @@ sphinx-apidoc -e -f --tocfile voxtox_modules -o source ../examples/voxtox/src/vo
 sphinx-apidoc -e -f --tocfile import_analysis_modules -o source ../examples/import/src/import_analysis ${EXCLUDE_PATTERN}
 
 # Copy markdown files and images to be used in creating documentation.
+rm -rf source/*.md
 cp "../README.md" "source"
 cp "image_registration.md" "source"
 rm -rf "source/_static"
@@ -42,4 +43,4 @@ sed -i '' 's/docs\/images/_static/' 'source/README.md'
 
 # Delete and recreate html-format documentation
 make clean
-make html
+#make html

@@ -1,3 +1,5 @@
+# Workflow for building Scikit-rt documentation, using Sphinx.
+
 name: Sphinx build
 
 on: push
@@ -5,15 +7,21 @@ on: push
 jobs:
   sphinx_build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Build HTML
-        uses: ammaraskar/sphinx-action@0.4
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
         with:
-          pre-build-command: '`pwd`/docs/github_sphinx.sh'
-          build-command: 'make html'
-          docs-folder: 'docs/'
+          python-version: 3.8
+
+      - name: Build HTML
+        run: |
+          cd docs
+          ./github_sphinx.sh
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
