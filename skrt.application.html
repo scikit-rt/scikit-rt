@@ -84,10 +84,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
-          <li><a href="skrt.html">skrt package</a> &raquo;</li>
-      <li>skrt.application module</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="skrt_modules.html">skrt</a></li>
+          <li class="breadcrumb-item"><a href="skrt.html">skrt package</a></li>
+      <li class="breadcrumb-item active">skrt.application module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/skrt.application.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -111,6 +111,10 @@ Algorithm class.  This defines three methods relating to execution:</p>
 <p>Each method returns an instance of the Status class,
 providing information on whether execution problems were encountered.
 Running of algorithm methods is handled by the Application class.</p>
+<p>This module also provides functions that may be useful within an
+application:
+* <strong>get_data_loader()</strong> - get information for loading patient datasets.
+* <strong>get_paths()</strong> - get list of paths to patient datasets.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.application.Algorithm">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm" title="Permalink to this definition"></a></dt>
@@ -291,6 +295,30 @@ algorithm methods, with attributes set to indicate exit status.</p>
 <dd><p>Return boolean indicating whether status is okay (exit code non-zero).</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.application.get_paths">
+<span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">get_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.get_paths" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of paths to patient datasets.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>data_locations<span class="classifier">pathlib.Path/str/list/dict, default=None</span></dt><dd><p>Specification of how to identify paths to patient datasets:</p>
+<ul class="simple">
+<li><p>string pathlib.Path giving path to a single patient dataset;</p></li>
+<li><p>list of strings or pathlib.Path giving full paths to patient datasets;</p></li>
+<li><p>dictionary where keys are paths to directories containing
+patient datasets, and values are strings, or lists of strings,
+indicating patterns to be matched.</p></li>
+</ul>
+</dd>
+<dt>max_path<span class="classifier">int, default=None</span></dt><dd><p>Maximum number of paths to return.  If None, return paths to all
+directories in data directory (currently hardcoded in this function).</p>
+</dd>
+<dt>ids<span class="classifier">str/list, default=None</span></dt><dd><p>Patient identifier, or list of patient identifiers.  If non-null,
+only return dataset paths for the specified identifier(s).</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

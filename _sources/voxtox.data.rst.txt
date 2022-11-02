@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    voxtox.data.djn_253
    voxtox.data.jes_109

@@ -84,10 +84,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
-          <li><a href="skrt.html">skrt package</a> &raquo;</li>
-      <li>skrt.core module</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="skrt_modules.html">skrt</a></li>
+          <li class="breadcrumb-item"><a href="skrt.html">skrt package</a></li>
+      <li class="breadcrumb-item active">skrt.core module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/skrt.core.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -267,6 +267,62 @@ sorting multiple Dateds.</p>
 <dd><p>Initialise dated object from a path and assign its timestamp. If
 no valid timestamp is found within the path string, it will be set
 automatically from the current date and time if auto_timestamp is True.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.Dated.copy_dicom">
+<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom" title="Permalink to this definition"></a></dt>
+<dd><p>Copy (single) source dicom file.</p>
+<p>Derived classes may override this method, to provide for
+copying multiple files.  See, for example:</p>
+<blockquote>
+<div><p>skrt.image.Image.copy_dicom().</p>
+</div></blockquote>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outdir<span class="classifier">pathlib.Path/str, default=None</span></dt><dd><p>Path to directory to which source file is to be copied.
+if None, this is set to be a directory with name equal
+to the modality (all upper case) of the dicom data.</p>
+</dd>
+<dt>overwrite<span class="classifier">bool, default=True</span></dt><dd><p>If True, delete and recreate &lt;outdir&gt; before copying
+file.  If False and &lt;outdir&gt; exists already, copy
+file only if this doesn’t mean overwriting an existing
+file.</p>
+</dd>
+<dt>sort<span class="classifier">bool, default=True</span></dt><dd><p>If True, the copied dicom file will be given name of form
+‘MODALITY_YYMMDD_hhmmss’.  If False, the file is copied
+with name unaltered.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.Dated.copy_dicom_files">
+<span class="sig-name descname"><span class="pre">copy_dicom_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dicom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom_files" title="Permalink to this definition"></a></dt>
+<dd><p>Copy DICOM file(s) associated with this object.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>data_type<span class="classifier">str, default=None</span></dt><dd><p>String indicting type of data associated with
+this object.  This may be any key of the &lt;indices&gt;
+dictionary.  Ignored if not a key of this dictionary,
+or if None.</p>
+</dd>
+<dt>index<span class="classifier">int, default=None</span></dt><dd><p>Integer representing object position in an ordered
+list of objects of specified &lt;data_type&gt;.  Ignored if None.</p>
+</dd>
+<dt>indices<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where the keys are data types and the values are
+lists of indices for the objects whose data is to be written.
+Ignored if None.</p>
+</dd>
+<dt>outdir<span class="classifier">pathlib.Path/str, default=”dicom”</span></dt><dd><p>Path to directory to which dicom files are to be copied.</p>
+</dd>
+<dt>overwrite<span class="classifier">bool, default=True</span></dt><dd><p>If True, allow copied file(s) to overwrite existing file(s),
+as defined in derived class’s copy_dicom() method.</p>
+</dd>
+<dt>sort<span class="classifier">bool, default=True</span></dt><dd><p>If True, files are sorted for copying, as defined in derived
+class’s copy_dicom() method.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -594,6 +650,20 @@ dictionary keys.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_float">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_float" title="Permalink to this definition"></a></dt>
+<dd><p>Return object attribute as a float.</p>
+<p><strong>Parameters:</strong></p>
+<p>obj : Object to be considered.</p>
+<dl class="simple">
+<dt>attribute<span class="classifier">str</span></dt><dd><p>Name of object attribute to be returned as float.</p>
+</dd>
+<dt>default<span class="classifier">Value to be returned in case object attribute</span></dt><dd><p>can’t be converted to float.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_hour_in_day">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_hour_in_day</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_hour_in_day" title="Permalink to this definition"></a></dt>
 <dd><p>Return a timestamp’s hour in day, including fractional part.</p>
@@ -690,6 +760,12 @@ attributes, not all of which make sense as identifiers, see:
 <dt>objs<span class="classifier">list, default=None</span></dt><dd><p>List of objects for which numbers of files are to be summed.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_qualified_class_name">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_qualified_class_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_qualified_class_name" title="Permalink to this definition"></a></dt>
+<dd><p>Determine qualified name of class &lt;cls&gt;.</p>
 </dd></dl>
 
 <dl class="py function">

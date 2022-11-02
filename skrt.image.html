@@ -84,10 +84,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
-          <li><a href="skrt.html">skrt package</a> &raquo;</li>
-      <li>skrt.image module</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="skrt_modules.html">skrt</a></li>
+          <li class="breadcrumb-item"><a href="skrt.html">skrt package</a></li>
+      <li class="breadcrumb-item active">skrt.image module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/skrt.image.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -323,6 +323,28 @@ representation.  For any other value, None is returned.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.clear_structure_sets">
 <span class="sig-name descname"><span class="pre">clear_structure_sets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clear_structure_sets" title="Permalink to this definition"></a></dt>
 <dd><p>Clear all structure sets associated with this image.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.copy_dicom">
+<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image_dicom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.copy_dicom" title="Permalink to this definition"></a></dt>
+<dd><p>Copy source dicom files.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outdir<span class="classifier">pathlib.Path/str, default=”image_dicom”</span></dt><dd><p>Path to directory to which source files are to be copied.</p>
+</dd>
+<dt>overwrite<span class="classifier">bool, default=True</span></dt><dd><p>If True, delete and recreate &lt;outdir&gt; before copying
+files.  If False and &lt;outdir&gt; exists already, a file
+is copied only if this doesn’t mean overwriting an
+existing file.</p>
+</dd>
+<dt>sort<span class="classifier">bool, default=True</span></dt><dd><p>If True, copied dicom files will be named by instance number
+if all files have a different instance number, or else
+will be numbered sequentially from 1, in order of increasing
+z-coordinate.  If False, files are copied to the output directory
+with their names unaltered.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1107,8 +1129,8 @@ returns a pixel array, affine matrix, default greyscale window
 centre and width, the last loaded pydicom.dataset.FileDataset 
 object, and a dictionary mapping z positions to paths to the
 dicom file for that slice. These outputs are used to assign 
-self.data, self.affine, self.dicom_dataset, and self._z_paths; 
-self.source_type is set to “dicom”.</p>
+self.data, self.affine, self.dicom_dataset, self._z_paths,
+and self._z_instance_numbers; self.source_type is set to “dicom”.</p>
 <p>5. If no data were loaded in step 5 (i.e. self.data is still None),
 raise a RuntimeError.</p>
 <p>6. If self.data contains a 2D array, convert this to 3D by adding
@@ -2575,6 +2597,9 @@ StudyInstanceUID and SeriesNumber.</p>
 <dt>z_paths<span class="classifier">dict / None</span></dt><dd><p>Dictionary mapping z slice positions in mm to the file corresponding to 
 that slice. If image was loaded from a single file, this will be None.</p>
 </dd>
+<dt>z_instance_numbers<span class="classifier">dict / None</span></dt><dd><p>Dictionary mapping z slice positions in mm to the instance number of
+that slice. If image was loaded from a single file, this will be None.</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -2598,6 +2623,9 @@ between slices to determine the slice thickness.</p>
 </dd>
 <dt>z_paths<span class="classifier">dict</span></dt><dd><p>Dict mapping z slice positions in mm  to the filepath 
 from which that slice of the image was read.</p>
+</dd>
+<dt>z_instance_numbers<span class="classifier">dict</span></dt><dd><p>Dict mapping z slice positions in mm  to the instance
+number of that slice of the image.</p>
 </dd>
 </dl>
 </dd></dl>

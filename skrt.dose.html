@@ -84,10 +84,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="skrt_modules.html">skrt</a> &raquo;</li>
-          <li><a href="skrt.html">skrt package</a> &raquo;</li>
-      <li>skrt.dose module</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="skrt_modules.html">skrt</a></li>
+          <li class="breadcrumb-item"><a href="skrt.html">skrt package</a></li>
+      <li class="breadcrumb-item active">skrt.dose module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/skrt.dose.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -225,6 +225,17 @@ DICOM source file, these values will be used instead to
 define the default intensity range.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.copy_dicom">
+<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.copy_dicom" title="Permalink to this definition"></a></dt>
+<dd><p>Copy (single) source dicom file.</p>
+<p>The present class (skrt.dose.Dose) inherits from skrt.image.Image,
+which in turn inherits from skrt.core.Dated.  This method
+forces calling of the copy_dicom() method of the latter.
+For details of parameters, see documentation for:
+skrt.core.Dated.copy_dicom().</p>
 </dd></dl>
 
 <dl class="py method">

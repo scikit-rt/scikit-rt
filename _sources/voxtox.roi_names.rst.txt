@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    voxtox.roi_names.head_and_neck_roi_names
    voxtox.roi_names.prostate_roi_names
