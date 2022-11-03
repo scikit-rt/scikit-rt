@@ -1684,3 +1684,14 @@ def get_qualified_class_name(cls):
     """
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
+
+def get_subdir_paths(parent):
+    """
+    Return paths to a directory's sub-directories.
+
+    **Parameter:**
+
+    parent : pathlib.Path/str
+        Path to directory for which sub-directory paths are to be found.
+    """
+    return [subdir for subdir in Path(parent).iterdir() if subdir.is_dir()]
