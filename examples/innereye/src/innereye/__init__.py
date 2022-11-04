@@ -5,7 +5,8 @@ import shutil
 
 import nibabel
 
-from skrt.core import fullpath, get_indexed_objs, get_subdir_paths
+from skrt.core import (fullpath, get_data_indices, get_indexed_objs,
+        get_subdir_paths, make_dir)
 
 def write_study(study, outdir="./innereye_datasets",
         image_types=None, images_to_write=None, verbose=True,
@@ -108,32 +109,52 @@ def write_study(study, outdir="./innereye_datasets",
     study_dir = Path(fullpath(outdir))
 
     # Obtain set of image types to be saved.
+    if isinstance(image_types, str):
+        image_types = [image_types]
     save_types = set(image_types or study.image_types).intersection(
             set(study.image_types))
+
+    # Define image(s) to be saved for each image type.
+    if not isinstance(images_to_write, dict):
+        images_to_write = {save_type: images_to_write
+                for save_type in save_types}
 
     # Define structure set(s) to be saved for each image type.
     if not isinstance(structure_sets_to_write, dict):
         structure_sets_to_write = {save_type: structure_sets_to_write
                 for save_type in save_types}
 
+    # Obtain dictionary associating indices to images.
+    image_indices = get_data_indices(images_to_write, save_types)
+
     # Loop over image types.
     for save_type in save_types:
+
+        # Obtain list of non-negative indices for images to be written.
+        images = study.image_types[save_type]
+        indices = image_indices.get(save_type, [])
+        if isinstance(indices, int):
+            indices = [indices]
+        idxs = []
+        if indices is True:
+            idxs = range(len(images))
+        else:
+            for idx in indices:
+                jdx = idx if idx >=0 else idx + len(images)
+                idxs.append(jdx)
+
         # Loop over images of current type.
-        for idx, im in enumerate(study.image_types[save_type]):
+        for idx, im in enumerate(images):
+            # Check whether image index satisfies requirements.
+            if not idx in idxs:
+                continue
+
             # Check for associated structure set(s).
             if (save_type in require_structure_set
                     and not get_indexed_objs(
                         im.structure_sets,
-                        structure_sets_to_write.get(save_type, True))):
+                        structure_sets_to_write.get(save_type, False))):
                 continue
-            
-            # Check whether image index satisfies requirements.
-            if (isinstance(images_to_write, dict)
-                    and isinstance(images_to_write.get(save_type, None),
-                        list)
-                    and idx not in images_to_write[save_type]):
-                continue
-
 
             # Check if output directory already exists.
             im_dir = (study_dir / save_type.upper()
@@ -175,7 +196,7 @@ def write_study(study, outdir="./innereye_datasets",
 
 def write_patient(patient,
         outdir="./innereye_datasets", studies_to_write=None, verbose=True,
-        **kwargs):
+        overwrite=True, **kwargs):
 
     """
     Save patient images and associated structure sets for use by InnerEye.
@@ -200,13 +221,17 @@ def write_patient(patient,
     verbose - bool, default=True
        Flag indicating whether to report progress.
 
+    overwrite - bool, default=True
+        If True, delete delete any pre-existing patient folder.
+
     **kwargs
         Keyword arguments passed on to
             innereye.write_study().
         For details, see this method's documentation.
     """
     # Define patient output directory.
-    patient_dir = Path(fullpath(outdir)) / patient.id
+    patient_dir = make_dir(Path(fullpath(outdir)) / patient.id,
+            overwrite=overwrite)
 
     # If study_indices is None, set to select all studies.
     if studies_to_write is None:
@@ -215,34 +240,83 @@ def write_patient(patient,
     # Process selected studies.
     for study in get_indexed_objs(patient.studies, studies_to_write):
         study_dir = patient_dir / study.timestamp
-        write_study(study, patient_dir / study.timestamp, **kwargs)
+        write_study(study, patient_dir / study.timestamp, overwrite=False,
+                **kwargs)
 
 def write_catalogue(
         datadir="innereye_datasets",
         outdir=None,
         out_csv="dataset.csv",
-        nii_suffix="nii.gz",
+        nii_suffixes="nii.gz",
         nz_min=16,
         roi_names=None,
         require_rois_in_image=True):
+    """
+    Create catalogue of NIfTI files, in format required by InnerEye software.
 
+    The catalogue is in CVS format.  The values stored for each file are:
+
+    - subject : unique positive integer;
+    - filePath : path relative to top-level directory;
+    - channel : string identifying data as "ct" or ROI;
+    - seriesId : DICOM series identifier (left blank);
+    - institutionId : Institution identifier (lef blank);
+    - DIM_X : data array x-dimension;
+    - DIM_Y : data array y-dimension;
+    - DIM_Z : data array z-dimension.
+
+    **Parameters:**
+
+    datadir: str, default="innereye_datasets"
+        Path to directory containing data to be catalogued.
+
+    outdir: str, default=None
+        Directory to which catalogue is to be written.  If None,
+        write to <datadir>.
+
+    out_csv: str, defaul="dataset.csv"
+        Name of file to which catalogue is to be written.
+
+    nii_suffixes: str, list, default="nii.gz":
+        Suffix, or list of suffixes, for NIfTI files.
+
+    nz_min: int, default=16
+        Minimum number of z-slices required for an image.
+
+    roi_names: list, default=None
+        List of names of ROIs to be catalogued.  If None, catalogue
+        all ROIs.
+
+    require_rois_in_image: bool, default=True
+        If True, only catalogue images with associated ROI data.
+    """
+    # Initialise variables.
     datadir = Path(fullpath(datadir))
     outdir = Path(fullpath(outdir or datadir))
-
+    if isinstance(nii_suffixes, str):
+        nii_suffixes = [nii_suffixes]
     roi_names = roi_names or []
     catalogue_entries = {}
 
+    # Loop over patients.
     for patientdir in get_subdir_paths(datadir):
+        # Loop over studies.
         for studydir in get_subdir_paths(patientdir):
+            # Loop over image types.
             for imagedir in get_subdir_paths(studydir):
+                # Loop over timestamps.
                 for timedir in get_subdir_paths(imagedir):
                     channels = {}
-                    for niipath in timedir.glob(f"**/*.{nii_suffix}"):
-                        # Extract organ name for structure sets
+
+                    # Loop over NIfTI files.
+                    for niipath in sorted(
+                            list(timedir.glob(f"**/*.{nii_suffixes}*"))):
+
+                        # Determine channel from filename.
                         name_parts = str(niipath.name).split(".")[0].split("_")
                         channel_ok = True
                         if "RTSTRUCT" == name_parts[0]:
-                            channel = "_".join(name_parts[5:])
+                            channel = "_".join(name_parts[5:]).lower()
                             channel_ok = ((channel in roi_names)
                                     or (not roi_names))
                         elif "MVCT" == name_parts[0]:
@@ -251,58 +325,59 @@ def write_catalogue(
                             channel = name_parts[0].lower()
                         if not channel_ok:
                             continue
+
+                        # Load NIfTI data, and determine size.
                         nii = nibabel.load(niipath)
                         fdata = nii.get_fdata()
-
                         nx, ny, nz = fdata.shape
 
+                        # Skip dataset if the number of z-slices is too small.
                         if nz < nz_min:
                             print(f"{timedir} - {nz} slices - skipping")
                             break
 
-                        # Require that structure be entirely inside image
+                        # Skip dataset if a required ROI may not be entirely
+                        # inside the image (part of mask at the image border).
                         in_scan = True
                         if require_rois_in_image and channel != "ct":
-                            in_scan = (fdata[:,:,0].sum() > 0
-                                    and fdata[:,:, nz - 1].sum() > 0
-                                    and fdata[:, 0, :].sum() > 0
-                                    and fdata[:, ny - 1, :].sum() > 0
-                                    and fdata[0, :, :].sum() > 0
-                                    and fdata[nx - 1, :, :].sum() > 0)
-
+                            in_scan = (fdata[:,:,0].sum() < 0.5
+                                    and fdata[:,:, nz - 1].sum() < 0.5
+                                    and fdata[:, 0, :].sum() < 0.5
+                                    and fdata[:, ny - 1, :].sum() < 0.5
+                                    and fdata[0, :, :].sum() < 0.5
+                                    and fdata[nx - 1, :, :].sum() < 0.5)
                         if not in_scan:
                             print(f"{timedir} - {channel} not in image "
                                    "- skipping")
                             continue
 
+                        # Store file data.
                         channels[channel] = [
                                 str(niipath.relative_to(datadir)),
                                 "", "", nx, ny, nz]
 
-                # Check that all named ROIs are present.
+                # Skip dataset if a required ROI is absent;
+                # otherwise catalogue the file data.
                 missing_roi_names = []
                 if roi_names:
                     for roi_name in roi_names:
                         if roi_name not in channels:
                             missing_roi_names.append(roi_name)
-
                 if missing_roi_names:
                     print(f"{timedir} - missing {missing_roi_names} "
-                                   "- skipping")
                 else:
                     catalogue_entries[timedir] = channels
 
-    # Write to CSV file values required by InnerEye software
+    # Write to CSV file values required by InnerEye software.
     lines = [
             "subject,filePath,channel,seriesId,institutionId,DIM_X,DIM_Y,DIM_Z"
             ]
-    for idx, timedir in enumerate(sorted(catalogue_entries)):
+    for idx, timedir in enumerate(catalogue_entries):
         subject = idx + 1
-        for channel in sorted(catalogue_entries[timedir]):
+        for channel in catalogue_entries[timedir]:
             file_path, series_id, institution_id, nx, ny, nz = \
                 catalogue_entries[timedir][channel]
             lines.append(f"{subject},{file_path},{channel},{series_id},"
                              f"{institution_id},{nx},{ny},{nz}")
-
     with open(outdir / out_csv, "w") as out_file:
         out_file.write("\n".join(lines))

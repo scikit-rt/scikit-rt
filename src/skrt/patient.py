@@ -10,7 +10,7 @@ import timeit
 import pandas as pd
 
 import skrt.core
-from skrt.core import fullpath, get_indexed_objs
+from skrt.core import fullpath, get_data_indices, get_indexed_objs
 from skrt.image import Image
 from skrt.structures import StructureSet
 from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
@@ -2252,58 +2252,3 @@ def find_matching_object(obj, possible_matches):
                             return (match, structure_set)
 
     return (None, None)
-
-def get_data_indices(in_value, valid_data_types):
-    """
-    Obtain dictionary associating indices with data types.
-
-    This is used in patient.skrt.Study.copy_dicom() to obtain
-    dictionaries from input parameters that may be dictionaries,
-    lists, or None.
-
-    **Parameters:**
-
-    in_value : dict/str/int/list/None
-        Specification of indices associated with data types.
-        list of data types, or None.  If a dictionary, return
-        after removing any keys not in <valid_data_types>.
-        If a string, return a dictionary that associates with
-        it the value True (all file indices) if the string is
-        in <valid_data_types>, or otherwise return an empty
-        dictionary.  If a list, return a dictionary that
-        associates the value True with each listed data type that
-        is in <valid_data_types>.  If None, return a dictionary
-        that associates the value True with all data types
-        of <valid_data_types>.
-
-    valid_data_types : list
-        List of valid data_types.
-    """
-    # Filter out keys that aren't valid data types.
-    if isinstance(in_value, dict):
-        data_indices = {data_type: indices
-                for data_type, indices in in_value.items()
-                if data_type in valid_data_types}
-
-    # Associate specific index with all valid data types.
-    elif isinstance(in_value, int):
-        data_indices = {data_type: in_value for data_type in valid_data_types}
-
-    # Associate value True with specific data type.
-    elif isinstance(in_value, str):
-        data_indices = {in_value: True} if in_value in valid_data_types else {}
-
-    else:
-
-        # Accept all valid data types.
-        if in_value is None:
-            data_types = valid_data_types
-
-        # Accept subset of valid data types.
-        else:
-            data_types = [data_type for data_type in in_value
-                    if data_type in valid_data_types]
-
-        data_indices = {data_type: True for data_type in data_types}
-
-    return data_indices
