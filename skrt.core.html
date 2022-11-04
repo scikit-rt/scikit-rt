@@ -628,6 +628,33 @@ dictionary keys.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_data_indices">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_data_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_data_types</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_data_indices" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain dictionary associating indices with data types.</p>
+<p>This is used in patient.skrt.Study.copy_dicom() to obtain
+dictionaries from input parameters that may be dictionaries,
+lists, or None.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>in_value<span class="classifier">dict/str/int/list/None</span></dt><dd><p>Specification of indices associated with data types.
+list of data types, or None.  If a dictionary, return
+after removing any keys not in &lt;valid_data_types&gt;.
+If a string, return a dictionary that associates with
+it the value True (all file indices) if the string is
+in &lt;valid_data_types&gt;, or otherwise return an empty
+dictionary.  If an integer, return a dictionary that associates
+this value with all data types of &lt;valid_data_types&gt;.  If a
+list, return a dictionary that associates the value True with
+each listed data type that is in &lt;valid_data_types&gt;.  If None,
+return a dictionary that associates the value True with all
+data types of &lt;valid_data_types&gt;.</p>
+</dd>
+<dt>valid_data_types<span class="classifier">list</span></dt><dd><p>List of valid data_types.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_day_in_week">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_day_in_week</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_day_in_week" title="Permalink to this definition"></a></dt>
 <dd><p>Return a timestamp’s day in week, including fractional part.</p>
@@ -803,6 +830,17 @@ skrt.DicomFile.set_referenced_sop_instance_uids(), namely:
 <dt>omit_slice<span class="classifier">bool, default=False</span></dt><dd><p>If True, disregard the last part of all UIDs, meaning the part from
 the last dot onwards.  For imaging data, this part distinguishes
 between different slices.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_subdir_paths">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_subdir_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_subdir_paths" title="Permalink to this definition"></a></dt>
+<dd><p>Return paths to a directory’s sub-directories.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>parent<span class="classifier">pathlib.Path/str</span></dt><dd><p>Path to directory for which sub-directory paths are to be found.</p>
 </dd>
 </dl>
 </dd></dl>

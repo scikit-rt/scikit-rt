@@ -438,34 +438,6 @@ patient object’s path attribute, and in all sub-directories.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.patient.Patient.write_for_innereye">
-<span class="sig-name descname"><span class="pre">write_for_innereye</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./innereye_datasets'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">studies_to_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.write_for_innereye" title="Permalink to this definition"></a></dt>
-<dd><p>Save patient images and associated structure sets for use by InnerEye.</p>
-<p><strong>Parameters:</strong>
-outdir - str, default=’.’</p>
-<blockquote>
-<div><p>Top-level output directory.  Within this, there will be a
-patient sub-directory, containing a sub-directory for each
-study, containing in turn a sub-directory for each output
-image along with associated structure set(s).</p>
-</div></blockquote>
-<dl>
-<dt>studies_to_write<span class="classifier">list, default=None</span></dt><dd><p>List of indices of studies for which data are to be written,
-0 being the earliest study and -1 being the most recent.  If set to
-None, data for all studies are written.</p>
-</dd>
-<dt>verbose - bool, default=True</dt><dd><p>Flag indicating whether to report progress.</p>
-</dd>
-<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs</dt><dd><dl class="simple">
-<dt>Keyword arguments passed on to</dt><dd><p>skrt.patient.Study.write_for_innereye().</p>
-</dd>
-</dl>
-<p>For details, see this method’s documentation.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.write_non_image_data">
 <span class="sig-name descname"><span class="pre">write_non_image_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.dcm'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.write_non_image_data" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -601,7 +573,7 @@ inferred from the subdirectory from which the objects were created.</p>
 </dd>
 <dt>attr_name<span class="classifier">str</span></dt><dd><p>Name of attribute to which loaded objects should be assigned.</p>
 </dd>
-<dt><a href="#id5"><span class="problematic" id="id6">`</span></a><a href="#id7"><span class="problematic" id="id8">**</span></a><a href="#id9"><span class="problematic" id="id10">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to object initialisation.</p>
+<dt><a href="#id3"><span class="problematic" id="id4">`</span></a><a href="#id5"><span class="problematic" id="id6">**</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to object initialisation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -714,79 +686,6 @@ left and right parts.</p>
 <dd><p>Sum over doses using a given summation type.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.patient.Study.write_for_innereye">
-<span class="sig-name descname"><span class="pre">write_for_innereye</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./innereye_datasets'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images_to_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_sets_to_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_roi_nifti</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilateral_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.write_for_innereye" title="Permalink to this definition"></a></dt>
-<dd><p>Save study images and associated structure sets for use by InnerEye.</p>
-<p>Except for &lt;overwrite&gt; parameters are passed on to the methods
-save_images_as_nifti() and/or save_structure_sets_as_nifti().</p>
-<p><strong>Parameters:</strong></p>
-<dl>
-<dt>overwrite - bool, default=True</dt><dd><p>If False, skip images with pre-existing output directories.
-If True, delete pre-existing output directories.</p>
-</dd>
-<dt>outdir - str, default=’.’</dt><dd><p>Top-level directory to which nifti files for InnerEye will
-be written for study.  Each output image will be in a separate
-sub-directory, along with a file per associated ROI.</p>
-</dd>
-<dt>image_types - list/str/None, default=None</dt><dd><p>Images types to be saved: None to save all, otherwise a list
-of image types to save, or a string specifying a single image
-type to save.</p>
-</dd>
-<dt>images_to_write<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where the keys are image types and the values are
-lists of timestamp indices for the images to be saved,
-0 being the earliest and -1 being the most recent.  If set to
-None, all images are saved.</p>
-</dd>
-<dt>verbose - bool, default=True</dt><dd><p>Flag indicating whether to report progress.</p>
-</dd>
-<dt>image_size - tuple, default=None</dt><dd><p>Image dimensions (dx, dy, dz) in voxels for image resizing
-prior to writing.  If None, original image size is kept.</p>
-</dd>
-<dt>voxel_size - tuple, default=None</dt><dd><p>Voxel dimensions (dx, dy, dz) in mm for image resizing
-prior to writing.  If None, original voxel size is kept.</p>
-</dd>
-<dt>fill_value - int/float, default=None</dt><dd><p>Value used when extrapolating image outside data area.
-If None, use mininum value inside data area.</p>
-</dd>
-<dt>bands - dict, default=None</dt><dd><p>Nested dictionary of value bandings to be applied before
-image saving.  The primary key defines the type of image to
-which the banding applies.  Secondary keys specify band limits,
-and associated values indicte the values to be assigned.
-For example:</p>
-<ul class="simple">
-<li><p>bands{‘mvct’ : {-100: -1024, 100: 0, 1e10: 1024}}</p></li>
-</ul>
-<p>will band an image of type ‘mvct’:</p>
-<ul class="simple">
-<li><p>value &lt;= -100 =&gt; -1024;</p></li>
-<li><p>-100 &lt; value &lt;= 100 =&gt; 0;</p></li>
-<li><p>100 &lt; value &lt;= 1e10 =&gt; 1024.</p></li>
-</ul>
-</dd>
-<dt>require_structure_set - list, default=None</dt><dd><p>List of image types for which data are to be written only
-if there is an associated structure set.</p>
-</dd>
-<dt>structure_sets_to_write: dict, default=-1</dt><dd><p>Dictionary where the keys are image types and the values are
-lists of file indices for structure sets to be saved for
-a given image, 0 being the earliest and -1 being the most recent.
-If set to None, all of an image’s structure sets are saved.</p>
-</dd>
-<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new 
-names and values are lists of possible names of ROIs that should
-be assigned the new name. These names can also contain wildcards
-with the ‘*’ symbol.</p>
-</dd>
-<dt>force_roi_nifti<span class="classifier">bool, default=False</span></dt><dd><p>If True, force writing of dummy NIfTI file for all named ROIs
-not found in structure set.  If False, named ROIs not found in
-structure set are disregarded.</p>
-</dd>
-<dt>bilateral_names<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs that should be split into
-left and right parts.</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py function">
@@ -795,32 +694,6 @@ left and right parts.</p>
 <dd><p>For a given object &lt;obj&gt; and a list of potential matching objects
 &lt;possible_matches&gt;, find an object that matches &lt;obj&gt;’s path,
 &lt;obj&gt;’s date and time, or SOP Instance UID.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.patient.get_data_indices">
-<span class="sig-prename descclassname"><span class="pre">skrt.patient.</span></span><span class="sig-name descname"><span class="pre">get_data_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_data_types</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.get_data_indices" title="Permalink to this definition"></a></dt>
-<dd><p>Obtain dictionary associating indices with data types.</p>
-<p>This is used in patient.skrt.Study.copy_dicom() to obtain
-dictionaries from input parameters that may be dictionaries,
-lists, or None.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>in_value<span class="classifier">dict/str/int/list/None</span></dt><dd><p>Specification of indices associated with data types.
-list of data types, or None.  If a dictionary, return
-after removing any keys not in &lt;valid_data_types&gt;.
-If a string, return a dictionary that associates with
-it the value True (all file indices) if the string is
-in &lt;valid_data_types&gt;, or otherwise return an empty
-dictionary.  If a list, return a dictionary that
-associates the value True with each listed data type that
-is in &lt;valid_data_types&gt;.  If None, return a dictionary
-that associates the value True with all data types
-of &lt;valid_data_types&gt;.</p>
-</dd>
-<dt>valid_data_types<span class="classifier">list</span></dt><dd><p>List of valid data_types.</p>
-</dd>
-</dl>
 </dd></dl>
 
 </section>
