@@ -398,6 +398,56 @@ If True, return summary information as a pandas dataframe.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_structure_set_info">
+<span class="sig-name descname"><span class="pre">get_structure_set_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_structure_set_info" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve information about structure sets.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new 
+names and values are lists of possible names of ROIs that should
+be assigned the new name. These names can also contain wildcards
+with the ‘*’ symbol.  Infomration is retrieved only relative to
+ROIs that, after renaming, have names included in the keys.
+If None, no renaming is performed, and information is
+retrieved relative to all ROIs.</p>
+</dd>
+<dt>ss_types<span class="classifier">list, default=None</span></dt><dd><p>List of strings indicating types of structure set
+for which information is to be retrieved.  If None,
+information is retrieved for all structure-set types
+in the patient dataset.</p>
+</dd>
+<dt>df<span class="classifier">bool, default=False</span></dt><dd><p>If False, return summary information as a dictionary.
+If True, return summary information as a pandas dataframe.</p>
+</dd>
+<dt>ss_filter<span class="classifier">str, default=None</span></dt><dd><p>String specifying if filtering is to be performed:
+- “first_only” : retrieve information only for first structure</p>
+<blockquote>
+<div><p>set found;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>“first_of_each_type” : retrieve information only for the
+first structure set found of each type;</p></li>
+<li><p>“last_only” : retrieve information only for last structure
+set found;</p></li>
+<li><p>“last_of_each_type” : retrieve information only for the
+last structure set found of each type;</p></li>
+<li><p>any other value : no filtering.</p></li>
+</ul>
+</dd>
+<dt>origin<span class="classifier">tuple/str, default=None</span></dt><dd><p>Tuple specifying the (x, y, z) coordinates of the point
+with respect to which structure-set extents are to be
+determined, or a string specifying how to calculate
+this point:</p>
+<ul class="simple">
+<li><p>foreground_centroid: take point to be the foreground centroid
+for the associated image.</p></li>
+</ul>
+<p>If None, then (0, 0, 0) is used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_subdir_studies">
 <span class="sig-name descname"><span class="pre">get_subdir_studies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_subdir_studies" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of studies within a given subdirectory.</p>
