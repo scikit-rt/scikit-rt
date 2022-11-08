@@ -758,7 +758,7 @@ in the x-y contours dictionary.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_extent">
-<span class="sig-name descname"><span class="pre">get_extent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_extent" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_extent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_extent" title="Permalink to this definition"></a></dt>
 <dd><p>Get minimum and maximum extent of the ROI in mm along a given axis.</p>
 <dl>
 <dt>ax<span class="classifier">str/int, default=”z”</span></dt><dd><p>Axis along which to return extent. Should be one of [“x”, “y”, “z”] 
@@ -790,12 +790,19 @@ binary mask.</p></li>
 </ul>
 </div></blockquote>
 </dd>
+<dt>origin<span class="classifier">int/float/tuple, default=None</span></dt><dd><p>Point with respect to which extents are to be determined.
+This can be an integer or float specifying the point’s
+coordinate along axis &lt;ax&gt;; or it can be a tuple specifying
+the point’s (x, y, z) coordinates, where only the coordinate
+along axis &lt;ax&gt; will be considered.  If None, the origin
+coordinate is taken to be 0.</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_extents">
-<span class="sig-name descname"><span class="pre">get_extents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_extents" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_extents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_extents" title="Permalink to this definition"></a></dt>
 <dd><p>Get minimum and maximum extent of the ROI in mm along all three axes,
 returned in order [x, y, z]. Optionally apply a buffer to the extents
 such that they cover more than the ROI’s area.</p>
@@ -815,6 +822,10 @@ binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
 </div></blockquote>
+</dd>
+<dt>origin<span class="classifier">tuple, default=None</span></dt><dd><p>Tuple specifying the (x, y, z) coordinates of the point
+with respect to which extents are to be determined.
+If None, then (0, 0, 0) is used.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2280,7 +2291,7 @@ in the x-y contours dictionary.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_extents">
-<span class="sig-name descname"><span class="pre">get_extents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_extents" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_extents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_extents" title="Permalink to this definition"></a></dt>
 <dd><p>Get minimum and maximum extent of StructureSet ROIs,
 in mm along all three axes, returned in order [x, y, z].
 Optionally apply a buffer to the extents such that they cover
@@ -2304,6 +2315,10 @@ binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
 </div></blockquote>
+</dd>
+<dt>origin<span class="classifier">tuple, default=None</span></dt><dd><p>Tuple specifying the (x, y, z) coordinates of the point
+with respect to which extents are to be determined.
+If None, then (0, 0, 0) is used.</p>
 </dd>
 </dl>
 </dd></dl>
