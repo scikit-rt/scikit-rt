@@ -713,6 +713,11 @@ def test_get_extent():
     assert ext[0] == [3, 7]
     assert ext[1] == [4, 6]
     assert ext[2] == [2, 8]
+    dx, dy, dz = (1, -2, 3)
+    ext = roi.get_extents(origin=(dx, dy, dz))
+    assert ext[0] == [3 - dx, 7 - dx]
+    assert ext[1] == [4 - dy, 6 - dy]
+    assert ext[2] == [2 - dz, 8 - dz]
     ext = roi.get_extents(buffer=2)
     assert ext[0] == [1, 9]
     assert ext[1] == [2, 8]

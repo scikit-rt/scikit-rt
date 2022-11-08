@@ -1650,7 +1650,8 @@ class ROI(skrt.core.Archive):
         widths = [(extent[1] - extent[0]) for extent in extents]
         return (centre, widths)
 
-    def get_extents(self, buffer=None, buffer_units="mm", method=None):
+    def get_extents(self, buffer=None, buffer_units="mm", method=None,
+            origin=None):
         """
         Get minimum and maximum extent of the ROI in mm along all three axes,
         returned in order [x, y, z]. Optionally apply a buffer to the extents
@@ -1672,12 +1673,19 @@ class ROI(skrt.core.Archive):
                 * "mask": get extent from min/max positions of voxels in the 
                   binary mask.
                 * None: use the method set in self.default_geom_method.
+
+        origin : tuple, default=None
+            Tuple specifying the (x, y, z) coordinates of the point
+            with respect to which extents are to be determined.
+            If None, then (0, 0, 0) is used.
         """
+        # Ensure that origin is defined.
+        origin = origin or (0, 0, 0)
 
         # Get extent in each direction
         extents = []
         for ax in skrt.image._axes:
-            extents.append(self.get_extent(ax, method=method))
+            extents.append(self.get_extent(ax, method=method, origin=origin))
 
         # Apply buffer if requested
         if buffer:
@@ -1705,6 +1713,7 @@ class ROI(skrt.core.Archive):
                    idx=None, 
                    pos=None, 
                    method=None, 
+                   origin=None,
                   ):
         """Get minimum and maximum extent of the ROI in mm along a given axis.
 
@@ -1740,6 +1749,14 @@ class ROI(skrt.core.Archive):
                 * "mask": get extent from min/max positions of voxels in the 
                   binary mask.
                 * None: use the method set in self.default_geom_method.
+
+        origin : int/float/tuple, default=None
+            Point with respect to which extents are to be determined.
+            This can be an integer or float specifying the point's
+            coordinate along axis <ax>; or it can be a tuple specifying
+            the point's (x, y, z) coordinates, where only the coordinate
+            along axis <ax> will be considered.  If None, the origin
+            coordinate is taken to be 0.
         """
 
         # Get default slice and method
@@ -1757,6 +1774,11 @@ class ROI(skrt.core.Archive):
                 raise RuntimeError(
                     f"Cannot compute extent of axis {ax} in the {view} plane!")
             i_ax = skrt.image._plot_axes[view].index(i_ax)
+
+        # Ensure that origin is a single numeric value.
+        origin = origin or 0
+        if not isinstance(origin, (float, int)):
+            origin = origin[i_ax]
 
         # Calculate extent from contours
         if method == "contour":
@@ -1786,7 +1808,7 @@ class ROI(skrt.core.Archive):
 
             # Return min and max of the points in the contour(s)
             if len(points):
-                return [min(points), max(points)]
+                return [min(points) - origin, max(points) - origin]
             else:
                 return [None, None]
 
@@ -1811,7 +1833,8 @@ class ROI(skrt.core.Archive):
         max_pos = max(vals) + 0.5
 
         # Convert positions to mm
-        return [self.idx_to_pos(min_pos, ax), self.idx_to_pos(max_pos, ax)]
+        return [self.idx_to_pos(min_pos, ax) - origin,
+                self.idx_to_pos(max_pos, ax) - origin]
 
     def get_length(
         self, 
@@ -6197,7 +6220,7 @@ class StructureSet(skrt.core.Archive):
         return min(all_extents), max(all_extents)
 
     def get_extents(self, roi_names=None, buffer=None, buffer_units="mm",
-            method=None):
+            method=None, origin=None):
         """
         Get minimum and maximum extent of StructureSet ROIs,
         in mm along all three axes, returned in order [x, y, z].
@@ -6224,9 +6247,14 @@ class StructureSet(skrt.core.Archive):
                 * "mask": get extent from min/max positions of voxels in the 
                   binary mask.
                 * None: use the method set in self.default_geom_method.
+
+        origin : tuple, default=None
+            Tuple specifying the (x, y, z) coordinates of the point
+            with respect to which extents are to be determined.
+            If None, then (0, 0, 0) is used.
         """
         return self.combine_rois(roi_names).get_extents(
-                buffer, buffer_units, method)
+                buffer, buffer_units, method, origin)
 
     def get_bbox_centre_and_widths(self,
             roi_names=None, buffer=None, buffer_units="mm", method=None):
