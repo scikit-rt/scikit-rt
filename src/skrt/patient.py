@@ -11,7 +11,7 @@ import pandas as pd
 
 import skrt.core
 from skrt.core import fullpath, get_data_indices, get_indexed_objs
-from skrt.image import Image
+from skrt.image import _axes, Image
 from skrt.structures import StructureSet
 from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
 
@@ -1800,6 +1800,109 @@ class Patient(skrt.core.PathData):
                 if "first_of_each_type" == plan_filter:
                     break
             if "first_only" == plan_filter:
+                break
+
+        return (pd.DataFrame(all_info) if df else all_info)
+
+    def get_structure_set_info(self, roi_names=None, ss_types=None, df=False,
+            ss_filter=None, origin=None):
+        '''
+        Retrieve information about structure sets.
+
+        **Parameters:**
+
+        roi_names : dict, default=None
+            Dictionary of names for renaming ROIs, where the keys are new 
+            names and values are lists of possible names of ROIs that should
+            be assigned the new name. These names can also contain wildcards
+            with the '*' symbol.  Infomration is retrieved only relative to
+            ROIs that, after renaming, have names included in the keys.
+            If None, no renaming is performed, and information is
+            retrieved relative to all ROIs.
+
+        ss_types : list, default=None
+            List of strings indicating types of structure set
+            for which information is to be retrieved.  If None,
+            information is retrieved for all structure-set types
+            in the patient dataset.
+
+        df : bool, default=False
+            If False, return summary information as a dictionary.
+            If True, return summary information as a pandas dataframe.
+
+        ss_filter : str, default=None
+            String specifying if filtering is to be performed:
+            - "first_only" : retrieve information only for first structure
+              set found;
+            - "first_of_each_type" : retrieve information only for the
+              first structure set found of each type;
+            - "last_only" : retrieve information only for last structure
+              set found;
+            - "last_of_each_type" : retrieve information only for the
+              last structure set found of each type;
+            - any other value : no filtering.
+
+        origin : tuple/str, default=None
+            Tuple specifying the (x, y, z) coordinates of the point
+            with respect to which structure-set extents are to be
+            determined, or a string specifying how to calculate
+            this point:
+
+            - foreground_centroid: take point to be the foreground centroid
+              for the associated image.
+
+            If None, then (0, 0, 0) is used.
+        '''
+
+        # Ensure that list is defined for ss_types.
+        if ss_types is None:
+            ss_types = self.combined_types('structure_set')
+
+        # Set sort order so that if information is to be retrieved
+        # only for the first of last structure set then this
+        # will be first in the list.
+        reverse = (True if ss_filter in
+                ["last_only", "last_of_each_type"] else False)
+
+        labels = {0: "min", 1: "max"}
+        all_info = []
+        for ss_type in sorted(ss_types):
+            ss_label = f'{ss_type.lower()}_structure_sets'
+            structure_sets = self.combined_objs(ss_label)
+            for ss in sorted(structure_sets, reverse=reverse):
+                ss.load()
+                info = {}
+                info['id'] = self.id
+                info['timestamp'] = ss.get_pandas_timestamp()
+                info['modality'] = ss_type
+
+                # Optionally filter, to have only specified ROIs.
+                if roi_names:
+                    ss = ss.filtered_copy(roi_names, keep_renamed_only=True)
+                else:
+                    roi_names = ss.get_roi_names()
+
+                # Determine foreground centroid of associated image.
+                if "foreground_centroid" == origin and ss.image:
+                    origin = ss.image.get_foreground_bbox_centre_and_widths()[0]
+
+                # Add information on structure-set extents.
+                if not isinstance(origin, str):
+                    for idx, extents in enumerate(
+                            ss.get_extents(origin=origin)):
+                        for jdx, label in labels.items():
+                            info[f"{_axes[idx]}_{label}"] = extents[jdx]
+                        info[f"d{_axes[idx]}"] = extents[1] - extents[0]
+
+                # Add information on ROIs that are present.
+                for roi_name in sorted(roi_names):
+                    info[roi_name] = (roi_name in ss.get_roi_names())
+
+                all_info.append(info)
+
+                if ss_filter in ["first_of_each_type", "last_of_each_type"]:
+                    break
+            if ss_filter in ["first_only", "last_only"]:
                 break
 
         return (pd.DataFrame(all_info) if df else all_info)
