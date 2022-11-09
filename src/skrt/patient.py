@@ -1880,7 +1880,7 @@ class Patient(skrt.core.PathData):
                 if roi_names:
                     ss = ss.filtered_copy(roi_names, keep_renamed_only=True)
                 else:
-                    roi_names = ss.get_roi_names()
+                    roi_names = sorted(ss.get_roi_names())
 
                 info['n_roi'] = len(ss.get_roi_names())
 
@@ -1897,7 +1897,7 @@ class Patient(skrt.core.PathData):
                         info[f"d{_axes[idx]}"] = extents[1] - extents[0]
 
                 # Add information on ROIs that are present.
-                for roi_name in sorted(roi_names):
+                for roi_name in roi_names:
                     info[roi_name] = (roi_name in ss.get_roi_names())
 
                 all_info.append(info)
