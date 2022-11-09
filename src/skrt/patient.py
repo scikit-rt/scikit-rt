@@ -1898,7 +1898,7 @@ class Patient(skrt.core.PathData):
 
                 # Add information on ROIs that are present.
                 for roi_name in roi_names:
-                    info[roi_name] = (roi_name in ss.get_roi_names())
+                    info[roi_name] = int(roi_name in ss.get_roi_names())
 
                 all_info.append(info)
 
