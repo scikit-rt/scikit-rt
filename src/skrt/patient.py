@@ -1882,6 +1882,8 @@ class Patient(skrt.core.PathData):
                 else:
                     roi_names = ss.get_roi_names()
 
+                info['n_roi'] = len(ss.get_roi_names())
+
                 # Determine foreground centroid of associated image.
                 if "foreground_centroid" == origin and ss.image:
                     origin = ss.image.get_foreground_bbox_centre_and_widths()[0]
