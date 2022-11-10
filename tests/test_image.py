@@ -1087,6 +1087,29 @@ def test_multiplication_by_scalar():
         assert im2.get_origin() == im1.get_origin()
         assert np.all(im2.get_data() == scalar * im1.get_data())
 
+def test_division_by_scalar():
+    # Define test image.
+    shape = (50, 50, 10)
+    voxel_size = (1, 1, 3)
+    origin = (-62., -62., -10.)
+    im1 = create_test_image(shape, voxel_size, origin)
+
+    # Test division by scalar.
+    scalar = 5.2
+    for i in [0, 1]:
+        # Test standard division.
+        if 0 == i:
+            im2 =  im1 / scalar
+        # Test in-place division.
+        elif 1 == i:
+            im2 = im1.clone()
+            im2 /= scalar
+        
+        assert im2.get_n_voxels() == im1.get_n_voxels()
+        assert im2.get_voxel_size() == im1.get_voxel_size()
+        assert im2.get_origin() == im1.get_origin()
+        assert np.all(im2.get_data() == im1.get_data() / scalar) 
+
 def test_pathlib_path():
     # Test passing of pathlib.Path.
     im_tmp = Image(Path(dcm_file))

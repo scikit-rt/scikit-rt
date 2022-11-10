@@ -274,7 +274,7 @@ class Image(skrt.core.Archive):
 
     def __imul__(self, other):
         '''
-        Define image multiplication by scalar in place.
+        Define in-place multiplication of image by a scalar.
 
         The result of the multiplication of self and a scalar (other) is an
         Image object that has the same affine matrix as self, and has
@@ -282,6 +282,33 @@ class Image(skrt.core.Archive):
         the scalar.
         '''
         return self * other
+
+    def __truediv__(self, other):
+        '''
+        Define image division by a scalar.
+
+        The result of the division of self by a scalar (other) is an
+        Image object that has the same affine matrix as self, and has
+        a data array obtained by dividing the data array of self by
+        the scalar.
+        '''
+        if not isinstance(other, numbers.Number):
+            raise RuntimeError(
+                    f"{type(self)} can only be divided by a scalar")
+        result = self.__class__(path=(self.get_data() / other),
+                affine=self.get_affine())
+        return result
+
+    def __itruediv__(self, other):
+        '''
+        Define in-place division of image by a scalar.
+
+        The result of the division of self by a scalar (other) is an
+        Image object that has the same affine matrix as self, and has
+        a data array obtained by dividing the data array of self by
+        the scalar.
+        '''
+        return self / other
 
     def __neg__(self):
         '''
