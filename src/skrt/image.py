@@ -1,5 +1,6 @@
 """Classes for loading and comparing medical images."""
 
+import numbers
 import pathlib
 
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
@@ -243,6 +244,44 @@ class Image(skrt.core.Archive):
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         return self + other
+
+    def __mul__(self, other):
+        '''
+        Define image multiplication by a scalar.
+
+        The result of the multiplication of self and a scalar (other) is an
+        Image object that has the same affine matrix as self, and has
+        a data array obtained by multiplying the data array of self by
+        the scalar.
+        '''
+        if not isinstance(other, numbers.Number):
+            raise RuntimeError(
+                    f"{type(self)} can only be multiplied by a scalar")
+        result = self.__class__(path=(other * self.get_data()),
+                affine=self.get_affine())
+        return result
+
+    def __rmul__(self, other):
+        '''
+        Define image multiplication by a scalar.
+
+        The result of the multiplication of self and a scalar (other) is an
+        Image object that has the same affine matrix as self, and has
+        a data array obtained by multiplying the data array of self by
+        the scalar.
+        '''
+        return (self * other)
+
+    def __imul__(self, other):
+        '''
+        Define image multiplication by scalar in place.
+
+        The result of the multiplication of self and a scalar (other) is an
+        Image object that has the same affine matrix as self, and has
+        a data array obtained by multiplying the data array of self by
+        the scalar.
+        '''
+        return self * other
 
     def __neg__(self):
         '''

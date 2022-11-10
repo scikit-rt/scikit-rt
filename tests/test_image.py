@@ -1061,6 +1061,32 @@ def test_unary_opeartions():
     assert im3.get_origin() == im1.get_origin()
     assert np.all(im3.get_data() == -im1.get_data())
 
+def test_multiplication_by_scalar():
+    # Define test image.
+    shape = (50, 50, 10)
+    voxel_size = (1, 1, 3)
+    origin = (-62., -62., -10.)
+    im1 = create_test_image(shape, voxel_size, origin)
+
+    # Test multiplication by scalar.
+    scalar = 5.2
+    for i in [0, 1, 2]:
+        # Test left multiplication.
+        if 0 == i:
+            im2 =  scalar * im1
+        # Test right multiplication.
+        elif 1 == i:
+            im2 =  im1 * scalar
+        # Test in-place multiplication.
+        elif 2 == i:
+            im2 = im1.clone()
+            im2 *= scalar
+        
+        assert im2.get_n_voxels() == im1.get_n_voxels()
+        assert im2.get_voxel_size() == im1.get_voxel_size()
+        assert im2.get_origin() == im1.get_origin()
+        assert np.all(im2.get_data() == scalar * im1.get_data())
+
 def test_pathlib_path():
     # Test passing of pathlib.Path.
     im_tmp = Image(Path(dcm_file))
