@@ -1409,3 +1409,21 @@ def test_comparison_with_length_matching():
                     match_lengths_strategy=match_lengths_strategy,
                     match_lengths=match_lengths).loc["cuboid", "dice"]
             assert dice == dice_ref
+
+def test_alpha_over_beta():
+    """
+    Test setting and retrieval of ROI alpha_over_beta values.
+    """
+    # Create structure set.
+    sim = get_synthetic_image_with_structure_set()
+    structure_set = sim.get_structure_set()
+
+    # Set alpha_over_beta values for ROIs of structure set.
+    alpha_beta_ratios = {"cube": 10, "sphere": 2}
+    structure_set.set_alpha_beta_ratios(alpha_beta_ratios)
+
+    # Check that ROI alpha_over_beta values are as expected.
+    for roi in structure_set.get_rois():
+        assert roi.get_alpha_over_beta() == alpha_beta_ratios[roi.name]
+
+    assert structure_set.get_alpha_beta_ratios() == alpha_beta_ratios

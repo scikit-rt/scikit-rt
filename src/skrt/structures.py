@@ -100,6 +100,7 @@ class ROI(skrt.core.Archive):
         mask_threshold=0.25,
         default_geom_method="auto",
         overlap_level=None,
+        alpha_over_beta=None,
         **kwargs,
     ):
 
@@ -184,6 +185,16 @@ class ROI(skrt.core.Archive):
             skimage.draw.polygon2mask will be returned with no border checks, 
             which is faster than performing border checks.
 
+        
+        alpha_over_beta : float, default=None
+            Ratio for ROI tissue of coefficients, alpha, beta,
+            of linear-quadratic equation.  This ratio is used in
+            calculating biologically effective dose, BED, from
+            physical dose, D, delivered over n equal fractions:
+                BED = D * (1 + (D/n) / (alpha/beta)).
+            If None, the biologically effective dose is taken to be
+            equal to the physical dose (beta >> alpha).
+
         kwargs : dict, default=None
             Extra arguments to pass to the initialisation of the parent
             Image object.
@@ -237,6 +248,7 @@ class ROI(skrt.core.Archive):
         self.dicom_dataset = None
         self.contours_only = False
         self.plans = []
+        self.alpha_over_beta = alpha_over_beta
 
         # Properties relating to plan dose constraints
         self.roi_type = None
@@ -3580,6 +3592,29 @@ class ROI(skrt.core.Archive):
                 return f"{own_name} vs. {other_name}"
             return f"{own_name}{other_name}"
 
+    def set_alpha_over_beta(self, alpha_over_beta=None):
+        """
+        Set ratio for ROI tissue of coefficients of linear-quadratic equation.
+
+        **Parameter:**
+
+        alpha_over_beta : float, default=None
+            Ratio for ROI tissue of coefficients, alpha, beta,
+            of linear-quadratic equation.  This ratio is used in
+            calculating biologically effective dose, BED, from
+            physical dose, D, delivered over n equal fractions:
+                BED = D * (1 + (D/n) / (alpha/beta)).
+            If None, the biologically effective dose is taken to be
+            equal to the physical dose (beta >> alpha).
+        """
+        self.alpha_over_beta = alpha_over_beta
+
+    def get_alpha_over_beta(self):
+        """
+        Get ratio for ROI tissue of coefficients of linear-quadratic equation.
+        """
+        return self.alpha_over_beta
+
     def set_color(self, color):
         """Set plotting color."""
 
@@ -4861,6 +4896,7 @@ class StructureSet(skrt.core.Archive):
         colors=None,
         ignore_dicom_colors=False,
         auto_timestamp=False,
+        alpha_beta_ratios=None,
         **kwargs
     ):
         """Load structure set from the source(s) given in <path>.
@@ -4927,6 +4963,17 @@ class StructureSet(skrt.core.Archive):
             If true and no valid timestamp is found within the path string,
             timestamp generated from current date and time.
 
+        alpha_beta_ratios : dict, default=None
+            Dictionary where keys are ROI names and values are
+            ratios for ROI tissues of coefficients, alpha, beta,
+            in the linear-quadratic equation.  These ratios are
+            used in calculating biologically effective dose, BED, from
+            physical dose, D, delivered over n equal fractions:
+                BED = D * (1 + (D/n) / (alpha/beta)).
+            The attribute alpha_over_value is set to the dictionary value
+            for an ROI identified by a key, or is set to None for any
+            other ROIs.
+
         `**`kwargs :
             Additional keyword args to use when initialising new ROI objects.
         """
@@ -4953,6 +5000,7 @@ class StructureSet(skrt.core.Archive):
         self.colors = colors
         self.ignore_dicom_colors = ignore_dicom_colors
         self.dicom_dataset = None
+        self.alpha_beta_ratios = alpha_beta_ratios or {}
         self.roi_kwargs = kwargs
         self.plans = []
         path = path if isinstance(path, str) else ""
@@ -5191,6 +5239,7 @@ class StructureSet(skrt.core.Archive):
         rois = []
         for roi in self.rois:
             roi.structure_set = self
+            roi.set_alpha_over_beta(self.alpha_beta_ratios.get(roi.name, None))
             for plan in self.plans:
                 roi.add_plan(plan)
 
@@ -5380,6 +5429,46 @@ class StructureSet(skrt.core.Archive):
                 ):
                     keep.append(roi)
             self.rois = keep
+
+    def set_alpha_beta_ratios(
+            self, alpha_beta_ratios=None, set_as_default=True):
+        """
+        Set ratios for ROI tissues of coefficients of linear-quadratic equation.
+
+        Optionally input values for ratios as structure-set default.
+
+        **Parameter:**
+
+        alpha_beta_ratios : dict, default=None
+            Dictionary where keys are ROI names and values are
+            ratios for ROI tissues of coefficients, alpha, beta,
+            in the linear-quadratic equation.  These ratios are
+            used in calculating biologically effective dose, BED, from
+            physical dose, D, delivered over n equal fractions:
+                BED = D * (1 + (D/n) / (alpha/beta)).
+            The attribute alpha_over_value is set to the dictionary value
+            for an ROI identified by a key, or is set to None for any
+            other ROIs.  If this parameter is set to None, values are set
+            from self.alpha_beta_ratios.
+
+        set_as_default : bool, default=True
+            If True, and alpha_beta_ratios isn't None, set
+            self.alpha_beta_ratios to the value of alpha_beta_ratios.
+        """
+        if alpha_beta_ratios is None:
+            alpha_beta_ratios = self.alpha_beta_ratios
+        elif set_as_default:
+            self.alpha_beta_ratios = alpha_beta_ratios
+
+        for roi in self.get_rois():
+            roi.set_alpha_over_beta(alpha_beta_ratios.get(roi.name, None))
+
+    def get_alpha_beta_ratios(self):
+        """
+        Get dictionary of ratio of coefficients of linear-quadratic equation.
+        """
+        return {roi_name : self[roi_name].get_alpha_over_beta()
+                for roi_name in sorted(self.get_roi_names())}
 
     def get_colors(self):
         """Get dict of ROI colors for each name."""
