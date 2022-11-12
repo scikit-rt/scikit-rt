@@ -7580,13 +7580,15 @@ def get_all_rois(objs=None):
 
     objs : ROI/StructureSet/list, default=None
         Object(s) from which a list of ROIs is to be created.  The
-        object(s) can be ca single skrt.structures.ROI object, a single
+        object(s) can be a single skrt.structures.ROI object, a single
         skrt.structures.StructureSet object, or a list containing any
         combination of ROI and StructureSet objects.
     """
     # Ensure that objs is a list
     if issubclass(type(objs), (ROI, StructureSet)):
         objs = [objs]
+    elif objs is None:
+        objs = []
 
     # Create a list containing all unique rois.
     all_rois = []
