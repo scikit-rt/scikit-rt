@@ -242,11 +242,68 @@ skrt.core.Dated.copy_dicom().</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_biologically_effective_dose">
+<span class="sig-name descname"><span class="pre">get_biologically_effective_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_beta_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_biologically_effective_dose" title="Permalink to this definition"></a></dt>
+<dd><p>Get a Dose object where array values are biologically effective dose.</p>
+<p>The biologically effective dose, BED, for a volume element
+characterised by linear and quadratic coefficients alpha and beta
+for the linear-quadratic equation, is related to the physical dose,
+D, delivered over n equal fractions as:</p>
+<blockquote>
+<div><p>BED = D * (1 + (D/n) / (alpha/beta)).</p>
+</div></blockquote>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>rois<span class="classifier">ROI/StructureSet/list, default=None</span></dt><dd><p>Object(s) specifying ROIs for which biologically effective
+dose is to be determined.  The object(s) can be a
+single skrt.structures.ROI object, a single
+skrt.structures.StructureSet object, or a list containing any
+combination of ROI and StructureSet objects.</p>
+</dd>
+<dt>alpha_beta_ratios<span class="classifier">dict, default=None</span></dt><dd><p>By default, values of alpha over beta used are the values
+set for individual ROIs, for example using
+skrt.StructureSet.set_alpha_beta_ratios().  The default
+values can be overridden here by passing a dictionary
+where keys are ROI names and values are revised values
+for alpha over beta.</p>
+</dd>
+<dt>n_fraction<span class="classifier">float, default=None</span></dt><dd><p>Number of equal-dose fractions over which physical dose
+is delivered.  If None, the value returned by self.get_n_fraction()
+is used.</p>
+</dd>
+<dt>fill<span class="classifier">float/str, default=0</span></dt><dd><p>Specification of dose value to set outside of ROIs, and for ROIs
+where alpha over beta has a null value.  If a float, this is
+used as the default dose value.  If ‘physical_dose”, physical-dose
+values are retained.</p>
+</dd>
+<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the data arrays for Doses and for ROI masks will be
+kept in the orientation in which they were loaded; otherwise,
+they will be converted to standard dicom-style orientation,
+such that [column, row, slice] corresponds to the [x, y, z] axes.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>Determine action if the current dose object has
+dose_type set to “EFFECTIVE”.  If False, write an error message,
+and don’t apply the formula for biologically effective dose.  If
+True, apply the formula, even if the dose_type suggests that
+values already represent biologically effective dose.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.get_dose_in_roi">
-<span class="sig-name descname"><span class="pre">get_dose_in_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_dose_in_roi" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_dose_in_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_dose_in_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Return 1D numpy array containing all of the dose values for the 
 voxels inside an ROI. Fails if the ROI and dose arrays are not the 
 same size.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_dose_in_roi_3d">
+<span class="sig-name descname"><span class="pre">get_dose_in_roi_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_dose_in_roi_3d" title="Permalink to this definition"></a></dt>
+<dd><p>Return copy of the dose array that has values retained
+inside an ROI, and set to zero elsewhere.  Fails if the
+ROI and dose arrays are not the same size.</p>
 </dd></dl>
 
 <dl class="py method">
