@@ -71,6 +71,7 @@ class Image(skrt.core.Archive):
         dtype=None,
         auto_timestamp=False,
         default_intensity=(-200, 300),
+        log_level=None,
     ):
         """
         Initialise from a medical image source.
@@ -160,6 +161,10 @@ class Image(skrt.core.Archive):
             If WindowCenter and WindowWidth are defined in a
             DICOM source file, these values will be used instead to
             define the default intensity range.
+
+        log_level: str/int/None, default=None
+            Severity level for event logging.  If the value is None,
+            log_level is set to the value of skrt.core.Defaults().log_level.
         """
 
         # Clone from another Image object
@@ -202,6 +207,12 @@ class Image(skrt.core.Archive):
         self._default_colorbar_label = "Radiodensity (HU)"
         self._default_cmap = "gray"
         self.default_intensity = default_intensity
+
+        # Set up event logging.
+        self.log_level = (skrt.core.Defaults().log_level if log_level is None
+                else log_level)
+        self.logger = skrt.core.get_logger(
+                name=type(self).__name__, log_level=self.log_level)
 
         path = self.source if isinstance(self.source, str) else ""
         # If self.source is a list of paths, all pointing to the same directory,
