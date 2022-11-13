@@ -2,6 +2,7 @@
 
 import numpy as np
 import os
+import numbers
 import pydicom
 import functools
 
@@ -253,6 +254,7 @@ class Dose(ImageOverlay):
         self.dose_units = None
         self.dose_type = None
         self.dose_summation_type = None
+        
 
     def load(self, *args, **kwargs):
         """Load self and set default maximum plotting intensity from max of
@@ -311,17 +313,25 @@ class Dose(ImageOverlay):
         self.load()
         return self.dose_summation_type
 
-    def get_dose_in_roi(self, roi):
-        """Return 1D numpy array containing all of the dose values for the 
-        voxels inside an ROI. Fails if the ROI and dose arrays are not the 
-        same size."""
+    def get_dose_in_roi_3d(self, roi, standardise=True):
+        """Return copy of the dose array that has values retained
+        inside an ROI, and set to zero elsewhere.  Fails if the
+        ROI and dose arrays are not the same size."""
 
         roi.create_mask()
         if not self.has_same_geometry(roi.mask):
-            raise RuntimeError("Dose field and ROI mask must have same geometry")
+            raise RuntimeError(
+                    "Dose field and ROI mask must have same geometry")
 
-        dose_in_roi = self.get_data(standardise=True) \
-                * roi.get_mask(standardise=True)
+        dose_in_roi = self.get_data(standardise=standardise) \
+                * roi.get_mask(standardise=standardise)
+        return dose_in_roi
+
+    def get_dose_in_roi(self, roi, standardise=True):
+        """Return 1D numpy array containing all of the dose values for the 
+        voxels inside an ROI. Fails if the ROI and dose arrays are not the 
+        same size."""
+        dose_in_roi = self.get_dose_in_roi_3d(roi, standardise)
         return dose_in_roi[dose_in_roi > 0]
 
     def get_max_dose_in_rois(self, rois=[]):
@@ -452,6 +462,119 @@ class Dose(ImageOverlay):
         if doses.size:
             return np.quantile(doses, quantile)
 
+    def get_biologically_effective_dose(self, rois=None, alpha_beta_ratios=None,
+            n_fraction=None, fill=0, standardise=False, force=False):
+        """
+        Get a Dose object where array values are biologically effective dose.
+
+        The biologically effective dose, BED, for a volume element
+        characterised by linear and quadratic coefficients alpha and beta
+        for the linear-quadratic equation, is related to the physical dose,
+        D, delivered over n equal fractions as:
+            BED = D * (1 + (D/n) / (alpha/beta)).
+
+        **Parameters:**
+
+        rois : ROI/StructureSet/list, default=None
+            Object(s) specifying ROIs for which biologically effective
+            dose is to be determined.  The object(s) can be a
+            single skrt.structures.ROI object, a single
+            skrt.structures.StructureSet object, or a list containing any
+            combination of ROI and StructureSet objects.
+
+        alpha_beta_ratios : dict, default=None
+            By default, values of alpha over beta used are the values
+            set for individual ROIs, for example using
+            skrt.StructureSet.set_alpha_beta_ratios().  The default
+            values can be overridden here by passing a dictionary
+            where keys are ROI names and values are revised values
+            for alpha over beta.
+
+        n_fraction : float, default=None
+            Number of equal-dose fractions over which physical dose
+            is delivered.  If None, the value returned by self.get_n_fraction()
+            is used.
+
+        fill : float/str, default=0
+            Specification of dose value to set outside of ROIs, and for ROIs
+            where alpha over beta has a null value.  If a float, this is
+            used as the default dose value.  If 'physical_dose", physical-dose
+            values are retained.
+
+        standardise : bool, default=False
+            If False, the data arrays for Doses and for ROI masks will be
+            kept in the orientation in which they were loaded; otherwise,
+            they will be converted to standard dicom-style orientation,
+            such that [column, row, slice] corresponds to the [x, y, z] axes.
+
+        force : bool, default=False
+            Determine action if the current dose object has
+            dose_type set to "EFFECTIVE".  If False, write an error message,
+            and don't apply the formula for biologically effective dose.  If
+            True, apply the formula, even if the dose_type suggests that
+            values already represent biologically effective dose.
+        """
+        # Check that the input parameter allow
+        # calculation of biologically effective dose.
+
+        if not isinstance(fill, numbers.Number) and fill != "physical_dose":
+            self.logger.error(f"Value of fill set to '{fill}' "
+                    "but must be 'physical_dose' or a number.")
+            return
+
+        self.load()
+        if "EFFECTIVE" == self.dose_type and not force:
+            self.logger.error("Method get_biologically_effective_dose() called "
+                    f"for dose with type '{self.dose_type}'.  "
+                    "If this is the intention, repeat call with 'force=True'")
+            return
+
+        rois = skrt.structures.get_all_rois(rois)
+        if not rois:
+            self.logger.error("Method get_biologically_effective_dose() called "
+                "without specifying any ROIs.")
+            return
+
+        n_fraction = n_fraction or self.get_n_fraction()
+        if not n_fraction:
+            self.logger.error("Method get_biologically_effective_dose() called "
+                "without specifying number of fractions.")
+            return
+
+        # Set dose to be zero outside regions with alpha/beta defined.
+        if isinstance(fill, numbers.Number):
+            bed = Dose(
+                    path=(fill *
+                        np.ones(self.get_data(standardise=standardise).shape)),
+                    affine=self.get_affine(standardise=standardise))
+        # Set dose to be physical dose outside regions with alpha/beta defined.
+        elif "physical_dose" == fill:
+            bed = Dose(
+                    path=self.get_data(standardise=standardise),
+                    affine=self.get_affine(standardise=standardise))
+
+        bed.load()
+
+        # Calculate biologically effective dose
+        # inside ROIs with alpha/beta defined.
+        for roi in rois:
+            # For current ROI, use alpha/beta given in input,
+            # or use the value assigned to the ROI.
+            alpha_over_beta = alpha_beta_ratios.get(
+                    roi.name, roi.alpha_over_beta)
+            # If alpha/beta is defined,
+            # calculate the biologically effective dose.
+            if alpha_over_beta is not None:
+                dose_in_roi = self.get_dose_in_roi_3d(
+                        roi, standardise=standardise)
+                dose_in_roi += ((dose_in_roi * dose_in_roi)
+                        / (n_fraction * alpha_over_beta))
+                bed.data[dose_in_roi > 0] = dose_in_roi[dose_in_roi > 0]
+
+        # Set dose_type to indicate that this is biologically effective dose.
+        bed.dose_type = "EFFECTIVE"
+
+        return bed
 
 class Plan(skrt.core.Archive):
     def __init__(self, path="", load=True):

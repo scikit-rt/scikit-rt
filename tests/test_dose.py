@@ -18,11 +18,13 @@ tmp_path = Path('tmp')
 if not tmp_path.exists():
     tmp_path.mkdir()
 
-def get_synthetic_data():
+def get_synthetic_data(dose_cube=1, dose_sphere=10):
     # Create synthetic structure set
     sim = SyntheticImage((100, 100, 40))
-    sim.add_cube(side_length=40, name="cube", intensity=1)
-    sim.add_sphere(radius=20, name="sphere", intensity=10)
+    sim.add_cube(side_length=30, centre=(30, 30, 20), name="cube",
+            intensity=dose_cube)
+    sim.add_sphere(radius=20, centre=(70, 70, 20), name="sphere",
+            intensity=dose_sphere)
     structure_set = sim.get_structure_set()
     # Create dose object from the synthetic image
     dose = Dose(sim)
@@ -133,3 +135,50 @@ def test_pathlib_path():
     dcm_dir = Path(tmp_path) / 'dose_dcm'
     dose = Dose(dcm_dir)
     assert dose.path == fullpath(dcm_dir)
+
+def test_get_dose_in_roi_3d():
+    """Test retrieval of dose array representing dose to ROI."""
+    # Define synthetic dose field and associated structure set.
+    doses = {"dose_cube": 10, "dose_sphere": 100}
+    dose, structure_set = get_synthetic_data(**doses)
+    dose_data = dose.get_data()
+
+    # Loop over ROIs.
+    for key, roi_dose in doses.items():
+        # Obtain dose array with non-zero values only in region of ROI.
+        roi_name = key.split("_")[-1]
+        roi = structure_set[roi_name]
+        dose_in_roi = dose.get_dose_in_roi_3d(roi)
+
+        # Check that dose values and number of voxels in ROI are as expected.
+        assert dose_in_roi.max() == roi_dose
+        assert np.all(dose_in_roi[dose_in_roi > 0] == roi_dose)
+        assert (dose_in_roi > 0).sum() == roi.get_volume("voxels")
+
+def test_get_biologically_effective_dose():
+    """Test calculation of biologically effective dose."""
+    # Define synthetic dose field and associated structure set.
+    doses = {"dose_cube": 10, "dose_sphere": 100}
+    dose, structure_set = get_synthetic_data(**doses)
+    dose_data = dose.get_data()
+
+    # Obtain dose object representing biologically effective dose (BED).
+    alpha_beta_ratios = {"cube": 3, "sphere": 5}
+    n_fraction = 20
+    bed = dose.get_biologically_effective_dose(structure_set,
+            alpha_beta_ratios, n_fraction)
+
+    small_number = 1e-8
+    # Loop over ROIs.
+    for key, roi_dose in doses.items():
+        # Obtain BED array with non-zero values only in region of ROI.
+        roi_name = key.split("_")[-1]
+        roi = structure_set[roi_name]
+        bed_in_roi = bed.get_dose_in_roi_3d(roi)
+
+        # Check that BED values and number of voxels in ROI are as expected.
+        roi_bed = roi_dose * (1 + roi_dose /
+                (n_fraction * alpha_beta_ratios[roi_name]))
+        assert bed_in_roi.max() == pytest.approx(roi_bed, small_number)
+        assert np.all(bed_in_roi[bed_in_roi > 0] == pytest.approx(roi_bed))
+        assert (bed_in_roi > 0).sum() == roi.get_volume("voxels")
