@@ -462,6 +462,14 @@ class Dose(ImageOverlay):
         if doses.size:
             return np.quantile(doses, quantile)
 
+    def get_bed(self, **kwargs):
+        """
+        Alias for skrt.dose.Dose method get_biologically_effective_dose().
+
+        See aliased method for documentation.
+        """
+        return get_biologically_effective_dose(**kwargs)
+
     def get_biologically_effective_dose(self, rois=None, alpha_beta_ratios=None,
             n_fraction=None, fill=0, standardise=False, force=False):
         """
