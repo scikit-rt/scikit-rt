@@ -1338,6 +1338,28 @@ class Patient(skrt.core.PathData):
             self.load_demographics()
         return self.birth_date
 
+    def get_groupings(self, collections=None):
+        """
+        Obtain dictionary of information on patient groupings.
+
+        collections : dict, default=None
+            Dictionary where keys define types of patient grouping,
+            and values are lists defining specific groupings of this type.  For
+            example, {'cohort' : ['discovery', 'consolidation']} defines
+            two patient cohorts - a discovery cohort and a consolidation
+            cohort.  It's assumed that specific groupings are included
+            in patient data paths.  If None, an empty dictionary is used.
+        """
+        collections = collections or {}
+        info = {}
+        for collection, collection_types in collections.items():
+            info[collection] = None
+            for collection_type in collection_types:
+                if collection_type in self.path:
+                    info[collection] = collection_type
+
+        return info
+
     def get_info(self, collections=None, data_labels=None, image_types=None,
             dose_types=None, plan_image_type=None, treatment_image_type=None,
             min_delta=4, unit='hour', df=False):
@@ -1386,8 +1408,7 @@ class Patient(skrt.core.PathData):
             If True, return summary information as a pandas dataframe.
         '''
         # Ensure that dictionary is defined for patient groupings.
-        if collections is None:
-            collections = {}
+        collections = collections or {}
 
         # Ensure that list is defined for data labels.
         if data_labels is None:
@@ -1414,13 +1435,7 @@ class Patient(skrt.core.PathData):
         info['sex'] = self.get_sex()
 
         # Store information on patient groupings.
-        # The assumption here is that the collection type is
-        # included in the data path.
-        for collection, collection_types in collections.items():
-            info[collection] = None
-            for collection_type in collection_types:
-                if collection_type in self.path:
-                    info[collection] = collection_type
+        info = {**info, **self.get_groupings(collections)}
 
         # Store plan information.
         # Information is taken from the earliest plan file,
@@ -1594,12 +1609,20 @@ class Patient(skrt.core.PathData):
 
         return (pd.DataFrame([info]) if df else info)
 
-    def get_image_info(self, image_types=None, min_delta=4, unit='hour',
-            df=False):
+    def get_image_info(self, collections=None, image_types=None,
+            min_delta=4, unit='hour', df=False):
         '''
         Retrieve information about images.
 
         **Parameters:**
+
+        collections : dict, default=None
+            Dictionary where keys define types of patient grouping,
+            and values are lists defining specific groupings of this type.  For
+            example, {'cohort' : ['discovery', 'consolidation']} defines
+            two patient cohorts - a discovery cohort and a consolidation
+            cohort.  It's assumed that specific groupings are included
+            in data paths.  If None, an empty dictionary is used.
 
         image_types : list, default=None
             List of strings indicating types of image for which information
@@ -1621,6 +1644,8 @@ class Patient(skrt.core.PathData):
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
         '''
+        # Ensure that dictionary is defined for patient groupings.
+        collections = collections or {}
 
         # Ensure that list is defined for image_types.
         if image_types is None:
@@ -1639,6 +1664,7 @@ class Patient(skrt.core.PathData):
             for image in time_separated_images:
                 info = {}
                 info['id'] = self.id
+                info = {**info, **self.get_groupings(collections)}
                 info['modality'] = image_type
                 info['dx'], info['dy'], info['dz'] = image.get_size()
                 info['nx'], info['ny'], info['nz'] = image.get_n_voxels()
@@ -1684,11 +1710,19 @@ class Patient(skrt.core.PathData):
 
         return (pd.DataFrame(all_info) if df else all_info)
 
-    def get_dose_info(self, dose_types=None, df=False):
+    def get_dose_info(self, collections=None, dose_types=None, df=False):
         '''
         Retrieve information about dose.
 
         **Parameters:**
+
+        collections : dict, default=None
+            Dictionary where keys define types of patient grouping,
+            and values are lists defining specific groupings of this type.  For
+            example, {'cohort' : ['discovery', 'consolidation']} defines
+            two patient cohorts - a discovery cohort and a consolidation
+            cohort.  It's assumed that specific groupings are included
+            in data paths.  If None, an empty dictionary is used.
 
         dose_types : list, default=None
             List of strings indicating types of dose for which information
@@ -1699,6 +1733,8 @@ class Patient(skrt.core.PathData):
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
         '''
+        # Ensure that dictionary is defined for patient groupings.
+        collections = collections or {}
 
         # Ensure that list is defined for dose_types.
         if dose_types is None:
@@ -1712,6 +1748,7 @@ class Patient(skrt.core.PathData):
                 dose.load()
                 info = {}
                 info['id'] = self.id
+                info = {**info, **self.get_groupings(collections)}
                 info['timestamp'] = dose.get_pandas_timestamp()
                 info['day'] = (info['timestamp'].isoweekday()
                         if info['timestamp'] else None)
@@ -1731,11 +1768,20 @@ class Patient(skrt.core.PathData):
 
         return (pd.DataFrame(all_info) if df else all_info)
 
-    def get_plan_info(self, plan_types=None, df=False, plan_filter=None):
+    def get_plan_info(self, collections=None, plan_types=None,
+            df=False, plan_filter=None):
         '''
         Retrieve information about treatment plans.
 
         **Parameters:**
+
+        collections : dict, default=None
+            Dictionary where keys define types of patient grouping,
+            and values are lists defining specific groupings of this type.  For
+            example, {'cohort' : ['discovery', 'consolidation']} defines
+            two patient cohorts - a discovery cohort and a consolidation
+            cohort.  It's assumed that specific groupings are included
+            in data paths.  If None, an empty dictionary is used.
 
         plan_types : list, default=None
             List of strings indicating types of plan for which information
@@ -1753,6 +1799,8 @@ class Patient(skrt.core.PathData):
               first plan found of each type;
             - any other value : no filtering.
         '''
+        # Ensure that dictionary is defined for patient groupings.
+        collections = collections or {}
 
         # Ensure that list is defined for plan_types.
         if plan_types is None:
@@ -1766,6 +1814,7 @@ class Patient(skrt.core.PathData):
                 plan.load()
                 info = {}
                 info['id'] = self.id
+                info = {**info, **self.get_groupings(collections)}
                 info['timestamp'] = plan.get_pandas_timestamp()
                 info['day'] = (info['timestamp'].isoweekday()
                         if info['timestamp'] else None)
@@ -1804,12 +1853,20 @@ class Patient(skrt.core.PathData):
 
         return (pd.DataFrame(all_info) if df else all_info)
 
-    def get_structure_set_info(self, roi_names=None, ss_types=None, df=False,
-            ss_filter=None, origin=None):
+    def get_structure_set_info(self, collections=None, roi_names=None,
+            ss_types=None, df=False, ss_filter=None, origin=None):
         '''
         Retrieve information about structure sets.
 
         **Parameters:**
+
+        collections : dict, default=None
+            Dictionary where keys define types of patient grouping,
+            and values are lists defining specific groupings of this type.  For
+            example, {'cohort' : ['discovery', 'consolidation']} defines
+            two patient cohorts - a discovery cohort and a consolidation
+            cohort.  It's assumed that specific groupings are included
+            in data paths.  If None, an empty dictionary is used.
 
         roi_names : dict, default=None
             Dictionary of names for renaming ROIs, where the keys are new 
@@ -1853,6 +1910,8 @@ class Patient(skrt.core.PathData):
 
             If None, then (0, 0, 0) is used.
         '''
+        # Ensure that dictionary is defined for patient groupings.
+        collections = collections or {}
 
         # Ensure that list is defined for ss_types.
         if ss_types is None:
@@ -1873,6 +1932,7 @@ class Patient(skrt.core.PathData):
                 ss.load()
                 info = {}
                 info['id'] = self.id
+                info = {**info, **self.get_groupings(collections)}
                 info['timestamp'] = ss.get_pandas_timestamp()
                 info['modality'] = ss_type
 
