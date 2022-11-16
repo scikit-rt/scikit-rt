@@ -6797,6 +6797,17 @@ class StructureSet(skrt.core.Archive):
         mask_image = roi_combined.get_mask_image()
         return mask_image
 
+    def crop(self, xlim=None, ylim=None, zlim=None):
+        """
+        Crop all ROIs of StructureSet to specified range in x, y, z.
+
+        The parameters xlim, ylim, zlim are passed to each ROI's crop() method.
+        For explanation of these parameters, see documentation for
+        skrt.structures.ROI.crop().
+        """
+        for roi in self.get_rois():
+            roi.crop(xlim, ylim, zlim)
+
 class StructureSetIterator:
 
     def __init__(self, structure_set):
