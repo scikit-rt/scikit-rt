@@ -2123,6 +2123,15 @@ of the ROI with the first in &lt;roi_names&gt;.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.crop">
+<span class="sig-name descname"><span class="pre">crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.crop" title="Permalink to this definition"></a></dt>
+<dd><p>Crop all ROIs of StructureSet to specified range in x, y, z.</p>
+<p>The parameters xlim, ylim, zlim are passed to each ROI’s crop() method.
+For explanation of these parameters, see documentation for
+skrt.structures.ROI.crop().</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.filter_rois">
 <span class="sig-name descname"><span class="pre">filter_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.filter_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Keep only the ROIs in the to_keep list and remove any in the
