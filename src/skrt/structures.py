@@ -1799,8 +1799,12 @@ class ROI(skrt.core.Archive):
             if (ax == "z" or ax == 2) and not single_slice:
                 z_keys = list(self.get_contours("x-y").keys())
                 vz = self.get_slice_thickness_contours()
-                z_max = max(z_keys) +  vz / 2
-                z_min = min(z_keys) - vz / 2
+                if z_keys:
+                    z_max = max(z_keys) +  vz / 2
+                    z_min = min(z_keys) - vz / 2
+                else:
+                    z_min = None
+                    z_max = None
                 return [z_min, z_max]
 
             # Otherwise, calculate extent from min/max contour positions 
