@@ -1064,10 +1064,7 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.
         '''
 
-        if not isNifti(image):
-            image = convertCTToNifti(image)
-
-        foregroundmask = self.get_foreground_mask(image, threshold)
+        foreground_mask = self.get_foreground_mask(threshold)
         foreground_box_mask = get_box_mask_from_mask(foreground_mask, dx, dy)
 
         return foreground_box_mask
