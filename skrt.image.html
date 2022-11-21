@@ -358,6 +358,29 @@ image will not be cropped in that direction.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.crop_about_point">
+<span class="sig-name descname"><span class="pre">crop_about_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_about_point" title="Permalink to this definition"></a></dt>
+<dd><p>Crop the image to a given x, y, z range in mm about a point.</p>
+<p>If any range is None, the image will not be cropped in that direction.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>point<span class="classifier">tuple, default=None</span></dt><dd><p>(x, y, z) coordinates about which cropping is to be performed.
+If None, the point (0, 0, 0) is used, and the result will be
+the same as when calling the Image.crop() method.</p>
+</dd>
+<dt>xlim<span class="classifier">tuple, default=None</span></dt><dd><p>Upper and lower bounds relative to reference point of cropping
+along x-axis.  If None, cropping is not performed along this axis.</p>
+</dd>
+<dt>ylim<span class="classifier">tuple, default=None</span></dt><dd><p>Upper and lower bounds relative to reference point of cropping
+along y-axis.  If None, cropping is not performed along this axis.</p>
+</dd>
+<dt>zlim<span class="classifier">tuple, default=None</span></dt><dd><p>Upper and lower bounds relative to reference point of cropping
+along z-axis.  If None, cropping is not performed along this axis.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.crop_by_amounts">
 <span class="sig-name descname"><span class="pre">crop_by_amounts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop_by_amounts" title="Permalink to this definition"></a></dt>
 <dd><p>Crop image by the amounts dx, dy, dz in mm.</p>
