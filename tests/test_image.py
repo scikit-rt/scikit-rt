@@ -749,6 +749,27 @@ def test_scale_and_rotation():
     for i in range(3):
         assert n_good[i] >= min_fraction_good
 
+def test_crop_about_point():
+    """Test cropping of image about point."""
+    # Create test image.
+    sim1 = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5))
+    im1 = sim1.get_image()
+
+    # Test null cropping.
+    im2 = im1.clone()
+    im2.crop_about_point()
+    assert im1.get_extents() == im2.get_extents()
+
+    # Crop image about point.
+    point = (4, 8, 2)
+    xyz_lims = [(-3, 5), (-6, -1), (0, 7)]
+    im2.crop_about_point(point, *xyz_lims)
+
+    # Check that extents of cropped image are as expected.
+    extents = im2.get_extents()
+    for i_ax, lims in enumerate(xyz_lims):
+        assert tuple([lim + point[i_ax] for lim in lims]) == extents[i_ax]
+
 def test_crop_by_amounts():
     """Test cropping of image by specified amounts."""
     # Create test image.

@@ -3598,6 +3598,38 @@ class Image(skrt.core.Archive):
         self.affine = None
         self.set_geometry()
 
+    def crop_about_point(self, point=None, xlim=None, ylim=None, zlim=None):
+        """
+        Crop the image to a given x, y, z range in mm about a point.
+
+        If any range is None, the image will not be cropped in that direction.
+
+        **Parameters:**
+
+        point : tuple, default=None
+            (x, y, z) coordinates about which cropping is to be performed.
+            If None, the point (0, 0, 0) is used, and the result will be
+            the same as when calling the Image.crop() method.
+
+        xlim : tuple, default=None
+            Upper and lower bounds relative to reference point of cropping
+            along x-axis.  If None, cropping is not performed along this axis.
+
+        ylim : tuple, default=None
+            Upper and lower bounds relative to reference point of cropping
+            along y-axis.  If None, cropping is not performed along this axis.
+
+        zlim : tuple, default=None
+            Upper and lower bounds relative to reference point of cropping
+            along z-axis.  If None, cropping is not performed along this axis.
+        """
+        point = point or (0, 0, 0)
+        lims = []
+        for idx, lim in enumerate([xlim, ylim, zlim]):
+            lims.append(None if lim is None else
+                    [lim[0] + point[idx], lim[1] + point[idx]])
+        self.crop(*lims)
+
     def crop_by_amounts(self, dx=None, dy=None, dz=None):
         """
         Crop image by the amounts dx, dy, dz in mm.
