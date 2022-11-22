@@ -1011,6 +1011,33 @@ def test_apply_banding():
         assert (((im.get_data() > v1) & (im.get_data() <= v2)).sum()
                 == (im1.get_data() == v_band).sum())
 
+def test_apply_selective_banding():
+    # Test selective banding.
+
+    # Define test image.
+    im1 = Image(im)
+    image_data = im1.get_data()
+    print(image_data.min(), image_data.max())
+
+    # Define banding, and apply to image copy.
+    unbanded = [(600, 800)]
+    bands = {100: (None, 300), 500: (300, 600), 900: (800, None)}
+    im2 = im1.clone()
+    im2.apply_selective_banding(bands)
+    banded_data = im2.get_data()
+
+    # Check that band values are correctly assigned.
+    for v_band, values in sorted(bands.items()):
+        v1 = values[0] if values[0] is not None else image_data.min() - 1
+        v2 = values[1] if values[1] is not None else image_data.max() + 1
+        assert np.all(banded_data[(image_data > v1) & (image_data <= v2)]
+                == v_band)
+
+    # Check that values in unbanded range(s) are unchanged.
+    for v1, v2 in unbanded:
+        assert np.all(banded_data[(image_data > v1) & (image_data <= v2)]
+                == image_data[(image_data > v1) & (image_data <= v2)])
+
 def test_addition():
     # Define test image.
     shape = (50, 50, 10)

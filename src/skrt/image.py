@@ -3623,11 +3623,14 @@ class Image(skrt.core.Archive):
             Upper and lower bounds relative to reference point of cropping
             along z-axis.  If None, cropping is not performed along this axis.
         """
-        point = point or (0, 0, 0)
+        if point is None:
+            point = (0, 0, 0)
+
         lims = []
         for idx, lim in enumerate([xlim, ylim, zlim]):
             lims.append(None if lim is None else
                     [lim[0] + point[idx], lim[1] + point[idx]])
+
         self.crop(*lims)
 
     def crop_by_amounts(self, dx=None, dy=None, dz=None):
@@ -3908,6 +3911,54 @@ class Image(skrt.core.Archive):
             v1 = values[i - 1]
             v2 = values[i]
             v_band = bands[v2]
+            banded_data[(image_data > v1) & (image_data <= v2)] = v_band
+
+        self.data = banded_data
+
+    def apply_selective_banding(self, bands=None):
+        '''
+        Apply banding to selected intensity ranges of image data.
+
+        This is one of two skrt.image.Image methods to perform banding:
+
+        - apply_banding():
+          assign all intensity values to bands;
+        - apply_selective_banding():
+          assign only selected intensity values to bands.
+
+        Both methods accept as input a dictionary specifying bands, but
+        the dictionary format for the two methods is different.
+
+        **Parameter:**
+
+        bands - dict, default=None
+            Dictionary of value bandings to be applied to image data.
+            Keys are floats specifying intensities to be assigned, and
+            values are two-element tuples indicating lower and upper
+            band limits.  If the first element is None, no lower limit
+            is applied; if the second element is None, no upper limit
+            is applied.  For example:
+
+            - bands{-1024: (None, -100), 1024: (100, None}
+
+            will result in the following banding:
+ 
+            - value <= -100 => -1024;
+            - -100 < value <= 100 => original values retained;
+            - 100 < value => 1024.
+        '''
+
+        if bands is None:
+            return
+
+        # Retreive data, and create copy on which to apply banding.
+        image_data = self.get_data()
+        banded_data = image_data.copy()
+
+        # Apply banding.
+        for v_band, values in sorted(bands.items()):
+            v1 = values[0] if values[0] is not None else image_data.min() - 1
+            v2 = values[1] if values[1] is not None else image_data.max() + 1
             banded_data[(image_data > v1) & (image_data <= v2)] = v_band
 
         self.data = banded_data
