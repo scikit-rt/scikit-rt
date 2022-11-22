@@ -271,6 +271,40 @@ to be assigned.  For example:</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.apply_selective_banding">
+<span class="sig-name descname"><span class="pre">apply_selective_banding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.apply_selective_banding" title="Permalink to this definition"></a></dt>
+<dd><p>Apply banding to selected intensity ranges of image data.</p>
+<p>This is one of two skrt.image.Image methods to perform banding:</p>
+<ul class="simple">
+<li><p>apply_banding():
+assign all intensity values to bands;</p></li>
+<li><p>apply_selective_banding():
+assign only selected intensity values to bands.</p></li>
+</ul>
+<p>Both methods accept as input a dictionary specifying bands, but
+the dictionary format for the two methods is different.</p>
+<p><strong>Parameter:</strong></p>
+<dl>
+<dt>bands - dict, default=None</dt><dd><p>Dictionary of value bandings to be applied to image data.
+Keys are floats specifying intensities to be assigned, and
+values are two-element tuples indicating lower and upper
+band limits.  If the first element is None, no lower limit
+is applied; if the second element is None, no upper limit
+is applied.  For example:</p>
+<ul class="simple">
+<li><p>bands{-1024: (None, -100), 1024: (100, None}</p></li>
+</ul>
+<p>will result in the following banding:</p>
+<ul class="simple">
+<li><p>value &lt;= -100 =&gt; -1024;</p></li>
+<li><p>-100 &lt; value &lt;= 100 =&gt; original values retained;</p></li>
+<li><p>100 &lt; value =&gt; 1024.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.assign_intensity_to_rois">
 <span class="sig-name descname"><span class="pre">assign_intensity_to_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.assign_intensity_to_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Assign intensity value to image regions corresponding to ROIs.</p>
