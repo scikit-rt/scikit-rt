@@ -1756,10 +1756,12 @@ If None, the names in self.name and roi.name will be used.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.reset_contours">
-<span class="sig-name descname"><span class="pre">reset_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.reset_contours" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">reset_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">most_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.reset_contours" title="Permalink to this definition"></a></dt>
 <dd><p>Reset x-y contours to a given dict of slices and contour lists, 
 and ensure that mask and y-z/x-z contours will be recreated. If 
-contours is None, contours will be reset using own x-y contours.</p>
+contours is None, contours will be reset using own x-y contours.
+If most_points is True, only the contour with most points for
+each slice is considered.</p>
 </dd></dl>
 
 <dl class="py method">
