@@ -26,7 +26,7 @@ class Registration(Data):
         self, path, fixed=None, moving=None, fixed_mask=None,
         moving_mask=None, pfiles=None, auto=False, overwrite=False,
         tfiles=None, initial_alignment=None, initial_transform_name=None,
-        capture_output=False, log_level=None):
+        capture_output=False, log_level=None, keep_tmp_dir=False):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -135,14 +135,20 @@ class Registration(Data):
         log_level: str/int/None, default=None
             Severity level for event logging.  If the value is None,
             log_level is set to the value of skrt.core.Defaults().log_level.
+
+        keep_tmp_dir: bool, default=False
+            If True, don't delete directory self._tmp_dir used when
+            performing transformations.  Otherwise, delete this directory
+            after use.
         """
 
-        # Set up event logging and output capture
+        # Set up event logging, output capture, and handling of self._tmp_dir
         self.log_level = \
                 Defaults().log_level if log_level is None else log_level
         self.logger = get_logger(
                 name=type(self).__name__, log_level=self.log_level)
         self.capture_output = capture_output
+        self.keep_tmp_dir = keep_tmp_dir
 
         # Set up directory
         self.path = fullpath(path)
@@ -1148,7 +1154,8 @@ class Registration(Data):
         if not hasattr(self, "_tmp_dir"):
             return
         if os.path.exists(self._tmp_dir):
-            shutil.rmtree(self._tmp_dir)
+            if not self.keep_tmp_dir:
+                shutil.rmtree(self._tmp_dir)
 
     def adjust_file(self, step, params, ftype='p', reset=True):
         """Adjust parameters in a parameter or transform file for a given step. 
