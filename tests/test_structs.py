@@ -1444,3 +1444,21 @@ def test_get_contours():
             assert (1 if most_points else len(in_contours)) == len(roi_contours)
             for idx in range(len(roi_contours)):
                 assert np.all(in_contours[idx] == roi_contours[idx])
+
+def test_reset_contours():
+    """Test contour resetting, with and without filtering for most points."""
+    # Create ROI defined by two contours in a single slice.
+    contours = {10: [np.array([[-1, -1], [-1, 1], [1, 1], [1, -1], [-1, -1]]),
+        np.array([[-1, -1], [0, 1], [1, -1], [-1, -1]])]}
+    roi = ROI(contours)
+
+    # Reset contours with and without filtering for most points.
+    for most_points in [False, True]:
+        roi1 = roi.clone()
+        roi1.reset_contours(most_points=most_points)
+        for key, roi_contours in roi1.get_contours().items():
+            in_contours = contours[key]
+            # Check that contours are as expected.
+            assert (1 if most_points else len(in_contours)) == len(roi_contours)
+            for idx in range(len(roi_contours)):
+                assert np.all(in_contours[idx] == roi_contours[idx])

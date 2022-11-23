@@ -528,10 +528,12 @@ class ROI(skrt.core.Archive):
         self.load()
         return self.dicom_dataset
 
-    def reset_contours(self, contours=None):
+    def reset_contours(self, contours=None, most_points=False):
         """Reset x-y contours to a given dict of slices and contour lists, 
         and ensure that mask and y-z/x-z contours will be recreated. If 
-        contours is None, contours will be reset using own x-y contours."""
+        contours is None, contours will be reset using own x-y contours.
+        If most_points is True, only the contour with most points for
+        each slice is considered."""
 
         # Check format is correct
         if contours is None:
@@ -542,6 +544,11 @@ class ROI(skrt.core.Archive):
             if not isinstance(c, list):
                 raise TypeError(f"contours[{z}] should be a list of contours "
                                 f"on slice {z}")
+
+        # For each slice, keep only contour with most points.
+        if most_points:
+            contours = {key: [max(value, key=len)]
+                    for key, value in contours.items()}
 
         self.input_contours = contours
         self.empty = not len(self.input_contours)
