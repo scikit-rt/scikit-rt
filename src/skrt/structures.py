@@ -578,8 +578,23 @@ class ROI(skrt.core.Archive):
         self.empty = not np.any(self.mask.get_data())
         self.input_contours = None
 
-    def get_contours(self, view="x-y", idx_as_key=False):
-        """Get dict of contours in a given orientation."""
+    def get_contours(self, view="x-y", idx_as_key=False, most_points=False):
+        """
+        Get dict of contours in a given orientation.
+
+        **Parameters:**
+
+        view : str, default="x-y"
+            View in which to obtain contours.
+
+        idx_as_key : bool, default=False
+            If True, use slice indices as dictionary keys; if False,
+            use slice z-coordinates as dictionary keys.
+
+        most_points : bool, default=False
+            If True, return only the contour with most points for each slice;
+            if False, return all contours for each slice.
+        """
 
         self.load()
         if view not in self.contours:
@@ -590,6 +605,12 @@ class ROI(skrt.core.Archive):
         if idx_as_key:
             contours = {self.pos_to_idx(key, skrt.image._slice_axes[view]): 
                         value for key, value in contours.items()}
+
+        # For each slice, keep only contour with most points.
+        if most_points:
+            contours = {key: [max(value, key=len)]
+                    for key, value in contours.items()}
+
         return contours
 
     def get_contours_on_slice(self, view="x-y", sl=None, idx=None, pos=None):

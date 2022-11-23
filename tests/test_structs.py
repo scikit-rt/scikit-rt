@@ -1427,3 +1427,20 @@ def test_alpha_over_beta():
         assert roi.get_alpha_over_beta() == alpha_beta_ratios[roi.name]
 
     assert structure_set.get_alpha_beta_ratios() == alpha_beta_ratios
+
+def test_get_contours():
+    """Test contour retrieval, with and without filtering for most points."""
+    # Create ROI defined by two contours in a single slice.
+    contours = {10: [np.array([[-1, -1], [-1, 1], [1, 1], [1, -1], [-1, -1]]),
+        np.array([[-1, -1], [0, 1], [1, -1], [-1, -1]])]}
+    roi = ROI(contours)
+
+    # Retrieve contours with and without filtering for most points.
+    for most_points in [False, True]:
+        for key, roi_contours in roi.get_contours(
+                most_points=most_points).items():
+            in_contours = contours[key]
+            # Check that contours are as expected.
+            assert (1 if most_points else len(in_contours)) == len(roi_contours)
+            for idx in range(len(roi_contours)):
+                assert np.all(in_contours[idx] == roi_contours[idx])
