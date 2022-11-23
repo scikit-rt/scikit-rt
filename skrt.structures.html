@@ -686,8 +686,19 @@ by the value of match_lengths_strategy.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_contours">
-<span class="sig-name descname"><span class="pre">get_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_as_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_contours" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_as_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">most_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_contours" title="Permalink to this definition"></a></dt>
 <dd><p>Get dict of contours in a given orientation.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>View in which to obtain contours.</p>
+</dd>
+<dt>idx_as_key<span class="classifier">bool, default=False</span></dt><dd><p>If True, use slice indices as dictionary keys; if False,
+use slice z-coordinates as dictionary keys.</p>
+</dd>
+<dt>most_points<span class="classifier">bool, default=False</span></dt><dd><p>If True, return only the contour with most points for each slice;
+if False, return all contours for each slice.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
