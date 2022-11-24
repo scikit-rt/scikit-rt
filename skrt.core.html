@@ -570,6 +570,56 @@ be used to initialise objects.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.core.TicToc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">TicToc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Singleton class for storing timing information,
+to allow emulation of MATLAB tic/toc functionality.</p>
+<p>Implementation of the singleton design pattern is based on:
+<a class="reference external" href="https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html">https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.TicToc.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of TicToc singleton class.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>message: str/bool, default=None</dt><dd><p>Value to be assigned to skrt.core.TicToc().message,
+which defines the default behaviour for printing
+elapsed time when calling skrt.core.toc().  A value
+of True sets skrt.core.TicToc().message to
+“Time elapsed is “.  In the first call to this method,
+a value of None initialises skrt.core.TicToc().message
+to False.  In subsequent calls, a value of None is disregarded.</p>
+</dd>
+<dt>time_format<span class="classifier">str, default=None</span></dt><dd><p>Value to be assigned to skrt.core.TicToc().time_format,
+which defines the Format for printing elapsed time (seconds).
+In the first call to this method, a value of None initialises
+skrt.core.TicToc().time_format to “.6f”.  In subsequent calls,
+a value of None is disregarded.</p>
+</dd>
+<dt>log_level<span class="classifier">str, default=None</span></dt><dd><p>Value to be assigned to skrt.core.TicToc().log_level, which
+defines the Severity level for event logging.  In the first
+call to this method, a value of None initialises
+skrt.core.TicToc().time_format to Defaults().log_level.  In
+subsequent calls, a value of None is disregarded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.core.TicToc.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc.__repr__" title="Permalink to this definition"></a></dt>
+<dd><p>Print instance attributes.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="skrt.core.TicToc.instance">
+<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#skrt.core.TicToc.instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.alphanumeric">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">alphanumeric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.alphanumeric" title="Permalink to this definition"></a></dt>
@@ -926,9 +976,51 @@ directory levels in the path, are retained.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.tic">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">tic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.tic" title="Permalink to this definition"></a></dt>
+<dd><p>Set timer start time.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.to_list">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_none_single</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.to_list" title="Permalink to this definition"></a></dt>
 <dd><p>Ensure that a value is a list of n items.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.toc">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">toc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.toc" title="Permalink to this definition"></a></dt>
+<dd><p>Record, and optionally report, time since corresponding call to tic().</p>
+<p>Each call to tic() adds a start time to the list skrt.core.TicToc().tics.
+Each call to toc() removes the last start time from the list, and records
+the time elapsed since that start time.  If the list is empty, the call
+to toc() records the time elapsed since the last call to tic().  This
+allows for nested timings, and for cumulative timings.</p>
+<p>For example:</p>
+<blockquote>
+<div><p>tic() # tic_1
+for idx in range(5)</p>
+<blockquote>
+<div><p>tic() # tic_idx
+# do something
+toc() # time since tic_idx</p>
+</div></blockquote>
+<p>toc() # time since tic_1
+# do something
+toc() # time since tic_1</p>
+</div></blockquote>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>message<span class="classifier">str/bool, default=None</span></dt><dd><p>If at least one of message and skrt.core.TicToc().message evaluates
+to True, elapsed time will be printed, preceded by message if
+this is a string, by skrt.core.TicToc().message (initialised
+to False) if this is a string, otherwise by
+skrt.core.TicToc().default_message (initialised to “Elapsed time is “).</p>
+</dd>
+<dt>time_format<span class="classifier">str, default=None</span></dt><dd><p>Format for printing elapsed time (seconds).  If None,
+use skrt.core.TicToc().time_format, which is initialised to “.6f”</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
