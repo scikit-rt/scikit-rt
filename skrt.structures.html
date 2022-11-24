@@ -2733,6 +2733,25 @@ the StructureSet.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.reset_contours">
+<span class="sig-name descname"><span class="pre">reset_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">most_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.reset_contours" title="Permalink to this definition"></a></dt>
+<dd><p>Reset x-y contours for ROIs of structure set.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>contours<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where keys are ROI names and values are dictionaries
+of slice and contour lists.  If None, an empty dictionary is
+used.  If an ROI has a name not included in the top-level
+dictionary, or has a name with associated value None, the
+ROI contours will be reset using the ROI’s own x-y contours.</p>
+</dd>
+<dt>most_points<span class="classifier">bool, default=False</span></dt><dd><p>If True, only the contour with most points for each slice
+is retained after resetting.  If False, all contours for each
+slice are retained.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.set_alpha_beta_ratios">
 <span class="sig-name descname"><span class="pre">set_alpha_beta_ratios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha_beta_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_as_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.set_alpha_beta_ratios" title="Permalink to this definition"></a></dt>
 <dd><p>Set ratios for ROI tissues of coefficients of linear-quadratic equation.</p>
