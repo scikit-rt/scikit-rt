@@ -5,6 +5,7 @@ from pytest import approx
 
 import os
 import time
+import timeit
 import shutil
 
 import pandas as pd
@@ -299,3 +300,35 @@ def test_make_dir():
                 assert path is None
             else:
                 assert path == tdir
+
+def test_tictoc():
+    # Define number of iterations, sleep time per iteration,
+    # and level of agreement required in timing tests.
+    n_iteration = 3
+    sleep_time = 0.25
+    small_number = 1.e-3
+
+    # Start timer.
+    t1 = timeit.default_timer()
+    skrt.core.tic()
+
+    # Check time between consecutive calls to tic() and toc().
+    for idx in range(n_iteration):
+        t2 = timeit.default_timer()
+        skrt.core.tic()
+        time.sleep(sleep_time)
+        tic_toc = skrt.core.toc()
+        t3 = timeit.default_timer()
+        assert tic_toc == approx(t3 - t2, abs=small_number)
+
+    # Check nesting - time relative to the timer start time.
+    tic_toc = skrt.core.toc()
+    t4 = timeit.default_timer()
+    assert tic_toc == approx(t4 - t1, abs=small_number)
+
+    # Check accumulation - time relative to the last call to tic().
+    for idx in range(n_iteration):
+        time.sleep(sleep_time)
+        tic_toc = skrt.core.toc()
+        t5 = timeit.default_timer()
+        assert tic_toc == approx(t5 - t2, abs=small_number)

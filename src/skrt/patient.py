@@ -5,12 +5,11 @@ from pathlib import Path
 import pydicom
 import shutil
 import time
-import timeit
 
 import pandas as pd
 
 import skrt.core
-from skrt.core import fullpath, get_data_indices, get_indexed_objs
+from skrt.core import fullpath, get_data_indices, get_indexed_objs, tic, toc
 from skrt.image import _axes, Image
 from skrt.structures import StructureSet
 from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
@@ -912,7 +911,7 @@ class Patient(skrt.core.PathData):
         id_mappings = id_mappings or {}
 
         # Record start time
-        tic = timeit.default_timer()
+        tic()
 
         # Set path and patient ID
         if path is None:
@@ -945,8 +944,7 @@ class Patient(skrt.core.PathData):
         self._dose_sum_time = None
 
         # Record end time, then store initialisation time.
-        toc = timeit.default_timer()
-        self._init_time = (toc - tic)
+        self._init_time = toc()
 
     def __gt__(self, other):
         '''
@@ -2004,7 +2002,7 @@ class Patient(skrt.core.PathData):
             return self.dose_sum
 
         # Record start time
-        tic = timeit.default_timer()
+        tic()
 
         # Obtain dose objects across studies, disregarding any duplicates.
         doses = remove_duplicate_doses(self.combined_objs("dose_types"))
@@ -2044,8 +2042,7 @@ class Patient(skrt.core.PathData):
             self.dose_sum.match_size(image)
 
         # Record end time, then store time for dose summation.
-        toc = timeit.default_timer()
-        self._dose_sum_time = (toc - tic)
+        self._dose_sum_time = toc()
 
         return self.dose_sum
 

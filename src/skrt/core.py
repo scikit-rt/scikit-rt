@@ -9,6 +9,7 @@ import re
 import shutil
 import sys
 import time
+import timeit
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 
@@ -1752,3 +1753,188 @@ def get_data_indices(in_value, valid_data_types):
         data_indices = {data_type: True for data_type in data_types}
 
     return data_indices
+
+class TicToc:
+    """
+    Singleton class for storing timing information,
+    to allow emulation of MATLAB tic/toc functionality.
+
+    Implementation of the singleton design pattern is based on:
+    https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html
+    """
+
+    # Define the single instance as a class attribute
+    instance = None
+
+    # Single instance inner class
+    class __TicToc:
+
+        def __init__(self, message=None, time_format=None, log_level=None):
+            """
+            Constructor of TicToc inner class.
+
+            This constructor is called the first time that the TicToc
+            (outer) class is called.
+
+            Parameters are as documemnted for
+            skrt.core.TicToc.__init__() method.
+            """
+            # Initialise parameter values.
+
+            # Set attribute values.
+            self.start = None
+            self.tics = []
+            self.message = False
+            self.default_message = "Time elapsed is "
+            self.time_format = ".6f"
+            self.log_level = Defaults().log_level
+            self.set_options(message, time_format, log_level)
+            self.logger = get_logger(
+                    name=type(self).__name__, log_level=self.log_level)
+
+        def set_options(self, message=None, time_format=None, log_level=None):
+            """
+            Set instance attributes.
+
+            Parameters are as documemnted for
+            skrt.core.TicToc.__init__() method.
+
+            A parameter value of None leaves the corresponding
+            attribute value unaltered.
+            """
+            if message is not None:
+                if message is True:
+                    self.message = self.default_message
+                else:
+                    self.message = message
+            if time_format is not None:
+                self.time_format = time_format
+            if log_level is not None:
+                self.log_level = log_level
+
+        def __repr__(self):
+            """Print instance attributes."""
+            out = []
+            for key, value in sorted(self.__dict__.items()):
+                out.append(f"{key}: {value}")
+            return "\n".join(out)
+
+    def __init__(self, message=None, time_format=None, log_level=None):
+        """
+        Constructor of TicToc singleton class.
+
+        **Parameters:**
+
+        message: str/bool, default=None
+            Value to be assigned to skrt.core.TicToc().message,
+            which defines the default behaviour for printing
+            elapsed time when calling skrt.core.toc().  A value
+            of True sets skrt.core.TicToc().message to
+            "Time elapsed is ".  In the first call to this method,
+            a value of None initialises skrt.core.TicToc().message
+            to False.  In subsequent calls, a value of None is disregarded.
+
+        time_format : str, default=None
+            Value to be assigned to skrt.core.TicToc().time_format,
+            which defines the Format for printing elapsed time (seconds).
+            In the first call to this method, a value of None initialises
+            skrt.core.TicToc().time_format to ".6f".  In subsequent calls,
+            a value of None is disregarded.
+
+        log_level : str, default=None
+            Value to be assigned to skrt.core.TicToc().log_level, which
+            defines the Severity level for event logging.  In the first
+            call to this method, a value of None initialises
+            skrt.core.TicToc().time_format to Defaults().log_level.  In
+            subsequent calls, a value of None is disregarded.
+        """
+        if not TicToc.instance:
+            TicToc.instance = TicToc.__TicToc(message, time_format, log_level)
+        else:
+            TicToc.instance.set_options(message, time_format, log_level)
+
+    def __getattr__(self, name):
+        """Get instance attribute."""
+        return getattr(self.instance, name)
+
+    def __setattr__(self, name, value):
+        """Set instance attribute."""
+        return setattr(self.instance, name, value)
+
+    def __repr__(self):
+        """Print instance attributes."""
+        return self.instance.__repr__()
+
+def tic():
+    """
+    Set timer start time.
+    """
+    timer = TicToc()
+    timer.start = timeit.default_timer()
+    timer.tics.append(timer.start)
+    return timer.start
+
+def toc(message=None, time_format=None):
+    """
+    Record, and optionally report, time since corresponding call to tic().
+
+    Each call to tic() adds a start time to the list skrt.core.TicToc().tics.
+    Each call to toc() removes the last start time from the list, and records
+    the time elapsed since that start time.  If the list is empty, the call
+    to toc() records the time elapsed since the last call to tic().  This
+    allows for nested timings, and for cumulative timings.
+
+    For example:
+
+        tic() # tic_1
+        for idx in range(5)
+            tic() # tic_idx
+            # do something
+            toc() # time since tic_idx
+        toc() # time since tic_1
+        # do something
+        toc() # time since tic_1
+
+    **Parameters:**
+
+    message : str/bool, default=None
+        If at least one of message and skrt.core.TicToc().message evaluates
+        to True, elapsed time will be printed, preceded by message if
+        this is a string, by skrt.core.TicToc().message (initialised
+        to False) if this is a string, otherwise by
+        skrt.core.TicToc().default_message (initialised to "Elapsed time is ").
+
+    time_format : str, default=None
+        Format for printing elapsed time (seconds).  If None,
+        use skrt.core.TicToc().time_format, which is initialised to ".6f"
+    """
+    # Obtain stop time.
+    stop = timeit.default_timer()
+
+    timer = TicToc()
+    # Log error and return None if timer hasn't been started.
+    if timer.start is None:
+        timer.error("Timer not started - to start timer, call: tic()")
+        return None
+
+    # Obtain time elapsed since relevant call to tic().
+    if timer.tics:
+        time_taken = stop - timer.tics.pop()
+    else:
+        time_taken = stop - timer.start
+
+    # Print time elapsed.
+    if message or timer.message:
+        if not message or not isinstance(message, str):
+            if isinstance(timer.message, str):
+                message = timer.message
+            else:
+                message = timer.default_message
+    if message:
+        if not isinstance(message, str):
+            message = ""
+        if not time_format:
+            time_format = timer.time_format
+        print(f"{message}{time_taken:{time_format}} seconds")
+
+    return time_taken 

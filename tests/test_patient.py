@@ -187,6 +187,8 @@ def test_read_dicom_patient():
     assert len(roi_names) == 2
     assert "cube" in roi_names
     assert "sphere" in roi_names
+    assert isinstance(p_test._init_time, float)
+    assert p_test._init_time > 0
 
 @not_windows
 def test_patient_references():
