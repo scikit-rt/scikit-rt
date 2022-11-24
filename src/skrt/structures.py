@@ -5305,6 +5305,28 @@ class StructureSet(skrt.core.Archive):
         self.loaded = False
         self.load(force=True)
 
+    def reset_contours(self, contours=None, most_points=False):
+        """
+        Reset x-y contours for ROIs of structure set.
+
+        **Parameters:**
+        
+        contours : dict, default=None
+            Dictionary where keys are ROI names and values are dictionaries
+            of slice and contour lists.  If None, an empty dictionary is
+            used.  If an ROI has a name not included in the top-level
+            dictionary, or has a name with associated value None, the
+            ROI contours will be reset using the ROI's own x-y contours.
+
+        most_points : bool, default=False
+            If True, only the contour with most points for each slice
+            is retained after resetting.  If False, all contours for each
+            slice are retained.
+        """
+        contours = contours or {}
+        for roi in self.get_rois():
+            roi.reset_contours(contours.get(roi.name, None), most_points)
+
     def set_image_to_dummy(self, **kwargs):
         """
         Set image for self and all ROIs to be a dummy image covering
