@@ -13,9 +13,8 @@ Each method returns an instance of the Status class,
 providing information on whether execution problems were encountered.
 Running of algorithm methods is handled by the Application class.
 
-This module also provides functions that may be useful within an
+This module also provides the following function that may be useful within an
 application:
-* **get_data_loader()** - get information for loading patient datasets.
 * **get_paths()** - get list of paths to patient datasets.
 '''
 from itertools import chain

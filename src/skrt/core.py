@@ -1045,6 +1045,14 @@ def fullpath(path=""):
         expanded = os.path.realpath(tmp)
     return expanded
 
+def qualified_name(cls=None):
+    """
+    Return qualified name of a class.
+
+    Return None if non-class given as input.
+    """
+    if isinstance(cls, type): return f"{cls.__module__}.{cls.__name__}"
+
 def get_logger(name="", log_level=None, identifier="name"):
     """
     Retrieve named event logger.

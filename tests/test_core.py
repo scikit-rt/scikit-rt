@@ -332,3 +332,8 @@ def test_tictoc():
         tic_toc = skrt.core.toc()
         t5 = timeit.default_timer()
         assert tic_toc == approx(t5 - t2, abs=small_number)
+
+def test_qualified_name():
+    """Test determination of qualified name for a class."""
+    from skrt.core import Archive
+    assert "skrt.core.Archive" == skrt.core.qualified_name(Archive)
