@@ -195,7 +195,7 @@ def write_study(study, outdir="./innereye_datasets",
                     bilateral_names=bilateral_names)
 
 def write_patient(patient,
-        outdir="./innereye_datasets", studies_to_write=None, verbose=True,
+        outdir="./innereye_datasets", studies_to_write=None,
         overwrite=True, **kwargs):
 
     """
@@ -217,9 +217,6 @@ def write_patient(patient,
         List of indices of studies for which data are to be written,
         0 being the earliest study and -1 being the most recent.  If set to
         None, data for all studies are written.
-
-    verbose - bool, default=True
-       Flag indicating whether to report progress.
 
     overwrite - bool, default=True
         If True, delete delete any pre-existing patient folder.
