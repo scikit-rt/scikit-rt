@@ -5076,8 +5076,15 @@ class StructureSet(skrt.core.Archive):
         # Create new StructureSet instance for sum,
         # and store names of contributors.
         result = StructureSet()
-        result.summed_names = list(set(self.summed_names + other.summed_names
-            + [self.name] + [other.name]))
+        result.summed_names = []
+        for names in [self.summed_names, other.summed_names,
+                [self.name], [other.name]]:
+            for name in names:
+                if isinstance(name, str):
+                    for sub_name in name.split("_"):
+                        if sub_name not in result.summed_names:
+                            result.summed_names.append(sub_name)
+        result.summed_names.sort()
 
         # Loop over StructureSets and their ROIs.
         for ss in [self, other]:
@@ -5100,12 +5107,8 @@ class StructureSet(skrt.core.Archive):
 
         # Set the result name to be the concatenation of the names
         # of the contributors.
-        names = sorted([name for name in result.summed_names
-            if isinstance(name, str)])
-        if len(names) == 1:
-            result.name = names[0]
-        elif len(names) > 1:
-            result.name = "_".join(names)
+        if result.summed_names:
+            result.name = "_".join(result.summed_names)
 
         return result
 
