@@ -589,7 +589,7 @@ class Study(skrt.core.Archive):
                     continue
 
                 # Identify imaging machine.
-                suffix = f"_{(image.get_machine()}" if image.get_machine()
+                suffix = (f"_{image.get_machine()}" if image.get_machine()
                         else "")
 
                 # Clone image object for writing.
