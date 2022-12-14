@@ -136,7 +136,7 @@ def write_study(study, outdir="./innereye_datasets",
         if isinstance(indices, int):
             indices = [indices]
         idxs = []
-        if indices is True:
+        if indices is True or indices is None:
             idxs = range(len(images))
         else:
             for idx in indices:

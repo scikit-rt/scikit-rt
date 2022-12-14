@@ -2,7 +2,6 @@
 Application to write patient images and structure sets for InnerEye.
 '''
 
-from pathlib import Path
 import platform
 import sys
 
@@ -125,7 +124,7 @@ class CreateInnerEyeDataset(Algorithm):
         super().__init__(opts, name, log_level)
 
         # Obtain full path to output directory.
-        self.outdir = Path(fullpath(self.outdir))
+        self.outdir = fullpath(self.outdir)
 
         # Create, or recreate, the output directory as needed.
         make_dir(self.outdir, overwrite=self.recreate_outdir)
@@ -176,7 +175,10 @@ def get_app(setup_script=''):
     opts['voxel_size'] = (1.5, 1.5, None)
     opts['recreate_outdir'] = True
     opts['verbose'] = False
-    opts['outdir'] = f'/r02/voxtox/workshop/ie_datasets/{global_site}'
+    if "Linux" == platform.system():
+        opts['outdir'] = f'/r02/voxtox/workshop/ie_datasets/{global_site}'
+    else:
+        opts['outdir'] = fullpath(f'~/data/ie_datasets/{global_site}')
 
     if 'Ganga' in __name__:
         opts['alg_module'] = fullpath(sys.argv[0])
@@ -201,9 +203,9 @@ def get_data_locations():
     """
     # Define the patient data to be analysed
     if "Linux" == platform.system():
-        data_dirs = f"/r02/voxtox/workshop/synthetic_mvct/{global_site}"
+        data_dirs = [f"/r02/voxtox/workshop/synthetic_mvct/{global_site}"]
     else:
-        data_dirs = []
+        data_dirs = [fullpath(f"~/data/voxtox_check")]
 
     patterns = ["VT*"]
 
