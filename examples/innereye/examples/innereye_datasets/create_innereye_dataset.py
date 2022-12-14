@@ -12,6 +12,7 @@ from voxtox.roi_names.head_and_neck_roi_names import head_and_neck_plan
 from voxtox.roi_names.prostate_roi_names import prostate_plan
 
 # Define global variable specifying site of interest.
+global_site = "prostate"
 global_site = "head_and_neck"
 
 class CreateInnerEyeDataset(Algorithm):
@@ -175,7 +176,7 @@ def get_app(setup_script=''):
     opts = {}
     opts['image_types'] = ['mvct']
     opts['voxel_size'] = (1.5, 1.5, None)
-    opts['recreate_outdir'] = True
+    opts['recreate_outdir'] = False
     opts['verbose'] = False
     if "head_and_neck" == global_site:
         opts['roi_names'] = head_and_neck_plan
