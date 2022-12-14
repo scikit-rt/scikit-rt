@@ -66,8 +66,18 @@ def catalogue_dataset(
         # Only consider initial study (i.e. exclude replan data).
         study_path = sorted(list(patient_path.iterdir()))[0]
 
+        # Deal with a single modality.
+        modality_paths = sorted(list(study_path.iterdir()))
+        assert len(modality_paths) == 1
+        modality_path = modality_paths[0]
+
+        # Deal with a single timestamp.
+        timestamp_paths = sorted(list(study_path.iterdir()))
+        assert len(timestamp_paths) == 1
+        timestamp_path = timestamp_paths[0]
+
         # Loop over paths to NIfTI files.
-        nifti_paths = sorted(list(study_path.iterdir()))
+        nifti_paths = sorted(list(timestamp_path.iterdir()))
         for nifti_path in nifti_paths:
             # Determine and check channel.
             elements = nifti_path.name.split('.')[0].split('_')
