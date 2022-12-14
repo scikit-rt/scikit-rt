@@ -175,7 +175,8 @@ def get_app(setup_script=''):
 
     opts = {}
     opts['image_types'] = ['mvct']
-    opts['voxel_size'] = (1.5, 1.5, None)
+    opts['image_size'] = (256, 256, None)
+    opts['voxel_size'] = (1.5, 1.5, 3.0)
     opts['recreate_outdir'] = False
     opts['verbose'] = False
     if "head_and_neck" == global_site:
