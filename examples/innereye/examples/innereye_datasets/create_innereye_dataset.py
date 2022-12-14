@@ -178,9 +178,9 @@ def get_app(setup_script=''):
     opts['recreate_outdir'] = True
     opts['verbose'] = False
     if "head_and_neck" == global_site:
-        opts['roi_names'] == head_and_neck_plan
+        opts['roi_names'] = head_and_neck_plan
     elif "prostate" == global_site:
-        opts['roi_names'] == prostate_plan
+        opts['roi_names'] = prostate_plan
     if "Linux" == platform.system():
         opts['outdir'] = f'/r02/voxtox/workshop/ie_datasets/{global_site}'
     else:
