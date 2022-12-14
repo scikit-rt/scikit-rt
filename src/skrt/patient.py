@@ -589,8 +589,8 @@ class Study(skrt.core.Archive):
                     continue
 
                 # Identify imaging machine.
-                suffix = (image.get_machine() if image.get_machine()
-                        else 'Unknown')
+                suffix = f"_{(image.get_machine()}" if image.get_machine()
+                        else "")
 
                 # Clone image object for writing.
                 # If data manipulation is required, this will be
@@ -612,7 +612,7 @@ class Study(skrt.core.Archive):
                 # Define output path and write image.
                 outname = (f'{outdir}/{save_type.upper()}'
                            f'_{image.timestamp}_{idx+1:03}'
-                           f'_{suffix}.nii.gz')
+                           f'{suffix}.nii.gz')
                 out_image.write(outname=outname, verbose=verbose)
 
     def save_structure_sets_as_nifti(self, outdir='.',
