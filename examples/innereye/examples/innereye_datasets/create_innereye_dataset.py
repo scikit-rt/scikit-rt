@@ -2,6 +2,7 @@
 Application to write patient images and structure sets for InnerEye.
 '''
 
+from pathlib import Path
 import platform
 import sys
 
