@@ -361,7 +361,7 @@ def write_catalogue(
                         if roi_name not in channels:
                             missing_roi_names.append(roi_name)
                 if missing_roi_names:
-                    print(f"{timedir} - missing {missing_roi_names} "
+                    print(f"{timedir} - missing {missing_roi_names} ")
                 else:
                     catalogue_entries[timedir] = channels
 
