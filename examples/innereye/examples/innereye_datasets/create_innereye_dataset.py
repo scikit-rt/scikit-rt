@@ -8,6 +8,8 @@ import sys
 from innereye import write_patient
 from skrt.application import Algorithm, Application, get_paths
 from skrt.core import fullpath, make_dir
+from voxtox.roi_names.head_and_neck_roi_names import head_and_neck_plan
+from voxtox.roi_names.prostate_roi_names import prostate_plan
 
 # Define global variable specifying site of interest.
 global_site = "head_and_neck"
@@ -175,6 +177,10 @@ def get_app(setup_script=''):
     opts['voxel_size'] = (1.5, 1.5, None)
     opts['recreate_outdir'] = True
     opts['verbose'] = False
+    if "head_and_neck" == global_site:
+        opts['roi_names'] == head_and_neck_plan
+    elif "prostate" == global_site:
+        opts['roi_names'] == prostate_plan
     if "Linux" == platform.system():
         opts['outdir'] = f'/r02/voxtox/workshop/ie_datasets/{global_site}'
     else:
