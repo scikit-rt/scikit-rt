@@ -72,7 +72,7 @@ def catalogue_dataset(
         modality_path = modality_paths[0]
 
         # Deal with a single timestamp.
-        timestamp_paths = sorted(list(study_path.iterdir()))
+        timestamp_paths = sorted(list(modality_path.iterdir()))
         assert len(timestamp_paths) == 1
         timestamp_path = timestamp_paths[0]
 
