@@ -8,6 +8,8 @@ import nibabel
 from skrt.core import (fullpath, get_data_indices, get_indexed_objs,
         get_subdir_paths, make_dir)
 
+from innereye.patient import Patient, Study
+
 def write_study(study, outdir="./innereye_datasets",
         image_types=None, images_to_write=None, verbose=True,
         image_size=None, voxel_size=None, fill_value=None,
