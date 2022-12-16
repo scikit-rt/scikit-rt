@@ -380,3 +380,63 @@ def write_catalogue(
                              f"{institution_id},{nx},{ny},{nz}")
     with open(outdir / out_csv, "w") as out_file:
         out_file.write("\n".join(lines))
+
+def get_catalogue_header():
+    """
+    Return header line for InnerEye data catalogue.
+    """
+    return ['subject,filePath,channel,seriesId,institutionId,DIM_X,DIM_Y,DIM_Z']
+
+def catalogue_dataset(dataset_dir=".", out_csv="dataset.csv",
+        image_types=None, roi_names=None, nz_min=16, overwrite=True):
+    """
+    Write dataset catalogue for InnerEye.
+
+    **Parameters:**
+
+    dataset_dir - str/pathlib.path, default="."
+        Path to directory containing InnerEye dataset to be catalogued.
+        The output catalogue file will be written to this directory.
+
+    out_csv - str, default="dataset.csv"
+        Name for output catalogue file, to be written in <dataset_dir>.
+
+    image_types - list, default=None
+        List of types of image to be catalogued.  If None, all image
+        types in the dataset will be catalogued.
+
+    roi_names - list, default=None
+        List of names of ROIs to be catalogued.  If None, all ROIs
+        in the dataset will be catalogued.
+
+    nz_min - int, default=16
+        Minimum number of image slices for image to be catalogued.
+
+    overwrite - bool, default=True
+        If True, overwrite any pre-existing catalogue file.
+    """
+    # Set path to dataset directory, and check for existing catalogue file.
+    dataset_dir = Path(fullpath(dataset_dir))
+    out_path = dataset_dir / out_csv
+    if out_path.exists() and not overwrite:
+        print(f"Not overwriting existing catalogue file: ")
+        print(f"    {out_path)"
+        return
+
+    # Obtain list of patient folders.
+    in_paths = sorted(list(dataset_dir.iterdir()))
+
+    # Obtain catalogue entries for each patient.
+    lines = get_catalogue_header()
+    id1 = 1
+    for in_path in in_paths:
+        lines.extend(Patient(in_path).get_catalogue_entries(
+            id1, image_types, roi_names, nz_min))
+        if len(lines) > 1:
+            id1 = 1 + int(lines[-1].split(",")[0])     
+
+    # Write catalogue file.
+    with open(out_path, "w") as out_file:
+        out_file.write('\n'.join(lines))
+    print(f"Catalogue file written for {id2 - 1} subjects:")
+    print(f"    {out_path}")
