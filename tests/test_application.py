@@ -1,9 +1,10 @@
 '''Test application classes.'''
 from pathlib import Path
-from random import randint, seed
+from random import randint, sample, seed
+from shutil import rmtree
 
-from skrt.application import Algorithm, Application
-from skrt.core import Defaults
+from skrt.application import Algorithm, Application, get_paths
+from skrt.core import Defaults, fullpath
 
 seed(1)
 
@@ -88,3 +89,44 @@ def test_application_run():
     # Additional assertions included in the execute() method
     # of the application's algorithm.
     app.run(paths=paths, PatientClass=PyTestPatient, **opts)
+
+
+def create_data_paths(overwrite=False, n_path=6):
+
+    data_dir = Path(fullpath("tmp/data"))
+    if overwrite or not data_dir.exists():
+        if data_dir.exists():
+            rmtree(data_dir)
+        data_dir.mkdir(parents=True)
+        paths = []
+        for idx in range(n_path):
+            paths.append(Path(f"{data_dir}/{idx:02}"))
+            paths[-1].mkdir()
+    else:
+        paths = data_dir.glob("0*")
+
+    return sorted(list(paths))
+     
+def test_get_paths_null():
+    assert get_paths() == []
+
+def test_get_paths_all():
+    paths = create_data_paths(True, 6)
+    data_locations = {paths[0].parent : "0*"}
+    assert get_paths(data_locations) == [str(path) for path in paths]
+
+def test_get_paths_to_keep():
+    paths = create_data_paths()
+    data_locations = {paths[0].parent : "0*"}
+    names = [path.name for path in paths]
+    to_keep = sample(names, 2)
+    assert (get_paths(data_locations, to_keep=to_keep) ==
+            [str(path) for path in paths if path.name in to_keep])
+
+def test_get_paths_to_exclude():
+    paths = create_data_paths()
+    data_locations = {paths[0].parent : "0*"}
+    names = [path.name for path in paths]
+    to_exclude = sample(names, 2)
+    assert (get_paths(data_locations, to_exclude=to_exclude) ==
+            [str(path) for path in paths if path.name not in to_exclude])

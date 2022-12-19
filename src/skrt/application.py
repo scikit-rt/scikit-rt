@@ -20,7 +20,7 @@ application:
 from itertools import chain
 from pathlib import Path
 
-from skrt.core import Defaults, fullpath, get_logger
+from skrt.core import Defaults, fullpath, get_logger, is_list
 from skrt.patient import Patient
 
 
@@ -287,7 +287,8 @@ class Status():
         return is_ok
 
 
-def get_paths(data_locations=None, max_path=None, ids=None):
+def get_paths(data_locations=None, max_path=None,
+        to_keep=None, to_exclude=None):
     """
     Get list of paths to patient datasets.
 
@@ -296,7 +297,7 @@ def get_paths(data_locations=None, max_path=None, ids=None):
     data_locations : pathlib.Path/str/list/dict, default=None
         Specification of how to identify paths to patient datasets:
 
-        - string pathlib.Path giving path to a single patient dataset;
+        - string of pathlib.Path giving path to a single patient dataset;
         - list of strings or pathlib.Path giving full paths to patient datasets;
         - dictionary where keys are paths to directories containing
           patient datasets, and values are strings, or lists of strings,
@@ -306,9 +307,15 @@ def get_paths(data_locations=None, max_path=None, ids=None):
         Maximum number of paths to return.  If None, return paths to all
         directories in data directory (currently hardcoded in this function).
 
-    ids : str/list, default=None
+    to_keep : str/list, default=None
         Patient identifier, or list of patient identifiers.  If non-null,
         only return dataset paths for the specified identifier(s).
+
+    to_exclude : str/list, default=None
+        Patient identifier, or list of patient identifiers.  If non-null,
+        only return dataset paths excluding the specified identifier(s).
+        If an identifier is specified as both <to_keep> and <to_exclude>,
+        the latter takes precedence.
     """
     # Return empty list if data_locations is None.n
     paths = []
@@ -332,11 +339,17 @@ def get_paths(data_locations=None, max_path=None, ids=None):
                 if path.is_dir()])
 
     # Filter list of dataset paths.
-    if ids:
-        if not is_list(ids):
-            ids = [ids]
+    if to_keep:
+        if not is_list(to_keep):
+            to_keep = [to_keep]
         paths = [path for path in paths
-                if any([Path(path).match(id) for id in ids])]
+                if any([Path(path).match(id) for id in to_keep])]
+
+    if to_exclude:
+        if not is_list(to_exclude):
+            to_exclude = [to_exclude]
+        paths = [path for path in paths
+                if not any([Path(path).match(id) for id in to_exclude])]
 
     # Sort paths, ensuring that each path is included only once, 
     paths = sorted(list(set(paths)))
