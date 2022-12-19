@@ -269,6 +269,7 @@ constructor.</p>
 <p><strong>Methods:</strong></p>
 <ul class="simple">
 <li><p><strong>__init__()</strong>: Create instance of Status class.</p></li>
+<li><p><strong>copy_attributes()</strong>: Copy attributes from another Status object.</p></li>
 <li><p><strong>ok()</strong>: Return boolean, indicating whether status is okay.</p></li>
 </ul>
 <dl class="py method">
@@ -284,6 +285,23 @@ algorithm methods, with attributes set to indicate exit status.</p>
 <dt>name: str, default=None</dt><dd><p>Name for exit status.  If null, set to empty string.</p>
 </dd>
 <dt>reason: str, default=None</dt><dd><p>Reason for exit status.  If null, set to empty string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Status.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status.__repr__" title="Permalink to this definition"></a></dt>
+<dd><p>Print status information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Status.copy_attributes">
+<span class="sig-name descname"><span class="pre">copy_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status.copy_attributes" title="Permalink to this definition"></a></dt>
+<dd><p>Copy attributes from another Status object.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>status<span class="classifier">skrt.application.Status</span></dt><dd><p>Status object from which to copy attributes.</p>
 </dd>
 </dl>
 </dd></dl>
