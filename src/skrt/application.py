@@ -235,6 +235,7 @@ class Application():
                 patient = PatientClass(path=data_path, **kwargs)
                 self.status = self.execute(patient=patient)
                 if not self.status.ok():
+                    self.logger.error(self.status)
                     break
 
         if self.status.ok():
@@ -250,6 +251,7 @@ class Status():
     **Methods:**
 
     * **__init__()**: Create instance of Status class.
+    * **copy_attributes()**: Copy attributes from another Status object.
     * **ok()**: Return boolean, indicating whether status is okay.
     '''
 
@@ -275,6 +277,10 @@ class Status():
         self.name = name or ""
         self.reason = reason or ""
 
+    def __repr__(self):
+        """Print status information."""
+        return f"Status {self.code} ({self.name}): {self.reason}"
+
     def ok(self):
         '''
         Return boolean indicating whether status is okay (exit code non-zero).
@@ -285,6 +291,19 @@ class Status():
             is_ok = True
 
         return is_ok
+
+    def copy_attributes(self, status):
+        '''
+        Copy attributes from another Status object.
+
+        **Parameter:**
+
+        status : skrt.application.Status
+            Status object from which to copy attributes.
+        '''
+        self.code = status.code
+        self.name = status.name
+        self.reason = status.reason
 
 
 def get_paths(data_locations=None, max_path=None,
