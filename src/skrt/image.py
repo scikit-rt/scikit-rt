@@ -1944,6 +1944,21 @@ class Image(skrt.core.Archive):
             self._current_slice = data[:, :, int(idx)]
             return self._current_slice
 
+    def assign_structure_set(self, structure_set):
+        """
+        Assign a structure set to this image.
+
+        This does not affect the image associated with the structure set.
+        Any previously assigned structure sets are cleared.
+
+        **Parameters:**
+        
+        structure_set : skrt.structures.StructureSet
+            A StructureSet object to assign to this image.
+        """
+
+        self.structure_sets = [structure_set]
+
     def add_structure_set(self, structure_set):
         """Add a structure set to be associated with this image. This does
         not affect the image associated with the structure set.
