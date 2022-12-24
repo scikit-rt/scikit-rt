@@ -17,6 +17,8 @@ from skrt.image import match_image_voxel_sizes
 from skrt.registration import (get_default_pfiles_dir, Registration,
         set_elastix_dir)
 
+global_side = "right"
+
 class RoiTransform(Algorithm):
     '''
     Algorithm subclass, for mapping ROIs between reference frames.
@@ -245,7 +247,7 @@ class RoiTransform(Algorithm):
 
         # Define the registration strategy.
         self.reg = Registration(
-                Path(f"{self.registration_outdir}/"
+                Path(f"{self.registration_outdir}/{global_side}/"
                      f"{self.patient1.id}_{self.patient2.id}"),
                 fixed = fixed,
                 moving = moving,
@@ -470,7 +472,8 @@ if '__main__' == __name__:
     PatientClass, patient_class, patient_opts = get_data_loader()
 
     # Define the patient data to be analysed.
-    paths = get_paths(get_data_locations("right"), None, None, get_to_exclude())
+    paths = get_paths(get_data_locations(global_side),
+            None, None, get_to_exclude())
     if "Linux" == platform.system():
         input_data = paths[0:]
     else:
@@ -535,8 +538,9 @@ if 'Ganga' in __name__:
                             vs = "x".join([str(dxyz) for dxyz in voxel_size])
                         else:
                             vs = str(voxel_size)
-                        name = (f"{strategy}_{alignment.replace('_', '')}_"
-                                f"{crop_buffers}_{crop_to_match_size}_{vs}")
+                        name = (f"{global_side}_{strategy}_"
+                                f"{alignment.replace('_', '')}_"
+                                f"{cb}_{crop_to_match_size}_{vs}")
 
                         # Update algorithm options.
                         opts["strategy"] = strategy
