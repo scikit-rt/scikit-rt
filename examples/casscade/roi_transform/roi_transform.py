@@ -525,22 +525,23 @@ if 'Ganga' in __name__:
     # Loop over transformation options.
     for strategy in ["push", "pull"]:
         for alignment in ["heart"]:
-            for crop_buffer in [20, 200]:
+            for crop_buffers in [((-10, 10), (-60, 10), (-110, 110))]:
                 for crop_to_match_size in [True]:
                     for voxel_size in [None, (2, 2, 2)]:
-
                         # Define job name.
+                        cb = "".join([f"{str(xyz1)}_{str(xyz2)}"
+                            for xyz1, xyz2 in crop_buffers])
                         if is_list(voxel_size):
                             vs = "x".join([str(dxyz) for dxyz in voxel_size])
                         else:
                             vs = str(voxel_size)
                         name = (f"{strategy}_{alignment.replace('_', '')}_"
-                                f"{crop_buffer}_{crop_to_match_size}_{vs}")
+                                f"{crop_buffers}_{crop_to_match_size}_{vs}")
 
                         # Update algorithm options.
                         opts["strategy"] = strategy
                         opts["alignment"] = alignment
-                        opts["crop_buffer"] = crop_buffer
+                        opts["crop_buffers"] = crop_buffers
                         opts["crop_to_match_size"] = crop_to_match_size
                         opts["voxel_size"] = voxel_size
                         opts["registration_outdir"] = str(registration_outdir
