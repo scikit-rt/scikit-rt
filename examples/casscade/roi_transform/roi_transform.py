@@ -2,6 +2,7 @@
 Application for mapping ROIs between reference frames, for IMPORT data.
 '''
 import platform
+import shutil
 import sys
 import timeit
 
@@ -10,7 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from skrt import Patient
+from skrt import Patient, StructureSet
 from skrt.application import Algorithm, Application, Status, get_paths
 from skrt.core import Data, fullpath, is_list, tic, toc
 from skrt.image import match_image_voxel_sizes
@@ -160,23 +161,21 @@ class RoiTransform(Algorithm):
         self.logger.info(f"Folder path: {patient.path}")
 
         # Retreive and check patient image and structure set.
-        self.im1, self.ss1, status = self.get_image_and_structure_set(patient)
+        im1, ss1, status = self.get_image_and_structure_set(patient)
         self.status.copy_attributes(status)
         if not self.status.ok():
             return self.status
 
         # Perform banding of image grey levels.
-        self.im1.apply_selective_banding(self.bands)
+        im1.apply_selective_banding(self.bands)
 
-        self.patient1 = patient
         for atlas in self.atlases:
-            self.patient2 = Patient(atlas, unsorted_dicom=True)
-            self.logger.info(f"Atlas id: {self.patient2.id}")
-            self.logger.info(f"Atlas path: {self.patient2.path}")
+            patient2 = Patient(atlas, unsorted_dicom=True)
+            self.logger.info(f"Atlas id: {patient2.id}")
+            self.logger.info(f"Atlas path: {patient2.path}")
 
             # Retreive and check atlas image and structure set.
-            self.im2, self.ss2, status = self.get_image_and_structure_set(
-                    self.patient2)
+            im2, ss2, status = self.get_image_and_structure_set(patient2)
             if not status.ok():
                 self.logger.warning("Unable to obtain image and structure set: "
                         f"{atlas}")
@@ -184,19 +183,45 @@ class RoiTransform(Algorithm):
                 continue
 
             # Perform banding of image grey levels.
-            self.im2.apply_selective_banding(self.bands)
+            im2.apply_selective_banding(self.bands)
 
             # Register patient image and atlas image.
-            status = self.register()
+            status = self.register(patient, im1.clone(), ss1.clone(),
+                    patient2, im2.clone(), ss2.clone(),
+                    self.alignment, self.voxel_size, self.crop_buffers,
+                    self.crop_to_match_size, self.strategy, self.pfiles,
+                    self.registration_outdir)
             if not status.ok():
-                self.warning(f"{self.patient1.id} vs {self.patient2.id} - "
+                self.warning(f"{patient.id} vs {patient2.id} - "
                         f"{status.reason.lower()}")
                 continue
 
             # Transform the atlas structure set.
-            self.ss2_transformed = self.reg.transform(
-                    self.ss2, transform_points=(self.strategy == "push"))
-            self.ss2_transformed.set_image(self.im1)
+            ss2_transformed = self.reg.transform(
+                    ss2, transform_points=(self.strategy == "push"))
+
+            rois = []
+            for roi in ss2_transformed.get_rois():
+                # Register patient image and atlas image.
+                status = self.register(patient, im1.clone(),
+                        ss2_transformed.clone(),
+                        patient2, im2.clone(), ss2.clone(),
+                        roi.get_name(), self.voxel_size,
+                        ((-10, 10), (-10, 10), (-10, 10)),
+                        self.crop_to_match_size, self.strategy, self.pfiles,
+                        self.registration_outdir)
+                if not status.ok():
+                    self.warning(f"{patient.id} vs {patient2.id} - "
+                            f"{status.reason.lower()}")
+                    continue
+
+                # Transform the atlas structure set.
+                ss_transformed = self.reg.transform(ss2,
+                        transform_points=(self.strategy == "push"))
+                print("Hello0", roi.get_name(), ss_transformed)
+                rois.append(ss_transformed[roi.get_name()].clone())
+            self.ss1 = StructureSet(ss1.get_rois(), image=im1)
+            self.ss2_transformed = StructureSet(rois, image=im1)
 
             if self.metrics:
                 self.compare_rois()
@@ -210,49 +235,54 @@ class RoiTransform(Algorithm):
 
         return self.status
 
-    def register(self):
+    def register(self, patient1, im1, ss1, patient2, im2, ss2,
+            alignment, voxel_size, crop_buffers, crop_to_match_size,
+            strategy, pfiles, registration_outdir):
         """
         Perform registration for current images and configuration.
         """
         # Crop primary image to region around alignment structure.
-        if (self.alignment in self.ss1.get_roi_names()
-                and self.alignment in self.ss2.get_roi_names()
-                and self.crop_buffers is not None):
-            roi_extents = self.ss1[self.alignment].get_extents()
+        if (alignment in ss1.get_roi_names()
+                and alignment in ss2.get_roi_names()
+                and crop_buffers is not None):
+            roi_extents = ss1[alignment].get_extents()
             for idx1 in range(3):
                  for idx2 in range(2):
-                   roi_extents[idx1][idx2] += self.crop_buffers[idx1][idx2]
+                   roi_extents[idx1][idx2] += crop_buffers[idx1][idx2]
 
-            self.im1.crop(*roi_extents)
+            im1.crop(*roi_extents)
 
         # Crop images to same size.
-        if self.crop_to_match_size:
-            self.im2.crop_to_image(self.im1, alignment=self.alignment)
+        if crop_to_match_size:
+            im2.crop_to_image(im1, alignment=alignment)
 
         # Resample images to same voxel size.
-        if self.voxel_size:
-            match_image_voxel_sizes(self.im1, self.im2, self.voxel_size)
+        if voxel_size:
+            match_image_voxel_sizes(im1, im2, voxel_size)
 
         # Now that any resizing has been performed, set structure-set images.
-        self.ss1.set_image(self.im1)
-        self.ss2.set_image(self.im2)
+        ss1.set_image(im1)
+        ss2.set_image(im2)
 
         # Define fixed image based on strategy for contour propagation.
-        if "push" == self.strategy:
-            fixed = self.im2
-            moving = self.im1
+        if "push" == strategy:
+            fixed = im2
+            moving = im1
         else:
-            fixed = self.im1
-            moving = self.im2
+            fixed = im1
+            moving = im2
 
         # Define the registration strategy.
+        out_path = Path(f"{registration_outdir}/{global_side}/"
+                        f"{patient1.id}_{patient2.id}")
+        if out_path.exists():
+            shutil.rmtree(out_path)
         self.reg = Registration(
-                Path(f"{self.registration_outdir}/{global_side}/"
-                     f"{self.patient1.id}_{self.patient2.id}"),
+                out_path,
                 fixed = fixed,
                 moving = moving,
-                initial_alignment = self.alignment,
-                pfiles=self.pfiles,
+                initial_alignment = alignment,
+                pfiles=pfiles,
                 overwrite=True,
                 capture_output=True,
                 keep_tmp_dir = True,
@@ -274,6 +304,8 @@ class RoiTransform(Algorithm):
 
     def compare_rois(self):
         # Compare transformed ROIs and reference ROIs
+        print("Hello1", self.ss1)
+        print("Hello2", self.ss2_transformed)
         df = self.ss1.get_comparison(
                 other=self.ss2_transformed, metrics=self.metrics)
 
