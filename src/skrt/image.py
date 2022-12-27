@@ -5706,7 +5706,7 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     im1, im2 : skrt.image.Image
         Images to resample.
 
-    voxel_size : tuple/str, default=None
+    voxel_size : tuple/str/float, default=None
          Specification of voxel size for image resampling.
          Possible values are:
 
@@ -5719,6 +5719,8 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
            slice thickness;
          - (dx, dy, dz): both images are resampled, to have voxels with the
            specified dimensions in mm.
+         - dxyz: both images are resampled, to have voxels with the
+           specified dimension in mm along all axes.
 
     order: int, default = 1
         Order of the b-spline used in interpolating voxel intensity values.
@@ -5730,6 +5732,11 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     # Initialise voxel sizes for resampled images.
     vs1 = None
     vs2 = None
+
+    # If voxel size specified by a single number,
+    # convert to a list with this number repeated.
+    if isinstance(voxel_size, numbers.Number):
+        voxel_size = 3 * [voxel_size]
 
     # Set target voxel size to be the same for both images.
     if skrt.core.is_list(voxel_size):

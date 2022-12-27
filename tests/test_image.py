@@ -408,7 +408,8 @@ def test_match_image_voxel_sizes():
     im2 = SyntheticImage(shape2, voxel_size=vs2).get_image()
 
     # Test different options for matching voxel sizes.
-    for vs_in, vs_out in (("dz_max", vs1), ("dz_min", vs2), (vs3, vs3)):
+    for vs_in, vs_out in (
+            ("dz_max", vs1), ("dz_min", vs2), (vs3, vs3), (vs3[0], vs3)):
         im1a, im2a = match_image_voxel_sizes(im1.clone(), im2.clone(), vs_in)
         # Check that voxel sizes are as expected.
         assert im1a.get_voxel_size() == vs_out
