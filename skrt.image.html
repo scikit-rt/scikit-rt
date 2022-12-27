@@ -2746,7 +2746,7 @@ number of that slice of the image.</p>
 <dl class="simple">
 <dt>im1, im2<span class="classifier">skrt.image.Image</span></dt><dd><p>Images to resample.</p>
 </dd>
-<dt>voxel_size<span class="classifier">tuple/str, default=None</span></dt><dd><p>Specification of voxel size for image resampling.
+<dt>voxel_size<span class="classifier">tuple/str/float, default=None</span></dt><dd><p>Specification of voxel size for image resampling.
 Possible values are:</p>
 <ul class="simple">
 <li><p>None: no resampling performed;</p></li>
@@ -2758,6 +2758,8 @@ to have the same voxel size as the image sith smaller
 slice thickness;</p></li>
 <li><p>(dx, dy, dz): both images are resampled, to have voxels with the
 specified dimensions in mm.</p></li>
+<li><p>dxyz: both images are resampled, to have voxels with the
+specified dimension in mm along all axes.</p></li>
 </ul>
 </dd>
 <dt>order: int, default = 1</dt><dd><p>Order of the b-spline used in interpolating voxel intensity values.</p>
