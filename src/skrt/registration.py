@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.cm
 import matplotlib.colors
+import numbers
 import numpy as np
 import os
 from pathlib import Path
@@ -2347,3 +2348,81 @@ def get_image_transform_parameters(im):
             }
 
     return image_transform_parameters
+
+def get_checked_image_and_structure_set(im, ss=None, roi_names = None):
+    im_checked = im.clone()
+    ss_checked = None
+
+    if not ss and im.structure_sets:
+        ss = im.structure_sets[-1]
+    if ss:
+        ss_checked = ss.filtered_copy(names=roi_names,
+                keep_renamed_only=True, copy_roi_data=False)
+        if ss_checked.get_roi_names():
+            ss_checked.set_image(im_checked)
+            im_checked.assign_structure_set(ss_checked)
+        else:
+            ss_checked = None
+
+    if ss_checked is None:
+        im_checked.clear_structure_sets()
+
+    return (im_checked, ss_checked)
+
+def get_checked_crop_buffers(crop_buffers=None):
+    if isinstance(crop_buffers, numbers.Number):
+        dxyz = abs(crop_buffers)
+        checked_crop_buffers = tuple((-dxyz, dxyz) for idx in range(3))
+    elif is_list(crop_buffers) and (3 == len(crop_buffers)):
+        checked_crop_buffers = []
+        for item in crop_buffers:
+            if item is None:
+                checked_crop_buffers.append((0, 0))
+            elif isinstance(item, numbers.Number):
+                dxyz = abs(item)
+                checked_crop_buffers.append((-dxyz, dxyz))
+            else:
+                checked_crop_buffers.append(item)
+        checked_crop_buffers = tuple(checked_crop_buffers)
+    else:
+        checked_crop_buffers = None
+
+    return checked_crop_buffers
+
+def preprocess_images(im1, im2, ss1=None, ss2=None, roi_names=None,
+        alignment=None, crop_buffers=None, voxel_size=None,
+        crop_to_match_size=False, bands=None):
+
+    im1, ss1 = get_checked_image_and_structure_set(im1, ss1, roi_names)
+    im2, ss2 = get_checked_image_and_structure_set(im2, ss2, roi_names)
+    crop_buffers = get_checked_crop_buffers(crop_buffers)
+
+    # Crop primary image to region around alignment structure.
+    if alignment:
+        if ss1 is not None and ss2 is not None:
+            if (alignment in ss1.get_roi_names()
+                    and alignment in ss2.get_roi_names()):
+                roi_extents = ss1[alignment].get_extents()
+                if crop_buffers is not None:
+                    for idx1 in range(3):
+                        for idx2 in range(2):
+                            roi_extents[idx1][idx2] += crop_buffers[idx1][idx2]
+
+                im1.crop(*roi_extents)
+
+                # Crop images to same size.
+                if crop_to_match_size:
+                    im2.crop_to_image(im1, alignment=alignment)
+
+    # Resample images to same voxel size.
+    skrt.image.match_image_voxel_sizes(im1, im2, voxel_size)
+
+    # Now that any resizing has been performed, set structure-set images.
+    im1.structure_sets[0].set_image(im1)
+    im2.structure_sets[0].set_image(im2)
+
+    # Perform banding of image grey levels.
+    im1.apply_selective_banding(bands)
+    im2.apply_selective_banding(bands)
+
+    return (im1, im2)
