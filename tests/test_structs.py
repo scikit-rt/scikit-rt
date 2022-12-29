@@ -1462,3 +1462,30 @@ def test_reset_contours():
             assert (1 if most_points else len(in_contours)) == len(roi_contours)
             for idx in range(len(roi_contours)):
                 assert np.all(in_contours[idx] == roi_contours[idx])
+
+def test_clone_image_with_structure_set():
+    sim = get_synthetic_image_with_structure_set()
+    structure_set = sim.get_structure_set()
+    cube_structure_set = StructureSet(structure_set.get_roi("cube"))
+
+    assert len(sim.structure_sets) == 1
+
+    sim1 = sim.clone_with_structure_set(image_structure_set_index=None)
+    assert len(sim1.structure_sets) == 0
+
+    sim1 = sim.clone_with_structure_set(image_structure_set_index=2)
+    assert len(sim1.structure_sets) == 0
+
+    sim1 = sim.clone_with_structure_set()
+    assert len(sim1.structure_sets) == 1
+    assert (structure_set.get_roi_names() ==
+            sim1.structure_sets[0].get_roi_names())
+
+    sim1 = sim.clone_with_structure_set(structure_set=cube_structure_set)
+    assert len(sim1.structure_sets) == 1
+    assert sim1.structure_sets[0].get_roi_names() == ["cube"]
+
+    sim1 = sim.clone_with_structure_set(structure_set=cube_structure_set,
+            roi_names={"cuboid" : "cube"})
+    assert len(sim1.structure_sets) == 1
+    assert sim1.structure_sets[0].get_roi_names() == ["cuboid"]

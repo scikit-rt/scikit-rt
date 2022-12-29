@@ -445,6 +445,54 @@ class Image(skrt.core.Archive):
 
         return im
 
+    def clone_with_structure_set(self, structure_set=None, roi_names=None,
+            image_structure_set_index=-1):
+        """
+        Clone current image, and associate to clone a filtered structure set.
+
+        **Parameters:**
+
+        structure_set : skrt.structures.StructureSet, default=None
+            Structure set to be filtered and associated to image clone.
+            Disregarded if a null value.
+
+        roi_names : dict, default=None
+            Dictionary for renaming and filtering ROIs, where the
+            keys are names for ROIs to be kept, and values are lists of
+            alternative names with which these ROIs may have been labelled.
+            The alternative names can contain wildcards with the '*' symbol.
+            If a value of None is given, all ROIs in the structure set
+            are kept, with no renaming.
+
+        image_structure_set_index, int, default=-1
+            Integer specifying index in current image's list of structure
+            sets of structure set to be associated with clone.  This
+            parameter is considered only if structure_set has a null value.
+        """
+        # Clone the current image.
+        im = self.clone()
+
+        # Define structure set to be associated with clone.
+        if structure_set:
+            ss = structure_set
+        else:
+            try:
+                ss = im.structure_sets[image_structure_set_index]
+            except (IndexError, TypeError):
+                ss = None
+
+        # Filter structure set.  If result is non null, associate
+        # structure set to image, and associate image to structure set.
+        im.clear_structure_sets()
+        if ss:
+            ss = ss.filtered_copy(names=roi_names, keep_renamed_only=True,
+                    copy_roi_data=False)
+            if ss.get_roi_names():
+                ss.set_image(im)
+                im.assign_structure_set(ss)
+
+        return im
+
     def get_data(self, standardise=False, force_standardise=True):
         """Return 3D image array.
 
