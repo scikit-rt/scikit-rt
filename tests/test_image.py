@@ -15,7 +15,7 @@ from pydicom._storage_sopclass_uids import\
 
 from skrt.core import File, fullpath
 from skrt.image import (Image, get_mask_bbox, get_translation_to_align,
-        match_image_voxel_sizes)
+        match_image_voxel_sizes, checked_crop_limits)
 from skrt.simulation import SyntheticImage
 
 try:
@@ -1279,3 +1279,20 @@ def test_dcm_list():
     assert im.get_n_voxels()[2] == len(selected_paths)
     assert im.get_n_voxels()[0: 2] == im_dcm.get_n_voxels()[0: 2]
     assert im.path == im_dcm.path
+
+def test_checked_crop_limits():
+    """Test checking of crop limits."""
+
+    null = None
+    value = 4
+    limits = ((-2, 7), (8, 37), (-20, 29))
+
+    # Define tuple pairing inputs and expected outputs.
+    crop_limits = (
+            (null, 3 * (null,)),
+            (value, tuple((-value, value) for idx in range(3))),
+            (limits, limits),)
+
+    # Check that behaviour is as expected.
+    for in_value, out_value in crop_limits:
+        assert checked_crop_limits(in_value) == out_value
