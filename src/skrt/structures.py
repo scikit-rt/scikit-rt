@@ -1880,6 +1880,45 @@ class ROI(skrt.core.Archive):
         return [self.idx_to_pos(min_pos, ax) - origin,
                 self.idx_to_pos(max_pos, ax) - origin]
 
+    def get_crop_limits(self, crop_margins=None, method=None):
+        """
+        Get crop limits corresponding to ROI extents plus margins.
+
+        The tuples of limits returned, in the order (x, y, z) can
+        be used, for example, as inputs to skrt.image.Image.crop().
+
+        This method is similar to the method get_extents(), but allows
+        different margins on each side of the ROI.
+
+        **Parameters:**
+
+        crop_margins : float/tuple, default=None
+            Float or three-element tuple specifying the margins, in mm,
+            to be added to ROI extents.  If a float, minus and plus the
+            value specified are added to lower and upper extents respectively
+            along each axis.  If a three-element tuple, elements are
+            taken to specify margins in the order (x, y, z).  Elements
+            can be either floats (minus and plus the value added respectively
+            to lower and upper extents) or two-element tuples (elements 0 and 1
+            added respectively to lower and upper extents).
+
+        method : str, default=None
+            Method to use for extent calculation. Can be:
+
+                * "contour": get extent from min/max positions of contour(s).
+                * "mask": get extent from min/max positions of voxels in the
+                  binary mask.
+                * None: use the method set in self.default_geom_method.
+        """
+        crop_limits = self.get_extents(method=method)
+        margins = skrt.image.checked_crop_limits(crop_margins)
+        for idx1 in range(3):
+            if margins[idx1] is not None:
+                for idx2 in range(2):
+                    crop_limits[idx1][idx2] += margins[idx1][idx2]
+
+        return crop_limits
+
     def get_length(
         self, 
         ax="z", 
