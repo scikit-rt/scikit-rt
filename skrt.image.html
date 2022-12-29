@@ -2254,6 +2254,29 @@ for options.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.checked_crop_limits">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">checked_crop_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop_limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.checked_crop_limits" title="Permalink to this definition"></a></dt>
+<dd><p>Check input crop limits, returning (xlim, ylim, zlim) tuple
+that can be passed to skrt.image.Image.crop().</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>crop_limits<span class="classifier">float/tuple/list/None default=None</span></dt><dd><p>Specification of crop limits:</p>
+<ul class="simple">
+<li><p>If a float or a one-element tuple or list, crop limits
+along each axis are taken to be minus and plus the absolute
+value of the value given.</p></li>
+<li><p>If a three-element tuple or list, the three elements are
+taken to correspond to x, y, z limits; an element that is
+a float or a one-element tuple or list is taken to indicate
+limits along the relevant axis of minus and plus the absolute
+value of the value given.</p></li>
+<li><p>For all other inputs, a value of (None, None, None) is returned.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.crop_by_amounts">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">crop_by_amounts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.crop_by_amounts" title="Permalink to this definition"></a></dt>
 <dd><p>Crop image or ROI by the amounts dx, dy, dz in mm.</p>
