@@ -1285,13 +1285,21 @@ def test_checked_crop_limits():
 
     null = None
     value = 4
-    limits = ((-2, 7), (8, 37), (-20, 29))
+    limits1 = ((-2, 7), (8, 37), (-20, 29))
+    limits2 = ((-2, 7), 4, (-20, 29))
+    limits3 = ((-2, 7), (-4, 4), (-20, 29))
+    limits4 = ((-2, 7), -4, (-20, 29))
+    limits5 = ((-2, 7), (4, -4), (-20, 29))
 
     # Define tuple pairing inputs and expected outputs.
     crop_limits = (
             (null, 3 * (null,)),
             (value, tuple((-value, value) for idx in range(3))),
-            (limits, limits),)
+            (-value, tuple((value, -value) for idx in range(3))),
+            (limits1, limits1),
+            (limits2, limits3),
+            (limits4, limits5),
+            )
 
     # Check that behaviour is as expected.
     for in_value, out_value in crop_limits:

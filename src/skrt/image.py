@@ -5877,37 +5877,34 @@ def checked_crop_limits(crop_limits=None):
         Specification of crop limits:
 
         - If a float or a one-element tuple or list, crop limits
-          along each axis are taken to be minus and plus the absolute
-          value of the value given.
+          along each axis are taken to be minus and plus the 
+          value given.
 
         - If a three-element tuple or list, the three elements are
           taken to correspond to x, y, z limits; an element that is
           a float or a one-element tuple or list is taken to indicate
-          limits along the relevant axis of minus and plus the absolute
-          value of the value given.
+          limits along the relevant axis of minus and plus the value given.
 
         - For all other inputs, a value of (None, None, None) is returned.
     """
     # Handle case where input is a single number.
     if isinstance(crop_limits, numbers.Number):
-        dxyz = abs(crop_limits)
-        crop_limits_checked = tuple((-dxyz, dxyz) for idx in range(3))
+        crop_limits_checked = tuple((-crop_limits, crop_limits)
+                for idx in range(3))
 
     # Handle case where input is a single-element tuple or list.
     elif skrt.core.is_list(crop_limits) and (1 == len(crop_limits)):
-        dxyz = abs(crop_limits[0])
-        crop_limits_checked = tuple((-dxyz, dxyz) for idx in range(3))
+        crop_limits_checked = tuple((-crop_limits[0], crop_limits[0])
+                for idx in range(3))
 
     # Handle case where input is a three-element tuple or list.
     elif skrt.core.is_list(crop_limits) and (3 == len(crop_limits)):
         crop_limits_checked = []
         for item in crop_limits:
             if isinstance(item, numbers.Number):
-                dxyz = abs(item)
-                crop_limits_checked.append((-dxyz, dxyz))
+                crop_limits_checked.append((-item, item))
             elif skrt.core.is_list(item) and (1 == len(item)):
-                dxyz = abs(item)
-                crop_limits_checked.append((-dxyz, dxyz))
+                crop_limits_checked.append((-item[0], item[0]))
             else:
                 crop_limits_checked.append(item)
         crop_limits_checked = tuple(crop_limits_checked)
