@@ -2355,6 +2355,41 @@ See documentation of this function for parameter details.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_crop_limits">
+<span class="sig-name descname"><span class="pre">get_crop_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_margins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_crop_limits" title="Permalink to this definition"></a></dt>
+<dd><p>Get crop limits corresponding to StructureSet ROI extents plus margins.</p>
+<p>The tuples of limits returned, in the order (x, y, z) can
+be used, for example, as inputs to skrt.image.Image.crop().</p>
+<p>This method is similar to the method get_extents(), but allows
+different margins on each side of the StructureSet.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>roi_names<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to be considered.  If None, all of the
+structure set’s ROIs are considered.</p>
+</dd>
+<dt>crop_margins<span class="classifier">float/tuple, default=None</span></dt><dd><p>Float or three-element tuple specifying the margins, in mm,
+to be added to StructureSet extents.  If a float, minus and plus the
+value specified are added to lower and upper extents respectively
+along each axis.  If a three-element tuple, elements are
+taken to specify margins in the order (x, y, z).  Elements
+can be either floats (minus and plus the value added respectively
+to lower and upper extents) or two-element tuples (elements 0 and 1
+added respectively to lower and upper extents).</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for extent calculation. Can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“contour”: get extent from min/max positions of contour(s).</p></li>
+<li><p>“mask”: get extent from min/max positions of voxels in the
+binary mask.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_dicom_dataset">
 <span class="sig-name descname"><span class="pre">get_dicom_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_dicom_dataset" title="Permalink to this definition"></a></dt>
 <dd><p>Return pydicom.dataset.FileDataset object associated with this Image,
