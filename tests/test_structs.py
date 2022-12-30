@@ -723,6 +723,42 @@ def test_get_extent():
     assert ext[1] == [2, 8]
     assert ext[2] == [0, 10]
 
+def test_get_crop_limits():
+    """Test calculation of ROI crop limits."""
+    sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
+    centre = (5, 5, 5)
+    side_length = (4, 2, 6)
+    sim.add_cuboid(side_length, centre, name="cube")
+    roi = sim.get_roi("cube")
+    extents = [[centre[idx] - 0.5 * side_length[idx],
+        centre[idx] + 0.5 * side_length[idx]] for idx in range(3)]
+
+    null = None
+    value = 4
+    limits1 = ((-2, 7), (8, 37), (-20, 29))
+    limits2 = ((-2, 7), 4, (-20, 29))
+    limits3 = ((-2, 7), (-4, 4), (-20, 29))
+    limits4 = ((-2, 7), -4, (-20, 29))
+    limits5 = ((-2, 7), (4, -4), (-20, 29))
+
+    # Define tuple pairing margins and resulting limits.
+    crop_data = (
+            (null, extents),
+            (value, [[extents[idx][0] - value, extents[idx][1] + value]
+                for idx in range(3)]),
+            (-value, [[extents[idx][0] + value, extents[idx][1] - value]
+                for idx in range(3)]),
+            (limits1, [[extents[idx][0] + limits1[idx][0],
+                extents[idx][1] + limits1[idx][1]] for idx in range(3)]),
+            (limits2, [[extents[idx][0] + limits3[idx][0],
+                extents[idx][1] + limits3[idx][1]] for idx in range(3)]),
+            (limits4, [[extents[idx][0] + limits5[idx][0],
+                extents[idx][1] + limits5[idx][1]] for idx in range(3)]),
+            )
+
+    for crop_margins, crop_limits in crop_data:
+        assert roi.get_crop_limits(crop_margins) == crop_limits
+
 def test_get_bbox_centre_and_widths():
     sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
     side_lengths = [4, 2, 6]
