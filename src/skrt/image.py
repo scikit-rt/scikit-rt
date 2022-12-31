@@ -5617,7 +5617,7 @@ def get_alignment_translation(im1, im2, alignment=None):
       with <im1> is aligned with an ROI associated with <im2>.  For
       each image, the alignment point is defined by an ROI name and an
       optional position.  If the optional position is omitted
-      of is None, the alginment point is the centroid of the
+      or is None, the alginment point is the centroid of the
       ROI as a whole.  Otherwise, the alignment point is the
       centroid of an (x, y) slice through the ROI at the
       specified relative position along the z-axis.  This
@@ -5632,7 +5632,7 @@ def get_alignment_translation(im1, im2, alignment=None):
       If a position is omitted, it defaults to None, and the
       ROI name can be given either as a string or as a
       one-element tuple.  If information is given only for
-      <im1>, the same information is used for the <im2>.
+      <im1>, the same information is used for <im2>.
 
       The following are examples of valid ROI-based alignment
       specifications, and how they're interpreted:
