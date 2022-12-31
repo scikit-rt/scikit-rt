@@ -377,7 +377,7 @@ representation.  For any other value, None is returned.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.clone_with_structure_set">
-<span class="sig-name descname"><span class="pre">clone_with_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clone_with_structure_set" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">clone_with_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clone_with_structure_set" title="Permalink to this definition"></a></dt>
 <dd><p>Clone current image, and associate to clone a filtered structure set.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -394,6 +394,9 @@ are kept, with no renaming.</p>
 <dt>image_structure_set_index, int, default=-1</dt><dd><p>Integer specifying index in current image’s list of structure
 sets of structure set to be associated with clone.  This
 parameter is considered only if structure_set has a null value.</p>
+</dd>
+<dt>structure_set_name, str, default=None</dt><dd><p>Name to be assigned to structure set.  If None, existing name
+is kept.</p>
 </dd>
 </dl>
 </dd></dl>
