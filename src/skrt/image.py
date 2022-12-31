@@ -446,7 +446,7 @@ class Image(skrt.core.Archive):
         return im
 
     def clone_with_structure_set(self, structure_set=None, roi_names=None,
-            image_structure_set_index=-1):
+            image_structure_set_index=-1, structure_set_name=None):
         """
         Clone current image, and associate to clone a filtered structure set.
 
@@ -468,6 +468,10 @@ class Image(skrt.core.Archive):
             Integer specifying index in current image's list of structure
             sets of structure set to be associated with clone.  This
             parameter is considered only if structure_set has a null value.
+
+        structure_set_name, str, default=None
+            Name to be assigned to structure set.  If None, existing name
+            is kept.
         """
         # Clone the current image.
         im = self.clone()
@@ -488,6 +492,8 @@ class Image(skrt.core.Archive):
             ss = ss.filtered_copy(names=roi_names, keep_renamed_only=True,
                     copy_roi_data=False)
             if ss.get_roi_names():
+                if isinstance(structure_set_name, str):
+                    ss.name = structure_set_name
                 ss.set_image(im)
                 im.assign_structure_set(ss)
 
