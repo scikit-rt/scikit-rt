@@ -3719,23 +3719,24 @@ class Image(skrt.core.Archive):
         """
         crop_by_amounts(self, dx, dy, dz)
 
-    def crop_to_roi(self, roi, buffer=None, buffer_units="mm",
-            method=None):
+    def crop_to_roi(self, roi, crop_margins=None, method=None):
         """
-        Crop image to region covered by an ROI.
+        Crop image to region covered by an ROI or StructureSet, plus margins.
 
         **Parameters:**
 
-        roi : skrt.structures.ROI/skirt.structures.StructureSet
+        rois : skrt.structures.ROI/skirt.structures.StructureSet
             ROI or StructureSet to which image will be cropped.
 
-        buffer : float, default=None
-            Optional buffer to add to the <roi> extents before cropping.
-            Units set by <buffer_units>.
-
-        buffer_units : str, default="mm"
-            Units for buffer, if using. Can be "mm", "voxels", or "frac" (which
-            applies buffer as a fraction of total length in each dimension).
+        crop_margins : float/tuple, default=None
+            Float or three-element tuple specifying the margins, in mm,
+            to be added to StructureSet extents.  If a float, minus and plus the
+            value specified are added to lower and upper extents respectively
+            along each axis.  If a three-element tuple, elements are
+            taken to specify margins in the order (x, y, z).  Elements
+            can be either floats (minus and plus the value added respectively
+            to lower and upper extents) or two-element tuples (elements 0 and 1
+            added respectively to lower and upper extents).
 
         method : str, default=None
             Method to use for calculating extent of <roi> region. Can be: 
@@ -3745,9 +3746,8 @@ class Image(skrt.core.Archive):
                   binary mask.
                 * None: use the method set in self.default_geom_method.
         """
-        bounds = roi.get_extents(buffer=buffer, buffer_units=buffer_units,
-                method=method)
-        self.crop(*bounds)
+        self.crop(*roi.get_crop_limits(
+            crop_margins=crop_margins, method=method))
 
     def crop_to_image(self, image, alignment=None):
         """
