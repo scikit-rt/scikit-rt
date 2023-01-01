@@ -12,6 +12,8 @@ import time
 import timeit
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
+from urllib.request import urlopen
+from zipfile import ZipFile
 
 import numpy as np
 import pandas as pd
@@ -1946,3 +1948,46 @@ def toc(message=None, time_format=None):
         print(f"{message}{time_taken:{time_format}} seconds")
 
     return time_taken 
+
+def download_data(url, outdir=".", outfile=None, binary=True, unzip=False):
+    """
+    Download data from specified URL.
+
+    **Parameters:**
+
+    url : str
+        URL from which to download data.
+
+    outdir : str/pathlib.Path, default="."
+        Path to (local) directory to which data are to be downloaded.
+
+    outfile : str, default=None
+        Name of the file to be downloaded.  If None, the name is taken
+        to be the part of the URL following the last (non-trailing) slash.
+
+    binary : bool, default=True
+        If True, treat downloaded file as being in binary format.
+
+    unzip : bool, default=True
+        If True, treat downloaded file as being a zip-format archive,
+        and unzip.
+    """
+    # Ensure that output directory exists.
+    outdir = Path(fullpath(outdir))
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    # Retreive data from URL.
+    response = urlopen(url)
+    data = response.read()
+
+    # Write data.
+    outfile = outfile or Path(url).name
+    outpath = outdir / outfile
+    write_opts = "wb" if binary else "w"
+    with open(outpath, write_opts) as outdata:
+        outdata.write(data)
+
+    # Unzip archive.
+    if unzip:
+        with ZipFile(outpath) as zipfile:
+            zipfile.extractall(outdir)
