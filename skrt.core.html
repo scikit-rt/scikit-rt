@@ -628,6 +628,27 @@ to have alphanumeric (natural) sorting</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.download_data">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">download_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unzip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.download_data" title="Permalink to this definition"></a></dt>
+<dd><p>Download data from specified URL.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>url<span class="classifier">str</span></dt><dd><p>URL from which to download data.</p>
+</dd>
+<dt>outdir<span class="classifier">str/pathlib.Path, default=”.”</span></dt><dd><p>Path to (local) directory to which data are to be downloaded.</p>
+</dd>
+<dt>outfile<span class="classifier">str, default=None</span></dt><dd><p>Name of the file to be downloaded.  If None, the name is taken
+to be the part of the URL following the last (non-trailing) slash.</p>
+</dd>
+<dt>binary<span class="classifier">bool, default=True</span></dt><dd><p>If True, treat downloaded file as being in binary format.</p>
+</dd>
+<dt>unzip<span class="classifier">bool, default=True</span></dt><dd><p>If True, treat downloaded file as being a zip-format archive,
+and unzip.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.fullpath">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">fullpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.fullpath" title="Permalink to this definition"></a></dt>
 <dd><p>Evaluate full path, expanding ‘~’, environment variables, and
