@@ -4017,7 +4017,7 @@ class Image(skrt.core.Archive):
             - 100 < value => 1024.
         '''
 
-        if bands is None:
+        if not bands:
             return
 
         # Retreive data, and create copy on which to apply banding.
