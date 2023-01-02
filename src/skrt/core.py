@@ -1949,7 +1949,7 @@ def toc(message=None, time_format=None):
 
     return time_taken 
 
-def download_data(url, outdir=".", outfile=None, binary=True, unzip=False):
+def download(url, outdir=".", outfile=None, binary=True, unzip=False):
     """
     Download data from specified URL.
 
