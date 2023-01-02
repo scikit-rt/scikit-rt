@@ -24,6 +24,7 @@ Submodules
    skrt.multi
    skrt.patient
    skrt.registration
+   skrt.segmentation
    skrt.simulation
    skrt.structures
 
