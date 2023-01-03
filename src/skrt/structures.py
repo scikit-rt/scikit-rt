@@ -7675,7 +7675,7 @@ def get_comparison_metrics():
     All metrics listed here should be recognised by ROI.get_comparison(),
     and all metrics recognised by ROI.get_comparison() should be listed here.
     """
-    metrics = [
+    return [
             "abs_centroid",
             "abs_centroid_flat",
             "abs_centroid_slice",
@@ -7714,7 +7714,20 @@ def get_comparison_metrics():
             "volume_ratio",
             ]
 
-    return metrics
+def get_consensus_types():
+    """
+    Get list of consensus types.
+
+    All consensus types listed here should be recognised by
+    StructureSet.get_consensus(), and all consensus types recognised
+    by StructureSet.get_consensus should be listed here.
+    """
+    return [
+            "majority",
+            "overlap",
+            "staple",
+            "sum",
+            ]
 
 def get_all_rois(objs=None):
     """
