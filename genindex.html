@@ -166,6 +166,8 @@
 </li>
         <li><a href="skrt.registration.html#skrt.registration.Registration.__init__">(skrt.registration.Registration method)</a>
 </li>
+        <li><a href="skrt.segmentation.html#skrt.segmentation.MultiAtlasSegmentation.__init__">(skrt.segmentation.MultiAtlasSegmentation method)</a>
+</li>
         <li><a href="skrt.segmentation.html#skrt.segmentation.SingleAtlasSegmentation.__init__">(skrt.segmentation.SingleAtlasSegmentation method)</a>
 </li>
         <li><a href="skrt.simulation.html#skrt.simulation.Cuboid.__init__">(skrt.simulation.Cuboid method)</a>
@@ -559,7 +561,17 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.ensure_any">ensure_any() (in module skrt.segmentation)</a>
+</li>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.ensure_dict">ensure_dict() (in module skrt.segmentation)</a>
+</li>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.ensure_image">ensure_image() (in module skrt.segmentation)</a>
+</li>
       <li><a href="skrt.registration.html#skrt.registration.Registration.ensure_registered">ensure_registered() (skrt.registration.Registration method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.ensure_structure_set">ensure_structure_set() (in module skrt.segmentation)</a>
 </li>
       <li><a href="skrt.application.html#skrt.application.Algorithm.execute">execute() (skrt.application.Algorithm method)</a>
 
@@ -567,8 +579,6 @@
         <li><a href="skrt.application.html#skrt.application.Application.execute">(skrt.application.Application method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.StructComparison.extent_ratio">extent_ratio() (skrt.viewer.core.StructComparison method)</a>
 </li>
   </ul></td>
@@ -730,6 +740,8 @@
 </li>
       </ul></li>
       <li><a href="skrt.structures.html#skrt.structures.StructureSet.get_consensus">get_consensus() (skrt.structures.StructureSet method)</a>
+</li>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.get_contour_propagation_strategies">get_contour_propagation_strategies() (in module skrt.segmentation)</a>
 </li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.Struct.get_contour_slice">get_contour_slice() (skrt.viewer.core.Struct method)</a>
 </li>
@@ -995,10 +1007,10 @@
 </li>
       <li><a href="voxtox.structures.html#voxtox.structures.get_key">get_key() (in module voxtox.structures)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.Image.get_kwargs">get_kwargs() (skrt.viewer.core.Image method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="skrt.image.html#skrt.image.Image.get_length">get_length() (skrt.image.Image method)</a>
 
       <ul>
@@ -1231,7 +1243,11 @@
 </li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.get_rotation_matrix">get_rotation_matrix() (in module skrt.viewer.core)</a>
 </li>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.MultiAtlasSegmentation.get_sas">get_sas() (skrt.segmentation.MultiAtlasSegmentation method)</a>
+</li>
       <li><a href="skrt.segmentation.html#skrt.segmentation.SingleAtlasSegmentation.get_segmentation">get_segmentation() (skrt.segmentation.SingleAtlasSegmentation method)</a>
+</li>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.get_segmentation_steps">get_segmentation_steps() (in module skrt.segmentation)</a>
 </li>
       <li><a href="skrt.patient.html#skrt.patient.Patient.get_sex">get_sex() (skrt.patient.Patient method)</a>
 </li>
@@ -1273,7 +1289,7 @@
 </li>
       <li><a href="skrt.registration.html#skrt.registration.Registration.get_step_number">get_step_number() (skrt.registration.Registration method)</a>
 </li>
-      <li><a href="skrt.segmentation.html#skrt.segmentation.SingleAtlasSegmentation.get_steps">get_steps() (skrt.segmentation.SingleAtlasSegmentation method)</a>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.get_steps">get_steps() (in module skrt.segmentation)</a>
 </li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.StructureSet.get_struct">get_struct() (skrt.viewer.core.StructureSet method)</a>
 </li>
@@ -1842,6 +1858,8 @@
         <li><a href="voxtox.structures.html#module-voxtox.structures">voxtox.structures</a>
 </li>
       </ul></li>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.MultiAtlasSegmentation">MultiAtlasSegmentation (class in skrt.segmentation)</a>
+</li>
       <li><a href="skrt.viewer.core.html#skrt.viewer.core.MultiImage">MultiImage (class in skrt.viewer.core)</a>
 </li>
   </ul></td>
@@ -2160,8 +2178,12 @@
 </li>
       <li><a href="skrt.viewer.viewer.html#skrt.viewer.viewer.SingleViewer.save_table">save_table() (skrt.viewer.viewer.SingleViewer method)</a>
 </li>
-      <li><a href="skrt.segmentation.html#skrt.segmentation.SingleAtlasSegmentation.segment">segment() (skrt.segmentation.SingleAtlasSegmentation method)</a>
+      <li><a href="skrt.segmentation.html#skrt.segmentation.MultiAtlasSegmentation.segment">segment() (skrt.segmentation.MultiAtlasSegmentation method)</a>
+
+      <ul>
+        <li><a href="skrt.segmentation.html#skrt.segmentation.SingleAtlasSegmentation.segment">(skrt.segmentation.SingleAtlasSegmentation method)</a>
 </li>
+      </ul></li>
       <li><a href="skrt.segmentation.html#skrt.segmentation.SingleAtlasSegmentation.segment_roi">segment_roi() (skrt.segmentation.SingleAtlasSegmentation method)</a>
 </li>
       <li><a href="skrt.segmentation.html#skrt.segmentation.SingleAtlasSegmentation.segment_structure_set">segment_structure_set() (skrt.segmentation.SingleAtlasSegmentation method)</a>
