@@ -7,17 +7,20 @@ from skrt.image import match_image_voxel_sizes, Image
 from skrt.structures import StructureSet
 from skrt.registration import Registration
 
-class SingleAtlasSegmentation(Data):
+class MultiAtlasSegmentation(Data):
     def __init__(
-        self, im1=None, im2=None, ss1=None, ss2=None, roi_names=None,
-        workdir = "segmentation_workdir", strategy="pull",
-        initial_alignment=None, initial_alignment_crop=True,
-        initial_alignment_crop_margins=None, initial_transform_name=None,
-        crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
-        most_points1=True, roi_crop_margins=None, default_crop_margins=10,
-        crop_to_match_size2=True, voxel_size2=None, bands2=None, pfiles2=None, 
-        most_points2=True, auto=False, auto_step=-1, overwrite=False,
-        capture_output=False, log_level=None, keep_tmp_dir=False):
+        self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
+        workdir="segmentation_workdir", overwrite=False,
+        auto=False, auto_step=-1, strategy="pull", **kwargs):
+
+        # Set images and associated structure sets.
+        self.im1 = ensure_image(im1)
+        self.im2 = ensure_dict(im2, ensure_image)
+        self.ss1 = ensure_structure_set(ss1)
+        self.ss2 = ensure_dict(ss2, ensure_structure_set)
+        for idx in self.im2:
+            if idx is not self.ss2:
+                self.ss2[idx] = None
 
         # Set up event logging.
         self.log_level = \
@@ -25,14 +28,72 @@ class SingleAtlasSegmentation(Data):
         self.logger = get_logger(
                 name=type(self).__name__, log_level=self.log_level)
 
-        # Set images, associated structure sets, and ROI names.
-        self.im1 = (im1 if (issubclass(type(im1), Image) or im1 is None)
-                else Image(im1))
-        self.im2 = (im2 if (issubclass(type(im2), Image) or im2 is None)
-                else Image(im2))
-        self.ss1 = ss1
-        self.ss2 = ss2
-        self.roi_names = roi_names
+        # Set workdir; optionally delete pre-existing workdir.
+        self.workdir = Path(workdir)
+        if overwrite and self.workdir.exists():
+            rmtree(self.workdir)
+
+        # Set parameters for automatic segmenation,
+        # and default contour-propagation strategy.
+        self.auto = auto
+        self.auto_step = auto_step
+        self.strategy = get_option(
+                strategy, None, get_contour_propagation_strategies())
+
+        # Store parameters to be passes to instances of SingleAtlasSegmentation.
+        self.sas_kwargs = kwargs
+
+        # Define dictionary for storing results.
+        self.sass = {idx: None for idx in self.im2}
+
+        # Perform segmentation.
+        if self.auto:
+            self.segment(strategy=self.strategy, step=self.auto_step)
+
+    def segment(self, atlas_ids=None, strategy=None, step=None, force=False):
+        atlas_ids = atlas_ids or self.sass.keys()
+        strategy = get_option(strategy, self.strategy, self.strategies)
+        steps = get_steps(step)
+
+        for idx in atlas_ids:
+            if ((self.sass[idx] is None) or (force) or
+                    any([self.sass[idx].segmentations[strategy][step] is None
+                        for step in steps])):
+                self.sass[idx] = SingleAtlasSegmentation(
+                        self.im1, self.im2[idx], self.ss1, self.ss2[idx],
+                        self.log_level, self.workdir / idx, overwrite,
+                        self.auto, self.auto_step, self.strategy, **kwargs)
+                self.sass[idx].segment(strategy, step, force)
+
+    def get_sas(self, atlas_id=None):
+        if atlas_id is None:
+            atlas_id = list(self.sass)[-1]
+        return self.sass[atlas_id]
+
+
+class SingleAtlasSegmentation(Data):
+    def __init__(
+        self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
+        workdir="segmentation_workdir", overwrite=False,
+        auto=False, auto_step=-1, strategy="pull", roi_names=None,
+        initial_alignment=None, initial_alignment_crop=True,
+        initial_alignment_crop_margins=None, initial_transform_name=None,
+        crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
+        most_points1=True, roi_crop_margins=None, default_crop_margins=10,
+        crop_to_match_size2=True, voxel_size2=None, bands2=None, pfiles2=None, 
+        most_points2=True, capture_output=False, keep_tmp_dir=False):
+
+        # Set images and associated structure sets.
+        self.im1 = ensure_image(im1)
+        self.im2 = ensure_image(im2)
+        self.ss1 = ensure_structure_set(ss1)
+        self.ss2 = ensure_structure_set(ss2)
+
+        # Set up event logging.
+        self.log_level = \
+                Defaults().log_level if log_level is None else log_level
+        self.logger = get_logger(
+                name=type(self).__name__, log_level=self.log_level)
 
         # Set workdir; optionally delete pre-existing workdir.
         self.workdir = Path(workdir)
@@ -40,12 +101,14 @@ class SingleAtlasSegmentation(Data):
             rmtree(self.workdir)
 
         # Define contour-propagation strategies and segmentation steps.
-        self.strategies = ["pull", "push"]
-        self.steps = ["global", "local"]
-        self.auto_step = auto_step
+        self.strategies = get_contour_propagation_strategies()
+        self.steps = get_segmentation_steps()
 
-        # Set the default contour-propagation strategy.
+        # Set step for automatic segmenation, default contour-propagation
+        # strategy, and names or ROIs to be segmented.
+        self.auto_step = auto_step
         self.strategy = get_option(strategy, None, self.strategies)
+        self.roi_names = roi_names
 
         # Set parameters for step-1 registration.
         self.initial_alignment = initial_alignment
@@ -116,7 +179,7 @@ class SingleAtlasSegmentation(Data):
 
     def segment(self, strategy=None, step=None, force=False):
         strategy = get_option(strategy, self.strategy, self.strategies)
-        steps = self.get_steps(step)
+        steps = get_steps(step)
 
         if force:
             self.registrations[strategy] = {step: {} for step in steps}
@@ -235,15 +298,6 @@ class SingleAtlasSegmentation(Data):
             self.segmentations[strategy][step][reg_step].name = (
                 f"{strategy}_{step}_{reg_step}")
 
-    def get_steps(self, step):
-        # Make list of steps to run
-        if step is None:
-            steps_input = self.steps
-        elif not isinstance(step, list):
-            steps_input = [step]
-        else:
-            steps_input = step
-
         # Check all steps exist and convert numbers to names
         steps = []
         for step_now in steps_input:
@@ -308,3 +362,36 @@ def get_option(opt=None, fallback_opt=None, allowed_opts=None):
 
 def get_fixed_and_moving(im1, im2, strategy):
     return (im1, im2) if ("pull" == strategy) else (im2, im1)
+
+def ensure_any(in_val):
+    return in_val
+
+def ensure_image(im):
+    return (im if (issubclass(type(im), Image) or im is None) else Image(im))
+
+def ensure_structure_set(ss):
+    return (ss if (isinstance(ss, StructureSet) or ss is None)
+            else StructureSet(ss))
+
+def ensure_dict(in_val, ensure_type=ensure_any):
+    if isinstance(in_val, dict):
+        return {key: ensure_type(val) for key, val in in_val.items()}
+    elif is_list(in_val):
+        return {idx: ensure_type(val) for idx, val in enumerate(in_val)}
+    else:
+        return {0: in_val}
+
+def get_contour_propagation_strategies():
+    return ["pull", "push"]
+
+def get_segmentation_steps():
+    return ["global", "local"]
+
+def get_steps(step):
+    # Make list of steps to run
+    if step is None:
+        steps_input = get_segmentation_steps()
+    elif not isinstance(step, list):
+        steps_input = [step]
+    else:
+        steps_input = step

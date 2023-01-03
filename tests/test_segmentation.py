@@ -5,6 +5,7 @@ import pytest
 from skrt.segmentation import (
         get_fixed_and_moving,
         get_option,
+        MultiAtlasSegmentation,
         SingleAtlasSegmentation,
         )
 
@@ -41,6 +42,15 @@ def test_sas_instantiation():
         for step in sas.steps:
             assert isinstance(sas.registrations[strategy][step], dict)
             assert isinstance(sas.segmentations[strategy][step], dict)
+
+def test_mas_instantiation():
+    """Test instantiation of MultiAtlasSegmentation."""
+
+    mas = MultiAtlasSegmentation()
+
+    # Check that dictionary for storing single-atlas segmentations
+    # have been defined.
+    assert isinstance(mas.sass, dict)
 
 def test_get_fixed_and_moving():
     """Test image assignment as fixed or moving, depending on strategy"""
