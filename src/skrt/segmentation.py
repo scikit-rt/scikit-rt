@@ -198,6 +198,10 @@ class SingleAtlasSegmentation(Data):
                 self.segment_roi(im2.structure_sets[0][roi_name],
                         strategy, self.steps[1], self.most_points2)
 
+            for reg_step in self.segmentations[strategy][self.steps[1]]:
+                self.segmentations[strategy][self.steps[1]][reg_step].set_image(
+                        self.im1)
+
     def segment_roi(self, roi, strategy, step, most_points=True):
         for reg_step in self.registrations[strategy][step][roi.name].steps:
             if not reg_step in self.segmentations[strategy][step]:
@@ -227,6 +231,7 @@ class SingleAtlasSegmentation(Data):
                 self.segmentations[strategy][step][reg_step]\
                         .reset_contours(most_points=True)
 
+            self.segmentations[strategy][step][reg_step].set_image(self.im1)
             self.segmentations[strategy][step][reg_step].name = (
                 f"{strategy}_{step}_{reg_step}")
 
