@@ -39,11 +39,16 @@ class MultiAtlasSegmentation(Data):
         self.strategies = get_contour_propagation_strategies()
         self.steps = get_segmentation_steps()
 
-        # Set parameters for automatic segmenation, default
-        # contour-propagation strategy, and names of ROIs to be segmented.
-        self.auto = auto
+        # Set parameters for automatic segmentation.
+        # Note that these values are passed to the SingleAtlasSegmentation
+        # constructor, and automatic segmenation should always be enabled.
+        self.auto = True
         self.auto_step = auto_step
+
+        # Set default contour-propagation strategy.
         self.strategy = get_option(strategy, None, self.strategies)
+
+        # Set names of ROIs to be segmented.
         self.roi_names = roi_names
 
         # Set default method for defining consensus contours.
@@ -59,7 +64,7 @@ class MultiAtlasSegmentation(Data):
                 for strategy in self.strategies}
 
         # Perform segmentation.
-        if self.auto:
+        if auto:
             self.segment(strategy=self.strategy, step=self.auto_step)
 
     def segment(self, atlas_ids=None, strategy=None, step=None, force=False):
