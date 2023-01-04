@@ -4,14 +4,15 @@ from shutil import rmtree
 
 from skrt.core import get_logger, is_list, Data, Defaults
 from skrt.image import match_image_voxel_sizes, Image
-from skrt.structures import StructureSet
+from skrt.structures import get_consensus_types, StructureSet
 from skrt.registration import Registration
 
 class MultiAtlasSegmentation(Data):
     def __init__(
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
-        workdir="segmentation_workdir", overwrite=False,
-        auto=False, auto_step=-1, strategy="pull", **kwargs):
+        workdir="segmentation_workdir", overwrite=False, auto=False,
+        auto_step=-1, strategy="pull", roi_names=None,
+        consensus_type="majority", **kwargs):
 
         # Set images and associated structure sets.
         self.im1 = ensure_image(im1)
@@ -23,28 +24,39 @@ class MultiAtlasSegmentation(Data):
                 self.ss2[idx] = None
 
         # Set up event logging.
-        self.log_level = \
-                Defaults().log_level if log_level is None else log_level
+        self.log_level = (Defaults().log_level if log_level is None
+                else log_level)
         self.logger = get_logger(
                 name=type(self).__name__, log_level=self.log_level)
 
         # Set workdir; optionally delete pre-existing workdir.
         self.workdir = Path(workdir)
-        if overwrite and self.workdir.exists():
+        self.overwrite = overwrite
+        if self.overwrite and self.workdir.exists():
             rmtree(self.workdir)
 
-        # Set parameters for automatic segmenation,
-        # and default contour-propagation strategy.
+        # Define contour-propagation strategies and segmentation steps.
+        self.strategies = get_contour_propagation_strategies()
+        self.steps = get_segmentation_steps()
+
+        # Set parameters for automatic segmenation, default
+        # contour-propagation strategy, and names of ROIs to be segmented.
         self.auto = auto
         self.auto_step = auto_step
-        self.strategy = get_option(
-                strategy, None, get_contour_propagation_strategies())
+        self.strategy = get_option(strategy, None, self.strategies)
+        self.roi_names = roi_names
+
+        # Set default method for defining consensus contours.
+        self.consensus_type = get_option(
+                consensus_type, None, get_consensus_types())
 
         # Store parameters to be passes to instances of SingleAtlasSegmentation.
         self.sas_kwargs = kwargs
 
-        # Define dictionary for storing results.
+        # Define dictionaries for storing results.
         self.sass = {idx: None for idx in self.im2}
+        self.consensuses = {strategy: {step: {} for step in self.steps}
+                for strategy in self.strategies}
 
         # Perform segmentation.
         if self.auto:
@@ -61,14 +73,74 @@ class MultiAtlasSegmentation(Data):
                         for step in steps])):
                 self.sass[idx] = SingleAtlasSegmentation(
                         self.im1, self.im2[idx], self.ss1, self.ss2[idx],
-                        self.log_level, self.workdir / idx, overwrite,
-                        self.auto, self.auto_step, self.strategy, **kwargs)
+                        self.log_level, self.workdir / str(idx), self.overwrite,
+                        self.auto, self.auto_step, self.strategy,
+                        self.roi_names, **self.sas_kwargs)
                 self.sass[idx].segment(strategy, step, force)
+                for step in steps:
+                    reg = self.sass[idx].segmentations[strategy][step]
+                    for reg_step in reg:
+                        reg[reg_step].name = f"{idx}_{reg[reg_step].name}"
+
+        for step in steps:
+            for reg_step in self.get_sas().segmentations[strategy][step]:
+                self.set_consensuses(strategy, step, reg_step, force)
+
+    def get_consensus(self, strategy=None, step=None, reg_step=None,
+            consensus_type=None, force=False):
+        strategy = get_option(strategy, self.strategy, self.strategies)
+        step = get_option(step, self.auto_step, self.steps)
+        self.segment(None, strategy, step, force)
+        reg_steps = list(self.get_sas().segmentations[strategy][step])
+        reg_step = get_option(reg_step, None, reg_steps)
+        consensus_type = get_option(
+                consensus_type, self.consensus_type, get_consensus_types())
+        return self.consensuses[strategy][step][reg_step][consensus_type]
 
     def get_sas(self, atlas_id=None):
         if atlas_id is None:
             atlas_id = list(self.sass)[-1]
         return self.sass[atlas_id]
+
+    def get_sas_segmentations(self, atlas_ids=None, strategy=None,
+            step=None, reg_step=None, force=False):
+        if atlas_ids is None:
+            atlas_ids = list(self.sass.keys())
+        elif isinstance(atlas_ids, int):
+            atlas_ids = [atlas_ids]
+
+        return sum([self.get_sas(atlas_id).get_segmentation(
+            strategy, step, reg_step, force) for atlas_id in atlas_ids],
+            StructureSet())
+
+    def set_consensuses(self, strategy=None, step=None, reg_step=None,
+            force=False):
+        strategy = get_option(strategy, self.strategy, self.strategies)
+        step = get_option(step, self.auto_step, self.steps)
+        reg_steps = list(self.get_sas().segmentations[strategy][step])
+        reg_step = get_option(reg_step, None, reg_steps)
+        if reg_step in self.consensuses[strategy][step] and not force:
+            return
+
+        self.consensuses[strategy][step][reg_step] = {}
+        all_rois = {roi_name: [] for roi_name in self.roi_names}
+        for sas in self.sass.values():
+            ss = sas.get_segmentation(strategy, step, reg_step)
+            for roi in ss.get_rois():
+                if roi.name in all_rois:
+                    all_rois[roi.name].append(roi)
+            
+        for consensus_type in get_consensus_types():
+            ss_consensus = StructureSet(
+                    name=f"{strategy}_{step}_{reg_step}_{consensus_type}")
+            for roi_name, rois in all_rois.items():
+                roi = StructureSet(rois).get_consensus(consensus_type)
+                roi.name = roi_name
+                ss_consensus.add_roi(roi)
+                
+            ss_consensus.set_image(self.im1)
+            self.consensuses[strategy][step][reg_step][consensus_type] = (
+                    ss_consensus)
 
 
 class SingleAtlasSegmentation(Data):
@@ -90,8 +162,8 @@ class SingleAtlasSegmentation(Data):
         self.ss2 = ensure_structure_set(ss2)
 
         # Set up event logging.
-        self.log_level = \
-                Defaults().log_level if log_level is None else log_level
+        self.log_level = (Defaults().log_level if log_level is None
+                else log_level)
         self.logger = get_logger(
                 name=type(self).__name__, log_level=self.log_level)
 
@@ -298,25 +370,6 @@ class SingleAtlasSegmentation(Data):
             self.segmentations[strategy][step][reg_step].name = (
                 f"{strategy}_{step}_{reg_step}")
 
-        # Check all steps exist and convert numbers to names
-        steps = []
-        for step_now in steps_input:
-            if isinstance(step_now, str):
-                if not step_now in self.steps:
-                    raise RuntimeError(
-                            f"Invalid segmentation step: {step}")
-            else:
-                step_now = self.steps[step_now]
-
-            steps.append(step_now)
-
-        if steps:
-            steps_index = max(
-                    [self.steps.index(step_now) for step_now in steps])
-            steps = self.steps[: steps_index + 1]
-
-        return steps
-
     def get_registration(self, strategy=None, step=None, roi_name=None,
             force=False):
         strategy = get_option(strategy, self.strategy, self.strategies)
@@ -388,10 +441,30 @@ def get_segmentation_steps():
     return ["global", "local"]
 
 def get_steps(step):
+    all_steps = get_segmentation_steps()
     # Make list of steps to run
     if step is None:
-        steps_input = get_segmentation_steps()
-    elif not isinstance(step, list):
+        steps_input = all_steps
+    elif not is_list(step):
         steps_input = [step]
     else:
         steps_input = step
+
+    # Check that all steps exist, and convert numbers to names.
+    steps = []
+    for step_now in steps_input:
+        if isinstance(step_now, str):
+            if not step_now in all_steps:
+                raise RuntimeError(
+                        f"Invalid segmentation step: {step}")
+        else:
+            step_now = all_steps[step_now]
+
+        steps.append(step_now)
+
+    if steps:
+        steps_index = max(
+                [all_steps.index(step_now) for step_now in steps])
+        steps = all_steps[: steps_index + 1]
+
+    return steps

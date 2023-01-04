@@ -3,8 +3,10 @@
 import pytest
 
 from skrt.segmentation import (
+        get_contour_propagation_strategies,
         get_fixed_and_moving,
         get_option,
+        get_segmentation_steps,
         MultiAtlasSegmentation,
         SingleAtlasSegmentation,
         )
@@ -49,8 +51,11 @@ def test_mas_instantiation():
     mas = MultiAtlasSegmentation()
 
     # Check that dictionary for storing single-atlas segmentations
-    # have been defined.
+    # and consensus results have been defined.
     assert isinstance(mas.sass, dict)
+    for strategy in get_contour_propagation_strategies():
+        for step in get_segmentation_steps():
+            assert isinstance(mas.consensuses[strategy][step], dict)
 
 def test_get_fixed_and_moving():
     """Test image assignment as fixed or moving, depending on strategy"""
