@@ -1,8 +1,9 @@
 """Tools for performing image segmentation."""
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
 
-from skrt.core import get_logger, is_list, Data, Defaults
+from skrt.core import get_logger, is_list, Data, Defaults, tic, toc
 from skrt.image import match_image_voxel_sizes, Image
 from skrt.structures import get_consensus_types, StructureSet
 from skrt.registration import Registration
@@ -12,7 +13,7 @@ class MultiAtlasSegmentation(Data):
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False, auto=False,
         auto_step=-1, strategy="pull", roi_names=None,
-        consensus_type="majority", **kwargs):
+        consensus_type="majority", max_workers=1, **kwargs):
 
         # Set images and associated structure sets.
         self.im1 = ensure_image(im1)
@@ -55,6 +56,9 @@ class MultiAtlasSegmentation(Data):
         self.consensus_type = get_option(
                 consensus_type, None, get_consensus_types())
 
+        # Set maximum number of processes when multiprocessing.
+        self.max_workers = max_workers
+
         # Store parameters to be passes to instances of SingleAtlasSegmentation.
         self.sas_kwargs = kwargs
 
@@ -72,20 +76,47 @@ class MultiAtlasSegmentation(Data):
         strategy = get_option(strategy, self.strategy, self.strategies)
         steps = get_steps(step)
 
+        active_ids = []
+        sas_args = {}
+        tic()
         for idx in atlas_ids:
             if ((self.sass[idx] is None) or (force) or
                     any([self.sass[idx].segmentations[strategy][step] is None
                         for step in steps])):
-                self.sass[idx] = SingleAtlasSegmentation(
-                        self.im1, self.im2[idx], self.ss1, self.ss2[idx],
+                active_ids.append(idx)
+                args = (self.im1, self.im2[idx], self.ss1, self.ss2[idx],
                         self.log_level, self.workdir / str(idx), self.overwrite,
                         self.auto, self.auto_step, self.strategy,
-                        self.roi_names, **self.sas_kwargs)
-                self.sass[idx].segment(strategy, step, force)
-                for step in steps:
-                    reg = self.sass[idx].segmentations[strategy][step]
-                    for reg_step in reg:
-                        reg[reg_step].name = f"{idx}_{reg[reg_step].name}"
+                        self.roi_names,)
+                if self.max_workers == 1:
+                    self.sass[idx] = SingleAtlasSegmentation(
+                            *args, **self.sas_kwargs)
+                else:
+                    sas_args[idx] = args
+
+        # Submitting multiple single-atlas segmentations to a ThreadPoolExecutor
+        # can give some speed increase compared to using a single thread.
+        # The ThreadPoolExecutor can be replaced by ProcessPoolExecutor
+        # (import needed, and environment for running registration
+        # executables must be set up for each process.  In practice
+        # this tends to be slower than single-thread execution, possibly
+        # because of the time taken in transferring data to and from
+        # the child processes.
+        if sas_args:
+            futures = {}
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                for idx in sas_args:
+                    futures[idx] = executor.submit(SingleAtlasSegmentation,
+                            *sas_args[idx], **self.sas_kwargs)
+            for idx in futures:
+                self.sass[idx] = futures[idx].result()
+
+        for idx in active_ids:
+            self.sass[idx].segment(strategy, step, force)
+            for step in steps:
+                reg = self.sass[idx].segmentations[strategy][step]
+                for reg_step in reg:
+                    reg[reg_step].name = f"{idx}_{reg[reg_step].name}"
 
         for step in steps:
             for reg_step in self.get_sas().segmentations[strategy][step]:
@@ -134,8 +165,9 @@ class MultiAtlasSegmentation(Data):
             for roi in ss.get_rois():
                 if roi.name in all_rois:
                     all_rois[roi.name].append(roi)
-            
+
         for consensus_type in get_consensus_types():
+            tic()
             ss_consensus = StructureSet(
                     name=f"{strategy}_{step}_{reg_step}_{consensus_type}")
             for roi_name, rois in all_rois.items():
@@ -146,7 +178,6 @@ class MultiAtlasSegmentation(Data):
             ss_consensus.set_image(self.im1)
             self.consensuses[strategy][step][reg_step][consensus_type] = (
                     ss_consensus)
-
 
 class SingleAtlasSegmentation(Data):
     def __init__(
