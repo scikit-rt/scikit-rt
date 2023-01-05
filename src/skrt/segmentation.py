@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
 
-from skrt.core import get_logger, is_list, Data, Defaults, tic, toc
+from skrt.core import get_logger, is_list, Data, Defaults
 from skrt.image import match_image_voxel_sizes, Image
 from skrt.structures import get_consensus_types, StructureSet
 from skrt.registration import Registration
@@ -13,7 +13,7 @@ class MultiAtlasSegmentation(Data):
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False, auto=False,
         auto_step=-1, strategy="pull", roi_names=None,
-        consensus_type="majority", max_workers=1, **kwargs):
+        consensus_types=["majority"], max_workers=1, **kwargs):
 
         # Set images and associated structure sets.
         self.im1 = ensure_image(im1)
@@ -52,9 +52,8 @@ class MultiAtlasSegmentation(Data):
         # Set names of ROIs to be segmented.
         self.roi_names = roi_names
 
-        # Set default method for defining consensus contours.
-        self.consensus_type = get_option(
-                consensus_type, None, get_consensus_types())
+        # Set default method(s) for defining consensus contours.
+        self.consensus_types = get_sas_consensus_types(consensus_types)
 
         # Set maximum number of processes when multiprocessing.
         self.max_workers = max_workers
@@ -71,14 +70,14 @@ class MultiAtlasSegmentation(Data):
         if auto:
             self.segment(strategy=self.strategy, step=self.auto_step)
 
-    def segment(self, atlas_ids=None, strategy=None, step=None, force=False):
+    def segment(self, atlas_ids=None, strategy=None, step=None,
+            consensus_types=None, force=False):
         atlas_ids = atlas_ids or self.sass.keys()
         strategy = get_option(strategy, self.strategy, self.strategies)
         steps = get_steps(step)
 
         active_ids = []
         sas_args = {}
-        tic()
         for idx in atlas_ids:
             if ((self.sass[idx] is None) or (force) or
                     any([self.sass[idx].segmentations[strategy][step] is None
@@ -118,19 +117,24 @@ class MultiAtlasSegmentation(Data):
                 for reg_step in reg:
                     reg[reg_step].name = f"{idx}_{reg[reg_step].name}"
 
-        for step in steps:
-            for reg_step in self.get_sas().segmentations[strategy][step]:
-                self.set_consensuses(strategy, step, reg_step, force)
+        if consensus_types is None:
+            consensus_types = self.consensus_types
+        if consensus_types:
+            for step in steps:
+                for reg_step in self.get_sas().segmentations[strategy][step]:
+                    self.set_consensuses(
+                            strategy, step, reg_step, consensus_types, force)
 
     def get_consensus(self, strategy=None, step=None, reg_step=None,
             consensus_type=None, force=False):
         strategy = get_option(strategy, self.strategy, self.strategies)
         step = get_option(step, self.auto_step, self.steps)
-        self.segment(None, strategy, step, force)
+        if not consensus_type:
+            consensus_type = (self.consensus_types[0] if self.consensus_types
+                    else get_consensus_types()[0])
+        self.segment(None, strategy, step, consensus_type, force)
         reg_steps = list(self.get_sas().segmentations[strategy][step])
         reg_step = get_option(reg_step, None, reg_steps)
-        consensus_type = get_option(
-                consensus_type, self.consensus_type, get_consensus_types())
         return self.consensuses[strategy][step][reg_step][consensus_type]
 
     def get_sas(self, atlas_id=None):
@@ -150,15 +154,22 @@ class MultiAtlasSegmentation(Data):
             StructureSet())
 
     def set_consensuses(self, strategy=None, step=None, reg_step=None,
-            force=False):
+            consensus_types=None, force=False):
+
+        if consensus_types is None:
+            consensus_types = self.consensus_types
+        if not consensus_types:
+            return
+        if isinstance(consensus_types, str):
+            consensus_types = [consensus_types]
+
         strategy = get_option(strategy, self.strategy, self.strategies)
         step = get_option(step, self.auto_step, self.steps)
         reg_steps = list(self.get_sas().segmentations[strategy][step])
         reg_step = get_option(reg_step, None, reg_steps)
-        if reg_step in self.consensuses[strategy][step] and not force:
-            return
+        if not reg_step in self.consensuses[strategy][step]:
+            self.consensuses[strategy][step][reg_step] = {}
 
-        self.consensuses[strategy][step][reg_step] = {}
         all_rois = {roi_name: [] for roi_name in self.roi_names}
         for sas in self.sass.values():
             ss = sas.get_segmentation(strategy, step, reg_step)
@@ -166,8 +177,10 @@ class MultiAtlasSegmentation(Data):
                 if roi.name in all_rois:
                     all_rois[roi.name].append(roi)
 
-        for consensus_type in get_consensus_types():
-            tic()
+        for consensus_type in consensus_types:
+            if (consensus_type in self.consensuses[strategy][step][reg_step]
+                    and not force):
+                continue
             ss_consensus = StructureSet(
                     name=f"{strategy}_{step}_{reg_step}_{consensus_type}")
             for roi_name, rois in all_rois.items():
@@ -176,6 +189,7 @@ class MultiAtlasSegmentation(Data):
                 ss_consensus.add_roi(roi)
                 
             ss_consensus.set_image(self.im1)
+            ss_consensus.reset_contours(most_points=True)
             self.consensuses[strategy][step][reg_step][consensus_type] = (
                     ss_consensus)
 
@@ -504,3 +518,14 @@ def get_steps(step):
         steps = all_steps[: steps_index + 1]
 
     return steps
+
+def get_sas_consensus_types(consensus_types):
+    # Check consensus types.
+    if consensus_types is None:
+        return get_consensus_types()
+    elif not consensus_types:
+        return []
+    elif isinstance(consensus_types, str):
+        return [consensus_types]
+
+    return consensus_types
