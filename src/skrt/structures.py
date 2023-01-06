@@ -632,6 +632,39 @@ class ROI(skrt.core.Archive):
         except KeyError:
             return []
 
+    def get_slice_positions(self, other=None, view="x-y", position_as_idx=False,
+            method="intersection"):
+        """
+        Get ordered list of slice positions for self and other.
+
+        **Parameters:**
+
+        other : skrt.structures.ROI, default=None
+            Second ROI of a pair for which slice positions are be obtained.
+            Disregarded if None.
+
+        view : str, default="x-y"
+            View in which to obtain slices.
+
+        position_as_idx : bool, default=False
+            If True, return positions as slice indices; if False,
+            return positions as slice z-coordinates (mm).
+
+        method: str, default="union"
+            String specifying slices for which positions are to be obtained,
+            for ROIs self and other.
+
+            - "left" (or other is None): return positions of
+              slices containing self;
+            - "right": return positions of slices containing other;
+            - "union": return positions of slices containing either self
+              or other;
+            - "intersection": return positions of slices containing both
+              self and other.
+        """
+        return get_slice_positions(self, other, view, position_as_idx,
+                method)
+
     def get_affine(self, force_standardise=False, **kwargs):
         """Load self and get affine matrix."""
 
@@ -7826,7 +7859,7 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
 def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         method="intersection"):
     """
-    Get ordered list of slice positions for an ROI or a pair of ROIs.
+    Get ordered list of slice positions for either or both of a pair of ROIs.
 
     **Parameters:**
 

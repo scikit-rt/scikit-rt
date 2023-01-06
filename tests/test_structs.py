@@ -1563,3 +1563,5 @@ def test_get_slice_positions():
         cubes = sim4.get_structure_set().get_rois()
         for method, outcome in outcomes.items():
             assert get_slice_positions(*cubes, method=method) == outcome
+            assert (cubes[0].get_slice_positions(cubes[1], method=method)
+                    == outcome)
