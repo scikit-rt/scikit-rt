@@ -633,7 +633,7 @@ class ROI(skrt.core.Archive):
             return []
 
     def get_slice_positions(self, other=None, view="x-y", position_as_idx=False,
-            method="intersection"):
+            method="union"):
         """
         Get ordered list of slice positions for self and other.
 
@@ -2456,9 +2456,13 @@ class ROI(skrt.core.Archive):
         pos=None, 
         method=None,
         flatten=False,
+        by_slice=None,
+        slice_mean=None,
+        value_for_None=0,
     ):
-        """Get Dice score with respect to another ROI, either globally or on a 
-        single slice.
+        """
+        Get Dice score with respect to another ROI,
+        globally, on a single slice, slice by slice, or slice averaged.
 
         **Parameters:**
         
@@ -2496,14 +2500,40 @@ class ROI(skrt.core.Archive):
             If True, all slices will be flattened in the given orientation and
             the Dice score of the flattened slices will be returned. Only 
             available if method="mask".
+
+        by_slice : str, default=None
+            If one of "left", "right", "union", "intersection", return
+            dictionary where keys are the positions of slices containing
+            self and/or other:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other;
+            - "union": consider slices containing either of self and other;
+            - "intersection": consider slices containing both of self and other.
+
+            If a slice contains only one of self and other, a value of
+            None is returned for that slice.
+
+        slice_mean : str, default=None
+            If one of "left", "right", "union", "intersection", return
+            mean of Dice scores calculated slice by slice.  The meanings
+            of the allowed values are the same as for by_slice.
+
+        value_for_None : float, default=0
+            Value to be substituted for any None values among the
+            inputs for calculating slice mean.  If None, None values
+            are omitted.
         """
+
+        if by_slice:
+            return {pos: self.get_dice(other, single_slice=True, view=view,
+                pos=pos, method=method)}
 
         intersection, union, mean_size = self.get_intersection_union_size(
                 other, single_slice, view, sl, idx, pos, method, flatten)
 
-        if not mean_size:
-            return None
-        return intersection / mean_size
+        if mean_size:
+            return intersection / mean_size
 
     def get_jaccard(
         self, 
@@ -7857,7 +7887,7 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
     return tuple(centroids[1] - centroids[0])
 
 def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
-        method="intersection"):
+        method="union"):
     """
     Get ordered list of slice positions for either or both of a pair of ROIs.
 
@@ -7888,6 +7918,10 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         - "intersection": return positions of slices containing both
           roi1 and roi2.
     """
+    allowed_methods = ["left", "right", "union", "intersection"]
+    if method not in allowed_methods:
+        raise RuntimeError(f"Method must be one of {allowed_methods}"
+        " - not '{method}'")
     slices1 = sorted(list(roi1.get_contours(
         view=view, idx_as_key=position_as_idx)))
     if not issubclass(type(roi2), ROI) or "left" == method:

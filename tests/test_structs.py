@@ -1548,6 +1548,7 @@ def test_get_slice_positions():
                     "intersection": list(range(iz, 1+ iz + half_side_length)),
                     "union": list(range(iz - half_side_length,
                         1+ iz + 2 * half_side_length)),
+                    "unknown_method": None,
                     }
                 )
             ]
@@ -1562,6 +1563,11 @@ def test_get_slice_positions():
                     name=f"cube{idx + 1}", centre=centre, intensity=10)
         cubes = sim4.get_structure_set().get_rois()
         for method, outcome in outcomes.items():
-            assert get_slice_positions(*cubes, method=method) == outcome
-            assert (cubes[0].get_slice_positions(cubes[1], method=method)
-                    == outcome)
+            if outcome is not None:
+                assert get_slice_positions(*cubes, method=method) == outcome
+                assert (cubes[0].get_slice_positions(cubes[1], method=method)
+                        == outcome)
+            else:
+                with pytest.raises(RuntimeError) as error_info:
+                    get_slice_positions(*cubes, method=method)
+                assert "Method must be" in str(error_info.value)
