@@ -18,7 +18,7 @@ from skrt.core import fullpath
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
-        get_comparison_metrics
+        get_comparison_metrics, get_slices
 
 
 # Make temporary test dir
@@ -1525,3 +1525,41 @@ def test_clone_image_with_structure_set():
             roi_names={"cuboid" : "cube"})
     assert len(sim1.structure_sets) == 1
     assert sim1.structure_sets[0].get_roi_names() == ["cuboid"]
+
+def test_get_slices():
+    """Test retrieval of slices for pair of ROIs."""
+    # Define side lengths of image.
+    nxyz = 100
+
+    # Define half side length and centre coordinates for one of a pair of cubes.
+    half_side_length = 5
+    ix, iy, iz = (50, 50, 50)
+
+    # Define test(s).
+    # Each test consists of a tuple defining centre coordinates for
+    # two cubes of a pair, and a dictionary specifying expected outcomes
+    # for different methods of slice retrieval.
+    tests = [
+            (((ix, iy, iz), (ix, iy, iz + half_side_length)),
+                {
+                    "left": list(range(iz - half_side_length,
+                        1+ iz + half_side_length)),
+                    "right": list(range(iz, 1+ iz + 2 * half_side_length)),
+                    "intersection": list(range(iz, 1+ iz + half_side_length)),
+                    "union": list(range(iz - half_side_length,
+                        1+ iz + 2 * half_side_length)),
+                    }
+                )
+            ]
+
+    # Define image with embedded cubes,
+    # then check that results of slice retrieval are as expected.
+    for centres, outcomes in tests:
+        sim4= SyntheticImage((nxyz, nxyz, nxyz))
+        for idx, centre in enumerate(centres):
+            name = f"cube{idx + 1}"
+            sim4.add_cube(side_length=(2 * half_side_length),
+                    name=f"cube{idx + 1}", centre=centre, intensity=10)
+        cubes = sim4.get_structure_set().get_rois()
+        for method, outcome in outcomes.items():
+            assert get_slices(*cubes, method=method) == outcome

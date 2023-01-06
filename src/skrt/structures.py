@@ -7822,3 +7822,49 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
             centroids.append(roi.get_roi_slice(z_fraction).get_centroid())
 
     return tuple(centroids[1] - centroids[0])
+
+def get_slices(roi1, roi2=None, view="x-y", idx_as_key=False,
+        method="intersection"):
+    """
+    Get ordered list of slice positions or indices for an ROI or a pair of ROIs.
+
+    **Parameters:**
+
+    roi1 : skrt.structures.ROI
+        ROI, or one of a pair of ROIs, for which slice information is to
+        be obtained.
+
+    roi2 : skrt.structures.ROI, default=None
+        If not None, second in a pair of ROIs for which slice information
+        is to be obtained.
+
+    view : str, default="x-y"
+        View in which to obtain slices.
+
+    idx_as_key : bool, default=False
+        If True, return slice indices; if False, return slice coordinates.
+
+    method: str, default="union"
+        String specifying slices for which information is to be returned,
+        for ROIs roi1, roi2:
+
+        - "left" (or roi2 is None): return information for
+          slices containing roi1;
+        - "right": return information for slices containing roi2;
+        - "union": return information for slices containing either roi1 or roi2;
+        - "intersection": return information for slices containing both
+          roi1 and roi2.
+    """
+    slices1 = sorted(list(roi1.get_contours(view=view, idx_as_key=idx_as_key)))
+    if not issubclass(type(roi2), ROI) or "left" == method:
+        return slices1
+
+    slices2 = sorted(list(roi2.get_contours(view=view, idx_as_key=idx_as_key)))
+    if "right" == method:
+        return slices2
+    
+    if "union" == method:
+        return sorted(list(set(slices1).union(set(slices2))))
+
+    if "intersection" == method:
+        return sorted(list(set(slices1).intersection(set(slices2))))
