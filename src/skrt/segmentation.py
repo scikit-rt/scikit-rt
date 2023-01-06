@@ -470,11 +470,10 @@ def ensure_any(in_val):
     return in_val
 
 def ensure_image(im):
-    return (im if (issubclass(type(im), Image) or im is None) else Image(im))
+    return (im if im is None else Image(im))
 
 def ensure_structure_set(ss):
-    return (ss if (isinstance(ss, StructureSet) or ss is None)
-            else StructureSet(ss))
+    return (ss if ss is None else StructureSet(ss))
 
 def ensure_dict(in_val, ensure_type=ensure_any):
     if isinstance(in_val, dict):
