@@ -337,3 +337,26 @@ def test_qualified_name():
     """Test determination of qualified name for a class."""
     from skrt.core import Archive
     assert "skrt.core.Archive" == skrt.core.qualified_name(Archive)
+
+def test_get_dict_mean():
+    """Test calculation of mean for values of a dictionary."""
+    # Check that the value returned for an empty dictionary is None.
+    assert skrt.core.get_dict_mean({}) == None
+
+    # Create test dictionary,
+    # where values are consecutive integers, starting from zero.
+    nval = 29
+    test_dict = {val: val for val in range(nval)}
+
+    # Check that the mean is the median integer.
+    assert skrt.core.get_dict_mean(test_dict) == (nval - 1) / 2
+
+    # Substitute None for odd values.
+    test_dict = {val: (val if val % 2 == 0 else None) for val in range(nval)}
+
+    # Check the effect of omitting None values.
+    assert skrt.core.get_dict_mean(test_dict) == (nval - 1) / 2
+
+    # Check the effect of subsituting zeros for None values.
+    assert ((skrt.core.get_dict_mean(test_dict, value_for_none=0) ==
+        (nval - 1) * (nval + 1) / (4 * nval)))

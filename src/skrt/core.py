@@ -7,6 +7,7 @@ import copy
 import os
 import re
 import shutil
+import statistics
 import sys
 import time
 import timeit
@@ -1991,3 +1992,26 @@ def download(url, outdir=".", outfile=None, binary=True, unzip=False):
     if unzip:
         with ZipFile(outpath) as zipfile:
             zipfile.extractall(outdir)
+
+def get_dict_mean(in_dict=None, value_for_none=None):
+    """
+    Calculate mean of dictionary values.
+
+    **Parameters:**
+
+    in_dict: dict, default=None
+        Dictionary for which mean of values is to be calculated.
+
+    value_for_None: int/float/None, default=None
+        Value to be substituted for any None values in the dictionary.
+        If None, None values in the dictionary are omitted, rather
+        than being substituted.
+    """
+    in_dict = in_dict or {}
+    if value_for_none is None:
+        values = [value for value in in_dict.values() if value is not None]
+    else:
+        values = [(value if value is not None else value_for_none)
+                for value in in_dict.values()]
+    if values:
+        return statistics.mean(values)
