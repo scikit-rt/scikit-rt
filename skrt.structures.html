@@ -3138,9 +3138,9 @@ given to two decimal places.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.structures.get_slices">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_as_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'intersection'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_slices" title="Permalink to this definition"></a></dt>
-<dd><p>Get ordered list of slice positions or indices for an ROI or a pair of ROIs.</p>
+<dt class="sig sig-object py" id="skrt.structures.get_slice_positions">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'intersection'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_slice_positions" title="Permalink to this definition"></a></dt>
+<dd><p>Get ordered list of slice positions for an ROI or a pair of ROIs.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>roi1<span class="classifier">skrt.structures.ROI</span></dt><dd><p>ROI, or one of a pair of ROIs, for which slice information is to
@@ -3151,16 +3151,16 @@ is to be obtained.</p>
 </dd>
 <dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>View in which to obtain slices.</p>
 </dd>
-<dt>idx_as_key<span class="classifier">bool, default=False</span></dt><dd><p>If True, return slice indices; if False, return slice coordinates.</p>
+<dt>position_as_idx<span class="classifier">bool, default=False</span></dt><dd><p>If True, return positions as slice indices; if False,
+return positions as slice z-coordinates (mm).</p>
 </dd>
-<dt>method: str, default=”union”</dt><dd><p>String specifying slices for which information is to be returned,
+<dt>method: str, default=”union”</dt><dd><p>String specifying slices for which positions are to be obtained,
 for ROIs roi1, roi2:</p>
 <ul class="simple">
-<li><p>“left” (or roi2 is None): return information for
-slices containing roi1;</p></li>
-<li><p>“right”: return information for slices containing roi2;</p></li>
-<li><p>“union”: return information for slices containing either roi1 or roi2;</p></li>
-<li><p>“intersection”: return information for slices containing both
+<li><p>“left” (or roi2 is None): return positions of slices containing roi1;</p></li>
+<li><p>“right”: return positions of slices containing roi2;</p></li>
+<li><p>“union”: return positions of slices containing either roi1 or roi2;</p></li>
+<li><p>“intersection”: return positions of slices containing both
 roi1 and roi2.</p></li>
 </ul>
 </dd>
