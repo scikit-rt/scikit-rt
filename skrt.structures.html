@@ -741,11 +741,11 @@ binary mask.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_dice">
-<span class="sig-name descname"><span class="pre">get_dice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dice" title="Permalink to this definition"></a></dt>
-<dd><p>Get Dice score with respect to another ROI, either globally or on a 
-single slice.</p>
+<span class="sig-name descname"><span class="pre">get_dice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_None</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dice" title="Permalink to this definition"></a></dt>
+<dd><p>Get Dice score with respect to another ROI,
+globally, on a single slice, slice by slice, or slice averaged.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
 </dd>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Dice score of the full ROIs will be returned;
@@ -776,6 +776,26 @@ the slice in this orientation.</p>
 <dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
 the Dice score of the flattened slices will be returned. Only 
 available if method=”mask”.</p>
+</dd>
+<dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, return
+dictionary where keys are the positions of slices containing
+self and/or other:</p>
+<ul class="simple">
+<li><p>“left”: consider only slices containing self;</p></li>
+<li><p>“right”: consider only slices containing other;</p></li>
+<li><p>“union”: consider slices containing either of self and other;</p></li>
+<li><p>“intersection”: consider slices containing both of self and other.</p></li>
+</ul>
+<p>If a slice contains only one of self and other, a value of
+None is returned for that slice.</p>
+</dd>
+<dt>slice_mean<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, return
+mean of Dice scores calculated slice by slice.  The meanings
+of the allowed values are the same as for by_slice.</p>
+</dd>
+<dt>value_for_None<span class="classifier">float, default=0</span></dt><dd><p>Value to be substituted for any None values among the
+inputs for calculating slice mean.  If None, None values
+are omitted.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1330,7 +1350,7 @@ None, append z_fraction, with value given to two decimal places.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_slice_positions">
-<span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'intersection'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_positions" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'union'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_positions" title="Permalink to this definition"></a></dt>
 <dd><p>Get ordered list of slice positions for self and other.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -3168,7 +3188,7 @@ given to two decimal places.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.get_slice_positions">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'intersection'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_slice_positions" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'union'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_slice_positions" title="Permalink to this definition"></a></dt>
 <dd><p>Get ordered list of slice positions for either or both of a pair of ROIs.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
