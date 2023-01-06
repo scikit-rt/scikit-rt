@@ -1329,6 +1329,35 @@ None, append z_fraction, with value given to two decimal places.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_slice_positions">
+<span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'intersection'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_positions" title="Permalink to this definition"></a></dt>
+<dd><p>Get ordered list of slice positions for self and other.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>other<span class="classifier">skrt.structures.ROI, default=None</span></dt><dd><p>Second ROI of a pair for which slice positions are be obtained.
+Disregarded if None.</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>View in which to obtain slices.</p>
+</dd>
+<dt>position_as_idx<span class="classifier">bool, default=False</span></dt><dd><p>If True, return positions as slice indices; if False,
+return positions as slice z-coordinates (mm).</p>
+</dd>
+<dt>method: str, default=”union”</dt><dd><p>String specifying slices for which positions are to be obtained,
+for ROIs self and other.</p>
+<ul class="simple">
+<li><p>“left” (or other is None): return positions of
+slices containing self;</p></li>
+<li><p>“right”: return positions of slices containing other;</p></li>
+<li><p>“union”: return positions of slices containing either self
+or other;</p></li>
+<li><p>“intersection”: return positions of slices containing both
+self and other.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_slice_thickness_contours">
 <span class="sig-name descname"><span class="pre">get_slice_thickness_contours</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_thickness_contours" title="Permalink to this definition"></a></dt>
 <dd><p>Get z voxel size using positions of contours.</p>
@@ -3140,7 +3169,7 @@ given to two decimal places.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.get_slice_positions">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'intersection'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_slice_positions" title="Permalink to this definition"></a></dt>
-<dd><p>Get ordered list of slice positions for an ROI or a pair of ROIs.</p>
+<dd><p>Get ordered list of slice positions for either or both of a pair of ROIs.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>roi1<span class="classifier">skrt.structures.ROI</span></dt><dd><p>ROI, or one of a pair of ROIs, for which slice information is to
