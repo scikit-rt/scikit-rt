@@ -18,7 +18,7 @@ from skrt.core import fullpath
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
-        get_comparison_metrics, get_slices
+        get_comparison_metrics, get_slice_positions
 
 
 # Make temporary test dir
@@ -1526,8 +1526,8 @@ def test_clone_image_with_structure_set():
     assert len(sim1.structure_sets) == 1
     assert sim1.structure_sets[0].get_roi_names() == ["cuboid"]
 
-def test_get_slices():
-    """Test retrieval of slices for pair of ROIs."""
+def test_get_slice_positions():
+    """Test retrieval of slice positions for pair of ROIs."""
     # Define side lengths of image.
     nxyz = 100
 
@@ -1562,4 +1562,4 @@ def test_get_slices():
                     name=f"cube{idx + 1}", centre=centre, intensity=10)
         cubes = sim4.get_structure_set().get_rois()
         for method, outcome in outcomes.items():
-            assert get_slices(*cubes, method=method) == outcome
+            assert get_slice_positions(*cubes, method=method) == outcome

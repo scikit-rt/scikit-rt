@@ -7823,10 +7823,10 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
 
     return tuple(centroids[1] - centroids[0])
 
-def get_slices(roi1, roi2=None, view="x-y", idx_as_key=False,
+def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         method="intersection"):
     """
-    Get ordered list of slice positions or indices for an ROI or a pair of ROIs.
+    Get ordered list of slice positions for an ROI or a pair of ROIs.
 
     **Parameters:**
 
@@ -7841,25 +7841,27 @@ def get_slices(roi1, roi2=None, view="x-y", idx_as_key=False,
     view : str, default="x-y"
         View in which to obtain slices.
 
-    idx_as_key : bool, default=False
-        If True, return slice indices; if False, return slice coordinates.
+    position_as_idx : bool, default=False
+        If True, return positions as slice indices; if False,
+        return positions as slice z-coordinates (mm).
 
     method: str, default="union"
-        String specifying slices for which information is to be returned,
+        String specifying slices for which positions are to be obtained,
         for ROIs roi1, roi2:
 
-        - "left" (or roi2 is None): return information for
-          slices containing roi1;
-        - "right": return information for slices containing roi2;
-        - "union": return information for slices containing either roi1 or roi2;
-        - "intersection": return information for slices containing both
+        - "left" (or roi2 is None): return positions of slices containing roi1;
+        - "right": return positions of slices containing roi2;
+        - "union": return positions of slices containing either roi1 or roi2;
+        - "intersection": return positions of slices containing both
           roi1 and roi2.
     """
-    slices1 = sorted(list(roi1.get_contours(view=view, idx_as_key=idx_as_key)))
+    slices1 = sorted(list(roi1.get_contours(
+        view=view, idx_as_key=position_as_idx)))
     if not issubclass(type(roi2), ROI) or "left" == method:
         return slices1
 
-    slices2 = sorted(list(roi2.get_contours(view=view, idx_as_key=idx_as_key)))
+    slices2 = sorted(list(roi2.get_contours(
+        view=view, idx_as_key=position_as_idx)))
     if "right" == method:
         return slices2
     
