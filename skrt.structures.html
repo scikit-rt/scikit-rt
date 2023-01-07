@@ -741,7 +741,7 @@ binary mask.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_dice">
-<span class="sig-name descname"><span class="pre">get_dice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_None</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dice" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_dice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dice" title="Permalink to this definition"></a></dt>
 <dd><p>Get Dice score with respect to another ROI,
 globally, on a single slice, slice by slice, or slice averaged.</p>
 <p><strong>Parameters:</strong></p>
@@ -786,16 +786,18 @@ self and/or other:</p>
 <li><p>“union”: consider slices containing either of self and other;</p></li>
 <li><p>“intersection”: consider slices containing both of self and other.</p></li>
 </ul>
-<p>If a slice contains only one of self and other, a value of
-None is returned for that slice.</p>
+<p>If a slice contains only one of self and other, the value
+of value_for_none is returned for that slice.</p>
 </dd>
 <dt>slice_mean<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, return
 mean of Dice scores calculated slice by slice.  The meanings
 of the allowed values are the same as for by_slice.</p>
 </dd>
-<dt>value_for_None<span class="classifier">float, default=0</span></dt><dd><p>Value to be substituted for any None values among the
-inputs for calculating slice mean.  If None, None values
-are omitted.</p>
+<dt>value_for_none<span class="classifier">float, default=None</span></dt><dd><p>For single_slice and by_slice, value to be returned for
+slices containing only one of self and other.  For slice_mean,
+value to substitute for any None values among the inputs
+for calculating slice mean.  If None in the latter case, None
+values among the inputs are omitted.</p>
 </dd>
 </dl>
 </dd></dl>
