@@ -2458,7 +2458,7 @@ class ROI(skrt.core.Archive):
         flatten=False,
         by_slice=None,
         slice_mean=None,
-        value_for_None=0,
+        value_for_none=0,
     ):
         """
         Get Dice score with respect to another ROI,
@@ -2511,19 +2511,25 @@ class ROI(skrt.core.Archive):
             - "union": consider slices containing either of self and other;
             - "intersection": consider slices containing both of self and other.
 
-            If a slice contains only one of self and other, a value of
-            None is returned for that slice.
+            If a slice contains only one of self and other, the value
+            of value_for_none is returned for that slice.
 
         slice_mean : str, default=None
             If one of "left", "right", "union", "intersection", return
             mean of Dice scores calculated slice by slice.  The meanings
             of the allowed values are the same as for by_slice.
 
-        value_for_None : float, default=0
-            Value to be substituted for any None values among the
-            inputs for calculating slice mean.  If None, None values
-            are omitted.
+        value_for_none : float, default=None
+            For single_slice and by_slice, value to be returned for
+            slices containing only one of self and other.  For slice_mean,
+            value to substitute for any None values among the inputs
+            for calculating slice mean.  If None in the latter case, None
+            values among the inputs are omitted.
         """
+        if slice_mean:
+            return skrt.core.get_dict_mean(
+                    self.get_dice(other, by_slice=slice_mean,
+                        view=view, method=method), value_for_none)
 
         if by_slice:
             return {pos: self.get_dice(other, single_slice=True, view=view,
@@ -2534,6 +2540,8 @@ class ROI(skrt.core.Archive):
 
         if mean_size:
             return intersection / mean_size
+
+        return value_for_none
 
     def get_jaccard(
         self, 
