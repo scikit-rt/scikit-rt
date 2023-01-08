@@ -2533,7 +2533,8 @@ class ROI(skrt.core.Archive):
 
         if by_slice:
             return {pos: self.get_dice(other, single_slice=True, view=view,
-                pos=pos, method=method)}
+                pos=pos, method=method) for pos in
+                self.get_slice_positions(other, view, method=by_slice)}
 
         intersection, union, mean_size = self.get_intersection_union_size(
                 other, single_slice, view, sl, idx, pos, method, flatten)

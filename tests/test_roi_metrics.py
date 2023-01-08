@@ -15,17 +15,26 @@ methods = ["mask", "contour"]
 
 # Create fake image
 delta_y = 2
+delta_z = 2
 centre1 = np.array([5, 4, 5])
 centre2 = np.array([5, 4 + delta_y, 5])
+centre3 = np.array([5, 4, 5 + delta_z])
 side_length = 4
+side_length3 = 6
 name1 = 'cube1'
 name2 = 'cube2'
+name3 = 'cube3'
 sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
 sim.add_cuboid(side_length, centre=centre1, name=name1)
 sim.add_cube(side_length, centre=centre2, name=name2)
+sim.add_cube(side_length3, centre=centre3, name=name3)
 cube1 = sim.get_roi(name1)
 cube2 = sim.get_roi(name2)
+cube3 = sim.get_roi(name3)
 
+# Single-slice Dice score for cube1 relative to cube3,
+# for slices where cubes overlap.
+dice3 = 2 * side_length**2 / (side_length**2 + side_length3**2)
 
 def test_mid_idx():
     for view, z in _slice_axes.items():
@@ -124,6 +133,27 @@ def test_dice_contour_slice():
 
 def test_dice_flattened():
     assert cube1.get_dice(cube2, flatten=True) == 0.5
+
+def test_dice_by_slice():
+    assert cube1.get_dice(cube3, by_slice="left") == {
+            pos: (dice3 if pos in cube3.get_contours() else 0)
+            for pos in cube1.get_contours()}
+
+    assert cube1.get_dice(cube3, by_slice="right") == {
+            pos: (dice3 if pos in cube1.get_contours() else 0)
+            for pos in cube3.get_contours()}
+
+    assert cube1.get_dice(cube3, by_slice="union") == {
+            pos: (dice3 if (pos in cube1.get_contours()
+                and pos in cube3.get_contours()) else 0)
+            for pos in sorted(list(set(cube1.get_contours())
+                .union(cube3.get_contours())))}
+
+    assert cube1.get_dice(cube3, by_slice="intersection") == {
+            pos: (dice3 if (pos in cube1.get_contours()
+                and pos in cube3.get_contours()) else 0)
+            for pos in sorted(list(set(cube1.get_contours())
+                .intersection(cube3.get_contours())))}
 
 def test_jaccard_slice():
     assert cube1.get_jaccard(cube2, single_slice=True, view='x-y', 
