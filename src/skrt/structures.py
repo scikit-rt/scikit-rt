@@ -2458,7 +2458,7 @@ class ROI(skrt.core.Archive):
         flatten=False,
         by_slice=None,
         slice_mean=None,
-        value_for_none=0,
+        value_for_none=None,
     ):
         """
         Get Dice score with respect to another ROI,
@@ -2521,7 +2521,7 @@ class ROI(skrt.core.Archive):
 
         value_for_none : float, default=None
             For single_slice and by_slice, value to be returned for
-            slices containing only one of self and other.  For slice_mean,
+            slices where Dice score is undetermined (None).  For slice_mean,
             value to substitute for any None values among the inputs
             for calculating slice mean.  If None in the latter case, None
             values among the inputs are omitted.

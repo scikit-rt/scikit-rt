@@ -32,9 +32,44 @@ cube1 = sim.get_roi(name1)
 cube2 = sim.get_roi(name2)
 cube3 = sim.get_roi(name3)
 
-# Single-slice Dice score for cube1 relative to cube3,
-# for slices where cubes overlap.
-dice3 = 2 * side_length**2 / (side_length**2 + side_length3**2)
+# Slice positions for cube1, cube3, their union, and their intersection.
+slices_1 = cube1.get_slice_positions()
+slices_3 = cube3.get_slice_positions()
+slices_union13 = cube1.get_slice_positions(cube3, method="union")
+slices_overlap13 = cube1.get_slice_positions(cube3, method="intersection")
+
+def get_tests13(metric, method):
+    """
+    Define tests comparing cube1 and cube3.
+
+    **Parameters:**
+    metric: str
+        Metric for which tests are to be defined.
+
+    method: str
+        Method for which tests are to be defined.
+    """
+    if "dice" == metric:
+        ssval = 2 * len(slices_1)**2 / (len(slices_1)**2 + len(slices_3)**2)
+
+    if "by_slice" == method:
+        return {
+                "left": {pos: (ssval if pos in slices_3 else 0)
+                    for pos in slices_1},
+                "right": {pos: (ssval if pos in slices_1 else 0)
+                    for pos in slices_3},
+                "union": {pos: (ssval if pos in slices_overlap13 else 0)
+                    for pos in slices_union13},
+                "intersection": {pos: ssval for pos in slices_overlap13},
+            }
+
+    elif "slice_mean" == method:
+        return {
+                "left": (len(slices_overlap13) * ssval) / len(slices_1),
+                "right": (len(slices_overlap13) * ssval) / len(slices_3),
+                "union": (len(slices_overlap13) * ssval) / len(slices_union13),
+                "intersection": ssval,
+            }
 
 def test_mid_idx():
     for view, z in _slice_axes.items():
@@ -135,25 +170,15 @@ def test_dice_flattened():
     assert cube1.get_dice(cube2, flatten=True) == 0.5
 
 def test_dice_by_slice():
-    assert cube1.get_dice(cube3, by_slice="left") == {
-            pos: (dice3 if pos in cube3.get_contours() else 0)
-            for pos in cube1.get_contours()}
+    """Check slice-by-slice Dice scores."""
+    for method, result in get_tests13("dice", "by_slice").items():
+        assert cube1.get_dice(cube3, by_slice=method) == result
 
-    assert cube1.get_dice(cube3, by_slice="right") == {
-            pos: (dice3 if pos in cube1.get_contours() else 0)
-            for pos in cube3.get_contours()}
-
-    assert cube1.get_dice(cube3, by_slice="union") == {
-            pos: (dice3 if (pos in cube1.get_contours()
-                and pos in cube3.get_contours()) else 0)
-            for pos in sorted(list(set(cube1.get_contours())
-                .union(cube3.get_contours())))}
-
-    assert cube1.get_dice(cube3, by_slice="intersection") == {
-            pos: (dice3 if (pos in cube1.get_contours()
-                and pos in cube3.get_contours()) else 0)
-            for pos in sorted(list(set(cube1.get_contours())
-                .intersection(cube3.get_contours())))}
+def test_dice_slice_mean():
+    """Check mean value of slice-by-slice Dice scores."""
+    for method, result in get_tests13("dice", "slice_mean").items():
+        assert (cube1.get_dice(cube3, slice_mean=method, value_for_none=0)
+            == result)
 
 def test_jaccard_slice():
     assert cube1.get_jaccard(cube2, single_slice=True, view='x-y', 
