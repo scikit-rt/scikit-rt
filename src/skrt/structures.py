@@ -2511,9 +2511,6 @@ class ROI(skrt.core.Archive):
             - "union": consider slices containing either of self and other;
             - "intersection": consider slices containing both of self and other.
 
-            If a slice contains only one of self and other, the value
-            of value_for_none is returned for that slice.
-
         slice_mean : str, default=None
             If one of "left", "right", "union", "intersection", return
             mean of Dice scores calculated slice by slice.  The meanings
@@ -3179,6 +3176,7 @@ class ROI(skrt.core.Archive):
         pos=None,
         idx=None,
         method=None,
+        slice_mean="intersection",
         units_in_header=False,
         global_vs_slice_header=False,
         name_as_index=True,
@@ -3204,6 +3202,7 @@ class ROI(skrt.core.Archive):
                 * "dice_flat": Dice score of ROIs flattened in the orientation
                   specified in <view>.
                 * "dice_slice": Dice score on a single slice.
+                * "dice_slice_mean": Mean of slice-by-slice Dice scores.
 
                 * "jaccard" : global Jaccard index.
                 * "jaccard_flat": Jaccard index of ROIs flattened in
@@ -3306,6 +3305,15 @@ class ROI(skrt.core.Archive):
             the value set in self.default_geom_method will be used. Note 
             that flattened metrics and surface distance metrics enforce use
             of the "mask" method.
+
+        slice_mean : str, default="intersection"
+            Slices to be considered when calculating slice-by-slice mean:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other roi;
+            - "union": consider slices containing either of self and other roi;
+            - "intersection": consider slices containing both of self and
+              other roi.
 
         units_in_header : bool, default=False
             If True, units will be included in column headers.
@@ -3430,6 +3438,10 @@ class ROI(skrt.core.Archive):
                 )
             elif m == "dice_slice":
                 comp[m] = roi0.get_dice(roi, method=method, **slice_kwargs)
+
+            elif m == "dice_slice_mean":
+                comp[m] = roi0.get_dice(roi, method=method,
+                        slice_mean=slice_mean, **slice_kwargs)
 
             # Jaccard index
             elif m == "jaccard":
@@ -7760,6 +7772,7 @@ def get_comparison_metrics():
             "dice",
             "dice_flat",
             "dice_slice",
+            "dice_slice_mean",
             "hausdorff_distance",
             "hausdorff_distance_flat",
             "jaccard",

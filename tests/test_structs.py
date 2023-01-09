@@ -336,8 +336,7 @@ def test_get_comparison():
     # three greater than number of metrics.
     assert comp.shape[1] == len(metrics) + 3
 
-    # Check that exception is raised if relative position is
-    # outside allowed interval [0, 1].
+    # Check that exception is requested metric is unknown.
     with pytest.raises(RuntimeError) as error_info:
         comp = structure_set.get_comparison(metrics=["unknown_metric"])
     assert "Metric unknown_metric not recognised" in str(error_info.value)
