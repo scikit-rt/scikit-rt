@@ -1993,25 +1993,50 @@ def download(url, outdir=".", outfile=None, binary=True, unzip=False):
         with ZipFile(outpath) as zipfile:
             zipfile.extractall(outdir)
 
-def get_dict_mean(in_dict=None, value_for_none=None):
+def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
     """
-    Calculate mean of dictionary values.
+    Calculate statistic(s) for values in list or dictionary.
 
     **Parameters:**
 
-    in_dict: dict, default=None
-        Dictionary for which mean of values is to be calculated.
+    values: list/tuple/dict
+        Values for which to calculate statistic(s).  If a dictionary,
+        the dictionary values are used.
 
-    value_for_None: int/float/None, default=None
-        Value to be substituted for any None values in the dictionary.
-        If None, None values in the dictionary are omitted, rather
-        than being substituted.
+    value_for_none: int/float/None, default=None
+        Value to be substituted for any None values, before calculation
+        of statistic(s).  If None, None values are omitted, rather than
+        being substituted.
+
+    stat: str, default="mean"
+        Statistic(s) to be calculated.  This should be the name of the
+        function for calculation of the statistic(s) in the Python
+        statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+        Available options include: "mean", "median", "mode", "stdev",
+        "quantiles".
+
+    kwargs : dict, default=None
+        Keyword arguments to be passed to the relevant function of
+        the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+        For example, if quantiles are required for 10 intervals,
+        rather than for the default of 4, this can be specified using:
+
+        kwargs={"n" : 10}
     """
-    in_dict = in_dict or {}
+    values = values or []
+    if isinstance(values, dict):
+        values = values.values()
+
     if value_for_none is None:
-        values = [value for value in in_dict.values() if value is not None]
+        values = [value for value in values if value is not None]
     else:
         values = [(value if value is not None else value_for_none)
-                for value in in_dict.values()]
+                for value in values]
     if values:
-        return statistics.mean(values)
+        return getattr(statistics, stat)(values, **kwargs)

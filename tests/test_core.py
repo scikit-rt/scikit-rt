@@ -338,25 +338,31 @@ def test_qualified_name():
     from skrt.core import Archive
     assert "skrt.core.Archive" == skrt.core.qualified_name(Archive)
 
-def test_get_dict_mean():
+def test_get_stat():
     """Test calculation of mean for values of a dictionary."""
     # Check that the value returned for an empty dictionary is None.
-    assert skrt.core.get_dict_mean({}) == None
 
-    # Create test dictionary,
-    # where values are consecutive integers, starting from zero.
     nval = 29
-    test_dict = {val: val for val in range(nval)}
+    tests = (
+            # Null input.
+            (None, None, None, {}, None),
+            # Median of consecutive integers from zero (dictionary values).
+            ({val: val for val in range(nval)},
+                None, "mean", {}, (nval - 1) / 2),
+            # Median of consecutive integers from zero (list values).
+            (list(range(nval)), None, "median", {}, (nval - 1) / 2),
+            # Mean of consecutive integers from zero,
+            # after substituting None for odd values.
+            ({val: (val if val % 2 == 0 else None) for val in range(nval)},
+                None, "mean", {}, (nval - 1) / 2),
+            # Mean of consecutive integers from zero,
+            # after substituting 0 substituted for odd values.
+            ({val: (val if val % 2 == 0 else None) for val in range(nval)},
+                0, "mean", {}, (nval - 1) * (nval + 1) / (4 * nval)),
+            # Quantiles of consecutive integers from zero.
+            (list(range(nval)), None, "quantiles", {"n": 2}, [(nval - 1) / 2]),
+            )
 
-    # Check that the mean is the median integer.
-    assert skrt.core.get_dict_mean(test_dict) == (nval - 1) / 2
-
-    # Substitute None for odd values.
-    test_dict = {val: (val if val % 2 == 0 else None) for val in range(nval)}
-
-    # Check the effect of omitting None values.
-    assert skrt.core.get_dict_mean(test_dict) == (nval - 1) / 2
-
-    # Check the effect of subsituting zeros for None values.
-    assert ((skrt.core.get_dict_mean(test_dict, value_for_none=0) ==
-        (nval - 1) * (nval + 1) / (4 * nval)))
+    for values, value_for_None, stat, kwargs, result in tests:
+        assert (skrt.core.get_stat(values, value_for_None, stat, **kwargs)
+                == result)
