@@ -386,7 +386,7 @@ but add to them, or modify values, from opts dictionary.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.core.Defaults.instance">
-<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -738,21 +738,6 @@ data types of &lt;valid_data_types&gt;.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.core.get_dict_mean">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_dict_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_dict_mean" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate mean of dictionary values.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>in_dict: dict, default=None</dt><dd><p>Dictionary for which mean of values is to be calculated.</p>
-</dd>
-<dt>value_for_None: int/float/None, default=None</dt><dd><p>Value to be substituted for any None values in the dictionary.
-If None, None values in the dictionary are omitted, rather
-than being substituted.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_file_size">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_file_size" title="Permalink to this definition"></a></dt>
 <dd><p>Return size in bytes of data files associated with listed objects.</p>
@@ -917,6 +902,40 @@ skrt.DicomFile.set_referenced_sop_instance_uids(), namely:
 <dt>omit_slice<span class="classifier">bool, default=False</span></dt><dd><p>If True, disregard the last part of all UIDs, meaning the part from
 the last dot onwards.  For imaging data, this part distinguishes
 between different slices.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_stat">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_stat" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate statistic(s) for values in list or dictionary.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>values: list/tuple/dict</dt><dd><p>Values for which to calculate statistic(s).  If a dictionary,
+the dictionary values are used.</p>
+</dd>
+<dt>value_for_none: int/float/None, default=None</dt><dd><p>Value to be substituted for any None values, before calculation
+of statistic(s).  If None, None values are omitted, rather than
+being substituted.</p>
+</dd>
+<dt>stat: str, default=”mean”</dt><dd><p>Statistic(s) to be calculated.  This should be the name of the
+function for calculation of the statistic(s) in the Python
+statistics module:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+</div></blockquote>
+<p>Available options include: “mean”, “median”, “mode”, “stdev”,
+“quantiles”.</p>
+</dd>
+<dt>kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Keyword arguments to be passed to the relevant function of
+the Python statistics module:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+</div></blockquote>
+<p>For example, if quantiles are required for 10 intervals,
+rather than for the default of 4, this can be specified using:</p>
+<p>kwargs={“n” : 10}</p>
 </dd>
 </dl>
 </dd></dl>
