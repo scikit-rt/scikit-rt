@@ -14,11 +14,11 @@ import matplotlib.colors
 from shapely.geometry import Polygon
 from shapely.validation import explain_validity
 
-from skrt.core import fullpath
+from skrt.core import fullpath, Defaults
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
-        get_comparison_metrics, get_slice_positions
+        get_comparison_metrics, get_slice_positions, expand_slice_stats
 
 
 # Make temporary test dir
@@ -61,6 +61,7 @@ def get_synthetic_image_with_structure_set(shape=(100, 100, 100),
 sim = get_synthetic_image_with_structure_set()
 structure_set = sim.get_structure_set()
 cube = structure_set.get_roi("cube")
+sphere = structure_set.get_roi("sphere")
 
 def test_structure_set_from_sythetic_image():
     assert isinstance(structure_set, StructureSet)
@@ -326,21 +327,95 @@ def test_plot_consensus():
                            include_image=include_image)
 
 def test_get_comparison():
-    metrics = get_comparison_metrics()
-    comp = structure_set.get_comparison(metrics=metrics)
-    assert isinstance(comp, pd.DataFrame)
-    assert comp.shape[0] == len(structure_set.get_comparison_pairs())
-    # Have (x, y, z) componnts for "centroid",
-    # and two in-slice components for "centroid_slice",
-    # so expect number of dataframe columns to be
-    # three greater than number of metrics.
-    assert comp.shape[1] == len(metrics) + 3
+    """Test calculation of comparison metrics."""
 
-    # Check that exception is requested metric is unknown.
+    # metrics1 : metrics that should be accepted by get_comparison_metrics().
+    metrics1 = get_comparison_metrics()
+
+    # metrics2 : metrics expected in data frame from get_comparison_metrics().
+    metrics2 = get_comparison_metrics(
+            centroid_components=True, slice_stats={})
+
+    # Perform ROI comparisons, and check results.
+    comparison = structure_set.get_comparison(metrics=metrics1)
+    assert isinstance(comparison, pd.DataFrame)
+    assert comparison.shape[0] == len(structure_set.get_comparison_pairs())
+    assert comparison.shape[1] == len(metrics2)
+    assert sorted(list(comparison.columns)) == metrics2
+
+    # Check that exception is raised for unknown metric.
     with pytest.raises(RuntimeError) as error_info:
-        comp = structure_set.get_comparison(metrics=["unknown_metric"])
+        comparison = structure_set.get_comparison(metrics=["unknown_metric"])
     assert "Metric unknown_metric not recognised" in str(error_info.value)
 
+def test_get_slice_stats():
+    """
+    Test calculation of statistics for ROI comparison metrics
+    evaluted slice by slice.
+
+    Tests here are to check that results from get_slice_stats() give the same
+    results as calls to the individual ROI comparison methods.  Tests that
+    the latter give valid results are in test_roi_metrics.py.
+    """
+    # Identify metrics for which slice-by-slice calculations are implemented.
+    metrics = [metric.split("_")[0] for metric in get_comparison_metrics()
+            if "slice_stats" in metric]
+
+    # Test calculation of statistics for metrics specified as strings and lists,
+    # with fallback to a default method for selecting slices to be considered.
+    defaults_by_slice = [None, "left", "right", "union", "intersection"]
+    all_slice_stats = [["mean", "median"], "stdev"]
+    for default_by_slice in defaults_by_slice:
+        by_slice = default_by_slice or Defaults().by_slice
+        for slice_stats in all_slice_stats:
+            results = cube.get_slice_stats(
+                    sphere, metrics, slice_stats, default_by_slice)
+            stats = list(expand_slice_stats(slice_stats, by_slice).values())[0]
+            assert len(results) == len(stats)
+
+            # Check that results obtained are the same as
+            # results obtained from calls to the individual comparison methods.
+            for metric in metrics:
+                for stat in stats:
+                    assert (results[f"{metric}_{by_slice}_{stat}"] ==
+                            getattr(cube, f"get_{metric}")(
+                                    sphere, by_slice=by_slice, slice_stat=stat))
+
+    # Test calculation of statistics for slice selection and metrics
+    # specified via dictionary.
+    slice_stats = {"left": "mean", "right": ("mean", "median")}
+    results = cube.get_slice_stats(sphere, metrics, slice_stats)
+    for by_slice, stats in expand_slice_stats(slice_stats).items():
+        for metric in metrics:
+            for stat in stats:
+                assert (results[f"{metric}_{by_slice}_{stat}"] ==
+                        getattr(cube, f"get_{metric}")(
+                                sphere, by_slice=by_slice, slice_stat=stat))
+
+def test_expand_slice_stats():
+    """
+    Test expansion of specification of statistics to calculate
+    for ROI comparison metrics evaluated slice by slice.
+    """
+    # Check that null input returns empty dictionary.
+    assert {} == expand_slice_stats()
+
+    # Test expansion for specification of metrics as strings and lists.
+    defaults_by_slice = [None, "left", "right", "union", "intersection"]
+    metrics = ["mean", "median", "stdev"]
+    for default_by_slice in defaults_by_slice:
+        by_slice = default_by_slice or Defaults().by_slice
+        for metric in metrics:
+            assert {by_slice : [metric]} == expand_slice_stats(metric, by_slice)
+
+        assert {by_slice : metrics} == expand_slice_stats(metrics, by_slice)
+
+
+    # Test expansion for specification of slice selection and metrics
+    # via dictionary.
+    slice_stats = {"left": "mean", "right": ("mean", "median")}
+    expanded_slice_stats = {"left": ["mean"], "right": ["mean", "median"]}
+    assert expanded_slice_stats == expand_slice_stats(slice_stats)
 def test_plot_comparisons():
     plot_dir = "tmp/struct_plots"
     if os.path.exists(plot_dir):

@@ -174,10 +174,10 @@ def test_dice_by_slice():
     for method, result in get_tests13("dice", "by_slice").items():
         assert cube1.get_dice(cube3, by_slice=method) == result
 
-def test_dice_slice_mean():
+def test_dice_slice_stat():
     """Check mean value of slice-by-slice Dice scores."""
     for method, result in get_tests13("dice", "slice_mean").items():
-        assert (cube1.get_dice(cube3, slice_mean=method, value_for_none=0)
+        assert (cube1.get_dice(cube3, by_slice=method, slice_stat="mean")
             == result)
 
 def test_jaccard_slice():

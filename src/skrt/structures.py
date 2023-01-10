@@ -27,6 +27,9 @@ import skrt.core
 import skrt.image
 from skrt.dicom_writer import DicomWriter
 
+# Set global default.
+skrt.core.Defaults({"by_slice": "union"})
+
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""
 
@@ -81,7 +84,6 @@ class ROIDefaults:
 
 
 ROIDefaults()
-
 
 class ROI(skrt.core.Archive):
     """Single region of interest (ROI)."""
@@ -2457,8 +2459,9 @@ class ROI(skrt.core.Archive):
         method=None,
         flatten=False,
         by_slice=None,
-        slice_mean=None,
         value_for_none=None,
+        slice_stat=None,
+        slice_stat_kwargs=None,
     ):
         """
         Get Dice score with respect to another ROI,
@@ -2502,8 +2505,8 @@ class ROI(skrt.core.Archive):
             available if method="mask".
 
         by_slice : str, default=None
-            If one of "left", "right", "union", "intersection", return
-            dictionary where keys are the positions of slices containing
+            If one of "left", "right", "union", "intersection", calculate
+            Dice scores slice by slice for each slice containing
             self and/or other:
 
             - "left": consider only slices containing self;
@@ -2511,22 +2514,50 @@ class ROI(skrt.core.Archive):
             - "union": consider slices containing either of self and other;
             - "intersection": consider slices containing both of self and other.
 
-        slice_mean : str, default=None
-            If one of "left", "right", "union", "intersection", return
-            mean of Dice scores calculated slice by slice.  The meanings
-            of the allowed values are the same as for by_slice.
+            If slice_stat is None, return a dictionary where keys are
+            slice positions and values are the calculated Dice scores.
+            Otherwise, return for the calculated Dice scores the statistic
+            specified by slice_stat.
 
         value_for_none : float, default=None
             For single_slice and by_slice, value to be returned for
-            slices where Dice score is undetermined (None).  For slice_mean,
+            slices where Dice score is undetermined (None).  For slice_stat,
             value to substitute for any None values among the inputs
-            for calculating slice mean.  If None in the latter case, None
-            values among the inputs are omitted.
+            for calculating slice-based statistic.  If None in the latter
+            case, None values among the inputs are omitted.
+
+        slice_stat : str, default=None
+            Single-variable statistic(s) to be returned for slice-by-slice
+            Dice scores.  This should be the name of the function for
+            calculation of the statistic(s) in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            Available options include: "mean", "median", "mode",
+            "stdev", "quantiles".  Disregarded if None.
+
+            If by_slice is None and slice_stat is different from None,
+            the former defaults to "union".
+
+        slice_stat_kwargs : dict, default=None
+            Keyword arguments to be passed to function of statistics
+            module for calculation relative to slice values.  For example,
+            if quantiles are required for 10 intervals, rather than for
+            the default of 4, this can be specified using:
+
+            slice_stat_kwargs{"n" : 10}
+
+            For available keyword options, see statistics-function
+            documentation at:
+
+            https://docs.python.org/3/library/statistics.html
         """
-        if slice_mean:
-            return skrt.core.get_dict_mean(
-                    self.get_dice(other, by_slice=slice_mean,
-                        view=view, method=method), value_for_none)
+        if slice_stat:
+            by_slice = by_slice or "union"
+            slice_stat_kwargs = slice_stat_kwargs or {}
+            return skrt.core.get_stat(self.get_dice(
+                other, view=view, by_slice=by_slice, method=method),
+                    value_for_none, slice_stat, **slice_stat_kwargs)
 
         if by_slice:
             return {pos: self.get_dice(other, single_slice=True, view=view,
@@ -2793,6 +2824,106 @@ class ROI(skrt.core.Archive):
             mean_size = 0.5 * (data1.sum() + data2.sum()) * factor
 
         return (intersection, union, mean_size)
+
+    def get_slice_stats(self, other, metrics=None, slice_stats=None,
+            default_by_slice=None, method=None, view="x-y"):
+        """
+        Get dictionary of statistics for slice-by-slice comparison metrics.
+
+        **Parameters:**
+
+        other : ROI
+            Other ROI to compare with this ROI.
+
+        metrics : str/list, default=None
+            Metric(s) for which statistic(s) for slice-by-slice calclations
+            are to be returned.  A single metric can by speficied as a string.
+            Multiple metrics can be specified as a list of strings.
+            The only metric currently allowed is "Dice" (case insensitive).
+
+        slice_stats : str/list/dict, default=None
+            Specification of statistics to be calculated relative
+            to slice-by-slice metric values.  Used for all metrics with
+            suffix "_slice_stats" in the <metrics> list.
+
+            A statistic is specified by the name of the function for
+            its calculation in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            For its use here, the relevant function must require
+            a single-variable input, must not require any keyword
+            arguments, and must return a single number.
+
+            Available options include: "mean", "median", "mode",
+            "stdev".
+
+           Statistics to be calculated can be specified using any of
+           the following:
+
+           - String specifying single statistic to be calculated,
+             with slices considered as given by default_by_slice,
+             for example: "mean";
+           - List specifying multiple statistics to be calculated,
+             with slices considered as given by default_by_slice,
+             for example: ["mean", "stdev"];
+           - Dicionary where keys specify slices to be considered,
+             and values specify statistics (string or list), for
+             example: {"union": ["mean", "stdev"]}.  Valid slice
+             specifications are as listed for default_by_slice.
+
+        default_by_slice: str, default=None
+            Default specification of slices to be considered when
+            calculating slice-by-slice statistics.  The valid specifications
+            are:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other roi;
+            - "union": consider slices containing either of self and other roi;
+            - "intersection": consider slices containing both of self and
+              other roi.
+
+            If None, use skrt.core.Defaults().by_slice
+
+        view : str, default="x-y"
+            Orientation of slices on which to get metric values.
+
+        method : str, default=None
+            Method to use for metric calculation. Can be: 
+                - "contour": calculate metric from shapely contours.
+                - "mask": calcualte metric from binary masks.
+                - None: use the method set in self.default_geom_method.
+        """
+        default_by_slice = default_by_slice or skrt.core.Defaults().by_slice
+
+        if metrics is None or slice_stats is None:
+            return {}
+
+        # Ensure that metrics is a non-empty list.
+        if isinstance(metrics, str):
+            metrics = [metrics]
+        elif not skrt.core.is_list(metrics):
+            return {}
+        metrics = [metric.lower() for metric in metrics
+                if f"{metric.lower()}_slice_stats" in get_comparison_metrics()]
+        if not metrics:
+            return {}
+
+        slice_stats = expand_slice_stats(slice_stats, default_by_slice)
+        if not slice_stats:
+            return {}
+
+        # Calculate statistic(s) for metric values calculated slice by slice.
+        calculated_slice_stats = {}
+        for metric in metrics:
+            for by_slice, stats in slice_stats.items():
+                values = getattr(self, f"get_{metric}")(other, view=view,
+                            by_slice=by_slice, method=method)
+                for stat in stats:
+                    calculated_slice_stats[f"{metric}_{by_slice}_{stat}"] = (
+                            skrt.core.get_stat(values, stat=stat))
+
+        return calculated_slice_stats
 
     def match_mask_voxel_size(self, other, voxel_size=None,
             voxel_dim_tolerance=0.1):
@@ -3176,7 +3307,8 @@ class ROI(skrt.core.Archive):
         pos=None,
         idx=None,
         method=None,
-        slice_mean="intersection",
+        slice_stats=None,
+        default_by_slice=None,
         units_in_header=False,
         global_vs_slice_header=False,
         name_as_index=True,
@@ -3202,7 +3334,8 @@ class ROI(skrt.core.Archive):
                 * "dice_flat": Dice score of ROIs flattened in the orientation
                   specified in <view>.
                 * "dice_slice": Dice score on a single slice.
-                * "dice_slice_mean": Mean of slice-by-slice Dice scores.
+                * "dice_slice_stats": Statistics specified in <slice_stats>
+                  for slice-by-slice Dice scores.
 
                 * "jaccard" : global Jaccard index.
                 * "jaccard_flat": Jaccard index of ROIs flattened in
@@ -3306,14 +3439,49 @@ class ROI(skrt.core.Archive):
             that flattened metrics and surface distance metrics enforce use
             of the "mask" method.
 
-        slice_mean : str, default="intersection"
-            Slices to be considered when calculating slice-by-slice mean:
+        slice_stats : str/list/dict, default=None
+            Specification of statistics to be calculated relative
+            to slice-by-slice metric values.  Used for all metrics with
+            suffix "_slice_stats" in the <metrics> list.
+
+            A statistic is specified by the name of the function for
+            its calculation in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            For its use here, the relevant function must require
+            a single-variable input, must not require any keyword
+            arguments, and must return a single number.
+
+            Available options include: "mean", "median", "mode",
+            "stdev".
+
+           Statistics to be calculated can be specified using any of
+           the following:
+
+           - String specifying single statistic to be calculated,
+             with slices considered as given by default_by_slice,
+             for example: "mean";
+           - List specifying multiple statistics to be calculated,
+             with slices considered as given by default_by_slice,
+             for example: ["mean", "stdev"];
+           - Dicionary where keys specify slices to be considered,
+             and values specify statistics (string or list), for
+             example: {"union": ["mean", "stdev"]}.  Valid slice
+             specifications are as listed for default_by_slice.
+
+        default_by_slice: str, default=None
+            Default specification of slices to be considered when
+            calculating slice-by-slice statistics.  The valid specifications
+            are:
 
             - "left": consider only slices containing self;
             - "right": consider only slices containing other roi;
             - "union": consider slices containing either of self and other roi;
             - "intersection": consider slices containing both of self and
               other roi.
+
+            If None, use skrt.core.Defaults().by_slice
 
         units_in_header : bool, default=False
             If True, units will be included in column headers.
@@ -3397,6 +3565,9 @@ class ROI(skrt.core.Archive):
         if metrics is None:
             metrics = ["dice", "centroid"]
 
+        # Default slices to consider for slice-by-slice metric calculations.
+        default_by_slice = skrt.core.Defaults().by_slice
+
         # Initialise variables for distance metrics.
         conformity = None
         conformity_flat = None
@@ -3439,9 +3610,11 @@ class ROI(skrt.core.Archive):
             elif m == "dice_slice":
                 comp[m] = roi0.get_dice(roi, method=method, **slice_kwargs)
 
-            elif m == "dice_slice_mean":
-                comp[m] = roi0.get_dice(roi, method=method,
-                        slice_mean=slice_mean, **slice_kwargs)
+            elif m == "dice_slice_stats":
+                comp.update(roi0.get_slice_stats(roi, metrics="dice",
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        method=method, view=view))
 
             # Jaccard index
             elif m == "jaccard":
@@ -7752,14 +7925,63 @@ def get_roi_slice(roi, z_fraction=1, suffix=None):
 
     return roi_slice
 
-def get_comparison_metrics():
+def get_comparison_metrics(centroid_components=False, slice_stats=None,
+        default_by_slice=None):
     """
     Get list of comparison metrics.
 
     All metrics listed here should be recognised by ROI.get_comparison(),
     and all metrics recognised by ROI.get_comparison() should be listed here.
+
+    **Parameters:**
+
+    centroid_components : bool, default=False
+        If True, replace metrics "centroid" and "centroid_slice" by the
+        metrics for their components.
+
+    slice_stats : str/list/dict, default=None
+        Specification of statistics to be calculated relative
+        to slice-by-slice metric values.
+
+        A statistic is specified by the name of the function for
+        its calculation in the Python statistics module:
+
+        https://docs.python.org/3/library/statistics.html
+
+        For its use here, the relevant function must require
+        a single-variable input, must not require any keyword
+        arguments, and must return a single number.
+
+        Available options include: "mean", "median", "mode",
+        "stdev".
+
+       Statistics to be calculated can be specified using any of
+       the following:
+
+       - String specifying single statistic to be calculated,
+         with slices considered as given by <default_by_slice>,
+         for example: "mean";
+       - List specifying multiple statistics to be calculated,
+         with slices considered as given by <default_by_slice>,
+         for example: ["mean", "stdev"];
+       - Dicionary where keys specify slices to be considered,
+         and values specify statistics (string or list), for
+         example: {"union": ["mean", "stdev"]}.  Valid slice
+         specifications are as listed for <default_by_slice>.
+
+    default_by_slice: str, default=None
+        Default specification of slices to be considered when
+        calculating slice-by-slice statistics for a metric comparing
+        two ROIs, roi1 and roi2.  The valid specifications are:
+
+        - "left": consider only slices containing roi1;
+        - "right": consider only slices containing roi2;
+        - "union": consider slices containing either of roi1 and roi2;
+        - "intersection": consider slices containing both roi1 and roi2.
+
+        If None, use skrt.core.Defaults().by_slice
     """
-    return [
+    metrics = [
             "abs_centroid",
             "abs_centroid_flat",
             "abs_centroid_slice",
@@ -7772,7 +7994,7 @@ def get_comparison_metrics():
             "dice",
             "dice_flat",
             "dice_slice",
-            "dice_slice_mean",
+            "dice_slice_stats",
             "hausdorff_distance",
             "hausdorff_distance_flat",
             "jaccard",
@@ -7798,6 +8020,23 @@ def get_comparison_metrics():
             "volume_diff",
             "volume_ratio",
             ]
+
+    if centroid_components:
+        centroids = {
+                "centroid": ["centroid_x", "centroid_y", "centroid_z"],
+                "centroid_slice": ["centroid_slice_x", "centroid_slice_y"],
+                }
+        for vector, components in centroids.items():
+            idx = metrics.index(vector)
+            metrics[idx : idx + 1] = components
+
+    if slice_stats is not None:
+        metrics = [metric for metric in metrics if "slice_stats" not in metric]
+        default_by_slice = default_by_slice or skrt.core.Defaults().by_slice
+        for metric in expand_slice_stats(slice_stats, default_by_slice):
+            metrics.append(metric)
+
+    return sorted(metrics)
 
 def get_consensus_types():
     """
@@ -7959,3 +8198,79 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
 
     if "intersection" == method:
         return sorted(list(set(slices1).intersection(set(slices2))))
+
+def expand_slice_stats(slice_stats=None, default_by_slice=None):
+    """
+    Expand specification of statistics to calculate for ROI comparison
+    metrics evaluated slice by slice.
+
+    A dictionary is returned, where keys give the slices to be considered
+    for calculating statistics, and values are lists of metrics.
+
+    **Parameters:**
+
+    slice_stats : str/list/dict, default=None
+        Specification of statistics to be calculated relative
+        to slice-by-slice metric values.
+
+        A statistic is specified by the name of the function for
+        its calculation in the Python statistics module:
+
+        https://docs.python.org/3/library/statistics.html
+
+        For its use here, the relevant function must require
+        a single-variable input, must not require any keyword
+        arguments, and must return a single number.
+
+        Available options include: "mean", "median", "mode",
+        "stdev".
+
+       Statistics to be calculated can be specified using any of
+       the following:
+
+       - String specifying single statistic to be calculated,
+         with slices considered as given by <default_by_slice>,
+         for example: "mean";
+       - List specifying multiple statistics to be calculated,
+         with slices considered as given by <default_by_slice>,
+         for example: ["mean", "stdev"];
+       - Dicionary where keys specify slices to be considered,
+         and values specify statistics (string or list), for
+         example: {"union": ["mean", "stdev"]}.  Valid slice
+         specifications are as listed for <default_by_slice>.
+
+    default_by_slice: str, default=None
+        Default specification of slices to be considered when
+        calculating slice-by-slice statistics for a metric comparing
+        two ROIs, roi1 and roi2.  The valid specifications are:
+
+        - "left": consider only slices containing roi1;
+        - "right": consider only slices containing roi2;
+        - "union": consider slices containing either of roi1 and roi2;
+        - "intersection": consider slices containing both roi1 and roi2.
+
+        If None, use skrt.core.Defaults().by_slice
+    """
+    # Set default method for slice selection.
+    default_by_slice = default_by_slice or skrt.core.Defaults().by_slice
+
+    # Ensure that slice_stats is a dictionary.
+    if isinstance(slice_stats, str):
+        slice_stats = {default_by_slice: [slice_stats]}
+
+    elif skrt.core.is_list(slice_stats):
+        slice_stats = {default_by_slice: slice_stats}
+
+    elif isinstance(slice_stats, dict):
+        checked_slice_stats = {}
+        for by_slice, stats in slice_stats.items():
+            if isinstance(stats, str):
+                checked_slice_stats[by_slice] = [stats]
+            elif skrt.core.is_list(stats):
+                checked_slice_stats[by_slice] = list(stats)
+        slice_stats = checked_slice_stats
+
+    if isinstance(slice_stats, dict):
+        return slice_stats
+
+    return {}
