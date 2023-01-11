@@ -2537,7 +2537,7 @@ class ROI(skrt.core.Archive):
             "stdev", "quantiles".  Disregarded if None.
 
             If by_slice is None and slice_stat is different from None,
-            the former defaults to "union".
+            skrt.core.Defaults().by_slice is used for the former.
 
         slice_stat_kwargs : dict, default=None
             Keyword arguments to be passed to function of statistics
@@ -2547,30 +2547,23 @@ class ROI(skrt.core.Archive):
 
             slice_stat_kwargs{"n" : 10}
 
-            For available keyword options, see statistics-function
-            documentation at:
+            For available keyword options, see documentation of statistics
+            module at:
 
             https://docs.python.org/3/library/statistics.html
         """
         if slice_stat:
-            by_slice = by_slice or "union"
-            slice_stat_kwargs = slice_stat_kwargs or {}
-            return skrt.core.get_stat(self.get_dice(
-                other, view=view, by_slice=by_slice, method=method),
-                    value_for_none, slice_stat, **slice_stat_kwargs)
+            return self.get_slice_stat(other, "dice", slice_stat, by_slice,
+                    value_for_none, view, method, **(slice_stat_kwargs or {}))
 
         if by_slice:
-            return {pos: self.get_dice(other, single_slice=True, view=view,
-                pos=pos, method=method) for pos in
-                self.get_slice_positions(other, view, method=by_slice)}
+            return self.get_metric_by_slice(other, "dice", by_slice,
+                    view, method)
 
         intersection, union, mean_size = self.get_intersection_union_size(
                 other, single_slice, view, sl, idx, pos, method, flatten)
 
-        if mean_size:
-            return intersection / mean_size
-
-        return value_for_none
+        return (intersection / mean_size if mean_size else value_for_none)
 
     def get_jaccard(
         self, 
@@ -2582,6 +2575,10 @@ class ROI(skrt.core.Archive):
         pos=None, 
         method=None,
         flatten=False,
+        by_slice=None,
+        value_for_none=None,
+        slice_stat=None,
+        slice_stat_kwargs=None,
     ):
         """
         Get Jaccard index with respect to another ROI.
@@ -2595,11 +2592,12 @@ class ROI(skrt.core.Archive):
             Other ROI to compare with this ROI.
 
         single_slice : bool, default=False
-            If False, the global 3D Dice score of the full ROIs will be returned;
-            otherwise, the 2D Dice score on a single slice will be returned.
+            If False, the global 3D Jaccard index of the full ROIs will be
+            returned; otherwise, the 2D Jaccard index on a single slice
+            will be returned.
 
         view : str, default="x-y"
-            Orientation of slice on which to get Dice score. Only used if 
+            Orientation of slice on which to get Jaccard index. Only used if 
             single_slice=True. If using, <ax> must be an axis that lies along
             the slice in this orientation.
 
@@ -2625,12 +2623,67 @@ class ROI(skrt.core.Archive):
             If True, all slices will be flattened in the given orientation and
             the Dice score of the flattened slices will be returned. Only 
             available if method="mask".
+
+        by_slice : str, default=None
+            If one of "left", "right", "union", "intersection", calculate
+            Dice scores slice by slice for each slice containing
+            self and/or other:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other;
+            - "union": consider slices containing either of self and other;
+            - "intersection": consider slices containing both of self and other.
+
+            If slice_stat is None, return a dictionary where keys are
+            slice positions and values are the calculated Jaccard indices.
+            Otherwise, return for the calculated Jaccard indices the statistic
+            specified by slice_stat.
+
+        value_for_none : float, default=None
+            For single_slice and by_slice, value to be returned for
+            slices where Jaccard index is undetermined (None).  For slice_stat,
+            value to substitute for any None values among the inputs
+            for calculating slice-based statistic.  If None in the latter
+            case, None values among the inputs are omitted.
+
+        slice_stat : str, default=None
+            Single-variable statistic(s) to be returned for slice-by-slice
+            Jaccard indices.  This should be the name of the function for
+            calculation of the statistic(s) in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            Available options include: "mean", "median", "mode",
+            "stdev", "quantiles".  Disregarded if None.
+
+            If by_slice is None and slice_stat is different from None,
+            the former defaults to "union".
+
+        slice_stat_kwargs : dict, default=None
+            Keyword arguments to be passed to function of statistics
+            module for calculation relative to slice values.  For example,
+            if quantiles are required for 10 intervals, rather than for
+            the default of 4, this can be specified using:
+
+            slice_stat_kwargs{"n" : 10}
+
+            For available keyword options, see documentation of statistics
+            module at:
+
+            https://docs.python.org/3/library/statistics.html
         """
+        if slice_stat:
+            return self.get_slice_stat(other, "jaccard", slice_stat, by_slice,
+                    value_for_none, view, method, **(slice_stat_kwargs or {}))
+
+        if by_slice:
+            return self.get_metric_by_slice(other, "jaccard", by_slice,
+                    view, method)
 
         intersection, union, mean_size = self.get_intersection_union_size(
                 other, single_slice, view, sl, idx, pos, method, flatten)
 
-        return (intersection / union if union else None)
+        return (intersection / union if union else value_for_none)
 
     def get_volume_ratio(self, other, **kwargs):
         """Get ratio of another ROI's volume with respect to own volume."""
@@ -2825,6 +2878,121 @@ class ROI(skrt.core.Archive):
 
         return (intersection, union, mean_size)
 
+    def get_metric_by_slice(self, other, metric=None, by_slice=None,
+            view="x-y", method=None):
+        """
+        Get dictionary of slice-by-slice values for comparison metric.
+
+        Each key of the returned dictionary is a slice position (mm), and
+        the associated value is the metric value for the slice.
+
+        **Parameters:**
+
+        other : ROI
+            Other ROI to compare with this ROI.
+
+        metric : str, default=None
+            Metric to be evaluated.
+
+        by_slice: str, default=None
+            Slices to be considered.  The valid specifications are:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other roi;
+            - "union": consider slices containing either of self and other roi;
+            - "intersection": consider slices containing both of self and
+              other roi.
+
+            If None, use skrt.core.Defaults().by_slice
+
+        view : str, default="x-y"
+            Orientation of slices on which to get metric values.
+
+        method : str, default=None
+            Method to use for metric calculation. Can be: 
+                - "contour": calculate metric from shapely contours.
+                - "mask": calcualte metric from binary masks.
+                - None: use the method set in self.default_geom_method.
+        """
+        if str(metric).lower() not in get_comparison_metrics():
+            raise RuntimeError(f"Metric {metric} not recognised by "
+                        "ROI.get_metric_by_slice()")
+
+        by_slice = by_slice or skrt.core.Defaults().by_slice
+
+        return {pos: getattr(self, f"get_{metric}")(
+            other, single_slice=True, view=view, pos=pos, method=method)
+            for pos in self.get_slice_positions(other, view, method=by_slice)}
+
+    def get_slice_stat(self, other, metric=None, slice_stat=None, by_slice=None,
+            value_for_none=None, view="x-y", method=None, **slice_stat_kwargs):
+        """
+        Get statistic for slice-by-slice comparison metric.
+
+        **Parameters:**
+
+        other : ROI
+            Other ROI to compare with this ROI.
+
+        metric : str, default=None
+            Metric for which statistic for slice-by-slice values
+            is to be returned.
+
+        slice_stat : str, default=None
+            Single-variable statistic(s) to be returned for slice-by-slice
+            Dice scores.  This should be the name of the function for
+            calculation of the statistic(s) in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            Available options include: "mean", "median", "mode",
+            "stdev", "quantiles".
+
+        by_slice: str, default=None
+            Slices to be considered.  The valid specifications are:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other roi;
+            - "union": consider slices containing either of self and other roi;
+            - "intersection": consider slices containing both of self and
+              other roi.
+
+            If None, use skrt.core.Defaults().by_slice
+
+        value_for_none : float, default=None
+            Value to substitute for any None values among slice
+            metric values.  If None, None values among the metric values
+            are omitted.
+
+        view : str, default="x-y"
+            Orientation of slices on which to get metric values.
+
+        method : str, default=None
+            Method to use for metric calculation. Can be: 
+                - "contour": calculate metric from shapely contours.
+                - "mask": calcualte metric from binary masks.
+                - None: use the method set in self.default_geom_method.
+
+        slice_stat_kwargs : dict, default=None
+            Keyword arguments to be passed to function of statistics
+            module for calculation relative to slice values.  For example,
+            if quantiles are required for 10 intervals, rather than for
+            the default of 4, this can be specified using:
+
+            slice_stat_kwargs{"n" : 10}
+
+            For available keyword options, see documentation of statistics
+            module at:
+
+            https://docs.python.org/3/library/statistics.html
+        """
+        by_slice = by_slice or skrt.core.Defaults().by_slice
+        slice_stat_kwargs = slice_stat_kwargs or {}
+
+        return skrt.core.get_stat(self.get_metric_by_slice(
+            other, metric, by_slice, view, method),
+            value_for_none, slice_stat, **slice_stat_kwargs)
+
     def get_slice_stats(self, other, metrics=None, slice_stats=None,
             default_by_slice=None, method=None, view="x-y"):
         """
@@ -2836,7 +3004,7 @@ class ROI(skrt.core.Archive):
             Other ROI to compare with this ROI.
 
         metrics : str/list, default=None
-            Metric(s) for which statistic(s) for slice-by-slice calclations
+            Metric(s) for which statistic(s) for slice-by-slice calculations
             are to be returned.  A single metric can by speficied as a string.
             Multiple metrics can be specified as a list of strings.
             The only metric currently allowed is "Dice" (case insensitive).
@@ -2894,10 +3062,10 @@ class ROI(skrt.core.Archive):
                 - "mask": calcualte metric from binary masks.
                 - None: use the method set in self.default_geom_method.
         """
-        default_by_slice = default_by_slice or skrt.core.Defaults().by_slice
-
         if metrics is None or slice_stats is None:
             return {}
+
+        default_by_slice = default_by_slice or skrt.core.Defaults().by_slice
 
         # Ensure that metrics is a non-empty list.
         if isinstance(metrics, str):
@@ -2917,11 +3085,12 @@ class ROI(skrt.core.Archive):
         calculated_slice_stats = {}
         for metric in metrics:
             for by_slice, stats in slice_stats.items():
-                values = getattr(self, f"get_{metric}")(other, view=view,
-                            by_slice=by_slice, method=method)
+                values = self.get_metric_by_slice(
+                        other, metric, by_slice, view, method)
                 for stat in stats:
-                    calculated_slice_stats[f"{metric}_{by_slice}_{stat}"] = (
-                            skrt.core.get_stat(values, stat=stat))
+                    calculated_slice_stats[
+                            f"{metric}_slice_{by_slice}_{stat}"] = (
+                                    skrt.core.get_stat(values, stat=stat))
 
         return calculated_slice_stats
 
@@ -3341,6 +3510,8 @@ class ROI(skrt.core.Archive):
                 * "jaccard_flat": Jaccard index of ROIs flattened in
                   the orientation specified in <view>.
                 * "jaccard_slice": Jaccard index on a single slice.
+                * "jaccard_slice_stats": Statistics specified in <slice_stats>
+                  for slice-by-slice Jaccard indices.
 
                 * "centroid": 3D centroid distance vector.
                 * "abs_centroid": magnitude of 3D centroid distance vector.
@@ -3628,6 +3799,12 @@ class ROI(skrt.core.Archive):
                 )
             elif m == "jaccard_slice":
                 comp[m] = roi0.get_jaccard(roi, method=method, **slice_kwargs)
+
+            elif m == "jaccard_slice_stats":
+                comp.update(roi0.get_slice_stats(roi, metrics="jaccard",
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        method=method, view=view))
 
             # Centroid distances
             elif m == "centroid":
@@ -8000,6 +8177,7 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
             "jaccard",
             "jaccard_flat",
             "jaccard_slice",
+            "jaccard_slice_stats",
             "mean_distance_to_conformity",
             "mean_distance_to_conformity_flat",
             "mean_signed_surface_distance",
@@ -8021,6 +8199,7 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
             "volume_ratio",
             ]
 
+    # Replace centroid vectors by components.
     if centroid_components:
         centroids = {
                 "centroid": ["centroid_x", "centroid_y", "centroid_z"],
@@ -8030,11 +8209,23 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
             idx = metrics.index(vector)
             metrics[idx : idx + 1] = components
 
+    # Remove metrics with suffix "slice_stats",
+    # and replace with specific metrics relating to slice-by-slice statistics.
     if slice_stats is not None:
-        metrics = [metric for metric in metrics if "slice_stats" not in metric]
-        default_by_slice = default_by_slice or skrt.core.Defaults().by_slice
-        for metric in expand_slice_stats(slice_stats, default_by_slice):
-            metrics.append(metric)
+        slice_stats_metrics = []
+        metrics2 = []
+        for metric in metrics:
+            if "slice_stats" in metric:
+                slice_stats_metrics.append("_".join(metric.split("_")[0 : -2]))
+            else:
+                metrics2.append(metric)
+
+        for by_slice, stats in (
+                expand_slice_stats(slice_stats, default_by_slice).items()):
+            for metric in slice_stats_metrics:
+                for stat in stats:
+                    metrics2.append(f"{metric}_slice_{by_slice}_{stat}")
+        metrics = metrics2
 
     return sorted(metrics)
 
@@ -8148,7 +8339,7 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
     return tuple(centroids[1] - centroids[0])
 
 def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
-        method="union"):
+        method=None):
     """
     Get ordered list of slice positions for either or both of a pair of ROIs.
 
@@ -8169,7 +8360,7 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         If True, return positions as slice indices; if False,
         return positions as slice z-coordinates (mm).
 
-    method: str, default="union"
+    method: str, default=None
         String specifying slices for which positions are to be obtained,
         for ROIs roi1, roi2:
 
@@ -8178,11 +8369,15 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         - "union": return positions of slices containing either roi1 or roi2;
         - "intersection": return positions of slices containing both
           roi1 and roi2.
+
+        If None, value of skrt.core.Defaults().by_slice is used.
     """
+    method = method or skrt.core.Defaults().by_slice
     allowed_methods = ["left", "right", "union", "intersection"]
     if method not in allowed_methods:
         raise RuntimeError(f"Method must be one of {allowed_methods}"
         " - not '{method}'")
+
     slices1 = sorted(list(roi1.get_contours(
         view=view, idx_as_key=position_as_idx)))
     if not issubclass(type(roi2), ROI) or "left" == method:
@@ -8251,6 +8446,9 @@ def expand_slice_stats(slice_stats=None, default_by_slice=None):
 
         If None, use skrt.core.Defaults().by_slice
     """
+    if not slice_stats:
+        return {}
+
     # Set default method for slice selection.
     default_by_slice = default_by_slice or skrt.core.Defaults().by_slice
 

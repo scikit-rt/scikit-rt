@@ -51,6 +51,8 @@ def get_tests13(metric, method):
     """
     if "dice" == metric:
         ssval = 2 * len(slices_1)**2 / (len(slices_1)**2 + len(slices_3)**2)
+    elif "jaccard" == metric:
+        ssval = len(slices_1)**2 / len(slices_3)**2
 
     if "by_slice" == method:
         return {
@@ -196,6 +198,17 @@ def test_jaccard_contour_slice():
 
 def test_jaccard_flattened():
     assert cube1.get_jaccard(cube2, flatten=True) == 1/3
+
+def test_jaccard_by_slice():
+    """Check slice-by-slice Jaccard indices."""
+    for method, result in get_tests13("jaccard", "by_slice").items():
+        assert cube1.get_jaccard(cube3, by_slice=method) == result
+
+def test_jaccard_slice_stat():
+    """Check mean value of slice-by-slice Jaccard indices."""
+    for method, result in get_tests13("jaccard", "slice_mean").items():
+        assert (cube1.get_jaccard(cube3, by_slice=method, slice_stat="mean")
+            == result)
 
 def test_volume_ratio():
     assert cube1.get_volume_ratio(cube2) == 1

@@ -333,11 +333,13 @@ def test_get_comparison():
     metrics1 = get_comparison_metrics()
 
     # metrics2 : metrics expected in data frame from get_comparison_metrics().
+    slice_stats = ["mean", "median", "stdev"]
     metrics2 = get_comparison_metrics(
-            centroid_components=True, slice_stats={})
+            centroid_components=True, slice_stats=slice_stats)
 
     # Perform ROI comparisons, and check results.
-    comparison = structure_set.get_comparison(metrics=metrics1)
+    comparison = structure_set.get_comparison(
+            metrics=metrics1, slice_stats=slice_stats)
     assert isinstance(comparison, pd.DataFrame)
     assert comparison.shape[0] == len(structure_set.get_comparison_pairs())
     assert comparison.shape[1] == len(metrics2)
@@ -371,24 +373,22 @@ def test_get_slice_stats():
             results = cube.get_slice_stats(
                     sphere, metrics, slice_stats, default_by_slice)
             stats = list(expand_slice_stats(slice_stats, by_slice).values())[0]
-            assert len(results) == len(stats)
+            assert len(results) == len(stats) * len(metrics)
 
             # Check that results obtained are the same as
             # results obtained from calls to the individual comparison methods.
             for metric in metrics:
                 for stat in stats:
-                    assert (results[f"{metric}_{by_slice}_{stat}"] ==
+                    assert (results[f"{metric}_slice_{by_slice}_{stat}"] ==
                             getattr(cube, f"get_{metric}")(
                                     sphere, by_slice=by_slice, slice_stat=stat))
 
-    # Test calculation of statistics for slice selection and metrics
-    # specified via dictionary.
     slice_stats = {"left": "mean", "right": ("mean", "median")}
     results = cube.get_slice_stats(sphere, metrics, slice_stats)
     for by_slice, stats in expand_slice_stats(slice_stats).items():
         for metric in metrics:
             for stat in stats:
-                assert (results[f"{metric}_{by_slice}_{stat}"] ==
+                assert (results[f"{metric}_slice_{by_slice}_{stat}"] ==
                         getattr(cube, f"get_{metric}")(
                                 sphere, by_slice=by_slice, slice_stat=stat))
 
@@ -410,12 +410,12 @@ def test_expand_slice_stats():
 
         assert {by_slice : metrics} == expand_slice_stats(metrics, by_slice)
 
-
     # Test expansion for specification of slice selection and metrics
     # via dictionary.
     slice_stats = {"left": "mean", "right": ("mean", "median")}
     expanded_slice_stats = {"left": ["mean"], "right": ["mean", "median"]}
     assert expanded_slice_stats == expand_slice_stats(slice_stats)
+
 def test_plot_comparisons():
     plot_dir = "tmp/struct_plots"
     if os.path.exists(plot_dir):
