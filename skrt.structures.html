@@ -545,6 +545,8 @@ for slice-by-slice Dice scores.</p></li>
 <li><p>“jaccard_flat”: Jaccard index of ROIs flattened in
 the orientation specified in &lt;view&gt;.</p></li>
 <li><p>“jaccard_slice”: Jaccard index on a single slice.</p></li>
+<li><p>“jaccard_slice_stats”: Statistics specified in &lt;slice_stats&gt;
+for slice-by-slice Jaccard indices.</p></li>
 <li><p>“centroid”: 3D centroid distance vector.</p></li>
 <li><p>“abs_centroid”: magnitude of 3D centroid distance vector.</p></li>
 <li><p>“abs_centroid_flat”: magnitude of 3D centroid distance vector
@@ -846,15 +848,15 @@ calculation of the statistic(s) in the Python statistics module:</p>
 <p>Available options include: “mean”, “median”, “mode”,
 “stdev”, “quantiles”.  Disregarded if None.</p>
 <p>If by_slice is None and slice_stat is different from None,
-the former defaults to “union”.</p>
+skrt.core.Defaults().by_slice is used for the former.</p>
 </dd>
 <dt>slice_stat_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Keyword arguments to be passed to function of statistics
 module for calculation relative to slice values.  For example,
 if quantiles are required for 10 intervals, rather than for
 the default of 4, this can be specified using:</p>
 <p>slice_stat_kwargs{“n” : 10}</p>
-<p>For available keyword options, see statistics-function
-documentation at:</p>
+<p>For available keyword options, see documentation of statistics
+module at:</p>
 <p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
 </dd>
 </dl>
@@ -1115,18 +1117,19 @@ if method=”mask”.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_jaccard">
-<span class="sig-name descname"><span class="pre">get_jaccard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_jaccard" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_jaccard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_jaccard" title="Permalink to this definition"></a></dt>
 <dd><p>Get Jaccard index with respect to another ROI.</p>
 <p>The Jaccard index may be obtained either globally or on a 
 single slice.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
 </dd>
-<dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Dice score of the full ROIs will be returned;
-otherwise, the 2D Dice score on a single slice will be returned.</p>
+<dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Jaccard index of the full ROIs will be
+returned; otherwise, the 2D Jaccard index on a single slice
+will be returned.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Dice score. Only used if 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Jaccard index. Only used if 
 single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
 the slice in this orientation.</p>
 </dd>
@@ -1151,6 +1154,44 @@ the slice in this orientation.</p>
 <dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
 the Dice score of the flattened slices will be returned. Only 
 available if method=”mask”.</p>
+</dd>
+<dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
+Dice scores slice by slice for each slice containing
+self and/or other:</p>
+<ul class="simple">
+<li><p>“left”: consider only slices containing self;</p></li>
+<li><p>“right”: consider only slices containing other;</p></li>
+<li><p>“union”: consider slices containing either of self and other;</p></li>
+<li><p>“intersection”: consider slices containing both of self and other.</p></li>
+</ul>
+<p>If slice_stat is None, return a dictionary where keys are
+slice positions and values are the calculated Jaccard indices.
+Otherwise, return for the calculated Jaccard indices the statistic
+specified by slice_stat.</p>
+</dd>
+<dt>value_for_none<span class="classifier">float, default=None</span></dt><dd><p>For single_slice and by_slice, value to be returned for
+slices where Jaccard index is undetermined (None).  For slice_stat,
+value to substitute for any None values among the inputs
+for calculating slice-based statistic.  If None in the latter
+case, None values among the inputs are omitted.</p>
+</dd>
+<dt>slice_stat<span class="classifier">str, default=None</span></dt><dd><p>Single-variable statistic(s) to be returned for slice-by-slice
+Jaccard indices.  This should be the name of the function for
+calculation of the statistic(s) in the Python statistics module:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+<p>Available options include: “mean”, “median”, “mode”,
+“stdev”, “quantiles”.  Disregarded if None.</p>
+<p>If by_slice is None and slice_stat is different from None,
+the former defaults to “union”.</p>
+</dd>
+<dt>slice_stat_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Keyword arguments to be passed to function of statistics
+module for calculation relative to slice values.  For example,
+if quantiles are required for 10 intervals, rather than for
+the default of 4, this can be specified using:</p>
+<p>slice_stat_kwargs{“n” : 10}</p>
+<p>For available keyword options, see documentation of statistics
+module at:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1274,6 +1315,42 @@ See documentation of this method for parameter details.</p>
 <dd><p>Obtain mean distance between surface of &lt;other&gt; and surface of &lt;self&gt;.</p>
 <p>For parameters that may be passed, see documentation for:
 skrt.ROI.get_surface_distances().</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_metric_by_slice">
+<span class="sig-name descname"><span class="pre">get_metric_by_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_metric_by_slice" title="Permalink to this definition"></a></dt>
+<dd><p>Get dictionary of slice-by-slice values for comparison metric.</p>
+<p>Each key of the returned dictionary is a slice position (mm), and
+the associated value is the metric value for the slice.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
+</dd>
+<dt>metric<span class="classifier">str, default=None</span></dt><dd><p>Metric to be evaluated.</p>
+</dd>
+<dt>by_slice: str, default=None</dt><dd><p>Slices to be considered.  The valid specifications are:</p>
+<ul class="simple">
+<li><p>“left”: consider only slices containing self;</p></li>
+<li><p>“right”: consider only slices containing other roi;</p></li>
+<li><p>“union”: consider slices containing either of self and other roi;</p></li>
+<li><p>“intersection”: consider slices containing both of self and
+other roi.</p></li>
+</ul>
+<p>If None, use skrt.core.Defaults().by_slice</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slices on which to get metric values.</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
+<dt>Method to use for metric calculation. Can be: </dt><dd><ul class="simple">
+<li><p>“contour”: calculate metric from shapely contours.</p></li>
+<li><p>“mask”: calcualte metric from binary masks.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1438,6 +1515,61 @@ self and other.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_slice_stat">
+<span class="sig-name descname"><span class="pre">get_slice_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">slice_stat_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_stat" title="Permalink to this definition"></a></dt>
+<dd><p>Get statistic for slice-by-slice comparison metric.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
+</dd>
+<dt>metric<span class="classifier">str, default=None</span></dt><dd><p>Metric for which statistic for slice-by-slice values
+is to be returned.</p>
+</dd>
+<dt>slice_stat<span class="classifier">str, default=None</span></dt><dd><p>Single-variable statistic(s) to be returned for slice-by-slice
+Dice scores.  This should be the name of the function for
+calculation of the statistic(s) in the Python statistics module:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+<p>Available options include: “mean”, “median”, “mode”,
+“stdev”, “quantiles”.</p>
+</dd>
+<dt>by_slice: str, default=None</dt><dd><p>Slices to be considered.  The valid specifications are:</p>
+<ul class="simple">
+<li><p>“left”: consider only slices containing self;</p></li>
+<li><p>“right”: consider only slices containing other roi;</p></li>
+<li><p>“union”: consider slices containing either of self and other roi;</p></li>
+<li><p>“intersection”: consider slices containing both of self and
+other roi.</p></li>
+</ul>
+<p>If None, use skrt.core.Defaults().by_slice</p>
+</dd>
+<dt>value_for_none<span class="classifier">float, default=None</span></dt><dd><p>Value to substitute for any None values among slice
+metric values.  If None, None values among the metric values
+are omitted.</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slices on which to get metric values.</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
+<dt>Method to use for metric calculation. Can be: </dt><dd><ul class="simple">
+<li><p>“contour”: calculate metric from shapely contours.</p></li>
+<li><p>“mask”: calcualte metric from binary masks.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>slice_stat_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Keyword arguments to be passed to function of statistics
+module for calculation relative to slice values.  For example,
+if quantiles are required for 10 intervals, rather than for
+the default of 4, this can be specified using:</p>
+<p>slice_stat_kwargs{“n” : 10}</p>
+<p>For available keyword options, see documentation of statistics
+module at:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_slice_stats">
 <span class="sig-name descname"><span class="pre">get_slice_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_stats" title="Permalink to this definition"></a></dt>
 <dd><p>Get dictionary of statistics for slice-by-slice comparison metrics.</p>
@@ -1445,7 +1577,7 @@ self and other.</p></li>
 <dl>
 <dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
 </dd>
-<dt>metrics<span class="classifier">str/list, default=None</span></dt><dd><p>Metric(s) for which statistic(s) for slice-by-slice calclations
+<dt>metrics<span class="classifier">str/list, default=None</span></dt><dd><p>Metric(s) for which statistic(s) for slice-by-slice calculations
 are to be returned.  A single metric can by speficied as a string.
 Multiple metrics can be specified as a list of strings.
 The only metric currently allowed is “Dice” (case insensitive).</p>
@@ -3409,10 +3541,10 @@ given to two decimal places.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.get_slice_positions">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'union'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_slice_positions" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_slice_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_as_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_slice_positions" title="Permalink to this definition"></a></dt>
 <dd><p>Get ordered list of slice positions for either or both of a pair of ROIs.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>roi1<span class="classifier">skrt.structures.ROI</span></dt><dd><p>ROI, or one of a pair of ROIs, for which slice information is to
 be obtained.</p>
 </dd>
@@ -3424,7 +3556,7 @@ is to be obtained.</p>
 <dt>position_as_idx<span class="classifier">bool, default=False</span></dt><dd><p>If True, return positions as slice indices; if False,
 return positions as slice z-coordinates (mm).</p>
 </dd>
-<dt>method: str, default=”union”</dt><dd><p>String specifying slices for which positions are to be obtained,
+<dt>method: str, default=None</dt><dd><p>String specifying slices for which positions are to be obtained,
 for ROIs roi1, roi2:</p>
 <ul class="simple">
 <li><p>“left” (or roi2 is None): return positions of slices containing roi1;</p></li>
@@ -3433,6 +3565,7 @@ for ROIs roi1, roi2:</p>
 <li><p>“intersection”: return positions of slices containing both
 roi1 and roi2.</p></li>
 </ul>
+<p>If None, value of skrt.core.Defaults().by_slice is used.</p>
 </dd>
 </dl>
 </dd></dl>
