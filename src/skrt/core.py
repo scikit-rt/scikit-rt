@@ -1995,7 +1995,10 @@ def download(url, outdir=".", outfile=None, binary=True, unzip=False):
 
 def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
     """
-    Calculate statistic(s) for values in list or dictionary.
+    Calculate statistic(s) for values in a list or dictionary.
+
+    If input values are lists or tuples, a list is returned with
+    element-by-element statistics.
 
     **Parameters:**
 
@@ -2029,14 +2032,27 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
 
         kwargs={"n" : 10}
     """
-    values = values or []
+    if values is None:
+        return
+
     if isinstance(values, dict):
-        values = values.values()
+        values = list(values.values())
+
+    if not is_list(values[0]):
+        if value_for_none is None:
+            values = [value for value in values if value is not None]
+        else:
+            values = [(value if value is not None else value_for_none)
+                    for value in values]
+        return getattr(statistics, stat)(values, **kwargs) if values else None
 
     if value_for_none is None:
-        values = [value for value in values if value is not None]
+        components = [[value[idx] for value in values if value[idx] is not None]
+                for idx in range(len(values[0]))]
     else:
-        values = [(value if value is not None else value_for_none)
-                for value in values]
-    if values:
-        return getattr(statistics, stat)(values, **kwargs)
+        components = [[(value[idx] if value[idx] is not None
+            else value_for_none) for value in values]
+            for idx in range(len(values[0]))]
+        return [(get_stat(component_values, value_for_none, stat,
+            **(kwargs or {})) if component_values else value_for_none)
+            for component_values in components]
