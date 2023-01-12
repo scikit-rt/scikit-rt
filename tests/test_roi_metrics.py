@@ -15,10 +15,11 @@ methods = ["mask", "contour"]
 
 # Create fake image
 delta_y = 2
-delta_z = 2
+delta_y3 = 1
+delta_z3 = 2
 centre1 = np.array([5, 4, 5])
 centre2 = np.array([5, 4 + delta_y, 5])
-centre3 = np.array([5, 4, 5 + delta_z])
+centre3 = np.array([5, 4 + delta_y3, 5 + delta_z3])
 side_length = 4
 side_length3 = 6
 name1 = 'cube1'
@@ -60,6 +61,8 @@ def get_tests13(metric, method):
         ssval = len(slices_3)**2 / len(slices_1)**2
     elif "area_diff" == metric:
         ssval = len(slices_1)**2 - len(slices_3)**2
+    elif "abs_centroid" == metric:
+        ssval = delta_y3
 
     if "by_slice" == method:
         return {
@@ -160,6 +163,18 @@ def test_abs_centroid_distance():
         ((centre2 - centre1) ** 2).sum())
     assert cube1.get_abs_centroid_distance(cube2) \
             == cube2.get_abs_centroid_distance(cube1)
+
+def test_abs_centroid_distance_by_slice():
+    """Check slice-by-slice magnitudes of centroid distances."""
+    for method, result in get_tests13("abs_centroid", "by_slice").items():
+        assert (cube1.get_abs_centroid_distance(cube3, by_slice=method)
+                == result)
+
+def test_abs_centroid_distance_slice_stat():
+    """Check mean value of slice-by-slice magnitudes of centroid distances."""
+    for method, result in get_tests13("abs_centroid", "slice_mean").items():
+        assert (cube1.get_abs_centroid_distance(cube3, by_slice=method,
+            slice_stat="mean", value_for_none=0) == result)
 
 def test_dice_slice():
     assert cube1.get_dice(cube2, single_slice=True, view='x-y', 
