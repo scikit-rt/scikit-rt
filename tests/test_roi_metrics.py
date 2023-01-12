@@ -49,18 +49,25 @@ def get_tests13(metric, method):
     method: str
         Method for which tests are to be defined.
     """
+    ssval0 = None
     if "dice" == metric:
         ssval = 2 * len(slices_1)**2 / (len(slices_1)**2 + len(slices_3)**2)
+        ssval0 = 0
     elif "jaccard" == metric:
         ssval = len(slices_1)**2 / len(slices_3)**2
+        ssval0 = 0
+    elif "area_ratio" == metric:
+        ssval = len(slices_3)**2 / len(slices_1)**2
+    elif "area_diff" == metric:
+        ssval = len(slices_1)**2 - len(slices_3)**2
 
     if "by_slice" == method:
         return {
-                "left": {pos: (ssval if pos in slices_3 else 0)
+                "left": {pos: (ssval if pos in slices_3 else ssval0)
                     for pos in slices_1},
-                "right": {pos: (ssval if pos in slices_1 else 0)
+                "right": {pos: (ssval if pos in slices_1 else ssval0)
                     for pos in slices_3},
-                "union": {pos: (ssval if pos in slices_overlap13 else 0)
+                "union": {pos: (ssval if pos in slices_overlap13 else ssval0)
                     for pos in slices_union13},
                 "intersection": {pos: ssval for pos in slices_overlap13},
             }
@@ -216,6 +223,17 @@ def test_volume_ratio():
 def test_area_ratio():
     assert cube1.get_area_ratio(cube2) == 1
 
+def test_area_ratio_by_slice():
+    """Check slice-by-slice area ratios."""
+    for method, result in get_tests13("area_ratio", "by_slice").items():
+        assert cube1.get_area_ratio(cube3, by_slice=method) == result
+
+def test_area_ratio_slice_stat():
+    """Check mean value of slice-by-slice area ratios."""
+    for method, result in get_tests13("area_ratio", "slice_mean").items():
+        assert (cube1.get_area_ratio(cube3, by_slice=method, slice_stat="mean",
+            value_for_none=0) == result)
+
 def test_relative_volume_diff():
     assert cube1.get_relative_volume_diff(cube2) == 0
 
@@ -225,6 +243,17 @@ def test_relative_area_diff():
 def test_area_diff():
     assert cube1.get_area_diff(cube2) == 0
     assert cube1.get_area_diff(cube2, flatten=True) == 0
+
+def test_area_diff_by_slice():
+    """Check slice-by-slice area differences."""
+    for method, result in get_tests13("area_diff", "by_slice").items():
+        assert cube1.get_area_diff(cube3, by_slice=method) == result
+
+def test_area_diff_slice_stat():
+    """Check mean value of slice-by-slice area differences."""
+    for method, result in get_tests13("area_diff", "slice_mean").items():
+        assert (cube1.get_area_diff(cube3, by_slice=method, slice_stat="mean",
+            value_for_none=0) == result)
 
 def test_mean_surface_distance():
     assert cube1.get_mean_surface_distance(cube2) == 1

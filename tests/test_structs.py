@@ -18,7 +18,8 @@ from skrt.core import fullpath, Defaults
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
-        get_comparison_metrics, get_slice_positions, expand_slice_stats
+        get_comparison_metrics, get_slice_positions, expand_slice_stats, \
+        get_metric_method
 
 
 # Make temporary test dir
@@ -360,8 +361,8 @@ def test_get_slice_stats():
     the latter give valid results are in test_roi_metrics.py.
     """
     # Identify metrics for which slice-by-slice calculations are implemented.
-    metrics = [metric.split("_")[0] for metric in get_comparison_metrics()
-            if "slice_stats" in metric]
+    metrics = [metric.split("_slice_stats")[0]
+            for metric in get_comparison_metrics() if "slice_stats" in metric]
 
     # Test calculation of statistics for metrics specified as strings and lists,
     # with fallback to a default method for selecting slices to be considered.
@@ -380,7 +381,7 @@ def test_get_slice_stats():
             for metric in metrics:
                 for stat in stats:
                     assert (results[f"{metric}_slice_{by_slice}_{stat}"] ==
-                            getattr(cube, f"get_{metric}")(
+                            getattr(cube, f"get_{get_metric_method(metric)}")(
                                     sphere, by_slice=by_slice, slice_stat=stat))
 
     slice_stats = {"left": "mean", "right": ("mean", "median")}
@@ -389,7 +390,7 @@ def test_get_slice_stats():
         for metric in metrics:
             for stat in stats:
                 assert (results[f"{metric}_slice_{by_slice}_{stat}"] ==
-                        getattr(cube, f"get_{metric}")(
+                        getattr(cube, f"get_{get_metric_method(metric)}")(
                                 sphere, by_slice=by_slice, slice_stat=stat))
 
 def test_expand_slice_stats():

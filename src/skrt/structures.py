@@ -1625,7 +1625,6 @@ class ROI(skrt.core.Archive):
         units="mm", 
         method=None,
         flatten=False,
-        **kwargs
     ):
         """Get the area of the ROI on a given slice.
 
@@ -2694,13 +2693,24 @@ class ROI(skrt.core.Archive):
             return None
         return own_volume / other_volume
 
-    def get_area_ratio(self, other, **kwargs):
+    def get_area_ratio(self, other, view="x-y", sl=None, idx=None, pos=None,
+            units="mm", method=None, flatten=False, by_slice=None,
+            slice_stat=None, value_for_none=None, **slice_stat_kwargs):
         """Get ratio of another ROI's area with respect to own area."""
 
-        own_area = other.get_area(**kwargs)
-        other_area = self.get_area(**kwargs)
+        if slice_stat:
+            return self.get_slice_stat(other, "area_ratio", slice_stat,
+                    by_slice, value_for_none, view, method,
+                    **(slice_stat_kwargs or {}))
+
+        if by_slice:
+            return self.get_metric_by_slice(other, "area_ratio", by_slice,
+                    view, method)
+
+        own_area = other.get_area(view, sl, idx, pos, units, method, flatten)
+        other_area = self.get_area(view, sl, idx, pos, units, method, flatten)
         if not other_area or not own_area:
-            return None
+            return value_for_none
         return own_area / other_area
 
     def get_volume_diff(self, other, **kwargs):
@@ -2721,22 +2731,46 @@ class ROI(skrt.core.Archive):
             return
         return volume_diff / own_volume
 
-    def get_area_diff(self, other, **kwargs):
+    def get_area_diff(self, other, view="x-y", sl=None, idx=None, pos=None,
+            units="mm", method=None, flatten=False, by_slice=None,
+            slice_stat=None, value_for_none=None, **slice_stat_kwargs):
         """Get absolute area difference between two ROIs."""
 
-        own_area = self.get_area(**kwargs)
-        other_area = other.get_area(**kwargs)
+        if slice_stat:
+            return self.get_slice_stat(other, "area_diff", slice_stat,
+                    by_slice, value_for_none, view, method,
+                    **(slice_stat_kwargs or {}))
+
+        if by_slice:
+            return self.get_metric_by_slice(other, "area_diff", by_slice,
+                    view, method)
+
+        own_area = self.get_area(view, sl, idx, pos, units, method, flatten)
+        other_area = other.get_area(view, sl, idx, pos, units, method, flatten)
         if not own_area or not other_area:
-            return
+            return value_for_none
         return own_area - other_area
 
-    def get_relative_area_diff(self, other, **kwargs):
+    def get_relative_area_diff(self, other, view="x-y", sl=None, idx=None,
+            pos=None, units="mm", method=None, flatten=False, by_slice=None,
+            slice_stat=None, value_for_none=None, **slice_stat_kwargs):
         """Get relative area of another ROI with respect to own area."""
 
-        own_area = self.get_area(**kwargs)
-        area_diff = self.get_area_diff(other, **kwargs)
+        if slice_stat:
+            return self.get_slice_stat(other, "rel_area_diff", slice_stat,
+                    by_slice, value_for_none, view, method,
+                    **(slice_stat_kwargs or {}))
+
+        if by_slice:
+            return self.get_metric_by_slice(other, "rel_area_diff",
+                    by_slice, view, method)
+
+        own_area = self.get_area(view, sl, idx, pos, units, method, flatten)
+        area_diff = self.get_area_diff(other, view, sl, idx, pos, units, method,
+                flatten)
+
         if area_diff is None:
-            return 
+            return value_for_none
         return area_diff / own_area
 
     def get_intersection_union_size(
@@ -2914,13 +2948,13 @@ class ROI(skrt.core.Archive):
                 - "mask": calcualte metric from binary masks.
                 - None: use the method set in self.default_geom_method.
         """
-        if str(metric).lower() not in get_comparison_metrics():
+        if metric not in get_comparison_metrics():
             raise RuntimeError(f"Metric {metric} not recognised by "
                         "ROI.get_metric_by_slice()")
 
         by_slice = by_slice or skrt.core.Defaults().by_slice
 
-        return {pos: getattr(self, f"get_{metric}")(
+        return {pos: getattr(self, f"get_{get_metric_method(metric)}")(
             other, single_slice=True, view=view, pos=pos, method=method)
             for pos in self.get_slice_positions(other, view, method=by_slice)}
 
@@ -3007,7 +3041,6 @@ class ROI(skrt.core.Archive):
             Metric(s) for which statistic(s) for slice-by-slice calculations
             are to be returned.  A single metric can by speficied as a string.
             Multiple metrics can be specified as a list of strings.
-            The only metric currently allowed is "Dice" (case insensitive).
 
         slice_stats : str/list/dict, default=None
             Specification of statistics to be calculated relative
@@ -3072,8 +3105,8 @@ class ROI(skrt.core.Archive):
             metrics = [metrics]
         elif not skrt.core.is_list(metrics):
             return {}
-        metrics = [metric.lower() for metric in metrics
-                if f"{metric.lower()}_slice_stats" in get_comparison_metrics()]
+        metrics = [metric for metric in metrics
+                if f"{metric}_slice_stats" in get_comparison_metrics()]
         if not metrics:
             return {}
 
@@ -3532,10 +3565,16 @@ class ROI(skrt.core.Archive):
                 * "area_ratio": area ratio (own area / other area).
                 * "area_diff_flat": area difference of ROIs flattened in the
                   orientation specified in <view>.
+                * "area_diff_slice_stats": Statistics specified in
+                  <slice_stats> for slice-by-slice area differences.
                 * "rel_area_diff_flat": relative area difference of ROIs
                   flattened in the orientation specified in <view>.
+                * "rel_area_diff_slice_stats": Statistics specified in
+                  <slice_stats> for relative area differences of ROIs.
                 * "area_ratio_flat": area ratio of ROIs flattened in the
                   orientation specified in <view>.
+                * "area_ratio_slice_stats": Statistics specified in
+                  <slice_stats> for slice-by-slice area ratios.
 
                 * "mean_signed_surface_distance": mean signed surface distance.
                 * "mean_signed_surface_distance_flat": mean signed surface
@@ -3899,6 +3938,13 @@ class ROI(skrt.core.Archive):
                     view=view,
                     flatten=True,
                 )
+
+            elif m == "area_diff_slice_stats":
+                comp.update(roi0.get_slice_stats(roi, metrics="area_diff",
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        method=method, view=view))
+
             elif m == "rel_area_diff_flat":
                 comp[m] = roi0.get_relative_area_diff(
                     roi,
@@ -3906,6 +3952,14 @@ class ROI(skrt.core.Archive):
                     method=method,
                     flatten=True,
                 )
+
+            elif m == "rel_area_diff_slice_stats":
+                comp.update(roi0.get_slice_stats(roi,
+                    metrics="rel_area_diff",
+                    slice_stats=slice_stats,
+                    default_by_slice=default_by_slice,
+                    method=method, view=view))
+
             elif m == "area_ratio_flat":
                 comp[m] = roi0.get_area_ratio(
                     roi,
@@ -3913,6 +3967,12 @@ class ROI(skrt.core.Archive):
                     method=method,
                     flatten=True,
                 )
+
+            elif m == "area_ratio_slice_stats":
+                comp.update(roi0.get_slice_stats(roi, metrics="area_ratio",
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        method=method, view=view))
 
             # Surface distance metrics
             elif m in ["mean_surface_distance",
@@ -8102,6 +8162,23 @@ def get_roi_slice(roi, z_fraction=1, suffix=None):
 
     return roi_slice
 
+def get_metric_method(metric):
+    """
+    Map between metric identifier as listed in get_comparison_metrics()
+    and name of ROI method for calculating the metric.
+    
+    This function is used in ROI.get_metric_by_slice() to determine
+    the method to be called for each metric.
+    """
+    # Keys are metric identifiers; values are names of ROI methods
+    # for metric calculation.
+    # Metrics are included in the dictionary only if identifier and method
+    # name are different.
+    mappings = {
+            "rel_area_diff": "relative_area_diff",
+            }
+    return mappings.get(metric, metric)
+
 def get_comparison_metrics(centroid_components=False, slice_stats=None,
         default_by_slice=None):
     """
@@ -8164,8 +8241,10 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
             "abs_centroid_slice",
             "area_diff",
             "area_diff_flat",
+            "area_diff_slice_stats",
             "area_ratio",
             "area_ratio_flat",
+            "area_ratio_slice_stats",
             "centroid",
             "centroid_slice",
             "dice",
@@ -8190,6 +8269,7 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
             "mean_under_contouring_flat",
             "rel_area_diff",
             "rel_area_diff_flat",
+            "rel_area_diff_slice_stats",
             "rel_volume_diff",
             "rms_signed_surface_distance",
             "rms_signed_surface_distance_flat",
