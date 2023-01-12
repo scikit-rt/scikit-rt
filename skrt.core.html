@@ -909,7 +909,9 @@ between different slices.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_stat">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_stat" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate statistic(s) for values in list or dictionary.</p>
+<dd><p>Calculate statistic(s) for values in a list or dictionary.</p>
+<p>If input values are lists or tuples, a list is returned with
+element-by-element statistics.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
 <dt>values: list/tuple/dict</dt><dd><p>Values for which to calculate statistic(s).  If a dictionary,
