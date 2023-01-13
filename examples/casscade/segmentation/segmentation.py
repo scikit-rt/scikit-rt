@@ -479,7 +479,7 @@ if 'Ganga' in __name__:
                         opts["crop_to_match_size2"] = crop_to_match_size
                         opts["voxel_size1"] = voxel_size
                         opts["voxel_size2"] = voxel_size
-                        opts["workdir"] = str(workdir) / name
+                        opts["workdir"] = str(workdir / name)
                         opts["analysis_csv"] = f"{name}.csv"
 
                         # Define list of outputs to be saved.
