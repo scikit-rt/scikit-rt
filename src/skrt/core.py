@@ -2053,6 +2053,6 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
         components = [[(value[idx] if value[idx] is not None
             else value_for_none) for value in values]
             for idx in range(len(values[0]))]
-        return [(get_stat(component_values, value_for_none, stat,
-            **(kwargs or {})) if component_values else value_for_none)
-            for component_values in components]
+    return [(get_stat(component_values, value_for_none, stat,
+        **(kwargs or {})) if component_values else value_for_none)
+        for component_values in components]
