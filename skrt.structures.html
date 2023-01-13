@@ -570,15 +570,97 @@ always be recalculated.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_centroid_distance">
-<span class="sig-name descname"><span class="pre">get_centroid_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_centroid_distance" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_centroid_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">slice_stat_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_centroid_distance" title="Permalink to this definition"></a></dt>
 <dd><p>Get centroid displacement vector with respect to another ROI.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>roi<span class="classifier">ROI</span></dt><dd><p>Other ROI with which to compare centroid.</p>
 </dd>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If True, the centroid will be returned for a single slice.</p>
 </dd>
-<dt>kwargs<span class="classifier">dict</span></dt><dd><p>Other kwargs to pass to ROI.get_centroid().</p>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation in which to get centroids if using a single slice or
+flattening.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the 3D centroid will be obtained and then the absolute 
+value along only the 2D axes in the orientation in &lt;view&gt; will
+be returned.</p>
+</dd>
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of each ROI
+will be used.</p>
+</dd>
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied
+but &lt;single_slice&gt; is True, the central slice of each ROI
+will be used.</p>
+</dd>
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied
+but &lt;single_slice&gt; is True, the central slice of each ROI
+will be used.</p>
+</dd>
+<dt>units<span class="classifier">str, default=”mm”</span></dt><dd><dl class="simple">
+<dt>Units of absolute centroid distance. Can be any of:</dt><dd><ul class="simple">
+<li><p>“mm”: return centroid position in millimetres.</p></li>
+<li><p>“voxels”: return centroid position in terms of array indices.</p></li>
+<li><p>“slice”: return centroid position in terms of slice numbers.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If units=”voxels” or “slice” is requested but either ROI only has 
+contours and no mask shape/voxel size information, an error will be 
+raised (unless ax=”z”, in which case voxel size will be inferred 
+from spacing between slices).</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
+<dt>Method to use for centroid calculation. Can be: </dt><dd><ul class="simple">
+<li><p>“contour”: get centroid of shapely contour(s).</p></li>
+<li><p>“mask”: get average position of voxels in binary mask.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the global centroid will always be recalculated; 
+otherwise, it will only be calculated if it has not yet been cached 
+in self._volume.  Note that if single_slice=True, the centroid will 
+always be recalculated.</p>
+</dd>
+<dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
+Dice scores slice by slice for each slice containing
+self and/or other:</p>
+<ul class="simple">
+<li><p>“left”: consider only slices containing self;</p></li>
+<li><p>“right”: consider only slices containing other;</p></li>
+<li><p>“union”: consider slices containing either of self and other;</p></li>
+<li><p>“intersection”: consider slices containing both of self and other.</p></li>
+</ul>
+<p>If slice_stat is None, return a dictionary where keys are
+slice positions and values are the calculated Dice scores.
+Otherwise, return for the calculated Dice scores the statistic
+specified by slice_stat.</p>
+</dd>
+<dt>value_for_none<span class="classifier">float, default=None</span></dt><dd><p>For single_slice and by_slice, value to be returned for
+slices where Dice score is undetermined (None).  For slice_stat,
+value to substitute for any None values among the inputs
+for calculating slice-based statistic.  If None in the latter
+case, None values among the inputs are omitted.</p>
+</dd>
+<dt>slice_stat<span class="classifier">str, default=None</span></dt><dd><p>Single-variable statistic(s) to be returned for slice-by-slice
+Dice scores.  This should be the name of the function for
+calculation of the statistic(s) in the Python statistics module:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+<p>Available options include: “mean”, “median”, “mode”,
+“stdev”, “quantiles”.  Disregarded if None.</p>
+<p>If by_slice is None and slice_stat is different from None,
+skrt.core.Defaults().by_slice is used for the former.</p>
+</dd>
+<dt>slice_stat_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Keyword arguments to be passed to function of statistics
+module for calculation relative to slice values.  For example,
+if quantiles are required for 10 intervals, rather than for
+the default of 4, this can be specified using:</p>
+<p>slice_stat_kwargs{“n” : 10}</p>
+<p>For available keyword options, see documentation of statistics
+module at:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -627,6 +709,8 @@ for slice-by-slice Jaccard indices.</p></li>
 <li><p>“abs_centroid_flat”: magnitude of 3D centroid distance vector
 projected into the plane specified in &lt;view&gt;.</p></li>
 <li><p>“centroid_slice”: 2D centroid distance vector on a single slice.</p></li>
+<li><p>“centroid_slice_stats”: statistics specified in
+&lt;slice_stats&gt; for slice-by-slice 2D centroid distance vectors.</p></li>
 <li><p>“abs_centroid_slice”: magnitude of 2D centroid distance 
 vector on a single slice.</p></li>
 <li><p>“abs_centroid_slice_stats”: statistics specified in
@@ -1655,7 +1739,7 @@ module at:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_slice_stats">
-<span class="sig-name descname"><span class="pre">get_slice_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_stats" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_slice_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separate_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_slice_stats" title="Permalink to this definition"></a></dt>
 <dd><p>Get dictionary of statistics for slice-by-slice comparison metrics.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -1710,11 +1794,16 @@ other roi.</p></li>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
 <dt>Method to use for metric calculation. Can be: </dt><dd><ul class="simple">
 <li><p>“contour”: calculate metric from shapely contours.</p></li>
-<li><p>“mask”: calcualte metric from binary masks.</p></li>
+<li><p>“mask”: calculate metric from binary masks.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
 </dd>
 </dl>
+</dd>
+<dt>separate_components: bool, default=False</dt><dd><p>If False, return a metric represented by a vector as a
+list of component values.  If true, return a separate metric for
+each component, labelling by the component axes determined
+from &lt;view&gt;.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3485,7 +3574,7 @@ the background color will be grey.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.get_comparison_metrics">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_comparison_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">centroid_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_comparison_metrics" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_comparison_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">centroid_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_comparison_metrics" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of comparison metrics.</p>
 <p>All metrics listed here should be recognised by ROI.get_comparison(),
 and all metrics recognised by ROI.get_comparison() should be listed here.</p>
@@ -3531,6 +3620,11 @@ two ROIs, roi1 and roi2.  The valid specifications are:</p>
 <li><p>“intersection”: consider slices containing both roi1 and roi2.</p></li>
 </ul>
 <p>If None, use skrt.core.Defaults().by_slice</p>
+<dl class="simple">
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation to consider when taking centroid components relative
+to a slice.  Can be “x-y”, “y-z”, or “x-z”.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
