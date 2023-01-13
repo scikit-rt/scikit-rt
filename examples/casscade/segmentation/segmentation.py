@@ -426,7 +426,8 @@ if 'Ganga' in __name__:
     opts = ganga_app.algs[0].opts
 
     # Define the patient data to be analysed.
-    paths = get_paths(get_data_locations(), None, None, get_to_exclude())
+    paths = get_paths(get_data_locations(global_side),
+            None, None, get_to_exclude())
     if "Linux" == platform.system():
         input_data = PatientDataset(paths=paths[0:])
     else:
