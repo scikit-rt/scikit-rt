@@ -2035,7 +2035,7 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
     if isinstance(values, dict):
         values = list(values.values())
 
-    if values is None:
+    if not values:
         return
 
     if not is_list(values[0]):
