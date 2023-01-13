@@ -2032,11 +2032,11 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
 
         kwargs={"n" : 10}
     """
-    if values is None:
-        return
-
     if isinstance(values, dict):
         values = list(values.values())
+
+    if values is None:
+        return
 
     if not is_list(values[0]):
         if value_for_none is None:
