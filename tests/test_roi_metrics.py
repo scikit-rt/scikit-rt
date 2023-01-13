@@ -15,7 +15,7 @@ methods = ["mask", "contour"]
 
 # Create fake image
 delta_y = 2
-delta_y3 = 1
+delta_y3 = -1
 delta_z3 = 2
 centre1 = np.array([5, 4, 5])
 centre2 = np.array([5, 4 + delta_y, 5])
@@ -62,7 +62,10 @@ def get_tests13(metric, method):
     elif "area_diff" == metric:
         ssval = len(slices_1)**2 - len(slices_3)**2
     elif "abs_centroid" == metric:
-        ssval = delta_y3
+        ssval = abs(delta_y3)
+    elif "centroid" == metric:
+        ssval = (0, delta_y3)
+        ssval0 = (None, None)
 
     if "by_slice" == method:
         return {
@@ -76,11 +79,23 @@ def get_tests13(metric, method):
             }
 
     elif "slice_mean" == method:
-        return {
-                "left": (len(slices_overlap13) * ssval) / len(slices_1),
-                "right": (len(slices_overlap13) * ssval) / len(slices_3),
-                "union": (len(slices_overlap13) * ssval) / len(slices_union13),
-                "intersection": ssval,
+        if isinstance(ssval, tuple):
+            return {
+                    "left": [(len(slices_overlap13) * val) / len(slices_1)
+                        for val in ssval],
+                    "right": [(len(slices_overlap13) * val) / len(slices_3)
+                        for val in ssval],
+                    "union": [(len(slices_overlap13) * val) /
+                        len(slices_union13) for val in ssval],
+                    "intersection": [val for val in ssval],
+                }
+        else:
+            return {
+                    "left": (len(slices_overlap13) * ssval) / len(slices_1),
+                    "right": (len(slices_overlap13) * ssval) / len(slices_3),
+                    "union": (len(slices_overlap13) * ssval)
+                    / len(slices_union13),
+                    "intersection": ssval,
             }
 
 def test_mid_idx():
@@ -157,6 +172,21 @@ def test_centroid_distance_slice():
                                             idx=cube1.get_mid_idx(),
                                             view='x-y')
                   == (centre2 - centre1)[:2])
+
+def test_centroid_distance_by_slice():
+    """Check slice-by-slice centroid distances."""
+    for method, result in get_tests13("centroid", "by_slice").items():
+        by_slice_result = cube1.get_centroid_distance(cube3, by_slice=method)
+        for pos in set(result).union(set(by_slice_result)):
+            assert tuple(by_slice_result[pos]) == result[pos]
+
+def test_centroid_distance_slice_stat():
+    """Check mean value of slice-by-slice centroid distances."""
+    for method, result in get_tests13("centroid", "slice_mean").items():
+        print(cube1.get_centroid_distance(cube3, by_slice=method,
+            slice_stat="mean", value_for_none=0))
+        assert (cube1.get_centroid_distance(cube3, by_slice=method,
+            slice_stat="mean", value_for_none=0) == result)
 
 def test_abs_centroid_distance():
     assert cube1.get_abs_centroid_distance(cube2) == np.sqrt(

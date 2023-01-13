@@ -2365,7 +2365,10 @@ class ROI(skrt.core.Archive):
             return df_to_html(df)
         return df
 
-    def get_centroid_distance(self, roi, single_slice=False, **kwargs):
+    def get_centroid_distance(self, roi, single_slice=False, view="x-y",
+            sl=None, idx=None, pos=None, units="mm", method=None, force=True,
+            by_slice=None, value_for_none=None, slice_stat=None,
+            **slice_stat_kwargs):
         """Get centroid displacement vector with respect to another ROI.
 
         **Parameters:**
@@ -2376,21 +2379,124 @@ class ROI(skrt.core.Archive):
         single_slice : bool, default=False
             If True, the centroid will be returned for a single slice.
 
-        kwargs : dict
-            Other kwargs to pass to ROI.get_centroid().
-        """
+        view : str, default="x-y"
+            Orientation in which to get centroids if using a single slice or
+            flattening.
 
-        this_centroid = np.array(
-            self.get_centroid(single_slice=single_slice, **kwargs)
+        flatten : bool, default=False
+            If True, the 3D centroid will be obtained and then the absolute 
+            value along only the 2D axes in the orientation in <view> will
+            be returned.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of each ROI
+            will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of each ROI
+            will be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of each ROI
+            will be used.
+
+        units : str, default="mm"
+            Units of absolute centroid distance. Can be any of:
+                - "mm": return centroid position in millimetres.
+                - "voxels": return centroid position in terms of array indices.
+                - "slice": return centroid position in terms of slice numbers.
+
+            If units="voxels" or "slice" is requested but either ROI only has 
+            contours and no mask shape/voxel size information, an error will be 
+            raised (unless ax="z", in which case voxel size will be inferred 
+            from spacing between slices).
+
+        method : str, default=None
+            Method to use for centroid calculation. Can be: 
+                - "contour": get centroid of shapely contour(s).
+                - "mask": get average position of voxels in binary mask.
+                - None: use the method set in self.default_geom_method.
+
+        force : bool, default=True
+            If True, the global centroid will always be recalculated; 
+            otherwise, it will only be calculated if it has not yet been cached 
+            in self._volume.  Note that if single_slice=True, the centroid will 
+            always be recalculated.
+
+        by_slice : str, default=None
+            If one of "left", "right", "union", "intersection", calculate
+            Dice scores slice by slice for each slice containing
+            self and/or other:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other;
+            - "union": consider slices containing either of self and other;
+            - "intersection": consider slices containing both of self and other.
+
+            If slice_stat is None, return a dictionary where keys are
+            slice positions and values are the calculated Dice scores.
+            Otherwise, return for the calculated Dice scores the statistic
+            specified by slice_stat.
+
+        value_for_none : float, default=None
+            For single_slice and by_slice, value to be returned for
+            slices where Dice score is undetermined (None).  For slice_stat,
+            value to substitute for any None values among the inputs
+            for calculating slice-based statistic.  If None in the latter
+            case, None values among the inputs are omitted.
+
+        slice_stat : str, default=None
+            Single-variable statistic(s) to be returned for slice-by-slice
+            Dice scores.  This should be the name of the function for
+            calculation of the statistic(s) in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            Available options include: "mean", "median", "mode",
+            "stdev", "quantiles".  Disregarded if None.
+
+            If by_slice is None and slice_stat is different from None,
+            skrt.core.Defaults().by_slice is used for the former.
+
+        slice_stat_kwargs : dict, default=None
+            Keyword arguments to be passed to function of statistics
+            module for calculation relative to slice values.  For example,
+            if quantiles are required for 10 intervals, rather than for
+            the default of 4, this can be specified using:
+
+            slice_stat_kwargs{"n" : 10}
+
+            For available keyword options, see documentation of statistics
+            module at:
+
+            https://docs.python.org/3/library/statistics.html
+        """
+        if slice_stat:
+            return self.get_slice_stat(roi, "centroid", slice_stat,
+                    by_slice, value_for_none, view, method,
+                    **(slice_stat_kwargs or {}))
+
+        if by_slice:
+            return self.get_metric_by_slice(roi, "centroid", by_slice,
+                    view, method)
+
+        this_centroid = np.array(self.get_centroid(
+            single_slice=single_slice, view=view, sl=sl, idx=idx, pos=pos,
+            units=units, method=method, force=force)
         )
-        other_centroid = np.array(
-            roi.get_centroid(single_slice=single_slice, **kwargs)
+        other_centroid = np.array(roi.get_centroid(
+            single_slice=single_slice, view=view, sl=sl, idx=idx, pos=pos,
+            units=units, method=method, force=force)
         )
         if None in this_centroid or None in other_centroid:
             if single_slice:
-                return np.array([None, None])
+                return np.array([value_for_none, value_for_none])
             else:
-                return np.array([None, None, None])
+                return np.array([value_for_none, value_for_none,
+                    value_for_none])
         return other_centroid - this_centroid
 
     def get_abs_centroid_distance(
@@ -3134,7 +3240,8 @@ class ROI(skrt.core.Archive):
             value_for_none, slice_stat, **slice_stat_kwargs)
 
     def get_slice_stats(self, other, metrics=None, slice_stats=None,
-            default_by_slice=None, method=None, view="x-y"):
+            default_by_slice=None, method=None, view="x-y",
+            separate_components=False):
         """
         Get dictionary of statistics for slice-by-slice comparison metrics.
 
@@ -3198,8 +3305,14 @@ class ROI(skrt.core.Archive):
         method : str, default=None
             Method to use for metric calculation. Can be: 
                 - "contour": calculate metric from shapely contours.
-                - "mask": calcualte metric from binary masks.
+                - "mask": calculate metric from binary masks.
                 - None: use the method set in self.default_geom_method.
+
+        separate_components: bool, default=False
+            If False, return a metric represented by a vector as a
+            list of component values.  If true, return a separate metric for
+            each component, labelling by the component axes determined
+            from <view>.
         """
         if metrics is None or slice_stats is None:
             return {}
@@ -3227,9 +3340,16 @@ class ROI(skrt.core.Archive):
                 values = self.get_metric_by_slice(
                         other, metric, by_slice, view, method)
                 for stat in stats:
-                    calculated_slice_stats[
-                            f"{metric}_slice_{by_slice}_{stat}"] = (
-                                    skrt.core.get_stat(values, stat=stat))
+                    key = f"{metric}_slice_{by_slice}_{stat}"
+                    calculated_slice_stats[key] = (
+                            skrt.core.get_stat(values, stat=stat))
+                    if (skrt.core.is_list(calculated_slice_stats[key])
+                            and separate_components):
+                        vector = calculated_slice_stats.pop(key)
+                        for i, i_ax in enumerate(skrt.image._plot_axes[view]):
+                            ax = skrt.image._axes[i_ax]
+                            ax_key = f"{metric}_{ax}_slice_{by_slice}_{stat}"
+                            calculated_slice_stats[ax_key] = vector[i]
 
         return calculated_slice_stats
 
@@ -3657,6 +3777,8 @@ class ROI(skrt.core.Archive):
                 * "abs_centroid_flat": magnitude of 3D centroid distance vector
                   projected into the plane specified in <view>.
                 * "centroid_slice": 2D centroid distance vector on a single slice.
+                * "centroid_slice_stats": statistics specified in
+                  <slice_stats> for slice-by-slice 2D centroid distance vectors.
                 * "abs_centroid_slice": magnitude of 2D centroid distance 
                   vector on a single slice.
                 * "abs_centroid_slice_stats": statistics specified in
@@ -3990,6 +4112,14 @@ class ROI(skrt.core.Archive):
                 for i, i_ax in enumerate(skrt.image._plot_axes[view]):
                     ax = skrt.image._axes[i_ax]
                     comp[f"centroid_slice_{ax}"] = centroid[i]
+
+            elif m == "centroid_slice_stats":
+                comp.update(roi0.get_slice_stats(roi, metrics="centroid",
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        method=method, view=view,
+                        separate_components=True))
+
             elif m == "abs_centroid_slice":
                 comp[m] = roi0.get_abs_centroid_distance(
                     roi,
@@ -8290,13 +8420,14 @@ def get_metric_method(metric):
     # Metrics are included in the dictionary only if identifier and method
     # name are different.
     mappings = {
-            "rel_area_diff": "relative_area_diff",
             "abs_centroid": "abs_centroid_distance",
+            "centroid": "centroid_distance",
+            "rel_area_diff": "relative_area_diff",
             }
     return mappings.get(metric, metric)
 
 def get_comparison_metrics(centroid_components=False, slice_stats=None,
-        default_by_slice=None):
+        default_by_slice=None, view="x-y"):
     """
     Get list of comparison metrics.
 
@@ -8350,6 +8481,10 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
         - "intersection": consider slices containing both roi1 and roi2.
 
         If None, use skrt.core.Defaults().by_slice
+
+        view : str, default="x-y"
+            Orientation to consider when taking centroid components relative
+            to a slice.  Can be "x-y", "y-z", or "x-z".
     """
     metrics = [
             "abs_centroid",
@@ -8364,6 +8499,7 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
             "area_ratio_slice_stats",
             "centroid",
             "centroid_slice",
+            "centroid_slice_stats",
             "dice",
             "dice_flat",
             "dice_slice",
@@ -8400,8 +8536,19 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
     if centroid_components:
         centroids = {
                 "centroid": ["centroid_x", "centroid_y", "centroid_z"],
-                "centroid_slice": ["centroid_slice_x", "centroid_slice_y"],
+                "centroid_slice": []
                 }
+        if slice_stats is not None:
+            centroids["centroid_slice_stats"] = []
+
+        for i_ax in skrt.image._plot_axes[view]:
+            ax = skrt.image._axes[i_ax]
+            centroids["centroid_slice"].append(f"centroid_slice_{ax}")
+
+            if slice_stats is not None:
+                centroids["centroid_slice_stats"].append(
+                        f"centroid_{ax}_slice_stats")
+
         for vector, components in centroids.items():
             idx = metrics.index(vector)
             metrics[idx : idx + 1] = components
@@ -8413,7 +8560,7 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
         metrics2 = []
         for metric in metrics:
             if "slice_stats" in metric:
-                slice_stats_metrics.append("_".join(metric.split("_")[0 : -2]))
+                slice_stats_metrics.append(metric.split("_slice_stats")[0])
             else:
                 metrics2.append(metric)
 
