@@ -2032,10 +2032,13 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
 
         kwargs={"n" : 10}
     """
+    logger = get_logger(identifier="funcName")
+
     if isinstance(values, dict):
         values = list(values.values())
 
     if not values:
+        logger.warning("No input values: returning None")
         return
 
     if not is_list(values[0]):
@@ -2044,7 +2047,11 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
         else:
             values = [(value if value is not None else value_for_none)
                     for value in values]
-        return getattr(statistics, stat)(values, **kwargs) if values else None
+        try:
+            return getattr(statistics, stat)(values, **kwargs)
+        except statistics.StatisticsError as error:
+            logger.warning(f"{error}: returning None")
+            return
 
     if value_for_none is None:
         components = [[value[idx] for value in values if value[idx] is not None]
@@ -2053,6 +2060,9 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
         components = [[(value[idx] if value[idx] is not None
             else value_for_none) for value in values]
             for idx in range(len(values[0]))]
-    return [(get_stat(component_values, value_for_none, stat,
-        **(kwargs or {})) if component_values else value_for_none)
-        for component_values in components]
+    try:
+        return [(get_stat(component_values, value_for_none, stat,
+            **(kwargs or {})) if component_values else value_for_none)
+            for component_values in components]
+    except statistics.StatisticsError as error:
+        logger.warning(f"{error}: returning None")

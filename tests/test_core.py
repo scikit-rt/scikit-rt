@@ -346,6 +346,9 @@ def test_get_stat():
     tests = (
             # Null input.
             (None, None, None, {}, None),
+            # Insufficent inputs for statistic.
+            ([1], None, "stdev", {}, None),
+            ([[1, 1, 1]], None, "stdev", {}, [None, None, None]),
             # Median of consecutive integers from zero (dictionary values).
             ({val: val for val in range(nval)},
                 None, "mean", {}, (nval - 1) / 2),
@@ -366,6 +369,6 @@ def test_get_stat():
                 None, "mean", {}, [(nval - 1) / 2, -(nval - 1) / 2]),
             )
 
-    #for values, value_for_None, stat, kwargs, result in tests:
-    #    assert (skrt.core.get_stat(values, value_for_None, stat, **kwargs)
-    #            == result)
+    for values, value_for_None, stat, kwargs, result in tests:
+        assert (skrt.core.get_stat(values, value_for_None, stat, **kwargs)
+                == result)
