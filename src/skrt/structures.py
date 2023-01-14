@@ -8722,21 +8722,31 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         raise RuntimeError(f"Method must be one of {allowed_methods}"
         " - not '{method}'")
 
-    slices1 = sorted(list(roi1.get_contours(
-        view=view, idx_as_key=position_as_idx)))
+    indices = None
+
+    indices1 = roi1.get_indices(view=view, method="mask")
     if not issubclass(type(roi2), ROI) or "left" == method:
-        return slices1
+        indices = indices1
 
-    slices2 = sorted(list(roi2.get_contours(
-        view=view, idx_as_key=position_as_idx)))
-    if "right" == method:
-        return slices2
-    
-    if "union" == method:
-        return sorted(list(set(slices1).union(set(slices2))))
+    if indices is None:
+        indices2 = roi2.get_indices(view=view, method="mask")
+        if "right" == method:
+            indices = indices2
+        
+    if indices is None:
+        if "union" == method:
+            indices = list(set(indices1).union(set(indices2)))
 
-    if "intersection" == method:
-        return sorted(list(set(slices1).intersection(set(slices2))))
+    if indices is None:
+        if "intersection" == method:
+            indices = list(set(indices1).intersection(set(indices2)))
+
+    if indices is not None:
+        if position_as_idx:
+            return sorted(indices)
+        else:
+            ax = skrt.image._slice_axes[view]
+            return sorted([roi1.idx_to_pos(idx, ax) for idx in indices])
 
 def expand_slice_stats(slice_stats=None, default_by_slice=None):
     """
