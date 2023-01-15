@@ -241,9 +241,6 @@ class Segmentation(Algorithm):
         return self.status
 
     def compare_rois(self, patient1, patient2):
-        print("Hello - compare_rois()", patient1.id, patient2.id)
-        print(self.sas.ss1_filtered.path)
-        print(self.sas.get_segmentation(step=self.auto_step).path)
         # Compare transformed ROIs and reference ROIs
         df = self.sas.ss1_filtered.get_comparison(
                 other=self.sas.get_segmentation(step=self.auto_step),
@@ -276,7 +273,7 @@ def get_app(setup_script=''):
         opts["elastix_dir"] = "~/sw/elastix-5.0.1"
         opts["workdir"] = ("segmentation_workdir")
 
-    opts["strategy"] = "pull"
+    opts["strategy"] = "push"
     opts["roi_names"] = {
             "heart": ["heart", "Heart"],
             "imn" : ["CTV IMN", "CTV INM", "CTVn_IMN", "IMN", "ctv imn"],
@@ -405,10 +402,10 @@ if '__main__' == __name__:
     if "Linux" == platform.system():
         input_data = paths[0:]
     else:
-        input_data = paths[0:2]
+        input_data = paths[0:1]
 
     # Set paths to atlases.
-    app.algs[0].atlases = paths[0:3]
+    app.algs[0].atlases = paths[0:2]
 
     # Run application for the selected data.
     app.run(input_data, PatientClass, **patient_opts)
