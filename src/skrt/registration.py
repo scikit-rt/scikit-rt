@@ -753,11 +753,18 @@ class Registration(Data):
         # Check whether registration succeeded
         if code:
             logfile = os.path.join(self.outdirs[step], "elastix.log")
-            self.logger.warning(
+            """
+            self.logger.error(
                 f"Registration step {step} failed! See "
                 f"{logfile} or run Registration.print_log({step}) for "
                 " more info."
             )
+            """
+            raise RuntimeError(
+                f"Registration step {step} failed! See "
+                f"{logfile} or run Registration.print_log({step}) for "
+                " more info."
+                    )
         else:
             self.tfiles[step] = os.path.join(
                 self.outdirs[step], "TransformParameters.0.txt"
