@@ -955,7 +955,7 @@ class Registration(Data):
         return os.path.join(self._tmp_dir, outfile)
 
     def transform_roi(self, roi, step=-1, outfile=None, params=None,
-            transform_points=False):
+            transform_points=False, require_contours=False):
         """Transform a single ROI using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -990,6 +990,14 @@ class Registration(Data):
            frame of the fixed image.  If True, the transform is applied
            to push ROI contour points from the reference frame of the
            fixed image to the reference frame of the moving image.
+
+        require_contours : bool, default=False
+           If the transformed ROI doesn't have contours defined: return
+           the ROI if <require_contours> is False; return None if
+           <require_contours> is True.  A transformed ROI won't have
+           contours defined if, for example, it's transformed as a mask,
+           and the non-zero regions of the transformed mask are outside
+           the fixed image.
         """
 
         # Save ROI temporarily as nifti if needed
@@ -1027,7 +1035,7 @@ class Registration(Data):
 
         # Create ROI object, and check that it has contours defined.
         roi = ROI(result_path, name=roi.name, color=roi.color, image=image)
-        if not roi.get_contours():
+        if require_contours and not roi.get_contours():
             return
 
         # Copy to output dir if outfile is set
