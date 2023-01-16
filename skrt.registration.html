@@ -936,7 +936,7 @@ and set it to self.transformed_images[step].</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_roi">
-<span class="sig-name descname"><span class="pre">transform_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_roi" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Transform a single ROI using the output transform from a given
 registration step (by default, the final step). If the registration
 step has not yet been performed, the step and all preceding steps
@@ -965,6 +965,13 @@ from the reference frame of the moving image to the reference
 frame of the fixed image.  If True, the transform is applied
 to push ROI contour points from the reference frame of the
 fixed image to the reference frame of the moving image.</p>
+</dd>
+<dt>require_contours<span class="classifier">bool, default=False</span></dt><dd><p>If the transformed ROI doesn’t have contours defined: return
+the ROI if &lt;require_contours&gt; is False; return None if
+&lt;require_contours&gt; is True.  A transformed ROI won’t have
+contours defined if, for example, it’s transformed as a mask,
+and the non-zero regions of the transformed mask are outside
+the fixed image.</p>
 </dd>
 </dl>
 </dd></dl>
