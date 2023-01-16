@@ -284,7 +284,8 @@ def get_app(setup_script=''):
     opts["crop_to_match_size1"] = True
     opts["voxel_size1"] = (1, 1, None)
     opts["bands1"] = {-1024:(None, 80)}
-    opts["default_crop_margins"] = (10, 10, 5)
+    #opts["default_crop_margins"] = (10, 10, 5)
+    opts["default_crop_margins"] = (20, 20, 5)
     opts["roi_crop_margins"] = {"heart": (10, 30, 10)}
     opts["crop_to_match_size2"] = True
     opts["voxel_size2"] = opts["voxel_size1"]
@@ -358,15 +359,32 @@ def get_to_exclude():
     Datasets identified as to be excluded, pending further investigation.
     """
     # Initial dataset:
-    # - tumour on left: 35 before exclusions => 29 after exclusions;
-    # - tumour on right: 29 before exclusions => 25 after exclusions.
+    # - tumour on left: 33 before exclusions => 29 after exclusions;
+    # - tumour on right: 30 before exclusions => 26 after exclusions.
+    # Numbers are after re-assignments.
+
+    # The following were initially assigned as having tumour on left,
+    # but in reality have tumour on right:
+    # z0k1nxmgeo
+    # z0k3qrijjo
+    #
+    # The following was initially assigned both as having tumour on
+    # left and as having tumour on right, but in reality has tumour on right;
+    # z0k3lxmiij
+    #
+    # The following was initially classified as having tumour on right,
+    # but in reality has tumour on left:
+    # z0k3ovnegl
 
     # Tumour on left, IMNs not outlined.
     left_no_imn = ["z0k0lufhhn", "z0k0mzjjij", "z0k2rtkjkh", "z0k4oykeio"]
     # Tumour on left, two IMN outlines ('CTV IMN', 'IMN').
-    left_two_imn = ["z0k4izonnq"]
+    # => Two outlines seem to be the same: use either.
+    # left_two_imn = ["z0k4izonnq"]
     # Tumour on left, two structure sets.
-    left_two_ss = ["z0k4pxmkji"]
+    # => At least for heart and IMNs, two structure sets seem to be the same:
+    # use either.
+    # left_two_ss = ["z0k4pxmkji"]
     # Tumour on right, IMNs not outlined.
     right_no_imn = ["z0k0mzlefq", "z0k3owkffh", "z0k3oylnij"]
     # Tumour on right, two structure sets and IMNs not outlined.
