@@ -390,8 +390,7 @@ def get_to_exclude():
     # Tumour on right, two structure sets and IMNs not outlined.
     right_two_ss = ["z0k4owmnlj"]
     
-    return (left_no_imn + left_two_imn + left_two_ss
-            + right_no_imn + right_two_ss)
+    return (left_no_imn + right_no_imn + right_two_ss)
 
 def get_data_loader():
     # Define class and options for loading patient data.
