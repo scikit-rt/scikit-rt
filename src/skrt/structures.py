@@ -8101,7 +8101,7 @@ def create_majority_vote(rois, **kwargs):
 
     mask = rois[0].get_mask(standardise=True).astype(int)
     for roi in rois[1:]:
-        mask += roi.get_mask(standardise=True)
+        mask += roi.get_mask(standardise=True).astype(int)
     mask = mask >= len(rois) / 2
     return ROI(mask, **kwargs)
 
