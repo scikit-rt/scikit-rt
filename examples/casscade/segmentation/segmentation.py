@@ -16,7 +16,7 @@ from skrt.application import Algorithm, Application, Status, get_paths
 from skrt.core import Data, fullpath, is_list, tic, toc
 from skrt.image import match_image_voxel_sizes
 from skrt.registration import get_default_pfiles_dir, set_elastix_dir
-from skrt.segmentation import SingleAtlasSegmentation
+from skrt.segmentation import MultiAtlasSegmentation
 
 global_side = "right"
 
@@ -112,6 +112,7 @@ class Segmentation(Algorithm):
         # Define whether to suppress Elastix output.
         self.capture_output = True
 
+        # Define whether to keep directory used for ROI transformations.
         self.keep_tmp_dir = False
 
         # Parameter files to be used in registration.
@@ -119,7 +120,6 @@ class Segmentation(Algorithm):
                 "translation": self.pfiles_dir / "MI_Translation.txt",
                 "bspline": self.pfiles_dir / "MI_BSpline30.txt",
             }
-
         self.pfiles2 = dict(self.pfiles1)
 
         self.most_points1 = True
@@ -135,6 +135,13 @@ class Segmentation(Algorithm):
         # "pull": pull ROI masks from frame of relapse scan (moving image)
         # to frame of planning scan (fixed image).
         self.strategy = "pull"
+
+        # Define strategy for combining contours from
+        # multiple single-atlas segmentations.
+        self.consensus_types = ["majority"]
+
+        # Define maximum number of threads to use in processing.
+        self.max_workers = 1
 
         # Metrics to be evaluated for comparing transformed ROIs
         # and reference ROIs.
@@ -189,47 +196,50 @@ class Segmentation(Algorithm):
 
         im1 = patient.combined_objs("ct_images")[0]
 
+        im2 = {}
         for atlas in self.atlases:
             patient2 = Patient(atlas, unsorted_dicom=True)
             self.logger.info(f"Atlas id: {patient2.id}")
             self.logger.info(f"Atlas path: {patient2.path}")
-            im2 = patient2.combined_objs("ct_images")[0]
+            im2[patient2.id] = patient2.combined_objs("ct_images")[0]
 
-            self.sas = SingleAtlasSegmentation(
-                im1=im1,
-                im2=im2,
-                ss1=None,
-                ss2=None,
-                log_level=self.log_level,
-                workdir=Path(self.workdir) / f"{patient.id}_{patient2.id}",
-                overwrite=self.overwrite,
-                auto=True,
-                auto_step=self.auto_step,
-                strategy=self.strategy,
-                roi_names=self.roi_names,
-                initial_alignment=self.initial_alignment,
-                initial_alignment_crop=self.initial_alignment_crop,
-                initial_alignment_crop_margins=\
-                        self.initial_alignment_crop_margins,
-                initial_transform_name=self.initial_transform_name,
-                crop_to_match_size1=self.crop_to_match_size1,
-                voxel_size1=self.voxel_size1,
-                bands1=self.bands1,
-                pfiles1=self.pfiles1,
-                most_points1=self.most_points1,
-                roi_crop_margins=self.roi_crop_margins,
-                default_crop_margins=self.default_crop_margins,
-                crop_to_match_size2=self.crop_to_match_size2,
-                voxel_size2=self.voxel_size2,
-                bands2=self.bands2,
-                pfiles2=self.pfiles2,
-                most_points2=self.most_points2,
-                capture_output=self.capture_output,
-                keep_tmp_dir=self.keep_tmp_dir,
-            )
+        self.mas = MultiAtlasSegmentation(
+            im1=im1,
+            im2=im2,
+            ss1=None,
+            ss2=None,
+            log_level=self.log_level,
+            workdir=Path(self.workdir) / patient.id,
+            overwrite=self.overwrite,
+            auto=True,
+            auto_step=self.auto_step,
+            strategy=self.strategy,
+            roi_names=self.roi_names,
+            consensus_types=self.consensus_types,
+            max_workers=self.max_workers,
+            initial_alignment=self.initial_alignment,
+            initial_alignment_crop=self.initial_alignment_crop,
+            initial_alignment_crop_margins=\
+                    self.initial_alignment_crop_margins,
+            initial_transform_name=self.initial_transform_name,
+            crop_to_match_size1=self.crop_to_match_size1,
+            voxel_size1=self.voxel_size1,
+            bands1=self.bands1,
+            pfiles1=self.pfiles1,
+            most_points1=self.most_points1,
+            roi_crop_margins=self.roi_crop_margins,
+            default_crop_margins=self.default_crop_margins,
+            crop_to_match_size2=self.crop_to_match_size2,
+            voxel_size2=self.voxel_size2,
+            bands2=self.bands2,
+            pfiles2=self.pfiles2,
+            most_points2=self.most_points2,
+            capture_output=self.capture_output,
+            keep_tmp_dir=self.keep_tmp_dir,
+        )
 
-            if self.metrics:
-                self.compare_rois(patient, patient2)
+        if self.metrics:
+            self.compare_rois(patient)
 
         return self.status
 
@@ -240,25 +250,27 @@ class Segmentation(Algorithm):
 
         return self.status
 
-    def compare_rois(self, patient1, patient2):
-        # Compare transformed ROIs and reference ROIs
-        df = self.sas.ss1_filtered.get_comparison(
-                other=self.sas.get_segmentation(step=self.auto_step),
-                metrics=self.metrics, slice_stats=self.slice_stats,
-                default_by_slice=self.default_by_slice)
+    def compare_rois(self, patient):
+        for consensus_type in self.consensus_types:
+            # Compare transformed ROIs and reference ROIs
+            df = self.mas.get_sas().ss1_filtered.get_comparison(
+                    other=self.mas.get_consensus(
+                        step=self.auto_step, consensus_type=consensus_type),
+                    metrics=self.metrics, slice_stats=self.slice_stats,
+                    default_by_slice=self.default_by_slice)
 
-        # Set "patient_id", "atlas_id" and "roi" as indices.
-        df.index.name = "roi"
-        df.set_index([
-            pd.Series(df.shape[0] * [patient1.id], name="patient_id"),
-            pd.Series(df.shape[0] * [patient2.id], name="atlas_id"),
-            df.index], inplace=True)
+            # Set "patient_id", "consensus" and "roi" as indices.
+            df.index.name = "roi"
+            df.set_index([
+                pd.Series(df.shape[0] * [patient.id], name="patient_id"),
+                pd.Series(df.shape[0] * [consensus_type], name="consensus"),
+                df.index], inplace=True)
 
-        # Append dataframe for current patient to global dataframe.
-        if self.df_analysis is None:
-            self.df_analysis = df
-        else:
-            self.df_analysis = pd.concat([self.df_analysis, df])
+            # Append dataframe for current patient to global dataframe.
+            if self.df_analysis is None:
+                self.df_analysis = df
+            else:
+                self.df_analysis = pd.concat([self.df_analysis, df])
 
 def get_app(setup_script=''):
     '''
@@ -413,16 +425,19 @@ if '__main__' == __name__:
     # Define class and options for loading patient datasets.
     PatientClass, patient_class, patient_opts = get_data_loader()
 
+    # Define number of atlases.
+    n_atlas = 5
+
     # Define the patient data to be analysed.
     paths = get_paths(get_data_locations(global_side),
             None, None, get_to_exclude())
     if "Linux" == platform.system():
-        input_data = paths[0:]
+        input_data = paths[n_atlas :]
     else:
-        input_data = paths[0:1]
+        input_data = paths[n_atlas : n_atlas + 1]
 
     # Set paths to atlases.
-    app.algs[0].atlases = paths[0:2]
+    app.algs[0].atlases = paths[: n_atlas]
 
     # Run application for the selected data.
     app.run(input_data, PatientClass, **patient_opts)
@@ -439,16 +454,19 @@ if 'Ganga' in __name__:
             patient_class, patient_opts)
     opts = ganga_app.algs[0].opts
 
+    # Define number of atlases.
+    n_atlas = 7
+
     # Define the patient data to be analysed.
     paths = get_paths(get_data_locations(global_side),
             None, None, get_to_exclude())
     if "Linux" == platform.system():
-        input_data = PatientDataset(paths=paths[0:])
+        input_data = PatientDataset(paths=paths[n_atlas :])
     else:
-        input_data = PatientDataset(paths=paths[0:1])
+        input_data = PatientDataset(paths=paths[n_atlas : n_atlas + 1])
 
     # Set paths to atlases.
-    opts["atlases"] = paths
+    opts["atlases"] = paths[: n_atlas]
 
     # Define processing system.
     if "Linux" == platform.system():
