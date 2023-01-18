@@ -1304,3 +1304,17 @@ def test_checked_crop_limits():
     # Check that behaviour is as expected.
     for in_value, out_value in crop_limits:
         assert checked_crop_limits(in_value) == out_value
+
+def test_get_mutual_information():
+    """Test calculation of mutual information."""
+
+    # Check mutual information for some simple cases.
+    im1 = Image(np.array([[1, 1],[1, 1]]))
+    im2 = Image(np.array([[2, 2],[2, 2]]))
+    # MI = [(1) * log((1)/(1))] = 0
+    assert im1.get_mutual_information(im2) == 0
+
+    im1 = Image(np.array([[1, 2],[3, 4]]))
+    im2 = Image(np.array([[5, 6],[7, 8]]))
+    # MI = 4 * [(1/4) * log((1/4)/(1/16))] = log(4)
+    assert im1.get_mutual_information(im2) == math.log(4)

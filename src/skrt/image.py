@@ -3681,15 +3681,15 @@ class Image(skrt.core.Archive):
             the same as when calling the Image.crop() method.
 
         xlim : tuple, default=None
-            Upper and lower bounds relative to reference point of cropping
+            Lower and upper bounds relative to reference point of cropping
             along x-axis.  If None, cropping is not performed along this axis.
 
         ylim : tuple, default=None
-            Upper and lower bounds relative to reference point of cropping
+            Lower and upper bounds relative to reference point of cropping
             along y-axis.  If None, cropping is not performed along this axis.
 
         zlim : tuple, default=None
-            Upper and lower bounds relative to reference point of cropping
+            Lower and upper bounds relative to reference point of cropping
             along z-axis.  If None, cropping is not performed along this axis.
         """
         if point is None:
@@ -4066,6 +4066,49 @@ class Image(skrt.core.Archive):
             masked_image.data = np.ma.masked_where(~mask.data, self.data)
 
         return masked_image
+
+    def get_mutual_information(self, image, bins=50, xyrange=None):
+        """
+        Calculate mutual information of this image and another image.
+
+        The method used is based on:
+        https://matthew-brett.github.io/teaching/mutual_information.html
+        The two images considered must have the same shape.
+
+        **Parameters:**
+
+        image : skrt.image.Image
+            Image with respect to which mutual information is calculated.
+
+        bins : int/list, default=50
+            Numbers of bins to use when histogramming grey-level joint
+            probabilities for self and image.  This is passed as
+            the bins parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+
+        xyrange : list, default=None
+            Upper and lower of each axis when histogramming grey-level
+            joint probabilities for self and image.  This is passed as
+            the range parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+        """
+        # Create 2d histogram of voxel-by-voxel grey-level values,
+        # comparing images.
+        hist2d, xedges, yedges = np.histogram2d(
+                self.get_data().ravel(), image.get_data().ravel(),
+                bins, xyrange)
+
+        # Convert numbers of entries to joint probabilities.
+        pxy = hist2d / float(np.sum(hist2d))
+
+        # Obtain marginal probabilities.
+        px = np.sum(pxy, axis=1)
+        py = np.sum(pxy, axis=0)
+
+        # Calculate and return mutual information.
+        px_py = px[:, None] * py[None, :]
+        non_zero = pxy > 0
+        return np.sum(pxy[non_zero] * np.log(pxy[non_zero] / px_py[non_zero]))
 
 
 class ImageComparison(Image):
@@ -5750,6 +5793,113 @@ def get_alignment_strategy(alignment=None):
                     roi_alignments[idx] = [roi_alignments[idx][0], None]
 
     return roi_alignments
+
+def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
+                 roi_names=None, im1_crop_focus=None, im1_crop_margins=None,
+                 alignment=None, voxel_size=None, bands=None):
+    """
+    Process pair of images, so that they match in one or more respects.
+
+    Matching can be with respect to image size, voxel size,
+    grey-level banding, and/or ROI naming in associated structure sets.
+    The returned images are created from clones of the input images,
+    which are left unchanged.
+
+    The first ROI of the pair may be cropped about a focus (ROI or point).
+    The second ROI of the pair may be cropped to the size of the first.
+
+    **Parameters:**
+
+    im1, im2 : skrt.image.Image
+        Images to be matched with one another.
+
+    ss1, ss2 : skrt.structures.StructureSet, default=None
+        Structure sets to associate with images im1, im2.  If a value
+        is None, and image matching involves ROI alignment, the
+        last-listed first structure set already associated with the relevant
+        image is used (im1.structure_sets[-1], im2.structure_sets[-1]).
+
+    ss1_name, ss2_name : str, default=None
+        Name to be assigned to structure sets associated with the
+        returned image objects.  If a value is None, the original
+        name is kept.
+
+    roi_names : dict, default=None
+        Dictionary for renaming and filtering ROIs for inclusion
+        in the structure sets associated with the output images.
+        Keys are names for ROIs to be kept, and values are lists of
+        alternative names with which these ROIs may have been
+        labelled in the input structure sets.  The alternative names
+        can contain wildcards with the '*' symbol.  If a value of
+        None is given, all ROIs in the input structure sets are kept,
+        with no renaming.
+
+    im1_crop_focus : str/tuple, default=None
+        Name of an ROI, or (x, y, z) coordinates of a point, about
+        which to perform cropping of im1.  If None, cropping is performed
+        about the point (0, 0, 0) if im1_crop_margins is non-null, or
+        otherwise no cropping is performed.
+
+    im1_crop_margins, float/tuple, default=None
+        Specification of margin around focus for cropping of im1.
+        For information on specifying crop margins for the case where
+        im1_crop_focus is the name of an ROI, see documentation for
+        method skrt.image.Image.crop_to_roi(). For the case where
+        im1_crop_focus is a point coordinate, margins should be
+        sepecified by a tuple (xlim, ylim, zlim).  Here, xlim, ylim, zlim
+        are two-component tuples specifying lower and upper bounds
+        relative to the crop point.
+
+    alignment : tuple/dict/str, default=None
+        Strategy to be used for aligning images prior to cropping
+        so that they have the same size.  For strategy details, see
+        documentation of skrt.image.get_alignment_translation().
+        After alignment, im1 is cropped to the size of im2, then im2
+        is cropped to the size of im1.  To omit cropping to the same
+        size, set alginment to False.
+
+    voxel_size : tuple/str/float, default=None
+         Specification of voxel size for image resampling.
+         For possible values, see documentation for function
+         skrt.image.match_image_voxel_size().
+
+    bands - dict, default=None
+        Dictionary of value bandings to be applied to image data.
+        Keys specify band limits, and values indicte the values
+        to be assigned.  For more information, see documentation of
+        method skrt.image.Image.apply_banding().
+    """
+    im1 = im1.clone_with_structure_set(ss1, roi_names, -1, ss1_name)
+    ss1 = im1.structure_sets[0] if im1.structure_sets[0] else None
+    im2 = im2.clone_with_structure_set(ss2, roi_names, -1, ss1_name)
+    ss2 = im2.structure_sets[0] if im2.structure_sets[0] else None
+
+    # Resample images to same voxel size.
+    match_image_voxel_sizes(im1, im2, voxel_size)
+
+    # Crop primary image to region around alignment structure.
+    if ss1 is not None and im1_crop_focus in ss1.get_roi_names():
+        im1.crop_to_roi(ss1[im1_crop_focus], im1_crop_margins)
+    elif (skrt.core.is_list(im1_crop_focus) or im1_crop_focus is None
+          and skrt.core.is_list(im1_crop_margins)):
+        im1.crop_about_point(im1_crop_focus, *im1_crop_margins)
+
+    # Crop images to same size.
+    if alignment is not False:
+        im2.crop_to_image(im1, alignment)
+        im1.crop_to_image(im2, alignment)
+
+    # Perform banding of image grey levels.
+    im1.apply_selective_banding(bands)
+    im2.apply_selective_banding(bands)
+
+    # Reset structure-set images.
+    if im1.structure_sets:
+        im1.structure_sets[0].set_image(im1)
+    if im2.structure_sets:
+        im2.structure_sets[0].set_image(im2)
+
+    return (im1, im2)
 
 def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     """
