@@ -442,13 +442,13 @@ image will not be cropped in that direction.</p>
 If None, the point (0, 0, 0) is used, and the result will be
 the same as when calling the Image.crop() method.</p>
 </dd>
-<dt>xlim<span class="classifier">tuple, default=None</span></dt><dd><p>Upper and lower bounds relative to reference point of cropping
+<dt>xlim<span class="classifier">tuple, default=None</span></dt><dd><p>Lower and upper bounds relative to reference point of cropping
 along x-axis.  If None, cropping is not performed along this axis.</p>
 </dd>
-<dt>ylim<span class="classifier">tuple, default=None</span></dt><dd><p>Upper and lower bounds relative to reference point of cropping
+<dt>ylim<span class="classifier">tuple, default=None</span></dt><dd><p>Lower and upper bounds relative to reference point of cropping
 along y-axis.  If None, cropping is not performed along this axis.</p>
 </dd>
-<dt>zlim<span class="classifier">tuple, default=None</span></dt><dd><p>Upper and lower bounds relative to reference point of cropping
+<dt>zlim<span class="classifier">tuple, default=None</span></dt><dd><p>Lower and upper bounds relative to reference point of cropping
 along z-axis.  If None, cropping is not performed along this axis.</p>
 </dd>
 </dl>
@@ -879,6 +879,30 @@ correct aspect ratio and plot extent.</p>
 </dd>
 <dt>scale_in_mm<span class="classifier">bool, default=True</span></dt><dd><p>If True, indicates that image will be plotted with axis scales in 
 mm; needed to compute correct aspect ratio and plot extent.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_mutual_information">
+<span class="sig-name descname"><span class="pre">get_mutual_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_mutual_information" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate mutual information of this image and another image.</p>
+<p>The method used is based on:
+<a class="reference external" href="https://matthew-brett.github.io/teaching/mutual_information.html">https://matthew-brett.github.io/teaching/mutual_information.html</a>
+The two images considered must have the same shape.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which mutual information is calculated.</p>
+</dd>
+<dt>bins<span class="classifier">int/list, default=50</span></dt><dd><p>Numbers of bins to use when histogramming grey-level joint
+probabilities for self and image.  This is passed as
+the bins parameter of numpy.histogram2d:
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html">https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html</a></p>
+</dd>
+<dt>xyrange<span class="classifier">list, default=None</span></dt><dd><p>Upper and lower of each axis when histogramming grey-level
+joint probabilities for self and image.  This is passed as
+the range parameter of numpy.histogram2d:
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html">https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -2815,6 +2839,71 @@ specified dimension in mm along all axes.</p></li>
 </ul>
 </dd>
 <dt>order: int, default = 1</dt><dd><p>Order of the b-spline used in interpolating voxel intensity values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.match_images">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">match_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im1_crop_focus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im1_crop_margins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.match_images" title="Permalink to this definition"></a></dt>
+<dd><p>Process pair of images, so that they match in one or more respects.</p>
+<p>Matching can be with respect to image size, voxel size,
+grey-level banding, and/or ROI naming in associated structure sets.
+The returned images are created from clones of the input images,
+which are left unchanged.</p>
+<p>The first ROI of the pair may be cropped about a focus (ROI or point).
+The second ROI of the pair may be cropped to the size of the first.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>im1, im2<span class="classifier">skrt.image.Image</span></dt><dd><p>Images to be matched with one another.</p>
+</dd>
+<dt>ss1, ss2<span class="classifier">skrt.structures.StructureSet, default=None</span></dt><dd><p>Structure sets to associate with images im1, im2.  If a value
+is None, and image matching involves ROI alignment, the
+last-listed first structure set already associated with the relevant
+image is used (im1.structure_sets[-1], im2.structure_sets[-1]).</p>
+</dd>
+<dt>ss1_name, ss2_name<span class="classifier">str, default=None</span></dt><dd><p>Name to be assigned to structure sets associated with the
+returned image objects.  If a value is None, the original
+name is kept.</p>
+</dd>
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary for renaming and filtering ROIs for inclusion
+in the structure sets associated with the output images.
+Keys are names for ROIs to be kept, and values are lists of
+alternative names with which these ROIs may have been
+labelled in the input structure sets.  The alternative names
+can contain wildcards with the ‘*’ symbol.  If a value of
+None is given, all ROIs in the input structure sets are kept,
+with no renaming.</p>
+</dd>
+<dt>im1_crop_focus<span class="classifier">str/tuple, default=None</span></dt><dd><p>Name of an ROI, or (x, y, z) coordinates of a point, about
+which to perform cropping of im1.  If None, cropping is performed
+about the point (0, 0, 0) if im1_crop_margins is non-null, or
+otherwise no cropping is performed.</p>
+</dd>
+<dt>im1_crop_margins, float/tuple, default=None</dt><dd><p>Specification of margin around focus for cropping of im1.
+For information on specifying crop margins for the case where
+im1_crop_focus is the name of an ROI, see documentation for
+method skrt.image.Image.crop_to_roi(). For the case where
+im1_crop_focus is a point coordinate, margins should be
+sepecified by a tuple (xlim, ylim, zlim).  Here, xlim, ylim, zlim
+are two-component tuples specifying lower and upper bounds
+relative to the crop point.</p>
+</dd>
+<dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for aligning images prior to cropping
+so that they have the same size.  For strategy details, see
+documentation of skrt.image.get_alignment_translation().
+After alignment, im1 is cropped to the size of im2, then im2
+is cropped to the size of im1.  To omit cropping to the same
+size, set alginment to False.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple/str/float, default=None</span></dt><dd><p>Specification of voxel size for image resampling.
+For possible values, see documentation for function
+skrt.image.match_image_voxel_size().</p>
+</dd>
+<dt>bands - dict, default=None</dt><dd><p>Dictionary of value bandings to be applied to image data.
+Keys specify band limits, and values indicte the values
+to be assigned.  For more information, see documentation of
+method skrt.image.Image.apply_banding().</p>
 </dd>
 </dl>
 </dd></dl>
