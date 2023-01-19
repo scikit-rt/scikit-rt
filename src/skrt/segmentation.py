@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
 
-from skrt.core import get_logger, is_list, Data, Defaults
-from skrt.image import match_image_voxel_sizes, Image
+from skrt.core import get_logger, is_list, Data, Defaults, tic, toc
+from skrt.image import match_images, Image
 from skrt.structures import get_consensus_types, StructureSet
 from skrt.registration import Registration
 
@@ -88,8 +88,12 @@ class MultiAtlasSegmentation(Data):
                         self.auto, self.auto_step, self.strategy,
                         self.roi_names,)
                 if self.max_workers == 1:
+                    tic()
+                    self.logger.info(f"Segmenting with atlas '{idx}'")
                     self.sass[idx] = SingleAtlasSegmentation(
                             *args, **self.sas_kwargs)
+                    self.logger.info(f"Segmentation with atlas '{idx}': "
+                                     f"{toc():.2f} s")
                 else:
                     sas_args[idx] = args
 
@@ -198,8 +202,9 @@ class SingleAtlasSegmentation(Data):
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
         auto=False, auto_step=-1, strategy="pull", roi_names=None,
-        initial_alignment=None, initial_alignment_crop=True,
-        initial_alignment_crop_margins=None, initial_transform_name=None,
+        ss1_name="Filtered1", ss2_name="Filtered2",
+        initial_crop_focus=None, initial_crop_margins=None,
+        initial_alignment=None, initial_transform_name=None,
         crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
         most_points1=True, roi_crop_margins=None, default_crop_margins=10,
         crop_to_match_size2=True, voxel_size2=None, bands2=None, pfiles2=None, 
@@ -210,6 +215,8 @@ class SingleAtlasSegmentation(Data):
         self.im2 = ensure_image(im2)
         self.ss1 = ensure_structure_set(ss1)
         self.ss2 = ensure_structure_set(ss2)
+        self.ss1_name = ss1_name
+        self.ss2_name = ss2_name
 
         # Set up event logging.
         self.log_level = (Defaults().log_level if log_level is None
@@ -234,9 +241,8 @@ class SingleAtlasSegmentation(Data):
 
         # Set parameters for step-1 registration.
         self.initial_alignment = initial_alignment
-        self.initial_alignment_crop = initial_alignment_crop
-        self.initial_alignment_crop_margins = initial_alignment_crop_margins
-        self.initial_transform_name = initial_transform_name
+        self.initial_crop_focus = initial_crop_focus
+        self.initial_crop_margins = initial_crop_margins
         self.crop_to_match_size1 = crop_to_match_size1
         self.voxel_size1 = voxel_size1
         self.bands1 = bands1
@@ -253,6 +259,7 @@ class SingleAtlasSegmentation(Data):
         self.most_points2 = most_points2
 
         # Set parameters for step-1 and step-2 registration.
+        self.initial_transform_name = initial_transform_name
         self.capture_output = capture_output
         self.keep_tmp_dir = keep_tmp_dir
 
@@ -267,38 +274,6 @@ class SingleAtlasSegmentation(Data):
         if auto:
             self.segment(self.strategy, self.auto_step)
 
-    def preprocess(self, im1, im2, ss1=None, ss2=None, roi_names=None,
-        alignment=None, alignment_crop=True, crop_margins=None,
-        crop_to_match_size=None, voxel_size=None, bands=None):
-
-        im1 = im1.clone_with_structure_set(ss1, roi_names, -1, "Filtered1")
-        ss1 = im1.structure_sets[0] if im1.structure_sets[0] else None
-        im2 = im2.clone_with_structure_set(ss2, roi_names, -1, "Filtered2")
-        ss2 = im2.structure_sets[0] if im2.structure_sets[0] else None
-
-        # Crop primary image to region around alignment structure.
-        if alignment_crop:
-            if ss2 is not None and alignment in ss2.get_roi_names():
-                im2.crop_to_roi(ss2[alignment], crop_margins)
-
-        # Crop images to same size.
-        if crop_to_match_size:
-            im1.crop_to_image(im2, alignment)
-            im2.crop_to_image(im1, alignment)
-
-        # Resample images to same voxel size.
-        match_image_voxel_sizes(im1, im2, voxel_size)
-
-        # Perform banding of image grey levels.
-        im1.apply_selective_banding(bands)
-        im2.apply_selective_banding(bands)
-
-        # Reset structure-set images.
-        im1.structure_sets[0].set_image(im1)
-        im2.structure_sets[0].set_image(im2)
-
-        return (im1, im2)
-
     def segment(self, strategy=None, step=None, force=False):
         strategy = get_option(strategy, self.strategy, self.strategies)
         steps = get_steps(step)
@@ -309,16 +284,18 @@ class SingleAtlasSegmentation(Data):
 
         if (self.steps[0] in steps
                 and not self.registrations[strategy][self.steps[0]]):
-            im1, im2 = self.preprocess(
+            im1, im2 = match_images(
                     im1=self.im1,
                     im2=self.im2,
                     ss1=self.ss1,
                     ss2=self.ss2,
+                    ss1_name=self.ss1_name,
+                    ss2_name=self.ss2_name,
                     roi_names=self.roi_names,
-                    alignment=self.initial_alignment,
-                    alignment_crop=self.initial_alignment_crop,
-                    crop_margins=self.initial_alignment_crop_margins,
-                    crop_to_match_size=self.crop_to_match_size1,
+                    im2_crop_focus=self.initial_crop_focus,
+                    im2_crop_margins=self.initial_crop_margins,
+                    alignment=(self.initial_alignment
+                               if self.crop_to_match_size1 else False),
                     voxel_size=self.voxel_size1,
                     bands=self.bands1)
 
@@ -349,17 +326,19 @@ class SingleAtlasSegmentation(Data):
                 and not self.registrations[strategy][self.steps[1]]):
             rois = []
             for roi_name in self.roi_names:
-                im1, im2 = self.preprocess(
+                im1, im2 = match_images(
                         im1=self.im1,
                         im2=self.im2,
                         ss1=self.ss1,
                         ss2=self.ss2,
+                        ss1_name=self.ss1_name,
+                        ss2_name=self.ss2_name,
                         roi_names={roi_name: self.roi_names[roi_name]},
-                        alignment=roi_name,
-                        alignment_crop=True,
-                        crop_margins=self.roi_crop_margins.get(
+                        im2_crop_focus=roi_name,
+                        im2_crop_margins=self.roi_crop_margins.get(
                             roi_name, self.default_crop_margins),
-                        crop_to_match_size=self.crop_to_match_size2,
+                        alignment=(roi_name if self.crop_to_match_size2
+                                   else False),
                         voxel_size=self.voxel_size2,
                         bands=self.bands2)
 

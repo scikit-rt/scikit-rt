@@ -13,7 +13,7 @@ import pandas as pd
 
 from skrt import Patient, StructureSet
 from skrt.application import Algorithm, Application, Status, get_paths
-from skrt.core import Data, fullpath, is_list, tic, toc
+from skrt.core import Data, Defaults, fullpath, is_list, tic, toc
 from skrt.image import match_image_voxel_sizes
 from skrt.registration import get_default_pfiles_dir, set_elastix_dir
 from skrt.segmentation import MultiAtlasSegmentation
@@ -68,17 +68,15 @@ class Segmentation(Algorithm):
         # If the value given is the name of an ROI present in the structure
         # sets of the two images being aligned, cropping is performed
         # around this ROI.  Otherwise the structure is used only for alignment.
-        self.initial_alignment = "__top__"
+        self.initial_alignment = "_top_"
 
         self.initial_transform_name = None
 
-        # Buffers ((x1, x2), (y1, y2), (z1, z1))  to leave
-        # when cropping around structure used in alignment.
-        # If None, no cropping is performed.
-        self.initial_alignment_crop = True
-        self.initial_alignment_crop_margins = None
+        # Initial crop focus, and margins to leave when cropping.
+        self.initial_crop_focus = None
+        self.initial_crop_margins = None
         self.default_crop_margins = 0
-        self.roi_crop_buffers = None
+        self.roi_crop_margins = None
 
         # Define whether planning scan and relapse scan should be cropped
         # to the same size prior to registration.  Size matching is performed
@@ -127,6 +125,8 @@ class Segmentation(Algorithm):
 
         self.auto_step = -1
         self.log_level = None
+        if log_level is not None:
+            Defaults({"log_level": log_level})
 
         # Strategy for transforming ROIs from frame of relapse scan
         # to frame of planning scan:
@@ -138,7 +138,7 @@ class Segmentation(Algorithm):
 
         # Define strategy for combining contours from
         # multiple single-atlas segmentations.
-        self.consensus_types = ["majority"]
+        self.consensus_types = ["majority", "staple"]
 
         # Define maximum number of threads to use in processing.
         self.max_workers = 1
@@ -217,10 +217,9 @@ class Segmentation(Algorithm):
             roi_names=self.roi_names,
             consensus_types=self.consensus_types,
             max_workers=self.max_workers,
+            initial_crop_focus=self.initial_crop_focus,
+            initial_crop_margins=self.initial_crop_margins,
             initial_alignment=self.initial_alignment,
-            initial_alignment_crop=self.initial_alignment_crop,
-            initial_alignment_crop_margins=\
-                    self.initial_alignment_crop_margins,
             initial_transform_name=self.initial_transform_name,
             crop_to_match_size1=self.crop_to_match_size1,
             voxel_size1=self.voxel_size1,
@@ -291,8 +290,8 @@ def get_app(setup_script=''):
             "imn" : ["CTV IMN", "CTV INM", "CTVn_IMN", "IMN", "ctv imn"],
             }
     opts["initial_alignment"] = "heart"
-    opts["initial_alignment_crop"] = True
-    opts["initial_alignment_crop_margins"] = ((-10, 10), (-60, 10), (-110, 110))
+    opts["initial_crop_focus"] = "heart"
+    opts["initial_crop_margins"] = ((-10, 10), (-60, 10), (-110, 110))
     opts["crop_to_match_size1"] = True
     opts["voxel_size1"] = (1, 1, None)
     opts["bands1"] = {-1024:(None, 80)}
@@ -302,7 +301,7 @@ def get_app(setup_script=''):
     opts["crop_to_match_size2"] = True
     opts["voxel_size2"] = opts["voxel_size1"]
     opts["bands2"] = None
-    opts["log_level"] = "WARNING"
+    opts["log_level"] = "INFO"
 
     opts["metrics"] = [
             "centroid_slice_stats",
@@ -455,7 +454,7 @@ if 'Ganga' in __name__:
     opts = ganga_app.algs[0].opts
 
     # Define number of atlases.
-    n_atlas = 7
+    n_atlas = 5
 
     # Define the patient data to be analysed.
     paths = get_paths(get_data_locations(global_side),
@@ -506,7 +505,7 @@ if 'Ganga' in __name__:
                         # Update algorithm options.
                         opts["strategy"] = strategy
                         opts["initial_alignment"] = alignment
-                        opts["initial_alignment_crop_margins"] = crop_margins
+                        opts["initial_crop_margins"] = crop_margins
                         opts["crop_to_match_size1"] = crop_to_match_size
                         opts["crop_to_match_size2"] = crop_to_match_size
                         opts["voxel_size1"] = voxel_size

@@ -3599,7 +3599,6 @@ class Image(skrt.core.Archive):
         self.origin = [self.get_origin()[i] + translation[i] for i in range(3)]
         self.affine = None
         self.set_geometry()
-        return None
 
     def has_same_data(self, im, max_diff=0.005):
         """Check whether this Image has the same data as
@@ -3764,7 +3763,8 @@ class Image(skrt.core.Archive):
             skrt.image.get_alignment_translation().
         """
         # Calculate any translation to be applied prior to cropping.
-        translation = np.array(self.get_alignment_translation(image, alignment))
+        translation = np.array(
+                self.get_alignment_translation(image, alignment))
 
         # Apply translation to image origin.
         if translation is not None:
@@ -5795,7 +5795,7 @@ def get_alignment_strategy(alignment=None):
     return roi_alignments
 
 def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
-                 roi_names=None, im1_crop_focus=None, im1_crop_margins=None,
+                 roi_names=None, im2_crop_focus=None, im2_crop_margins=None,
                  alignment=None, voxel_size=None, bands=None):
     """
     Process pair of images, so that they match in one or more respects.
@@ -5834,18 +5834,18 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
         None is given, all ROIs in the input structure sets are kept,
         with no renaming.
 
-    im1_crop_focus : str/tuple, default=None
+    im2_crop_focus : str/tuple, default=None
         Name of an ROI, or (x, y, z) coordinates of a point, about
-        which to perform cropping of im1.  If None, cropping is performed
-        about the point (0, 0, 0) if im1_crop_margins is non-null, or
+        which to perform cropping of im2.  If None, cropping is performed
+        about the point (0, 0, 0) if im2_crop_margins is non-null, or
         otherwise no cropping is performed.
 
-    im1_crop_margins, float/tuple, default=None
-        Specification of margin around focus for cropping of im1.
+    im2_crop_margins, float/tuple, default=None
+        Specification of margin around focus for cropping of im2.
         For information on specifying crop margins for the case where
-        im1_crop_focus is the name of an ROI, see documentation for
+        im2_crop_focus is the name of an ROI, see documentation for
         method skrt.image.Image.crop_to_roi(). For the case where
-        im1_crop_focus is a point coordinate, margins should be
+        im2_crop_focus is a point coordinate, margins should be
         sepecified by a tuple (xlim, ylim, zlim).  Here, xlim, ylim, zlim
         are two-component tuples specifying lower and upper bounds
         relative to the crop point.
@@ -5877,17 +5877,17 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
     # Resample images to same voxel size.
     match_image_voxel_sizes(im1, im2, voxel_size)
 
-    # Crop primary image to region around alignment structure.
-    if ss1 is not None and im1_crop_focus in ss1.get_roi_names():
-        im1.crop_to_roi(ss1[im1_crop_focus], im1_crop_margins)
-    elif (skrt.core.is_list(im1_crop_focus) or im1_crop_focus is None
-          and skrt.core.is_list(im1_crop_margins)):
-        im1.crop_about_point(im1_crop_focus, *im1_crop_margins)
+    # Crop im2 to region around focus.
+    if ss2 is not None and im2_crop_focus in ss2.get_roi_names():
+        im2.crop_to_roi(ss2[im2_crop_focus], im2_crop_margins)
+    elif (skrt.core.is_list(im2_crop_focus) or im2_crop_focus is None
+          and skrt.core.is_list(im2_crop_margins)):
+        im2.crop_about_point(im2_crop_focus, *im2_crop_margins)
 
     # Crop images to same size.
     if alignment is not False:
-        im2.crop_to_image(im1, alignment)
         im1.crop_to_image(im2, alignment)
+        im2.crop_to_image(im1, alignment)
 
     # Perform banding of image grey levels.
     im1.apply_selective_banding(bands)
