@@ -619,6 +619,34 @@ force=True).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.get_mutual_information">
+<span class="sig-name descname"><span class="pre">get_mutual_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_mutual_information" title="Permalink to this definition"></a></dt>
+<dd><p>Get mutual information of fixed image and transformed moving image,
+after step.</p>
+<p><strong>Parameters:</strong>
+step : int/str/list, default=None</p>
+<blockquote>
+<div><p>Name or number of the step for which the registration should be
+performed. Available steps are listed in self.steps.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, transformation of the moving image will be
+performed, even if the image was transformed previously.</p>
+</dd>
+<dt>bins<span class="classifier">int/list, default=50</span></dt><dd><p>Numbers of bins to use when histogramming grey-level joint
+probabilities for fixed image and transformed moving image.  This
+is passed as the bins parameter of numpy.histogram2d:
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html">https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html</a></p>
+</dd>
+<dt>xyrange<span class="classifier">list, default=None</span></dt><dd><p>Upper and lower limits of each axis when histogramming grey-level
+joint probabilities for fixed image and transformed moving image.
+This is passed as the range parameter of numpy.histogram2d:
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html">https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_step_name">
 <span class="sig-name descname"><span class="pre">get_step_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_step_name" title="Permalink to this definition"></a></dt>
 <dd><p>Convert &lt;step&gt; to a string containing a step name. If &lt;step&gt; is
