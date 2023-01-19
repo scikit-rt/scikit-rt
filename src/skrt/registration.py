@@ -255,7 +255,7 @@ class Registration(Data):
             im = skrt.image.Image(im)
         path = getattr(self, f"{category}_path")
         if not os.path.exists(path) or force:
-            skrt.image.Image.write(im, path, verbose=(self.logger.level < 30))
+            skrt.image.Image.write(im, path, verbose=(self.logger.level < 20))
         if 'grid' in category or 'mask' in category:
             setattr(self, f"{category}", skrt.image.Image(path))
         else:
@@ -746,7 +746,7 @@ class Registration(Data):
 
         # Run
         cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
-        self.logger.info(f"Running command:\n {' '.join(cmd)}")
+        self.logger.debug(f"Running command:\n {' '.join(cmd)}")
         code = subprocess.run(
                 cmd, capture_output=self.capture_output).returncode
 
@@ -867,7 +867,7 @@ class Registration(Data):
             im_path = im.path
         else:
             im_path = os.path.join(self._tmp_dir, "image.nii.gz")
-            im.write(im_path, verbose=(self.logger.level < 30))
+            im.write(im_path, verbose=(self.logger.level < 20))
 
         # Transform the nifti file
         result_path = self.transform_data(im_path, step, params)
@@ -935,7 +935,7 @@ class Registration(Data):
             "-tp",
             tfile,
         ]
-        self.logger.info(f'Running command:\n {" ".join(cmd)}')
+        self.logger.debug(f'Running command:\n {" ".join(cmd)}')
         code = subprocess.run(
                 cmd, capture_output=self.capture_output).returncode
 
@@ -1010,7 +1010,7 @@ class Registration(Data):
         else:
             ext = 'txt' if transform_points else 'nii.gz'
             roi_path = os.path.join(self._tmp_dir, f"{roi.name}.{ext}")
-            roi.write(roi_path, verbose=(self.logger.level < 30))
+            roi.write(roi_path, verbose=(self.logger.level < 20))
 
         # Set default parameters
         default_params = {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
@@ -1097,7 +1097,7 @@ class Registration(Data):
 
         # Write structure set if outname is given
         if outfile is not None:
-            final.write(outfile, verbose=(self.logger.level < 30))
+            final.write(outfile, verbose=(self.logger.level < 20))
             return
 
         # Otherwise, return structure set
@@ -1546,7 +1546,7 @@ class Registration(Data):
             "-tp",
             tfile
         ]
-        self.logger.info(f'Running command:\n {" ".join(cmd)}')
+        self.logger.debug(f'Running command:\n {" ".join(cmd)}')
         code = subprocess.run(cmd, capture_output=self.capture_output).returncode
         if code:
             logfile = os.path.join(outdir, 'transformix.log')
