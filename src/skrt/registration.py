@@ -1138,7 +1138,7 @@ class Registration(Data):
         # If forcing and registration had already been done, re-transform the 
         # moving image (otherwise, moving image will have just been recreated
         # anyway by running registration)
-        if force and was_registered:
+        if (force or step not in self.transformed_images) and was_registered:
             self.transform_moving_image(step)
 
         # Return clone of the transformed image object
@@ -1558,6 +1558,35 @@ class Registration(Data):
         assert os.path.exists(output_file)
         return dtype(output_file, image=image, title=title)
 
+    def get_mutual_information(self, step=-1, force=False,
+                               bins=100, xyrange=None):
+        """
+        Get mutual information of fixed image and transformed moving image,
+        after step.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the step for which the registration should be
+            performed. Available steps are listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            performed, even if the image was transformed previously.
+
+        bins : int/list, default=50
+            Numbers of bins to use when histogramming grey-level joint
+            probabilities for fixed image and transformed moving image.  This
+            is passed as the bins parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+
+        xyrange : list, default=None
+            Upper and lower limits of each axis when histogramming grey-level
+            joint probabilities for fixed image and transformed moving image.
+            This is passed as the range parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+        """
+        return self.fixed_image.get_mutual_information(
+                self.get_transformed_image(step, force), bins, xyrange)
 
 class Grid(ImageOverlay):
 
