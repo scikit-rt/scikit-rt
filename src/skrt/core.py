@@ -13,6 +13,7 @@ import time
 import timeit
 from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
+from types import FunctionType
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -2066,3 +2067,15 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
             for component_values in components]
     except statistics.StatisticsError as error:
         logger.warning(f"{error}: returning None")
+
+def get_stat_functions():
+    """
+    Get names of statistical functions implemented in Python statistics module.
+
+    For details of statistics module, see:
+
+    https://docs.python.org/3/library/statistics.html
+    """
+    return [function for function in dir(statistics)
+            if type(getattr(statistics, function)) == FunctionType
+            and not function.startswith("_")]

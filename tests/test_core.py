@@ -372,3 +372,12 @@ def test_get_stat():
     for values, value_for_None, stat, kwargs, result in tests:
         assert (skrt.core.get_stat(values, value_for_None, stat, **kwargs)
                 == result)
+
+def test_get_stat_functions():
+    """
+    Check that example names of functions defined by Python statistics module
+    are returned by skrt.core.get_stat_functions().
+    """
+    example_stats = ["mean", "median", "mode", "stdev"]
+    assert all([stat in skrt.core.get_stat_functions()
+                for stat in example_stats])
