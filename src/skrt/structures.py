@@ -6135,9 +6135,10 @@ class StructureSet(skrt.core.Archive):
         # Assign image
         self.set_image(im)
 
-    def set_image(self, image):
-        """Set image for self and all ROIs. Image.add_structure_set(self) will
-        also be called."""
+    def set_image(self, image, add_to_image=True):
+        """Set image for self and all ROIs.
+        If add_to_image is True, image.add_structure_set(self)
+        will also be called."""
 
         # Convert to Image object if needed
         if image and not isinstance(image, skrt.image.Image):
@@ -6149,7 +6150,7 @@ class StructureSet(skrt.core.Archive):
             roi.set_image(image)
 
         # Assign self to the image
-        if image is not None:
+        if image is not None and add_to_image:
             image.add_structure_set(self)
 
     def rename_rois(
@@ -8588,6 +8589,13 @@ def get_consensus_types():
             "sum",
             ]
 
+def get_by_slice_methods():
+    """
+    Get list of methods for defining slices to be considered
+    for slice-by-slice ROI comparisons.
+    """
+    return ["left", "right", "union", "intersection"]
+
 def get_all_rois(objs=None):
     """
     Create list of ROIs from arbitrary combination of ROIs and StructureSets.
@@ -8717,9 +8725,8 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         If None, value of skrt.core.Defaults().by_slice is used.
     """
     method = method or skrt.core.Defaults().by_slice
-    allowed_methods = ["left", "right", "union", "intersection"]
-    if method not in allowed_methods:
-        raise RuntimeError(f"Method must be one of {allowed_methods}"
+    if method not in get_by_slice_methods():
+        raise RuntimeError(f"Method must be one of {get_by_slice_methods()}"
         " - not '{method}'")
 
     indices = None

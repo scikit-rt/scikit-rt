@@ -5870,9 +5870,9 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
         method skrt.image.Image.apply_banding().
     """
     im1 = im1.clone_with_structure_set(ss1, roi_names, -1, ss1_name)
-    ss1 = im1.structure_sets[0] if im1.structure_sets[0] else None
+    ss1 = im1.structure_sets[0] if im1.structure_sets else None
     im2 = im2.clone_with_structure_set(ss2, roi_names, -1, ss1_name)
-    ss2 = im2.structure_sets[0] if im2.structure_sets[0] else None
+    ss2 = im2.structure_sets[0] if im2.structure_sets else None
 
     # Resample images to same voxel size.
     match_image_voxel_sizes(im1, im2, voxel_size)
@@ -5894,10 +5894,10 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
     im2.apply_selective_banding(bands)
 
     # Reset structure-set images.
-    if im1.structure_sets:
-        im1.structure_sets[0].set_image(im1)
-    if im2.structure_sets:
-        im2.structure_sets[0].set_image(im2)
+    for im, ss in [(im1, ss1), (im2, ss2)]:
+        if ss:
+            im.clear_structure_sets()
+            ss.set_image(im)
 
     return (im1, im2)
 

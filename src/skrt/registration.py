@@ -1017,12 +1017,9 @@ class Registration(Data):
         if params is not None:
             default_params.update(params)
 
-        # Transform the nifti file or point cloud
-        result_path = self.transform_data(roi_path, step, default_params)
-        if result_path is None or not os.path.exists(str(result_path)):
-            return
-
         # Identify image to be associated with the transformed ROI.
+        # This needs to be here, to avoid the possibility of
+        # the ROI transform result being overwritten by an image transform.
         if transform_points:
             if issubclass(skrt.image.Image, type(self.moving_source)):
                 image = self.moving_source
@@ -1032,6 +1029,11 @@ class Registration(Data):
                 image = getattr(self, 'moving_image', None)
         else:
             image = self.get_transformed_image(step)
+
+        # Transform the nifti file or point cloud
+        result_path = self.transform_data(roi_path, step, default_params)
+        if result_path is None or not os.path.exists(str(result_path)):
+            return
 
         # Create ROI object, and check that it has contours defined.
         roi = ROI(result_path, name=roi.name, color=roi.color, image=image)

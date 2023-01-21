@@ -3,9 +3,14 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
 
-from skrt.core import get_logger, is_list, Data, Defaults, tic, toc
+import pandas as pd
+
+from skrt.core import (
+        get_logger, get_stat_functions, is_list, Data, Defaults, tic, toc)
 from skrt.image import match_images, Image
-from skrt.structures import get_consensus_types, StructureSet
+from skrt.structures import (
+        get_by_slice_methods, get_comparison_metrics, get_consensus_types,
+        StructureSet)
 from skrt.registration import Registration
 
 class MultiAtlasSegmentation(Data):
@@ -192,7 +197,7 @@ class MultiAtlasSegmentation(Data):
                 roi.name = roi_name
                 ss_consensus.add_roi(roi)
                 
-            ss_consensus.set_image(self.im1)
+            ss_consensus.set_image(self.im1, add_to_image=False)
             ss_consensus.reset_contours(most_points=True)
             self.consensuses[strategy][step][reg_step][consensus_type] = (
                     ss_consensus)
@@ -208,7 +213,8 @@ class SingleAtlasSegmentation(Data):
         crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
         most_points1=True, roi_crop_margins=None, default_crop_margins=10,
         crop_to_match_size2=True, voxel_size2=None, bands2=None, pfiles2=None, 
-        most_points2=True, capture_output=False, keep_tmp_dir=False):
+        most_points2=True, capture_output=False, keep_tmp_dir=False,
+        metrics=None, slice_stats=None, default_by_slice=None):
 
         # Set images and associated structure sets.
         self.im1 = ensure_image(im1)
@@ -262,6 +268,13 @@ class SingleAtlasSegmentation(Data):
         self.initial_transform_name = initial_transform_name
         self.capture_output = capture_output
         self.keep_tmp_dir = keep_tmp_dir
+
+        # Set parameters for post-segmentation ROI comparisons.
+        self.metrics = metrics
+        self.slice_stats = slice_stats
+        self.default_by_slice = (Defaults().by_slice
+                                 if default_by_slice is None
+                                 else default_by_slice)
 
         # Define dictionaries for storing results.
         self.registrations = {}
@@ -363,8 +376,8 @@ class SingleAtlasSegmentation(Data):
                         strategy, self.steps[1], self.most_points2)
 
             for reg_step in self.segmentations[strategy][self.steps[1]]:
-                self.segmentations[strategy][self.steps[1]][reg_step].set_image(
-                        self.im1)
+                self.segmentations[strategy][self.steps[1]][reg_step].\
+                        set_image(self.im1, add_to_image=False)
 
     def segment_roi(self, roi, strategy, step, most_points=True):
         for reg_step in self.registrations[strategy][step][roi.name].steps:
@@ -395,7 +408,8 @@ class SingleAtlasSegmentation(Data):
                 self.segmentations[strategy][step][reg_step]\
                         .reset_contours(most_points=True)
 
-            self.segmentations[strategy][step][reg_step].set_image(self.im1)
+            self.segmentations[strategy][step][reg_step].set_image(
+                    self.im1, add_to_image=False)
             self.segmentations[strategy][step][reg_step].name = (
                 f"{strategy}_{step}_{reg_step}")
 
@@ -422,25 +436,101 @@ class SingleAtlasSegmentation(Data):
         reg_step = get_option(reg_step, None, reg_steps)
         return self.segmentations[strategy][step][reg_step]
 
+    def get_comparison_steps(self, steps):
+        if steps is None:
+            steps = [self.auto_step]
+        elif isinstance(steps, int):
+            steps = [steps]
+        else:
+            steps = [step if isinstance(step, str)
+                     else get_segmentation_steps[step] for step in steps]
+
+        return steps
+
+    def get_roi_comparisons(
+            self, id1=None, id2=None, to_keep=None, strategies=None,
+            steps=None, reg_steps=None, force=False, metrics=None,
+            slice_stats=None, default_by_slice=None, **kwargs):
+
+        strategies = self.strategies if strategies is True else get_options(
+                strategies, self.strategy, self.strategies)
+        steps = self.steps if steps is True else get_options(
+                steps, self.auto_step, self.steps)
+        metrics = get_options(metrics, self.metrics, get_comparison_metrics())
+        slice_stats = get_options(slice_stats, self.slice_stats,
+                                  get_stat_functions())
+        default_by_slice = get_option(default_by_slice, self.default_by_slice,
+                                      get_by_slice_methods())
+        kwargs["name_as_index"] = False
+        kwargs["voxel_size"] = None
+        
+        df = None
+        ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
+        for strategy in strategies:
+            for step in steps:
+                self.segment(strategy, step, force)
+                all_reg_steps = list(self.segmentations[strategy][step])
+                step_reg_steps = (
+                        all_reg_steps if reg_steps is True
+                        else get_options(reg_steps, None, all_reg_steps))
+                for reg_step in step_reg_steps:
+                    ss2 = (self.get_segmentation(strategy, step, reg_step)
+                           .filtered_copy(to_keep=to_keep))
+                    df_tmp = ss1.get_comparison(ss2,
+                            metrics=metrics, slice_stats=slice_stats,
+                            default_by_slice=default_by_slice, **kwargs)
+
+                    for label, value in [
+                            ("id1", id1), ("id2", id2), ("strategy", strategy),
+                            ("step", step), ("reg_step", reg_step)]:
+                        if value is not None:
+                            df_tmp[label] = pd.Series(
+                                    df_tmp.shape[0] * [value])
+
+                    if df is None:
+                        df = df_tmp
+                    else:
+                        df = pd.concat([df, df_tmp], ignore_index=True)
+
+        return df
 
 def get_option(opt=None, fallback_opt=None, allowed_opts=None):
 
     if not is_list(allowed_opts) or not len(allowed_opts):
-        raise RuntimeError("No allowed options specified - returning None")
+        raise RuntimeError("No allowed options specified")
 
-    if isinstance(opt, int):
-        option = allowed_opts[opt]
-        return option
+    for option in [opt, fallback_opt]:
+        if option in allowed_opts:
+            return option
+        if isinstance(option, int):
+            return allowed_opts[option]
 
-    if opt in allowed_opts:
-        option = opt
-    elif fallback_opt in allowed_opts:
-        option = fallback_opt
-    else:
-        option = allowed_opts[-1]
-    return option
+    return allowed_opts[-1]
 
-    raise RuntimeError("Unable to determine valid option")
+def get_options(opts=None, fallback_opts=None, allowed_opts=None):
+
+    if not is_list(allowed_opts) or not len(allowed_opts):
+        raise RuntimeError("No allowed options specified")
+
+    if opts is None:
+        return [allowed_opts[-1]]
+    if isinstance(opts, int):
+        return [allowed_opts[opts]]
+    elif opts in allowed_opts:
+        return [opts]
+
+    options = []
+    if is_list(opts):
+        for opt in opts:
+            new_opts = get_options(opt, None, allowed_opts)
+            for new_opt in new_opts:
+                if new_opt not in options:
+                    options.append(new_opt)
+
+    if not options:
+        options = get_options(fallback_opts, None, allowed_opts)
+
+    return options
 
 def get_fixed_and_moving(im1, im2, strategy):
     return (im1, im2) if ("pull" == strategy) else (im2, im1)
