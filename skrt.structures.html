@@ -3327,9 +3327,10 @@ self.alpha_beta_ratios to the value of alpha_beta_ratios.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.set_image">
-<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.set_image" title="Permalink to this definition"></a></dt>
-<dd><p>Set image for self and all ROIs. Image.add_structure_set(self) will
-also be called.</p>
+<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_to_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.set_image" title="Permalink to this definition"></a></dt>
+<dd><p>Set image for self and all ROIs.
+If add_to_image is True, image.add_structure_set(self)
+will also be called.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3563,6 +3564,13 @@ skrt.structures.StructureSet object, or a list containing any
 combination of ROI and StructureSet objects.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.structures.get_by_slice_methods">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_by_slice_methods</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_by_slice_methods" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of methods for defining slices to be considered
+for slice-by-slice ROI comparisons.</p>
 </dd></dl>
 
 <dl class="py function">
