@@ -184,7 +184,7 @@ def test_run_registration():
     im2_mask = Image(im2)
     im2_mask.data = np.ones(im2.get_data().shape)
 
-    pfiles = ["pfiles/MI_Translation.txt", "pfiles/MI_Affine.txt"]
+    pfiles = [pfiles_dir / "MI_Translation.txt", pfiles_dir / "MI_Affine.txt"]
     reg = Registration(
         reg_dir, 
         overwrite=True, 
