@@ -207,7 +207,7 @@ class SingleAtlasSegmentation(Data):
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
         auto=False, auto_step=-1, strategy="pull", roi_names=None,
-        ss1_name="Filtered1", ss2_name="Filtered2",
+        ss1_index=-1, ss2_index=-1, ss1_name="Filtered1", ss2_name="Filtered2",
         initial_crop_focus=None, initial_crop_margins=None,
         initial_alignment=None, initial_transform_name=None,
         crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
@@ -219,6 +219,8 @@ class SingleAtlasSegmentation(Data):
         # Set images and associated structure sets.
         self.im1 = ensure_image(im1)
         self.im2 = ensure_image(im2)
+        self.ss1_index = get_structure_set_index(ss1_index, self.im1)
+        self.ss2_index = get_structure_set_index(ss2_index, self.im2)
         self.ss1 = ensure_structure_set(ss1)
         self.ss2 = ensure_structure_set(ss2)
         self.ss1_name = ss1_name
@@ -300,6 +302,8 @@ class SingleAtlasSegmentation(Data):
             im1, im2 = match_images(
                     im1=self.im1,
                     im2=self.im2,
+                    ss1_index = self.ss1_index,
+                    ss2_index = self.ss2_index,
                     ss1=self.ss1,
                     ss2=self.ss2,
                     ss1_name=self.ss1_name,
@@ -342,6 +346,8 @@ class SingleAtlasSegmentation(Data):
                 im1, im2 = match_images(
                         im1=self.im1,
                         im2=self.im2,
+                        ss1_index = self.ss1_index,
+                        ss2_index = self.ss2_index,
                         ss1=self.ss1,
                         ss2=self.ss2,
                         ss1_name=self.ss1_name,
@@ -494,6 +500,7 @@ class SingleAtlasSegmentation(Data):
 
         return df
 
+
 def get_option(opt=None, fallback_opt=None, allowed_opts=None):
 
     if not is_list(allowed_opts) or not len(allowed_opts):
@@ -597,3 +604,9 @@ def get_sas_consensus_types(consensus_types):
         return [consensus_types]
 
     return consensus_types
+
+def get_structure_set_index(ss_index, im):
+    if (ss_index < 0 and isinstance(im, Image)
+        and len(im.structure_sets) <= abs(ss_index)):
+        return len(im.structure_sets) + ss_index
+    return ss_index

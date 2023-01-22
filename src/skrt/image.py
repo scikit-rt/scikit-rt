@@ -5794,9 +5794,10 @@ def get_alignment_strategy(alignment=None):
 
     return roi_alignments
 
-def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
-                 roi_names=None, im2_crop_focus=None, im2_crop_margins=None,
-                 alignment=None, voxel_size=None, bands=None):
+def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
+                 ss1_name=None, ss2_name=None, roi_names=None,
+                 im2_crop_focus=None, im2_crop_margins=None, alignment=None,
+                 voxel_size=None, bands=None):
     """
     Process pair of images, so that they match in one or more respects.
 
@@ -5815,12 +5816,16 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
 
     ss1, ss2 : skrt.structures.StructureSet, default=None
         Structure sets to associate with images im1, im2.  If a value
-        is None, and image matching involves ROI alignment, the
-        last-listed first structure set already associated with the relevant
-        image is used (im1.structure_sets[-1], im2.structure_sets[-1]).
+        is None, and image matching involves ROI alignment, a structure
+        set already associated with the relevant image is used
+        (im1.structure_sets[ss1_index], im2.structure_sets[ss2_index]).
+
+    ss1_index, ss2_index : int, default=-1
+        Structure set indices to use for ROI alignment based on
+        structure sets already associated with images.
 
     ss1_name, ss2_name : str, default=None
-        Name to be assigned to structure sets associated with the
+        Names to be assigned to structure sets associated with the
         returned image objects.  If a value is None, the original
         name is kept.
 
@@ -5869,9 +5874,9 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_name=None, ss2_name=None,
         to be assigned.  For more information, see documentation of
         method skrt.image.Image.apply_banding().
     """
-    im1 = im1.clone_with_structure_set(ss1, roi_names, -1, ss1_name)
+    im1 = im1.clone_with_structure_set(ss1, roi_names, ss1_index, ss1_name)
     ss1 = im1.structure_sets[0] if im1.structure_sets else None
-    im2 = im2.clone_with_structure_set(ss2, roi_names, -1, ss1_name)
+    im2 = im2.clone_with_structure_set(ss2, roi_names, ss2_index, ss1_name)
     ss2 = im2.structure_sets[0] if im2.structure_sets else None
 
     # Resample images to same voxel size.
