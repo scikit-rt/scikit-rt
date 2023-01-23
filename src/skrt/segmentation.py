@@ -211,10 +211,11 @@ class SingleAtlasSegmentation(Data):
         initial_crop_focus=None, initial_crop_margins=None,
         initial_alignment=None, initial_transform_name=None,
         crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
-        most_points1=True, roi_crop_margins=None, default_crop_margins=10,
-        crop_to_match_size2=True, voxel_size2=None, bands2=None, pfiles2=None, 
-        most_points2=True, capture_output=False, keep_tmp_dir=False,
-        metrics=None, slice_stats=None, default_by_slice=None):
+        most_points1=True, roi_crop_margins=None, default_roi_crop_margins=10,
+        roi_pfiles=None, crop_to_match_size2=True, voxel_size2=None,
+        bands2=None, pfiles2=None, most_points2=True, capture_output=False,
+        keep_tmp_dir=False, metrics=None, slice_stats=None,
+        default_by_slice=None):
 
         # Set images and associated structure sets.
         self.im1 = ensure_image(im1)
@@ -254,20 +255,23 @@ class SingleAtlasSegmentation(Data):
         self.crop_to_match_size1 = crop_to_match_size1
         self.voxel_size1 = voxel_size1
         self.bands1 = bands1
-        self.pfiles1 = pfiles1
+        self.pfiles1 = {reg_step: pfile
+                        for reg_step, pfile in (pfiles1 or {}).items() if pfile}
         self.most_points1 = most_points1
 
         # Set parameters for step-2 registration.
         self.roi_crop_margins = roi_crop_margins or {}
-        self.default_crop_margins = default_crop_margins
+        self.default_roi_crop_margins = default_roi_crop_margins
         self.crop_to_match_size2 = crop_to_match_size2
         self.voxel_size2 = voxel_size2
         self.bands2 = bands2
         self.pfiles2 = pfiles2 or pfiles1
+        self.roi_pfiles = roi_pfiles or {}
         self.most_points2 = most_points2
 
         # Set parameters for step-1 and step-2 registration.
-        self.initial_transform_name = initial_transform_name
+        self.initial_transform_name = (initial_transform_name
+                                       or "initial_alignment")
         self.capture_output = capture_output
         self.keep_tmp_dir = keep_tmp_dir
 
@@ -341,6 +345,16 @@ class SingleAtlasSegmentation(Data):
 
         if (self.steps[1] in steps
                 and not self.registrations[strategy][self.steps[1]]):
+
+            pfiles2 = {}
+            if self.initial_alignment:
+                self.segmentations[strategy][self.steps[1]]\
+                        [self.initial_transform_name] = {}
+            for reg_step, pfile in self.pfiles2.items():
+                self.segmentations[strategy][self.steps[1]][reg_step] = {}
+                if pfile:
+                    pfiles2[reg_step] = pfile
+
             rois = []
             for roi_name in self.roi_names:
                 im1, im2 = match_images(
@@ -355,7 +369,7 @@ class SingleAtlasSegmentation(Data):
                         roi_names={roi_name: self.roi_names[roi_name]},
                         im2_crop_focus=roi_name,
                         im2_crop_margins=self.roi_crop_margins.get(
-                            roi_name, self.default_crop_margins),
+                            roi_name, self.default_roi_crop_margins),
                         alignment=(roi_name if self.crop_to_match_size2
                                    else False),
                         voxel_size=self.voxel_size2,
@@ -368,7 +382,7 @@ class SingleAtlasSegmentation(Data):
                             self.workdir / f"{strategy}2" / roi_name,
                             fixed=fixed,
                             moving=moving,
-                            pfiles=self.pfiles2,
+                            pfiles=self.roi_pfiles.get(roi_name, pfiles2),
                             initial_alignment=roi_name,
                             initial_transform_name=self.initial_transform_name,
                             capture_output=self.capture_output,
@@ -381,13 +395,17 @@ class SingleAtlasSegmentation(Data):
                 self.segment_roi(im2.structure_sets[0][roi_name],
                         strategy, self.steps[1], self.most_points2)
 
-            for reg_step in self.segmentations[strategy][self.steps[1]]:
-                self.segmentations[strategy][self.steps[1]][reg_step].\
-                        set_image(self.im1, add_to_image=False)
+            for reg_step in list(self.segmentations[strategy][self.steps[1]]):
+                if self.segmentations[strategy][self.steps[1]][reg_step]:
+                    self.segmentations[strategy][self.steps[1]][reg_step].\
+                            set_image(self.im1, add_to_image=False)
+                else:
+                    del self.segmentations[strategy][self.steps[1]][reg_step]
 
     def segment_roi(self, roi, strategy, step, most_points=True):
         for reg_step in self.registrations[strategy][step][roi.name].steps:
-            if not reg_step in self.segmentations[strategy][step]:
+            if (not reg_step in self.segmentations[strategy][step]
+                or not self.segmentations[strategy][step][reg_step]):
                 self.segmentations[strategy][step][reg_step] = StructureSet(
                         name=f"{strategy}_{step}_{reg_step}")
             self.segmentations[strategy][step][reg_step].add_roi(
@@ -485,6 +503,9 @@ class SingleAtlasSegmentation(Data):
                     df_tmp = ss1.get_comparison(ss2,
                             metrics=metrics, slice_stats=slice_stats,
                             default_by_slice=default_by_slice, **kwargs)
+
+                    if df_tmp is None:
+                        continue
 
                     for label, value in [
                             ("id1", id1), ("id2", id2), ("strategy", strategy),
