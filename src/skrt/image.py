@@ -3763,11 +3763,11 @@ class Image(skrt.core.Archive):
             skrt.image.get_alignment_translation().
         """
         # Calculate any translation to be applied prior to cropping.
-        translation = np.array(
-                self.get_alignment_translation(image, alignment))
+        translation = self.get_alignment_translation(image, alignment)
 
         # Apply translation to image origin.
         if translation is not None:
+            translation = np.array(translation)
             self.translate_origin(translation)
 
         # Perform cropping.
@@ -5711,8 +5711,6 @@ def get_alignment_translation(im1, im2, alignment=None):
 
     # Parse alignment string.
     alignments = get_alignment_strategy(alignment)
-    if not alignments:
-        return
 
     # Define translation for image-based alignment.
     if isinstance(alignments, dict):
@@ -5722,7 +5720,11 @@ def get_alignment_translation(im1, im2, alignment=None):
                 affine=im1.get_standardised_affine()),
             Image(im2.get_standardised_data(),
                 affine=im2.get_standardised_affine()),
-            **alignments)
+            alignments)
+
+    # Return None for null alignment.
+    if not alignments:
+        return
 
     # Define translation for roi-based alignment.
     return get_translation_to_align_image_rois(
@@ -5737,20 +5739,19 @@ def get_alignment_strategy(alignment=None):
         Strategy to be used for image alignment.  For defailts,
         see documentation of skrt.image.get_alignment_translation().
     """
-    # If null alignment passed, return None.
-    if not alignment:
-        return
-
     # If alignment passed as a dictionary, return this.
     if isinstance(alignment, dict):
         return alignment
+
+    # Return None for null alignment.
+    if not alignment:
+        return
 
     # If alignment passed as a position string,
     # create alignment dictionary based on this.
     image_alignments = ["_bottom_", "_centre_", "_top_"]
     if alignment in image_alignments:
-        return {"alignments": {"x": 2, "y": 2, "z":
-            1 + image_alignments.index(alignment)}}
+        return {"x": 2, "y": 2, "z": 1 + image_alignments.index(alignment)}
 
     # Alignment passed as name only for a single ROI.
     roi_alignments = None
@@ -5885,7 +5886,7 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
     # Crop im2 to region around focus.
     if ss2 is not None and im2_crop_focus in ss2.get_roi_names():
         im2.crop_to_roi(ss2[im2_crop_focus], im2_crop_margins)
-    elif (skrt.core.is_list(im2_crop_focus) or im2_crop_focus is None
+    elif ((skrt.core.is_list(im2_crop_focus) or im2_crop_focus is None)
           and skrt.core.is_list(im2_crop_margins)):
         im2.crop_about_point(im2_crop_focus, *im2_crop_margins)
 

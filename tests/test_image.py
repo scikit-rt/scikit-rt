@@ -14,8 +14,9 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import File, fullpath
-from skrt.image import (Image, get_mask_bbox, get_translation_to_align,
-        match_image_voxel_sizes, checked_crop_limits)
+from skrt.image import (Image, get_alignment_translation, get_mask_bbox,
+                        get_translation_to_align, match_images,
+                        match_image_voxel_sizes, checked_crop_limits)
 from skrt.simulation import SyntheticImage
 
 try:
@@ -392,6 +393,27 @@ def test_resize_and_match_size():
         image_diff = np.absolute(image1.data - image2.data)
         assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
                 0.5 * image_diff.size, rel=0.02)
+
+def test_match_images():
+    """Minimal test of image matching."""
+    # Define image shapes.
+    shape1 = [40, 40, 20]
+    shape2 = [10, 10, 55]
+
+    # Create test images.
+    im1 = SyntheticImage(shape1).get_image()
+    im2 = SyntheticImage(shape2).get_image()
+
+    # Check that image sizes are unchanged for alignment set to False.
+    im1a, im2a = match_images(im1, im2, alignment=False)
+    assert im1a.get_size() == im1.get_size()
+    assert im2a.get_size() == im2.get_size()
+
+    # Check that image sizes are mached for alignment not set to False
+    alignments = [None, "_centre_", "_top_", "_bottom_"]
+    for alignment in alignments:
+        im1a, im2a = match_images(im1, im2, alignment=alignment)
+        assert im1a.get_size() == im2a.get_size()
 
 def test_match_image_voxel_sizes():
     """Test resampling images to match voxel sizes."""
@@ -964,6 +986,35 @@ def test_translation_to_align():
         # Perform alignment based on dictionary of alignment types.
         assert translation == get_translation_to_align(
                 sims[0], sims[1], alignments, None, intensity - 5)
+
+def test_get_alignment_translation():
+    """Test calculations of alignment translations."""
+    # Create test images.
+    im1 = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5)).get_image()
+    im2 = SyntheticImage((12, 14, 12), origin=(5.5, 5.5, 5.5)).get_image()
+
+    # Translations for centre alignment.
+    dx_centre, dy_centre, dz_centre = im2.get_centre() - im1.get_centre()
+    # Translation along z for top alignment.
+    dz_top = im2.get_extents()[2][1] - im1.get_extents()[2][1]
+    # Translation along z for bottom alignment.
+    dz_bottom = im2.get_extents()[2][0] - im1.get_extents()[2][0]
+
+    # Define alignments to test, and expected translations.
+    alignments = [
+            (None, None),
+            ({}, (dx_centre, dy_centre, dz_centre)),
+            ((dx_centre, dy_centre, dz_top), (dx_centre, dy_centre, dz_top)),
+            ({"x": 2, "y": 2, "z": 2} , (dx_centre, dy_centre, dz_centre)),
+            ({"z": 3} , (dx_centre, dy_centre, dz_top)),
+            ({"z": 1} , (dx_centre, dy_centre, dz_bottom)),
+            ("_centre_" , (dx_centre, dy_centre, dz_centre)),
+            ("_top_" , (dx_centre, dy_centre, dz_top)),
+            ("_bottom_" , (dx_centre, dy_centre, dz_bottom)),
+            ]
+
+    for alignment, translation in alignments:
+        assert get_alignment_translation(im1, im2, alignment) == translation
 
 def test_same_geometry():
     # Test identification of geometry differences

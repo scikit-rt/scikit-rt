@@ -424,7 +424,6 @@ def test_translation_tfile_with_image():
     assert parameters["Spacing"] == voxel_size
     assert parameters["Direction"] == directions
 
-@needs_mahotas
 def test_initial_alignment_from_string():
     """Test initial alignment defined by string."""
 
@@ -458,48 +457,42 @@ def test_initial_alignment_from_string():
         parameters = read_parameters(reg.tfiles["initial_alignment"])
         assert parameters["TransformParameters"] == translation
 
-@needs_mahotas
 def test_initial_alignment_from_dict():
-    """Test initial alignment defined by string."""
+    """Test initial alignment defined by dictionary."""
 
-    # Create synthetic images featuring a sphere.
+    # Create synthetic (blank) images.
     shapes = [(100, 100, 40), (80, 80, 50)]
     origins = [(-50, 40, -20), (0, -10, 30)]
-    centres = [(30, 80, 0), (60, 40, 50)]
-    radii = (10, 15)
-    intensity=50
-    sims = []
-    for idx in range(len(shapes)):
-        sims.append(SyntheticImage(shapes[idx], origin=origins[idx]))
-        sims[idx].add_sphere(radius=radii[idx], name="sphere",
-                centre=centres[idx], intensity=intensity)
+    sims = [SyntheticImage(shapes[idx], origin=origins[idx]) for idx in [0, 1]]
 
-    # Define expected translations for foreground alignment:
-    # (1) upper coordinates; (2) centre coordinates; (3) lower coordinates.
-    translations = {
-            1 : [centres[1][idx] - radii[1] - centres[0][idx] + radii[0]
-                for idx in range(3)],
-            2 : [centres[1][idx] - centres[0][idx] for idx in range(3)],
-            3 : [centres[1][idx] + radii[1] - centres[0][idx] - radii[0]
-                for idx in range(3)],
-            }
+    # Define expected translations, for initial alignment from dictionary:
+    # 1 : align on lowest coordinate;
+    # 2 : align on centre coordinate;
+    # 3 : align on highest coordinate.
+    translations = [
+            ({"x": 1, "y": 1, "z":1},
+             [origins[1][idx] - origins[0][idx] for idx in range(3)]),
+            ({"x": 2, "y": 2, "z":2},
+             list(sims[1].get_centre() - sims[0].get_centre())),
+            ({"x": 3, "y": 3, "z":3},
+             [origins[1][idx] + shapes[1][idx]
+              - origins[0][idx] - shapes[0][idx] for idx in range(3)]),
+            ]
 
     # Check translations for initial alignment.
-    for alignment, translation in translations.items():
+    for alignment, translation in translations:
         reg2_dir = "tmp/reg2"
         if Path(reg2_dir).exists():
             shutil.rmtree(reg2_dir)
-        alignments = {axis: alignment for axis in ("x", "y", "z")}
-        initial_alignment = {"alignments": alignments, "threshold": intensity-5}
-        reg = Registration(reg2_dir, fixed=sims[0].get_image(), moving=sims[1].get_image(),
-                initial_alignment=initial_alignment)
+        reg = Registration(reg2_dir, fixed=sims[0], moving=sims[1],
+                initial_alignment=alignment)
         assert len(reg.tfiles) == 1
         assert(Path(reg.tfiles["initial_alignment"]).exists())
         parameters = read_parameters(reg.tfiles["initial_alignment"])
         assert parameters["TransformParameters"] == translation
 
 def test_initial_alignment_using_rois():
-    """Test initial alignment defined by string."""
+    """Test initial alignment defined by ROIs."""
 
     # Create synthetic images featuring a sphere.
     shapes = [(100, 100, 40), (80, 80, 50)]
