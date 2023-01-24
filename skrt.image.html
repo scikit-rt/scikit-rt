@@ -885,14 +885,16 @@ mm; needed to compute correct aspect ratio and plot extent.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_mutual_information">
-<span class="sig-name descname"><span class="pre">get_mutual_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_mutual_information" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate mutual information of this image and another image.</p>
+<span class="sig-name descname"><span class="pre">get_mutual_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_mutual_information" title="Permalink to this definition"></a></dt>
+<dd><p>For this and another image, calculate mutual information or a variant.</p>
 <p>The method used is based on:
 <a class="reference external" href="https://matthew-brett.github.io/teaching/mutual_information.html">https://matthew-brett.github.io/teaching/mutual_information.html</a>
 The two images considered must have the same shape.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which mutual information is calculated.</p>
+</dd>
+<dt>base<span class="classifier">int/None, default=2</span></dt><dd><p>Base to use when taking logarithms.  If None, use base e.</p>
 </dd>
 <dt>bins<span class="classifier">int/list, default=50</span></dt><dd><p>Numbers of bins to use when histogramming grey-level joint
 probabilities for self and image.  This is passed as
@@ -904,7 +906,21 @@ joint probabilities for self and image.  This is passed as
 the range parameter of numpy.histogram2d:
 <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html">https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html</a></p>
 </dd>
-<dt>base<span class="classifier">int/None, default=2</span></dt><dd><p>Base to use when taking logarithms.  If None, use base e.</p>
+<dt>variant<span class="classifier">str, default=None</span></dt><dd><p>Variant of mutual information to be returned.</p>
+<ul class="simple">
+<li><p>“nmi”, “normalised_mutual_information”:
+return normalised mutual information (range 1 to 2) as defined in:
+<a class="reference external" href="https://doi.org/10.1117/12.310835">https://doi.org/10.1117/12.310835</a></p></li>
+<li><p>“iqr”, “information_quality_ratio”:
+return information quality ratio (range 0 to 1) as defined in:
+<a class="reference external" href="https://doi.org/10.1016/j.chemolab.2016.11.012">https://doi.org/10.1016/j.chemolab.2016.11.012</a>
+=&gt; information_quality_ratio = normalised_mutual_information - 1</p></li>
+<li><p>“rajski”, “rajski_distance”:
+return Rajski distance (range 1 to 0) as defined in:
+<a class="reference external" href="https://doi.org/10.1016/S0019-9958(61)80055-7">https://doi.org/10.1016/S0019-9958(61)80055-7</a>
+=&gt; rajski_distance = 2 - normalised_mutual_information</p></li>
+<li><p>Any other value, return mutual information.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -2369,6 +2385,21 @@ elements.  No cropping is performed for a crop amount set to None.</p>
 <dt class="sig sig-object py" id="skrt.image.downsample">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">downsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.downsample" title="Permalink to this definition"></a></dt>
 <dd><p>Downsample an array by the factors specified in &lt;dx&gt;, &lt;dy&gt;, and &lt;dz&gt;.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.entropy">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.entropy" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate entropy for variable(s) from probability distribution.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>p<span class="classifier">numpy.array</span></dt><dd><p>One-dimensional numpy array representing the probabilities of
+different values of a random variable, or the joint probabilities
+of different combinations ov values of a set of random variables.</p>
+</dd>
+<dt>base<span class="classifier">int/None, default=2</span></dt><dd><p>Base to use when taking logarithms.  If None, use base e.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
