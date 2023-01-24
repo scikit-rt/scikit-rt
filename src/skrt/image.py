@@ -4067,7 +4067,7 @@ class Image(skrt.core.Archive):
 
         return masked_image
 
-    def get_mutual_information(self, image, bins=50, xyrange=None):
+    def get_mutual_information(self, image, bins=100, xyrange=None, base=2):
         """
         Calculate mutual information of this image and another image.
 
@@ -4091,7 +4091,13 @@ class Image(skrt.core.Archive):
             joint probabilities for self and image.  This is passed as
             the range parameter of numpy.histogram2d:
             https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+        base : int/None, default=2
+            Base to use when taking logarithms.  If None, use base e.
         """
+        # Check base for taking logarithms.
+        if base is None:
+            base = math.e
+
         # Create 2d histogram of voxel-by-voxel grey-level values,
         # comparing images.
         hist2d, xedges, yedges = np.histogram2d(
@@ -4108,8 +4114,8 @@ class Image(skrt.core.Archive):
         # Calculate and return mutual information.
         px_py = px[:, None] * py[None, :]
         non_zero = pxy > 0
-        return np.sum(pxy[non_zero] * np.log(pxy[non_zero] / px_py[non_zero]))
-
+        return np.sum(pxy[non_zero] * (np.log(pxy[non_zero] / px_py[non_zero])
+                                       / np.log(base)))
 
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""

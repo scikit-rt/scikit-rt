@@ -1368,4 +1368,6 @@ def test_get_mutual_information():
     im1 = Image(np.array([[1, 2],[3, 4]]))
     im2 = Image(np.array([[5, 6],[7, 8]]))
     # MI = 4 * [(1/4) * log((1/4)/(1/16))] = log(4)
-    assert im1.get_mutual_information(im2) == math.log(4)
+    for base in [None, 2, 10]:
+        assert (im1.get_mutual_information(im2, base=base)
+                == math.log(4, (base or math.e)))
