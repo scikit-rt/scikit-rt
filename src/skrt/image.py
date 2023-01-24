@@ -4067,9 +4067,10 @@ class Image(skrt.core.Archive):
 
         return masked_image
 
-    def get_mutual_information(self, image, bins=100, xyrange=None, base=2):
+    def get_mutual_information(self, image, base=2, bins=100, xyrange=None,
+                               variant=None):
         """
-        Calculate mutual information of this image and another image.
+        For this and another image, calculate mutual information or a variant.
 
         The method used is based on:
         https://matthew-brett.github.io/teaching/mutual_information.html
@@ -4079,6 +4080,9 @@ class Image(skrt.core.Archive):
 
         image : skrt.image.Image
             Image with respect to which mutual information is calculated.
+
+        base : int/None, default=2
+            Base to use when taking logarithms.  If None, use base e.
 
         bins : int/list, default=50
             Numbers of bins to use when histogramming grey-level joint
@@ -4091,8 +4095,25 @@ class Image(skrt.core.Archive):
             joint probabilities for self and image.  This is passed as
             the range parameter of numpy.histogram2d:
             https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
-        base : int/None, default=2
-            Base to use when taking logarithms.  If None, use base e.
+
+        variant : str, default=None
+            Variant of mutual information to be returned.
+
+            - "nmi", "normalised_mutual_information":
+              return normalised mutual information (range 1 to 2) as defined in:
+              https://doi.org/10.1117/12.310835
+
+            - "iqr", "information_quality_ratio":
+              return information quality ratio (range 0 to 1) as defined in:
+              https://doi.org/10.1016/j.chemolab.2016.11.012
+              => information_quality_ratio = normalised_mutual_information - 1
+
+            - "rajski", "rajski_distance":
+              return Rajski distance (range 1 to 0) as defined in:
+              https://doi.org/10.1016/S0019-9958(61)80055-7
+              => rajski_distance = 2 - normalised_mutual_information
+
+            - Any other value, return mutual information.
         """
         # Check base for taking logarithms.
         if base is None:
@@ -4111,11 +4132,22 @@ class Image(skrt.core.Archive):
         px = np.sum(pxy, axis=1)
         py = np.sum(pxy, axis=0)
 
-        # Calculate and return mutual information.
-        px_py = px[:, None] * py[None, :]
-        non_zero = pxy > 0
-        return np.sum(pxy[non_zero] * (np.log(pxy[non_zero] / px_py[non_zero])
-                                       / np.log(base)))
+        # Calculate entropies.
+        small_number = 1.e-6
+        hx = entropy(px, base)
+        hy = entropy(py, base)
+        hxy = entropy(np.reshape(pxy, -1), base)
+
+        mi = hx + hy - hxy
+        # Return mutual information or a variant.
+        if variant in ["nmi", "normalised_mutual_information"]:
+            return 1 + mi / (hxy or small_number)
+        elif variant in ["iqr", "information_quality_ratio"]:
+            return mi / (hxy or small_number)
+        if variant in ["rajski", "rajski_distance"]:
+            return 1 - mi / (hxy or small_number)
+
+        return mi
 
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
@@ -6082,3 +6114,22 @@ def checked_crop_limits(crop_limits=None):
         crop_limits_checked = (None, None, None)
 
     return crop_limits_checked
+
+def entropy(p, base=2):
+    """
+    Calculate entropy for variable(s) from probability distribution.
+
+    **Parameters:**
+
+    p : numpy.array
+        One-dimensional numpy array representing the probabilities of
+        different values of a random variable, or the joint probabilities
+        of different combinations ov values of a set of random variables.
+
+    base : int/None, default=2
+        Base to use when taking logarithms.  If None, use base e.
+    """
+    if base is None:
+        base = math.e
+    p_non_zero = (p > 0)
+    return -np.sum(p[p_non_zero] * np.log(p[p_non_zero])) /np.log(base)

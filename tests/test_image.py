@@ -1357,19 +1357,29 @@ def test_checked_crop_limits():
         assert checked_crop_limits(in_value) == out_value
 
 def test_get_mutual_information():
-    """Test calculation of mutual information."""
+    """Test calculation of mutual information and variants."""
 
     small_number = 1.e-6
 
     # Check mutual information for some simple cases.
     im1 = Image(np.array([[1, 1],[1, 1]]))
-    im2 = Image(np.array([[2, 2],[2, 2]]))
-    # MI = [(1) * log((1)/(1))] = 0
-    assert im1.get_mutual_information(im2) == 0
+    im2 = Image(np.array([[1, 2],[3, 4]]))
+    # Intensities of image 1 give no information on intensities of image 2:
+    # MI = [(1) * log((1)/(1))] = 0; NMI = 1; IQR = 0; RD = 1..
+    variants = [("mi", 0), ("nmi", 1), ("iqr", 0), ("rajski", 1)]
+    for variant, value in variants:
+        for base in [None, 2, 10]:
+            assert (im1.get_mutual_information(im2, base=base, variant=variant)
+                    == value)
 
     im1 = Image(np.array([[1, 2],[3, 4]]))
     im2 = Image(np.array([[5, 6],[7, 8]]))
-    # MI = 4 * [(1/4) * log((1/4)/(1/16))] = log(4)
-    for base in [None, 2, 10]:
-        assert (im1.get_mutual_information(im2, base=base)
-                == pytest.approx(math.log(4, (base or math.e)), small_number))
+    # Intensities of image 1 linearly related to intensities of image 2:
+    # MI = 4 * [(1/4) * log((1/4)/(1/16))] = log(4); NMI = 2; IQR = 1; RD = 0.
+    variants = [("mi", None), ("nmi", 2), ("iqr", 1), ("rajski", 0)]
+    for variant, value in variants:
+        for base in [None, 2, 10]:
+            test_value = value if value is not None else pytest.approx(
+                    math.log(4, (base or math.e)), small_number)
+            assert (im1.get_mutual_information(im2, base=base, variant=variant)
+                    == test_value)
