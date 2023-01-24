@@ -1359,6 +1359,8 @@ def test_checked_crop_limits():
 def test_get_mutual_information():
     """Test calculation of mutual information."""
 
+    small_number = 1.e-6
+
     # Check mutual information for some simple cases.
     im1 = Image(np.array([[1, 1],[1, 1]]))
     im2 = Image(np.array([[2, 2],[2, 2]]))
@@ -1370,4 +1372,4 @@ def test_get_mutual_information():
     # MI = 4 * [(1/4) * log((1/4)/(1/16))] = log(4)
     for base in [None, 2, 10]:
         assert (im1.get_mutual_information(im2, base=base)
-                == math.log(4, (base or math.e)))
+                == pytest.approx(math.log(4, (base or math.e)), small_number))
