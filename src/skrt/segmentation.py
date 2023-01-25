@@ -16,8 +16,9 @@ from skrt.registration import Registration
 class MultiAtlasSegmentation(Data):
     def __init__(
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
-        workdir="segmentation_workdir", overwrite=False, auto=False,
-        auto_step=-1, strategy="pull", roi_names=None,
+        workdir="segmentation_workdir", overwrite=False,
+        auto=False, auto_step=None, auto_strategies=None,
+        default_step=-1, default_strategy="pull", roi_names=None,
         consensus_types=["majority"], max_workers=1, **kwargs):
 
         # Set images and associated structure sets.
@@ -45,20 +46,21 @@ class MultiAtlasSegmentation(Data):
         self.strategies = get_contour_propagation_strategies()
         self.steps = get_segmentation_steps()
 
-        # Set parameters for automatic segmentation.
         # Note that these values are passed to the SingleAtlasSegmentation
         # constructor, and automatic segmenation should always be enabled.
         self.auto = True
-        self.auto_step = auto_step
 
-        # Set default contour-propagation strategy.
-        self.strategy = get_option(strategy, None, self.strategies)
-
-        # Set names of ROIs to be segmented.
+        # Set step and strategies for automatic segmenation,
+        # default step and strategy, and names or ROIs to be segmented.
+        self.auto_step = get_option(auto_step, default_step, self.steps)
+        self.default_step = get_option(default_step, self.auto_step, self.steps)
+        self.auto_strategies = get_options(
+                auto_strategies, default_strategy, self.strategies)
+        self.default_strategy = default_strategy or self.auto_strategies[-1]
         self.roi_names = roi_names
 
         # Set default method(s) for defining consensus contours.
-        self.consensus_types = get_sas_consensus_types(consensus_types)
+        self.consensus_types = get_mas_consensus_types(consensus_types)
 
         # Set maximum number of processes when multiprocessing.
         self.max_workers = max_workers
@@ -73,16 +75,18 @@ class MultiAtlasSegmentation(Data):
 
         # Perform segmentation.
         if auto:
-            self.segment(strategy=self.strategy, step=self.auto_step)
+            for auto_strategy in self.auto_strategies:
+                self.segment(strategy=auto_strategy, step=self.auto_step)
 
     def segment(self, atlas_ids=None, strategy=None, step=None,
             consensus_types=None, force=False):
         atlas_ids = atlas_ids or self.sass.keys()
-        strategy = get_option(strategy, self.strategy, self.strategies)
+        strategy = get_option(strategy, self.default_strategy, self.strategies)
         steps = get_steps(step)
 
         active_ids = []
         sas_args = {}
+        sas_auto = True
         for idx in atlas_ids:
             if ((self.sass[idx] is None) or (force) or
                     any([self.sass[idx].segmentations[strategy][step] is None
@@ -90,7 +94,8 @@ class MultiAtlasSegmentation(Data):
                 active_ids.append(idx)
                 args = (self.im1, self.im2[idx], self.ss1, self.ss2[idx],
                         self.log_level, self.workdir / str(idx), self.overwrite,
-                        self.auto, self.auto_step, self.strategy,
+                        sas_auto, self.auto_step, self.auto_strategies,
+                        self.default_step, self.default_strategy,
                         self.roi_names,)
                 if self.max_workers == 1:
                     tic()
@@ -106,7 +111,7 @@ class MultiAtlasSegmentation(Data):
         # can give some speed increase compared to using a single thread.
         # The ThreadPoolExecutor can be replaced by ProcessPoolExecutor
         # (import needed, and environment for running registration
-        # executables must be set up for each process.  In practice
+        # executables must be set up for each process).  In practice
         # this tends to be slower than single-thread execution, possibly
         # because of the time taken in transferring data to and from
         # the child processes.
@@ -136,7 +141,7 @@ class MultiAtlasSegmentation(Data):
 
     def get_consensus(self, strategy=None, step=None, reg_step=None,
             consensus_type=None, force=False):
-        strategy = get_option(strategy, self.strategy, self.strategies)
+        strategy = get_option(strategy, self.default_strategy, self.strategies)
         step = get_option(step, self.auto_step, self.steps)
         if not consensus_type:
             consensus_type = (self.consensus_types[0] if self.consensus_types
@@ -172,7 +177,7 @@ class MultiAtlasSegmentation(Data):
         if isinstance(consensus_types, str):
             consensus_types = [consensus_types]
 
-        strategy = get_option(strategy, self.strategy, self.strategies)
+        strategy = get_option(strategy, self.default_strategy, self.strategies)
         step = get_option(step, self.auto_step, self.steps)
         reg_steps = list(self.get_sas().segmentations[strategy][step])
         reg_step = get_option(reg_step, None, reg_steps)
@@ -206,7 +211,8 @@ class SingleAtlasSegmentation(Data):
     def __init__(
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
-        auto=False, auto_step=-1, strategy="pull", roi_names=None,
+        auto=False, auto_step=None, auto_strategies=None,
+        default_step=-1, default_strategy="pull", roi_names=None,
         ss1_index=-1, ss2_index=-1, ss1_name="Filtered1", ss2_name="Filtered2",
         initial_crop_focus=None, initial_crop_margins=None,
         initial_alignment=None, initial_transform_name=None,
@@ -238,14 +244,18 @@ class SingleAtlasSegmentation(Data):
         if overwrite and self.workdir.exists():
             rmtree(self.workdir)
 
-        # Define contour-propagation strategies and segmentation steps.
+        # Define recognised contour-propagation strategies
+        # and segmentation steps.
         self.strategies = get_contour_propagation_strategies()
         self.steps = get_segmentation_steps()
 
-        # Set step for automatic segmenation, default contour-propagation
-        # strategy, and names or ROIs to be segmented.
-        self.auto_step = auto_step
-        self.strategy = get_option(strategy, None, self.strategies)
+        # Set step and strategies for automatic segmenation,
+        # default step and strategy, and names or ROIs to be segmented.
+        self.auto_step = get_option(auto_step, default_step, self.steps)
+        self.default_step = get_option(default_step, self.auto_step, self.steps)
+        self.auto_strategies = get_options(
+                auto_strategies, default_strategy, self.strategies)
+        self.default_strategy = default_strategy or self.auto_strategies[-1]
         self.roi_names = roi_names
 
         # Set parameters for step-1 registration.
@@ -291,10 +301,11 @@ class SingleAtlasSegmentation(Data):
 
         # Perform segmentation.
         if auto:
-            self.segment(self.strategy, self.auto_step)
+            for auto_strategy in self.auto_strategies:
+                self.segment(auto_strategy, self.auto_step)
 
     def segment(self, strategy=None, step=None, force=False):
-        strategy = get_option(strategy, self.strategy, self.strategies)
+        strategy = get_option(strategy, self.default_strategy, self.strategies)
         steps = get_steps(step)
 
         if force:
@@ -439,8 +450,8 @@ class SingleAtlasSegmentation(Data):
 
     def get_registration(self, strategy=None, step=None, roi_name=None,
             force=False):
-        strategy = get_option(strategy, self.strategy, self.strategies)
-        step = get_option(step, self.auto_step, self.steps)
+        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        step = get_option(step, self.default_step, self.steps)
         self.segment(strategy, step, force)
 
         if "local" == step:
@@ -453,8 +464,8 @@ class SingleAtlasSegmentation(Data):
 
     def get_segmentation(self, strategy=None, step=None, reg_step=None,
             force=False):
-        strategy = get_option(strategy, self.strategy, self.strategies)
-        step = get_option(step, self.auto_step, self.steps)
+        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        step = get_option(step, self.default_step, self.steps)
         self.segment(strategy, step, force)
         reg_steps = list(self.segmentations[strategy][step])
         reg_step = get_option(reg_step, None, reg_steps)
@@ -462,7 +473,7 @@ class SingleAtlasSegmentation(Data):
 
     def get_comparison_steps(self, steps):
         if steps is None:
-            steps = [self.auto_step]
+            steps = [self.default_step]
         elif isinstance(steps, int):
             steps = [steps]
         else:
@@ -477,9 +488,9 @@ class SingleAtlasSegmentation(Data):
             slice_stats=None, default_by_slice=None, **kwargs):
 
         strategies = self.strategies if strategies is True else get_options(
-                strategies, self.strategy, self.strategies)
+                strategies, self.default_strategy, self.strategies)
         steps = self.steps if steps is True else get_options(
-                steps, self.auto_step, self.steps)
+                steps, self.default_step, self.steps)
         metrics = get_options(metrics, self.metrics, get_comparison_metrics())
         slice_stats = get_options(slice_stats, self.slice_stats,
                                   get_stat_functions())
@@ -540,25 +551,27 @@ def get_options(opts=None, fallback_opts=None, allowed_opts=None):
     if not is_list(allowed_opts) or not len(allowed_opts):
         raise RuntimeError("No allowed options specified")
 
-    if opts is None:
-        return [allowed_opts[-1]]
-    if isinstance(opts, int):
-        return [allowed_opts[opts]]
+    if opts is True:
+        return allowed_opts
+    elif opts is False:
+        return []
     elif opts in allowed_opts:
         return [opts]
+    elif isinstance(opts, int):
+        return [allowed_opts[opts]]
 
     options = []
     if is_list(opts):
         for opt in opts:
-            new_opts = get_options(opt, None, allowed_opts)
+            new_opts = get_options(opt, False, allowed_opts)
             for new_opt in new_opts:
                 if new_opt not in options:
                     options.append(new_opt)
 
-    if not options:
+    if not options and fallback_opts is not None:
         options = get_options(fallback_opts, None, allowed_opts)
 
-    return options
+    return options or [allowed_opts[-1]]
 
 def get_fixed_and_moving(im1, im2, strategy):
     return (im1, im2) if ("pull" == strategy) else (im2, im1)
@@ -615,7 +628,7 @@ def get_steps(step):
 
     return steps
 
-def get_sas_consensus_types(consensus_types):
+def get_mas_consensus_types(consensus_types):
     # Check consensus types.
     if consensus_types is None:
         return get_consensus_types()
