@@ -1560,10 +1560,10 @@ class Registration(Data):
         assert os.path.exists(output_file)
         return dtype(output_file, image=image, title=title)
 
-    def get_mutual_information(self, step=-1, force=False,
-                               bins=100, xyrange=None):
+    def get_mutual_information(self, step=-1, force=False, **kwargs):
         """
-        Get mutual information of fixed image and transformed moving image,
+        For fixed image and transformed moving image after step,
+        calculate mutual information or a variant.
         after step.
 
         **Parameters:**
@@ -1575,20 +1575,13 @@ class Registration(Data):
             If True, transformation of the moving image will be
             performed, even if the image was transformed previously.
 
-        bins : int/list, default=50
-            Numbers of bins to use when histogramming grey-level joint
-            probabilities for fixed image and transformed moving image.  This
-            is passed as the bins parameter of numpy.histogram2d:
-            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
-
-        xyrange : list, default=None
-            Upper and lower limits of each axis when histogramming grey-level
-            joint probabilities for fixed image and transformed moving image.
-            This is passed as the range parameter of numpy.histogram2d:
-            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_mutual_information()
+            See this method's documentation for options.
         """
         return self.fixed_image.get_mutual_information(
-                self.get_transformed_image(step, force), bins, xyrange)
+                self.get_transformed_image(step, force), **kwargs)
 
 class Grid(ImageOverlay):
 
