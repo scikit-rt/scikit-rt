@@ -4072,8 +4072,6 @@ class Image(skrt.core.Archive):
         """
         For this and another image, calculate mutual information or a variant.
 
-        The method used is based on:
-        https://matthew-brett.github.io/teaching/mutual_information.html
         The two images considered must have the same shape.
 
         **Parameters:**
