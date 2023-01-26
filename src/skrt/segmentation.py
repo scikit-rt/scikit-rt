@@ -276,6 +276,8 @@ class SingleAtlasSegmentation(Data):
         self.voxel_size2 = voxel_size2
         self.bands2 = bands2
         self.pfiles2 = pfiles2 or pfiles1
+        self.pfiles2_non_null = {reg_step: pfile for reg_step, pfile
+                                 in (self.pfiles2 or {}).items() if pfile}
         self.roi_pfiles = roi_pfiles or {}
         self.most_points2 = most_points2
 
@@ -467,9 +469,42 @@ class SingleAtlasSegmentation(Data):
         strategy = get_option(strategy, self.default_strategy, self.strategies)
         step = get_option(step, self.default_step, self.steps)
         self.segment(strategy, step, force)
-        reg_steps = list(self.segmentations[strategy][step])
-        reg_step = get_option(reg_step, None, reg_steps)
-        return self.segmentations[strategy][step][reg_step]
+        segmentations = self.segmentations[strategy][step]
+        reg_steps = list(segmentations)
+
+        if is_list(reg_step):
+            assert 1 == len(reg_step)
+            reg_step = {roi_name: reg_step[0] for roi_name in self.roi_names}
+
+        if isinstance(reg_step, dict):
+            reg_step2 = {}
+            for roi_name, roi_reg_step in reg_step.items():
+                if self.steps[1] == step:
+                    if roi_name in self.roi_pfiles:
+                        roi_reg_steps = list(self.roi_pfiles[roi_name])
+                    else:
+                        roi_reg_steps = list(self.pfiles2_non_null)
+                else:
+                    roi_reg_steps = reg_steps
+                roi_reg_step2 = get_options(roi_reg_step, False, roi_reg_steps)
+                assert 1 == len(roi_reg_step2)
+                reg_step2[roi_name] = roi_reg_step2[0]
+
+            reg_step2_values = list(set(reg_step2.values()))
+            if 1 != len(reg_step2_values):
+                ss_merge = StructureSet(name=f"{strategy}_{step}")
+                for roi_name, roi_reg_step in reg_step2.items():
+                    roi = segmentations[roi_reg_step][roi_name].clone()
+                    roi.name = f"{roi_reg_step}_{roi.name}"
+                    ss_merge.add_roi(roi)
+                ss_merge.set_image(self.im1, add_to_image=False)
+                return ss_merge
+            else:
+                reg_step = reg_step2_values[0]
+
+        if isinstance(reg_step, int) or isinstance(reg_step, str):
+            reg_step = get_option(reg_step, None, reg_steps)
+            return segmentations[reg_step]
 
     def get_comparison_steps(self, steps):
         if steps is None:
@@ -543,6 +578,8 @@ def get_option(opt=None, fallback_opt=None, allowed_opts=None):
             return option
         if isinstance(option, int):
             return allowed_opts[option]
+        if option is False:
+            return ""
 
     return allowed_opts[-1]
 
