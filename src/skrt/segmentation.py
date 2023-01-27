@@ -19,7 +19,9 @@ class MultiAtlasSegmentation(Data):
         workdir="segmentation_workdir", overwrite=False,
         auto=False, auto_step=None, auto_strategies=None,
         default_step=-1, default_strategy="pull", roi_names=None,
-        consensus_types=["majority"], max_workers=1, **kwargs):
+        metrics=None, slice_stats=None, default_by_slice=None,
+        consensus_types="majority", default_consensus_type="majority",
+        max_workers=1, **kwargs):
 
         # Set images and associated structure sets.
         self.im1 = ensure_image(im1)
@@ -59,8 +61,19 @@ class MultiAtlasSegmentation(Data):
         self.default_strategy = default_strategy or self.auto_strategies[-1]
         self.roi_names = roi_names
 
+        # Set parameters for post-segmentation ROI comparisons.
+        self.metrics = metrics
+        self.slice_stats = slice_stats
+        self.default_by_slice = (Defaults().by_slice
+                                 if default_by_slice is None
+                                 else default_by_slice)
+
         # Set default method(s) for defining consensus contours.
-        self.consensus_types = get_mas_consensus_types(consensus_types)
+        self.consensus_types = get_options(
+                consensus_types, True, get_consensus_types())
+        self.default_consensus_type = get_options(
+            default_consensus_type, self.consensus_types,
+            get_consensus_types())[-1]
 
         # Set maximum number of processes when multiprocessing.
         self.max_workers = max_workers
@@ -143,9 +156,7 @@ class MultiAtlasSegmentation(Data):
             consensus_type=None, force=False):
         strategy = get_option(strategy, self.default_strategy, self.strategies)
         step = get_option(step, self.auto_step, self.steps)
-        if not consensus_type:
-            consensus_type = (self.consensus_types[0] if self.consensus_types
-                    else get_consensus_types()[0])
+        consensus_type = consensus_type or self.default_consensus_type
         self.segment(None, strategy, step, consensus_type, force)
         reg_steps = list(self.get_sas().segmentations[strategy][step])
         reg_step = get_option(reg_step, None, reg_steps)
@@ -206,6 +217,75 @@ class MultiAtlasSegmentation(Data):
             ss_consensus.reset_contours(most_points=True)
             self.consensuses[strategy][step][reg_step][consensus_type] = (
                     ss_consensus)
+
+    def get_comparison(
+            self, consensus_types=None, atlas_ids=False,
+            id1=None, id2=None, to_keep=None, strategies=None,
+            steps=None, reg_steps=None, force=False, metrics=None,
+            slice_stats=None, default_by_slice=None, 
+            voxel_size=None, name_as_index=False, **kwargs):
+        consensus_types = get_options(
+                consensus_types, self.consensus_types, get_consensus_types())
+        n_consensus_type = len(consensus_types)
+        atlas_ids = get_options(atlas_ids, None, list(self.sass.keys()))
+
+        strategies = get_options(
+                strategies, self.default_strategy, self.strategies)
+        steps = get_options(
+                steps, self.default_step, self.steps)
+        metrics = get_options(metrics, self.metrics, get_comparison_metrics())
+        slice_stats = get_options(slice_stats, self.slice_stats,
+                                  get_stat_functions())
+        default_by_slice = get_option(default_by_slice, self.default_by_slice,
+                                      get_by_slice_methods())
+        
+        df = None
+        ss1 = self.get_sas().ss1_filtered.filtered_copy(to_keep=to_keep)
+        for idx, id2 in enumerate(consensus_types + atlas_ids):
+            for strategy in strategies:
+                for step in steps:
+                    if idx < n_consensus_type:
+                        self.segment(None, strategy, step, id2, force)
+                        all_reg_steps = list(self.consensuses[strategy][step])
+                    else:
+                        sas = self.get_sas(id2)
+                        sas.segment(strategy, step, force)
+                        all_reg_steps = list(sas.segmentations[strategy][step])
+
+                    step_reg_steps = get_options(reg_steps, None, all_reg_steps)
+                    for reg_step in step_reg_steps:
+                        if idx < n_consensus_type:
+                            ss2 = (self.get_consensus(
+                                strategy, step, reg_step, consensus_type=id2)\
+                                        .filtered_copy(to_keep=to_keep))
+                        else:
+                            ss2 = (sas.get_segmentation(
+                                strategy, step, reg_step)\
+                                        .filtered_copy(to_keep=to_keep))
+                        df_tmp = ss1.get_comparison(
+                                ss2, metrics=metrics, slice_stats=slice_stats,
+                                default_by_slice=default_by_slice,
+                                voxel_size=voxel_size,
+                                name_as_index=name_as_index,
+                                **kwargs)
+
+                        if df_tmp is None:
+                            continue
+
+                        for label, value in [
+                                ("id1", id1), ("id2", id2),
+                                ("strategy", strategy), ("step", step),
+                                ("reg_step", reg_step)]:
+                            if value is not None:
+                                df_tmp[label] = pd.Series(
+                                        df_tmp.shape[0] * [value])
+
+                        if df is None:
+                            df = df_tmp
+                        else:
+                            df = pd.concat([df, df_tmp], ignore_index=True)
+
+        return df
 
 class SingleAtlasSegmentation(Data):
     def __init__(
@@ -502,7 +582,7 @@ class SingleAtlasSegmentation(Data):
             else:
                 reg_step = reg_step2_values[0]
 
-        if isinstance(reg_step, int) or isinstance(reg_step, str):
+        if isinstance(reg_step, (int, str)) or reg_step is None:
             reg_step = get_option(reg_step, None, reg_steps)
             return segmentations[reg_step]
 
@@ -517,22 +597,21 @@ class SingleAtlasSegmentation(Data):
 
         return steps
 
-    def get_roi_comparisons(
+    def get_comparison(
             self, id1=None, id2=None, to_keep=None, strategies=None,
             steps=None, reg_steps=None, force=False, metrics=None,
-            slice_stats=None, default_by_slice=None, **kwargs):
+            slice_stats=None, default_by_slice=None, 
+            voxel_size=None, name_as_index=False, **kwargs):
 
-        strategies = self.strategies if strategies is True else get_options(
+        strategies = get_options(
                 strategies, self.default_strategy, self.strategies)
-        steps = self.steps if steps is True else get_options(
+        steps = get_options(
                 steps, self.default_step, self.steps)
         metrics = get_options(metrics, self.metrics, get_comparison_metrics())
         slice_stats = get_options(slice_stats, self.slice_stats,
                                   get_stat_functions())
         default_by_slice = get_option(default_by_slice, self.default_by_slice,
                                       get_by_slice_methods())
-        kwargs["name_as_index"] = False
-        kwargs["voxel_size"] = None
         
         df = None
         ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
@@ -540,15 +619,15 @@ class SingleAtlasSegmentation(Data):
             for step in steps:
                 self.segment(strategy, step, force)
                 all_reg_steps = list(self.segmentations[strategy][step])
-                step_reg_steps = (
-                        all_reg_steps if reg_steps is True
-                        else get_options(reg_steps, None, all_reg_steps))
+                step_reg_steps = get_options(reg_steps, None, all_reg_steps)
                 for reg_step in step_reg_steps:
                     ss2 = (self.get_segmentation(strategy, step, reg_step)
                            .filtered_copy(to_keep=to_keep))
-                    df_tmp = ss1.get_comparison(ss2,
-                            metrics=metrics, slice_stats=slice_stats,
-                            default_by_slice=default_by_slice, **kwargs)
+                    df_tmp = ss1.get_comparison(
+                            ss2, metrics=metrics, slice_stats=slice_stats,
+                            default_by_slice=default_by_slice,
+                            voxel_size=voxel_size, name_as_index=name_as_index,
+                            **kwargs)
 
                     if df_tmp is None:
                         continue
@@ -664,17 +743,6 @@ def get_steps(step):
         steps = all_steps[: steps_index + 1]
 
     return steps
-
-def get_mas_consensus_types(consensus_types):
-    # Check consensus types.
-    if consensus_types is None:
-        return get_consensus_types()
-    elif not consensus_types:
-        return []
-    elif isinstance(consensus_types, str):
-        return [consensus_types]
-
-    return consensus_types
 
 def get_structure_set_index(ss_index, im):
     if (ss_index < 0 and isinstance(im, Image)
