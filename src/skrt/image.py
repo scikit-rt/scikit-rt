@@ -849,12 +849,28 @@ class Image(skrt.core.Archive):
                 paths = self.dicom_paths
             else:
                 paths = self.source
-            self.data, affine, window_centre, window_width, ds, self._z_paths, \
-                    self._z_instance_numbers = load_dicom(paths)
-            self.source_type = "dicom"
-            if self.data is not None:
-                self.dicom_dataset = ds
-                self.affine = affine
+            try:
+                self.data, affine, window_centre, window_width, ds,\
+                        self._z_paths, self._z_instance_numbers = \
+                        load_dicom(paths)
+                dicom_loaded = True
+            except ValueError:
+                dicom_loaded = False
+
+            if dicom_loaded:
+                self.source_type = "dicom"
+                if self.data is not None:
+                    self.dicom_dataset = ds
+                    self.affine = affine
+
+        # Try reading as a format known to Python Imaging Library.
+        if self.data is None and isinstance(self.source, str):
+            rescale_slope = 100
+            rescale_intercept = 0
+            self.data = load_rgb(path=self.source, rescale_slope=rescale_slope,
+                                 rescale_intercept=rescale_intercept)
+            window_centre = rescale_slope / 2
+            window_width = rescale_slope
 
         # If still None, raise exception
         if self.data is None:
@@ -4573,6 +4589,35 @@ def load_nifti(path):
     except nibabel.filebasedimages.ImageFileError:
         return None, None
 
+def load_rgb(path, rgb=(0.299, 0.587, 0.114),
+             rescale_slope=100, rescale_intercept=0):
+    """
+    Load an rgb image with the Python Imaging Library (PIL),
+    and convert to grey levels.
+
+    **Parameter:**
+
+    rgb : tuple, default=(0.299, 0.587, 0.114)
+        Three-element tuple specifying the weights to red (R),
+        green (G), blue (B) channels to arrive at a grey level:
+
+        L = R * rgb[0] + G * rgb[1] + B * rgb[2]
+
+        The default is the same as the PIL default:
+        https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert
+
+    rescale_slope: float, default=100
+        Factor by which to multiply grey level in rescaling.
+
+    rescale_intercept: float, default=0
+        Constant to add to multiplied grey level in rescaling.
+    """
+    try:
+        img_rgb = plt.imread(path)
+    except:
+        return
+
+    return np.dot(img_rgb[...,:3], rgb) * rescale_slope + rescale_intercept
 
 def get_dicom_paths(path):
     """Get list of dicom files correpsonding to a single dicom image. 
