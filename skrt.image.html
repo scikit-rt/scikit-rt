@@ -2846,6 +2846,26 @@ number of that slice of the image.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.load_rgb">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.299,</span> <span class="pre">0.587,</span> <span class="pre">0.114)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale_slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_rgb" title="Permalink to this definition"></a></dt>
+<dd><p>Load an rgb image with the Python Imaging Library (PIL),
+and convert to grey levels.</p>
+<p><strong>Parameter:</strong></p>
+<dl>
+<dt>rgb<span class="classifier">tuple, default=(0.299, 0.587, 0.114)</span></dt><dd><p>Three-element tuple specifying the weights to red (R),
+green (G), blue (B) channels to arrive at a grey level:</p>
+<p>L = R * rgb[0] + G * rgb[1] + B * rgb[2]</p>
+<p>The default is the same as the PIL default:
+<a class="reference external" href="https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert">https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert</a></p>
+</dd>
+<dt>rescale_slope: float, default=100</dt><dd><p>Factor by which to multiply grey level in rescaling.</p>
+</dd>
+<dt>rescale_intercept: float, default=0</dt><dd><p>Constant to add to multiplied grey level in rescaling.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.match_image_voxel_sizes">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">match_image_voxel_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.match_image_voxel_sizes" title="Permalink to this definition"></a></dt>
 <dd><p>Resample pair of images to same voxel size.</p>
