@@ -72,6 +72,9 @@ class Image(skrt.core.Archive):
         auto_timestamp=False,
         default_intensity=(-200, 300),
         log_level=None,
+        rgb_weights=(0.299, 0.587, 0.114),
+        rgb_rescale_slope=100,
+        rgb_rescale_intercept=0
     ):
         """
         Initialise from a medical image source.
@@ -213,6 +216,11 @@ class Image(skrt.core.Archive):
                 else log_level)
         self.logger = skrt.core.get_logger(
                 name=type(self).__name__, log_level=self.log_level)
+
+        # Set parameters for converting from rgb to grey level.
+        self.rgb_weights = rgb_weights
+        self.rgb_rescale_slope = rgb_rescale_slope
+        self.rgb_rescale_intercept = rgb_rescale_intercept
 
         path = self.source if isinstance(self.source, str) else ""
         # If self.source is a list of paths, all pointing to the same directory,
@@ -865,12 +873,11 @@ class Image(skrt.core.Archive):
 
         # Try reading as a format known to Python Imaging Library.
         if self.data is None and isinstance(self.source, str):
-            rescale_slope = 100
-            rescale_intercept = 0
-            self.data = load_rgb(path=self.source, rescale_slope=rescale_slope,
-                                 rescale_intercept=rescale_intercept)
-            window_centre = rescale_slope / 2
-            window_width = rescale_slope
+            self.data = load_rgb(
+                    self.source, self.rgb_weights,
+                    self.rgb_rescale_slope, self.rgb_rescale_intercept)
+            window_centre = self.rgb_rescale_slope / 2
+            window_width = self.rgb_rescale_slope
 
         # If still None, raise exception
         if self.data is None:
@@ -4589,15 +4596,15 @@ def load_nifti(path):
     except nibabel.filebasedimages.ImageFileError:
         return None, None
 
-def load_rgb(path, rgb=(0.299, 0.587, 0.114),
-             rescale_slope=100, rescale_intercept=0):
+def load_rgb(path, rgb_weights=(0.299, 0.587, 0.114),
+             rgb_rescale_slope=100, rgb_rescale_intercept=0):
     """
     Load an rgb image with the Python Imaging Library (PIL),
     and convert to grey levels.
 
     **Parameter:**
 
-    rgb : tuple, default=(0.299, 0.587, 0.114)
+    rgb_weights : tuple, default=(0.299, 0.587, 0.114)
         Three-element tuple specifying the weights to red (R),
         green (G), blue (B) channels to arrive at a grey level:
 
@@ -4606,10 +4613,10 @@ def load_rgb(path, rgb=(0.299, 0.587, 0.114),
         The default is the same as the PIL default:
         https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert
 
-    rescale_slope: float, default=100
+    rgb_rescale_slope: float, default=100
         Factor by which to multiply grey level in rescaling.
 
-    rescale_intercept: float, default=0
+    rgb_rescale_intercept: float, default=0
         Constant to add to multiplied grey level in rescaling.
     """
     try:
@@ -4617,7 +4624,8 @@ def load_rgb(path, rgb=(0.299, 0.587, 0.114),
     except:
         return
 
-    return np.dot(img_rgb[...,:3], rgb) * rescale_slope + rescale_intercept
+    return (np.dot(img_rgb[...,:3], rgb_weights)
+            * rgb_rescale_slope + rgb_rescale_intercept)
 
 def get_dicom_paths(path):
     """Get list of dicom files correpsonding to a single dicom image. 
