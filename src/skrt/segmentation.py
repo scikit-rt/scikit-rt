@@ -167,12 +167,10 @@ class MultiAtlasSegmentation(Data):
             atlas_id = list(self.sass)[-1]
         return self.sass[atlas_id]
 
-    def get_sas_segmentations(self, atlas_ids=None, strategy=None,
+    def get_sas_segmentations(self, atlas_ids=True, strategy=None,
             step=None, reg_step=None, force=False):
-        if atlas_ids is None:
-            atlas_ids = list(self.sass.keys())
-        elif isinstance(atlas_ids, int):
-            atlas_ids = [atlas_ids]
+
+        atlas_ids = get_options(atlas_ids, True, list(self.sass.keys()))
 
         return sum([self.get_sas(atlas_id).get_segmentation(
             strategy, step, reg_step, force) for atlas_id in atlas_ids],
@@ -286,6 +284,32 @@ class MultiAtlasSegmentation(Data):
                             df = pd.concat([df, df_tmp], ignore_index=True)
 
         return df
+
+    def get_similarity_scores(
+            self, atlas_ids=None, strategy=None, step=None, roi_name=None,
+            reg_step=None, force=False, max_keep=None, **kwargs):
+
+        atlas_ids = get_options(atlas_ids, True, list(self.sass.keys()))
+        scores1 = {}
+        for atlas_id in atlas_ids:
+            self.sass[atlas_id].segment(strategy, step, force)
+            reg = self.sass[atlas_id].get_registration(
+                    strategy, step, roi_name, force)
+            score = reg.get_mutual_information(reg_step, **kwargs)
+            if score not in scores1:
+                scores1[score] = []
+            scores1[score].append(atlas_id)
+
+        scores2 = {}
+        for score, atlas_ids in sorted(scores1.items()):
+            for atlas_id in sorted(atlas_ids):
+                scores2[atlas_id] = score
+        
+        if max_keep is not None and len(scores2) > max_keep:
+            return dict(list(scores2.items())[: max_keep])
+
+        return scores2
+
 
 class SingleAtlasSegmentation(Data):
     def __init__(
