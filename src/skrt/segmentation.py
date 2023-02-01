@@ -18,6 +18,7 @@ class MultiAtlasSegmentation(Data):
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
         auto=False, auto_step=None, auto_strategies=None,
+        auto_reg_setup_only=False,
         default_step=-1, default_strategy="pull", roi_names=None,
         metrics=None, slice_stats=None, default_by_slice=None,
         consensus_types="majority", default_consensus_type="majority",
@@ -89,10 +90,11 @@ class MultiAtlasSegmentation(Data):
         # Perform segmentation.
         if auto:
             for auto_strategy in self.auto_strategies:
-                self.segment(strategy=auto_strategy, step=self.auto_step)
+                self.segment(strategy=auto_strategy, step=self.auto_step,
+                             reg_setup_only=auto_reg_setup_only)
 
     def segment(self, atlas_ids=None, strategy=None, step=None,
-            consensus_types=None, force=False):
+            consensus_types=None, force=False, reg_setup_only=False):
         atlas_ids = atlas_ids or self.sass.keys()
         strategy = get_option(strategy, self.default_strategy, self.strategies)
         steps = get_steps(step)
@@ -108,8 +110,8 @@ class MultiAtlasSegmentation(Data):
                 args = (self.im1, self.im2[idx], self.ss1, self.ss2[idx],
                         self.log_level, self.workdir / str(idx), self.overwrite,
                         sas_auto, self.auto_step, self.auto_strategies,
-                        self.default_step, self.default_strategy,
-                        self.roi_names,)
+                        reg_setup_only, self.default_step,
+                        self.default_strategy, self.roi_names,)
                 if self.max_workers == 1:
                     tic()
                     self.logger.info(f"Segmenting with atlas '{idx}'")
@@ -137,12 +139,15 @@ class MultiAtlasSegmentation(Data):
             for idx in futures:
                 self.sass[idx] = futures[idx].result()
 
+        if reg_setup_only:
+            return
+
         for idx in active_ids:
             self.sass[idx].segment(strategy, step, force)
             for step in steps:
-                reg = self.sass[idx].segmentations[strategy][step]
-                for reg_step in reg:
-                    reg[reg_step].name = f"{idx}_{reg[reg_step].name}"
+                seg = self.sass[idx].segmentations[strategy][step]
+                for reg_step in seg:
+                    seg[reg_step].name = f"{idx}_{seg[reg_step].name}"
 
         if consensus_types is None:
             consensus_types = self.consensus_types
@@ -292,7 +297,8 @@ class MultiAtlasSegmentation(Data):
         atlas_ids = get_options(atlas_ids, True, list(self.sass.keys()))
         scores1 = {}
         for atlas_id in atlas_ids:
-            self.sass[atlas_id].segment(strategy, step, force)
+            self.sass[atlas_id].segment(
+                    strategy, step, force, reg_setup_only=True)
             reg = self.sass[atlas_id].get_registration(
                     strategy, step, roi_name, force)
             score = reg.get_mutual_information(reg_step, **kwargs)
@@ -316,6 +322,7 @@ class SingleAtlasSegmentation(Data):
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
         auto=False, auto_step=None, auto_strategies=None,
+        auto_reg_setup_only=False,
         default_step=-1, default_strategy="pull", roi_names=None,
         ss1_index=-1, ss2_index=-1, ss1_name="Filtered1", ss2_name="Filtered2",
         initial_crop_focus=None, initial_crop_margins=None,
@@ -408,9 +415,11 @@ class SingleAtlasSegmentation(Data):
         # Perform segmentation.
         if auto:
             for auto_strategy in self.auto_strategies:
-                self.segment(auto_strategy, self.auto_step)
+                self.segment(auto_strategy, self.auto_step,
+                             reg_setup_only=auto_reg_setup_only)
 
-    def segment(self, strategy=None, step=None, force=False):
+    def segment(self, strategy=None, step=None, force=False,
+                reg_setup_only=False):
         strategy = get_option(strategy, self.default_strategy, self.strategies)
         steps = get_steps(step)
 
@@ -418,62 +427,8 @@ class SingleAtlasSegmentation(Data):
             self.registrations[strategy] = {step: {} for step in steps}
             self.segmentations[strategy] = {step: {} for step in steps}
 
-        if (self.steps[0] in steps
-                and not self.registrations[strategy][self.steps[0]]):
-            im1, im2 = match_images(
-                    im1=self.im1,
-                    im2=self.im2,
-                    ss1_index = self.ss1_index,
-                    ss2_index = self.ss2_index,
-                    ss1=self.ss1,
-                    ss2=self.ss2,
-                    ss1_name=self.ss1_name,
-                    ss2_name=self.ss2_name,
-                    roi_names=self.roi_names,
-                    im2_crop_focus=self.initial_crop_focus,
-                    im2_crop_margins=self.initial_crop_margins,
-                    alignment=(self.initial_alignment
-                               if self.crop_to_match_size1 else False),
-                    voxel_size=self.voxel_size1,
-                    bands=self.bands1)
-
-            self.ss1_filtered = im1.structure_sets[0]
-            self.ss2_filtered = im2.structure_sets[0]
-
-            fixed, moving = get_fixed_and_moving(im1, im2, strategy)
-
-            self.registrations[strategy][self.steps[0]] = (
-                    Registration(
-                        self.workdir / f"{strategy}1",
-                        fixed=fixed,
-                        moving=moving,
-                        pfiles=self.pfiles1,
-                        initial_alignment=self.initial_alignment,
-                        initial_transform_name=self.initial_transform_name,
-                        capture_output=self.capture_output,
-                        log_level=self.log_level,
-                        keep_tmp_dir=self.keep_tmp_dir,
-                        overwrite=force,
-                        )
-                    )
-
-            self.segment_structure_set(im2.structure_sets[0],
-                    strategy, self.steps[0], self.most_points1)
-
-        if (self.steps[1] in steps
-                and not self.registrations[strategy][self.steps[1]]):
-
-            pfiles2 = {}
-            if self.initial_alignment:
-                self.segmentations[strategy][self.steps[1]]\
-                        [self.initial_transform_name] = {}
-            for reg_step, pfile in self.pfiles2.items():
-                self.segmentations[strategy][self.steps[1]][reg_step] = {}
-                if pfile:
-                    pfiles2[reg_step] = pfile
-
-            rois = []
-            for roi_name in self.roi_names:
+        if self.steps[0] in steps:
+            if not self.registrations[strategy][self.steps[0]]:
                 im1, im2 = match_images(
                         im1=self.im1,
                         im2=self.im2,
@@ -483,24 +438,26 @@ class SingleAtlasSegmentation(Data):
                         ss2=self.ss2,
                         ss1_name=self.ss1_name,
                         ss2_name=self.ss2_name,
-                        roi_names={roi_name: self.roi_names[roi_name]},
-                        im2_crop_focus=roi_name,
-                        im2_crop_margins=self.roi_crop_margins.get(
-                            roi_name, self.default_roi_crop_margins),
-                        alignment=(roi_name if self.crop_to_match_size2
-                                   else False),
-                        voxel_size=self.voxel_size2,
-                        bands=self.bands2)
+                        roi_names=self.roi_names,
+                        im2_crop_focus=self.initial_crop_focus,
+                        im2_crop_margins=self.initial_crop_margins,
+                        alignment=(self.initial_alignment
+                                   if self.crop_to_match_size1 else False),
+                        voxel_size=self.voxel_size1,
+                        bands=self.bands1)
+
+                self.ss1_filtered = im1.structure_sets[0]
+                self.ss2_filtered = im2.structure_sets[0]
 
                 fixed, moving = get_fixed_and_moving(im1, im2, strategy)
 
-                self.registrations[strategy][self.steps[1]][roi_name] = (
+                self.registrations[strategy][self.steps[0]] = (
                         Registration(
-                            self.workdir / f"{strategy}2" / roi_name,
+                            self.workdir / f"{strategy}1",
                             fixed=fixed,
                             moving=moving,
-                            pfiles=self.roi_pfiles.get(roi_name, pfiles2),
-                            initial_alignment=roi_name,
+                            pfiles=self.pfiles1,
+                            initial_alignment=self.initial_alignment,
                             initial_transform_name=self.initial_transform_name,
                             capture_output=self.capture_output,
                             log_level=self.log_level,
@@ -509,8 +466,72 @@ class SingleAtlasSegmentation(Data):
                             )
                         )
 
-                self.segment_roi(im2.structure_sets[0][roi_name],
-                        strategy, self.steps[1], self.most_points2)
+            if (not reg_setup_only and
+                not self.segmentations[strategy][self.steps[0]]):
+                reg = self.registrations[strategy][self.steps[0]]
+                im2 = (reg.fixed_source if "push" == strategy
+                       else reg.moving_source)
+                self.segment_structure_set(im2.structure_sets[0],
+                        strategy, self.steps[0], self.most_points1)
+
+        if self.steps[1] in steps and (
+                not self.registrations[strategy][self.steps[1]] or
+                not self.segmentations[strategy][self.steps[1]]):
+
+            if not self.registrations[strategy][self.steps[1]]:
+
+                for roi_name in self.roi_names:
+                    im1, im2 = match_images(
+                            im1=self.im1,
+                            im2=self.im2,
+                            ss1_index = self.ss1_index,
+                            ss2_index = self.ss2_index,
+                            ss1=self.ss1,
+                            ss2=self.ss2,
+                            ss1_name=self.ss1_name,
+                            ss2_name=self.ss2_name,
+                            roi_names={roi_name: self.roi_names[roi_name]},
+                            im2_crop_focus=roi_name,
+                            im2_crop_margins=self.roi_crop_margins.get(
+                                roi_name, self.default_roi_crop_margins),
+                            alignment=(roi_name if self.crop_to_match_size2
+                                       else False),
+                            voxel_size=self.voxel_size2,
+                            bands=self.bands2)
+
+                    fixed, moving = get_fixed_and_moving(im1, im2, strategy)
+
+                    self.registrations[strategy][self.steps[1]][roi_name] = (
+                            Registration(
+                                self.workdir / f"{strategy}2" / roi_name,
+                                fixed=fixed,
+                                moving=moving,
+                                pfiles=self.roi_pfiles.get(
+                                    roi_name, self.pfiles2_non_null),
+                                initial_alignment=roi_name,
+                                initial_transform_name=(
+                                    self.initial_transform_name),
+                                capture_output=self.capture_output,
+                                log_level=self.log_level,
+                                keep_tmp_dir=self.keep_tmp_dir,
+                                overwrite=force,
+                                )
+                            )
+
+            if (not reg_setup_only
+                and not self.segmentations[strategy][self.steps[1]]):
+                if self.initial_alignment:
+                    self.segmentations[strategy][self.steps[1]]\
+                            [self.initial_transform_name] = {}
+                for reg_step, pfile in self.pfiles2.items():
+                    self.segmentations[strategy][self.steps[1]][reg_step] = {}
+
+                for roi_name in self.roi_names:
+                    reg = self.registrations[strategy][self.steps[1]][roi_name]
+                    im2 = (reg.fixed_source if "push" == strategy
+                           else reg.moving_source)
+                    self.segment_roi(im2.structure_sets[0][roi_name], strategy,
+                                     self.steps[1], self.most_points2)
 
             for reg_step in list(self.segmentations[strategy][self.steps[1]]):
                 if self.segmentations[strategy][self.steps[1]][reg_step]:
@@ -558,7 +579,7 @@ class SingleAtlasSegmentation(Data):
             force=False):
         strategy = get_option(strategy, self.default_strategy, self.strategies)
         step = get_option(step, self.default_step, self.steps)
-        self.segment(strategy, step, force)
+        self.segment(strategy, step, force, reg_setup_only=True)
 
         if "local" == step:
             roi_names = sorted([key
