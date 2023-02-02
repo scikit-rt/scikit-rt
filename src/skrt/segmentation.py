@@ -1,5 +1,7 @@
 """Tools for performing image segmentation."""
 from concurrent.futures import ThreadPoolExecutor
+from inspect import signature
+from itertools import product
 from pathlib import Path
 from shutil import rmtree
 
@@ -794,3 +796,59 @@ def get_structure_set_index(ss_index, im):
         and len(im.structure_sets) <= abs(ss_index)):
         return len(im.structure_sets) + ss_index
     return ss_index
+
+def get_sas_comparisons(**kwargs):
+
+    if not kwargs:
+        return
+
+    sas_constant_kwargs = {}
+    sas_variable_kwargs = {}
+    comparison_kwargs = {}
+
+    sas_parameters = list(signature(SingleAtlasSegmentation).parameters)
+
+    for key, value in kwargs.items():
+        if key in sas_parameters:
+            if isinstance(value, list) and len(value) > 1:
+                sas_variable_kwargs[key] = value
+            else:
+                sas_constant_kwargs[key] = value
+        else:
+            comparison_kwargs[key] = value
+
+    sas_constant_kwargs["auto"] = True
+    sas_constant_kwargs["overwrite"] = True
+
+    if sas_variable_kwargs:
+        keys, values = zip(*sas_variable_kwargs.items())
+        permutations = [dict(zip(keys, value)) for value in product(*values)]
+    else:
+        permutations = [{}]
+
+    df = None
+    for permutation in permutations:
+        if permutation:
+            n_roi = len(permutation.get(
+                "roi_names", sas_constant_kwargs.get("roi_names", [])))
+            df_permutation = pd.DataFrame(n_roi * [permutation])
+        else:
+            df_permutation = None
+        sas = SingleAtlasSegmentation(**sas_constant_kwargs, **permutation)
+        df_comparison = sas.get_comparison(**comparison_kwargs)
+
+        if df_permutation is None and df_comparison is None:
+            continue
+        elif df_permutation is None:
+            df_sas = df_comparison
+        elif df_comparison is None:
+            df_sas = df_permutation
+        else:
+            df_sas = pd.concat([df_permutation, df_comparison], axis=1)
+
+        if df is None:
+            df = df_sas
+        else:
+            df = pd.concat([df, df_sas], ignore_index=True)
+
+    return df
