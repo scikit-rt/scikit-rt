@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from pathlib import Path
 
 import copy
+import itertools
 import os
 import re
 import shutil
@@ -2079,3 +2080,12 @@ def get_stat_functions():
     return [function for function in dir(statistics)
             if type(getattr(statistics, function)) == FunctionType
             and not function.startswith("_")]
+
+def get_dict_permuations(in_dict=None):
+    if isinstance(in_dict_dict):
+        keys, values = zip(*in_dict.items())
+        permutations = [dict(zip(keys, value))
+                        for value in itertools.product(*values)]
+    else:
+        permutations = [{}]
+    return permuations

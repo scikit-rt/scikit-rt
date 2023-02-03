@@ -1,14 +1,14 @@
 """Tools for performing image segmentation."""
 from concurrent.futures import ThreadPoolExecutor
 from inspect import signature
-from itertools import product
 from pathlib import Path
 from shutil import rmtree
 
 import pandas as pd
 
 from skrt.core import (
-        get_logger, get_stat_functions, is_list, Data, Defaults, tic, toc)
+        get_dict_permuations, get_logger, get_stat_functions, is_list,
+        Data, Defaults, tic, toc)
 from skrt.image import match_images, Image
 from skrt.structures import (
         get_by_slice_methods, get_comparison_metrics, get_consensus_types,
@@ -693,6 +693,26 @@ class SingleAtlasSegmentation(Data):
 
         return df
 
+    def adjust_reg_files(self, strategies=None, step=None, roi_names=None,
+                         params_by_reg_step=None):
+        adjustments = {}
+        if not params_by_reg_step:
+            return adjustments
+        strategies = get_options(
+                strategies, self.default_strategy, self.strategies)
+        step = get_option(step, self.default_step, self.steps)
+        roi_names = roi_names or [None]
+
+        for reg_step, params in params_by_reg_step.items():
+            adjustments = {**adjustments,
+                           **{f"{step}_{reg_step}_{key}": value
+                              for key, value in params.items()}}
+            for strategy in strategies:
+                for roi_name in roi_names:
+                    self.get_registration(strategy, step, roi_name, force
+                                          ).adjust_file(reg_step, params)
+
+        return adjustments
 
 def get_option(opt=None, fallback_opt=None, allowed_opts=None):
 
@@ -797,9 +817,10 @@ def get_structure_set_index(ss_index, im):
         return len(im.structure_sets) + ss_index
     return ss_index
 
-def get_sas_comparisons(**kwargs):
+def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
+                        **kwargs):
 
-    if not kwargs:
+    if not (pfiles1_variations or pfiles2_variations or kwargs):
         return
 
     sas_constant_kwargs = {}
@@ -818,37 +839,47 @@ def get_sas_comparisons(**kwargs):
             comparison_kwargs[key] = value
 
     sas_constant_kwargs["auto"] = True
+    sas_constant_kwargs["auto_reg_setup_only"] = True
     sas_constant_kwargs["overwrite"] = True
 
-    if sas_variable_kwargs:
-        keys, values = zip(*sas_variable_kwargs.items())
-        permutations = [dict(zip(keys, value)) for value in product(*values)]
-    else:
-        permutations = [{}]
+    reg1_permutations = get_dict_permutations(pfiles1_variations)
+    reg2_permutations = get_dict_permutations(pfiles2_variations)
+    sas_permutations = get_dict_permutations(sas_variable_kwargs)
 
     df = None
-    for permutation in permutations:
-        if permutation:
-            n_roi = len(permutation.get(
-                "roi_names", sas_constant_kwargs.get("roi_names", [])))
-            df_permutation = pd.DataFrame(n_roi * [permutation])
-        else:
-            df_permutation = None
+    for sas_permutation in sas_permutations:
         sas = SingleAtlasSegmentation(**sas_constant_kwargs, **permutation)
-        df_comparison = sas.get_comparison(**comparison_kwargs)
+        strategies = get_strategies(
+                sas.auto_strategies, sas.default_strategy, sas.strategies)
+        for reg1_permutation in reg1_permutations:
+            reg1_adjustments = sas.adjust_reg_files(
+                    strategies, sas.steps[0], None, reg1_permutation)
+            for reg2_permutation in reg2_permutations:
+                reg2_adjustments = sas.adjust_reg_files(
+                        strategies, sas.steps[1],
+                        sas.roi_names, reg2_permutation)
+                adjustments = {**sas_permutation, **reg1_adjustments,
+                               **reg2_adjustments}
 
-        if df_permutation is None and df_comparison is None:
-            continue
-        elif df_permutation is None:
-            df_sas = df_comparison
-        elif df_comparison is None:
-            df_sas = df_permutation
-        else:
-            df_sas = pd.concat([df_permutation, df_comparison], axis=1)
+                if adjustments:
+                    n_roi = len(sas.roi_names)
+                    df_permutation = pd.DataFrame(n_roi * [adjustments])
+                else:
+                    df_permutation = None
+                df_comparison = sas.get_comparison(**comparison_kwargs)
 
-        if df is None:
-            df = df_sas
-        else:
-            df = pd.concat([df, df_sas], ignore_index=True)
+                if df_permutation is None and df_comparison is None:
+                    continue
+                elif df_permutation is None:
+                    df_sas = df_comparison
+                elif df_comparison is None:
+                    df_sas = df_permutation
+                else:
+                    df_sas = pd.concat([df_permutation, df_comparison], axis=1)
+
+                if df is None:
+                    df = df_sas
+                else:
+                    df = pd.concat([df, df_sas], ignore_index=True)
 
     return df
