@@ -7,7 +7,7 @@ from shutil import rmtree
 import pandas as pd
 
 from skrt.core import (
-        get_dict_permuations, get_logger, get_stat_functions, is_list,
+        get_dict_permutations, get_logger, get_stat_functions, is_list,
         Data, Defaults, tic, toc)
 from skrt.image import match_images, Image
 from skrt.structures import (
@@ -848,8 +848,8 @@ def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
 
     df = None
     for sas_permutation in sas_permutations:
-        sas = SingleAtlasSegmentation(**sas_constant_kwargs, **permutation)
-        strategies = get_strategies(
+        sas = SingleAtlasSegmentation(**sas_constant_kwargs, **sas_permutation)
+        strategies = get_options(
                 sas.auto_strategies, sas.default_strategy, sas.strategies)
         for reg1_permutation in reg1_permutations:
             reg1_adjustments = sas.adjust_reg_files(
@@ -861,12 +861,13 @@ def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
                 adjustments = {**sas_permutation, **reg1_adjustments,
                                **reg2_adjustments}
 
+                df_comparison = sas.get_comparison(**comparison_kwargs)
+
                 if adjustments:
-                    n_roi = len(sas.roi_names)
-                    df_permutation = pd.DataFrame(n_roi * [adjustments])
+                    df_permutation = pd.DataFrame(
+                            max(1, df_comparison.shape[0]) * [adjustments])
                 else:
                     df_permutation = None
-                df_comparison = sas.get_comparison(**comparison_kwargs)
 
                 if df_permutation is None and df_comparison is None:
                     continue

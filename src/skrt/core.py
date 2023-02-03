@@ -2081,11 +2081,11 @@ def get_stat_functions():
             if type(getattr(statistics, function)) == FunctionType
             and not function.startswith("_")]
 
-def get_dict_permuations(in_dict=None):
-    if isinstance(in_dict_dict):
+def get_dict_permutations(in_dict=None):
+    if isinstance(in_dict, dict):
         keys, values = zip(*in_dict.items())
         permutations = [dict(zip(keys, value))
                         for value in itertools.product(*values)]
     else:
         permutations = [{}]
-    return permuations
+    return permutations
