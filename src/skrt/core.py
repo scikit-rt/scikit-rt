@@ -2082,6 +2082,25 @@ def get_stat_functions():
             and not function.startswith("_")]
 
 def get_dict_permutations(in_dict=None):
+    """
+    Get list of permuations of key-value pairs from dictionary of lists.
+
+    **Parameter:**
+
+    in_dict: dict, default=None
+        Dictionary of lists for which a list of permutations of
+        key-value pairs is to be obtained.  In case the object passed
+        as in_dict isn't a dictionary, a list containing an empty
+        dictionary is returned.
+
+    As an example, the list of permuations for the dictionary:
+
+        {"A": [1, 2], "B": [3, 4]}
+
+    is:
+
+        [{"A": 1, "B": 3}, {"A": 1, "B": 4}, {"A": 2, "B": 3}, {"A": 2, "B": 4}]
+    """
     if isinstance(in_dict, dict):
         keys, values = zip(*in_dict.items())
         permutations = [dict(zip(keys, value))

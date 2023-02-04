@@ -381,3 +381,10 @@ def test_get_stat_functions():
     example_stats = ["mean", "median", "mode", "stdev"]
     assert all([stat in skrt.core.get_stat_functions()
                 for stat in example_stats])
+
+def test_get_dict_permutations():
+    in_dict = {"A": [1, 2, 3], "B": [4, 5]}
+    out_list = [{"A": 1, "B": 4}, {"A": 1, "B": 5}, {"A": 2, "B": 4},
+                {"A": 2, "B": 5}, {"A": 3, "B": 4}, {"A": 3, "B": 5}]
+    assert skrt.core.get_dict_permutations(in_dict) == out_list
+
