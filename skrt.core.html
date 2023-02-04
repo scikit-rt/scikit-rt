@@ -740,7 +740,24 @@ data types of &lt;valid_data_types&gt;.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_dict_permutations">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_dict_permutations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_dict_permutations" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get list of permuations of key-value pairs from dictionary of lists.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>in_dict: dict, default=None</dt><dd><p>Dictionary of lists for which a list of permutations of
+key-value pairs is to be obtained.  In case the object passed
+as in_dict isn’t a dictionary, a list containing an empty
+dictionary is returned.</p>
+</dd>
+</dl>
+<p>As an example, the list of permuations for the dictionary:</p>
+<blockquote>
+<div><p>{“A”: [1, 2], “B”: [3, 4]}</p>
+</div></blockquote>
+<p>is:</p>
+<blockquote>
+<div><p>[{“A”: 1, “B”: 3}, {“A”: 1, “B”: 4}, {“A”: 2, “B”: 3}, {“A”: 2, “B”: 4}]</p>
+</div></blockquote>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_file_size">
