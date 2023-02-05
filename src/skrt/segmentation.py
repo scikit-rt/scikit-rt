@@ -865,11 +865,11 @@ def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
                 sas.auto_strategies, sas.default_strategy, sas.strategies)
         for reg1_permutation in reg1_permutations:
             reg1_adjustments = sas.adjust_reg_files(
-                    strategies, sas.steps[0], None, False, reg1_permutation)
+                    strategies, sas.steps[0], None, True, reg1_permutation)
             for reg2_permutation in reg2_permutations:
                 reg2_adjustments = sas.adjust_reg_files(
                         strategies, sas.steps[1],
-                        sas.roi_names, False, reg2_permutation)
+                        sas.roi_names, True, reg2_permutation)
                 adjustments = {**sas_permutation, **reg1_adjustments,
                                **reg2_adjustments}
 
