@@ -383,8 +383,15 @@ def test_get_stat_functions():
                 for stat in example_stats])
 
 def test_get_dict_permutations():
+    """
+    Test extraction of lists of dictionaries from dictionary of lists.
+    """
+    # Check output when input isn't a non-empty dictionary.
+    for not_non_empty_dict in [None, 4, {}]:
+        assert skrt.core.get_dict_permutations(None) == [{}]
+
+    # Check output for non-empty dictionary.
     in_dict = {"A": [1, 2, 3], "B": [4, 5]}
     out_list = [{"A": 1, "B": 4}, {"A": 1, "B": 5}, {"A": 2, "B": 4},
                 {"A": 2, "B": 5}, {"A": 3, "B": 4}, {"A": 3, "B": 5}]
     assert skrt.core.get_dict_permutations(in_dict) == out_list
-

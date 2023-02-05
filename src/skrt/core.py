@@ -2101,7 +2101,7 @@ def get_dict_permutations(in_dict=None):
 
         [{"A": 1, "B": 3}, {"A": 1, "B": 4}, {"A": 2, "B": 3}, {"A": 2, "B": 4}]
     """
-    if isinstance(in_dict, dict):
+    if isinstance(in_dict, dict) and in_dict:
         keys, values = zip(*in_dict.items())
         permutations = [dict(zip(keys, value))
                         for value in itertools.product(*values)]
