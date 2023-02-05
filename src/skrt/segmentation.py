@@ -694,7 +694,7 @@ class SingleAtlasSegmentation(Data):
         return df
 
     def adjust_reg_files(self, strategies=None, step=None, roi_names=None,
-                         params_by_reg_step=None):
+                         force=False, params_by_reg_step=None):
         adjustments = {}
         if not params_by_reg_step:
             return adjustments
@@ -842,8 +842,20 @@ def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
     sas_constant_kwargs["auto_reg_setup_only"] = True
     sas_constant_kwargs["overwrite"] = True
 
-    reg1_permutations = get_dict_permutations(pfiles1_variations)
-    reg2_permutations = get_dict_permutations(pfiles2_variations)
+    if pfiles1_variations:
+        reg1_permutations = get_dict_permutations(
+                {reg_step: get_dict_permutations(pfiles1_variations[reg_step])
+                 for reg_step in pfiles1_variations})
+    else:
+        reg1_permutations = [{}]
+
+    if pfiles2_variations:
+        reg2_permutations = get_dict_permutations(
+                {reg_step: get_dict_permutations(pfiles2_variations[reg_step])
+                 for reg_step in pfiles2_variations})
+    else:
+        reg2_permutations = [{}]
+
     sas_permutations = get_dict_permutations(sas_variable_kwargs)
 
     df = None
@@ -853,11 +865,11 @@ def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
                 sas.auto_strategies, sas.default_strategy, sas.strategies)
         for reg1_permutation in reg1_permutations:
             reg1_adjustments = sas.adjust_reg_files(
-                    strategies, sas.steps[0], None, reg1_permutation)
+                    strategies, sas.steps[0], None, False, reg1_permutation)
             for reg2_permutation in reg2_permutations:
                 reg2_adjustments = sas.adjust_reg_files(
                         strategies, sas.steps[1],
-                        sas.roi_names, reg2_permutation)
+                        sas.roi_names, False, reg2_permutation)
                 adjustments = {**sas_permutation, **reg1_adjustments,
                                **reg2_adjustments}
 
