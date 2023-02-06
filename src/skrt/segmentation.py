@@ -489,7 +489,7 @@ class SingleAtlasSegmentation(Data):
                             im2=self.im2,
                             ss1_index = self.ss1_index,
                             ss2_index = self.ss2_index,
-                            ss1=self.ss1,
+                            ss1=self.get_segmentation(strategy, 0, -1),
                             ss2=self.ss2,
                             ss1_name=self.ss1_name,
                             ss2_name=self.ss2_name,
