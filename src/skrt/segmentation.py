@@ -426,8 +426,9 @@ class SingleAtlasSegmentation(Data):
         steps = get_steps(step)
 
         if force:
-            self.registrations[strategy] = {step: {} for step in steps}
-            self.segmentations[strategy] = {step: {} for step in steps}
+            for step in steps:
+                self.registrations[strategy][step] = {}
+                self.segmentations[strategy][step] = {}
 
         if self.steps[0] in steps:
             if not self.registrations[strategy][self.steps[0]]:
@@ -694,7 +695,7 @@ class SingleAtlasSegmentation(Data):
         return df
 
     def adjust_reg_files(self, strategies=None, step=None, roi_names=None,
-                         force=False, params_by_reg_step=None):
+                         params_by_reg_step=None):
         adjustments = {}
         if not params_by_reg_step:
             return adjustments
@@ -703,13 +704,16 @@ class SingleAtlasSegmentation(Data):
         step = get_option(step, self.default_step, self.steps)
         roi_names = roi_names or [None]
 
+        for strategy in strategies:
+            self.segment(strategy, step, True, reg_setup_only=True)
+
         for reg_step, params in params_by_reg_step.items():
             adjustments = {**adjustments,
                            **{f"{step}_{reg_step}_{key}": value
                               for key, value in params.items()}}
             for strategy in strategies:
                 for roi_name in roi_names:
-                    self.get_registration(strategy, step, roi_name, force
+                    self.get_registration(strategy, step, roi_name, False
                                           ).adjust_file(reg_step, params)
 
         return adjustments
@@ -865,11 +869,11 @@ def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
                 sas.auto_strategies, sas.default_strategy, sas.strategies)
         for reg1_permutation in reg1_permutations:
             reg1_adjustments = sas.adjust_reg_files(
-                    strategies, sas.steps[0], None, True, reg1_permutation)
+                    strategies, sas.steps[0], None, reg1_permutation)
             for reg2_permutation in reg2_permutations:
                 reg2_adjustments = sas.adjust_reg_files(
                         strategies, sas.steps[1],
-                        sas.roi_names, True, reg2_permutation)
+                        sas.roi_names, reg2_permutation)
                 adjustments = {**sas_permutation, **reg1_adjustments,
                                **reg2_adjustments}
 
