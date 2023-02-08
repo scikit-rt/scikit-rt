@@ -171,6 +171,9 @@ class MultiAtlasSegmentation(Data):
             self.segment(atlas_ids, strategy, step, consensus_type, force)
         all_reg_steps = self.get_sas(atlas_ids[0]).get_reg_steps(step)
         reg_step = get_option(reg_step, None, all_reg_steps)
+        if ((reg_step not in self.consensuses[strategy][step]) or
+            (consensus_type not in self.consensuses[strategy][step][reg_step])):
+            self.segment(atlas_ids, strategy, step, consensus_type, force)
         return self.consensuses[strategy][step][reg_step][consensus_type]
 
     def get_sas(self, atlas_id=None):
@@ -280,6 +283,8 @@ class MultiAtlasSegmentation(Data):
         df = None
         ss1 = sas.ss1_filtered.filtered_copy(to_keep=to_keep)
         for idx, id2 in enumerate(atlas_ids_to_compare + consensus_types):
+            if idx < n_atlas_ids_to_compare:
+                sas = self.get_sas(id2)
             for strategy in strategies:
                 for step in steps:
                     for reg_step in step_reg_steps[step]:
