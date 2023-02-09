@@ -377,7 +377,8 @@ class SingleAtlasSegmentation(Data):
         crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
         most_points1=True, roi_crop_margins=None, default_roi_crop_margins=10,
         roi_pfiles=None, crop_to_match_size2=True, voxel_size2=None,
-        bands2=None, pfiles2=None, most_points2=True, capture_output=False,
+        default_roi_bands=None, roi_bands=None, pfiles2=None,
+        most_points2=True, capture_output=False,
         keep_tmp_dir=False, metrics=None, slice_stats=None,
         default_by_slice=None):
 
@@ -432,7 +433,8 @@ class SingleAtlasSegmentation(Data):
         self.default_roi_crop_margins = default_roi_crop_margins
         self.crop_to_match_size2 = crop_to_match_size2
         self.voxel_size2 = voxel_size2
-        self.bands2 = bands2
+        self.roi_bands = roi_bands or {}
+        self.default_roi_bands = default_roi_bands
         self.pfiles2 = pfiles2 or pfiles1
         self.pfiles2_non_null = {reg_step: pfile for reg_step, pfile
                                  in (self.pfiles2 or {}).items() if pfile}
@@ -545,7 +547,9 @@ class SingleAtlasSegmentation(Data):
                             alignment=(roi_name if self.crop_to_match_size2
                                        else False),
                             voxel_size=self.voxel_size2,
-                            bands=self.bands2)
+                            bands=self.roi_bands.get(
+                                roi_name, self.default_roi_bands)
+                            )
 
                     fixed, moving = get_fixed_and_moving(im1, im2, strategy)
 
