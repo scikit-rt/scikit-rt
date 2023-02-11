@@ -320,8 +320,8 @@ class Dose(ImageOverlay):
 
         roi.create_mask()
         if not self.has_same_geometry(roi.mask):
-            raise RuntimeError(
-                    "Dose field and ROI mask must have same geometry")
+            roi = roi.clone()
+            roi.set_image(self)
 
         dose_in_roi = self.get_data(standardise=standardise) \
                 * roi.get_mask(standardise=standardise)

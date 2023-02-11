@@ -5,7 +5,7 @@ import pytest
 
 import numpy as np
 
-from skrt import Dose, Image
+from skrt import Dose, Image, ROI
 from skrt.core import fullpath
 from skrt.simulation import SyntheticImage
 
@@ -141,6 +141,13 @@ def test_get_dose_in_roi_3d():
     # Define synthetic dose field and associated structure set.
     doses = {"dose_cube": 10, "dose_sphere": 100}
     dose, structure_set = get_synthetic_data(**doses)
+
+    # Introduce size mismatch between dose array and ROI masks.
+    dxyz = np.array((20, 20, 4))
+    dose.resize(image_size=list(np.array(dose.get_n_voxels() - dxyz)),
+                                keep_centre=True)
+    assert (list(np.array(dose.get_n_voxels() + dxyz))
+                 == structure_set.image.get_n_voxels())
     dose_data = dose.get_data()
 
     # Loop over ROIs.
@@ -153,7 +160,11 @@ def test_get_dose_in_roi_3d():
         # Check that dose values and number of voxels in ROI are as expected.
         assert dose_in_roi.max() == roi_dose
         assert np.all(dose_in_roi[dose_in_roi > 0] == roi_dose)
-        assert (dose_in_roi > 0).sum() == roi.get_volume("voxels")
+        # Expect only approximate agreement between number of voxels with
+        # non-zero dose and number of voxels in ROI,
+        # because of ROI resizing in skrt.dose.Dose.get_dose_in_roi_3d().
+        assert ((dose_in_roi > 0).sum()
+                == pytest.approx(roi.get_volume("voxels"), rel=0.02))
 
 def test_get_biologically_effective_dose():
     """Test calculation of biologically effective dose."""
