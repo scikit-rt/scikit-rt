@@ -1269,8 +1269,8 @@ for name, radius in spheres.items():
     volumes.append((4. / 3.) * math.pi * radius**3)
 
 # Define factors for converting to volumes in different units.
-factors = [1, 0.001, 1]
-units  = ["mm", "ml", "voxels"]
+factors = [1, 0.001, 0.001, 1]
+units  = ["mm", "ml", "cc", "voxels"]
 
 # Define methods for volume calculations.
 methods = [None, "contour", "mask"]

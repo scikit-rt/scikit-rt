@@ -1535,6 +1535,7 @@ class ROI(skrt.core.Archive):
             Units of volume. Can be any of:
                 - "mm": return volume in millimetres cubed.
                 - "ml": return volume in millilitres.
+                - "cc": return volume in cubic centimetres (equivalent to "ml")
                 - "voxels": return volume in number of voxels.
 
             If units="voxels" is requested but this ROI only has contours and no
@@ -1598,8 +1599,9 @@ class ROI(skrt.core.Archive):
             voxel_vol = abs(np.prod(self.get_voxel_size()))
             self._volume["mm"] = self._volume["voxels"] * voxel_vol
 
-        # Get volume in ml
+        # Get volume in ml or equivalently cc
         self._volume["ml"] = self._volume["mm"] / 1000
+        self._volume["cc"] = self._volume["ml"]
 
         # Return volume in the requested units
         return self._volume[units]
