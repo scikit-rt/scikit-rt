@@ -319,7 +319,7 @@ class Dose(ImageOverlay):
         ROI and dose arrays are not the same size."""
 
         roi.create_mask()
-        if not self.has_same_geometry(roi.mask):
+        if not self.has_same_geometry(roi.mask, standardise=standardise):
             roi = roi.clone()
             roi.set_image(self)
 

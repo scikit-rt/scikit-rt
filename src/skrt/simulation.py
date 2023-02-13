@@ -132,7 +132,7 @@ class SyntheticImage(Image):
         self.update()
         return self._image
 
-    def get_data(self, **kwargs):
+    def get_data(self, *args, **kwargs):
         """Get Image data."""
 
         self.update()

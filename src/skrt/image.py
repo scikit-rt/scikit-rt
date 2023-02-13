@@ -586,12 +586,29 @@ class Image(skrt.core.Archive):
             self.get_dicom_filepath(sl=sl, idx=idx, pos=pos), force=True
         )
 
-    def get_voxel_size(self):
+    def get_voxel_size(self, standardise=False, force_standardise=True):
 
-        """Return voxel sizes in mm in order [x, y, z]."""
+        """
+        Return voxel sizes in mm in order [x, y, z].
+
+        **Parameters:**
+        
+        standardise : bool, default=False
+            If False, the voxel size will be returned for the image as loaded;
+            otherwise, it will be returned for the image in standard
+            dicom-style orientation, such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+
+        force_standardise : bool, default=True
+            If True, the standardised image will be recomputed from self.data 
+            even if it has previously been computed.
+        """
 
         self.load()
-        return self.voxel_size
+        if not standardise:
+            return self.voxel_size
+        else:
+            return self.get_standardised_voxel_size(force=force_standardise)
 
     def get_size(self):
 
@@ -600,11 +617,28 @@ class Image(skrt.core.Archive):
         self.load()
         return self.image_size
 
-    def get_origin(self):
-        """Return origin position in mm in order [x, y, z]."""
+    def get_origin(self, standardise=False, force_standardise=True):
+        """
+        Return origin position in mm in order [x, y, z].
+
+        **Parameters:**
+        
+        standardise : bool, default=False
+            If False, the origin will be returned for the image as loaded;
+            otherwise, it will be returned for the image in standard
+            dicom-style orientation, such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+
+        force_standardise : bool, default=True
+            If True, the standardised image will be recomputed from self.data 
+            even if it has previously been computed.
+        """
 
         self.load()
-        return self.origin
+        if not standardise:
+            return self.origin
+        else:
+            return self.get_standardised_origin(force=force_standardise)
 
     def get_n_voxels(self):
         """Return number of voxels in order [x, y, z]."""
@@ -933,7 +967,6 @@ class Image(skrt.core.Archive):
     def get_standardised_affine(self, force=True):
         """Return affine matrix in standard dicom orientation, where 
         [column, row, slice] corresponds to the [x, y, z] axes.
-        standardised image array. 
 
         **Parameters:**
         
@@ -945,6 +978,36 @@ class Image(skrt.core.Archive):
         if not hasattr(self, "_saffine") or force:
             self.standardise_data()
         return self._saffine
+
+    def get_standardised_origin(self, force=True):
+        """Return origin for image in standard dicom orientation, where 
+        [column, row, slice] corresponds to the [x, y, z] axes.
+
+        **Parameters:**
+        
+        force : bool, default=True
+            If True, the standardised array will be recomputed from self.data 
+            even if it has previously been computed.
+        """
+
+        if not hasattr(self, "_sorigin") or force:
+            self.standardise_data()
+        return self._sorigin
+
+    def get_standardised_voxel_size(self, force=True):
+        """Return voxel size for image in standard dicom orientation, where 
+        [column, row, slice] corresponds to the [x, y, z] axes.
+
+        **Parameters:**
+        
+        force : bool, default=True
+            If True, the standardised array will be recomputed from self.data 
+            even if it has previously been computed.
+        """
+
+        if not hasattr(self, "_svoxel_size") or force:
+            self.standardise_data()
+        return self._svoxel_size
 
     def standardise_data(self):
         """Manipulate data array and affine matrix into standard dicom
@@ -3634,16 +3697,44 @@ class Image(skrt.core.Archive):
 
         return same
 
-    def has_same_geometry(self, im, max_diff=0.005):
-        """Check whether this Image has the same geometric properties as
-        another Image <im> (i.e. same origin, voxel sizes, and shape),
-        with tolerance <max_diff> on agreement of origins."""
+    def has_same_geometry(self, im, max_diff=0.005, standardise=False,
+                          force_standardise=True):
+        """
+        Check whether this Image has the same geometric properties as
+        another Image (i.e. same origins and voxel sizes within tolerance,
+        same shapes).
+
+        **Parameters:**
+        im : skrt.image.Image
+            Image with which to compare geometry.
+
+        max_diff : float, default=0.005
+            Maximum difference accepted between components of origins
+            and voxel sizes.
+
+        standardise : bool, default=False
+            If False, geometry is compared for the images as loaded;
+            otherwise, geometry is compared for the images in standard
+            dicom-style orientation, such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+
+        force_standardise : bool, default=True
+            If True, the standardised image will be recomputed from self.data 
+            even if it has previously been computed.
+        """
         
-        same = self.get_data().shape == im.get_data().shape
-        same *= np.all([abs(self.origin[i] - im.origin[i]) < max_diff
-            for i in range(3)])
-        same *= np.all([abs(self.voxel_size[i] - im.voxel_size[i]) < max_diff
-            for i in range(3)])
+        shape = self.get_data(standardise, force_standardise).shape
+        origin = self.get_origin(standardise, force_standardise)
+        voxel_size = self.get_voxel_size(standardise, force_standardise)
+        im_shape = im.get_data(standardise, force_standardise).shape
+        im_origin = im.get_origin(standardise, force_standardise)
+        im_voxel_size = im.get_voxel_size(standardise, force_standardise)
+
+        same = (shape == im_shape)
+        same *= np.all([abs(origin[i] - im_origin[i]) < max_diff
+                            for i in range(3)])
+        same *= np.all([abs(voxel_size[i] - im_voxel_size[i]) < max_diff
+                            for i in range(3)])
     
         return same
 
@@ -5235,7 +5326,7 @@ def get_geometry(affine, voxel_size, origin, is_nifti=False, shape=None):
     # Get affine matrix from voxel size and origin
     if affine is None:
         
-        if voxel_size is None and origin is None:
+        if voxel_size is None or origin is None:
             return None, None, None
 
         voxel_size = list(voxel_size)

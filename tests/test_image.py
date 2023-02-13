@@ -14,8 +14,8 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import File, fullpath
-from skrt.image import (Image, get_alignment_translation, get_mask_bbox,
-                        get_translation_to_align, match_images,
+from skrt.image import (Image, get_alignment_translation, get_geometry,
+                        get_mask_bbox, get_translation_to_align, match_images,
                         match_image_voxel_sizes, checked_crop_limits)
 from skrt.simulation import SyntheticImage
 
@@ -47,6 +47,14 @@ def create_test_image(shape, voxel_size, origin, data_type='rand', factor=1000):
 shape = (40, 50, 20)
 voxel_size = (1, 2, 3)
 origin = (-40, -50, 20)
+affine = np.array(
+        [
+            [voxel_size[0], 0, 0, origin[0]],
+            [0, voxel_size[1], 0, origin[1]],
+            [0, 0, voxel_size[2], origin[2]],
+            [0, 0, 0, 1],
+            ]
+        )
 
 im = create_test_image(shape, voxel_size, origin)
 
@@ -1037,6 +1045,13 @@ def test_same_geometry():
     im3 = create_test_image(shape1, voxel_size1, origin3)
     assert not im1.has_same_geometry(im3, max_diff)
 
+
+    # Compare with image that has equivalent geometry,
+    # but different orientation.
+    im4 = im1.astype("nii")
+    assert not im1.has_same_geometry(im4)
+    assert im1.has_same_geometry(im4, standardise=True)
+
 def test_astype():
     # Test conversions between pydicom/DICOM representations
     # and nibabel/NIfTI representations
@@ -1046,6 +1061,50 @@ def test_astype():
     assert np.all(im_dcm.get_data() == im_nii.astype('dcm').get_data())
     assert im_dcm.astype('unknown') is None
     assert im_nii.astype('unknown') is None
+
+def test_get_geometry():
+    """Test consistency of geometry definitions."""
+    # Check that null geometry returned for null inputs.
+    assert get_geometry(None, None, None) == (None, None, None)
+
+    # Check consistency of origin, voxel size, affine matrix.
+    assert np.all(get_geometry(None, voxel_size, origin)[0] == affine)
+    assert get_geometry(affine, None, None)[1] == list(voxel_size)
+    assert get_geometry(affine, None, None)[2] == list(origin)
+
+def test_get_affine():
+    """Check non-standardised and standardised affine matrix."""
+    # Check that initial image has affine matrix in standardised form.
+    assert np.all(im.get_affine() == affine)
+
+    # Create NIfTI-format image, which will have non-standardised orientation.
+    im2 = im.astype("nii")
+    # Check non-standardised and standardised affine matrix.
+    assert not np.all(im2.get_affine() == affine)
+    assert np.all(im2.get_affine(standardise=True) == affine)
+
+def test_get_origin():
+    """Check non-standardised and standardised origin."""
+    # Check that initial image has standardised origin.
+    assert im.get_origin() == list(origin)
+
+    # Create NIfTI-format image, which will have non-standardised orientation.
+    im2 = im.astype("nii")
+    # Check non-standardised and standardised origin.
+    assert im2.get_origin() != list(origin)
+    assert im2.get_origin(standardise=True) == list(origin)
+
+def test_get_voxel_size():
+    """Check non-standardised and standardised voxel_size."""
+    # Check that initial image has standardised voxel size.
+    assert im.get_voxel_size() == list(voxel_size)
+
+    # Create NIfTI-format image, which will have non-standardised orientation.
+    im2 = im.astype("nii")
+    # Check non-standardised and standardised voxel_size.
+    assert im2.get_voxel_size() != list(voxel_size)
+    assert [abs(dxyz) for dxyz in im2.get_voxel_size()] == list(voxel_size)
+    assert im2.get_voxel_size(standardise=True) == list(voxel_size)
 
 def test_apply_banding():
     # Test banding.
