@@ -39,7 +39,7 @@ copyright = '2022'
 #author = ''
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.35'
+release = '0.3.36'
 
 
 # -- General configuration ---------------------------------------------------
