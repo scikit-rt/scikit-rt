@@ -1,4 +1,48 @@
-"""Tools for performing image segmentation."""
+"""
+Classes and functions relating to image segmentation.
+
+This module implements atlas-based segmentation, where an atlas is
+a reference image, for which regions of interest (ROIs) have been segmented
+in some way.
+
+In single-atlas segmentation, a single atlas is registered to a target image
+that is to be segmented.  Atlas segmentations are then mapped to the target
+image, using the registration transform.  An ROI may be represented as
+a binary mask or as sets of contour points, resulting in two strategies
+for mapping ROIs:
+
+    - atlas and target are taken as fixed and moving image respectively for
+      registration, then ROI contour points are pushed from atlas to target;
+    - atlas and target are taken as moving and fixed image respectively for
+      the registration, then ROI binary masks are pulled from atlas to target.
+
+In multi-atlas segmentation, single-atlas segmentation is performed
+multiple times, using a different atlas each time, then the results from
+the individual segmentations are combined in some way.
+
+The following classes are defined:
+SingleAtlasSegmentation() : class for performing single-atlas segmentation;
+MultiAtlasSegmentation() : class for performing multi-atlas segmentation.
+
+The following are utility functions used by SingleAtlasSegmentation()
+and MultiAtlasSegmentation():
+ensure_any()
+ensure_dict()
+ensure_image()
+ensure_structure_set()
+get_contour_propagation_strategies()
+get_fixed_and_moving()
+get_option()
+get_options()
+get_segmentation_steps()
+get_steps()
+get_structure_set_index()
+
+The following function allows for comparison of different single-atlas
+segmentations:
+get_sas_comparisons()
+"""
+
 from concurrent.futures import ThreadPoolExecutor
 from inspect import signature
 from itertools import combinations
