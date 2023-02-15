@@ -44,6 +44,7 @@ get_sas_comparisons()
 """
 
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from inspect import signature
 from itertools import combinations
 from pathlib import Path
@@ -290,6 +291,9 @@ class MultiAtlasSegmentation(Data):
             slice_stats=None, default_by_slice=None, voxel_size=None,
             name_as_index=False, atlas_ids_to_compare=False,
             combination_length=None, **kwargs):
+
+        if not hasattr(self, "ss1_filtered"):
+            return
 
         consensus_types = get_options(
                 consensus_types, self.consensus_types, get_consensus_types())
@@ -744,6 +748,9 @@ class SingleAtlasSegmentation(Data):
             slice_stats=None, default_by_slice=None, 
             voxel_size=None, name_as_index=False, **kwargs):
 
+        if not hasattr(self, "ss1_filtered"):
+            return
+
         strategies = get_options(
                 strategies, self.default_strategy, self.strategies)
         steps = get_options(
@@ -924,82 +931,97 @@ def get_structure_set_index(ss_index, im):
         return len(im.structure_sets) + ss_index
     return ss_index
 
-def get_sas_comparisons(pfiles1_variations=None, pfiles2_variations=None,
-                        **kwargs):
 
-    if not (pfiles1_variations or pfiles2_variations or kwargs):
-        return
+class SASTuner(Data):
 
-    sas_constant_kwargs = {}
-    sas_variable_kwargs = {}
-    comparison_kwargs = {}
+    def __init__(self, pfiles1_variations=None, pfiles2_variations=None,
+                 keep_segmentations=False, **kwargs):
 
-    sas_parameters = list(signature(SingleAtlasSegmentation).parameters)
+        self.pfiles1_variations = pfiles1_variations
+        self.pfiles2_variations = pfiles2_variations
+        self.keep_segmentations = keep_segmentations
+        self.kwargs = kwargs
 
-    for key, value in kwargs.items():
-        if key in sas_parameters:
-            if isinstance(value, list) and len(value) > 1:
-                sas_variable_kwargs[key] = value
-            else:
-                sas_constant_kwargs[key] = value
+        self.sas_constant_kwargs = {}
+        self.sas_variable_kwargs = {}
+        self.comparison_kwargs = {}
+
+        if kwargs:
+            sas_parameters = list(signature(SingleAtlasSegmentation).parameters)
+            for key, value in kwargs.items():
+                if key in sas_parameters:
+                    if isinstance(value, list) and len(value) > 1:
+                        self.sas_variable_kwargs[key] = value
+                    else:
+                        self.sas_constant_kwargs[key] = value
+                else:
+                    self.comparison_kwargs[key] = value
+
+            self.sas_constant_kwargs["auto"] = True
+            self.sas_constant_kwargs["auto_reg_setup_only"] = True
+            self.sas_constant_kwargs["overwrite"] = True
+
+        if pfiles1_variations:
+            reg1_permutations = get_dict_permutations(
+                    {reg_step:
+                     get_dict_permutations(pfiles1_variations[reg_step])
+                     for reg_step in pfiles1_variations})
         else:
-            comparison_kwargs[key] = value
+            reg1_permutations = [{}]
 
-    sas_constant_kwargs["auto"] = True
-    sas_constant_kwargs["auto_reg_setup_only"] = True
-    sas_constant_kwargs["overwrite"] = True
+        if pfiles2_variations:
+            reg2_permutations = get_dict_permutations(
+                    {reg_step:
+                     get_dict_permutations(pfiles2_variations[reg_step])
+                     for reg_step in pfiles2_variations})
+        else:
+            reg2_permutations = [{}]
 
-    if pfiles1_variations:
-        reg1_permutations = get_dict_permutations(
-                {reg_step: get_dict_permutations(pfiles1_variations[reg_step])
-                 for reg_step in pfiles1_variations})
-    else:
-        reg1_permutations = [{}]
+        sas_permutations = get_dict_permutations(self.sas_variable_kwargs)
 
-    if pfiles2_variations:
-        reg2_permutations = get_dict_permutations(
-                {reg_step: get_dict_permutations(pfiles2_variations[reg_step])
-                 for reg_step in pfiles2_variations})
-    else:
-        reg2_permutations = [{}]
+        self.df = None
+        self.sass = []
+        self.adjustments = []
 
-    sas_permutations = get_dict_permutations(sas_variable_kwargs)
+        for sas_permutation in sas_permutations:
+            sas = SingleAtlasSegmentation(
+                    **self.sas_constant_kwargs, **sas_permutation)
+            strategies = get_options(
+                    sas.auto_strategies, sas.default_strategy, sas.strategies)
+            for reg1_permutation in reg1_permutations:
+                reg1_adjustments = sas.adjust_reg_files(
+                        strategies, sas.steps[0], None, reg1_permutation)
+                for reg2_permutation in reg2_permutations:
+                    reg2_adjustments = sas.adjust_reg_files(
+                            strategies, sas.steps[1],
+                            sas.roi_names, reg2_permutation)
+                    adjustments = {**sas_permutation, **reg1_adjustments,
+                                   **reg2_adjustments}
 
-    df = None
-    for sas_permutation in sas_permutations:
-        sas = SingleAtlasSegmentation(**sas_constant_kwargs, **sas_permutation)
-        strategies = get_options(
-                sas.auto_strategies, sas.default_strategy, sas.strategies)
-        for reg1_permutation in reg1_permutations:
-            reg1_adjustments = sas.adjust_reg_files(
-                    strategies, sas.steps[0], None, reg1_permutation)
-            for reg2_permutation in reg2_permutations:
-                reg2_adjustments = sas.adjust_reg_files(
-                        strategies, sas.steps[1],
-                        sas.roi_names, reg2_permutation)
-                adjustments = {**sas_permutation, **reg1_adjustments,
-                               **reg2_adjustments}
+                    df_comparison = sas.get_comparison(**self.comparison_kwargs)
 
-                df_comparison = sas.get_comparison(**comparison_kwargs)
+                    self.adjustments.append(deepcopy(adjustments))
+                    if keep_segmentations:
+                        self.sass.append(sas.clone())
 
-                if adjustments:
-                    df_permutation = pd.DataFrame(
-                            max(1, df_comparison.shape[0]) * [adjustments])
-                else:
-                    df_permutation = None
+                    if adjustments:
+                        df_permutation = pd.DataFrame(
+                                max(1, df_comparison.shape[0]) * [adjustments])
+                    else:
+                        df_permutation = None
 
-                if df_permutation is None and df_comparison is None:
-                    continue
-                elif df_permutation is None:
-                    df_sas = df_comparison
-                elif df_comparison is None:
-                    df_sas = df_permutation
-                else:
-                    df_sas = pd.concat([df_permutation, df_comparison], axis=1)
+                    if df_permutation is None and df_comparison is None:
+                        continue
+                    elif df_permutation is None:
+                        df_sas = df_comparison
+                    elif df_comparison is None:
+                        df_sas = df_permutation
+                    else:
+                        df_sas = pd.concat(
+                                [df_permutation, df_comparison], axis=1)
 
-                if df is None:
-                    df = df_sas
-                else:
-                    df = pd.concat([df, df_sas], ignore_index=True)
-
-    return df
+                    if self.df is None:
+                        self.df = df_sas
+                    else:
+                        self.df = pd.concat(
+                                [self.df, df_sas], ignore_index=True)

@@ -9,6 +9,7 @@ from skrt.segmentation import (
         get_segmentation_steps,
         MultiAtlasSegmentation,
         SingleAtlasSegmentation,
+        SASTuner,
         )
 
 # Check for elastix executable
@@ -56,6 +57,15 @@ def test_mas_instantiation():
     for strategy in get_contour_propagation_strategies():
         for step in get_segmentation_steps():
             assert isinstance(mas.consensuses[strategy][step], dict)
+
+def test_sas_tuner_instantiation():
+    """Test instantiation of SASTuner."""
+
+    tuner = SASTuner()
+
+    # Check that kwargs and df attributes are null.
+    assert tuner.kwargs == {}
+    assert tuner.df is None
 
 def test_get_fixed_and_moving():
     """Test image assignment as fixed or moving, depending on strategy"""
