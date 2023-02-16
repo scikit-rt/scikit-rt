@@ -932,7 +932,7 @@ def get_structure_set_index(ss_index, im):
     return ss_index
 
 
-class SASTuner(Data):
+class SasTuner(Data):
 
     def __init__(self, pfiles1_variations=None, pfiles2_variations=None,
                  keep_segmentations=False, **kwargs):

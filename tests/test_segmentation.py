@@ -9,7 +9,7 @@ from skrt.segmentation import (
         get_segmentation_steps,
         MultiAtlasSegmentation,
         SingleAtlasSegmentation,
-        SASTuner,
+        SasTuner,
         )
 
 # Check for elastix executable
@@ -59,9 +59,9 @@ def test_mas_instantiation():
             assert isinstance(mas.consensuses[strategy][step], dict)
 
 def test_sas_tuner_instantiation():
-    """Test instantiation of SASTuner."""
+    """Test instantiation of SasTuner."""
 
-    tuner = SASTuner()
+    tuner = SasTuner()
 
     # Check that kwargs and df attributes are null.
     assert tuner.kwargs == {}
