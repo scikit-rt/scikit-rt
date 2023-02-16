@@ -13,7 +13,7 @@ import pandas as pd
 
 from skrt import Patient, StructureSet
 from skrt.application import Algorithm, Application, Status, get_paths
-from skrt.core import Data, Defaults, fullpath, is_list, tic, toc
+from skrt.core import Defaults, fullpath, is_list, qualified_name, tic, toc
 from skrt.image import match_image_voxel_sizes
 from skrt.registration import get_default_pfiles_dir, set_elastix_dir
 from skrt.segmentation import MultiAtlasSegmentation
@@ -407,12 +407,7 @@ def get_data_loader():
     # Define class and options for loading patient data.
     PatientClass = Patient
     patient_opts = {"unsorted_dicom": True}
-
-    # Determine qualified name if PatientClass is a class.
-    if isinstance(PatientClass, type):
-        patient_class = f"{PatientClass.__module__}.{PatientClass.__name__}"
-    else:
-        patient_class = None
+    patient_class = qualified_name(PatientClass)
 
     return (PatientClass, patient_class, patient_opts)
 
