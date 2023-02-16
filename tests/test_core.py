@@ -395,3 +395,12 @@ def test_get_dict_permutations():
     out_list = [{"A": 1, "B": 4}, {"A": 1, "B": 5}, {"A": 2, "B": 4},
                 {"A": 2, "B": 5}, {"A": 3, "B": 4}, {"A": 3, "B": 5}]
     assert skrt.core.get_dict_permutations(in_dict) == out_list
+
+def test_qualified_name():
+    """Test determination of a class's qualified name."""
+
+    # Check value returned for class.
+    assert skrt.core.qualified_name(skrt.core.Data) == "skrt.core.Data"
+
+    # Check value returned for non-class.
+    assert skrt.core.qualified_name(5) == None

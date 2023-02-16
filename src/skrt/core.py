@@ -2108,3 +2108,16 @@ def get_dict_permutations(in_dict=None):
     else:
         permutations = [{}]
     return permutations
+
+def qualified__name(cls):
+    """
+    Return qualified name of a class.
+
+    **Parameter:**
+
+    cls : class
+        Class for which qualified name is to be determined.  If non-class
+        is passed as argument, None is returned.
+    """
+    if isinstance(cls, type):
+        return f"{cls.__module__}.{cls.__name__}"
