@@ -948,8 +948,10 @@ class SasTuner(Data):
 
         if kwargs:
             sas_parameters = list(signature(SingleAtlasSegmentation).parameters)
+            comparison_parameters = list(signature(
+                SingleAtlasSegmentation.get_comparison).parameters)
             for key, value in kwargs.items():
-                if key in sas_parameters:
+                if key in sas_parameters and key not in comparison_parameters:
                     if isinstance(value, list) and len(value) > 1:
                         self.sas_variable_kwargs[key] = value
                     else:
