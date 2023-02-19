@@ -27,8 +27,9 @@ import skrt.core
 import skrt.image
 from skrt.dicom_writer import DicomWriter
 
-# Set global default.
+# Set global defaults.
 skrt.core.Defaults({"by_slice": "union"})
+skrt.core.Defaults({"slice_stats": ["mean"]})
 
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""

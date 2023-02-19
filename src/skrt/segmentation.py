@@ -68,7 +68,7 @@ class MultiAtlasSegmentation(Data):
         auto=False, auto_step=None, auto_strategies=None,
         auto_reg_setup_only=False,
         default_step=None, default_strategy="pull", roi_names=None,
-        metrics=None, slice_stats=None, default_by_slice=None,
+        metrics=None, default_slice_stats=None, default_by_slice=None,
         consensus_types="majority", default_consensus_type="majority",
         max_workers=1, **kwargs):
 
@@ -112,7 +112,9 @@ class MultiAtlasSegmentation(Data):
 
         # Set parameters for post-segmentation ROI comparisons.
         self.metrics = metrics
-        self.slice_stats = slice_stats
+        self.default_slice_stats = (Defaults().slice_stats
+                                 if default_slice_stats is None
+                                 else default_slice_stats)
         self.default_by_slice = (Defaults().by_slice
                                  if default_by_slice is None
                                  else default_by_slice)
@@ -316,8 +318,7 @@ class MultiAtlasSegmentation(Data):
         steps = get_options(
                 steps, self.default_step, self.steps)
         metrics = get_options(metrics, self.metrics, get_comparison_metrics())
-        slice_stats = get_options(slice_stats, self.slice_stats,
-                                  get_stat_functions())
+        slice_stats = slice_stats or self.default_slice_stats
         default_by_slice = get_option(default_by_slice, self.default_by_slice,
                                       get_by_slice_methods())
 
@@ -427,7 +428,7 @@ class SingleAtlasSegmentation(Data):
         roi_pfiles=None, crop_to_match_size2=True, voxel_size2=None,
         default_roi_bands=None, roi_bands=None, pfiles2=None,
         most_points2=True, capture_output=False,
-        keep_tmp_dir=False, metrics=None, slice_stats=None,
+        keep_tmp_dir=False, metrics=None, default_slice_stats=None,
         default_by_slice=None):
 
         # Set images and associated structure sets.
@@ -497,7 +498,9 @@ class SingleAtlasSegmentation(Data):
 
         # Set parameters for post-segmentation ROI comparisons.
         self.metrics = metrics
-        self.slice_stats = slice_stats
+        self.default_slice_stats = (Defaults().slice_stats
+                                 if default_slice_stats is None
+                                 else default_slice_stats)
         self.default_by_slice = (Defaults().by_slice
                                  if default_by_slice is None
                                  else default_by_slice)
@@ -756,14 +759,16 @@ class SingleAtlasSegmentation(Data):
         steps = get_options(
                 steps, self.default_step, self.steps)
         metrics = get_options(metrics, self.metrics, get_comparison_metrics())
-        slice_stats = get_options(slice_stats, self.slice_stats,
-                                  get_stat_functions())
+        slice_stats = slice_stats or self.default_slice_stats
         default_by_slice = get_option(default_by_slice, self.default_by_slice,
                                       get_by_slice_methods())
         
         df = None
         ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
         for strategy in strategies:
+            method = kwargs.get("method", None)
+            if method is None:
+                kwargs["method"] = "mask" if "pull" == strategy else "contour"
             for step in steps:
                 self.segment(strategy, step, force)
                 all_reg_steps = list(self.segmentations[strategy][step])
@@ -771,6 +776,7 @@ class SingleAtlasSegmentation(Data):
                 for reg_step in step_reg_steps:
                     ss2 = (self.get_segmentation(strategy, step, reg_step)
                            .filtered_copy(to_keep=to_keep))
+
                     df_tmp = ss1.get_comparison(
                             ss2, metrics=metrics, slice_stats=slice_stats,
                             default_by_slice=default_by_slice,
