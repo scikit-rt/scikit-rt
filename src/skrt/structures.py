@@ -1,4 +1,4 @@
-contours = """Classes related to ROIs and structure sets."""
+"""Classes related to ROIs and structure sets."""
 
 from pathlib import Path
 
