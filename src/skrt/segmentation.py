@@ -331,6 +331,7 @@ class MultiAtlasSegmentation(Data):
         
         df = None
         ss1 = sas.ss1_filtered.filtered_copy(to_keep=to_keep)
+        ss1.set_image(self.im1, add_to_image=False)
         for idx, id2 in enumerate(atlas_ids_to_compare + consensus_types):
             if idx < n_atlas_ids_to_compare:
                 sas = self.get_sas(id2)
@@ -765,6 +766,7 @@ class SingleAtlasSegmentation(Data):
         
         df = None
         ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
+        ss1.set_image(self.im1, add_to_image=False)
         for strategy in strategies:
             method = kwargs.get("method", None)
             if method is None:
