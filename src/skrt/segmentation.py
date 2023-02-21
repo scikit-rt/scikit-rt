@@ -693,6 +693,11 @@ class SingleAtlasSegmentation(Data):
         else:
             return self.registrations[strategy][step]
 
+    def get_mutual_information(self, strategy=None, step=None, roi_name=None,
+            reg_step=None, force=False, **kwargs):
+        reg = self.get_registration(strategy, step, roi_name, force)
+        return reg.get_mutual_information(reg_step, **kwargs)
+
     def get_segmentation(self, strategy=None, step=None, reg_step=None,
             force=False):
         strategy = get_option(strategy, self.default_strategy, self.strategies)
@@ -763,7 +768,7 @@ class SingleAtlasSegmentation(Data):
         slice_stats = slice_stats or self.default_slice_stats
         default_by_slice = get_option(default_by_slice, self.default_by_slice,
                                       get_by_slice_methods())
-        
+
         df = None
         ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
         ss1.set_image(self.im1, add_to_image=False)
