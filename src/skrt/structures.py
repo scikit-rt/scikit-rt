@@ -6156,6 +6156,62 @@ class StructureSet(skrt.core.Archive):
         if image is not None and add_to_image:
             image.add_structure_set(self)
 
+    def contains(self, roi_names, in_image=False):
+        """
+        Return whether structure set contains named ROIs,
+        optionally testing whether the ROIs be fully contained in an image.
+
+        **Parameters:**
+
+        roi_names : list/str
+            Single string, or list of strings, indicating name(s) of ROI(s)
+            to be considered.
+
+        in_image : bool/skrt.image.Image, default=False
+            Specification of whether to test that ROIs are fully contained
+            in an image.  If in_image is in Image object, the boolean returned
+            indicates whether all named ROIs are contained within this image.
+            If in_image is True, the boolean returned indicates whether
+            all named ROIs are contained within the image associated with
+            self.
+        """
+        if isinstance(roi_names, str):
+            roi_names = [roi_names]
+
+        # Check whether structure set contains all named ROIs.
+        ss_roi_names = self.get_roi_names()
+        for roi_name in roi_names:
+            if roi_name in ss_roi_names:
+                return False
+
+        # Determine whether to check that named ROIs are contained in an image.
+        if not in_image:
+            return True
+
+        # Check that image is specified.
+        # If yes,  ensure that ROI masks have the same voxel size as this image.
+        if isinstance(in_image, skrt.image.Image):
+            im = in_image
+            ss = self.clone()
+            ss.set_image(im, add_to_image=False)
+        else:
+            self.image
+            ss = self
+        if not isinstance(im, skrt.image.Image):
+            return False
+
+        # Check whether ROIs are contained in image.
+        im_extents = im.get_extents()
+        for roi_name in roi_names:
+            roi_extents = ss[roi_name].get_extents(0.5, "voxels")
+            for idx in range(3):
+                if roi_extents[idx][0] < im_extents[idx][0]:
+                    return False
+                if roi_extents[idx][1] > im_extents[idx][1]:
+                    return False
+
+        return True
+
     def rename_rois(
         self, names=None, first_match_only=True, keep_renamed_only=False
     ):
@@ -6463,6 +6519,7 @@ class StructureSet(skrt.core.Archive):
 
         return [s.get_name(original) for s in self.get_rois()
                 if not (ignore_empty and s.empty)]
+
 
     def get_roi_dict(self):
         """Get dict of ROI names and objects."""
