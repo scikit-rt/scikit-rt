@@ -2655,6 +2655,26 @@ of the ROI with the first in &lt;roi_names&gt;.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.contains">
+<span class="sig-name descname"><span class="pre">contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.contains" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether structure set contains named ROIs,
+optionally testing whether the ROIs be fully contained in an image.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi_names<span class="classifier">list/str</span></dt><dd><p>Single string, or list of strings, indicating name(s) of ROI(s)
+to be considered.</p>
+</dd>
+<dt>in_image<span class="classifier">bool/skrt.image.Image, default=False</span></dt><dd><p>Specification of whether to test that ROIs are fully contained
+in an image.  If in_image is in Image object, the boolean returned
+indicates whether all named ROIs are contained within this image.
+If in_image is True, the boolean returned indicates whether
+all named ROIs are contained within the image associated with
+self.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.crop">
 <span class="sig-name descname"><span class="pre">crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.crop" title="Permalink to this definition"></a></dt>
 <dd><p>Crop all ROIs of StructureSet to specified range in x, y, z.</p>
