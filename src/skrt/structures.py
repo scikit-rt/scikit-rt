@@ -6181,7 +6181,7 @@ class StructureSet(skrt.core.Archive):
         # Check whether structure set contains all named ROIs.
         ss_roi_names = self.get_roi_names()
         for roi_name in roi_names:
-            if roi_name in ss_roi_names:
+            if roi_name not in ss_roi_names:
                 return False
 
         # Determine whether to check that named ROIs are contained in an image.
@@ -6195,7 +6195,7 @@ class StructureSet(skrt.core.Archive):
             ss = self.clone()
             ss.set_image(im, add_to_image=False)
         else:
-            self.image
+            im = self.image
             ss = self
         if not isinstance(im, skrt.image.Image):
             return False
