@@ -3213,6 +3213,25 @@ self.sources.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.missing">
+<span class="sig-name descname"><span class="pre">missing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.missing" title="Permalink to this definition"></a></dt>
+<dd><p>Identify among named ROIs those that are missing from structure set,
+or are not fully contained in an image.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi_names<span class="classifier">list/str</span></dt><dd><p>Single string, or list of strings, indicating name(s) of ROI(s)
+to be considered.</p>
+</dd>
+<dt>in_image<span class="classifier">bool/skrt.image.Image, default=False</span></dt><dd><p>Specification of whether to test that ROIs are fully contained
+in an image.  If in_image is in Image object, an ROI is
+identified as missing if not contained within this image.
+If in_image is True, an ROI is identified as missing if not
+contained within the image associated with self.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.order_rois">
 <span class="sig-name descname"><span class="pre">order_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x+'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.order_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Order ROIs by one of their centroid coordinates.</p>
