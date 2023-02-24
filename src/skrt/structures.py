@@ -6212,6 +6212,61 @@ class StructureSet(skrt.core.Archive):
 
         return True
 
+    def missing(self, roi_names, in_image=False):
+        """
+        Identify among named ROIs those that are missing from structure set,
+        or are not fully contained in an image.
+
+        **Parameters:**
+
+        roi_names : list/str
+            Single string, or list of strings, indicating name(s) of ROI(s)
+            to be considered.
+
+        in_image : bool/skrt.image.Image, default=False
+            Specification of whether to test that ROIs are fully contained
+            in an image.  If in_image is in Image object, an ROI is
+            identified as missing if not contained within this image.
+            If in_image is True, an ROI is identified as missing if not
+            contained within the image associated with self.
+        """
+        if isinstance(roi_names, str):
+            roi_names = [roi_names]
+        missing_rois = set()
+
+        # Check for ROIs not contained in structure set.
+        ss_roi_names = self.get_roi_names()
+        for roi_name in roi_names:
+            if roi_name not in ss_roi_names:
+                missing_rois.add(roi_name)
+
+        # Determine whether to check that named ROIs are contained in an image.
+        if not in_image:
+            return sorted(list(missing_rois))
+
+        # Check that image is specified.
+        # If yes,  ensure that ROI masks have the same voxel size as this image.
+        if isinstance(in_image, skrt.image.Image):
+            im = in_image
+            ss = self.clone()
+            ss.set_image(im, add_to_image=False)
+        else:
+            im = self.image
+            ss = self
+        if not isinstance(im, skrt.image.Image):
+            raise RuntimeError(f"Invalid image specification")
+
+        # Check whether ROIs are contained in image.
+        im_extents = im.get_extents()
+        for roi_name in roi_names:
+            roi_extents = ss[roi_name].get_extents(0.5, "voxels")
+            for idx in range(3):
+                if (roi_extents[idx][0] < im_extents[idx][0]
+                    or roi_extents[idx][1] > im_extents[idx][1]):
+                    missing_rois.add(roi_name)
+
+        return sorted(list(missing_rois))
+
     def rename_rois(
         self, names=None, first_match_only=True, keep_renamed_only=False
     ):
