@@ -1646,3 +1646,18 @@ def test_get_slice_positions():
                 with pytest.raises(RuntimeError) as error_info:
                     get_slice_positions(*cubes, method=method)
                 assert "Method must be" in str(error_info.value)
+
+def test_contains():
+    """Test determination of whether a structure set contains named ROIs."""
+    assert not structure_set.contains("missing_roi")
+    assert structure_set.contains(structure_set.get_roi_names())
+    assert structure_set.contains(structure_set.get_roi_names(), in_image=True)
+
+    # Full-size image contains ROIs.
+    sim1 = SyntheticImage([dxyz for dxyz in sim.get_n_voxels()])
+    assert structure_set.contains(structure_set.get_roi_names(), in_image=sim1)
+
+    # Reduced-size image doesn't contain ROIs.
+    sim2 = SyntheticImage([dxyz // 2 for dxyz in sim.get_n_voxels()])
+    assert not structure_set.contains(
+            structure_set.get_roi_names(), in_image=sim2)
