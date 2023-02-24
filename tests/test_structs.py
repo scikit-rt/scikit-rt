@@ -1649,34 +1649,35 @@ def test_get_slice_positions():
 
 def test_contains():
     """Test determination of whether a structure set contains named ROIs."""
+    roi_names = structure_set.get_roi_names()
     assert not structure_set.contains("missing_roi")
-    assert structure_set.contains(structure_set.get_roi_names())
-    assert structure_set.contains(structure_set.get_roi_names(), in_image=True)
+    assert structure_set.contains(roi_names)
+    assert structure_set.contains(roi_names, in_image=True)
 
     # Full-size image contains ROIs.
     sim1 = SyntheticImage([dxyz for dxyz in sim.get_n_voxels()])
-    assert structure_set.contains(structure_set.get_roi_names(), in_image=sim1)
+    assert structure_set.contains(roi_names, in_image=sim1)
 
     # Reduced-size image doesn't contain ROIs.
     sim2 = SyntheticImage([dxyz // 2 for dxyz in sim.get_n_voxels()])
-    assert not structure_set.contains(
-            structure_set.get_roi_names(), in_image=sim2)
+    assert not structure_set.contains(roi_names, in_image=sim2)
 
 def test_missing():
     """
     Test idenfification of ROIs not in a structure set
-    or not fully contained in an image."""
-    assert structure_set.missing("missing_roi") == ["missing_roi"]
-    assert structure_set.missing(structure_set.get_roi_names()) == []
-    assert structure_set.missing(
-            structure_set.get_roi_names(), in_image=True) == []
+    or not fully contained in an image.
+    """
+    roi_names = structure_set.get_roi_names()
+    missing = ["missing_roi"]
+    assert structure_set.missing(missing[0]) == missing
+    assert structure_set.missing(roi_names) == []
+    assert structure_set.missing(roi_names, in_image=True) == []
+    assert structure_set.missing(roi_names + missing, in_image=True) == missing
 
     # Full-size image contains ROIs.
     sim1 = SyntheticImage([dxyz for dxyz in sim.get_n_voxels()])
-    assert structure_set.missing(
-            structure_set.get_roi_names(), in_image=sim1) == []
+    assert structure_set.missing(roi_names, in_image=sim1) == []
 
     # Reduced-size image doesn't contain ROIs.
     sim2 = SyntheticImage([dxyz // 2 for dxyz in sim.get_n_voxels()])
-    assert (structure_set.missing(structure_set.get_roi_names(), in_image=sim2)
-            == structure_set.get_roi_names())
+    assert structure_set.missing(roi_names, in_image=sim2) == roi_names

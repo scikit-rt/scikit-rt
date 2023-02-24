@@ -6258,7 +6258,8 @@ class StructureSet(skrt.core.Archive):
 
         # Check whether ROIs are contained in image.
         im_extents = im.get_extents()
-        for roi_name in roi_names:
+        active_rois = set(roi_names) - missing_rois
+        for roi_name in active_rois:
             roi_extents = ss[roi_name].get_extents(0.5, "voxels")
             for idx in range(3):
                 if (roi_extents[idx][0] < im_extents[idx][0]
