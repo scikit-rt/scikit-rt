@@ -404,7 +404,7 @@ class MultiAtlasSegmentation(Data):
             scores1[score].append(atlas_id)
 
         scores2 = {}
-        for score, atlas_ids in sorted(scores1.items()):
+        for score, atlas_ids in sorted(scores1.items(), reverse=True):
             for atlas_id in sorted(atlas_ids):
                 scores2[atlas_id] = score
         
