@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import shutil
 import os
-from skrt.better_viewer import BetterViewer
+from skrt.better_viewer import BetterViewer, options
 #  from skrt.viewer import OrthogViewer
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
@@ -269,3 +269,8 @@ def test_roi_comparison_single_structure_set():
     assert viewer.ui_roi_comp_table.value
     assert len(viewer.comparison_pairs) == 3
     assert len(viewer.rois) == 3
+
+def test_set_viewer_options():
+    """Test that options.set_viewer_options() returns a non-empty dictionary."""
+    viewer_options = options.set_viewer_options()
+    assert viewer_options and isinstance(viewer_options, dict)
