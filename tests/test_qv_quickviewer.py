@@ -1,4 +1,9 @@
-"""Test legacy QuickViewer code."""
+"""
+Test legacy QuickViewer code.
+
+Tests migrated from tests/test_quickviewer.py at:
+    https://github.com/hlpullen/quickviewer
+"""
 
 import glob
 import numpy as np
@@ -20,6 +25,7 @@ if not os.path.exists('tmp/qv'):
 if os.path.exists('tmp/qv/structs'):
     shutil.rmtree('tmp/qv/structs')
 os.mkdir('tmp/qv/structs')
+
 
 # Create fake data
 def create_test_image(data, voxel_size, origin):
