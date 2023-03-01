@@ -426,10 +426,12 @@ class DicomFile(Data):
         self.path = fullpath(path)
 
         # Attempt to read DICOM dataset.
-        try:
-            self.ds = pydicom.dcmread(self.path, force=True)
-        except IsADirectoryError:
-            self.ds = None
+        self.ds = None
+        if not os.path.isdir(self.path):
+            try:
+                self.ds = pydicom.dcmread(self.path, force=True)
+            except IsADirectoryError:
+                pass
 
         # Try to protect against cases where file read isn't a DICOM file.
         if (not isinstance(self.ds, pydicom.dataset.FileDataset)
