@@ -19,10 +19,13 @@ is_windows = sys.platform.startswith("win")
 # Decorator for tests that fail on Windows.
 def not_windows(func):
     def wrapper():
+        """
         if is_windows:
             return
         else:
             func()
+        """
+        func()
     return wrapper
 
 # Create synthetic patient object
