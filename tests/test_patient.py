@@ -14,20 +14,6 @@ import skrt
 from skrt.patient import Patient, Study
 from skrt.simulation import SyntheticImage
 
-is_windows = sys.platform.startswith("win")
-
-# Decorator for tests that fail on Windows.
-def not_windows(func):
-    def wrapper():
-        """
-        if is_windows:
-            return
-        else:
-            func()
-        """
-        func()
-    return wrapper
-
 # Create synthetic patient object
 pid = "test_patient"
 pdir = f"tmp/{pid}"
@@ -130,7 +116,6 @@ def test_load_images():
     assert images[0] == s.ct_images[0]
     assert images[1] == s.mr_images[0]
 
-@not_windows
 def test_unsorted_dicom_defaults():
     for unsorted_dicom in [True, False]:
         skrt.core.Defaults().unsorted_dicom = unsorted_dicom
@@ -178,7 +163,6 @@ def test_write_rois_dicom():
     items = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
     assert len(items) == 1
 
-@not_windows
 def test_read_dicom_patient():
     p_test = Patient(pdir)
     assert len(p_test.studies) == 1
@@ -193,7 +177,6 @@ def test_read_dicom_patient():
     assert isinstance(p_test._init_time, float)
     assert p_test._init_time > 0
 
-@not_windows
 def test_patient_references():
     # Test that all of a patient's data objects have a reference to the patient.
     p_test = Patient(pdir)
@@ -206,7 +189,6 @@ def test_patient_references():
             assert obj.patient == p_test
         assert 1 == n_objs[category]
 
-@not_windows
 def test_copy_dicom_patient():
     p_test = Patient(pdir)
     pdir_copy = f"tmp/test_patient_copy"
@@ -223,7 +205,6 @@ def test_copy_dicom_patient():
     roi_names2 = s2.ct_structure_sets[0].get_roi_names()
     assert roi_names1 == roi_names2
 
-@not_windows
 def test_null_patient():
     p = Patient()
     assert(type(p).__name__ == 'Patient')
@@ -241,7 +222,6 @@ def test_null_study():
     assert(s.time == '')
     assert(s.timestamp == '')
 
-@not_windows
 def test_unsorted_images():
     '''Test loading to patient object of unsorted DICOM images.'''
 
@@ -293,7 +273,6 @@ def test_unsorted_images():
             image.data.shape == im.data.shape
     assert len(series_numbers) == len(series_numbers2)
 
-@not_windows
 def test_pathlib_path():
     # Test passing of pathlib.Path.
     p = Patient(Path())
@@ -301,7 +280,6 @@ def test_pathlib_path():
     assert p.path == skrt.core.fullpath(".")
     assert s.path == skrt.core.fullpath(".")
 
-@not_windows
 def test_id_mappings():
     p_test = Patient(pdir)
     mapped_id = "new_id"
