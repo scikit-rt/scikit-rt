@@ -2,6 +2,7 @@
 Application for evaluating atlas-based segmentation.
 '''
 import platform
+import random
 import sys
 
 from pathlib import Path
@@ -51,6 +52,25 @@ class SasEvaluation(Algorithm):
 
         # Paths to patient datasets against which to register.
         self.atlases = None
+
+        # Number of atlases to consider, from those of self.atlases.
+        # If None, no limit is placed on the number of atlases.
+        self.n_atlas = None
+
+        # Random number seed (relevant for random selection of atlases).
+        self.seed = None
+
+        # Flag indicating whether to exclude target as atlas for registrations
+        # (i.e. to exclude self-registration).
+        self.exclude_target = False
+
+        # Type of selection to be performed for atlases.
+        # Possible values are:
+        # - "random": random selection
+        # - "mi", "mutual_information": select in order or mutual information
+        #   (highest to lowest) with respect to the target
+        # - None: select in order of input.
+        self.atlas_selection = None
 
         # Dictionary of names for renaming ROIs, where the keys are new
         # names and values are lists of possible names of ROIs that should
@@ -145,6 +165,9 @@ class SasEvaluation(Algorithm):
 
         # Names of ROIs to consider in evaluations.
         self.to_keep = None
+        
+        # Voxel size for evaluations.
+        self.voxel_size = None
 
         # Metrics to be evaluated for comparing transformed ROIs
         # and reference ROIs.
@@ -158,6 +181,15 @@ class SasEvaluation(Algorithm):
         # Default specification of slices to be considered when
         # calculating slice-by-slice statistics.
         self.default_by_slice = None
+
+        # Specification of step(s) for which to calculate mutual information,
+        # variants to calculate, and calculation parameters.
+        self.mi_init = False
+        self.mi_reg_step = False
+        self.mi_variants = None
+        self.base = 2
+        self.bins = 100
+        self.xyrange = None
 
         # File to which to write dataframe of comparison metrics.
         self.analysis_csv = "analysis.csv"
@@ -176,6 +208,9 @@ class SasEvaluation(Algorithm):
         # Dataframe for comparison metrics.
         self.df_analysis = None
 
+        # Set random-number seed.
+        random.seed(self.seed)
+
     def execute(self, patient=None):
         '''
         Perform and evaluate single-atlas segmentations.
@@ -190,18 +225,21 @@ class SasEvaluation(Algorithm):
         self.logger.info(f"Patient id: {patient.id}")
         self.logger.info(f"Folder path: {patient.path}")
 
-        im1 = self.get_target_image(patient)
-        atlas_data_paths = self.get_atlas_data_paths()
+        self.im1 = self.get_target_image(patient)
+        exclude_ids = [patient.id] if self.exclude_target else None
 
-        for atlas_id in atlas_data_paths:
+        atlas_objs = self.select_atlases(
+                self.n_atlas, exclude_ids, self.atlas_selection)
+
+        for atlas_id in atlas_objs:
             self.logger.info(f"Atlas id: {atlas_id}")
             tuner = SasTuner(
                     pfiles1_variations=self.pfiles1_variations,
                     pfiles2_variations=self.pfiles2_variations,
-                    im1=im1,
-                    im2=atlas_data_paths[atlas_id][0],
+                    im1=self.im1,
+                    im2=atlas_objs[atlas_id][0],
                     ss1=None,
-                    ss2=atlas_data_paths[atlas_id][1],
+                    ss2=atlas_objs[atlas_id][1],
                     log_level=self.log_level,
                     workdir=Path(self.workdir) / f"{patient.id}_{atlas_id}",
                     roi_names=self.roi_names,
@@ -232,13 +270,22 @@ class SasEvaluation(Algorithm):
                     metrics=self.metrics,
                     slice_stats=self.slice_stats,
                     default_by_slice=self.default_by_slice,
+                    voxel_size=self.voxel_size,
+                    mi_init = self.mi_init,
+                    mi_reg_step = self.mi_reg_step,
+                    mi_variants = self.mi_variants,
+                    base = self.base,
+                    bins = self.bins,
+                    xyrange = self.xyrange,
                     )
+            print(tuner.df)
 
             # Append dataframe for current comparision to global dataframe.
             if self.df_analysis is None:
                 self.df_analysis = tuner.df
             else:
-                self.df_analysis = pd.concat([self.df_analysis, tuner.df])
+                self.df_analysis = pd.concat(
+                        [self.df_analysis, tuner.df], ignore_index=True)
 
         return self.status
 
@@ -266,26 +313,98 @@ class SasEvaluation(Algorithm):
         """
         return patient.combined_objs("image_types")[0]
 
-    def get_atlas_data_paths(self):
+    def get_atlas_objs(self):
         """
-        Obtain dictionary identifying atlas data against which to register.
+        Obtain dictionary of atlas objects against which to register.
 
         Dictionary keys are identifiers, and values are tuples of
-        paths for image and associated structure set.
+        Image and StructureSet.  If the StructureSet to consider is
+        the first element of the Image object's structure_sets attribute,
+        the second element of the tuple may be set to None.
 
-        This implementation returns the path to the first image of
-        any type associated with each atlas, and the path to
-        the first structure set associated with this image.
+        This implementation returns the first image of any type
+        associated with each atlas.
 
         This function may need to be overridden in a subclass.
         """
-        atlas_data_paths = {}
+        atlas_objs = {}
         for atlas in self.atlases:
             patient = Patient(atlas, unsorted_dicom=True)
             im = patient.combined_objs("image_types")[0]
-            atlas_data_paths[patient.id] = (im, None)
-        return atlas_data_paths
+            atlas_objs[patient.id] = (im, None)
+        return atlas_objs
 
+    def select_atlases(self, n_atlas=None, exclude_ids=None, selection=None):
+
+        allowed_selections = {None, "random", "mi", "mutual_information"}
+        if selection not in allowed_selections:
+            raise RuntimeError(f"Selection {selection} not allowed; "
+                               f"allowed selections: {allowed_selections}")
+
+        atlas_objs = self.get_atlas_objs()
+        if n_atlas is None and exclude_ids is None and selection is None:
+            return atlas_objs
+
+        if exclude_ids:
+            if not is_list(exclude_ids):
+                exclude_ids = [exclude_ids]
+            atlas_ids = [atlas_id for atlas_id in atlas_objs
+                         if atlas_id not in exclude_ids]
+        else:
+            atlas_ids = list(atlas_objs)
+
+        n_atlas = n_atlas if n_atlas is not None else len(atlas_ids)
+
+        if n_atlas > len(atlas_ids):
+            raise RuntimeError(f"Request selection of {n_atlas} atlases "
+                               f"but only {len(atlas_ids)} atlases "
+                               f"after exclusions: {atlas_ids}")
+
+        if selection in ["random", None]:
+            if "random" == selection:
+                atlas_ids = random.sample(atlas_ids, n_atlas)
+            return {atlas_id: atlas_objs[atlas_id]
+                    for atlas_id in list(atlas_ids)[: n_atlas]}
+
+        if selection in ["mi", "mutual_information"]:
+            scores = {}
+            for atlas_ids in atlas_objs:
+                sas = SingleAtlasSegmentation(
+                        im1=self.im1,
+                        im2=atlas_objs[atlas_id][0],
+                        ss1=None,
+                        ss2=atlas_objs[atlas_id][1],
+                        log_level=self.log_level,
+                        workdir=Path(self.workdir) / "atlas_selection",
+                        overwrite=True,
+                        auto=True,
+                        auto_reg_setup_only=True,
+                        roi_names=self.roi_names,
+                        initial_crop_focus=self.initial_crop_focus,
+                        initial_crop_margins=self.initial_crop_margins,
+                        initial_alignment=self.initial_alignment,
+                        initial_transform_name=self.initial_transform_name,
+                        crop_to_match_size1=self.crop_to_match_size1,
+                        voxel_size1=self.voxel_size1,
+                        bands1=self.bands1,
+                        pfiles1=({} if self.initial_alignment
+                                 else self.pfiles1),
+                        capture_output=self.capture_output,
+                        )
+                reg = sas.get_registration(step=0)
+                score = reg.get_mutual_information(reg_step=0)
+                if score not in scores:
+                    scores[score] = []
+                scores[score].append(atlas_id)
+
+            atlas_objs2 = {}
+            i_atlas = 0
+            for score, atlas_ids2 in sorted(scores.items(), reverse=True):
+                for atlas_id in sorted(atlas_ids2):
+                    atlas_objs2[atlas_id] = atlas_objs[atlas_id]
+                    i_atlas += 1
+                    if i_atlas >= n_atlas:
+                        return atlas_objs2
 
 def get_app(setup_script=''):
     '''
@@ -313,8 +432,13 @@ def get_app(setup_script=''):
     opts["default_roi_crop_margins"] = (20, 10, 10)
     opts["roi_crop_margins"] = {"heart": (10, 30, 10), "imn": (40, 20, 10)}
     opts["voxel_size2"] = opts["voxel_size1"]
+    opts["voxel_size"] = opts["voxel_size1"]
     opts["bands2"] = None
     opts["log_level"] = "INFO"
+    opts["to_keep"] = "imn"
+    opts["atlas_selection"] = None
+    opts["exclude_target"] = True
+    opts["seed"] = 1
 
     opts["metrics"] = [
             "centroid_slice_stats",
@@ -334,9 +458,29 @@ def get_app(setup_script=''):
             "volume_ratio",
             ]
 
-    opts["metrics"] = ["dice"]
+    opts["metrics"] = [
+            #"centroid_slice_stats",
+            #"abs_centroid_slice_stats",
+            #"area_ratio_slice_stats",
+            #"centroid",
+            #"abs_centroid",
+            "dice",
+            #"hausdorff_distance",
+            #"jaccard",
+            #"mean_over_contouring",
+            #"mean_under_contouring",
+            #"mean_signed_surface_distance",
+            #"mean_surface_distance",
+            #"rms_surface_distance",
+            #"volume_diff",
+            #"volume_ratio",
+            ]
     
     opts["slice_stats"] = {"intersection": ["mean", "stdev"]}
+
+    opts["mi_init"] = True
+    opts["mi_reg_step"] = True
+    opts["mi_variants"] = ["mi", "nmi", "iqr", ]
 
     opts["analysis_csv"] = "analysis.csv"
 
@@ -434,9 +578,6 @@ if '__main__' == __name__:
     # Define class and options for loading patient datasets.
     PatientClass, patient_class, patient_opts = get_data_loader()
 
-    # Define number of atlases.
-    n_atlas = 2
-
     # Define the patient data to be analysed.
     paths = get_paths(get_data_locations(global_side),
             None, None, get_to_exclude())
@@ -446,7 +587,13 @@ if '__main__' == __name__:
         input_data = paths[:1]
 
     # Set paths to atlases.
-    app.algs[0].atlases = paths[: n_atlas]
+    app.algs[0].atlases = paths
+
+    # Set number of atlases to consider
+    app.algs[0].n_atlas = 2
+
+    # Allow target among atlases.
+    app.algs[0].exclude_target = False
 
     # Run application for the selected data.
     app.run(input_data, PatientClass, **patient_opts)
@@ -463,9 +610,6 @@ if 'Ganga' in __name__:
             patient_class, patient_opts)
     opts = ganga_app.algs[0].opts
 
-    # Define number of atlases.
-    n_atlas = 5
-
     # Define the patient data to be analysed.
     paths = get_paths(get_data_locations(global_side),
             None, None, get_to_exclude())
@@ -475,7 +619,10 @@ if 'Ganga' in __name__:
         input_data = PatientDataset(paths=paths[:1])
 
     # Set paths to atlases.
-    opts["atlases"] = paths[: n_atlas]
+    opts["atlases"] = paths
+
+    # Set number of atlases to consider
+    opts["n_atlas"] = n_atlas
 
     # Define processing system.
     if "Linux" == platform.system():
