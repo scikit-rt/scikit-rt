@@ -1,10 +1,21 @@
 # scikit-rt
 
-A suite of tools for loading, plotting, and analysing medical imaging data.
+Scikit-rt provides tools for loading, plotting, and analysing
+radiotherapy data in [DICOM](https://www.dicomstandard.org/) format and
+in [NIfTI](https://nifti.nimh.nih.gov/) format: images, structure sets,
+plans, doses.  In includes image registration via Elastix,
+single- and multi-atlas segmentation, and comparisons of structure sets.
 
 This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
-For full code documentation, go to https://scikit-rt.github.io/scikit-rt/skrt_modules.html
+For full code documentation, see: <br/>
+[https://scikit-rt.github.io/scikit-rt/skrt_modules.html](https://scikit-rt.github.io/scikit-rt/skrt_modules.html).
+
+## Help and support
+
+If you have any problems when using scikit-rt, please submit a help request
+or bug report via the project issues tracker: <br/>
+[https://github.com/scikit-rt/scikit-rt/issues](https://github.com/scikit-rt/scikit-rt/issues)
 
 ## Installation
 
@@ -19,9 +30,9 @@ Installation inside a minconda environment is recommended. If not using minicond
 
 1. Install miniconda by downloading from https://docs.conda.io/en/latest/miniconda.html .
 2. Open the Anaconda Prompt app (Windows) or a terminal (Mac/Linux).
-3. Create a new environment called `skrt` (can replace this with a name of your choice) with python 3.9 by running:
+3. Create a new environment called `skrt` (or replace this with a name of your choice) with python 3.8 by running:
 ```
-conda create --name skrt python=3.9
+conda create --name skrt python=3.8
 ```
 4. Activate the environment by running:
 ```
@@ -50,17 +61,17 @@ pip install simpleitk
 #### 3. Using scikit-rt in code
 
 - If using miniconda, ensure you have opened Anaconda Prompt/a terminal and activated your environment (step 1.4).
-- Options for running python are:
+- Options for running scikit-rt code are:
     - Launch a jupyter notebook server by typing `jupyter notebook`.
     - Launch an iPython session by typing `ipython`.
     - Create a python script and run it by typing `python my_script.py`.
-- To check that scikit-rt is correctly installed, trying running the command `import skrt` via any of the three methods above.
+- To check that scikit-rt is correctly installed, try running the command `import skrt` via any of the methods above.
 
-#### 4. Elastix installation (optional -- needed for image registration functionality)
+#### 4. Elastix installation (optional -- needed for image registration functionality and atlas-based segmentation)
 
-1. Download the version of elastix matching your operating system from https://github.com/SuperElastix/elastix/releases/tag/5.0.1
+1. Download the latest version of elastix matching your operating system from [https://elastix.lumc.nl/download.php](https://elastix.lumc.nl/download.php).
 2. Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.
-3. On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your `~.zshrc` or `.bashrc`:
+3. On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your `~/.zshrc` or `~/.bashrc`:
 
 On Mac:
 ```
@@ -72,7 +83,7 @@ On Linux:
 export PATH=${PATH}:/path/to/elastix/directory/bin
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 ```
-4. If you are on Windows or didn't do step 3, any time you want to use image registration in scikit-rt, you will need to run:
+4. If you are on Windows or didn't follow step 3, any time that you want to use image registration or atlas-based segmentation in scikit-rt, you will need to run:
 ```
 from skrt.registration import set_elastix_dir
 set_elastix_dir('path/to/elastix/directory')
@@ -85,6 +96,7 @@ Scikit-rt is in active development. To install the lastest version, run:
 pip install --upgrade scikit-rt
 ```
 
+<!---
 ### Docker installation
 
 You need to have an installation of [Docker](https://www.docker.com/).
@@ -112,6 +124,17 @@ is chosen by the user; the latter is fixed.  Paths should always be absolute
  (not relative).
 - The argument to `-p` maps the server port (8888) on the local machine to the
 server port (8888) on the container side.
+--->
+
+## Overview
+
+In scikit-rt, different types of radiotherapy data are represented by
+different types of object: [Image](https://scikit-rt.github.io/scikit-rt/skrt.image.html#skrt.image.Image), [StructureSet](https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.StructureSet), [ROI](https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.ROI)
+ (region of interest), [Plan](https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan), [Dose](https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose).  Different types of data may be loaded and worked with independently of one another, or may be grouped and linked by loading via [Study](https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Study) or [Patient](https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Patient) objects.
+
+Usage information, and code examples, for working with the different types of scikit-rt data objects are given below, followed by information on generation
+and use of synthetic data, image registration, and keyboard shortcuts for
+interactive image viewing outside of a Jupyter notebook.
 
 ## Table of contents
 1) [Images](#images)
