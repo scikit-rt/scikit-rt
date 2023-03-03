@@ -44,18 +44,19 @@
               <p class="caption" role="heading"><span class="caption-text">Installation and usage:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">scikit-rt</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#help-and-support">Help and support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#package-installation">Package installation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#miniconda-setup-recommended">1. Miniconda setup (recommended)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#package-installation-via-pip">2. Package installation via <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#using-scikit-rt-in-code">3. Using scikit-rt in code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#elastix-installation-optional-needed-for-image-registration-functionality">4. Elastix installation (optional – needed for image registration functionality)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#elastix-installation-optional-needed-for-image-registration-functionality-and-atlas-based-segmentation">4. Elastix installation (optional – needed for image registration functionality and atlas-based segmentation)</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#updating-scikit-rt">Updating scikit-rt</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#docker-installation">Docker installation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#images">1. Images</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#loading-from-a-file">Loading from a file</a></li>
@@ -154,9 +155,20 @@
              
   <section id="scikit-rt">
 <h1>scikit-rt<a class="headerlink" href="#scikit-rt" title="Permalink to this heading"></a></h1>
-<p>A suite of tools for loading, plotting, and analysing medical imaging data.</p>
+<p>Scikit-rt provides tools for loading, plotting, and analysing
+radiotherapy data in <a class="reference external" href="https://www.dicomstandard.org/">DICOM</a> format and
+in <a class="reference external" href="https://nifti.nimh.nih.gov/">NIfTI</a> format: images, structure sets,
+plans, doses.  In includes image registration via Elastix,
+single- and multi-atlas segmentation, and comparisons of structure sets.</p>
 <p>This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].</p>
-<p>For full code documentation, go to https://scikit-rt.github.io/scikit-rt/skrt_modules.html</p>
+<p>For full code documentation, see: <br/>
+<a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt_modules.html">https://scikit-rt.github.io/scikit-rt/skrt_modules.html</a>.</p>
+<section id="help-and-support">
+<h2>Help and support<a class="headerlink" href="#help-and-support" title="Permalink to this heading"></a></h2>
+<p>If you have any problems when using scikit-rt, please submit a help request
+or bug report via the project issues tracker: <br/>
+<a class="reference external" href="https://github.com/scikit-rt/scikit-rt/issues">https://github.com/scikit-rt/scikit-rt/issues</a></p>
+</section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <p>Package installation provides full code access.  Docker installation
@@ -169,9 +181,9 @@ allows for scikit-rt code to be used from a jupyter notebook.</p>
 <ol class="arabic simple">
 <li><p>Install miniconda by downloading from https://docs.conda.io/en/latest/miniconda.html .</p></li>
 <li><p>Open the Anaconda Prompt app (Windows) or a terminal (Mac/Linux).</p></li>
-<li><p>Create a new environment called <code class="docutils literal notranslate"><span class="pre">skrt</span></code> (can replace this with a name of your choice) with python 3.9 by running:</p></li>
+<li><p>Create a new environment called <code class="docutils literal notranslate"><span class="pre">skrt</span></code> (or replace this with a name of your choice) with python 3.8 by running:</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">skrt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">skrt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.8</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
@@ -206,22 +218,22 @@ pip install simpleitk
 <h4>3. Using scikit-rt in code<a class="headerlink" href="#using-scikit-rt-in-code" title="Permalink to this heading"></a></h4>
 <ul class="simple">
 <li><p>If using miniconda, ensure you have opened Anaconda Prompt/a terminal and activated your environment (step 1.4).</p></li>
-<li><p>Options for running python are:</p>
+<li><p>Options for running scikit-rt code are:</p>
 <ul>
 <li><p>Launch a jupyter notebook server by typing <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code>.</p></li>
 <li><p>Launch an iPython session by typing <code class="docutils literal notranslate"><span class="pre">ipython</span></code>.</p></li>
 <li><p>Create a python script and run it by typing <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">my_script.py</span></code>.</p></li>
 </ul>
 </li>
-<li><p>To check that scikit-rt is correctly installed, trying running the command <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code> via any of the three methods above.</p></li>
+<li><p>To check that scikit-rt is correctly installed, try running the command <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code> via any of the methods above.</p></li>
 </ul>
 </section>
-<section id="elastix-installation-optional-needed-for-image-registration-functionality">
-<h4>4. Elastix installation (optional – needed for image registration functionality)<a class="headerlink" href="#elastix-installation-optional-needed-for-image-registration-functionality" title="Permalink to this heading"></a></h4>
+<section id="elastix-installation-optional-needed-for-image-registration-functionality-and-atlas-based-segmentation">
+<h4>4. Elastix installation (optional – needed for image registration functionality and atlas-based segmentation)<a class="headerlink" href="#elastix-installation-optional-needed-for-image-registration-functionality-and-atlas-based-segmentation" title="Permalink to this heading"></a></h4>
 <ol class="arabic simple">
-<li><p>Download the version of elastix matching your operating system from https://github.com/SuperElastix/elastix/releases/tag/5.0.1</p></li>
+<li><p>Download the latest version of elastix matching your operating system from <a class="reference external" href="https://elastix.lumc.nl/download.php">https://elastix.lumc.nl/download.php</a>.</p></li>
 <li><p>Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.</p></li>
-<li><p>On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your <code class="docutils literal notranslate"><span class="pre">~.zshrc</span></code> or <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code>:</p></li>
+<li><p>On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your <code class="docutils literal notranslate"><span class="pre">~/.zshrc</span></code> or <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code>:</p></li>
 </ol>
 <p>On Mac:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export PATH=${PATH}:/path/to/elastix/directory/bin
@@ -234,7 +246,7 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p>If you are on Windows or didn’t do step 3, any time you want to use image registration in scikit-rt, you will need to run:</p></li>
+<li><p>If you are on Windows or didn’t follow step 3, any time that you want to use image registration or atlas-based segmentation in scikit-rt, you will need to run:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_elastix_dir</span>
 <span class="n">set_elastix_dir</span><span class="p">(</span><span class="s1">&#39;path/to/elastix/directory&#39;</span><span class="p">)</span>
@@ -248,31 +260,45 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
-</section>
-<section id="docker-installation">
-<h3>Docker installation<a class="headerlink" href="#docker-installation" title="Permalink to this heading"></a></h3>
-<p>You need to have an installation of <a class="reference external" href="https://www.docker.com/">Docker</a>.</p>
-<p>Download the Scikit-rt docker image with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">pull</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="p">:</span><span class="n">latest</span>
-</pre></div>
-</div>
-<p>Choose a work directory, copy here any data that you would want to be able to
-access with Scikit-rt, then start a docker container:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">v</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">directory</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">jovyan</span><span class="o">/</span><span class="n">workdir</span> <span class="o">-</span><span class="n">p</span> <span class="mi">8888</span><span class="p">:</span><span class="mi">8888</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
-</pre></div>
-</div>
-<p>Copy the last URL listed (starting: http://127.0.0.1:8888), and point a browser to this URL.  This should open a jupyter lab session, where you import
-Scikit-rt modules.</p>
-<p>Notes on arguments passed to <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code>:</p>
-<ul class="simple">
-<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-v</span></code> maps a local work directory (/path/to/work/directory) to
+<!---
+### Docker installation
+
+You need to have an installation of [Docker](https://www.docker.com/).
+
+Download the Scikit-rt docker image with:
+
+```
+docker pull ghcr.io/scikit-rt/scikit-rt:latest
+```
+
+Choose a work directory, copy here any data that you would want to be able to
+access with Scikit-rt, then start a docker container:
+
+```
+docker run -v /path/to/work/directory:/home/jovyan/workdir -p 8888:8888 ghcr.io/scikit-rt/scikit-rt
+```
+
+Copy the last URL listed (starting: http://127.0.0.1:8888), and point a browser to this URL.  This should open a jupyter lab session, where you import
+Scikit-rt modules.
+
+Notes on arguments passed to `docker run`:
+- The argument to `-v` maps a local work directory (/path/to/work/directory) to 
 the work directory of the docker container (/home/jovyan/workdir).  The former
 is chosen by the user; the latter is fixed.  Paths should always be absolute
-(not relative).</p></li>
-<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-p</span></code> maps the server port (8888) on the local machine to the
-server port (8888) on the container side.</p></li>
-</ul>
+ (not relative).
+- The argument to `-p` maps the server port (8888) on the local machine to the
+server port (8888) on the container side.
+--->
 </section>
+</section>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
+<p>In scikit-rt, different types of radiotherapy data are represented by
+different types of object: <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.image.html#skrt.image.Image">Image</a>, <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.StructureSet">StructureSet</a>, <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.ROI">ROI</a>
+(region of interest), <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan">Plan</a>, <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose">Dose</a>.  Different types of data may be loaded and worked with independently of one another, or may be grouped and linked by loading via <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Study">Study</a> or <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Patient">Patient</a> objects.</p>
+<p>Usage information, and code examples, for working with the different types of scikit-rt data objects are given below, followed by information on generation
+and use of synthetic data, image registration, and keyboard shortcuts for
+interactive image viewing outside of a Jupyter notebook.</p>
 </section>
 <section id="table-of-contents">
 <h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading"></a></h2>
