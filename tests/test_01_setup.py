@@ -11,6 +11,16 @@ def test_skrt():
 
     assert skrt_imported == True
 
+def test_version_defined():
+    # Test that version number is defined.
+    try:
+        import skrt
+        version = skrt.__version__
+    except ModuleNotFoundError:
+        version = None
+
+    assert isinstance(version, str)
+
 def test_jupyter():
     # Test that jupyter can be run.
     try:

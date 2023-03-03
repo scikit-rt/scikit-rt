@@ -1,3 +1,4 @@
+import pkg_resources
 import warnings
 
 from skrt.better_viewer import BetterViewer
@@ -10,3 +11,6 @@ from skrt.patient import Patient, Study
 # Suppress warning from pydicom.
 warnings.filterwarnings("ignore", message="Invalid value for VR UI",
         module="pydicom")
+
+# Assign version number.
+__version__ = pkg_resources.get_distribution("scikit-rt").version
