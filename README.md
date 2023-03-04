@@ -132,7 +132,7 @@ server port (8888) on the container side.
 
 ## Usage overview
 
-Scikit-rt can be used in scripts to be run from the command line, or in [https://jupyter.org/](Jupyter), where interactive features are enabled for image viewing.  The Scikit-rt installation includes both [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/latest/) and [JupyterLab](https://github.com/jupyterlab/jupyterlab).
+Scikit-rt can be used in scripts to be run from the command line, or in [Jupyter](https://jupyter.org/), where interactive features are enabled for image viewing.  The Scikit-rt installation includes both [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/latest/) and [JupyterLab](https://github.com/jupyterlab/jupyterlab).
 
 Scikit-rt is able to load [DICOM](https://www.dicomstandard.org/current) data (images, RTDOSE, RTSTRUCT, RTPLAN) and [NIfTI](https://nifti.nimh.nih.gov/) data
 (images, dose images, regions of interest (ROIs) represented as masks), and to convert between them.
