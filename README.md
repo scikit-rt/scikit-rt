@@ -30,6 +30,7 @@ for [Python 3.8](https://www.python.org/downloads/release/python-380/).
 1. User installation
 ```
 conda create --name skrt python=3.8
+conda activate skrt
 pip install scikit-rt
 ```
 
@@ -38,18 +39,20 @@ pip install scikit-rt
 git clone https://github.com/scikit-rt/scikit-rt
 cd scikit-rt
 conda env create --file environment.yml
+conda activate skrt
 ```
 
 3. Environment activation and deactivation
 
-Following installation, the scikit-rt environment can be activated
-and deactivated:
+Following either of the installations above, the scikit-rt environment
+is activate.  More generally, environment can be activated
+and deactivated with:
 ```
 # Activate envrionment
 conda activate skrt
 
 # Deactivate environment
-conda deactivate skrt
+conda deactivate
 ```
 
 4. Installation test
@@ -130,9 +133,17 @@ is chosen by the user; the latter is fixed.  Paths should always be absolute
 server port (8888) on the container side.
 --->
 
-## Usage overview
+## Usage information
 
 Scikit-rt can be used in scripts to be run from the command line, or in [Jupyter](https://jupyter.org/), where interactive features are enabled for image viewing.  The Scikit-rt installation includes both [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/latest/) and [JupyterLab](https://github.com/jupyterlab/jupyterlab).
+
+Notebooks demonstrating scikit-rt, using publicly accessible or synthetic data,
+are available as follows:
+
+- [plotting_demo.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/plotting_demo.ipynb) demonstrates plotting capabilities;
+- [image_registration_checks.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/image_registration_checks.ipynb) demonstrates
+image registration, and qualitative checking of results (requires
+[elastix](https://elastix.lumc.nl/) to be installed).
 
 Scikit-rt is able to load [DICOM](https://www.dicomstandard.org/current) data (images, RTDOSE, RTSTRUCT, RTPLAN) and [NIfTI](https://nifti.nimh.nih.gov/) data
 (images, dose images, regions of interest (ROIs) represented as masks), and to convert between them.
