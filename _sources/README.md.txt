@@ -1,10 +1,11 @@
 # scikit-rt
 
 Scikit-rt provides tools for loading, plotting, and analysing
-radiotherapy data in [DICOM](https://www.dicomstandard.org/) format and
-in [NIfTI](https://nifti.nimh.nih.gov/) format: images, structure sets,
-plans, doses.  In includes image registration via Elastix,
-single- and multi-atlas segmentation, and comparisons of structure sets.
+radiotherapy data in [DICOM](https://www.dicomstandard.org/) and
+[NIfTI](https://nifti.nimh.nih.gov/) formats.  It includes
+image registration via [elastix](https://elastix.lumc.nl/),
+single- and multi-atlas segmentation, and region-of-interest (ROI)
+comparisons.
 
 This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
@@ -13,61 +14,72 @@ For full code documentation, see: <br/>
 
 ## Help and support
 
-If you have any problems when using scikit-rt, please submit a help request
+If you encounter problems with scikit-rt, please submit a help request
 or bug report via the project issues tracker: <br/>
 [https://github.com/scikit-rt/scikit-rt/issues](https://github.com/scikit-rt/scikit-rt/issues)
 
 ## Installation
+Scikit-rt has a number of dependencies.  To avoid possible version conflicts,
+it's recommended that it be installed to a clean virtual
+environment.  This is achieved in the instructions below using
+[conda](https://docs.conda.io/).  You can perform a user installation
+with [pip](https://pip.pypa.io/), or a developer installation with
+[git](https://git-scm.com/).   Installations have been tested
+for [Python 3.8](https://www.python.org/downloads/release/python-380/).
 
-Package installation provides full code access.  Docker installation
-allows for scikit-rt code to be used from a jupyter notebook.
-
-### Package installation
-
-Installation inside a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and [pip](https://pypi.org/project/pip/).
-
-#### 1. Miniconda setup (recommended)
-
-1. Install miniconda by downloading from https://docs.conda.io/en/latest/miniconda.html .
-2. Open the Anaconda Prompt app (Windows) or a terminal (Mac/Linux).
-3. Create a new environment called `skrt` (or replace this with a name of your choice) with python 3.8 by running:
+1. User installation
 ```
 conda create --name skrt python=3.8
-```
-4. Activate the environment by running:
-```
-conda activate skrt
-```
-
-#### 2. Package installation via `pip`
-
-1. Open Anaconda Prompt/a terminal, if not already open.
-2. If using miniconda, ensure that you have first activated your environment by running step 1.4 from above.
-3. Install scikit-rt by running:
-```
 pip install scikit-rt
 ```
-<!---
-4. If using Windows, you will also need to install shapely by running:
-```
-conda install -c conda-forge shapely
-```
-5. If you want to be able to calculate the STAPLE consensus of contours, you must also install SimpleITK:
-```
-pip install simpleitk
-```
---->
 
-#### 3. Using scikit-rt in code
+2. Developer installation
+```
+git clone https://github.com/scikit-rt/scikit-rt
+cd scikit-rt
+conda env create --file environment.yml
+```
 
-- If using miniconda, ensure you have opened Anaconda Prompt/a terminal and activated your environment (step 1.4).
-- Options for running scikit-rt code are:
-    - Launch a jupyter notebook server by typing `jupyter notebook`.
-    - Launch an iPython session by typing `ipython`.
-    - Create a python script and run it by typing `python my_script.py`.
-- To check that scikit-rt is correctly installed, try running the command `import skrt` via any of the methods above.
+3. Environment activation and deactivation
 
-#### 4. Elastix installation (optional -- needed for image registration functionality and atlas-based segmentation)
+Following installation, the scikit-rt environment can be activated
+and deactivated:
+```
+# Activate envrionment
+conda activate skrt
+
+# Deactivate environment
+conda deactivate skrt
+```
+
+4. Installation test
+As a minimal test that the installation has been successful, try:
+```
+python -c "import skrt; print(skrt.__version__)"
+```
+This should print the scikit-rt version number, and exit without errors.
+
+## Updating scikit-rt
+
+Scikit-rt is in active development. Following an initial installation,
+it's possible to update to the latest version.
+
+1. User installation
+```
+pip install --upgrade scikit-rt
+```
+
+2. Developer installation
+From the scikit-rt directory, and assuming that no unmerged changes have
+been made to the local copy of the code:
+```
+git pull
+```
+
+## Elastix installation
+
+Elastix installation is optional, but is needed for scikit-rt functionality
+relating to image registration and atlas-based segmentation.
 
 1. Download the latest version of elastix matching your operating system from [https://elastix.lumc.nl/download.php](https://elastix.lumc.nl/download.php).
 2. Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.
@@ -88,14 +100,6 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 from skrt.registration import set_elastix_dir
 set_elastix_dir('path/to/elastix/directory')
 ```
-
-### Updating scikit-rt
-
-Scikit-rt is in active development. To install the lastest version, run:
-```
-pip install --upgrade scikit-rt
-```
-
 <!---
 ### Docker installation
 
@@ -126,13 +130,18 @@ is chosen by the user; the latter is fixed.  Paths should always be absolute
 server port (8888) on the container side.
 --->
 
-## Overview
+## Usage overview
 
-In scikit-rt, different types of radiotherapy data are represented by
+Scikit-rt can be used in scripts to be run from the command line, or in [https://jupyter.org/](Jupyter), where interactive features are enabled for image viewing.  The Scikit-rt installation includes both [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/latest/) and [JupyterLab](https://github.com/jupyterlab/jupyterlab).
+
+Scikit-rt is able to load [DICOM](https://www.dicomstandard.org/current) data (images, RTDOSE, RTSTRUCT, RTPLAN) and [NIfTI](https://nifti.nimh.nih.gov/) data
+(images, dose images, regions of interest (ROIs) represented as masks), and to convert between them.
+
+The different types of radiotherapy data are represented in scikit-rt as
 different types of object: [Image](https://scikit-rt.github.io/scikit-rt/skrt.image.html#skrt.image.Image), [StructureSet](https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.StructureSet), [ROI](https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.ROI)
- (region of interest), [Plan](https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan), [Dose](https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose).  Different types of data may be loaded and worked with independently of one another, or may be grouped and linked by loading via [Study](https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Study) or [Patient](https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Patient) objects.
+ (region of interest), [Plan](https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan), [Dose](https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose).  The different types of data may be loaded and worked with independently of one another, or may be grouped and linked by loading via [Study](https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Study) or [Patient](https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Patient) objects.
 
-Usage information, and code examples, for working with the different types of scikit-rt data objects are given below, followed by information on generation
+Usage information, and code examples, for working with the different types of scikit-rt data objects are given below.  Information is also given on generation
 and use of synthetic data, image registration, and keyboard shortcuts for
 interactive image viewing outside of a Jupyter notebook.
 
@@ -147,7 +156,7 @@ interactive image viewing outside of a Jupyter notebook.
 
 ## 1. Images
 
-The Image class can be used to read and write medical images from DICOM, nifti,
+The Image class can be used to read and write images in DICOM, NIfTI,
 or NumPy format. These images can be plotted and compared.
 
 To load the Image class:
@@ -459,15 +468,18 @@ image.clear_structure_sets()
 
 ## 3. Patients and studies
 
-The `Patient` and `Study` classes allow multiple medical images and structure sets associated with a single patient to be read into one object. 
+The `Patient` and `Study` classes allow multiple images and structure sets associated with a single patient to be read into one object.  These classes
+can load DICOM and/or NIfTI files organised as described below (sorted data),
+and can load arbitrarily organised DICOM files (unsorted data).  In the
+cases of both sorted and unsorted data, all files relating to a single
+patient should be placed under a separate directory, the name of which
+is taken as the patient's identifier.
 
-### Expected file structure
+### Sorted data
 
 #### Patient and study file structure
 
-The files for a patient should be sorted into a specific structure in order for the `Patient` class to be able to read them in correctly.
-
-The top level directory represents the entire **patient**; this should be a directory whose name is the patient's ID.
+The top level directory represents the entire **patient**.
 
 The next one or two levels represent **studies**. A study is identified by a directory whose name is a timestamp, which is a string with format `YYYYMMDD_hhmmss`. These directories can either appear within the patient directory, or be nested in a further level of directories, for example if you wished to separate groups of studies.
 
@@ -516,10 +528,11 @@ For example, if a study containined both CT and MR images, as well as two struct
 
 ### The Patient class
 
-A `Patient` object is created by providing the path to the top-level patient directory:
+A `Patient` object is created by providing the path to the top-level patient directory, and indicating if the data are unsorted DICOM data:
 ```
 from skrt import Patient
-p = Patient('mypatient1')
+p = Patient('mypatient1') # load sorted data
+p = Patient('mypatient2', unsorted_dicom=True) # load unsorted DICOM data
 ```
 
 A list of the patient's associated studies is stored in `p.studies`.
@@ -530,6 +543,25 @@ Additional properties can be accessed:
 - Patient age: `p.get_age()`
 - Patient birth date: `p.get_birth_date()`
 
+#### Sorted and unsorted DICOM file
+
+If a patient's data consists of sorted DICOM files, the data may be read
+both with `unsorted_dicom=False` (default) and with `unsorted_dicom=True`.
+Loading of sorted data tends to be faster, with object linking (for
+example, association of a structure set with an image) based
+on file organisation.  When loading unsorted DICOM files, object linking
+is based on unique identifiers and references that the files contain.
+
+Unsorted DICOM files can be copied as sorted files:
+```
+from skrt import Patient
+# Load unsorted DICOM files.
+p = Patient('mypatient2', unsorted_dicom=True)
+# Write sorted DICOM files to sub-directory mypatient2 of directory my_sorted_dicom.
+p.copy_dicom('my_sorted_dicom')
+```
+
+<!---
 #### Writing a patient tree
 
 A patient's files can be written out in nifti or numpy format. By default, files will be written to compress nifti (`.nii.gz`) files. This is done via the `write` method:
@@ -549,7 +581,7 @@ To write out structure sets as well as images, the `structure_set` argument shou
 - A list of indices of structure sets to write (e.g. to write only the oldest and newest, set `structure_set=[0, -1]`)
 
 By default, no structure sets will be written, as conversion of structures from contours to masks can be slow for large structures.
-
+--->
 
 ### The Study class
 
@@ -561,7 +593,7 @@ For each imaging modalitiy subdirectory inside the study, a new class property w
 
 #### Structure sets
 
-The study's structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the `structure_set` property of the `Image` itself; this is a list of `StructureSet` objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:
+The study's structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the `structure_sets` property of the `Image` itself; this is a list of `StructureSet` objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:
 ```
 p = Patient('mypatient1')
 s = p.studies[0]

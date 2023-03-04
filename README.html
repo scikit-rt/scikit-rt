@@ -45,18 +45,10 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">scikit-rt</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#help-and-support">Help and support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#package-installation">Package installation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#miniconda-setup-recommended">1. Miniconda setup (recommended)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#package-installation-via-pip">2. Package installation via <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#using-scikit-rt-in-code">3. Using scikit-rt in code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#elastix-installation-optional-needed-for-image-registration-functionality-and-atlas-based-segmentation">4. Elastix installation (optional – needed for image registration functionality and atlas-based segmentation)</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#updating-scikit-rt">Updating scikit-rt</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#updating-scikit-rt">Updating scikit-rt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#elastix-installation">Elastix installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-overview">Usage overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#images">1. Images</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#loading-from-a-file">Loading from a file</a></li>
@@ -90,13 +82,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#patients-and-studies">3. Patients and studies</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#expected-file-structure">Expected file structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sorted-data">Sorted data</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#patient-and-study-file-structure">Patient and study file structure</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#files-within-a-study">Files within a study</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#the-patient-class">The Patient class</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#writing-a-patient-tree">Writing a patient tree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sorted-and-unsorted-dicom-file">Sorted and unsorted DICOM file</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#the-study-class">The Study class</a><ul>
@@ -156,80 +148,88 @@
   <section id="scikit-rt">
 <h1>scikit-rt<a class="headerlink" href="#scikit-rt" title="Permalink to this heading"></a></h1>
 <p>Scikit-rt provides tools for loading, plotting, and analysing
-radiotherapy data in <a class="reference external" href="https://www.dicomstandard.org/">DICOM</a> format and
-in <a class="reference external" href="https://nifti.nimh.nih.gov/">NIfTI</a> format: images, structure sets,
-plans, doses.  In includes image registration via Elastix,
-single- and multi-atlas segmentation, and comparisons of structure sets.</p>
+radiotherapy data in <a class="reference external" href="https://www.dicomstandard.org/">DICOM</a> and
+<a class="reference external" href="https://nifti.nimh.nih.gov/">NIfTI</a> formats.  It includes
+image registration via <a class="reference external" href="https://elastix.lumc.nl/">elastix</a>,
+single- and multi-atlas segmentation, and region-of-interest (ROI)
+comparisons.</p>
 <p>This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].</p>
 <p>For full code documentation, see: <br/>
 <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt_modules.html">https://scikit-rt.github.io/scikit-rt/skrt_modules.html</a>.</p>
 <section id="help-and-support">
 <h2>Help and support<a class="headerlink" href="#help-and-support" title="Permalink to this heading"></a></h2>
-<p>If you have any problems when using scikit-rt, please submit a help request
+<p>If you encounter problems with scikit-rt, please submit a help request
 or bug report via the project issues tracker: <br/>
 <a class="reference external" href="https://github.com/scikit-rt/scikit-rt/issues">https://github.com/scikit-rt/scikit-rt/issues</a></p>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
-<p>Package installation provides full code access.  Docker installation
-allows for scikit-rt code to be used from a jupyter notebook.</p>
-<section id="package-installation">
-<h3>Package installation<a class="headerlink" href="#package-installation" title="Permalink to this heading"></a></h3>
-<p>Installation inside a minconda environment is recommended. If not using miniconda, ensure that you have at least python 3.8 and <a class="reference external" href="https://pypi.org/project/pip/">pip</a>.</p>
-<section id="miniconda-setup-recommended">
-<h4>1. Miniconda setup (recommended)<a class="headerlink" href="#miniconda-setup-recommended" title="Permalink to this heading"></a></h4>
+<p>Scikit-rt has a number of dependencies.  To avoid possible version conflicts,
+it’s recommended that it be installed to a clean virtual
+environment.  This is achieved in the instructions below using
+<a class="reference external" href="https://docs.conda.io/">conda</a>.  You can perform a user installation
+with <a class="reference external" href="https://pip.pypa.io/">pip</a>, or a developer installation with
+<a class="reference external" href="https://git-scm.com/">git</a>.   Installations have been tested
+for <a class="reference external" href="https://www.python.org/downloads/release/python-380/">Python 3.8</a>.</p>
 <ol class="arabic simple">
-<li><p>Install miniconda by downloading from https://docs.conda.io/en/latest/miniconda.html .</p></li>
-<li><p>Open the Anaconda Prompt app (Windows) or a terminal (Mac/Linux).</p></li>
-<li><p>Create a new environment called <code class="docutils literal notranslate"><span class="pre">skrt</span></code> (or replace this with a name of your choice) with python 3.8 by running:</p></li>
+<li><p>User installation</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">skrt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.8</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Developer installation</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+<span class="n">cd</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+<span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">--</span><span class="n">file</span> <span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Environment activation and deactivation</p></li>
+</ol>
+<p>Following installation, the scikit-rt environment can be activated
+and deactivated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Activate envrionment</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
+
+<span class="c1"># Deactivate environment</span>
+<span class="n">conda</span> <span class="n">deactivate</span> <span class="n">skrt</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p>Activate the environment by running:</p></li>
+<li><p>Installation test
+As a minimal test that the installation has been successful, try:</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;import skrt; print(skrt.__version__)&quot;</span>
 </pre></div>
 </div>
+<p>This should print the scikit-rt version number, and exit without errors.</p>
 </section>
-<section id="package-installation-via-pip">
-<h4>2. Package installation via <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#package-installation-via-pip" title="Permalink to this heading"></a></h4>
+<section id="updating-scikit-rt">
+<h2>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Permalink to this heading"></a></h2>
+<p>Scikit-rt is in active development. Following an initial installation,
+it’s possible to update to the latest version.</p>
 <ol class="arabic simple">
-<li><p>Open Anaconda Prompt/a terminal, if not already open.</p></li>
-<li><p>If using miniconda, ensure that you have first activated your environment by running step 1.4 from above.</p></li>
-<li><p>Install scikit-rt by running:</p></li>
+<li><p>User installation</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
-<!---
-4. If using Windows, you will also need to install shapely by running:
-```
-conda install -c conda-forge shapely
-```
-5. If you want to be able to calculate the STAPLE consensus of contours, you must also install SimpleITK:
-```
-pip install simpleitk
-```
---->
+<ol class="arabic simple" start="2">
+<li><p>Developer installation
+From the scikit-rt directory, and assuming that no unmerged changes have
+been made to the local copy of the code:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span>
+</pre></div>
+</div>
 </section>
-<section id="using-scikit-rt-in-code">
-<h4>3. Using scikit-rt in code<a class="headerlink" href="#using-scikit-rt-in-code" title="Permalink to this heading"></a></h4>
-<ul class="simple">
-<li><p>If using miniconda, ensure you have opened Anaconda Prompt/a terminal and activated your environment (step 1.4).</p></li>
-<li><p>Options for running scikit-rt code are:</p>
-<ul>
-<li><p>Launch a jupyter notebook server by typing <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code>.</p></li>
-<li><p>Launch an iPython session by typing <code class="docutils literal notranslate"><span class="pre">ipython</span></code>.</p></li>
-<li><p>Create a python script and run it by typing <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">my_script.py</span></code>.</p></li>
-</ul>
-</li>
-<li><p>To check that scikit-rt is correctly installed, try running the command <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code> via any of the methods above.</p></li>
-</ul>
-</section>
-<section id="elastix-installation-optional-needed-for-image-registration-functionality-and-atlas-based-segmentation">
-<h4>4. Elastix installation (optional – needed for image registration functionality and atlas-based segmentation)<a class="headerlink" href="#elastix-installation-optional-needed-for-image-registration-functionality-and-atlas-based-segmentation" title="Permalink to this heading"></a></h4>
+<section id="elastix-installation">
+<h2>Elastix installation<a class="headerlink" href="#elastix-installation" title="Permalink to this heading"></a></h2>
+<p>Elastix installation is optional, but is needed for scikit-rt functionality
+relating to image registration and atlas-based segmentation.</p>
 <ol class="arabic simple">
 <li><p>Download the latest version of elastix matching your operating system from <a class="reference external" href="https://elastix.lumc.nl/download.php">https://elastix.lumc.nl/download.php</a>.</p></li>
 <li><p>Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.</p></li>
@@ -250,14 +250,6 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_elastix_dir</span>
 <span class="n">set_elastix_dir</span><span class="p">(</span><span class="s1">&#39;path/to/elastix/directory&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="updating-scikit-rt">
-<h3>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Permalink to this heading"></a></h3>
-<p>Scikit-rt is in active development. To install the lastest version, run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
 <!---
@@ -290,13 +282,15 @@ is chosen by the user; the latter is fixed.  Paths should always be absolute
 server port (8888) on the container side.
 --->
 </section>
-</section>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
-<p>In scikit-rt, different types of radiotherapy data are represented by
+<section id="usage-overview">
+<h2>Usage overview<a class="headerlink" href="#usage-overview" title="Permalink to this heading"></a></h2>
+<p>Scikit-rt can be used in scripts to be run from the command line, or in <a class="reference internal" href="#Jupyter"><span class="xref myst">https://jupyter.org/</span></a>, where interactive features are enabled for image viewing.  The Scikit-rt installation includes both <a class="reference external" href="https://jupyter-notebook.readthedocs.io/en/latest/">Jupyter Notebook</a> and <a class="reference external" href="https://github.com/jupyterlab/jupyterlab">JupyterLab</a>.</p>
+<p>Scikit-rt is able to load <a class="reference external" href="https://www.dicomstandard.org/current">DICOM</a> data (images, RTDOSE, RTSTRUCT, RTPLAN) and <a class="reference external" href="https://nifti.nimh.nih.gov/">NIfTI</a> data
+(images, dose images, regions of interest (ROIs) represented as masks), and to convert between them.</p>
+<p>The different types of radiotherapy data are represented in scikit-rt as
 different types of object: <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.image.html#skrt.image.Image">Image</a>, <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.StructureSet">StructureSet</a>, <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.ROI">ROI</a>
-(region of interest), <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan">Plan</a>, <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose">Dose</a>.  Different types of data may be loaded and worked with independently of one another, or may be grouped and linked by loading via <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Study">Study</a> or <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Patient">Patient</a> objects.</p>
-<p>Usage information, and code examples, for working with the different types of scikit-rt data objects are given below, followed by information on generation
+(region of interest), <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan">Plan</a>, <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose">Dose</a>.  The different types of data may be loaded and worked with independently of one another, or may be grouped and linked by loading via <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Study">Study</a> or <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Patient">Patient</a> objects.</p>
+<p>Usage information, and code examples, for working with the different types of scikit-rt data objects are given below.  Information is also given on generation
 and use of synthetic data, image registration, and keyboard shortcuts for
 interactive image viewing outside of a Jupyter notebook.</p>
 </section>
@@ -313,7 +307,7 @@ interactive image viewing outside of a Jupyter notebook.</p>
 </section>
 <section id="images">
 <h2>1. Images<a class="headerlink" href="#images" title="Permalink to this heading"></a></h2>
-<p>The Image class can be used to read and write medical images from DICOM, nifti,
+<p>The Image class can be used to read and write images in DICOM, NIfTI,
 or NumPy format. These images can be plotted and compared.</p>
 <p>To load the Image class:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Image</span>
@@ -607,13 +601,17 @@ e.g.</p>
 </section>
 <section id="patients-and-studies">
 <h2>3. Patients and studies<a class="headerlink" href="#patients-and-studies" title="Permalink to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">Patient</span></code> and <code class="docutils literal notranslate"><span class="pre">Study</span></code> classes allow multiple medical images and structure sets associated with a single patient to be read into one object.</p>
-<section id="expected-file-structure">
-<h3>Expected file structure<a class="headerlink" href="#expected-file-structure" title="Permalink to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Patient</span></code> and <code class="docutils literal notranslate"><span class="pre">Study</span></code> classes allow multiple images and structure sets associated with a single patient to be read into one object.  These classes
+can load DICOM and/or NIfTI files organised as described below (sorted data),
+and can load arbitrarily organised DICOM files (unsorted data).  In the
+cases of both sorted and unsorted data, all files relating to a single
+patient should be placed under a separate directory, the name of which
+is taken as the patient’s identifier.</p>
+<section id="sorted-data">
+<h3>Sorted data<a class="headerlink" href="#sorted-data" title="Permalink to this heading"></a></h3>
 <section id="patient-and-study-file-structure">
 <h4>Patient and study file structure<a class="headerlink" href="#patient-and-study-file-structure" title="Permalink to this heading"></a></h4>
-<p>The files for a patient should be sorted into a specific structure in order for the <code class="docutils literal notranslate"><span class="pre">Patient</span></code> class to be able to read them in correctly.</p>
-<p>The top level directory represents the entire <strong>patient</strong>; this should be a directory whose name is the patient’s ID.</p>
+<p>The top level directory represents the entire <strong>patient</strong>.</p>
 <p>The next one or two levels represent <strong>studies</strong>. A study is identified by a directory whose name is a timestamp, which is a string with format <code class="docutils literal notranslate"><span class="pre">YYYYMMDD_hhmmss</span></code>. These directories can either appear within the patient directory, or be nested in a further level of directories, for example if you wished to separate groups of studies.</p>
 <p>A valid file structure could look like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mypatient1</span>
@@ -658,9 +656,10 @@ e.g.</p>
 </section>
 <section id="the-patient-class">
 <h3>The Patient class<a class="headerlink" href="#the-patient-class" title="Permalink to this heading"></a></h3>
-<p>A <code class="docutils literal notranslate"><span class="pre">Patient</span></code> object is created by providing the path to the top-level patient directory:</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">Patient</span></code> object is created by providing the path to the top-level patient directory, and indicating if the data are unsorted DICOM data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
-<span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span> <span class="c1"># load sorted data</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient2&#39;</span><span class="p">,</span> <span class="n">unsorted_dicom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># load unsorted DICOM data</span>
 </pre></div>
 </div>
 <p>A list of the patient’s associated studies is stored in <code class="docutils literal notranslate"><span class="pre">p.studies</span></code>.</p>
@@ -671,24 +670,43 @@ e.g.</p>
 <li><p>Patient age: <code class="docutils literal notranslate"><span class="pre">p.get_age()</span></code></p></li>
 <li><p>Patient birth date: <code class="docutils literal notranslate"><span class="pre">p.get_birth_date()</span></code></p></li>
 </ul>
-<section id="writing-a-patient-tree">
-<h4>Writing a patient tree<a class="headerlink" href="#writing-a-patient-tree" title="Permalink to this heading"></a></h4>
-<p>A patient’s files can be written out in nifti or numpy format. By default, files will be written to compress nifti (<code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>) files. This is done via the <code class="docutils literal notranslate"><span class="pre">write</span></code> method:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;some_dir&#39;</span><span class="p">)</span>
+<section id="sorted-and-unsorted-dicom-file">
+<h4>Sorted and unsorted DICOM file<a class="headerlink" href="#sorted-and-unsorted-dicom-file" title="Permalink to this heading"></a></h4>
+<p>If a patient’s data consists of sorted DICOM files, the data may be read
+both with <code class="docutils literal notranslate"><span class="pre">unsorted_dicom=False</span></code> (default) and with <code class="docutils literal notranslate"><span class="pre">unsorted_dicom=True</span></code>.
+Loading of sorted data tends to be faster, with object linking (for
+example, association of a structure set with an image) based
+on file organisation.  When loading unsorted DICOM files, object linking
+is based on unique identifiers and references that the files contain.</p>
+<p>Unsorted DICOM files can be copied as sorted files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
+<span class="c1"># Load unsorted DICOM files.</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient2&#39;</span><span class="p">,</span> <span class="n">unsorted_dicom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Write sorted DICOM files to sub-directory mypatient2 of directory my_sorted_dicom.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">copy_dicom</span><span class="p">(</span><span class="s1">&#39;my_sorted_dicom&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">some_dir</span></code> is the directory in which the new patient folder will be created (if not given, it will be created in the current directory).</p>
-<p>By default, all imaging modalities will be written. To ignore a specific modality, a list <code class="docutils literal notranslate"><span class="pre">to_ignore</span></code> can be provided, e.g. to ignore any MR images:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;some_dir&#39;</span><span class="p">,</span> <span class="n">to_ignore</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MR&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>To write out structure sets as well as images, the <code class="docutils literal notranslate"><span class="pre">structure_set</span></code> argument should be set. This can be either:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">'all'</span></code>: write all structure sets.</p></li>
-<li><p>The index of the structure set (e.g. to write only the newest structure set for each image, set <code class="docutils literal notranslate"><span class="pre">structure_set=-1</span></code>)</p></li>
-<li><p>A list of indices of structure sets to write (e.g. to write only the oldest and newest, set <code class="docutils literal notranslate"><span class="pre">structure_set=[0,</span> <span class="pre">-1]</span></code>)</p></li>
-</ul>
-<p>By default, no structure sets will be written, as conversion of structures from contours to masks can be slow for large structures.</p>
+<!---
+#### Writing a patient tree
+
+A patient's files can be written out in nifti or numpy format. By default, files will be written to compress nifti (`.nii.gz`) files. This is done via the `write` method:
+```
+p.write('some_dir')
+```
+where `some_dir` is the directory in which the new patient folder will be created (if not given, it will be created in the current directory).
+
+By default, all imaging modalities will be written. To ignore a specific modality, a list `to_ignore` can be provided, e.g. to ignore any MR images:
+```
+p.write('some_dir', to_ignore=['MR'])
+```
+
+To write out structure sets as well as images, the `structure_set` argument should be set. This can be either:
+- `'all'`: write all structure sets.
+- The index of the structure set (e.g. to write only the newest structure set for each image, set `structure_set=-1`)
+- A list of indices of structure sets to write (e.g. to write only the oldest and newest, set `structure_set=[0, -1]`)
+
+By default, no structure sets will be written, as conversion of structures from contours to masks can be slow for large structures.
+--->
 </section>
 </section>
 <section id="the-study-class">
@@ -700,7 +718,7 @@ e.g.</p>
 </section>
 <section id="structure-sets">
 <h4>Structure sets<a class="headerlink" href="#structure-sets" title="Permalink to this heading"></a></h4>
-<p>The study’s structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the <code class="docutils literal notranslate"><span class="pre">structure_set</span></code> property of the <code class="docutils literal notranslate"><span class="pre">Image</span></code> itself; this is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:</p>
+<p>The study’s structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the <code class="docutils literal notranslate"><span class="pre">structure_sets</span></code> property of the <code class="docutils literal notranslate"><span class="pre">Image</span></code> itself; this is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">studies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">structure_set</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ct_images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure_sets</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
