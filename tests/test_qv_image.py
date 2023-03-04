@@ -44,10 +44,16 @@ def test_nifti_image_from_file():
     assert im.title == "array.npy"
 
 def test_nifti_image_downsample():
+  while True:
+    shape = []
+    for i in range(3):
+        shape.append(np.random.randint(50, 500))
+    arr = np.random.rand(*shape)
+
     ds = 10
     im = Image(arr, downsample=ds)
     assert im.valid
-    assert im.n_voxels["z"] <= shape[2] / (ds - 1)
+    assert im.n_voxels["z"] <= round(shape[2] / (ds - 1))
 
 def test_nifti_image_plot():
     im = Image(arr)
