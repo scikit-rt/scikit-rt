@@ -45,7 +45,7 @@ conda activate skrt
 3. Environment activation and deactivation
 
 Following either of the installations above, the scikit-rt environment
-is activate.  More generally, environment can be activated
+is activated.  More generally, the environment can be activated
 and deactivated with:
 ```
 # Activate envrionment
@@ -60,7 +60,8 @@ As a minimal test that the installation has been successful, try:
 ```
 python -c "import skrt; print(skrt.__version__)"
 ```
-This should print the scikit-rt version number, and exit without errors.
+This may take some time, while python code is being compiled, but
+should eventually print the scikit-rt version number, and exit without errors.
 
 ## Updating scikit-rt
 
@@ -137,13 +138,23 @@ server port (8888) on the container side.
 
 Scikit-rt can be used in scripts to be run from the command line, or in [Jupyter](https://jupyter.org/), where interactive features are enabled for image viewing.  The Scikit-rt installation includes both [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/latest/) and [JupyterLab](https://github.com/jupyterlab/jupyterlab).
 
-Notebooks demonstrating scikit-rt, using publicly accessible or synthetic data,
-are available as follows:
+Notebooks demonstrating scikit-rt functionality, using publicly accessible
+or synthetic data, are available as follows:
 
-- [plotting_demo.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/plotting_demo.ipynb) demonstrates plotting capabilities;
-- [image_registration_checks.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/image_registration_checks.ipynb) demonstrates
+- [plotting_demo.ipynb](https://github.com/scikit-rt/scikit-rt/raw/master/examples/notebooks/plotting_demo.ipynb) demonstrates plotting capabilities;
+- [application_demo.ipynb](https://github.com/scikit-rt/scikit-rt/raw/master/examples/notebooks/application_demo.ipynb) demonstrates definition and
+running of a scikit-rt application, for (non-interactive) processing
+of datasets for multiple patients;
+- [image_registration_checks.ipynb](https://github.com/scikit-rt/scikit-rt/raw/master/examples/notebooks/image_registration_checks.ipynb) demonstrates
 image registration, and qualitative checking of results (requires
 [elastix](https://elastix.lumc.nl/) to be installed).
+
+Each notebook can be downloaded by right-clicking on the link given,
+and saving with extention `.ipynb`.  After download, a notebook
+can be loaded in Jupyter with, for example:
+```
+jupyter lab path/to/notebook
+```
 
 Scikit-rt is able to load [DICOM](https://www.dicomstandard.org/current) data (images, RTDOSE, RTSTRUCT, RTPLAN) and [NIfTI](https://nifti.nimh.nih.gov/) data
 (images, dose images, regions of interest (ROIs) represented as masks), and to convert between them.
