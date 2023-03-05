@@ -1055,6 +1055,9 @@ class Patient(skrt.core.PathData):
                             # from DicomFile object to Image object.
                             obj.dicom_paths = sorted(list(dcm.dicom_paths),
                                     key=skrt.core.alphanumeric)
+                            # Create Image object's list of File objects.
+                            for dicom_path in obj.dicom_paths:
+                                obj.files.append(skrt.core.File(dicom_path))
                             # Subsitute Image object for DicomFile object
                             # in dictionary of image types.
                             dtypes[modality][idx] = obj
@@ -1597,13 +1600,17 @@ class Patient(skrt.core.PathData):
                     info['whole_days_plan_to_treatment'])
 
         # Filter to have images separated by a minimum amount of time.
-        time_separated_plan_images = skrt.core.get_time_separated_objects(
-                plan_images, min_delta=min_delta, unit=unit)
-        time_separated_treatment_images = skrt.core.get_time_separated_objects(
-                treatment_images, min_delta=min_delta, unit=unit)
+        if plan_images:
+            time_separated_plan_images = skrt.core.get_time_separated_objects(
+                    plan_images, min_delta=min_delta, unit=unit)
 
-        # Store number of time-separated images.
-        info['n_treatment'] = len(time_separated_treatment_images)
+        if treatment_images:
+            time_separated_treatment_images = (
+                    skrt.core.get_time_separated_objects(
+                        treatment_images, min_delta=min_delta, unit=unit))
+
+            # Store number of time-separated images.
+            info['n_treatment'] = len(time_separated_treatment_images)
 
         return (pd.DataFrame([info]) if df else info)
 
