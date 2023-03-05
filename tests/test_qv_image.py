@@ -44,7 +44,6 @@ def test_nifti_image_from_file():
     assert im.title == "array.npy"
 
 def test_nifti_image_downsample():
-  while True:
     shape = []
     for i in range(3):
         shape.append(np.random.randint(50, 500))
