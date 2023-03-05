@@ -192,7 +192,7 @@ for <a class="reference external" href="https://www.python.org/downloads/release
 <li><p>Environment activation and deactivation</p></li>
 </ol>
 <p>Following either of the installations above, the scikit-rt environment
-is activate.  More generally, environment can be activated
+is activated.  More generally, the environment can be activated
 and deactivated with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Activate envrionment</span>
 <span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
@@ -208,7 +208,8 @@ As a minimal test that the installation has been successful, try:</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;import skrt; print(skrt.__version__)&quot;</span>
 </pre></div>
 </div>
-<p>This should print the scikit-rt version number, and exit without errors.</p>
+<p>This may take some time, while python code is being compiled, but
+should eventually print the scikit-rt version number, and exit without errors.</p>
 </section>
 <section id="updating-scikit-rt">
 <h2>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Permalink to this heading"></a></h2>
@@ -288,14 +289,23 @@ server port (8888) on the container side.
 <section id="usage-information">
 <h2>Usage information<a class="headerlink" href="#usage-information" title="Permalink to this heading"></a></h2>
 <p>Scikit-rt can be used in scripts to be run from the command line, or in <a class="reference external" href="https://jupyter.org/">Jupyter</a>, where interactive features are enabled for image viewing.  The Scikit-rt installation includes both <a class="reference external" href="https://jupyter-notebook.readthedocs.io/en/latest/">Jupyter Notebook</a> and <a class="reference external" href="https://github.com/jupyterlab/jupyterlab">JupyterLab</a>.</p>
-<p>Notebooks demonstrating scikit-rt, using publicly accessible or synthetic data,
-are available as follows:</p>
+<p>Notebooks demonstrating scikit-rt functionality, using publicly accessible
+or synthetic data, are available as follows:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/plotting_demo.ipynb">plotting_demo.ipynb</a> demonstrates plotting capabilities;</p></li>
-<li><p><a class="reference external" href="https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/image_registration_checks.ipynb">image_registration_checks.ipynb</a> demonstrates
+<li><p><a class="reference external" href="https://github.com/scikit-rt/scikit-rt/raw/master/examples/notebooks/plotting_demo.ipynb">plotting_demo.ipynb</a> demonstrates plotting capabilities;</p></li>
+<li><p><a class="reference external" href="https://github.com/scikit-rt/scikit-rt/raw/master/examples/notebooks/application_demo.ipynb">application_demo.ipynb</a> demonstrates definition and
+running of a scikit-rt application, for (non-interactive) processing
+of datasets for multiple patients;</p></li>
+<li><p><a class="reference external" href="https://github.com/scikit-rt/scikit-rt/raw/master/examples/notebooks/image_registration_checks.ipynb">image_registration_checks.ipynb</a> demonstrates
 image registration, and qualitative checking of results (requires
 <a class="reference external" href="https://elastix.lumc.nl/">elastix</a> to be installed).</p></li>
 </ul>
+<p>Each notebook can be downloaded by right-clicking on the link given,
+and saving with extention <code class="docutils literal notranslate"><span class="pre">.ipynb</span></code>.  After download, a notebook
+can be loaded in Jupyter with, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">jupyter</span> <span class="n">lab</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">notebook</span>
+</pre></div>
+</div>
 <p>Scikit-rt is able to load <a class="reference external" href="https://www.dicomstandard.org/current">DICOM</a> data (images, RTDOSE, RTSTRUCT, RTPLAN) and <a class="reference external" href="https://nifti.nimh.nih.gov/">NIfTI</a> data
 (images, dose images, regions of interest (ROIs) represented as masks), and to convert between them.</p>
 <p>The different types of radiotherapy data are represented in scikit-rt as
