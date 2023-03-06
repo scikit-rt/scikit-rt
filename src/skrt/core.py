@@ -1799,7 +1799,7 @@ class TicToc:
             # Set attribute values.
             self.start = None
             self.tics = []
-            self.message = True
+            self.message = False
             self.default_message = "Time elapsed is "
             self.time_format = ".6f"
             self.log_level = Defaults().log_level
@@ -1811,7 +1811,7 @@ class TicToc:
             """
             Set instance attributes.
 
-            Parameters are as documemnted for
+            Parameters are as documented for
             skrt.core.TicToc.__init__() method.
 
             A parameter value of None leaves the corresponding
@@ -1840,11 +1840,11 @@ class TicToc:
         message: str/bool, default=None
             Value to be assigned to skrt.core.TicToc().message,
             which defines the default behaviour for printing
-            elapsed time when calling skrt.core.toc().  A value
+            elapsed time when calling skrt.core.toc().  If a value
             of True is set, the string skrt.core.TicToc().default_message
             (initialised to "Time elapsed is ") is printed.  In the
             first call to this method, a value of None initialises
-            skrt.core.TicToc().message to True.  In subsequent calls,
+            skrt.core.TicToc().message to False.  In subsequent calls,
             a value of None is disregarded.
 
         time_format : str, default=None
