@@ -333,6 +333,24 @@ def test_tictoc():
         t5 = timeit.default_timer()
         assert tic_toc == approx(t5 - t2, abs=small_number)
 
+def test_tictoc_messages(capsys):
+    """Test output from toc() command."""
+    # Check that TicToc().default_message is output
+    # when TicToc().message is True.
+    skrt.core.TicToc(True)
+    assert skrt.core.TicToc().message is True
+    skrt.core.tic()
+    skrt.core.toc()
+    assert skrt.core.TicToc().default_message
+    assert skrt.core.TicToc().default_message in capsys.readouterr().out
+
+    # Check that empty string is output
+    # when TicToc().message is False.
+    skrt.core.TicToc(False)
+    assert skrt.core.TicToc().message is False
+    skrt.core.toc()
+    assert capsys.readouterr().out == ""
+
 def test_qualified_name():
     """Test determination of qualified name for a class."""
     from skrt.core import Archive

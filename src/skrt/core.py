@@ -1799,7 +1799,7 @@ class TicToc:
             # Set attribute values.
             self.start = None
             self.tics = []
-            self.message = False
+            self.message = True
             self.default_message = "Time elapsed is "
             self.time_format = ".6f"
             self.log_level = Defaults().log_level
@@ -1818,10 +1818,7 @@ class TicToc:
             attribute value unaltered.
             """
             if message is not None:
-                if message is True:
-                    self.message = self.default_message
-                else:
-                    self.message = message
+                self.message = message
             if time_format is not None:
                 self.time_format = time_format
             if log_level is not None:
@@ -1834,7 +1831,7 @@ class TicToc:
                 out.append(f"{key}: {value}")
             return "\n".join(out)
 
-    def __init__(self, message=None, time_format=None, log_level=None):
+    def __init__(self, message=None, time_format=".6f", log_level=None):
         """
         Constructor of TicToc singleton class.
 
@@ -1844,10 +1841,11 @@ class TicToc:
             Value to be assigned to skrt.core.TicToc().message,
             which defines the default behaviour for printing
             elapsed time when calling skrt.core.toc().  A value
-            of True sets skrt.core.TicToc().message to
-            "Time elapsed is ".  In the first call to this method,
-            a value of None initialises skrt.core.TicToc().message
-            to False.  In subsequent calls, a value of None is disregarded.
+            of True is set, the string skrt.core.TicToc().default_message
+            (initialised to "Time elapsed is ") is printed.  In the
+            first call to this method, a value of None initialises
+            skrt.core.TicToc().message to True.  In subsequent calls,
+            a value of None is disregarded.
 
         time_format : str, default=None
             Value to be assigned to skrt.core.TicToc().time_format,
@@ -1929,7 +1927,7 @@ def toc(message=None, time_format=None):
     timer = TicToc()
     # Log error and return None if timer hasn't been started.
     if timer.start is None:
-        timer.error("Timer not started - to start timer, call: tic()")
+        timer.logger.error("Timer not started - to start timer, call: tic()")
         return None
 
     # Obtain time elapsed since relevant call to tic().
