@@ -820,7 +820,7 @@ class Dated(PathData):
         for attribute in ["date", "time", "path"]:
             if getattr(self, attribute) != getattr(other, attribute):
                 return getattr(self, attribute) > getattr(other, attribute)
-            return False
+        return False
 
     def __ge__(self, other):
         '''

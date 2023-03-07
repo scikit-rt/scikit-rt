@@ -41,16 +41,18 @@ def test_dated():
         assert not dated.time
 
 def test_dated_sorting():
-    timestamp = "19990405_120394"
-    for path in [timestamp, Path(timestamp)]:
+    timestamp1 = "19990405_120394"
+    timestamp2 = "19990405_120395"
+    for path in [timestamp1, Path(timestamp1)]:
         dated1 = skrt.core.Dated(path)
-        dated2 = skrt.core.Dated(auto_timestamp=True)
-        assert dated2 > dated1
-        assert dated2 >= dated1
-        assert dated1 < dated2
-        assert dated1 <= dated2
-        assert dated1 == dated1
-        assert dated1 != dated2 
+        for dated2 in [skrt.core.Dated(timestamp2),
+                       skrt.core.Dated(auto_timestamp=True)]:
+            assert dated2 > dated1
+            assert dated2 >= dated1
+            assert dated1 < dated2
+            assert dated1 <= dated2
+            assert dated1 == dated1
+            assert dated1 != dated2 
 
 def test_dated_interval():
     timestamp = "20010502_120358"
