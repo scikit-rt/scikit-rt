@@ -3491,7 +3491,10 @@ class Image(skrt.core.Archive):
         # Check that image has dicom files to be copied.
         z_paths = getattr(self, "_z_paths", {})
         if not z_paths:
-            return
+            if 1 == len(self.files):
+                z_paths = {0: self.files[0].path}
+            else:
+                return
 
         # Define the output directory.
         outdir = skrt.core.make_dir(outdir, overwrite)
@@ -3502,7 +3505,7 @@ class Image(skrt.core.Archive):
         if sort:
             z_instance_numbers = getattr(self, "_z_instance_numbers", {}) or {}
             instance_numbers = list(z_instance_numbers.values())
-            if ((None in instance_numbers) or
+            if (not instance_numbers or (None in instance_numbers) or
                     (len(instance_numbers) != len(set(instance_numbers)))):
                 z_instance_numbers = {z: idx + 1
                         for idx, z in enumerate(sorted(z_paths.keys()))}
