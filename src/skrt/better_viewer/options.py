@@ -4,10 +4,11 @@ Module for functions relevant to image display:
     - set_viewer_options():
       Define options for use with skrt.better_viewer.BetterViewer.
 """
-
 import matplotlib.pyplot as plt
 
-def set_viewer_options():
+from skrt.core import is_list
+
+def set_viewer_options(to_exclude=None, **kwargs):
     """
     Define options for use with skrt.better_viewer.BetterViewer.
 
@@ -16,6 +17,14 @@ def set_viewer_options():
     to BetterViewer as **kwargs.
 
     All options may be overwritten before calling BetterViewer.
+
+    **Parameter:**
+    to_exclude: list
+        List of keys not to include in the returned dictionary.
+
+    kwargs: dict
+        Key-value pairs with which to update BetterViewer options dictionary
+        created here.
     """
     # Set Matplotlib runtime configuration.
     # For details of Matplotlib configuration, see:
@@ -75,5 +84,16 @@ def set_viewer_options():
         # https://matplotlib.org/stable/api/colorbar_api.html#matplotlib.colorbar.Colorbar.set_label
         "clb_label_kwargs": {"labelpad": 5},
         }
+
+    # Update dictionary of BetterViewer image-display options,
+    # using any values passed as keyword arguments.
+    options.update(kwargs)
+
+    # Remove from dictionary any keys that are to be excluded.
+    if isinstance(to_exclude, str):
+        to_exclude = [to_exclude]
+    if is_list(to_exclude):
+        for key in to_exclude:
+            options.pop(key, None)
 
     return options
