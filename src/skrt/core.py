@@ -1031,7 +1031,7 @@ def alphanumeric(in_str: str = "") -> List[str]:
     to have alphanumeric (natural) sorting"""
 
     elements = []
-    for substr in re.split("(-*[0-9]+)", in_str):
+    for substr in re.split("(-*[0-9]+)", str(in_str)):
         try:
             element = int(substr)
         except BaseException:
