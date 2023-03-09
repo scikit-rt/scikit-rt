@@ -1255,12 +1255,15 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.
     
         convex_hull : bool, default=False
-            If False, create mask from the convex hulls of the
+            If True, create mask from the convex hulls of the
             slice foreground masks initially obtained.
 
         fill_holes : bool, default=False
-            If False, fill holes in the slice foreground masks initially
+            If True, fill holes in the slice foreground masks initially
             obtained.
+
+        dxy : int, default=0
+            Margin, in pixel units, to be added to each slice foreground mask.
         '''
         self.load()
 
@@ -1298,7 +1301,7 @@ class Image(skrt.core.Archive):
             for determination of foreground.
     
         convex_hull : bool, default=False
-            If False, return the convex hull of the foreground mask
+            If True, return the convex hull of the foreground mask
             initially obtained.
 
         fill_holes : bool, default=False
@@ -1405,6 +1408,55 @@ class Image(skrt.core.Archive):
 
         # Set voxels outside foreground to background intensity.
         self.data[mask.get_data() == False] = background
+
+    def get_intensity_mask(self, vmin=None, vmax=None, convex_hull=False,
+                           fill_holes=True, dxy=0):
+        '''
+        Create intensity mask.
+
+        Slice by slice, the mask corresponds to the largest region of
+        contiguous pixels with intensity values inside a given interval.
+
+        **Parameters:**
+
+        vmin : int/float, default=None
+            Minimum intensity value for pixel to be included in mask.
+            If None, no constraint on minimum intensity is applied.
+
+        vmax : int/float, default=None
+            Maximum intensity value for pixel to be included in mask.
+            If None, no constraint on maximum intensity is applied.
+
+        convex_hull : bool, default=False
+            If True, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+    
+        fill_holes : bool, default=False
+            If True, fill holes in the slice foreground masks initially
+            obtained.
+
+        dxy : int, default=0
+            Margin, in pixel units, to be added to each slice foreground mask.
+        '''
+        self.load()
+
+        if vmin is None and vmax is None:
+            return Image(np.ones(self.data.shape, dtype=np.int8),
+                         affine = self.get_affine())
+
+        masks = [self.get_foreground_mask(
+            threshold=val, convex_hull=convex_hull,
+            fill_holes=fill_holes, dxy=dxy) if val is not None
+                 else None for val in [vmin, vmax]]
+
+        if masks[0] is None:
+            masks[1].data = 1 - masks[1].data
+            return masks[1]
+
+        if masks[1] is not None:
+            masks[0].data[masks[1].data > 0] = 0
+
+        return masks[0]
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
             fill_value=None, image_size_unit=None, centre=None,
