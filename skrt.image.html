@@ -762,11 +762,13 @@ largest region of contiguous pixels above a threshold value.</p>
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
 regions for determination of foreground.</p>
 </dd>
-<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If False, create mask from the convex hulls of the
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, create mask from the convex hulls of the
 slice foreground masks initially obtained.</p>
 </dd>
-<dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If False, fill holes in the slice foreground masks initially
+<dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If True, fill holes in the slice foreground masks initially
 obtained.</p>
+</dd>
+<dt>dxy<span class="classifier">int, default=0</span></dt><dd><p>Margin, in pixel units, to be added to each slice foreground mask.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -791,6 +793,31 @@ returned.</p>
 </dd>
 <dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If given and &lt;sl&gt; and &lt;idx&gt; are both None,
 this position will be converted to an index and returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_intensity_mask">
+<span class="sig-name descname"><span class="pre">get_intensity_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_intensity_mask" title="Permalink to this definition"></a></dt>
+<dd><p>Create intensity mask.</p>
+<p>Slice by slice, the mask corresponds to the largest region of
+contiguous pixels with intensity values inside a given interval.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>vmin<span class="classifier">int/float, default=None</span></dt><dd><p>Minimum intensity value for pixel to be included in mask.
+If None, no constraint on minimum intensity is applied.</p>
+</dd>
+<dt>vmax<span class="classifier">int/float, default=None</span></dt><dd><p>Maximum intensity value for pixel to be included in mask.
+If None, no constraint on maximum intensity is applied.</p>
+</dd>
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, create mask from the convex hulls of the
+slice foreground masks initially obtained.</p>
+</dd>
+<dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If True, fill holes in the slice foreground masks initially
+obtained.</p>
+</dd>
+<dt>dxy<span class="classifier">int, default=0</span></dt><dd><p>Margin, in pixel units, to be added to each slice foreground mask.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1103,7 +1130,7 @@ of contiguous pixels above a threshold value.</p>
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels are assigned to regions
 for determination of foreground.</p>
 </dd>
-<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If False, return the convex hull of the foreground mask
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, return the convex hull of the foreground mask
 initially obtained.</p>
 </dd>
 <dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If False, fill holes in the foreground mask initially
