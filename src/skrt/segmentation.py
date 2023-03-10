@@ -5,24 +5,27 @@ This module implements atlas-based segmentation, where an atlas is
 a reference image, for which regions of interest (ROIs) have been segmented
 in some way.
 
-In single-atlas segmentation, a single atlas is registered to a target image
-that is to be segmented.  Atlas segmentations are then mapped to the target
-image, using the registration transform.  An ROI may be represented as
-a binary mask or as sets of contour points, resulting in two strategies
-for mapping ROIs:
+In single-atlas segmentation, a single atlas and a target image,
+which is the image to be segmented, are registered to one another.  Atlas
+segmentations are then mapped to the target image, using the registration
+transform.  An ROI may be represented as a binary mask or as sets of contour
+points, resulting in two strategies for mapping ROIs:
 
     - atlas and target are taken as fixed and moving image respectively for
       registration, then ROI contour points are pushed from atlas to target;
-    - atlas and target are taken as moving and fixed image respectively for
+    - target and atlas are taken as fixed and moving image respectively for
       the registration, then ROI binary masks are pulled from atlas to target.
 
 In multi-atlas segmentation, single-atlas segmentation is performed
-multiple times, using a different atlas each time, then the results from
-the individual segmentations are combined in some way.
+multiple times, using a different atlas for each segmentation, then
+the results from the individual segmentations are combined in some way.
 
 The following classes are defined:
-SingleAtlasSegmentation() : class for performing single-atlas segmentation;
-MultiAtlasSegmentation() : class for performing multi-atlas segmentation.
+
+- MultiAtlasSegmentation() : class for performing multi-atlas segmentation.
+- SasTuner() : class for varying parameters in a single-atlas segmentation,
+  comparing results for each set of parameters with reference segmentations.
+- SingleAtlasSegmentation() : class for performing single-atlas segmentation;
 
 The following are utility functions used by SingleAtlasSegmentation()
 and MultiAtlasSegmentation():
@@ -412,6 +415,103 @@ class MultiAtlasSegmentation(Data):
             return dict(list(scores2.items())[: max_keep])
 
         return scores2
+
+
+class SasTuner(Data):
+
+    def __init__(self, pfiles1_variations=None, pfiles2_variations=None,
+                 keep_segmentations=False, **kwargs):
+
+        self.pfiles1_variations = pfiles1_variations
+        self.pfiles2_variations = pfiles2_variations
+        self.keep_segmentations = keep_segmentations
+        self.kwargs = kwargs
+
+        self.sas_constant_kwargs = {}
+        self.sas_variable_kwargs = {}
+        self.comparison_kwargs = {}
+
+        if kwargs:
+            sas_parameters = list(signature(SingleAtlasSegmentation).parameters)
+            comparison_parameters = list(signature(
+                SingleAtlasSegmentation.get_comparison).parameters)
+            for key, value in kwargs.items():
+                if key in sas_parameters and key not in comparison_parameters:
+                    if isinstance(value, list) and len(value) > 1:
+                        self.sas_variable_kwargs[key] = value
+                    else:
+                        self.sas_constant_kwargs[key] = value
+                else:
+                    self.comparison_kwargs[key] = value
+
+            self.sas_constant_kwargs["auto"] = True
+            self.sas_constant_kwargs["auto_reg_setup_only"] = True
+            self.sas_constant_kwargs["overwrite"] = True
+
+        if pfiles1_variations:
+            reg1_permutations = get_dict_permutations(
+                    {reg_step:
+                     get_dict_permutations(pfiles1_variations[reg_step])
+                     for reg_step in pfiles1_variations})
+        else:
+            reg1_permutations = [{}]
+
+        if pfiles2_variations:
+            reg2_permutations = get_dict_permutations(
+                    {reg_step:
+                     get_dict_permutations(pfiles2_variations[reg_step])
+                     for reg_step in pfiles2_variations})
+        else:
+            reg2_permutations = [{}]
+
+        sas_permutations = get_dict_permutations(self.sas_variable_kwargs)
+
+        self.df = None
+        self.sass = []
+        self.adjustments = []
+
+        for sas_permutation in sas_permutations:
+            sas = SingleAtlasSegmentation(
+                    **self.sas_constant_kwargs, **sas_permutation)
+            strategies = get_options(
+                    sas.auto_strategies, sas.default_strategy, sas.strategies)
+            for reg1_permutation in reg1_permutations:
+                reg1_adjustments = sas.adjust_reg_files(
+                        strategies, sas.steps[0], None, reg1_permutation)
+                for reg2_permutation in reg2_permutations:
+                    reg2_adjustments = sas.adjust_reg_files(
+                            strategies, sas.steps[1],
+                            sas.roi_names, reg2_permutation)
+                    adjustments = {**sas_permutation, **reg1_adjustments,
+                                   **reg2_adjustments}
+
+                    df_comparison = sas.get_comparison(**self.comparison_kwargs)
+
+                    self.adjustments.append(deepcopy(adjustments))
+                    if keep_segmentations:
+                        self.sass.append(sas.clone())
+
+                    if adjustments:
+                        df_permutation = pd.DataFrame(
+                                max(1, df_comparison.shape[0]) * [adjustments])
+                    else:
+                        df_permutation = None
+
+                    if df_permutation is None and df_comparison is None:
+                        continue
+                    elif df_permutation is None:
+                        df_sas = df_comparison
+                    elif df_comparison is None:
+                        df_sas = df_permutation
+                    else:
+                        df_sas = pd.concat(
+                                [df_permutation, df_comparison], axis=1)
+
+                    if self.df is None:
+                        self.df = df_sas
+                    else:
+                        self.df = pd.concat(
+                                [self.df, df_sas], ignore_index=True)
 
 
 class SingleAtlasSegmentation(Data):
@@ -877,6 +977,30 @@ class SingleAtlasSegmentation(Data):
         else:
             return (initial_step + list(self.pfiles2))
 
+
+def ensure_any(in_val):
+    return in_val
+
+def ensure_dict(in_val, ensure_type=ensure_any):
+    if isinstance(in_val, dict):
+        return {key: ensure_type(val) for key, val in in_val.items()}
+    elif is_list(in_val):
+        return {idx: ensure_type(val) for idx, val in enumerate(in_val)}
+    else:
+        return {0: in_val}
+
+def ensure_image(im):
+    return (im if im is None else Image(im))
+
+def ensure_structure_set(ss):
+    return (ss if ss is None else StructureSet(ss))
+
+def get_contour_propagation_strategies():
+    return ["pull", "push"]
+
+def get_fixed_and_moving(im1, im2, strategy):
+    return (im1, im2) if ("pull" == strategy) else (im2, im1)
+
 def get_option(opt=None, fallback_opt=None, allowed_opts=None):
 
     if not is_list(allowed_opts) or not len(allowed_opts):
@@ -919,29 +1043,6 @@ def get_options(opts=None, fallback_opts=None, allowed_opts=None):
 
     return options or [allowed_opts[-1]]
 
-def get_fixed_and_moving(im1, im2, strategy):
-    return (im1, im2) if ("pull" == strategy) else (im2, im1)
-
-def ensure_any(in_val):
-    return in_val
-
-def ensure_image(im):
-    return (im if im is None else Image(im))
-
-def ensure_structure_set(ss):
-    return (ss if ss is None else StructureSet(ss))
-
-def ensure_dict(in_val, ensure_type=ensure_any):
-    if isinstance(in_val, dict):
-        return {key: ensure_type(val) for key, val in in_val.items()}
-    elif is_list(in_val):
-        return {idx: ensure_type(val) for idx, val in enumerate(in_val)}
-    else:
-        return {0: in_val}
-
-def get_contour_propagation_strategies():
-    return ["pull", "push"]
-
 def get_segmentation_steps():
     return ["global", "local"]
 
@@ -979,100 +1080,3 @@ def get_structure_set_index(ss_index, im):
         and len(im.structure_sets) <= abs(ss_index)):
         return len(im.structure_sets) + ss_index
     return ss_index
-
-
-class SasTuner(Data):
-
-    def __init__(self, pfiles1_variations=None, pfiles2_variations=None,
-                 keep_segmentations=False, **kwargs):
-
-        self.pfiles1_variations = pfiles1_variations
-        self.pfiles2_variations = pfiles2_variations
-        self.keep_segmentations = keep_segmentations
-        self.kwargs = kwargs
-
-        self.sas_constant_kwargs = {}
-        self.sas_variable_kwargs = {}
-        self.comparison_kwargs = {}
-
-        if kwargs:
-            sas_parameters = list(signature(SingleAtlasSegmentation).parameters)
-            comparison_parameters = list(signature(
-                SingleAtlasSegmentation.get_comparison).parameters)
-            for key, value in kwargs.items():
-                if key in sas_parameters and key not in comparison_parameters:
-                    if isinstance(value, list) and len(value) > 1:
-                        self.sas_variable_kwargs[key] = value
-                    else:
-                        self.sas_constant_kwargs[key] = value
-                else:
-                    self.comparison_kwargs[key] = value
-
-            self.sas_constant_kwargs["auto"] = True
-            self.sas_constant_kwargs["auto_reg_setup_only"] = True
-            self.sas_constant_kwargs["overwrite"] = True
-
-        if pfiles1_variations:
-            reg1_permutations = get_dict_permutations(
-                    {reg_step:
-                     get_dict_permutations(pfiles1_variations[reg_step])
-                     for reg_step in pfiles1_variations})
-        else:
-            reg1_permutations = [{}]
-
-        if pfiles2_variations:
-            reg2_permutations = get_dict_permutations(
-                    {reg_step:
-                     get_dict_permutations(pfiles2_variations[reg_step])
-                     for reg_step in pfiles2_variations})
-        else:
-            reg2_permutations = [{}]
-
-        sas_permutations = get_dict_permutations(self.sas_variable_kwargs)
-
-        self.df = None
-        self.sass = []
-        self.adjustments = []
-
-        for sas_permutation in sas_permutations:
-            sas = SingleAtlasSegmentation(
-                    **self.sas_constant_kwargs, **sas_permutation)
-            strategies = get_options(
-                    sas.auto_strategies, sas.default_strategy, sas.strategies)
-            for reg1_permutation in reg1_permutations:
-                reg1_adjustments = sas.adjust_reg_files(
-                        strategies, sas.steps[0], None, reg1_permutation)
-                for reg2_permutation in reg2_permutations:
-                    reg2_adjustments = sas.adjust_reg_files(
-                            strategies, sas.steps[1],
-                            sas.roi_names, reg2_permutation)
-                    adjustments = {**sas_permutation, **reg1_adjustments,
-                                   **reg2_adjustments}
-
-                    df_comparison = sas.get_comparison(**self.comparison_kwargs)
-
-                    self.adjustments.append(deepcopy(adjustments))
-                    if keep_segmentations:
-                        self.sass.append(sas.clone())
-
-                    if adjustments:
-                        df_permutation = pd.DataFrame(
-                                max(1, df_comparison.shape[0]) * [adjustments])
-                    else:
-                        df_permutation = None
-
-                    if df_permutation is None and df_comparison is None:
-                        continue
-                    elif df_permutation is None:
-                        df_sas = df_comparison
-                    elif df_comparison is None:
-                        df_sas = df_permutation
-                    else:
-                        df_sas = pd.concat(
-                                [df_permutation, df_comparison], axis=1)
-
-                    if self.df is None:
-                        self.df = df_sas
-                    else:
-                        self.df = pd.concat(
-                                [self.df, df_sas], ignore_index=True)
