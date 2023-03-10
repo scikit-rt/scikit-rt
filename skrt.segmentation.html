@@ -106,25 +106,29 @@
 <p>This module implements atlas-based segmentation, where an atlas is
 a reference image, for which regions of interest (ROIs) have been segmented
 in some way.</p>
-<p>In single-atlas segmentation, a single atlas is registered to a target image
-that is to be segmented.  Atlas segmentations are then mapped to the target
-image, using the registration transform.  An ROI may be represented as
-a binary mask or as sets of contour points, resulting in two strategies
-for mapping ROIs:</p>
+<p>In single-atlas segmentation, a single atlas and a target image,
+which is the image to be segmented, are registered to one another.  Atlas
+segmentations are then mapped to the target image, using the registration
+transform.  An ROI may be represented as a binary mask or as sets of contour
+points, resulting in two strategies for mapping ROIs:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>atlas and target are taken as fixed and moving image respectively for
 registration, then ROI contour points are pushed from atlas to target;</p></li>
-<li><p>atlas and target are taken as moving and fixed image respectively for
+<li><p>target and atlas are taken as fixed and moving image respectively for
 the registration, then ROI binary masks are pulled from atlas to target.</p></li>
 </ul>
 </div></blockquote>
 <p>In multi-atlas segmentation, single-atlas segmentation is performed
-multiple times, using a different atlas each time, then the results from
-the individual segmentations are combined in some way.</p>
-<p>The following classes are defined:
-SingleAtlasSegmentation() : class for performing single-atlas segmentation;
-MultiAtlasSegmentation() : class for performing multi-atlas segmentation.</p>
+multiple times, using a different atlas for each segmentation, then
+the results from the individual segmentations are combined in some way.</p>
+<p>The following classes are defined:</p>
+<ul class="simple">
+<li><p>MultiAtlasSegmentation() : class for performing multi-atlas segmentation.</p></li>
+<li><p>SasTuner() : class for varying parameters in a single-atlas segmentation,
+comparing results for each set of parameters with reference segmentations.</p></li>
+<li><p>SingleAtlasSegmentation() : class for performing single-atlas segmentation;</p></li>
+</ul>
 <p>The following are utility functions used by SingleAtlasSegmentation()
 and MultiAtlasSegmentation():
 ensure_any()
