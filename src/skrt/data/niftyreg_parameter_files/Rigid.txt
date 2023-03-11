@@ -1,0 +1,3 @@
+(exe "reg_aladin")
+(-rigOnly "")
+(-pad "0")

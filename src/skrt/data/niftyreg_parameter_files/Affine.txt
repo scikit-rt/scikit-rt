@@ -1,0 +1,2 @@
+(exe "reg_aladin")
+(-pad "0")
