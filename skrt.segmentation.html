@@ -309,22 +309,35 @@ and their initial values.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.ensure_image">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">ensure_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.ensure_image" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Return Image cloned from &lt;im&gt;; return None if &lt;im&gt; is None.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.ensure_structure_set">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">ensure_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ss</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.ensure_structure_set" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Return StructureSet cloned from &lt;im&gt;; return None if &lt;im&gt; is None.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_contour_propagation_strategies">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_contour_propagation_strategies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_contour_propagation_strategies" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Return list of contour propagation strategies.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_fixed_and_moving">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_fixed_and_moving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_fixed_and_moving" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Order target and atlas images as fixed and moving, depending on strategy.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>im1: skrt.image.Image</dt><dd><p>Target image.</p>
+</dd>
+<dt>im2: skrt.image.Image</dt><dd><p>Atlas image.</p>
+</dd>
+<dt>strategy: str</dt><dd><p>Strategy to be used in contour propagation - one of “pull”, “push”.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_option">
