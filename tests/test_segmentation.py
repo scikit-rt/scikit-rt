@@ -2,7 +2,11 @@
 
 import pytest
 
+from skrt import Image, StructureSet
+
 from skrt.segmentation import (
+        ensure_image,
+        ensure_structure_set,
         get_contour_propagation_strategies,
         get_fixed_and_moving,
         get_option,
@@ -66,6 +70,26 @@ def test_sas_tuner_instantiation():
     # Check that kwargs and df attributes are null.
     assert tuner.kwargs == {}
     assert tuner.df is None
+
+def test_ensure_image():
+    """Test that ensure_image() returns Image or None."""
+    assert ensure_image(None) is None
+    assert isinstance(ensure_image(Image()), Image)
+
+def test_ensure_structure_set():
+    """Test that ensure_structure_set() returns StructureSet or None."""
+    assert ensure_structure_set(None) is None
+    assert isinstance(ensure_structure_set(StructureSet()), StructureSet)
+
+def test_get_contour_propagation_strategies():
+    """
+    Test that get_contour_propagation_strategies() returns list of strings.
+    """
+    strategies = get_contour_propagation_strategies()
+    assert isinstance(strategies, list)
+    assert len(strategies) > 0
+    for strategy in strategies:
+        assert isinstance(strategy, str)
 
 def test_get_fixed_and_moving():
     """Test image assignment as fixed or moving, depending on strategy"""

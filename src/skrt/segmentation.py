@@ -990,15 +990,32 @@ def ensure_dict(in_val, ensure_type=ensure_any):
         return {0: in_val}
 
 def ensure_image(im):
+    """Return Image cloned from <im>; return None if <im> is None."""
     return (im if im is None else Image(im))
 
 def ensure_structure_set(ss):
+    """Return StructureSet cloned from <im>; return None if <im> is None."""
     return (ss if ss is None else StructureSet(ss))
 
 def get_contour_propagation_strategies():
+    """Return list of contour propagation strategies."""
     return ["pull", "push"]
 
 def get_fixed_and_moving(im1, im2, strategy):
+    """
+    Order target and atlas images as fixed and moving, depending on strategy.
+
+    **Parameters:**
+
+    im1: skrt.image.Image
+        Target image.
+
+    im2: skrt.image.Image
+        Atlas image.
+
+    strategy: str
+       Strategy to be used in contour propagation - one of "pull", "push".
+    """
     return (im1, im2) if ("pull" == strategy) else (im2, im1)
 
 def get_option(opt=None, fallback_opt=None, allowed_opts=None):
