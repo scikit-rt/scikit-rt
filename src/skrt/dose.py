@@ -650,10 +650,11 @@ class Plan(skrt.core.Archive):
             for fraction in self.dicom_dataset.FractionGroupSequence:
                 self.n_fraction += fraction.NumberOfFractionsPlanned
                 if hasattr(fraction, "ReferencedDoseReferenceSequence"):
-                    if self.target_dose is None:
-                        self.target_dose = 0.0
                     for dose in fraction.ReferencedDoseReferenceSequence:
-                        self.target_dose += dose.TargetPrescriptionDose
+                        if hasattr(dose, "TargetPrescriptionDose"):
+                            if self.target_dose is None:
+                                self.target_dose = 0.0
+                            self.target_dose += dose.TargetPrescriptionDose
         dose_reference_sequence = getattr(
                 self.dicom_dataset, 'DoseReferenceSequence', [])
 
