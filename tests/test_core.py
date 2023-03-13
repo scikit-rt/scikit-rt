@@ -424,3 +424,13 @@ def test_qualified_name():
 
     # Check value returned for non-class.
     assert skrt.core.qualified_name(5) == None
+
+def test_compress_user():
+    """Test replacement by '~' of user home directory at start of path."""
+    home = Path(skrt.core.fullpath("~"))
+    not_home = "/not/home"
+    # Protect against unlikely case where home directory is "/not/home"...
+    if str(home).startswith(not_home):
+        not_home = "/fallback/not/home"
+    assert skrt.core.compress_user(home) == "~/."
+    assert skrt.core.compress_user(not_home) == not_home

@@ -1052,6 +1052,15 @@ def fullpath(path=""):
         expanded = os.path.realpath(tmp)
     return expanded
 
+def compress_user(path=""):
+    """If path starts with home directory, replace by '~'"""
+    new_path = Path(fullpath(path))
+    try:
+        new_path = f"~/{new_path.relative_to(new_path.home())}"
+    except ValueError:
+        pass
+    return str(new_path)
+
 def qualified_name(cls=None):
     """
     Return qualified name of a class.
