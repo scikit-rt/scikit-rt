@@ -11,7 +11,6 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -342,7 +341,26 @@ and their initial values.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_option">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_option</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_option" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Apply logic for selection allowed option.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>opt: int/bool/other/None, default=None</dt><dd><p>Specification of option:
+- if an element of &lt;allowed_opts&gt;, &lt;opt&gt; is returned;
+- if an integer, element &lt;opt&gt; of &lt;allowed_opts&gt; is returned;
+- if False, an empty string is returned;
+- if neither &lt;opt&gt; not &lt;fallback_opt&gt; is an element of &lt;allowed_opts&gt;,</p>
+<blockquote>
+<div><p>an integer, or False, element -1 or &lt;allowed_opts&gt; is returned.</p>
+</div></blockquote>
+</dd>
+<dt>fallback_opt: int/bool/other/None, default=None</dt><dd><p>Alternative specification of option.  Considered in the same was as
+&lt;opt&gt;, if the latter isn’t an element of &lt;allowed_opts&gt;, an integer,
+or False.</p>
+</dd>
+<dt>allowed_opts: list, default=None</dt><dd><p>List of allowed options.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_options">
@@ -352,12 +370,22 @@ and their initial values.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_segmentation_steps">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_segmentation_steps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_segmentation_steps" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Return list of segmentation steps.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_steps">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_steps" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get list of segmentation steps to run, up to and including &lt;step&gt;.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>step: str/int/list/None</dt><dd><p>Specification of segmentation step(s) to be run:
+- if None, all steps are to be run;
+- if a string or integer, the corresponding step is to be run;
+- if a list, all listed steps are to be run.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_structure_set_index">
