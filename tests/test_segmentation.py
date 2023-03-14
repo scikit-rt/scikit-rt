@@ -11,6 +11,8 @@ from skrt.segmentation import (
         get_fixed_and_moving,
         get_option,
         get_segmentation_steps,
+        get_steps,
+        get_structure_set_index,
         MultiAtlasSegmentation,
         SingleAtlasSegmentation,
         SasTuner,
@@ -129,3 +131,22 @@ def test_get_option():
     for invalid, allowed in zip(invalid_opts, allowed_opts):
         assert get_option(opt=invalid, fallback_opt=allowed,
                 allowed_opts=allowed_opts) == allowed
+
+def test_get_segmentation_steps():
+    """Test retrieval of segmentation steps."""
+    seg_steps = get_segmentation_steps()
+    assert isinstance(seg_steps, list)
+    assert len(seg_steps) > 0
+
+def test_get_steps():
+    """Test retrieval of steps to be run."""
+    seg_steps = get_segmentation_steps()
+    assert get_steps(None) == seg_steps
+    for idx, name in enumerate(seg_steps):
+        n_step = idx + 1
+
+        for step in [idx, name, [idx], [name]]:
+            steps = get_steps(step)
+            assert len(steps) == n_step
+            for idx2 in range(n_step):
+                assert seg_steps[idx2] in steps

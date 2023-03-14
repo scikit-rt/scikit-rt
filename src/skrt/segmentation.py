@@ -1019,6 +1019,27 @@ def get_fixed_and_moving(im1, im2, strategy):
     return (im1, im2) if ("pull" == strategy) else (im2, im1)
 
 def get_option(opt=None, fallback_opt=None, allowed_opts=None):
+    """
+    Apply logic for selection allowed option.
+
+    **Parameters:**
+
+    opt: int/bool/other/None, default=None
+        Specification of option:
+        - if an element of <allowed_opts>, <opt> is returned;
+        - if an integer, element <opt> of <allowed_opts> is returned;
+        - if False, an empty string is returned;
+        - if neither <opt> not <fallback_opt> is an element of <allowed_opts>,
+          an integer, or False, element -1 or <allowed_opts> is returned.
+
+    fallback_opt: int/bool/other/None, default=None
+        Alternative specification of option.  Considered in the same was as
+        <opt>, if the latter isn't an element of <allowed_opts>, an integer,
+        or False.
+
+    allowed_opts: list, default=None
+        List of allowed options.
+    """
 
     if not is_list(allowed_opts) or not len(allowed_opts):
         raise RuntimeError("No allowed options specified")
@@ -1061,11 +1082,26 @@ def get_options(opts=None, fallback_opts=None, allowed_opts=None):
     return options or [allowed_opts[-1]]
 
 def get_segmentation_steps():
+    """Return list of segmentation steps."""
     return ["global", "local"]
 
 def get_steps(step):
+    """
+    Get list of segmentation steps to run, up to and including <step>.
+
+    **Parameter:**
+
+    step: str/int/list/None
+        Specification of segmentation step(s) to be run:
+        - if None, all steps are to be run;
+        - if a string or integer, the corresponding step is to be run;
+        - if a list, all listed steps are to be run.
+    """
+
+    # Obtain list of all segmentation steps.
     all_steps = get_segmentation_steps()
-    # Make list of steps to run
+
+    # Create list of steps from input specification of step.
     if step is None:
         steps_input = all_steps
     elif not is_list(step):
@@ -1073,7 +1109,7 @@ def get_steps(step):
     else:
         steps_input = step
 
-    # Check that all steps exist, and convert numbers to names.
+    # Check that all specified steps exist, and convert numbers to names.
     steps = []
     for step_now in steps_input:
         if isinstance(step_now, str):
@@ -1085,6 +1121,8 @@ def get_steps(step):
 
         steps.append(step_now)
 
+    # Create list of step names, up to and including the step(s)
+    # specified in input.
     if steps:
         steps_index = max(
                 [all_steps.index(step_now) for step_now in steps])
