@@ -430,7 +430,7 @@ def test_compress_user():
     home = Path(skrt.core.fullpath("~"))
     not_home = "/not/home"
     # Protect against unlikely case where home directory is "/not/home"...
-    if str(home).startswith(not_home):
-        not_home = "/fallback/not/home"
+    if not_home in str(home):
+        not_home = "/not/second/home"
     assert skrt.core.compress_user(home) == "~/."
-    assert skrt.core.compress_user(not_home) == not_home
+    assert skrt.core.compress_user(not_home) == skrt.core.fullpath(not_home)
