@@ -167,6 +167,78 @@ be displayed as underlay.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="skrt.registration.Elastix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Elastix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skrt.registration.RegistrationEngine" title="skrt.registration.RegistrationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegistrationEngine</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.__init__" title="Permalink to this definition"></a></dt>
+<dd><p><strong>Parameters:</strong>
+path : str/pathlib.Path, default=None</p>
+<blockquote>
+<div><p>Path to directory containing registration-engine software.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.define_translation">
+<span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.define_translation" title="Permalink to this definition"></a></dt>
+<dd><p>Define Elastix translation parameters from 3-element tuple or list.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>dxdydz<span class="classifier">tuple/list</span></dt><dd><p>Three-element tuple or list, giving translations in order
+(dx, dy, dz).  Translations correspond to the amounts added
+in mapping a point from fixed image to moving image.</p>
+</dd>
+<dt>fixed_image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image towards which moving image is to be warped.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_def_cmd">
+<span class="sig-name descname"><span class="pre">get_def_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_def_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_jac_cmd">
+<span class="sig-name descname"><span class="pre">get_jac_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_jac_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_registration_cmd">
+<span class="sig-name descname"><span class="pre">get_registration_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_registration_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_roi_params">
+<span class="sig-name descname"><span class="pre">get_roi_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_roi_params" title="Permalink to this definition"></a></dt>
+<dd><p>Get default parameters to be used when transforming ROI masks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_transformation_cmd">
+<span class="sig-name descname"><span class="pre">get_transformation_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_transformation_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.set_exe_paths">
+<span class="sig-name descname"><span class="pre">set_exe_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.set_exe_paths" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.transform_points_implemented">
+<span class="sig-name descname"><span class="pre">transform_points_implemented</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#skrt.registration.Elastix.transform_points_implemented" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="skrt.registration.Grid">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.dose.html#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageOverlay</span></code></a></p>
@@ -365,12 +437,79 @@ initialisation.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">NiftyReg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skrt.registration.RegistrationEngine" title="skrt.registration.RegistrationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegistrationEngine</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.__init__" title="Permalink to this definition"></a></dt>
+<dd><p><strong>Parameters:</strong>
+path : str/pathlib.Path, default=None</p>
+<blockquote>
+<div><p>Path to directory containing registration-engine software.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.define_translation">
+<span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.define_translation" title="Permalink to this definition"></a></dt>
+<dd><p>Define NiftyReg translation parameters from 3-element tuple or list.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>dxdydz<span class="classifier">tuple/list</span></dt><dd><p>Three-element tuple or list, giving translations in order
+(dx, dy, dz).  Translations correspond to the amounts added
+in mapping a point from fixed image to moving image.</p>
+</dd>
+<dt>fixed_image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image towards which moving image is to be warped.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_def_cmd">
+<span class="sig-name descname"><span class="pre">get_def_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_def_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_jac_cmd">
+<span class="sig-name descname"><span class="pre">get_jac_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_jac_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_registration_cmd">
+<span class="sig-name descname"><span class="pre">get_registration_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_registration_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_roi_params">
+<span class="sig-name descname"><span class="pre">get_roi_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_roi_params" title="Permalink to this definition"></a></dt>
+<dd><p>Get default parameters to be used when transforming ROI masks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_transformation_cmd">
+<span class="sig-name descname"><span class="pre">get_transformation_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_transformation_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.set_exe_paths">
+<span class="sig-name descname"><span class="pre">set_exe_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.set_exe_paths" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="skrt.registration.Registration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_transform_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_tmp_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_transform_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_tmp_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_transform_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_tmp_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_transform_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_tmp_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Load data for an image registration and run the registration if
 auto_seg=True.</p>
 <p><strong>Parameters:</strong></p>
@@ -401,7 +540,7 @@ or a source from which an Image object can be initialised. If
 None and an image file ‘moving_mask.nii.gz’ exists at &lt;path&gt;
 then this will be used.  Setting a mask is optional.</p>
 </dd>
-<dt>pfiles<span class="classifier">str/list/dict, default=None</span></dt><dd><p>Path(s) to elastix parameter file(s) to be used in each step of the
+<dt>pfiles<span class="classifier">str/list/dict, default=None</span></dt><dd><p>Path(s) to parameter file(s) to be used in each step of the
 registration. If a list of more than one path, the parameter files
 will be used to apply registrations in series, which the output of
 each step being used as an initial transformation for the following
@@ -474,6 +613,12 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 performing transformations.  Otherwise, delete this directory
 after use.</p>
 </dd>
+<dt>engine: class, default=None</dt><dd><p>Class inheriting from RegistrationEngine, to be used for
+image registration.  If None, use the value of
+Defaults().registration_engine.</p>
+</dd>
+<dt>engine_dir: str/pathlib.Path, default=None</dt><dd><p>Path to directory containing software for registration engine.</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -502,7 +647,7 @@ This file can optionally be modified by providing a dict
 of parameter names and new values in &lt;params&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>file<span class="classifier">str/dict/tuple/list</span></dt><dd><p>Path to the elastix parameter file to copy into the registration
+<dt>file<span class="classifier">str/dict/tuple/list</span></dt><dd><p>Path to the parameter file to copy into the registration
 directory. Can also be a dict containing parameters and values,
 which will be used to create a parameter file from scratch. In this
 case, the &lt;name&gt; argument must also be provided.  For a transform
@@ -563,28 +708,11 @@ registration transforms.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Registration.define_translation">
-<span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.define_translation" title="Permalink to this definition"></a></dt>
-<dd><p>Define Elastix translation parameters from 3-element tuple or list.</p>
-<p><strong>Parameter:</strong></p>
-<dl class="simple">
-<dt>dxdydz<span class="classifier">tuple/list</span></dt><dd><p>Three-element tuple or list, giving translation in order (x, y, z).</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.ensure_registered">
 <span class="sig-name descname"><span class="pre">ensure_registered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.ensure_registered" title="Permalink to this definition"></a></dt>
 <dd><p>If a step has not already been registered, perform registration
 for this step and any preceding steps. Return True if registration
 had already been performed.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Registration.get_ELASTIX_cmd">
-<span class="sig-name descname"><span class="pre">get_ELASTIX_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_ELASTIX_cmd" title="Permalink to this definition"></a></dt>
-<dd><p>Get elastix registration command for a given step.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -598,8 +726,7 @@ informative purposes.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_deformation_field">
 <span class="sig-name descname"><span class="pre">get_deformation_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_deformation_field" title="Permalink to this definition"></a></dt>
-<dd><p>Generate deformation field using transformix for a given 
-registration step.</p>
+<dd><p>Generate deformation field for a given registration step.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -611,9 +738,10 @@ registration step.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_jacobian">
 <span class="sig-name descname"><span class="pre">get_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_to_fixed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_jacobian" title="Permalink to this definition"></a></dt>
-<dd><p>Generate Jacobian determinant using transformix for a given 
-registration step (or return existing Jacobian object, unless 
-force=True).</p>
+<dd><p>Generate Jacobian determinant for a given registration step
+(or return existing Jacobian object, unless force=True).</p>
+<p>If the registration engine used is unable to generate the
+Jacobian determinant, None will be returned.</p>
 <p>Positive values in the Jacobian determinant represent:
 - moving_to_fixed=False: scaling from fixed image to moving image;
 - moving_to_fixed=True: scaling from moving image to fixed image.</p>
@@ -643,6 +771,12 @@ See this method’s documentation for options.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.get_registration_cmd">
+<span class="sig-name descname"><span class="pre">get_registration_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_registration_cmd" title="Permalink to this definition"></a></dt>
+<dd><p>Get registration command for a given step.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_step_name">
 <span class="sig-name descname"><span class="pre">get_step_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_step_name" title="Permalink to this definition"></a></dt>
 <dd><p>Convert &lt;step&gt; to a string containing a step name. If &lt;step&gt; is
@@ -658,6 +792,16 @@ a parameter file and/or a transform file assigned.</p>
 If &lt;step&gt; is an int, check it corresponds to a step number, ensure it 
 is positive, and return it. Otherwise if it’s a string, return the 
 index of that step name in self.steps.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.get_tfile">
+<span class="sig-name descname"><span class="pre">get_tfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_tfile" title="Permalink to this definition"></a></dt>
+<dd><p>Return path to transform file in directory &lt;dir_path&gt;.</p>
+<p>The transform file may be named either ‘TransformParameters.0.txt’
+(e.g. Elastix or NiftyReg affine) or ‘TransformParameters.0.nii’
+(e.g. NiftyReg deformable).  If both exist in the directory,
+the latter should be used.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -707,8 +851,8 @@ in any of the forms recognised by matplotlib:
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_transformed_image">
 <span class="sig-name descname"><span class="pre">get_transformed_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_transformed_image" title="Permalink to this definition"></a></dt>
 <dd><p>Get the transformed moving image for a given step, by default the
-final step. If force=True, the transform will be applied with
-transformix even if there is already a resultant image in the
+final step. If force=True, the transform will be applied
+even if there is already a resultant image in the
 output directory for that step.</p>
 </dd></dl>
 
@@ -761,9 +905,8 @@ modified. This must be provided if the registration has more than
 one step. If the tfile for the chosen step does not contain a
 translation, the function will immediately return None.</p>
 </dd>
-<dt>reapply_transformation<span class="classifier">bool, default=True</span></dt><dd><p>If True, upon saving a translation, transformix will be run to
-reproduce the transformed moving image according to the new
-translation parameters.</p>
+<dt>reapply_transformation<span class="classifier">bool, default=True</span></dt><dd><p>If True, upon saving a translation, the transformed moving image
+will be produced according to the new translation parameters.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -771,7 +914,7 @@ translation parameters.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.print_log">
 <span class="sig-name descname"><span class="pre">print_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.print_log" title="Permalink to this definition"></a></dt>
-<dd><p>Print elastix output log for a given step (by default, the 
+<dd><p>Print registration output log for a given step (by default, the 
 last step).</p>
 </dd></dl>
 
@@ -845,9 +988,12 @@ for a step with a pre-defined transform file.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.run_transformix_on_all">
 <span class="sig-name descname"><span class="pre">run_transformix_on_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.run_transformix_on_all" title="Permalink to this definition"></a></dt>
-<dd><p>Run transformix with either <cite>-jac all</cite> or <cite>-def all</cite> to create a
-Jacobian determinant or deformation field file, and return either
-a Jacobian or DeformationField object initialised from the output file.</p>
+<dd><p>Create a Jacobian determinant or deformation field file,
+and return either a Jacobian or DeformationField object initialised
+from the output file.</p>
+<p>This was first implemented by running transformix for an elastix
+transform file.  Creation of Jacobian or DeformationField object
+now depends on the registration engine used.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1068,15 +1214,105 @@ self.path/registration_steps.txt.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">RegistrationEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.__init__" title="Permalink to this definition"></a></dt>
+<dd><p><strong>Parameters:</strong>
+path : str/pathlib.Path, default=None</p>
+<blockquote>
+<div><p>Path to directory containing registration-engine software.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.define_translation">
+<span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.define_translation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_def_cmd">
+<span class="sig-name descname"><span class="pre">get_def_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_def_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_default_pfiles">
+<span class="sig-name descname"><span class="pre">get_default_pfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_default_pfiles" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of default parameter files.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>basename_only<span class="classifier">bool, default=True</span></dt><dd><p>If True, return list of filenames only.  If True, return list
+of paths, as pathlib.Path objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_default_pfiles_dir">
+<span class="sig-name descname"><span class="pre">get_default_pfiles_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_default_pfiles_dir" title="Permalink to this definition"></a></dt>
+<dd><p>Return path to directory containing default parameter files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_jac_cmd">
+<span class="sig-name descname"><span class="pre">get_jac_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_jac_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_registration_cmd">
+<span class="sig-name descname"><span class="pre">get_registration_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_registration_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_roi_params">
+<span class="sig-name descname"><span class="pre">get_roi_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_roi_params" title="Permalink to this definition"></a></dt>
+<dd><p>Get default parameters to be used when transforming ROI masks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_transformation_cmd">
+<span class="sig-name descname"><span class="pre">get_transformation_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_transformation_cmd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.set_exe_env">
+<span class="sig-name descname"><span class="pre">set_exe_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.set_exe_env" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.set_exe_paths">
+<span class="sig-name descname"><span class="pre">set_exe_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.set_exe_paths" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.transform_points_implemented">
+<span class="sig-name descname"><span class="pre">transform_points_implemented</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#skrt.registration.RegistrationEngine.transform_points_implemented" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.registration.add_engine">
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">add_engine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.add_engine" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.adjust_parameters">
 <span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">adjust_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.adjust_parameters" title="Permalink to this definition"></a></dt>
-<dd><p>Open an elastix parameter file (works for both input parameter and
+<dd><p>Open a registration parameter file (works for both input parameter and
 output transform files), adjust its parameters, and save it to a new
 file.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>file<span class="classifier">str</span></dt><dd><p>Path to an elastix parameter file.</p>
+<dt>file<span class="classifier">str</span></dt><dd><p>Path to a registration parameter file.</p>
 </dd>
 <dt>outfile<span class="classifier">str</span></dt><dd><p>Path to output file.</p>
 </dd>
@@ -1093,7 +1329,7 @@ file.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.get_default_pfiles">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exe_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of default parameter files.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -1105,8 +1341,26 @@ of paths, as pathlib.Path objects.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.get_default_pfiles_dir">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles_dir" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exe_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles_dir" title="Permalink to this definition"></a></dt>
 <dd><p>Return path to directory containing default parameter files.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.registration.get_engine_cls">
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_engine_cls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_engine_cls" title="Permalink to this definition"></a></dt>
+<dd><p>Get registration-engine class, given engine name or software directory.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>engine: str, default=None</dt><dd><p>String identifying registration engine, corresponding to
+a key of the dictionary skrt.registration.engines.</p>
+</dd>
+<dt>engine_dir: pathlib.Path/str, default=None</dt><dd><p>Path to directory containing registration-engine software.
+It’s assumed that the registration engine is a key of
+the dictionary skrt.registration.engines, that the directory
+path includes this key, and that directory path doesn’t
+include any other keys of skrt.registration.engines.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1124,7 +1378,7 @@ of paths, as pathlib.Path objects.</p>
 <dt class="sig sig-object py" id="skrt.registration.get_jacobian_colormap">
 <span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_jacobian_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_per_band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{0:</span> <span class="pre">1,</span> <span class="pre">1:</span> <span class="pre">0.5,</span> <span class="pre">2:</span> <span class="pre">1}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_jacobian_colormap" title="Permalink to this definition"></a></dt>
 <dd><p>Return custom colour map, for highlighting features of Jacobian determinant.</p>
-<p>Following image registration by Elastix, the Jacobian determinant of
+<p>Following image registration, the Jacobian determinant of
 the registration transformation reflects the characteristics of the
 deformation field.  A positive value, x, in the Jacobian determinant
 indicates a volume scaling by x in going from the fixed image to the
@@ -1180,12 +1434,12 @@ from the band threshold.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.read_parameters">
 <span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.read_parameters" title="Permalink to this definition"></a></dt>
-<dd><p>Get dictionary of parameters from an elastix parameter file.</p>
+<dd><p>Get dictionary of parameters from a registratio parameter file.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.set_elastix_dir">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">set_elastix_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.set_elastix_dir" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">set_elastix_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.set_elastix_dir" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -1197,7 +1451,7 @@ from the band threshold.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.write_parameters">
 <span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.write_parameters" title="Permalink to this definition"></a></dt>
-<dd><p>Write dictionary of parameters to an elastix parameter file.</p>
+<dd><p>Write dictionary of parameters to a registration parameter file.</p>
 </dd></dl>
 
 </section>
