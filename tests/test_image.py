@@ -1324,9 +1324,12 @@ def test_get_centroid():
     # Create synthetic image, featuring sphere.
     # The maximum intensity for the image is shared by the voxels of the sphere,
     # so the calculated centroid should correspond to the sphere centroid.
-    shape = [100, 60, 80]
-    origin = [-40, 40, -100]
-    idx_centre = [80, 15, 35]
+    #shape = [100, 60, 80]
+    #origin = [-40, 40, -100]
+    #idx_centre = [80, 15, 35]
+    shape = [50, 30, 40]
+    origin = [-20, 20, -50]
+    idx_centre = [40, 8, 17]
     sl_centre = [idx_centre[0] + 1, idx_centre[1] + 1, shape[2] - idx_centre[2]]
     pos_centre = [origin[idx] + idx_centre[idx] for idx in range(3)]
     sim = SyntheticImage(shape, origin=origin)
