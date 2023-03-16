@@ -7,9 +7,12 @@ import pytest
 import subprocess
 
 from skrt import Image
+from skrt.core import Defaults
 from skrt.simulation import SyntheticImage
-from skrt.registration import (Registration, get_default_pfiles,
-        get_default_pfiles_dir, read_parameters)
+from skrt.registration import (
+        Registration, RegistrationEngine,
+        add_engine, engines, get_default_pfiles, get_default_pfiles_dir,
+        get_engine_cls, read_parameters)
 
 from test_structs import compare_rois
 
@@ -539,3 +542,33 @@ def test_initial_alignment_using_rois():
         assert(Path(reg.tfiles["initial_alignment"]).exists())
         parameters = read_parameters(reg.tfiles["initial_alignment"])
         assert parameters["TransformParameters"] == translation
+
+def engine_tests(engine):
+    assert engine in engines
+    engine_cls = engines[engine]
+    assert isinstance(engine_cls, type)
+    assert issubclass(engine_cls, RegistrationEngine)
+    assert engine == engine_cls.__name__.lower()
+
+def test_add_engine():
+    n_engine = len(engines)
+    assert "newengine" not in engines
+    @add_engine
+    class NewEngine(RegistrationEngine):
+        pass
+    assert n_engine + 1 == len(engines)
+    assert "newengine" in engines
+
+def test_engines():
+    for engine in ["newengine", "elastix", "niftyreg"]:
+        engine_tests(engine)
+
+def test_default_engine():
+    for engine in [Defaults().registration_engine]:
+        engine_tests(engine)
+
+def test_get_engine_cls():
+    """Test retrieval of registration engine."""
+    for engine in engines:
+        assert get_engine_cls(engine) == engines[engine]
+    assert get_engine_cls() == engines.get(Defaults().registration_engine, None)

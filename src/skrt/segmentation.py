@@ -56,13 +56,13 @@ from shutil import rmtree
 import pandas as pd
 
 from skrt.core import (
-        get_dict_permutations, get_logger, get_stat_functions, is_list,
-        Data, Defaults, tic, toc)
-from skrt.image import match_images, Image
+        Data, Defaults, get_dict_permutations, get_logger, get_stat_functions,
+        is_list, tic, toc)
+from skrt.image import Image, match_images
 from skrt.structures import (
-        get_by_slice_methods, get_comparison_metrics, get_consensus_types,
-        StructureSet)
-from skrt.registration import Registration
+        StructureSet,
+        get_by_slice_methods, get_comparison_metrics, get_consensus_types)
+from skrt.registration import Registration, engines
 
 class MultiAtlasSegmentation(Data):
     def __init__(
@@ -97,7 +97,8 @@ class MultiAtlasSegmentation(Data):
             rmtree(self.workdir)
 
         # Define contour-propagation strategies and segmentation steps.
-        self.strategies = get_contour_propagation_strategies()
+        args = [kwargs.get(key, None) for key in ["engine", "engine_dir"]]
+        self.strategies = get_contour_propagation_strategies(*args)
         self.steps = get_segmentation_steps()
 
         # Note that these values are passed to the SingleAtlasSegmentation
@@ -150,7 +151,8 @@ class MultiAtlasSegmentation(Data):
     def segment(self, atlas_ids=None, strategy=None, step=None,
             consensus_types=None, force=False, reg_setup_only=False):
         atlas_ids = get_options(atlas_ids, True, list(self.sass))
-        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        strategy = get_strategy(strategy, self.default_strategy,
+                                self.engine, self.engine_dir)
         steps = get_steps(step)
 
         active_ids = []
@@ -214,7 +216,8 @@ class MultiAtlasSegmentation(Data):
     def get_consensus(self, atlas_ids=None, strategy=None, step=None,
                       reg_step=None, consensus_type=None, force=False):
         atlas_ids = get_options(atlas_ids, True, list(self.sass))
-        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        strategy = get_strategy(strategy, self.default_strategy,
+                                self.engine, self.engine_dir)
         step = get_option(step, self.auto_step, self.steps)
         consensus_type = consensus_type or self.default_consensus_type
         if self.consensus_atlas_ids != set(atlas_ids):
@@ -251,7 +254,8 @@ class MultiAtlasSegmentation(Data):
             consensus_types = [consensus_types]
 
         atlas_ids = get_options(atlas_ids, True, list(self.sass))
-        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        strategy = get_strategy(strategy, self.default_strategy,
+                                self.engine, self.engine_dir)
         step = get_option(step, self.auto_step, self.steps)
         all_reg_steps = self.get_sas(atlas_ids[0]).get_reg_steps(step)
         reg_step = get_option(reg_step, None, all_reg_steps)
@@ -518,6 +522,7 @@ class SingleAtlasSegmentation(Data):
     def __init__(
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
+        engine=None, engine_dir=None,
         auto=False, auto_step=None, auto_strategies=None,
         auto_reg_setup_only=False,
         default_step=-1, default_strategy="pull", roi_names=None,
@@ -553,9 +558,13 @@ class SingleAtlasSegmentation(Data):
         if overwrite and self.workdir.exists():
             rmtree(self.workdir)
 
+        # Set registration engine and software directory.
+        self.engine = engine
+        self.engine_dir = engine_dir
+
         # Define recognised contour-propagation strategies
         # and segmentation steps.
-        self.strategies = get_contour_propagation_strategies()
+        self.strategies = get_contour_propagation_strategies(engine, engine_dir)
         self.steps = get_segmentation_steps()
 
         # Set step and strategies for automatic segmenation,
@@ -621,7 +630,8 @@ class SingleAtlasSegmentation(Data):
 
     def segment(self, strategy=None, step=None, force=False,
                 reg_setup_only=False):
-        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        strategy = get_strategy(strategy, self.default_strategy,
+                                self.engine, self.engine_dir)
         steps = get_steps(step)
 
         if force:
@@ -665,6 +675,8 @@ class SingleAtlasSegmentation(Data):
                             log_level=self.log_level,
                             keep_tmp_dir=self.keep_tmp_dir,
                             overwrite=force,
+                            engine=self.engine,
+                            engine_dir=self.engine_dir,
                             )
                         )
 
@@ -719,6 +731,8 @@ class SingleAtlasSegmentation(Data):
                                 log_level=self.log_level,
                                 keep_tmp_dir=self.keep_tmp_dir,
                                 overwrite=force,
+                                engine=self.engine,
+                                engine_dir=self.engine_dir,
                                 )
                             )
 
@@ -781,7 +795,8 @@ class SingleAtlasSegmentation(Data):
 
     def get_registration(self, strategy=None, step=None, roi_name=None,
             force=False):
-        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        strategy = get_strategy(strategy, self.default_strategy,
+                                self.engine, self.engine_dir)
         step = get_option(step, self.default_step, self.steps)
         self.segment(strategy, step, force, reg_setup_only=True)
 
@@ -800,7 +815,8 @@ class SingleAtlasSegmentation(Data):
 
     def get_segmentation(self, strategy=None, step=None, reg_step=None,
             force=False):
-        strategy = get_option(strategy, self.default_strategy, self.strategies)
+        strategy = get_strategy(strategy, self.default_strategy,
+                                self.engine, self.engine_dir)
         step = get_option(step, self.default_step, self.steps)
         self.segment(strategy, step, force)
         segmentations = self.segmentations[strategy][step]
@@ -997,9 +1013,40 @@ def ensure_structure_set(ss):
     """Return StructureSet cloned from <im>; return None if <im> is None."""
     return (ss if ss is None else StructureSet(ss))
 
-def get_contour_propagation_strategies():
-    """Return list of contour propagation strategies."""
-    return ["pull", "push"]
+def get_contour_propagation_strategies(engine=None, engine_dir=None):
+    """
+    Return list of contour propagation strategies for registration engine.
+
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
+
+    engine_dir: pathlib.Path/str, default=None
+        Path to directory containing registration-engine software.
+        It's assumed that the registration engine is a key of
+        the dictionary skrt.registration.engines, that the directory
+        path includes this key, and that directory path doesn't
+        include any other keys of skrt.registration.engines.
+    ."""
+    # If engine not known, try to determine engine from path to software.
+    if not engine in engines:
+        for local_engine in engines:
+            if local_engine in str(engine_dir):
+                engine = local_engine
+                break
+
+    # If registration engine not known, use default.
+    if not engine in engines:
+        engine = Defaults().registration_engine
+
+    # Return engine strategies for contour propagation.
+    if engine in engines:
+        if engines[engine].transform_points_implemented == True:
+            return ["pull", "push"]
+        else:
+            return ["pull"]
+
+    return []
 
 def get_fixed_and_moving(im1, im2, strategy):
     """
@@ -1135,3 +1182,14 @@ def get_structure_set_index(ss_index, im):
         and len(im.structure_sets) <= abs(ss_index)):
         return len(im.structure_sets) + ss_index
     return ss_index
+
+def get_strategy(strategy=None, fallback_strategy=None,
+                 engine=None, engine_dir=None):
+    allowed_strategies = get_contour_propagation_strategies(engine, engine_dir)
+    if isinstance(strategy, str) and strategy not in allowed_strategies:
+        word = "strategy" if 1 == len(allowed_strategies) else "strategies"
+        raise RuntimeError(
+                f"Segmentation strategy '{strategy}' not implemented. "
+                f"Implemented {word} for '{engine}' ('{engine_dir}'): "
+                f"{allowed_strategies}")
+    return get_option(strategy, fallback_strategy, allowed_strategies)

@@ -17,8 +17,13 @@ from skrt.core import (fullpath, get_logger, Data, is_list, to_list,
 from skrt.dose import ImageOverlay, Dose
 from skrt.simulation import make_grid
 
-_ELASTIX = "elastix"
-_transformix = "transformix"
+# Set default registration engine.
+Defaults({"registration_engine": "elastix"})
+
+engines = {}
+def add_engine(cls):
+    engines[cls.__name__.lower()] = cls
+    return cls
 
 
 class Registration(Data):
@@ -27,7 +32,8 @@ class Registration(Data):
         self, path, fixed=None, moving=None, fixed_mask=None,
         moving_mask=None, pfiles=None, auto=False, overwrite=False,
         tfiles=None, initial_alignment=None, initial_transform_name=None,
-        capture_output=False, log_level=None, keep_tmp_dir=False):
+        capture_output=False, log_level=None, keep_tmp_dir=False,
+        engine=None, engine_dir=None):
         """Load data for an image registration and run the registration if
         auto_seg=True.
 
@@ -65,7 +71,7 @@ class Registration(Data):
             then this will be used.  Setting a mask is optional.
 
         pfiles : str/list/dict, default=None
-            Path(s) to elastix parameter file(s) to be used in each step of the
+            Path(s) to parameter file(s) to be used in each step of the
             registration. If a list of more than one path, the parameter files
             will be used to apply registrations in series, which the output of
             each step being used as an initial transformation for the following
@@ -141,6 +147,14 @@ class Registration(Data):
             If True, don't delete directory self._tmp_dir used when
             performing transformations.  Otherwise, delete this directory
             after use.
+
+        engine: class, default=None
+            Class inheriting from RegistrationEngine, to be used for
+            image registration.  If None, use the value of
+            Defaults().registration_engine.
+
+        engine_dir: str/pathlib.Path, default=None
+            Path to directory containing software for registration engine.
         """
 
         # Set up event logging, output capture, and handling of self._tmp_dir
@@ -150,6 +164,18 @@ class Registration(Data):
                 name=type(self).__name__, log_level=self.log_level)
         self.capture_output = capture_output
         self.keep_tmp_dir = keep_tmp_dir
+
+        # Set registration engine.
+        engine_cls = get_engine_cls(engine, engine_dir)
+
+        if not (isinstance(engine_cls, type)
+                and issubclass(engine_cls, RegistrationEngine)):
+            raise RuntimeError(
+                f"Unable to determine RegistrationClass for engine: '{engine}',"
+                f"engine_dir: '{engine_dir}';"
+                "\nknown engines are: {sorted(engines)}")
+
+        self.engine = engine_cls(path=engine_dir)
 
         # Set up directory
         self.path = fullpath(path)
@@ -214,8 +240,8 @@ class Registration(Data):
         else:
             # Link any pre-existing transform files for registration steps.
             for step, outdir in self.outdirs.items():
-                path = f"{outdir}/TransformParameters.0.txt"
-                if step in self.pfiles and os.path.exists(path):
+                path = self.get_tfile(outdir)
+                if step in self.pfiles and path:
                     self.tfiles[step] = path
 
         self.moving_grid_path = os.path.join(self.path, "moving_grid.nii.gz")
@@ -224,6 +250,18 @@ class Registration(Data):
         # Perform registration
         if auto:
             self.register()
+
+    def get_tfile(self, dir_path):
+        """
+        Return path to transform file in directory <dir_path>.
+
+        The transform file may be named either 'TransformParameters.0.txt'
+        (e.g. Elastix or NiftyReg affine) or 'TransformParameters.0.nii'
+        (e.g. NiftyReg deformable).  If both exist in the directory,
+        the latter should be used.
+        """
+        tfiles = sorted(list(Path(dir_path).glob("TransformParameters*")))
+        return str(tfiles[0]) if tfiles else None
 
     def set_image(self, im, category, force=True):
         """Assign a fixed or moving image.
@@ -299,32 +337,6 @@ class Registration(Data):
                 return
             self.set_image(path, category, force=False)
 
-    def define_translation(self, dxdydz):
-        """
-        Define Elastix translation parameters from 3-element tuple or list.
-
-        **Parameter:**
-
-        dxdydz : tuple/list
-            Three-element tuple or list, giving translation in order (x, y, z).
-        """
-        # Define translation parameters that are enough to allow
-        # application before a registration step.
-        translation = {
-                "Transform": "TranslationTransform",
-                "NumberOfParameters": 3,
-                "TransformParameters": dxdydz,
-                "InitialTransformParametersFileName": "NoInitialTransform",
-                "UseBinaryFormatForTransformationParameters": False,
-                "HowToCombineTransforms": "Compose"
-                }
-
-        if hasattr(self, "fixed_image"):
-            # Add parameters needed to allow warping of the moving image.
-            translation.update(get_image_transform_parameters(self.fixed_image))
-
-        return translation
-
     def add_file(self, file, name=None, params=None, ftype="p"):
         """Add a single file of type <ftype> to the list of registration steps.
         This file can optionally be modified by providing a dict
@@ -333,7 +345,7 @@ class Registration(Data):
         **Parameters:**
 
         file : str/dict/tuple/list
-            Path to the elastix parameter file to copy into the registration
+            Path to the parameter file to copy into the registration
             directory. Can also be a dict containing parameters and values,
             which will be used to create a parameter file from scratch. In this
             case, the <name> argument must also be provided.  For a transform
@@ -384,7 +396,8 @@ class Registration(Data):
 
         # Create dictionary for translation from list or tuple
         if isinstance(file, (tuple, list)):
-            file = self.define_translation(file)
+            file = self.engine.define_translation(
+                    file, getattr(self, "fixed_image", None))
 
         # Check whether name already exists and add counter if so
         i = 1
@@ -407,13 +420,17 @@ class Registration(Data):
             path = f"{outdir}/InputParameters.txt"
             self.pfiles[name] = path
         elif "t" == ftype.lower():
-            path = f"{outdir}/TransformParameters.0.txt"
+            path = (self.get_tfile(outdir)
+                    or f"{outdir}/TransformParameters.0.txt")
             self.tfiles[name] = path
 
         # Create new file, or copy existing file.
         if isinstance(file, dict):
             Path(path).touch()
             self.adjust_file(name, file, ftype)
+        elif isinstance(file, list):
+            with open(path, "w") as out_file:
+                out_file.write("\n".join(file))
         else:
             shutil.copy(file, path)
 
@@ -450,7 +467,7 @@ class Registration(Data):
         informative purposes.
         """
 
-        for file in get_default_pfiles():
+        for file in self.engine.get_default_pfiles():
             print(file.replace(".txt", ""))
 
     def get_default_params(self, filename):
@@ -460,7 +477,7 @@ class Registration(Data):
         informative purposes.
         """
 
-        files = get_default_pfiles()
+        files = self.engine.get_default_pfiles()
         if not filename.endswith(".txt"):
             filename += ".txt"
         if filename not in files:
@@ -468,7 +485,7 @@ class Registration(Data):
                     f"Default file {name} not found. Available files:")
             self.list_default_pfiles(self)
             return
-        full_files = get_default_pfiles(False)
+        full_files = self.engine.get_default_pfiles(False)
         pfile = full_files[files.index(filename)]
         return read_parameters(pfile)
 
@@ -489,7 +506,7 @@ class Registration(Data):
             the input parameter file will be modified.
         """
 
-        files = get_default_pfiles()
+        files = self.engine.get_default_pfiles()
         if not filename.endswith(".txt"):
             filename += ".txt"
         if filename not in files:
@@ -498,7 +515,7 @@ class Registration(Data):
             self.list_default_pfiles(self)
             return
 
-        full_files = get_default_pfiles(False)
+        full_files = self.engine.get_default_pfiles(False)
         pfile = str(full_files[files.index(filename)])
         self.add_file(pfile, params=params, ftype="p")
 
@@ -540,11 +557,11 @@ class Registration(Data):
                 continue
 
             pfile = os.path.join(outdir, "InputParameters.txt")
-            tfile = os.path.join(outdir, "TransformParameters.0.txt")
-            if not os.path.exists(pfile) and not os.path.exists(tfile):
+            tfile = self.get_tfile(outdir)
+            if not os.path.exists(pfile) and not tifle:
                 self.logger.warning(
                     f"No parameter file ({pfile}) "
-                    f"and no transform file ({tfile}) "
+                    f"and no transform file ({outdir}/TransformParameters*) "
                     f"found for registration step {step} listed in "
                     f"{self.steps_file}. This step will be ignored."
                 )
@@ -553,9 +570,9 @@ class Registration(Data):
             # Add step to the list.
             self.steps.append(step)
             self.outdirs[step] = outdir
-            if os.path.exists(pfile):
+            if pfile and os.path.exists(pfile):
                 self.pfiles[step] = pfile
-            if os.path.exists(tfile):
+            if tfile and os.path.exists(tfile):
                 self.tfiles[step] = tfile
 
             # Check for transformed moving images
@@ -601,8 +618,8 @@ class Registration(Data):
         self.tfiles = {}
         self.transformed_images = {}
 
-    def get_ELASTIX_cmd(self, step, use_previous_tfile=True):
-        """Get elastix registration command for a given step."""
+    def get_registration_cmd(self, step, use_previous_tfile=True):
+        """Get registration command for a given step."""
 
         # Get step number
         i = self.get_step_number(step)
@@ -620,25 +637,18 @@ class Registration(Data):
                 )
             else:
                 tfile = self.tfiles[prev_step]
+        if isinstance(tfile, str):
+            tfile = tfile.replace("\\", "/")
 
         # Construct command
-        cmd = [
-            _ELASTIX,
-            '-f', self.fixed_path.replace("\\", "/"),
-            '-m', self.moving_path.replace("\\", "/"),
-            ]
-        if os.path.exists(self.fixed_mask_path):
-            cmd.extend(['-fMask', self.fixed_mask_path.replace("\\", "/"),])
-        if os.path.exists(self.moving_mask_path):
-            cmd.extend(['-mMask', self.moving_mask_path.replace("\\", "/"),])
-        cmd.extend([
-            "-p", self.pfiles[step].replace("\\", "/"),
-            '-out', self.outdirs[step].replace("\\", "/")
-            ])
-        if tfile is not None:
-            cmd.extend(['-t0', tfile.replace("\\", "/")])
-
-        return cmd
+        return self.engine.get_registration_cmd(
+                fixed_path=self.fixed_path.replace("\\", "/"),
+                moving_path=self.moving_path.replace("\\", "/"),
+                fixed_mask_path=self.fixed_mask_path.replace("\\", "/"),
+                moving_mask_path=self.moving_mask_path.replace("\\", "/"),
+                pfile=self.pfiles[step].replace("\\", "/"),
+                outdir=self.outdirs[step].replace("\\", "/"),
+                tfile=tfile)
 
     def register(self, step=None, force=False, use_previous_tfile=True,
             ensure_transformed_moving=True):
@@ -723,7 +733,6 @@ class Registration(Data):
             registration step.  This may mean forcing the image creation
             for a step with a pre-defined transform file.
         """
-        global _ELASTIX
 
         # Check if the registration has already been performed
         if self.is_registered(step) and not force:
@@ -745,14 +754,15 @@ class Registration(Data):
                 self.register(i - 1, use_previous_tfile=True)
 
         # Run
-        cmd = self.get_ELASTIX_cmd(step, use_previous_tfile)
+        cmd = self.get_registration_cmd(step, use_previous_tfile)
         self.logger.debug(f"Running command:\n {' '.join(cmd)}")
         code = subprocess.run(
                 cmd, capture_output=self.capture_output).returncode
 
         # Check whether registration succeeded
         if code:
-            logfile = os.path.join(self.outdirs[step], "elastix.log")
+            logfile = os.path.join(self.outdirs[step],
+                                   f"{type(self.engine).__name__.lower()}.log")
             """
             self.logger.error(
                 f"Registration step {step} failed! See "
@@ -766,13 +776,13 @@ class Registration(Data):
                 " more info."
                     )
         else:
-            self.tfiles[step] = os.path.join(
-                self.outdirs[step], "TransformParameters.0.txt"
-            )
-            self.transformed_images[step] = skrt.image.Image(
-                os.path.join(self.outdirs[step], "result.0.nii"),
-                title="Transformed moving",
-            )
+            self.tfiles[step] = self.get_tfile(self.outdirs[step])
+            result_path = os.path.join(self.outdirs[step], "result.0.nii")
+            im = skrt.image.Image(result_path, title="Transformed moving")
+            if np.isnan(np.sum(im.get_data())):
+                im.data = np.nan_to_num(im.get_data())
+                im.write(result_path)
+            self.transformed_images[step] = im
 
     def is_registered(self, step):
         """Check whether a registration step has already been performed (i.e. 
@@ -782,11 +792,12 @@ class Registration(Data):
         return step in self.tfiles and os.path.exists(self.tfiles[step])
 
     def print_log(self, step=-1):
-        """Print elastix output log for a given step (by default, the 
+        """Print registration output log for a given step (by default, the 
         last step)."""
 
         step = self.get_step_name(step)
-        logfile = os.path.join(self.outdirs[step], "elastix.log")
+        logfile = os.path.join(self.outdirs[step],
+                               f"{type(self.engine).__name__.lower()}.log")
         if not os.path.exists(logfile):
             print(f"No log found - try running registration step {step}.")
             return
@@ -854,10 +865,9 @@ class Registration(Data):
         """
 
         # If image is a Dose object, set pixel type to float
-        if params is None:
-            params = {}
         is_dose = isinstance(im, Dose)
         if is_dose:
+            params = params or {}
             params["ResultImagePixelType"] = "float"
 
         # Save image temporarily as nifti if needed
@@ -911,40 +921,30 @@ class Registration(Data):
 
         # Make temporary modified parameter file if needed
         self.make_tmp_dir()
-        if params is None:
-            tfile = self.tfiles[step]
-        else:
-            tfile = os.path.join(self._tmp_dir, "TransformParameters.txt")
-            adjust_parameters(self.tfiles[step], tfile, params)
+        tfile = self.tfiles[step]
 
         # Define parameters specific to data type.
         if '.txt' == os.path.splitext(path)[1]:
-            option = '-def'
             outfile = 'outputpoints.txt' 
         else:
-            option = '-in'
             outfile = 'result.nii'
 
-        # Run transformix
-        cmd = [
-            _transformix,
-            option,
-            path.replace("\\", "/"),
-            "-out",
-            self._tmp_dir,
-            "-tp",
-            tfile,
-        ]
+        # Perform transformation
+        cmd = self.engine.get_transformation_cmd(
+                fixed_path=self.fixed_path.replace("\\", "/"),
+                moving_path=path, outdir=self._tmp_dir, tfile=tfile,
+                params=params)
+
         self.logger.debug(f'Running command:\n {" ".join(cmd)}')
         code = subprocess.run(
                 cmd, capture_output=self.capture_output).returncode
 
         # If command failed, move log out from temporary dir
         if code:
-            logfile = os.path.join(self.path, "transformix.log")
+            logfile = os.path.join(self.path, "transformation.log")
             if os.path.exists(logfile):
                 os.remove(logfile)
-            shutil.move(os.path.join(self._tmp_dir, "transformix.log"), self.path)
+            shutil.move(os.path.join(self._tmp_dir, "transformation.log"), self.path)
             self.logger.warning(
                 f"Image transformation failed! See "
                 f"{logfile} for more info."
@@ -999,6 +999,9 @@ class Registration(Data):
            and the non-zero regions of the transformed mask are outside
            the fixed image.
         """
+        if transform_points and not self.engine.transform_points_implemented:
+            raise RuntimeError("Transform of points not implemented "
+                               f"for class {type(self.engine)}")
 
         # Save ROI temporarily as nifti if needed
         roi = ROI(roi)
@@ -1013,7 +1016,7 @@ class Registration(Data):
             roi.write(roi_path, verbose=(self.logger.level < 20))
 
         # Set default parameters
-        default_params = {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
+        default_params = self.engine.get_roi_params()
         if params is not None:
             default_params.update(params)
 
@@ -1129,8 +1132,8 @@ class Registration(Data):
 
     def get_transformed_image(self, step=-1, force=False):
         """Get the transformed moving image for a given step, by default the
-        final step. If force=True, the transform will be applied with
-        transformix even if there is already a resultant image in the
+        final step. If force=True, the transform will be applied
+        even if there is already a resultant image in the
         output directory for that step."""
 
         # Run registration if needed
@@ -1286,9 +1289,8 @@ class Registration(Data):
             translation, the function will immediately return None.
 
         reapply_transformation : bool, default=True
-            If True, upon saving a translation, transformix will be run to
-            reproduce the transformed moving image according to the new
-            translation parameters.
+            If True, upon saving a translation, the transformed moving image
+            will be produced according to the new translation parameters.
         """
 
         # Get step name
@@ -1492,9 +1494,11 @@ class Registration(Data):
 
     def get_jacobian(self, step=-1, force=False, moving_to_fixed=False):
         """
-        Generate Jacobian determinant using transformix for a given 
-        registration step (or return existing Jacobian object, unless 
-        force=True).
+        Generate Jacobian determinant for a given registration step
+        (or return existing Jacobian object, unless force=True).
+
+        If the registration engine used is unable to generate the
+        Jacobian determinant, None will be returned.
 
         Positive values in the Jacobian determinant represent:
         - moving_to_fixed=False: scaling from fixed image to moving image;
@@ -1515,50 +1519,52 @@ class Registration(Data):
             return self._get_jac_or_def(step, True, force)
 
     def get_deformation_field(self, step=-1, force=False):
-        """Generate deformation field using transformix for a given 
-        registration step."""
+        """Generate deformation field for a given registration step."""
         
         return self._get_jac_or_def(step, False, force)
 
     def run_transformix_on_all(self, is_jac, outdir, tfile, image=None):
-        """Run transformix with either `-jac all` or `-def all` to create a
-        Jacobian determinant or deformation field file, and return either
-        a Jacobian or DeformationField object initialised from the output file.
+        """
+        Create a Jacobian determinant or deformation field file,
+        and return either a Jacobian or DeformationField object initialised
+        from the output file.
+
+        This was first implemented by running transformix for an elastix
+        transform file.  Creation of Jacobian or DeformationField object
+        now depends on the registration engine used.
         """
 
         # Settings
         if is_jac:
-            opt = "-jac"
             dtype = Jacobian
             expected_outname = "spatialJacobian.nii"
             title = "Jacobian determinant"
+            cmd = self.engine.get_jac_cmd(
+                    fixed_path=self.fixed_path.replace("\\", "/"),
+                    outdir=outdir, tfile=tfile)
         else:
-            opt = "-def"
             dtype = DeformationField
             expected_outname = "deformationField.nii"
             title = "Deformation field"
+            cmd = self.engine.get_def_cmd(
+                    fixed_path=self.fixed_path.replace("\\", "/"),
+                    outdir=outdir, tfile=tfile)
 
-        # Run transformix
-        cmd = [
-            _transformix,
-            opt,
-            "all",
-            "-out",
-            outdir,
-            "-tp",
-            tfile
-        ]
-        self.logger.debug(f'Running command:\n {" ".join(cmd)}')
-        code = subprocess.run(cmd, capture_output=self.capture_output).returncode
-        if code:
-            logfile = os.path.join(outdir, 'transformix.log')
-            raise RuntimeError(f"Creation of {title }failed. See {logfile} for"
-                           " more info.")
+        # Obtain Jacobian determinant or deformation field.
+        if cmd is not None:
+            self.logger.debug(f'Running command:\n {" ".join(cmd)}')
+            code = subprocess.run(
+                    cmd, capture_output=self.capture_output).returncode
+            if code:
+                logfile = os.path.join(outdir, 'transform.log')
+                raise RuntimeError(
+                        f"Creation of {title }failed. See {logfile} for"
+                        " more info.")
 
-        # Create output object
-        output_file = os.path.join(outdir, expected_outname)
-        assert os.path.exists(output_file)
-        return dtype(output_file, image=image, title=title)
+            # Create output object
+            output_file = os.path.join(outdir, expected_outname)
+            assert os.path.exists(output_file)
+            return dtype(output_file, image=image, title=title)
 
     def get_mutual_information(self, step=-1, force=False, **kwargs):
         """
@@ -2046,72 +2052,332 @@ class DeformationField(PathData):
         return output
 
 
-def set_elastix_dir(path):
+class RegistrationEngine:
+    # Indicate that mapping of points, from fixed image to moving images,
+    # isn't implemented.
+    transform_points_implemented = False
 
-    # Set directory
-    _ELASTIX_DIR = fullpath(path)
+    def __init__(self, path=None, log_level=None):
+        """
+        **Parameters:**
+        path : str/pathlib.Path, default=None
+            Path to directory containing registration-engine software.
 
-    # Find elastix exectuable
-    global _ELASTIX
-    global _transformix
-    if os.path.exists(os.path.join(_ELASTIX_DIR, "bin/elastix")):
-        _ELASTIX = os.path.join(_ELASTIX_DIR, "bin/elastix")
-        _transformix = os.path.join(_ELASTIX_DIR, "bin/transformix")
-        lib_dir = os.path.join(_ELASTIX_DIR, 'lib')
-    elif os.path.exists(os.path.join(_ELASTIX_DIR, "elastix.exe")):
-        _ELASTIX = os.path.join(_ELASTIX_DIR, "elastix.exe")
-        _transformix = os.path.join(_ELASTIX_DIR, "transformix.exe")
-        lib_dir = os.path.join(os.path.dirname(_ELASTIX_DIR), 'lib')
-    else:
-        print(f"WARNING: No elastix executable found in {_ELASTIX_DIR}!")
-        cmd = f"which {_ELASTIX}".split()
-        stdout = subprocess.run(cmd, capture_output=True).stdout
-        if stdout:
-            exe_dir = str(Path(stdout.decode()).parent)
-            print(f"INFO: Using elastix executable found in {exe_dir}")
-        _ELASTIX_DIR = None
+        log_level: str/int/None, default=None
+            Severity level for event logging.  If the value is None,
+            log_level is set to the value of skrt.core.Defaults().log_level.
+        """
+        # Set up event logging.
+        self.log_level = \
+                Defaults().log_level if log_level is None else log_level
+        self.logger = get_logger(
+                name=type(self).__name__, log_level=self.log_level)
 
-    # Cover Linux and MacOS
-    if _ELASTIX_DIR:
-        prepend_path('DYLD_FALLBACK_LIBRARY_PATH', lib_dir)
-        prepend_path('LD_LIBRARY_PATH', lib_dir)
+        if not hasattr(self, "exe_name"):
+            self.exe_name = type(self).__name__.lower()
+        self.set_exe_env(path)
 
-def prepend_path(variable, path, path_must_exist=True):
-    '''
-    Prepend path to environment variable.
+    def define_translation(self, dxdydz, fixed_image):
+        raise NotImplementedError("Method 'define_translation()' "
+                                  f"not implemented for class {type(self)}")
 
-    **Parameters:**
+    def get_default_pfiles_dir(self):
+        """Return path to directory containing default parameter files."""
+        return get_data_dir() / f"{self.exe_name}_parameter_files"
 
-    variable : str
-        Environment variable to which path is to be prepended.
+    def get_default_pfiles(self, basename_only=True):
+        """
+        Get list of default parameter files.
 
-    path : str
-        Path to be prepended.
+        **Parameter:**
 
-    path_must_exist : bool, default=True
-        If True, only append path if it exists.
-    '''
-    path_ok = True
-    if path_must_exist:
-        if not os.path.exists(path):
-            path_ok = False
+        basename_only : bool, default=True
+            If True, return list of filenames only.  If True, return list
+            of paths, as pathlib.Path objects.
+        """
+        files = [file for file in self.get_default_pfiles_dir().iterdir()
+            if str(file).endswith(".txt")]
+        if basename_only:
+            return [file.name for file in files]
+        return files
 
-    if path_ok:
-        if variable in os.environ:
-            if os.environ[variable]:
-                os.environ[variable] = f'{path}:{os.environ[variable]}'
+    def get_def_cmd(self, fixed_path, outdir, tfile):
+        raise NotImplementedError("Method 'get_def_cmd()' "
+                                  f"not implemented for class {type(self)}")
+
+    def get_jac_cmd(self, fixed_path, outdir, tfile):
+        raise NotImplementedError("Method 'get_jac_cmd()' "
+                                  f"not implemented for class {type(self)}")
+
+    def get_registration_cmd(
+            self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
+            pfile, outdir, tfile=None):
+        raise NotImplementedError("Method 'get_registration_cmd()' "
+                                  f"not implemented for class {type(self)}")
+
+    def get_roi_params(self):
+        """Get default parameters to be used when transforming ROI masks."""
+        return {}
+
+    def get_transformation_cmd(
+            self, fixed_path, moving_path, outdir, tfile, params=None):
+        raise NotImplementedError("Method 'get_transformation_cmd()' "
+                                  f"not implemented for class {type(self)}")
+
+    def set_exe_env(self, path=None, force=False):
+
+        exe_dir = None
+
+        if not (path and force):
+            stdout = subprocess.run(
+                    ["which", str(self.exe_name)], capture_output=True).stdout
+            if stdout:
+                exe_dir = Path(stdout.decode()).parent
+
+        if path is None:
+            return
+        
+        if not exe_dir:
+            exe_dir = self.set_exe_paths(path)
+
+        if exe_dir:
+            lib_dir = exe_dir.parent / "lib"
+            # Cover Linux and MacOS
+            for env_var, env_val in [
+                    ("DYLD_FALLBACK_LIBRARY_PATH", lib_dir),
+                    ("LD_LIBRARY_PATH", lib_dir),
+                    ("PATH", exe_dir)
+                    ]:
+                if not (os.environ.get(env_var, "")).startswith(str(env_val)):
+                    prepend_path(env_var, env_val)
+
+            self.logger.info(
+                    f"Found {self.exe_name} executable(s) in {exe_dir}") 
         else:
-            os.environ[variable] = path
+            raise RuntimeError(
+                    f"path={path}; {self.exe_name} executable(s) not found")
+
+    def set_exe_paths(self, path=None):
+        raise NotImplementedError("Method 'set_exe_paths()' "
+                                  f"not implemented for class {type(self)}")
+
+
+@add_engine
+class Elastix(RegistrationEngine):
+    # Indicate that mapping of points, from fixed image to moving image,
+    # is implemented.
+    transform_points_implemented = True
+
+    def __init__(self, **kwargs):
+        self.elastix = "elastix"
+        self.transformix = "transformix"
+        super().__init__(**kwargs)
+
+    def define_translation(self, dxdydz, fixed_image):
+        """
+        Define Elastix translation parameters from 3-element tuple or list.
+
+        **Parameter:**
+
+        dxdydz : tuple/list
+            Three-element tuple or list, giving translations in order
+            (dx, dy, dz).  Translations correspond to the amounts added
+            in mapping a point from fixed image to moving image.
+
+        fixed_image : skrt.image.Image
+            Image towards which moving image is to be warped.
+        """
+        # Define translation parameters that are enough to allow
+        # application before a registration step.
+        translation = {
+                "Transform": "TranslationTransform",
+                "NumberOfParameters": 3,
+                "TransformParameters": dxdydz,
+                "InitialTransformParametersFileName": "NoInitialTransform",
+                "UseBinaryFormatForTransformationParameters": False,
+                "HowToCombineTransforms": "Compose"
+                }
+
+        if fixed_image is not None:
+            # Add parameters needed to allow warping of the moving image.
+            translation.update(get_image_transform_parameters(fixed_image))
+
+        return translation
+
+    def get_def_cmd(self, fixed_path, outdir, tfile):
+        return f"{self.transformix} -def all -out {outdir} -tp {tfile}".split()
+
+    def get_jac_cmd(self, fixed_path, outdir, tfile):
+        return f"{self.transformix} -jac all -out {outdir} -tp {tfile}".split()
+
+    def get_registration_cmd(
+            self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
+            pfile, outdir, tfile=None):
+
+        cmd = [
+            self.elastix,
+            '-f', fixed_path,
+            '-m', moving_path,
+            ]
+        if os.path.exists(fixed_mask_path):
+            cmd.extend(['-fMask', fixed_mask_path])
+        if os.path.exists(moving_mask_path):
+            cmd.extend(['-mMask', moving_mask_path])
+        cmd.extend([
+            "-p", pfile,
+            '-out', outdir
+            ])
+        if tfile is not None:
+            cmd.extend(['-t0', tfile])
+
+        return cmd
+
+    def get_roi_params(self):
+        """Get default parameters to be used when transforming ROI masks."""
+        return {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
+
+    def get_transformation_cmd(
+            self, fixed_path, moving_path, outdir, tfile, params=None):
+        if params:
+            out_tfile = str(Path(outdir) / Path(tfile).name)
+            adjust_parameters(tfile, out_tfile, params)
+            tfile = out_tfile
+        return [
+            self.transformix,
+            "-def" if ".txt" == Path(moving_path).suffix else "-in",
+            moving_path,
+            "-out",
+            outdir,
+            "-tp",
+            tfile,
+        ]
+
+    def set_exe_paths(self, path):
+
+        exe_dir = None
+        sw_dir = Path(fullpath(path))
+        if sw_dir.is_dir():
+            if (sw_dir / "bin/elastix").exists():
+                exe_dir = sw_dir / "bin"
+            elif (sw_dir / "elastix.exe").exists():
+                exe_dir = sw_dir
+                self.elastix = "elastix.exe"
+                self.transformix = "transformix.exe"
+
+        return exe_dir
+
+@add_engine
+class NiftyReg(RegistrationEngine):
+
+    def __init__(self, **kwargs):
+        self.reg_aladin = "reg_aladin"
+        self.reg_f3d = "reg_f3d"
+        self.reg_jacobian = "reg_jacobian"
+        self.reg_resample = "reg_resample"
+        self.reg_transform = "reg_transform"
+        super().__init__(**kwargs)
+
+    def define_translation(self, dxdydz, fixed_image):
+        """
+        Define NiftyReg translation parameters from 3-element tuple or list.
+
+        **Parameter:**
+
+        dxdydz : tuple/list
+            Three-element tuple or list, giving translations in order
+            (dx, dy, dz).  Translations correspond to the amounts added
+            in mapping a point from fixed image to moving image.
+
+        fixed_image : skrt.image.Image
+            Image towards which moving image is to be warped.
+        """
+        # Define translation parameters that are enough to allow
+        # application before a registration step.
+        # Translation directions are reversed to match the NiftyReg convention.
+        translation = [
+                f"1 0 0 {-dxdydz[0]}",
+                f"0 1 0 {-dxdydz[1]}",
+                f"0 0 1 {-dxdydz[2]}",
+                "0 0 0 1",
+                ]
+
+        return translation
+
+    def get_def_cmd(self, fixed_path, outdir, tfile):
+        return (f"{self.reg_transform} -ref {fixed_path} "
+                f"-disp {tfile} {outdir}/deformationField.nii").split()
+
+    def get_jac_cmd(self, fixed_path, outdir, tfile):
+        if ".nii" == Path(tfile).suffix:
+            return (f"{self.reg_jacobian} -trans {tfile} -ref {fixed_path} "
+                    f"-jac {outdir}/spatialJacobian.nii").split()
+
+    def get_registration_cmd(
+            self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
+            pfile, outdir, tfile=None):
+
+        params = read_parameters(pfile)
+        outdir = Path(outdir)
+
+        cmd = [
+            getattr(self, params["exe"]),
+            '-ref', fixed_path,
+            '-flo', moving_path,
+            '-res', str(outdir / "result.0.nii"),
+            ]
+        if os.path.exists(fixed_mask_path):
+            cmd.extend(['-rmask', fixed_mask_path])
+        if os.path.exists(moving_mask_path):
+            cmd.extend(['-fmask', moving_mask_path])
+        if "reg_aladin" in cmd[0]:
+            cmd.extend(['-aff', str(outdir / "TransformParameters.0.txt")])
+            if tfile:
+                cmd.extend(['-inaff', tfile])
+        elif ("reg_f3d" in cmd[0]):
+            if tfile:
+                cmd.extend(['-aff', tfile])
+            cmd.extend(['-cpp', str(outdir / "TransformParameters.0.nii")])
+
+        for param, val in params.items():
+            if "exe" != param and param not in cmd:
+                cmd.append(param)
+                if val != "":
+                    cmd.append(str(val))
+
+        return cmd
+
+    def get_roi_params(self):
+        """Get default parameters to be used when transforming ROI masks."""
+        return {"-inter": 0}
+
+    def get_transformation_cmd(
+            self, fixed_path, moving_path, outdir, tfile, params=None):
+        params = params or {}
+        if not "-pad" in params:
+            params["-pad"] = 0
+            #params["-pad"] = str(skrt.image.Image(fixed_path).get_min())
+        params = [str(val) for items in params.items() for val in items]
+
+        return [self.reg_resample, "-ref", fixed_path, "-flo", moving_path,
+                "-res", str(Path(outdir) / 'result.nii'),
+                "-trans", tfile] + params
+
+    def set_exe_paths(self, path):
+
+        exe_dir = Path(fullpath(path)) / "bin"
+        if (exe_dir / "reg_f3d").exists():
+            return exe_dir
+
 
 def adjust_parameters(infile, outfile, params):
-    """Open an elastix parameter file (works for both input parameter and
+    """Open a registration parameter file (works for both input parameter and
     output transform files), adjust its parameters, and save it to a new
     file.
 
     **Parameters:**
 
     file : str
-        Path to an elastix parameter file.
+        Path to a registration parameter file.
 
     outfile : str
         Path to output file.
@@ -2122,8 +2388,8 @@ def adjust_parameters(infile, outfile, params):
 
     # Check that file to be adjusted exists.
     if not os.path.exists(infile):
-        self.logger.warning(f"File not found: '{infile}'")
-        self.logger.warning("\nNo parameter-adjustment performed")
+        print(f"File not found: '{infile}'")
+        print("No parameter-adjustment performed")
         return
 
     # Read input
@@ -2131,83 +2397,19 @@ def adjust_parameters(infile, outfile, params):
     original_params.update(params)
     write_parameters(outfile, original_params)
 
-def read_parameters(infile):
-    """Get dictionary of parameters from an elastix parameter file."""
-
-    lines = [line for line in open(infile).readlines() if line.startswith("(")]
-    lines = [line[line.find("(") + 1 : line.rfind(")")].split()
-            for line in lines]
-    params = {line[0]: " ".join(line[1:]) for line in lines}
-    for name, param in params.items():
-        if '"' in param:
-            params[name] = param.strip('"')
-            if params[name] == "false":
-                params[name] = False
-            elif params[name] == "true":
-                params[name] = True
-        elif len(param.split()) > 1:
-            params[name] = [p for p in param.rstrip("(").split()]
-            if "." in params[name][0]:
-                params[name] = [float(p) for p in params[name]]
-            else:
-                params[name] = [int(p) for p in params[name]]
-        else:
-            if "." in param:
-                params[name] = float(param)
-            else:
-                params[name] = int(param)
-    return params
-
-
-def write_parameters(outfile, params):
-    """Write dictionary of parameters to an elastix parameter file."""
-
-    file = open(outfile, "w")
-    for name, param in params.items():
-        if "//" == name:
-            line = f"\n{name} {param}"
-        else:
-            line = f"({name}"
-            if isinstance(param, str):
-                line += f' "{param}")'
-            elif isinstance(param, (list, tuple)):
-                for item in param:
-                    line += " " + str(item)
-                line += ")"
-            elif isinstance(param, bool):
-                line += f' "{str(param).lower()}")'
-            else:
-                line += " " + str(param) + ")"
-        file.write(line + "\n")
-    file.close()
-
-
-def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
-    """Add to the translation parameters in a file."""
-
-    if outfile is None:
-        outfile = infile
-    pars = read_parameters(infile)
-    init = pars["TransformParameters"]
-    if pars["Transform"] != "TranslationTransform":
-        self.logger.warning(
-            f"Can only manually adjust a translation step. Incorrect "
-            f"transform type: {pars['Transform']}"
-        )
-        return
-
-    pars["TransformParameters"] = [init[0] - dx, init[1] - dy, init[2] - dz]
-    write_parameters(outfile, pars)
 
 def get_data_dir():
     """Return path to data directory within the Scikit-rt package."""
     return Path(resource_filename("skrt", "data"))
 
-def get_default_pfiles_dir():
-    """Return path to directory containing default parameter files."""
-    return get_data_dir() / "elastix_parameter_files"
 
-def get_default_pfiles(basename_only=True):
+def get_default_pfiles_dir(exe_name=None):
+    """Return path to directory containing default parameter files."""
+    exe_name = exe_name or Defaults().registration_engine
+    return get_data_dir() / f"{exe_name}_parameter_files"
+
+
+def get_default_pfiles(basename_only=True, exe_name=None):
     """
     Get list of default parameter files.
 
@@ -2217,18 +2419,94 @@ def get_default_pfiles(basename_only=True):
         If True, return list of filenames only.  If True, return list
         of paths, as pathlib.Path objects.
     """
-
-    files = [file for file in get_default_pfiles_dir().iterdir()
+    files = [file for file in get_default_pfiles_dir(exe_name).iterdir()
         if str(file).endswith(".txt")]
     if basename_only:
         return [file.name for file in files]
     return files
 
+
+def get_engine_cls(engine=None, engine_dir=None):
+    """
+    Get registration-engine class, given engine name or software directory.
+
+    **Parameters:**
+
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
+
+    engine_dir: pathlib.Path/str, default=None
+        Path to directory containing registration-engine software.
+        It's assumed that the registration engine is a key of
+        the dictionary skrt.registration.engines, that the directory
+        path includes this key, and that directory path doesn't
+        include any other keys of skrt.registration.engines.
+    """
+    # Treat case where engine is a key of engines.
+    if engine in engines:
+        return engines[engine]
+
+    # Treat case where engine_dir includes a key of engines.
+    for local_engine in engines:
+        if local_engine in str(engine_dir):
+            return engines[local_engine]
+
+    # Return class of default registration engine.
+    return engines.get(Defaults().registration_engine, None)
+
+
+def get_image_transform_parameters(im):
+    """
+    Define Elastix parameters for warping an image to the space of image <im>.
+
+    **Parameter:**
+    
+    im : skrt.image.Image
+        Image object representing a fixed image in the context of registration.
+    """
+    # Use affine matrix for defining origin and direction cosines.
+    # Seem to need to reverse sign of first two rows for agreement with
+    # convention used in Elastix - may not work for arbitrary image orientation.
+    affine = im.get_affine()
+    affine[0:2, :] = -affine[0:2, :]
+    
+    # Spacings need to be positive.
+    # Signs taken into account via direction cosines. 
+    voxel_size = [abs(dxyz) for dxyz in im.get_voxel_size()]
+
+    image_transform_parameters = {
+            "//": "Image specific",
+            "FixedImageDimension": 3,
+            "MovingImageDimension": 3,
+            "FixedInternalImagePixelType": "float",
+            "MovingInternalImagePixelType": "float",
+            "Size": im.get_n_voxels(),
+            "Index": (0, 0, 0),
+            "Spacing": voxel_size,
+            "Origin": [0 + affine[row, 3] for row in range(3)],
+            "Direction": [0 + affine[row, col] / voxel_size[col]
+                for col in range(3) for row in range(3)],
+            "UseDirectionCosines": True,
+            "//": "ResampleInterpolator specific",
+            "ResampleInterpolator": "FinalBSplineInterpolator",
+            "FinalBSplineInterpolationOrder": 3,
+            "//": "Resampler specific",
+            "Resampler": "DefaultResampler",
+            "DefaultPixelValue": 0,
+            "ResultImageFormat": "nii",
+            "ResultImagePixelType": "short",
+            "CompressResultImage": False,
+            }
+
+    return image_transform_parameters
+
+
 def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
     '''
     Return custom colour map, for highlighting features of Jacobian determinant.
 
-    Following image registration by Elastix, the Jacobian determinant of
+    Following image registration, the Jacobian determinant of
     the registration transformation reflects the characteristics of the
     deformation field.  A positive value, x, in the Jacobian determinant
     indicates a volume scaling by x in going from the fixed image to the
@@ -2343,47 +2621,104 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
 
     return cmap
 
-def get_image_transform_parameters(im):
-    """
-    Define Elastix parameters for warping an image to the space of image <im>.
 
-    **Parameter:**
-    
-    im : skrt.image.Image
-        Image object representing a fixed image in the context of registration.
-    """
-    # Use affine matrix for defining origin and direction cosines.
-    # Seem to need to reverse sign of first two rows for agreement with
-    # convention used in Elastix - may not work for arbitrary image orientation.
-    affine = im.get_affine()
-    affine[0:2, :] = -affine[0:2, :]
-    
-    # Spacings need to be positive.
-    # Signs taken into account via direction cosines. 
-    voxel_size = [abs(dxyz) for dxyz in im.get_voxel_size()]
+def prepend_path(variable, path, path_must_exist=True):
+    '''
+    Prepend path to environment variable.
 
-    image_transform_parameters = {
-            "//": "Image specific",
-            "FixedImageDimension": 3,
-            "MovingImageDimension": 3,
-            "FixedInternalImagePixelType": "float",
-            "MovingInternalImagePixelType": "float",
-            "Size": im.get_n_voxels(),
-            "Index": (0, 0, 0),
-            "Spacing": voxel_size,
-            "Origin": [0 + affine[row, 3] for row in range(3)],
-            "Direction": [0 + affine[row, col] / voxel_size[col]
-                for col in range(3) for row in range(3)],
-            "UseDirectionCosines": True,
-            "//": "ResampleInterpolator specific",
-            "ResampleInterpolator": "FinalBSplineInterpolator",
-            "FinalBSplineInterpolationOrder": 3,
-            "//": "Resampler specific",
-            "Resampler": "DefaultResampler",
-            "DefaultPixelValue": 0,
-            "ResultImageFormat": "nii",
-            "ResultImagePixelType": "short",
-            "CompressResultImage": False,
-            }
+    **Parameters:**
 
-    return image_transform_parameters
+    variable : str
+        Environment variable to which path is to be prepended.
+
+    path : str
+        Path to be prepended.
+
+    path_must_exist : bool, default=True
+        If True, only append path if it exists.
+    '''
+    path = str(path)
+    path_ok = True
+    if path_must_exist:
+        if not os.path.exists(path):
+            path_ok = False
+
+    if path_ok:
+        if variable in os.environ:
+            if os.environ[variable]:
+                os.environ[variable] = f'{path}:{os.environ[variable]}'
+        else:
+            os.environ[variable] = path
+
+
+def read_parameters(infile):
+    """Get dictionary of parameters from a registratio parameter file."""
+
+    lines = [line for line in open(infile).readlines() if line.startswith("(")]
+    lines = [line[line.find("(") + 1 : line.rfind(")")].split()
+            for line in lines]
+    params = {line[0]: " ".join(line[1:]) for line in lines}
+    for name, param in params.items():
+        if '"' in param:
+            params[name] = param.strip('"')
+            if params[name] == "false":
+                params[name] = False
+            elif params[name] == "true":
+                params[name] = True
+        elif len(param.split()) > 1:
+            params[name] = [p for p in param.rstrip("(").split()]
+            if "." in params[name][0]:
+                params[name] = [float(p) for p in params[name]]
+            else:
+                params[name] = [int(p) for p in params[name]]
+        else:
+            if "." in param:
+                params[name] = float(param)
+            else:
+                params[name] = int(param)
+    return params
+
+
+def set_elastix_dir(path, force=True):
+    Elastix(path=path)
+
+
+def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
+    """Add to the translation parameters in a file."""
+
+    if outfile is None:
+        outfile = infile
+    pars = read_parameters(infile)
+    init = pars["TransformParameters"]
+    if pars["Transform"] != "TranslationTransform":
+        self.logger.warning(
+            f"Can only manually adjust a translation step. Incorrect "
+            f"transform type: {pars['Transform']}"
+        )
+        return
+
+    pars["TransformParameters"] = [init[0] - dx, init[1] - dy, init[2] - dz]
+    write_parameters(outfile, pars)
+
+
+def write_parameters(outfile, params):
+    """Write dictionary of parameters to a registration parameter file."""
+
+    file = open(outfile, "w")
+    for name, param in params.items():
+        if "//" == name:
+            line = f"\n{name} {param}"
+        else:
+            line = f"({name}"
+            if isinstance(param, str):
+                line += f' "{param}")'
+            elif isinstance(param, (list, tuple)):
+                for item in param:
+                    line += " " + str(item)
+                line += ")"
+            elif isinstance(param, bool):
+                line += f' "{str(param).lower()}")'
+            else:
+                line += " " + str(param) + ")"
+        file.write(line + "\n")
+    file.close()

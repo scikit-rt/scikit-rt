@@ -3,7 +3,7 @@
 import pytest
 
 from skrt import Image, StructureSet
-
+from skrt.core import Defaults
 from skrt.segmentation import (
         ensure_image,
         ensure_structure_set,
@@ -87,11 +87,15 @@ def test_get_contour_propagation_strategies():
     """
     Test that get_contour_propagation_strategies() returns list of strings.
     """
-    strategies = get_contour_propagation_strategies()
-    assert isinstance(strategies, list)
-    assert len(strategies) > 0
-    for strategy in strategies:
-        assert isinstance(strategy, str)
+    local_engines = {"niftyreg": 1, "elastix": 2}
+    for engine, n_strategy in local_engines.items():
+        for engine_arg in [engine, None]:
+            Defaults().registration_engine = engine
+            strategies = get_contour_propagation_strategies(engine_arg)
+            assert isinstance(strategies, list)
+            assert len(strategies) == n_strategy
+            for strategy in strategies:
+                assert isinstance(strategy, str)
 
 def test_get_fixed_and_moving():
     """Test image assignment as fixed or moving, depending on strategy"""
