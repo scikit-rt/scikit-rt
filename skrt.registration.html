@@ -613,9 +613,13 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 performing transformations.  Otherwise, delete this directory
 after use.</p>
 </dd>
-<dt>engine: class, default=None</dt><dd><p>Class inheriting from RegistrationEngine, to be used for
-image registration.  If None, use the value of
-Defaults().registration_engine.</p>
+<dt>engine: class, default=None</dt><dd><p>Name idenfiying the name of a class inheriting from
+skrt.registration.RegistrationEngine, to be used for
+image registration.  The name should be a key of
+the dictionary skrt.registration.engines.  If None,
+the first key found to be a substring of &lt;engine_dir&gt;
+is used, or if there’s no match then the value of
+Defaults().registration_engine is used.</p>
 </dd>
 <dt>engine_dir: str/pathlib.Path, default=None</dt><dd><p>Path to directory containing software for registration engine.</p>
 </dd>
@@ -1329,20 +1333,33 @@ file.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.get_default_pfiles">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exe_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*.txt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of default parameter files.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>basename_only<span class="classifier">bool, default=True</span></dt><dd><p>If True, return list of filenames only.  If True, return list
+<dt>basename_only<span class="classifier">bool, default=True</span></dt><dd><p>If True, return list of filenames only.  If False, return list
 of paths, as pathlib.Path objects.</p>
+</dd>
+<dt>engine: str, default=None</dt><dd><p>Name of registration engine for which path to directory
+containing default parameter files is required.  If None,
+use value set for skrt.core.Default().registration_engine.</p>
+</dd>
+<dt>pattern: str, default=”<a href="#id33"><span class="problematic" id="id34">*</span></a>.txt”</dt><dd><p>Glob-style pattern for filtering on file names.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.get_default_pfiles_dir">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exe_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles_dir" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_default_pfiles_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_default_pfiles_dir" title="Permalink to this definition"></a></dt>
 <dd><p>Return path to directory containing default parameter files.</p>
+<p><strong>Parameter:</strong>
+engine: str, default=None</p>
+<blockquote>
+<div><p>Name of registration engine for which path to directory
+containing default parameter files is required.  If None,
+use value set for skrt.core.Default().registration_engine.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py function">
