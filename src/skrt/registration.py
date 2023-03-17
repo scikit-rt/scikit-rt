@@ -149,9 +149,13 @@ class Registration(Data):
             after use.
 
         engine: class, default=None
-            Class inheriting from RegistrationEngine, to be used for
-            image registration.  If None, use the value of
-            Defaults().registration_engine.
+            Name idenfiying the name of a class inheriting from
+            skrt.registration.RegistrationEngine, to be used for
+            image registration.  The name should be a key of
+            the dictionary skrt.registration.engines.  If None,
+            the first key found to be a substring of <engine_dir>
+            is used, or if there's no match then the value of
+            Defaults().registration_engine is used.
 
         engine_dir: str/pathlib.Path, default=None
             Path to directory containing software for registration engine.
@@ -1921,7 +1925,7 @@ class DeformationField(PathData):
         else:
             # If arrow lengths are zero, plot dots
             dot_colour = default_kwargs.get("color", default_dot_colour)
-            ax.scatter(plot_x, plot_y, c=dot_colour, marker=".")
+            self.ax.scatter(plot_x, plot_y, color=dot_colour, marker=".")
 
     def _plot_grid(
         self, 
@@ -2073,8 +2077,8 @@ class RegistrationEngine:
         self.logger = get_logger(
                 name=type(self).__name__, log_level=self.log_level)
 
-        if not hasattr(self, "exe_name"):
-            self.exe_name = type(self).__name__.lower()
+        if not hasattr(self, "name"):
+            self.name = type(self).__name__.lower()
         self.set_exe_env(path)
 
     def define_translation(self, dxdydz, fixed_image):
@@ -2083,7 +2087,7 @@ class RegistrationEngine:
 
     def get_default_pfiles_dir(self):
         """Return path to directory containing default parameter files."""
-        return get_data_dir() / f"{self.exe_name}_parameter_files"
+        return get_data_dir() / f"{self.name}_parameter_files"
 
     def get_default_pfiles(self, basename_only=True):
         """
@@ -2130,7 +2134,7 @@ class RegistrationEngine:
 
         if not (path and force):
             stdout = subprocess.run(
-                    ["which", str(self.exe_name)], capture_output=True).stdout
+                    ["which", str(self.name)], capture_output=True).stdout
             if stdout:
                 exe_dir = Path(stdout.decode()).parent
 
@@ -2152,10 +2156,10 @@ class RegistrationEngine:
                     prepend_path(env_var, env_val)
 
             self.logger.info(
-                    f"Found {self.exe_name} executable(s) in {exe_dir}") 
+                    f"Found {self.name} executable(s) in {exe_dir}") 
         else:
             raise RuntimeError(
-                    f"path={path}; {self.exe_name} executable(s) not found")
+                    f"path={path}; {self.name} executable(s) not found")
 
     def set_exe_paths(self, path=None):
         raise NotImplementedError("Method 'set_exe_paths()' "
@@ -2403,24 +2407,40 @@ def get_data_dir():
     return Path(resource_filename("skrt", "data"))
 
 
-def get_default_pfiles_dir(exe_name=None):
-    """Return path to directory containing default parameter files."""
-    exe_name = exe_name or Defaults().registration_engine
-    return get_data_dir() / f"{exe_name}_parameter_files"
+def get_default_pfiles_dir(engine=None):
+    """
+    Return path to directory containing default parameter files.
+
+    **Parameter:**
+    engine: str, default=None
+        Name of registration engine for which path to directory
+        containing default parameter files is required.  If None,
+        use value set for skrt.core.Default().registration_engine.
+    """
+    engine = engine or Defaults().registration_engine
+    return get_data_dir() / f"{engine}_parameter_files"
 
 
-def get_default_pfiles(basename_only=True, exe_name=None):
+def get_default_pfiles(basename_only=True, engine=None, pattern="*.txt"):
     """
     Get list of default parameter files.
 
     **Parameter:**
 
     basename_only : bool, default=True
-        If True, return list of filenames only.  If True, return list
+        If True, return list of filenames only.  If False, return list
         of paths, as pathlib.Path objects.
+
+    engine: str, default=None
+        Name of registration engine for which path to directory
+        containing default parameter files is required.  If None,
+        use value set for skrt.core.Default().registration_engine.
+
+    pattern: str, default="*.txt"
+        Glob-style pattern for filtering on file names.
     """
-    files = [file for file in get_default_pfiles_dir(exe_name).iterdir()
-        if str(file).endswith(".txt")]
+    engine = engine or Defaults().registration_engine
+    files = sorted(list(get_default_pfiles_dir(engine).glob(pattern)))
     if basename_only:
         return [file.name for file in files]
     return files
