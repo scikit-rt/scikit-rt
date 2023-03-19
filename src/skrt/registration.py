@@ -598,7 +598,8 @@ class Registration(Data):
             df_path = os.path.join(outdir, "deformationField.nii")
             if os.path.exists(df_path):
                 self.deformation_fields[step] = DeformationField(
-                    df_path, title="Deformation field",
+                    df_path, signs=self.engine.def_signs,
+                    title="Deformation field",
                     image=self.transformed_images[step]
                 )
 
@@ -1568,7 +1569,8 @@ class Registration(Data):
             # Create output object
             output_file = os.path.join(outdir, expected_outname)
             assert os.path.exists(output_file)
-            return dtype(output_file, image=image, title=title)
+            kwargs = {} if is_jac else {"signs": self.engine.def_signs}
+            return dtype(output_file, image=image, title=title, **kwargs)
 
     def get_mutual_information(self, step=-1, force=False, **kwargs):
         """
@@ -1623,7 +1625,7 @@ class Jacobian(ImageOverlay):
         self._default_vmax = 2
         self._default_opacity = 0.8
         self.load()
-        self.data = -self.data
+        #self.data = -self.data
 
     def view(self, **kwargs):
         return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
@@ -1632,7 +1634,7 @@ class Jacobian(ImageOverlay):
 class DeformationField(PathData):
     """Class representing a vector field."""
 
-    def __init__(self, path, image=None, **kwargs):
+    def __init__(self, path, signs=None, image=None, **kwargs):
         """Load vector field."""
 
         # Perform base-class initialisation.
@@ -1640,6 +1642,14 @@ class DeformationField(PathData):
 
         # Initialise own image object
         self._image = skrt.image.Image(path, **kwargs)
+        assert self._image.get_data().ndim == 4
+        self._image.data = np.transpose(
+                self._image.data, (1, 0, 2, 3))[::-1, ::-1, :, :]
+        if signs:
+            for idx, sign in enumerate(signs):
+                if sign < 0:
+                    self._image.data[:, :, :, idx] *= sign
+                    self._image._data_canonical[:, :, :, idx] *= sign
 
         # Assign an associated Image
         self.image = image
@@ -1658,11 +1668,17 @@ class DeformationField(PathData):
 
     def load(self, force=False):
 
-        self._image.load()
-        assert self._image.get_data().ndim == 4
+        if self._image.data is not None and not force:
+            return
+            self._image.load(force)
+            assert self._image.get_data().ndim == 4
+            self._image.data = np.transpose(
+                    self._image.data, (1, 0, 2, 3))[::-1, ::-1, :, :]
 
     def get_slice(self, view, sl=None, idx=None, pos=None, scale_in_mm=True):
         """Get voxel positions and displacement vectors on a 2D slice."""
+
+        idx = self._image.get_idx(view, sl=sl, idx=idx, pos=pos)
 
         data = self._image.get_slice(view, sl=sl, idx=idx, pos=pos)
         x_ax, y_ax = skrt.image._plot_axes[view]
@@ -1679,11 +1695,15 @@ class DeformationField(PathData):
         ys = np.arange(0, data.shape[0])
         if scale_in_mm:
             xs = self._image.origin[x_ax] + xs * self._image.voxel_size[x_ax]
+            if self._image.voxel_size[x_ax] < 0:
+                xs = xs[::-1]
             ys = self._image.origin[y_ax] + ys * self._image.voxel_size[y_ax]
+            if self._image.voxel_size[y_ax] < 0:
+                ys = ys[::-1]
         y, x = np.meshgrid(ys, xs)
         x = x.T
         y = y.T
-        return x, y, df_x, df_y
+        return x, y, df_x, -df_y
 
     def get_displacement_image(self, displacement="3d"):
         """
@@ -1878,7 +1898,7 @@ class DeformationField(PathData):
         x_ax, y_ax = skrt.image._plot_axes[view]
         x, y, df_x, df_y = data_slice
         arrows_x = df_x[:: spacing[y_ax], :: spacing[x_ax]]
-        arrows_y = -df_y[:: spacing[y_ax], :: spacing[x_ax]]
+        arrows_y = df_y[:: spacing[y_ax], :: spacing[x_ax]]
         plot_x = x[:: spacing[y_ax], :: spacing[x_ax]]
         plot_y = y[:: spacing[y_ax], :: spacing[x_ax]]
 
@@ -2060,6 +2080,10 @@ class RegistrationEngine:
     # Indicate that mapping of points, from fixed image to moving images,
     # isn't implemented.
     transform_points_implemented = False
+
+    # Indicate signs to be applied to (x, y, z) components of deformation field.
+    # If None, components are taken to be as read from file.
+    def_signs = None
 
     def __init__(self, path=None, log_level=None):
         """
@@ -2272,6 +2296,8 @@ class Elastix(RegistrationEngine):
 
 @add_engine
 class NiftyReg(RegistrationEngine):
+    # Indicate signs of (x, y, z) components of deformation field.
+    def_signs = (-1, -1, 1)
 
     def __init__(self, **kwargs):
         self.reg_aladin = "reg_aladin"
@@ -2297,11 +2323,11 @@ class NiftyReg(RegistrationEngine):
         """
         # Define translation parameters that are enough to allow
         # application before a registration step.
-        # Translation directions are reversed to match the NiftyReg convention.
+        # Signs account for different conventions between NiftyReg and Elastix.
         translation = [
                 f"1 0 0 {-dxdydz[0]}",
                 f"0 1 0 {-dxdydz[1]}",
-                f"0 0 1 {-dxdydz[2]}",
+                f"0 0 1 {dxdydz[2]}",
                 "0 0 0 1",
                 ]
 
