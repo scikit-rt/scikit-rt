@@ -365,23 +365,17 @@ def test_shift_parameters():
 def test_get_default_pfiles():
     """Test getting list of default parameter files."""
     defaults = [
-            (get_default_pfiles(), str),
-            (get_default_pfiles(basename_only=False), Path),
-            (get_default_pfiles(pattern="*Affine*"), str),
+            get_default_pfiles(),
+            get_default_pfiles(basename_only=False),
+            get_default_pfiles(pattern="*Affine*"),
             ]
-    for items, obj_type in defaults:
+    for items in defaults:
         assert len(items)
-        assert isinstance(items[0], obj_type)
-        if Path == obj_type:
-            names = [item.name for item in items]
-        else:
-            names = items
-        assert "MI_Affine.txt" in names
+        assert isinstance(items[0], Path)
+        assert "MI_Affine.txt" in [item.name for item in items]
 
 def test_get_default_pfiles_dir():
     """Test getting list of default parameter files via parent directory."""
-
-    from skrt.registration import get_default_pfiles, get_default_pfiles_dir
     pfiles1 = get_default_pfiles()
     pfiles_dir = get_default_pfiles_dir()
     pfiles2 = list(get_default_pfiles_dir().iterdir())
@@ -391,7 +385,7 @@ def test_get_default_pfiles_dir():
     assert len(pfiles1) == len(pfiles2)
 
     for pfile in pfiles2:
-        assert pfile.name in pfiles1
+        assert pfile in pfiles1
 
 def test_add_default_pfile():
     """Test adding a default parameter file."""
