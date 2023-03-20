@@ -56,6 +56,7 @@ conda deactivate
 ```
 
 4. Installation test
+
 As a minimal test that the installation has been successful, try:
 ```
 python -c "import skrt; print(skrt.__version__)"
@@ -74,65 +75,47 @@ pip install --upgrade scikit-rt
 ```
 
 2. Developer installation
+
 From the scikit-rt directory, and assuming that no unmerged changes have
 been made to the local copy of the code:
 ```
 git pull
 ```
 
-## Elastix installation
+## Set up for image registration and atlas-based segmentation.
 
-Elastix installation is optional, but is needed for scikit-rt functionality
-relating to image registration and atlas-based segmentation.
+For image registration and atlas-based segmentation, scikit-rt requires
+that one or both of the following image-registration packages be installed:
 
-1. Download the latest version of elastix matching your operating system from [https://elastix.lumc.nl/download.php](https://elastix.lumc.nl/download.php).
-2. Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.
-3. On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your `~/.zshrc` or `~/.bashrc`:
+- [elastix](https://elastix.lumc.nl/)
 
-On Mac:
-```
-export PATH=${PATH}:/path/to/elastix/directory/bin
-export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:/path/to/elastix/directory/lib
-```
-On Linux:
-```
-export PATH=${PATH}:/path/to/elastix/directory/bin
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
-```
-4. If you are on Windows or didn't follow step 3, any time that you want to use image registration or atlas-based segmentation in scikit-rt, you will need to run:
-```
-from skrt.registration import set_elastix_dir
-set_elastix_dir('path/to/elastix/directory')
-```
-<!---
-### Docker installation
+For installation and environment set up, see *Getting started* section of
+ the elastix manual:
+[https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf](https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf).
 
-You need to have an installation of [Docker](https://www.docker.com/).
+- [NiftyReg]()
 
-Download the Scikit-rt docker image with:
+For installation and environment set up, see:<br/>
+[http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
 
-```
-docker pull ghcr.io/scikit-rt/scikit-rt:latest
-```
+There are three options for setting up the environment to allow use by
+scikit-rt of the registration software (engines):
 
-Choose a work directory, copy here any data that you would want to be able to
-access with Scikit-rt, then start a docker container:
+1. Before starting scikit-rt, follow the instructions linked above.
 
-```
-docker run -v /path/to/work/directory:/home/jovyan/workdir -p 8888:8888 ghcr.io/scikit-rt/scikit-rt
-```
+2. At run time, use code like the following:
+   ```
+   from skrt.registration import set_engine_dir
 
-Copy the last URL listed (starting: http://127.0.0.1:8888), and point a browser to this URL.  This should open a jupyter lab session, where you import
-Scikit-rt modules.
+   # The parameter 'engine' can be omitted
+   # if the name of the registration engine is in the installation path.
+   set_engine_dir("/path/to/elastix/directory", engine="elastix")
+   set_engine_dir("/path/to/niftyreg/directory", engine="niftyreg")
+   ```
 
-Notes on arguments passed to `docker run`:
-- The argument to `-v` maps a local work directory (/path/to/work/directory) to 
-the work directory of the docker container (/home/jovyan/workdir).  The former
-is chosen by the user; the latter is fixed.  Paths should always be absolute
- (not relative).
-- The argument to `-p` maps the server port (8888) on the local machine to the
-server port (8888) on the container side.
---->
+3. When creating registration or segmentation objects, pass the
+   installation directory of the registration engine to be used via
+   the `engine_dir` parameter.
 
 ## Usage information
 

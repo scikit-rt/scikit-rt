@@ -46,7 +46,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#help-and-support">Help and support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#updating-scikit-rt">Updating scikit-rt</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#elastix-installation">Elastix installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#set-up-for-image-registration-and-atlas-based-segmentation">Set up for image registration and atlas-based segmentation.</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#usage-information">Usage information</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#images">1. Images</a><ul>
@@ -201,9 +201,9 @@ and deactivated with:</p>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p>Installation test
-As a minimal test that the installation has been successful, try:</p></li>
+<li><p>Installation test</p></li>
 </ol>
+<p>As a minimal test that the installation has been successful, try:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;import skrt; print(skrt.__version__)&quot;</span>
 </pre></div>
 </div>
@@ -221,69 +221,47 @@ it’s possible to update to the latest version.</p>
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
-<li><p>Developer installation
-From the scikit-rt directory, and assuming that no unmerged changes have
-been made to the local copy of the code:</p></li>
+<li><p>Developer installation</p></li>
 </ol>
+<p>From the scikit-rt directory, and assuming that no unmerged changes have
+been made to the local copy of the code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span>
 </pre></div>
 </div>
 </section>
-<section id="elastix-installation">
-<h2>Elastix installation<a class="headerlink" href="#elastix-installation" title="Permalink to this heading"></a></h2>
-<p>Elastix installation is optional, but is needed for scikit-rt functionality
-relating to image registration and atlas-based segmentation.</p>
-<ol class="arabic simple">
-<li><p>Download the latest version of elastix matching your operating system from <a class="reference external" href="https://elastix.lumc.nl/download.php">https://elastix.lumc.nl/download.php</a>.</p></li>
-<li><p>Unzip the downloaded folder and place it somewhere. Make a note of where you stored it.</p></li>
-<li><p>On Mac/Linux, you can also add the location of the elastix install to your environment by adding the following lines to your <code class="docutils literal notranslate"><span class="pre">~/.zshrc</span></code> or <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code>:</p></li>
+<section id="set-up-for-image-registration-and-atlas-based-segmentation">
+<h2>Set up for image registration and atlas-based segmentation.<a class="headerlink" href="#set-up-for-image-registration-and-atlas-based-segmentation" title="Permalink to this heading"></a></h2>
+<p>For image registration and atlas-based segmentation, scikit-rt requires
+that one or both of the following image-registration packages be installed:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://elastix.lumc.nl/">elastix</a></p></li>
+</ul>
+<p>For installation and environment set up, see <em>Getting started</em> section of
+the elastix manual:
+<a class="reference external" href="https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf">https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf</a>.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#"><span class="xref myst">NiftyReg</span></a></p></li>
+</ul>
+<p>For installation and environment set up, see:<br/>
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install">http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install</a></p>
+<p>There are three options for setting up the environment to allow use by
+scikit-rt of the registration software (engines):</p>
+<ol class="arabic">
+<li><p>Before starting scikit-rt, follow the instructions linked above.</p></li>
+<li><p>At run time, use code like the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_engine_dir</span>
+
+<span class="c1"># The parameter &#39;engine&#39; can be omitted</span>
+<span class="c1"># if the name of the registration engine is in the installation path.</span>
+<span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/elastix/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;elastix&quot;</span><span class="p">)</span>
+<span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/niftyreg/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;niftyreg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>When creating registration or segmentation objects, pass the
+installation directory of the registration engine to be used via
+the <code class="docutils literal notranslate"><span class="pre">engine_dir</span></code> parameter.</p></li>
 </ol>
-<p>On Mac:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export PATH=${PATH}:/path/to/elastix/directory/bin
-export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:/path/to/elastix/directory/lib
-</pre></div>
-</div>
-<p>On Linux:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export PATH=${PATH}:/path/to/elastix/directory/bin
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/elastix/directory/lib
-</pre></div>
-</div>
-<ol class="arabic simple" start="4">
-<li><p>If you are on Windows or didn’t follow step 3, any time that you want to use image registration or atlas-based segmentation in scikit-rt, you will need to run:</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_elastix_dir</span>
-<span class="n">set_elastix_dir</span><span class="p">(</span><span class="s1">&#39;path/to/elastix/directory&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<!---
-### Docker installation
-
-You need to have an installation of [Docker](https://www.docker.com/).
-
-Download the Scikit-rt docker image with:
-
-```
-docker pull ghcr.io/scikit-rt/scikit-rt:latest
-```
-
-Choose a work directory, copy here any data that you would want to be able to
-access with Scikit-rt, then start a docker container:
-
-```
-docker run -v /path/to/work/directory:/home/jovyan/workdir -p 8888:8888 ghcr.io/scikit-rt/scikit-rt
-```
-
-Copy the last URL listed (starting: http://127.0.0.1:8888), and point a browser to this URL.  This should open a jupyter lab session, where you import
-Scikit-rt modules.
-
-Notes on arguments passed to `docker run`:
-- The argument to `-v` maps a local work directory (/path/to/work/directory) to 
-the work directory of the docker container (/home/jovyan/workdir).  The former
-is chosen by the user; the latter is fixed.  Paths should always be absolute
- (not relative).
-- The argument to `-p` maps the server port (8888) on the local machine to the
-server port (8888) on the container side.
---->
 </section>
 <section id="usage-information">
 <h2>Usage information<a class="headerlink" href="#usage-information" title="Permalink to this heading"></a></h2>
