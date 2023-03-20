@@ -1040,9 +1040,18 @@ def alphanumeric(in_str: str = "") -> List[str]:
     return elements
 
 
-def fullpath(path=""):
-    """Evaluate full path, expanding '~', environment variables, and
-    symbolic links."""
+def fullpath(path="", pathlib=False):
+    """
+    Evaluate full path, expanding '~', environment variables, and
+    symbolic links.
+
+    path: str/pathlib.Path, default=""
+        Path to be expanded.
+
+    pathlib: bool, default=False
+        If False, return full path as string.  If True, return full path
+        as pathlib.Path object.
+    """
 
     expanded = ""
     if path:
@@ -1050,6 +1059,8 @@ def fullpath(path=""):
         tmp = os.path.expandvars(path.strip())
         tmp = os.path.abspath(os.path.expanduser(tmp))
         expanded = os.path.realpath(tmp)
+        if pathlib:
+            expanded = Path(expanded)
     return expanded
 
 def compress_user(path=""):
