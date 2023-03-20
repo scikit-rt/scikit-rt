@@ -786,7 +786,7 @@ class Registration(Data):
             im = skrt.image.Image(result_path, title="Transformed moving")
             if np.isnan(np.sum(im.get_data())):
                 im.data = np.nan_to_num(im.get_data())
-                im.write(result_path)
+                im.write(result_path, verbose=(self.logger.level < 20))
             self.transformed_images[step] = im
 
     def is_registered(self, step):
@@ -2447,13 +2447,13 @@ def get_default_pfiles_dir(engine=None):
     return get_data_dir() / f"{engine}_parameter_files"
 
 
-def get_default_pfiles(basename_only=True, engine=None, pattern="*.txt"):
+def get_default_pfiles(pattern="*.txt", engine=None, basename_only=False):
     """
     Get list of default parameter files.
 
     **Parameter:**
 
-    basename_only : bool, default=True
+    basename_only : bool, default=False
         If True, return list of filenames only.  If False, return list
         of paths, as pathlib.Path objects.
 
