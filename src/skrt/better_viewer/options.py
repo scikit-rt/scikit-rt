@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from skrt.core import is_list
 
-def set_viewer_options(to_exclude=None, **kwargs):
+def set_viewer_options(to_exclude=None, usetex=False, **kwargs):
     """
     Define options for use with skrt.better_viewer.BetterViewer.
 
@@ -21,6 +21,10 @@ def set_viewer_options(to_exclude=None, **kwargs):
     **Parameter:**
     to_exclude: list
         List of keys not to include in the returned dictionary.
+
+    usetex: bool, default=False
+        Indicate whether to use LaTeX for text rendering.  Setting to True
+        when no LaTeX installation is avaiable will generate an error.
 
     kwargs: dict
         Key-value pairs with which to update BetterViewer options dictionary
@@ -46,7 +50,7 @@ def set_viewer_options(to_exclude=None, **kwargs):
     plt.rc("mathtext", fontset="dejavuserif")
 
     # Use TeX/LaTeX for typesetting.  (This requires working TeX/LaTeX installation.)
-    plt.rc("text", usetex=True)
+    plt.rc("text", usetex=usetex)
 
     # For ticks, set label size and direction ("in", "out", "inout").
     plt.rc(("xtick", "ytick"), labelsize=25, direction="out")
@@ -71,8 +75,6 @@ def set_viewer_options(to_exclude=None, **kwargs):
         "scale_in_mm" : True,
         # Indicate whether ticks should be shown on all sides.
         "ticks_all_sides": True,
-        # Omit title.
-        "title": "",
         # Colour map for images.  For pre-defined colour maps, see:
         # https://matplotlib.org/stable/tutorials/colors/colormaps.html
         # "gray": black to white; "binary": white to black.
