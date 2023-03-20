@@ -102,7 +102,7 @@ Define options for use with skrt.better_viewer.BetterViewer.</p></li>
 </div></blockquote>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.better_viewer.options.set_viewer_options">
-<span class="sig-prename descclassname"><span class="pre">skrt.better_viewer.options.</span></span><span class="sig-name descname"><span class="pre">set_viewer_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.better_viewer.options.set_viewer_options" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.better_viewer.options.</span></span><span class="sig-name descname"><span class="pre">set_viewer_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">usetex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.better_viewer.options.set_viewer_options" title="Permalink to this definition"></a></dt>
 <dd><p>Define options for use with skrt.better_viewer.BetterViewer.</p>
 <p>Options for Matplotlib runtime configuration are applied automatically.
 The options dictionary returned by this function may be passed
@@ -114,6 +114,9 @@ to_exclude: list</p>
 <div><p>List of keys not to include in the returned dictionary.</p>
 </div></blockquote>
 <dl class="simple">
+<dt>usetex: bool, default=False</dt><dd><p>Indicate whether to use LaTeX for text rendering.  Setting to True
+when no LaTeX installation is avaiable will generate an error.</p>
+</dd>
 <dt>kwargs: dict</dt><dd><p>Key-value pairs with which to update BetterViewer options dictionary
 created here.</p>
 </dd>

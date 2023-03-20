@@ -659,9 +659,16 @@ and unzip.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.fullpath">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">fullpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.fullpath" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">fullpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.fullpath" title="Permalink to this definition"></a></dt>
 <dd><p>Evaluate full path, expanding ‘~’, environment variables, and
 symbolic links.</p>
+<dl class="simple">
+<dt>path: str/pathlib.Path, default=””</dt><dd><p>Path to be expanded.</p>
+</dd>
+<dt>pathlib: bool, default=False</dt><dd><p>If False, return full path as string.  If True, return full path
+as pathlib.Path object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
