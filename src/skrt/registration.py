@@ -2085,7 +2085,7 @@ class RegistrationEngine:
     # If None, components are taken to be as read from file.
     def_signs = None
 
-    def __init__(self, path=None, log_level=None):
+    def __init__(self, path=None, force=False, log_level=None):
         """
         **Parameters:**
         path : str/pathlib.Path, default=None
@@ -2103,7 +2103,7 @@ class RegistrationEngine:
 
         if not hasattr(self, "name"):
             self.name = type(self).__name__.lower()
-        self.set_exe_env(path)
+        self.set_exe_env(path, force)
 
     def define_translation(self, dxdydz, fixed_image):
         raise NotImplementedError("Method 'define_translation()' "
@@ -2726,7 +2726,13 @@ def read_parameters(infile):
 
 
 def set_elastix_dir(path, force=True):
-    Elastix(path=path)
+    set_engine_dir(path, "elastix", force)
+
+def set_engine_dir(path, engine=None, force=True):
+    if not engine in engines:
+        raise RuntimeError(f"Registration engine not known: {engine}; "
+                           f"known engines are: {list(engines)}")
+    get_engine_cls(engine, path)(path=path, force=force)
 
 
 def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):

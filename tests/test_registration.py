@@ -12,7 +12,7 @@ from skrt.simulation import SyntheticImage
 from skrt.registration import (
         Registration, RegistrationEngine,
         add_engine, engines, get_default_pfiles, get_default_pfiles_dir,
-        get_engine_cls, read_parameters)
+        get_engine_cls, read_parameters, set_engine_dir)
 
 from test_structs import compare_rois
 
@@ -574,3 +574,19 @@ def test_get_engine_cls():
     for engine in engines:
         assert get_engine_cls(engine) == engines[engine]
     assert get_engine_cls() == engines.get(Defaults().registration_engine, None)
+
+def test_set_engine_dir():
+    """Test setting of registration engine's installation directory."""
+
+    # Check that exception is raised if engine software not installed
+    # in specified directory.
+    for engine in engines:
+        with pytest.raises(RuntimeError) as error_info:
+            set_engine_dir(path="unknown", engine=engine)
+        assert ("not implemented" in str(error_info.value)
+                or "executable(s) not found" in str(error_info.value))
+
+    # Check that exception is raised if engine name is unknown.
+    with pytest.raises(RuntimeError) as error_info:
+        set_engine_dir(path="unknown", engine="unknown")
+    assert "engine not known" in str(error_info.value)
