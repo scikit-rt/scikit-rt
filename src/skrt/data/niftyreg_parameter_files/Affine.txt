@@ -1,2 +1,4 @@
+// Set reg_aladin as executable for non-deformable registration
 (exe "reg_aladin")
+// Set intensities outside image area to zero.
 (-pad "0")

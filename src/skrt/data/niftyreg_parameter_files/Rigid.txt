@@ -1,3 +1,6 @@
+// Set reg_aladin as executable for non-deformable registration
 (exe "reg_aladin")
+// Transform should be rigid, rather than affine.
 (-rigOnly "")
+// Set intensities outside image area to zero.
 (-pad "0")

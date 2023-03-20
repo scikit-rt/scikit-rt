@@ -20,7 +20,7 @@
 
 // ***************** Transformation **************************
 
-(FinalGridSpacingInPhysicalUnits 15)
+(FinalGridSpacingInPhysicalUnits 5)
 (GridSpacingSchedule 4 2 1 )
 (HowToCombineTransforms "Compose")
 

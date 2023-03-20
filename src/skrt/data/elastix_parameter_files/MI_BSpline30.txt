@@ -20,7 +20,6 @@
 
 // ***************** Transformation **************************
 
-// next line variable in study: from 5 - 40
 (FinalGridSpacingInPhysicalUnits 30)
 (GridSpacingSchedule 4 2 1 )
 (HowToCombineTransforms "Compose")
