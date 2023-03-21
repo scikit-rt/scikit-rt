@@ -54,14 +54,24 @@ sphinx-apidoc -e -f --tocfile import_analysis_modules -o source ../examples/impo
 
 # Copy markdown files and images to be used in creating documentation.
 rm -rf source/*.md
-cp "../README.md" "source"
-cp "image_registration.md" "source"
+#cp "../README.md" "source"
+cp "support.md" "source"
+cp "installation.md" "source"
+cp "demos.md" "source"
+cp "registration.md" "source"
 rm -rf "source/_static"
 cp -rp "images" "source/_static"
 
 # Change relative paths to linked files.
-sed -i 's/docs\/image_registration/image_registration/' 'source/README.md'
-sed -i 's/docs\/images/_static/' 'source/README.md'
+if [[ `uname -s` == "Darwin" ]]; then
+    BLANK=\'\'
+else
+    BLANK=''
+fi
+sed -i $BLANK 's/docs\/installation/installation/' 'source/demos.md'
+sed -i $BLANK 's/docs\/installation/installation/' 'source/registration.md'
+#sed -i 's/docs\/installation/installation/' 'source/demos.md'
+#sed -i 's/docs\/images/_static/' 'source/README.md'
 
 # Delete and recreate html-format documentation
 make clean
