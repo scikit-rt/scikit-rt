@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; Scikit-rt 0.3.39 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Scikit-rt demos" href="demos.html" />
+    <link rel="prev" title="Documentation and support" href="support.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation-and-setup-of-scikit-rt">Installation and setup of scikit-rt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#updating-scikit-rt">Updating scikit-rt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-and-setup-for-image-registration">Installation and setup for image registration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="demos.html">Scikit-rt demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<p>Scikit-rt has a number of dependencies.  To avoid possible version conflicts,
+it’s recommended that it be installed to a clean virtual
+environment.  This is achieved in the instructions below using
+<a class="reference external" href="https://docs.conda.io/">conda</a>.  You can perform a user installation
+with <a class="reference external" href="https://pip.pypa.io/">pip</a>, or a developer installation with
+<a class="reference external" href="https://git-scm.com/">git</a>.   Installations have been tested
+for <a class="reference external" href="https://www.python.org/downloads/release/python-380/">Python 3.8</a>.</p>
+<p>For functionality involving image registration, it is also necessary
+to <a href="#installation-and-setup-for-image-registration">install
+image-registration software</a>.</p>
+<section id="installation-and-setup-of-scikit-rt">
+<h2>Installation and setup of scikit-rt<a class="headerlink" href="#installation-and-setup-of-scikit-rt" title="Permalink to this heading"></a></h2>
+<p>To be able to use scikit-rt, you can perform either a user installation
+(recommended if you’re not planning to contribute to the code base) or
+a developer installation.</p>
+<ol class="arabic simple">
+<li><p>User installation</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">skrt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.8</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Developer installation</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+<span class="n">cd</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+<span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">--</span><span class="n">file</span> <span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Environment activation and deactivation</p></li>
+</ol>
+<p>Following either of the installations above, the scikit-rt environment
+setup is included - that is, the conda <code class="docutils literal notranslate"><span class="pre">skrt</span></code> environment is active.  When
+starting a new session, the environment can be activated
+and deactivated with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Activate envrionment</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
+
+<span class="c1"># Deactivate environment</span>
+<span class="n">conda</span> <span class="n">deactivate</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Installation test</p></li>
+</ol>
+<p>As a minimal test that the installation has been successful, try:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;import skrt; print(skrt.__version__)&quot;</span>
+</pre></div>
+</div>
+<p>This may take some time, while python code is being compiled, but
+should eventually print the scikit-rt version number, and exit without errors.</p>
+</section>
+<section id="updating-scikit-rt">
+<h2>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Permalink to this heading"></a></h2>
+<p>Scikit-rt is in active development. Following an initial installation,
+it’s possible to update to the latest version.</p>
+<ol class="arabic simple">
+<li><p>User installation</p></li>
+</ol>
+<p>With the conda <code class="docutils literal notranslate"><span class="pre">skrt</span></code> environment active, run the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Developer installation</p></li>
+</ol>
+<p>From the scikit-rt directory, and assuming that no unmerged changes have
+been made to the local copy of the code, run the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span>
+</pre></div>
+</div>
+<p>(This should work independently of whether the conda <code class="docutils literal notranslate"><span class="pre">skrt</span></code> environment
+is active.)</p>
+</section>
+<section id="installation-and-setup-for-image-registration">
+<h2>Installation and setup for image registration<a class="headerlink" href="#installation-and-setup-for-image-registration" title="Permalink to this heading"></a></h2>
+<p>For image registration, and for atlas-based segmentation, scikit-rt requires
+that at least one of the following image-registration packages be installed:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://elastix.lumc.nl/">elastix</a></p></li>
+</ul>
+<p>For installation and environment setup, see <em>Getting started</em> section of
+the elastix manual:
+<a class="reference external" href="https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf">https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf</a>.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a></p></li>
+</ul>
+<p>For installation and environment setup, see:<br/>
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install">http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install</a></p>
+<p>There are three options for setting up the environment to allow use by
+scikit-rt of the registration software (registration engines):</p>
+<ol class="arabic">
+<li><p>Before starting scikit-rt, follow the instructions linked for
+the relevant registration package.</p></li>
+<li><p>At run time, use code similar to the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_engine_dir</span>
+
+<span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/elastix/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;elastix&quot;</span><span class="p">)</span>
+<span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/niftyreg/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;niftyreg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The parameter <code class="docutils literal notranslate"><span class="pre">engine</span></code> passed to the <code class="docutils literal notranslate"><span class="pre">set_engine_dir()</span></code> function
+may be omitted if the name of the registration engine is a substring
+of the installation path.</p>
+</li>
+<li><p>When creating registration or segmentation objects, pass the
+installation directory of the registration engine to be used via
+the <code class="docutils literal notranslate"><span class="pre">engine_dir</span></code> parameter.</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="support.html" class="btn btn-neutral float-left" title="Documentation and support" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="demos.html" class="btn btn-neutral float-right" title="Scikit-rt demos" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
