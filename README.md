@@ -16,7 +16,7 @@ This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
 1. [Documentation and support](docs/support.md)
 2. [Installation](docs/installation.md)
-3. [Scikit-rt in demos](docs/demos.md)
+3. [Scikit-rt demos](docs/demos.md)
 4. [Usage overview](docs/usage.md)
 5. [Images](docs/image.md)
 6. [Regions of interest and structure sets](docs/structures.md)
