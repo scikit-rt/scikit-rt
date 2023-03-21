@@ -35,7 +35,7 @@ import voxtox
 # -- Project information -----------------------------------------------------
 
 project = 'Scikit-rt'
-copyright = '2022'
+copyright = '2023'
 #author = ''
 
 # The full version, including alpha/beta/rc tags
