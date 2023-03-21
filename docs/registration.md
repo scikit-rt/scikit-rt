@@ -4,7 +4,7 @@
 
 For image registration, and for atlas-based segmentation, scikit-rt requires
 that a supported image-registration packages be installed, as outlined
-in the instructions for [installation and setup for image registration](docs/installation.md#installation-and-setup-for-image-registration/).
+in the instructions for <a href="installation.html#installation-and-setup-for-image-registration">installation and setup for image registration</a>.
 
 The currently supported image-registration packages are:
 
