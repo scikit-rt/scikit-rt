@@ -1,53 +1,36 @@
-# Image registration with scikit-rt and elastix
+# Image registration
 
-## Setup
+## Installation and setup
 
-### 1. Installing scikit-rt
-1. Ensure you have either [pip](https://pypi.org/project/pip/) or [anaconda](https://docs.anaconda.com/anaconda/install/index.html)/[miniconda](https://docs.conda.io/en/latest/miniconda.html) (on Windows I would recommend Anaconda) installed on your machine.
-2. Open a terminal (if using pip on mac/linux) or a conda terminal (if using Anaconda - access by opening Anaconda-Navigator, clicking "Environments", then clicking the play button and "Open Terminal").
-3. Run the command `pip install scikit-rt` to install the scikit-rt package.
-4. If on windows, also run `conda install -c conda-forge shapely` to install the correct version of the shapely package.
+For image registration, and for atlas-based segmentation, scikit-rt requires
+that a supported image-registration packages be installed, as outlined
+in the instructions for [installation and setup for image registration](docs/installation#installation-and-setup-for-image-registration/).
 
-Now you should be able to launch a Jupyter server, either by:
-(a) Running `jupyter notebook` in the terminal, or;
-(b) If using Anaconda, clicking the play button then "Open with Jupyter Notebook"
+The currently supported image-registration packages are:
 
-If you create a new Jupyter notebook, you should be able to import scikit-rt by running `import skrt`.
+- [elastix](https://elastix.lumc.nl/)
+- [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg)
 
-
-### 2. Installing elastix
-
-1. Download the elastix binaries corresponding to your operating system from here: https://github.com/SuperElastix/elastix/releases/tag/5.0.1
-2. Extract the folder and either make a note of where you saved it, or add the `bin` folder to your `$PATH` environment variable and `lib` folder to your `$DYLDLIBRARYPATH` variable (if using mac/linux).
-
-
-### 3. Downloading example elastix parameter files
-
-A collection of example elastix parameter files is available at the [elastix parameter zoo](https://elastix.lumc.nl/modelzoo/). 
-- To obtain the files on your machine, download the git repo: https://github.com/SuperElastix/ElastixModelZoo. 
-- The parameter files for each example can be found inside the `models/` directory. 
-- The subdirectories `Par0001` etc refer to the parameter sets listed on the model zoo webpage (https://elastix.lumc.nl/modelzoo/).
-
-
-## Usage
+## Example registration
 
 This code is best used inside a Jupyter notebook, but can also be implemented via a python script.
 
 Here is a code snippet to perform a registration, qualitatively view the results, transform a reference structure set, and quantitatively compare it with the fixed image structure set:
 ```
-from skrt.registration import Registration, set_elastix_dir
+from skrt.registration import Registration, get_default_pfiles
 
-# Set elastix location
-set_elastix_dir("some/location/elastix-5.0.1-mac")
+engine = "elastix"
 
 # Create registration object
 reg = Registration(
+  engine="elastix",
+  engine_dir="some/location/elastix-5.0.1-mac,
   fixed="some/location/fixed_image_dicoms",
   moving="some/location/moving_image_dicoms",
-  pfiles=[
-    "some/location/ElastixModelZoo/models/default/Parameters_Rigid.txt",
-    "some/location/ElastixModelZoo/models/default/Paramterers_BSpline.txt"
-  ],
+  pfiles={
+    "rigid": get_default_pfiles("*Rigid*", engine=engine),
+    "bspline": get_default_pfiles("*BSpline15*", engine=engine), 
+  },
   outdir="my_results"
 )
 
@@ -77,32 +60,33 @@ Explanation of each part of the code:
 from skrt.registration import Registration
 ```
 
-2. If you didn't add your elastix installation to your `$PATH` variable, you'll need to manually set the location of your elastix installation:
-```
-from skrt.registration import set_elastix_dir
-set_elastix_dir("some/location/elastix-5.0.1-mac")
-```
-On mac/linux, this should be the directory containing the `bin` and `lib` folders; on Windows, it should be the  directory containing `elastix.exe`.
-
 3. Create a Registration object.
 ```
 reg = Registration(
-  "my_results",
+  engine="elastix",
+  engine_dir="some/location/elastix-5.0.1-mac,
   fixed="some/location/fixed_image_dicoms",
   moving="some/location/moving_image_dicoms",
-  pfiles=[
-    "some/location/ElastixModelZoo/models/default/Parameters_Rigid.txt",
-    "some/location/ElastixModelZoo/models/default/Paramterers_BSpline.txt"
-  ]
+  pfiles={
+    "rigid": get_default_pfiles("*Rigid*", engine=engine),
+    "bspline": get_default_pfiles("*BSpline15*", engine=engine), 
+  },
+  outdir="my_results"
 )
 ```
 The arguments to the `Registration` class initialisation are:
-- `"my_results"`: Directory in which to save the results of the registration. The registration object can later be reloaded from this directory.
+- `engine`: Name or registration engine ("elastix" or "niftyreg").
+- `engine_dir` Path to location of registration software.  Parameter
+  not needed if environment setup for registration software performed
+  priod to using scikit-rt.
 - `fixed`: Path to a directory containing the dicom files for the fixed image. Can also be a numpy array or the path to a single nifti file.
 - `moving`: Path to a directory containing the dicom files for the moving image. Can also be a numpy array or the path to a single nifti file.
-- `pfiles`: Path or list of paths to elastix parameter file(s). If a list is given, each parameter file will be used in series, with its results passed to the next step of the registration.
+- `pfiles`: Dictionary where keys are names to be associated with registration
+  steps, and values are paths to parameter file(s).  The example uses
+  parameter files included in the scikit-rt package.
+- `outdir`: Path to directory in which to save the results of the registration. The registration object can later be reloaded from this directory.
 
-For each parameter file, a subdirectory will be created in `"my_results"` with the same name as the parameter file, minus `.txt`. If an elastix transform file is already found in that directory, the registration will not be rerun for that parameter file, and instead the existing transform will be used.  To completely overwrite `"my_results"` and start from scratch, set `overwrite=True` when initialising the `Registration` class.
+For each parameter file, a subdirectory will be created in `"my_results"` with the same name as the parameter file, minus `.txt`. If a registration-transform file is already found in that directory, the registration will not be rerun for that parameter file, and instead the existing transform will be used.  To completely overwrite `"my_results"` and start from scratch, set `overwrite=True` when initialising the `Registration` class.
 
 5. Run the registration.
 ```

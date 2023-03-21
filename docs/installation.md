@@ -12,7 +12,7 @@ For functionality involving image registration, it is also necessary
 to <a href="#installation-and-setup-for-image-registration">install
 image-registration software</a>.
 
-# Installation and setup of scikit-rt
+## Installation and setup of scikit-rt
 
 To be able to use scikit-rt, you can perform either a user installation
 (recommended if you're not planning to contribute to the code base) or
