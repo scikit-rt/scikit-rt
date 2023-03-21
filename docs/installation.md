@@ -9,7 +9,7 @@ with [pip](https://pip.pypa.io/), or a developer installation with
 for [Python 3.8](https://www.python.org/downloads/release/python-380/).
 
 For functionality involving image registration, it is also necessary
-to <a href="#"#installation-and-setup-for-image-registration>install
+to <a href="#installation-and-setup-for-image-registration">install
 image-registration software</a>.
 
 # Installation and setup of scikit-rt
