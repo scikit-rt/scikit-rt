@@ -50,11 +50,10 @@ for understanding the effect of applying a registration transform.
 ## Notebooks using non-public datasets
 
 The following were run using data from the [VoxTox](https://www.cancerresearchuk.org/about-cancer/find-a-clinical-trial/a-study-to-collect-detailed-information-about-side-effects-of-radiotherapy-for-cancers-of-the-prostate-head-and-neck-or-central-nervous-system-voxtox) study.  They can't be rerun without equivalent
-data, but may be useful as code examples.
+data, but may be useful for code examples.
 
 - [workshop_26_09_22.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/workshop_26_09_22.ipynb)
 demonstrates general interactive functionality;
 - [kvct_to_mvct.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/kvct_to_mvct.ipynb) demonstrates generation of a megavoltage (MV)
 computed-tomography (CT) guidance scan, starting from a (downsampled)
-kilovoltage (kV) CT scan, used in radiotherapy planning;
-- [rtplan.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/rtplan.ipynb) demonstrates how to access some of the information in a radiotherapy plan.
+kilovoltage (kV) CT scan, used in radiotherapy planning.
