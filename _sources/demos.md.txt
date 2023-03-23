@@ -46,6 +46,9 @@ a specified radiation dose.
 - [grid_creation.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/grid_creation.ipynb)
 demonstrates creation of a grid image, which can be useful, for example,
 for understanding the effect of applying a registration transform.
+- [image_registration_checks.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/image_registration_checks.ipynb)
+demonstrates image registration, and checks that can be made of what
+the registration has done.
 
 ## Notebooks using non-public datasets
 
