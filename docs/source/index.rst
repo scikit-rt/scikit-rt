@@ -1,6 +1,9 @@
 Scikit-rt
 =========
 | Python toolkit for analysis of radiotherapy planning and treatment data.
+|
+| Code repository: https://github.com/scikit-rt/scikit-rt
+|
 | Development supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
 .. image:: images/CRUK_RadNet_Cambridge.png
@@ -13,8 +16,15 @@ Scikit-rt
 
    support.md
    installation.md
-   demos.md
+   examples.md
+   usage.md
+   images.md
+   structures.md
+   patients_and_studies.md
+   simulation.md
    registration.md
+   keyboard_shortcuts.md
+   legacy.md
 
 .. toctree::
    :maxdepth: 1

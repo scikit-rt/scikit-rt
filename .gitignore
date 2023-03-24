@@ -17,9 +17,11 @@ examples/*/tests/tmp
 examples/casscade/notebooks/results
 examples/import/notebooks/results
 docs/build/*
+docs/source/import_analysis*
 docs/source/skrt*
 docs/source/voxtox*
 docs/source/*.md
+docs/source/_static/*
 makefile
 !docs/Makefile
 skrt_conda.sh
