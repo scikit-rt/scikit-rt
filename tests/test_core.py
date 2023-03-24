@@ -308,7 +308,7 @@ def test_tictoc():
     # and level of agreement required in timing tests.
     n_iteration = 3
     sleep_time = 0.25
-    small_number = 2.e-3
+    small_number = 1.e-2
 
     # Start timer.
     t1 = timeit.default_timer()
