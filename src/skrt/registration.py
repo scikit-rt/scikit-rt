@@ -3,10 +3,10 @@ Classes and functions relating to image registration.
 
 The following classes are defined:
 
-- Registration
-- DeformationField
-- Grid
-- Jacobian
+- Registration : Class for handling image registration.
+- DeformationField : Class representing a deformation field.
+- Grid : Class representing a grid.
+- Jacobian : Class representing a Jacobian determinant.
 - RegistrationEngine
 - Elastix
 - NiftyReg
@@ -194,10 +194,9 @@ class Registration(Data):
             performing transformations.  Otherwise, delete this directory
             after use.
 
-        engine: class, default=None
-            Name idenfiying a class inheriting from
-            skrt.registration.RegistrationEngine, to be used for
-            image registration.  The name should be a key of
+        engine: str, default=None
+            Name of the registration engine to use for
+            image registration.  This should be a key of
             the dictionary skrt.registration.engines.  If None,
             the first key found to be a substring of <engine_dir>
             is used, or if there's no match then the value of
@@ -644,7 +643,7 @@ class Registration(Data):
             df_path = os.path.join(outdir, "deformationField.nii")
             if os.path.exists(df_path):
                 self.deformation_fields[step] = DeformationField(
-                    df_path, signs=self.engine.def_signs,
+                    path=df_path, signs=self.engine.def_signs,
                     title="Deformation field",
                     image=self.transformed_images[step]
                 )
@@ -884,8 +883,8 @@ class Registration(Data):
             self.logger.warning(
                     f"Unrecognised transform input type {type(to_transform)}")
 
-    def transform_image(self, im, step=-1, outfile=None, params=None, rois=None,
-            ):
+    def transform_image(self, im, step=-1, outfile=None, params=None,
+                        rois=None):
         """
         Transform an image using the output transform from a given
         registration step (by default, the final step). If the registration
@@ -1324,7 +1323,8 @@ class Registration(Data):
             kwargs.setdefault("title", "Transformed moving")
         BetterViewer(ims, **kwargs)
 
-    def manually_adjust_translation(self, step=None, reapply_transformation=True):
+    def manually_adjust_translation(self, step=None,
+                                    reapply_transformation=True):
         """
         Open BetterViewer and manually adjust the translation between the
         fixed image and the result of a registration. If the "write translation"
@@ -1616,7 +1616,7 @@ class Registration(Data):
             output_file = os.path.join(outdir, expected_outname)
             assert os.path.exists(output_file)
             kwargs = {} if is_jac else {"signs": self.engine.def_signs}
-            return dtype(output_file, image=image, title=title, **kwargs)
+            return dtype(path=output_file, image=image, title=title, **kwargs)
 
     def get_mutual_information(self, step=-1, force=False, **kwargs):
         """
@@ -1641,9 +1641,20 @@ class Registration(Data):
         return self.fixed_image.get_mutual_information(
                 self.get_transformed_image(step, force), **kwargs)
 
+
 class Grid(ImageOverlay):
+    """
+    Class representating a grid.
+
+    This is the same as the ImageOverlay class, but sets different
+    attribute values at instantiation.
+    """
 
     def __init__(self, *args, color='green', **kwargs):
+        """
+        Perform ImageOverlay initialisation, then overwrite
+        selected attribute values.
+        """
 
         ImageOverlay.__init__(self, *args, **kwargs)
 
@@ -1655,12 +1666,23 @@ class Grid(ImageOverlay):
         self._default_vmax = 1
 
     def view(self, **kwargs):
+        """View the Grid."""
         return ImageOverlay.view(self, kwarg_name="grid", **kwargs)
 
 
 class Jacobian(ImageOverlay):
+    """
+    Class for representing a Jacobian determinant.
+
+    This is the same as the ImageOverlay class, but sets different
+    attribute values at instantiation.
+    """
 
     def __init__(self, *args, **kwargs):
+        """
+        Perform ImageOverlay initialisation, then overwrite
+        selected attribute values.
+        """
 
         ImageOverlay.__init__(self, *args, **kwargs)
 
@@ -1674,28 +1696,47 @@ class Jacobian(ImageOverlay):
         #self.data = -self.data
 
     def view(self, **kwargs):
+        """View the Jacobian determinant."""
         return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
 
 
 class DeformationField(PathData):
-    """Class representing a vector field."""
+    """Class representing a deformation field."""
 
-    def __init__(self, path, signs=None, image=None, **kwargs):
-        """Load vector field."""
+    def __init__(self, path="", load=True, signs=None, image=None, **kwargs):
+        """
+        Initialise from a deformation-field source.
 
+        path : str/array/Nifti1Image, default= ""
+            Data source.  Possibilities are the same as for skrt.image.Image,
+            but should correspond to arrays of dimension 4.
+            Otherwise, it can be loaded later with the load() method.
+
+        load : bool, default=True
+            If True, the deformation-field data will be immediately loaded.
+
+        signs : tuple, default=None
+            Three element tuple of ints, indicating the igns to be applied to
+            the (x, y, z) components of the deformation field, allowing
+            for different conventions.  If None, components are taken to
+            be as read from source.
+
+        image : skrt.image.Image, default=None
+            Image object to be associated with the deformation field.
+
+        kwargs : dict
+           Dictionary of keyword-value pairs, passed to the
+           skrt.image.Image constructor when creating a representation
+           of the deformation field.
+        """
         # Perform base-class initialisation.
         super().__init__(path)
 
         # Initialise own image object
-        self._image = skrt.image.Image(path, **kwargs)
-        assert self._image.get_data().ndim == 4
-        self._image.data = np.transpose(
-                self._image.data, (1, 0, 2, 3))[::-1, ::-1, :, :]
-        if signs:
-            for idx, sign in enumerate(signs):
-                if sign < 0:
-                    self._image.data[:, :, :, idx] *= sign
-                    self._image._data_canonical[:, :, :, idx] *= sign
+        self._image = skrt.image.Image(path=path, load=False, **kwargs)
+        self.signs = signs
+        if load:
+            self.load()
 
         # Assign an associated Image
         self.image = image
@@ -1713,13 +1754,32 @@ class DeformationField(PathData):
         self._quiver_colorbar_label = "2D displacement magnitude (mm)"
 
     def load(self, force=False):
+        """
+        Load deformation-field data from source. If already loaded and <force> 
+        is False, nothing will happen.
 
+        **Parameters:**
+        
+        force : bool, default=True
+            If True, the deformation-field data will be reloaded from source
+            even if it has previously been loaded.
+        """
         if self._image.data is not None and not force:
             return
-            self._image.load(force)
-            assert self._image.get_data().ndim == 4
-            self._image.data = np.transpose(
-                    self._image.data, (1, 0, 2, 3))[::-1, ::-1, :, :]
+
+        # Load data, then perform axis transpositions and reversals.
+        # Warning: this may not give the intended result for all data sources...
+        self._image.load(force)
+        assert self._image.get_data().ndim == 4
+        self._image.data = np.transpose(
+                self._image.data, (1, 0, 2, 3))[::-1, ::-1, :, :]
+
+        # Apply convention-dependent signs to components of deformation field.
+        if self.signs:
+            for idx, sign in enumerate(self.signs):
+                if sign < 0:
+                    self._image.data[:, :, :, idx] *= sign
+                    self._image._data_canonical[:, :, :, idx] *= sign
 
     def get_slice(self, view, sl=None, idx=None, pos=None, scale_in_mm=True):
         """Get voxel positions and displacement vectors on a 2D slice."""
@@ -1834,7 +1894,12 @@ class DeformationField(PathData):
         mask_color="black",
         **mpl_kwargs
     ):
+        """
+        Plot deformation field.
 
+        For explanation of parameters, see documentation for
+        skrt.better_viewer.BetterViewer.
+        """
         # Set up axes
         self._image.set_ax(view, ax, gs, figsize, zoom)
         self.ax = self._image.ax
