@@ -77,27 +77,23 @@ been made to the local copy of the code, run the command:
 ```
 git pull
 ```
-(This should work independently of whether the conda `skrt` environment
-is active.)
 
 ## Installation and setup for image registration
 
 For image registration, and for atlas-based segmentation, scikit-rt requires
 that at least one of the following image-registration packages be installed:
 
-- [elastix](https://elastix.lumc.nl/)
+- [elastix](https://elastix.lumc.nl/)  
+  For installation and environment setup, see *Getting started* section of
+  the elastix manual:  
+  [https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf](https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf).
 
-For installation and environment setup, see *Getting started* section of
- the elastix manual:
-[https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf](https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf).
-
-- [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg)
-
-For installation and environment setup, see:<br/>
-[http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
+- [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg)  
+  For installation and environment setup, see:  
+  [http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
 
 There are three options for setting up the environment to allow use by
-scikit-rt of the registration software (registration engines):
+scikit-rt of the registration software (registration engine):
 
 1. Before starting scikit-rt, follow the instructions linked for
    the relevant registration package.

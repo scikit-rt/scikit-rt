@@ -51,6 +51,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage and data model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="images.html">Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="structures.html">Regions of interest (ROIs) and structure sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
@@ -166,26 +167,22 @@ been made to the local copy of the code, run the command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span>
 </pre></div>
 </div>
-<p>(This should work independently of whether the conda <code class="docutils literal notranslate"><span class="pre">skrt</span></code> environment
-is active.)</p>
 </section>
 <section id="installation-and-setup-for-image-registration">
 <h2>Installation and setup for image registration<a class="headerlink" href="#installation-and-setup-for-image-registration" title="Permalink to this heading"></a></h2>
 <p>For image registration, and for atlas-based segmentation, scikit-rt requires
 that at least one of the following image-registration packages be installed:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://elastix.lumc.nl/">elastix</a></p></li>
+<li><p><a class="reference external" href="https://elastix.lumc.nl/">elastix</a><br />
+For installation and environment setup, see <em>Getting started</em> section of
+the elastix manual:<br />
+<a class="reference external" href="https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf">https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf</a>.</p></li>
+<li><p><a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a><br />
+For installation and environment setup, see:<br />
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install">http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install</a></p></li>
 </ul>
-<p>For installation and environment setup, see <em>Getting started</em> section of
-the elastix manual:
-<a class="reference external" href="https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf">https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf</a>.</p>
-<ul class="simple">
-<li><p><a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a></p></li>
-</ul>
-<p>For installation and environment setup, see:<br/>
-<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install">http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install</a></p>
 <p>There are three options for setting up the environment to allow use by
-scikit-rt of the registration software (registration engines):</p>
+scikit-rt of the registration software (registration engine):</p>
 <ol class="arabic">
 <li><p>Before starting scikit-rt, follow the instructions linked for
 the relevant registration package.</p></li>

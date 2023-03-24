@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Images &mdash; Scikit-rt 0.3.39 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Regions of interest (ROIs) and structure sets" href="structures.html" />
+    <link rel="prev" title="Usage and data model" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage and data model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-from-a-file">Loading from a file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-from-an-array">Loading from an array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-out-image-data">Writing out image data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#writing-to-dicom">Writing to dicom</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-to-nifti">Writing to nifti</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-to-a-numpy-array">Writing to a numpy array</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="structures.html">Regions of interest (ROIs) and structure sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard shortcuts for pop-out interactive viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Images</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/images.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="images">
+<h1>Images<a class="headerlink" href="#images" title="Permalink to this heading"></a></h1>
+<p>The Image class can be used to read and write images in DICOM, NIfTI,
+or NumPy format. These images can be plotted and compared.</p>
+<p>To load the Image class:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Image</span>
+</pre></div>
+</div>
+<p>Images will be processed into a consistent format:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Image.data</span></code> property contains a numpy array, which stores (y, x, z) in (row, column, slice) respectively. Note that numpy elements are indexed in order (row, column, slice); so if you did <code class="docutils literal notranslate"><span class="pre">Image.data[i,</span> <span class="pre">j,</span> <span class="pre">k]</span></code>, <code class="docutils literal notranslate"><span class="pre">i</span></code> would correspond to y index, <code class="docutils literal notranslate"><span class="pre">j</span></code> would correspond to x index, <code class="docutils literal notranslate"><span class="pre">k</span></code> would correspond to z index.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Image.affine</span></code> property contains a 4x4 matrix that can convert a (row, column, slice) index to an (x, y, z) position. This will always be diagonal, so (0, 0) contains x voxel size etc, (0, 3) contains x origin.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">voxel_size</span></code> and <code class="docutils literal notranslate"><span class="pre">origin</span></code> properties are the diagonal and third column, respectively; they give voxel sizes and origin position in order (x, y, z).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">n_voxels</span></code> property containins the number of voxels in the (x, y, z) directions (same as <code class="docutils literal notranslate"><span class="pre">Image.data.shape</span></code>, but with 0 and 1 swapped).</p></li>
+</ul>
+<p>In the standard dicom-style configuration (Left, Posterior, Superior):</p>
+<ul class="simple">
+<li><p>The x-axis increases along each column, and points towards the patient’s left (i.e. towards the heart, away from the liver).</p></li>
+<li><p>The y-axis increase down each row, and points from the patient’s front to back (posterior).</p></li>
+<li><p>The z-axis increases along the slice index, and points from the patient’s feet to head (superior).</p></li>
+</ul>
+<p>A canonical nifti-style array and affine can be obtained by running <code class="docutils literal notranslate"><span class="pre">Image.get_nifti_array_and_affine()</span></code>. By convention, this points in the same z direction but has x and y axes reversed (Right, Anterior, Superior). In the affine matrix, the x and y origins are therefore defined as being at the opposite end of the scale.</p>
+<p>Note that positions can also be specified in terms of slice number:</p>
+<ul class="simple">
+<li><p>For x and y, slice number is just numpy array index + 1 (slice number ranges from 1 - n_voxels, whereas array index ranges from 0 - n_voxels-1)</p></li>
+<li><p>For z, by convention the slice numbers increases from 1 at the head to n_voxels at the feet, so it is in the opposite direction to the array index (convert as n_voxels[2] - idx).</p></li>
+</ul>
+<section id="loading-from-a-file">
+<h2>Loading from a file<a class="headerlink" href="#loading-from-a-file" title="Permalink to this heading"></a></h2>
+<p>An image can be loaded from a dicom, nifti, or numpy file via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the dicom file is part of a series, any other files in that series in the same directory will also be loaded. Alternatively, you can give the path to a directory containing multiple dicom files. The first dicom file in that directory alphabetically will be loaded along with any other files in its series.</p>
+</section>
+<section id="loading-from-an-array">
+<h2>Loading from an array<a class="headerlink" href="#loading-from-an-array" title="Permalink to this heading"></a></h2>
+<p>An image can also be loaded from a numpy array. By default, it will be taken to have origin (0, 0, 0) and voxel sizes (1, 1, 1) mm; otherwise, these can be set manually, either via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">40</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>where the origin/voxel size lists are in order (x, y, z).</p>
+<p>The origin and voxel sizes can also be specified via an affine matrix, e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">[</span><span class="mf">1.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">40</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="p">])</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="n">affine</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where the first row of the affine matrix contains the <code class="docutils literal notranslate"><span class="pre">x</span></code> voxel size and origin, second row contains <code class="docutils literal notranslate"><span class="pre">y</span></code>, third row contains <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p>
+</section>
+<section id="plotting">
+<h2>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h2>
+<p>To plot a slice of the image, you need to specify the orientation (<code class="docutils literal notranslate"><span class="pre">x-y</span></code>, <code class="docutils literal notranslate"><span class="pre">y-z</span></code>, or <code class="docutils literal notranslate"><span class="pre">x-z</span></code>; default <code class="docutils literal notranslate"><span class="pre">x-y</span></code>) and either the slice number, array index, or position in mm (by default, the central slice in the chosen orientation will be plotted).
+e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;y-z&#39;</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="writing-out-image-data">
+<h2>Writing out image data<a class="headerlink" href="#writing-out-image-data" title="Permalink to this heading"></a></h2>
+<p>Images can be written out with the <code class="docutils literal notranslate"><span class="pre">Image.write(filename)</span></code> function. The output filetype will be inferred from the filename.</p>
+<section id="writing-to-dicom">
+<h3>Writing to dicom<a class="headerlink" href="#writing-to-dicom" title="Permalink to this heading"></a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.dcm</span></code> or is a directory (i.e. has no extension), the image will be written in dicom format. Each <code class="docutils literal notranslate"><span class="pre">x-y</span></code> slice will be written to a separate file labelled by slice number, e.g. slice 1 (corresponding to <code class="docutils literal notranslate"><span class="pre">[:,</span> <span class="pre">:,</span> <span class="pre">-1]</span></code> in the image array) would be saved to <code class="docutils literal notranslate"><span class="pre">1.dcm</span></code>.</p>
+<p>The path to a dicom file from which to take the header can be specified via the <code class="docutils literal notranslate"><span class="pre">header_source</span></code> parameter. If no path is given but the input source for the Image was a dicom file, the header will be taken from the source. Otherwise (e.g. if the file was loaded from a nifti and no <code class="docutils literal notranslate"><span class="pre">header_source</span></code> is given), a brand new header with new UIDs will be created. In that case, you can set the following info for that header:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">patient_id</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">modality</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">root_uid</span></code> (an ID unique to your institue that will prefix the generated dicom UIDs so that they are globally unique; one can be obtained here: https://www.medicalconnections.co.uk/FreeUID/)</p></li>
+</ul>
+</section>
+<section id="writing-to-nifti">
+<h3>Writing to nifti<a class="headerlink" href="#writing-to-nifti" title="Permalink to this heading"></a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.nii</span></code> or <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>, the image will be written to nifti. The nifti will be in canonical format, i.e. in Right, Anterior, Superior configuration. (Note that this means the nifti you write out may not be the same as the one you read in).</p>
+</section>
+<section id="writing-to-a-numpy-array">
+<h3>Writing to a numpy array<a class="headerlink" href="#writing-to-a-numpy-array" title="Permalink to this heading"></a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.npy</span></code>, the image array will be written to a numpy binary file. To write a canonical nifti-style array instead of the dicom-style array, set <code class="docutils literal notranslate"><span class="pre">nifti_array=True</span></code>. If <code class="docutils literal notranslate"><span class="pre">set_geometry</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> (which it is by default), a text file will be written to the same directory as the <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file containing the voxel sizes and origin.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage and data model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="structures.html" class="btn btn-neutral float-right" title="Regions of interest (ROIs) and structure sets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
