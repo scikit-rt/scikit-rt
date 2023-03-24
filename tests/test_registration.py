@@ -12,7 +12,7 @@ from skrt.simulation import SyntheticImage
 from skrt.registration import (
         Registration, RegistrationEngine,
         add_engine, engines, get_default_pfiles, get_default_pfiles_dir,
-        get_engine_cls, read_parameters, set_engine_dir)
+        get_engine_cls, read_parameters, set_elastix_dir, set_engine_dir)
 
 from test_structs import compare_rois
 
@@ -590,3 +590,17 @@ def test_set_engine_dir():
     with pytest.raises(RuntimeError) as error_info:
         set_engine_dir(path="unknown", engine="unknown")
     assert "engine not known" in str(error_info.value)
+
+
+def test_set_elastix_dir():
+    """Test deprecated function for setting elastix installation directory."""
+    # Check that deprecation warning is issued,
+    # and that exception is raised if elastix software not insalled
+    # in specified directory.
+    with pytest.warns(DeprecationWarning) as warning_info:
+        with pytest.raises(RuntimeError) as error_info:
+            set_elastix_dir(path="unknown")
+            assert ("not implemented" in str(error_info.value)
+                    or "executable(s) not found" in str(error_info.value))
+        assert 1 == len(warning_info)
+        assert "set_elastix_dir() deprecated" in warning_info[0].message.args[0]

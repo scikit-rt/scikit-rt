@@ -1,4 +1,41 @@
-"""Tools for performing image registration."""
+"""
+Classes and functions relating to image registration.
+
+The following classes are defined:
+
+- Registration
+- DeformationField
+- Grid
+- Jacobian
+- RegistrationEngine
+- Elastix
+- NiftyReg
+
+The following functions are defined:
+
+- add_engine() : Decorator for adding RegistrationEngine subclasses
+  to skrt.registartion.engines dictionary.
+- adjust_parameters() : Modify contents of a registration parameter file.
+- get_data_dir() : Return path to data directory within the scikit-rt package.
+- get_default_pfiles() : Get list of default parameter files.
+- get_default_pfiles_dir() :  Return path to directory containing
+  default parameter files for specified engine.
+- get_engine_cls() : Get registration-engine class, given engine name
+  or software directory.
+- get_image_transform_parameters() : Define Elastix registration-independent
+  parameters for transforms to the space of a specified image.
+- get_jacobian_colormap() : Return custom colour map, for highlighting
+  features of Jacobian determinant.
+- prepend_path() : Prepend path to environment variable.
+- read_parameters() : Get dictionary of parameters from a registration
+  parameter file.
+- set_elastix_dir() :  Perform environment setup for using elastix software.
+- set_engine_dir() : Perform environment setup for using registration software.
+- shift_translation_parameters() : Add offsets to the translation parameters
+  in an elastix parameter file.
+- write_parameters() : Write dictionary of parameters to a registration
+  parameter file.
+"""
 import matplotlib.pyplot as plt
 import matplotlib.cm
 import matplotlib.colors
@@ -9,6 +46,7 @@ from pathlib import Path
 from pkg_resources import resource_filename
 import shutil
 import subprocess
+import warnings
 
 import skrt.image
 from skrt.structures import ROI, StructureSet
@@ -22,11 +60,18 @@ Defaults({"registration_engine": "elastix"})
 
 engines = {}
 def add_engine(cls):
+    """
+    Decorator for adding skrt.registration.RegistrationEngine subclasses
+    to the skrt.registartion.engines dictionary.
+    """
     engines[cls.__name__.lower()] = cls
     return cls
 
 
 class Registration(Data):
+    """
+    Class for handling image registration.
+    """
 
     def __init__(
         self, path, fixed=None, moving=None, fixed_mask=None,
@@ -34,7 +79,8 @@ class Registration(Data):
         tfiles=None, initial_alignment=None, initial_transform_name=None,
         capture_output=False, log_level=None, keep_tmp_dir=False,
         engine=None, engine_dir=None):
-        """Load data for an image registration and run the registration if
+        """
+        Load data for an image registration, and run the registration if
         auto_seg=True.
 
         **Parameters:**
@@ -149,7 +195,7 @@ class Registration(Data):
             after use.
 
         engine: class, default=None
-            Name idenfiying the name of a class inheriting from
+            Name idenfiying a class inheriting from
             skrt.registration.RegistrationEngine, to be used for
             image registration.  The name should be a key of
             the dictionary skrt.registration.engines.  If None,
@@ -2400,9 +2446,26 @@ class NiftyReg(RegistrationEngine):
 
 
 def adjust_parameters(infile, outfile, params):
-    """Open a registration parameter file (works for both input parameter and
-    output transform files), adjust its parameters, and save it to a new
-    file.
+    """
+    Modify contents of a registration parameter file.
+
+    This function will work for any file that stores parameter-value pairs
+    in the format used by elastix:
+
+    - Lines beginning `//` are comments.
+    - Blank lines are ignored.
+    - A parameter-value pair is specified as:
+      ```
+      // Value is True or False.
+      (parameter "true")
+      (parameter "false")
+
+      // Value is a string.
+      (parameter "value")
+
+      // Value is a number.
+      (parameter value)
+      ```
 
     **Parameters:**
 
@@ -2429,22 +2492,8 @@ def adjust_parameters(infile, outfile, params):
 
 
 def get_data_dir():
-    """Return path to data directory within the Scikit-rt package."""
+    """Return path to data directory within the scikit-rt package."""
     return Path(resource_filename("skrt", "data"))
-
-
-def get_default_pfiles_dir(engine=None):
-    """
-    Return path to directory containing default parameter files.
-
-    **Parameter:**
-    engine: str, default=None
-        Name of registration engine for which path to directory
-        containing default parameter files is required.  If None,
-        use value set for skrt.core.Default().registration_engine.
-    """
-    engine = engine or Defaults().registration_engine
-    return get_data_dir() / f"{engine}_parameter_files"
 
 
 def get_default_pfiles(pattern="*.txt", engine=None, basename_only=False):
@@ -2470,6 +2519,21 @@ def get_default_pfiles(pattern="*.txt", engine=None, basename_only=False):
     if basename_only:
         return [file.name for file in files]
     return files
+
+
+def get_default_pfiles_dir(engine=None):
+    """
+    Return path to directory containing default parameter files
+    for specified engine.
+
+    **Parameter:**
+    engine: str, default=None
+        Name of registration engine for which path to directory
+        containing default parameter files is required.  If None,
+        use value set for skrt.core.Default().registration_engine.
+    """
+    engine = engine or Defaults().registration_engine
+    return get_data_dir() / f"{engine}_parameter_files"
 
 
 def get_engine_cls(engine=None, engine_dir=None):
@@ -2504,7 +2568,8 @@ def get_engine_cls(engine=None, engine_dir=None):
 
 def get_image_transform_parameters(im):
     """
-    Define Elastix parameters for warping an image to the space of image <im>.
+    Define Elastix registration-independent parameters for transforms
+    to the space of a specified image.
 
     **Parameter:**
     
@@ -2698,7 +2763,9 @@ def prepend_path(variable, path, path_must_exist=True):
 
 
 def read_parameters(infile):
-    """Get dictionary of parameters from a registratio parameter file."""
+    """
+    Get dictionary of parameters from a registratioin parameter file.
+    """
 
     lines = [line for line in open(infile).readlines() if line.startswith("(")]
     lines = [line[line.find("(") + 1 : line.rfind(")")].split()
@@ -2726,9 +2793,43 @@ def read_parameters(infile):
 
 
 def set_elastix_dir(path, force=True):
+    """
+    Perform environment setup for using elastix software.
+
+    Function deprecated - use set_engine_dir()
+
+    **Parameters:**
+
+    path : str/pathlib.Path, default=None
+        Path to directory containing elastix software.
+
+    force : bool, default=True
+        If False, modify environment based on <path> only if elastix software
+        can't be located in the existing environment.  If True, modify
+        environment based on <path> in all cases.
+    """
+    warnings.warn("set_elastix_dir() deprecated - "
+                  "use set_engine_dir(engine='elastix')", DeprecationWarning)
     set_engine_dir(path, "elastix", force)
 
+
 def set_engine_dir(path, engine=None, force=True):
+    """
+    Perform environment setup for using registration software.
+
+    path : str/pathlib.Path, default=None
+        Path to directory containing registration software.
+
+    engine : str, default=None
+        Name identifying the registration engine for which
+        environment setup is to be performed.  This should correspond
+        to a key of the dictionary skrt.registration.engines.
+
+    force : bool, default=True
+        If False, modify environment based on <path> only if registration
+        software can't be located in the existing environment.  If True, modify
+        environment based on <path> in all cases.
+    """
     if not engine in engines:
         raise RuntimeError(f"Registration engine not known: {engine}; "
                            f"known engines are: {list(engines)}")
@@ -2736,7 +2837,21 @@ def set_engine_dir(path, engine=None, force=True):
 
 
 def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
-    """Add to the translation parameters in a file."""
+    """
+    Add offsets to the translation parameters in an elastix parameter file.
+    
+    **Parameters:**
+
+    infile: str
+        Path to input parameter file.
+
+    dx, dy, dz: int, default=0
+        Amounts by which to increase translation parameters, along
+        x, y, z directions.
+
+    outfile: str, default=None
+        Path to output parameter file.  If None, overwrite input parameter file.
+    """
 
     if outfile is None:
         outfile = infile
@@ -2754,7 +2869,17 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
 
 
 def write_parameters(outfile, params):
-    """Write dictionary of parameters to a registration parameter file."""
+    """
+    Write dictionary of parameters to a registration parameter file.
+
+    **Parameters:**
+
+    outfile: str
+        Path to output file.
+
+    params: dict
+        Dictionary of parameters to be written to file.
+    """
 
     file = open(outfile, "w")
     for name, param in params.items():
