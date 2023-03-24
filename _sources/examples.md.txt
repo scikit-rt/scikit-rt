@@ -1,4 +1,4 @@
-# Scikit-rt demos
+# Scikit-rt by examples
 
 [Jupyter](https://jupyter.org/) notebooks are available that demonstrate
 scikit-rt functionality.  These may be obtained through either of the

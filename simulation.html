@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synthetic data &mdash; Scikit-rt 0.3.39 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Image registration" href="registration.html" />
+    <link rel="prev" title="Patients and studies" href="patients_and_studies.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage and data model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structures.html">Regions of interest (ROIs) and structure sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Synthetic data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synthetic-images">Synthetic images</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-a-synthetic-image">Creating a synthetic image</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#adding-shapes">Adding shapes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#plotting">Plotting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rotations-and-translations">Rotations and translations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getting-the-image-array">Getting the image array</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#saving">Saving</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-structures">Adding structures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#single-rois">Single ROIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#grouped-shapes">Grouped shapes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getting-rois">Getting ROIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#saving-rois">Saving ROIs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#synthetic-patient-objects">Synthetic Patient objects</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard shortcuts for pop-out interactive viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Synthetic data</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/simulation.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="synthetic-data">
+<h1>Synthetic data<a class="headerlink" href="#synthetic-data" title="Permalink to this heading"></a></h1>
+<section id="synthetic-images">
+<h2>Synthetic images<a class="headerlink" href="#synthetic-images" title="Permalink to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class enables the creation of images containing simple geometric shapes.</p>
+<img src="_static/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
+<section id="creating-a-synthetic-image">
+<h3>Creating a synthetic image<a class="headerlink" href="#creating-a-synthetic-image" title="Permalink to this heading"></a></h3>
+<p>To create an empty image, load the <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class and specify the desired image shape in order (x, y, z), e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.simulation</span> <span class="kn">import</span> <span class="n">SyntheticImage</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">SyntheticImage</span><span class="p">((</span><span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The following arguments can be used to adjust the image’s properties:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">voxel_size</span></code>: voxel sizes in mm in order (x, y, z); default (1, 1, 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">origin</span></code>: position of the top-left voxel in mm; default (0, 0, 0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intensity</span></code>: value of the background voxels of the image.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">noise_std</span></code>: standard deviation of Gaussian noise to apply to the image. This noise will also be added on top of any shapes. (Can be changed later by altering the <code class="docutils literal notranslate"><span class="pre">sim.noise_std</span></code> property).</p></li>
+</ul>
+<section id="adding-shapes">
+<h4>Adding shapes<a class="headerlink" href="#adding-shapes" title="Permalink to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> object has various methods for adding geometric shapes. Each shape has the following arguments:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">intensity</span></code>: intensity value with which to fill the voxels of this shape.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">above</span></code>: if <code class="docutils literal notranslate"><span class="pre">True</span></code>, this shape will be overlaid on top of all existing shapes; otherwise, it will be added below all other shapes.</p></li>
+</ul>
+<p>The available shapes and their specific arguments are:</p>
+<ul class="simple">
+<li><p><strong>Sphere</strong>: <code class="docutils literal notranslate"><span class="pre">sim.add_sphere(radius,</span> <span class="pre">centre=None)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">radius</span></code>: radius of the sphere in mm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centre</span></code>: position of the centre of the sphere in mm (if <code class="docutils literal notranslate"><span class="pre">None</span></code>, the sphere will be placed in the centre of the image).</p></li>
+</ul>
+</li>
+<li><p><strong>Cuboid</strong>: <code class="docutils literal notranslate"><span class="pre">sim.add_cuboid(side_length,</span> <span class="pre">centre=None)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">side_length</span></code>: side length in mm. Can either be a single value (to create a cube) or a list of the (x, y, z) side lengths.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centre</span></code>: position of the centre of the cuboid in mm (if <code class="docutils literal notranslate"><span class="pre">None</span></code>, the cuboid will be placed in the centre of the image).</p></li>
+</ul>
+</li>
+<li><p><strong>Cube</strong>: <code class="docutils literal notranslate"><span class="pre">sim.add_cube(side_length,</span> <span class="pre">centre=None)</span></code></p>
+<ul>
+<li><p>Same as <code class="docutils literal notranslate"><span class="pre">add_cuboid</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong>Cylinder</strong>: <code class="docutils literal notranslate"><span class="pre">sim.add_cylinder(radius,</span> <span class="pre">length,</span> <span class="pre">axis='z',</span> <span class="pre">centre=None)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">radius</span></code>: radius of the cylinder in mm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">length</span></code>: length of the cylinder in mm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis</span></code>: either <code class="docutils literal notranslate"><span class="pre">'x'</span></code>, <code class="docutils literal notranslate"><span class="pre">'y'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'z'</span></code>; direction along which the length of the cylinder should lie.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centre</span></code>: position of the centre of the cylinder in mm (if <code class="docutils literal notranslate"><span class="pre">None</span></code>, the cylinder will be placed in the centre of the image).</p></li>
+</ul>
+</li>
+<li><p><strong>Grid</strong>: <code class="docutils literal notranslate"><span class="pre">sim.add_grid(spacing,</span> <span class="pre">thickness=1,</span> <span class="pre">axis=None)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">spacing</span></code>: grid spacing in mm. Can either be a single value, or list of (x, y, z) spacings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thickenss</span></code>: gridline thickness in mm. Can either be a single value, or list of (x, y, z) thicknesses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis</span></code>: if None, gridlines will be created in all three directions; if set to <code class="docutils literal notranslate"><span class="pre">'x'</span></code>, <code class="docutils literal notranslate"><span class="pre">'y'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'z'</span></code>, grids will only be created in the plane orthogonal to the chosen axis, such that a solid grid runs through the image along that axis.</p></li>
+</ul>
+</li>
+</ul>
+<p>To remove all shapes from the image, run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="plotting">
+<h4>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class inherits from the <code class="docutils literal notranslate"><span class="pre">Image</span></code> class, and can thus be plotted in the same way by calling</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>along with any of the arguments available to the <code class="docutils literal notranslate"><span class="pre">Image</span></code> plotting method.</p>
+</section>
+<section id="rotations-and-translations">
+<h4>Rotations and translations<a class="headerlink" href="#rotations-and-translations" title="Permalink to this heading"></a></h4>
+<p>Rotations and translations can be applied to the image using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span><span class="p">,</span> <span class="n">roll</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Rotations and translations can be removed by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">reset_transforms</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-the-image-array">
+<h4>Getting the image array<a class="headerlink" href="#getting-the-image-array" title="Permalink to this heading"></a></h4>
+<p>To obtain a NumPy array containing the image data, run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This array will contain all of the added shapes, as well as having any rotations, translations, and noise applied.</p>
+</section>
+<section id="saving">
+<h4>Saving<a class="headerlink" href="#saving" title="Permalink to this heading"></a></h4>
+<p>The synthetic image can be written to an image file by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outname</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The output name <code class="docutils literal notranslate"><span class="pre">outname</span></code> can be:</p>
+<ul class="simple">
+<li><p>A path ending in <code class="docutils literal notranslate"><span class="pre">.nii</span></code> or <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>: image will be written to a nifti file.</p></li>
+<li><p>A path ending in <code class="docutils literal notranslate"><span class="pre">.npy</span></code>: image will be written to a binary NumPy file.</p></li>
+<li><p>A path to a directory: image will be written to dicom files (one file per slice) inside the directory.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">write</span></code> function can also take any of the arguments of the <code class="docutils literal notranslate"><span class="pre">Image.write()</span></code> function.</p>
+</section>
+</section>
+<section id="adding-structures">
+<h3>Adding structures<a class="headerlink" href="#adding-structures" title="Permalink to this heading"></a></h3>
+<p>When shapes are added to the image, they can also be set as ROIs. This allows you to:</p>
+<ul class="simple">
+<li><p>Plot them as contours or masks on top of the image;</p></li>
+<li><p>Access a <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object containing the ROIs;</p></li>
+<li><p>Write ROIs out separately as masks or as a dicom structure set file.</p></li>
+</ul>
+<section id="single-rois">
+<h4>Single ROIs<a class="headerlink" href="#single-rois" title="Permalink to this heading"></a></h4>
+<p>To assign a shape as an ROI, you can either give it a name upon creation, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">add_sphere</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;my_sphere&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or set the <code class="docutils literal notranslate"><span class="pre">is_roi</span></code> property to <code class="docutils literal notranslate"><span class="pre">True</span></code> (the ROI will then be given an automatic named based on its shape type):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">add_sphere</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="n">is_roi</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">sim.plot()</span></code> is called, its ROIs will automatically be plotted as contours. Some useful extra options to the <code class="docutils literal notranslate"><span class="pre">plot</span></code> function are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">roi_plot_type</span></code>: set plot type to any of the valid <code class="docutils literal notranslate"><span class="pre">ROI</span></code> plotting types (mask, contour, filled, centroid, filled centroid).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centre_on_roi</span></code>: name of ROI on which the plotted image should be centred.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">roi_legend</span></code>: set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to draw a legend containing the strutcure names.</p></li>
+</ul>
+</section>
+<section id="grouped-shapes">
+<h4>Grouped shapes<a class="headerlink" href="#grouped-shapes" title="Permalink to this heading"></a></h4>
+<p>Multiple shapes can be combined to create a single ROI. To do this, set the <code class="docutils literal notranslate"><span class="pre">group</span></code> argument to some string when creating shapes. Any shapes created with the same <code class="docutils literal notranslate"><span class="pre">group</span></code> name will be added to this group.</p>
+<p>E.g. to create a single ROI called “two_cubes” out of two cubes centred at different positions, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">add_cube</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">centre</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;two_cubes&#39;</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">add_cube</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">centre</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;two_cubes&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-rois">
+<h4>Getting ROIs<a class="headerlink" href="#getting-rois" title="Permalink to this heading"></a></h4>
+<p>To get a <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object containing all of the ROIs belonging to the image, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_structure_set</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can also access a single ROI as an <code class="docutils literal notranslate"><span class="pre">ROI</span></code> object by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_roi</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="saving-rois">
+<h4>Saving ROIs<a class="headerlink" href="#saving-rois" title="Permalink to this heading"></a></h4>
+<p>When the <code class="docutils literal notranslate"><span class="pre">SyntheticImage.write()</span></code> function is called, the ROIs belonging to that image will also be written. If the provided <code class="docutils literal notranslate"><span class="pre">outname</span></code> is that of a nifti or NumPy file, the ROIs will be written to nifti or Numpy files, respectively, inside a directory with the same name as <code class="docutils literal notranslate"><span class="pre">outname</span></code> but with the extension removed.</p>
+</section>
+</section>
+</section>
+<section id="synthetic-patient-objects">
+<h2>Synthetic Patient objects<a class="headerlink" href="#synthetic-patient-objects" title="Permalink to this heading"></a></h2>
+<p>The Patient class can be used to create a custom patient object from scratch, rather than loading a prexisting patient.</p>
+<p>To do this, first create a blank Patient object with your chosen ID:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s2">&quot;my_id&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Studies can then be added to this object. Optional arguments for adding a study are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">subdir</span></code>: a custom subdirectory in which the study will be nested when the Patient tree is written;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code>: a custom timestamp (if not set, this will be automatically generated)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">images</span></code>: a list of Image objects to associate with this study (note, Images can also be added to the Study later)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">image_type</span></code>: the type of image correspoding to the Images in <code class="docutils literal notranslate"><span class="pre">images</span></code>, if used (e.g. <code class="docutils literal notranslate"><span class="pre">CT</span></code>); this will determine the name of the directory in which the images are saved when the Patient tree is written.</p></li>
+</ul>
+<p>E.g. to add one study containing a single synthetic image with one ROI:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.simulation</span> <span class="kn">import</span> <span class="n">SyntheticImage</span>
+
+<span class="n">im</span> <span class="o">=</span> <span class="n">SyntheticImage</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+<span class="n">im</span><span class="o">.</span><span class="n">add_sphere</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_sphere&quot;</span><span class="p">)</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">add_study</span><span class="p">(</span><span class="s2">&quot;my_study&quot;</span><span class="p">,</span> <span class="n">images</span><span class="o">=</span><span class="p">[</span><span class="n">im</span><span class="p">],</span> <span class="n">image_type</span><span class="o">=</span><span class="s2">&quot;MR&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The patient tree can then be written out:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;some_dir&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will create a patient directory <code class="docutils literal notranslate"><span class="pre">somedir/my_id</span></code> containing the added study and its corresponding image and structure set.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="patients_and_studies.html" class="btn btn-neutral float-left" title="Patients and studies" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="registration.html" class="btn btn-neutral float-right" title="Image registration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

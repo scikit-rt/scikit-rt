@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>import_analysis &mdash; Scikit-rt 0.3.39 documentation</title>
+  <title>Usage and data model &mdash; Scikit-rt 0.3.39 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -17,8 +17,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="import_analysis package" href="import_analysis.html" />
-    <link rel="prev" title="voxtox.structures module" href="voxtox.structures.html" /> 
+    <link rel="next" title="Regions of interest (ROIs) and structure sets" href="structures.html" />
+    <link rel="prev" title="Scikit-rt by examples" href="examples.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,11 +41,15 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage and data model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage and data model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-model">Data model</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="structures.html">Regions of interest (ROIs) and structure sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
@@ -54,13 +58,10 @@
 <li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
 <li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">import_analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="import_analysis.html">import_analysis package</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
 </ul>
 
         </div>
@@ -77,9 +78,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">import_analysis</li>
+      <li class="breadcrumb-item active">Usage and data model</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/import_analysis_modules.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/usage.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -87,36 +88,56 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="import-analysis">
-<h1>import_analysis<a class="headerlink" href="#import-analysis" title="Permalink to this heading"></a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="import_analysis.html">import_analysis package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="import_analysis.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="import_analysis.patient.html">import_analysis.patient module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="import_analysis.patient.html#import_analysis.patient.ImportPatient"><code class="docutils literal notranslate"><span class="pre">ImportPatient</span></code></a></li>
+  <section id="usage-and-data-model">
+<h1>Usage and data model<a class="headerlink" href="#usage-and-data-model" title="Permalink to this heading"></a></h1>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
+<p>Scikit-rt can be used in scripts, to be run from the command line
+or to be executed on a batch system; and can be used in
+<a class="reference external" href="https://jupyter.org/">Jupyter</a> notebooks, where interactive features
+are enabled for image viewing.  The Scikit-rt installation includes both
+<a class="reference external" href="https://jupyter-notebook.readthedocs.io/en/latest/">Jupyter Notebook</a>
+and <a class="reference external" href="https://github.com/jupyterlab/jupyterlab">JupyterLab</a>.</p>
+<p>Scikit-rt is able to load <a class="reference external" href="https://www.dicomstandard.org/current">DICOM</a>
+data (images, RTDOSE, RTSTRUCT, RTPLAN) and
+<a class="reference external" href="https://nifti.nimh.nih.gov/">NIfTI</a> data (images, dose images,
+regions of interest (ROIs) represented as masks), and to convert between them.</p>
+</section>
+<section id="data-model">
+<h2>Data model<a class="headerlink" href="#data-model" title="Permalink to this heading"></a></h2>
+<p>The different types of radiotherapy data are represented in scikit-rt by
+different classes:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.image.html#skrt.image.Image">Image</a>;</p></li>
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose">Dose</a>;</p></li>
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.StructureSet">StructureSet</a>;</p></li>
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.ROI">ROI</a> (region of interest);</p></li>
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan">Plan</a>.</p></li>
 </ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="import_analysis.roi_names.html">import_analysis.roi_names module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="import_analysis.viewer.html">import_analysis.viewer module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="import_analysis.viewer.html#import_analysis.viewer.set_viewer_options"><code class="docutils literal notranslate"><span class="pre">set_viewer_options()</span></code></a></li>
+<p>There are associations between class instances:</p>
+<ul class="simple">
+<li><p>a StructureSet is composed of ROIs, and relates to a specific Image;</p></li>
+<li><p>a Plan has constraints relating to a StructureSet;</p></li>
+<li><p>a Dose is calculated on the basis of a Plan and the material densities
+represented by an Image.</p></li>
 </ul>
-</li>
+<p>Data relating to an indidual patient are typically grouped into one or
+more studies.  This is represented by the classes:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Patient">Patient</a>;</p></li>
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.patient.html#skrt.patient.Study">Study</a>.</p></li>
 </ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="import_analysis.html#module-import_analysis">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</div>
+<p>A class diagram for the data model is shown below.</p>
+<img src="_static/scikit-rt_data_model.png" alt="Scikit-rt data model" style="width:80%">
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="voxtox.structures.html" class="btn btn-neutral float-left" title="voxtox.structures module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="import_analysis.html" class="btn btn-neutral float-right" title="import_analysis package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="examples.html" class="btn btn-neutral float-left" title="Scikit-rt by examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="structures.html" class="btn btn-neutral float-right" title="Regions of interest (ROIs) and structure sets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

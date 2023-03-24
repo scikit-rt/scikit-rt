@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regions of interest (ROIs) and structure sets &mdash; Scikit-rt 0.3.39 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Patients and studies" href="patients_and_studies.html" />
+    <link rel="prev" title="Usage and data model" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage and data model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Regions of interest (ROIs) and structure sets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-roi-class">The ROI class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plotting-an-roi">Plotting an ROI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-out-an-roi">Writing out an ROI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-geometric-properties">Getting geometric properties</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#structure-sets-the-structureset-class">Structure Sets: the StructureSet class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#loading-a-structure-set">Loading a structure set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-a-filtered-copy-of-a-structure-set">Creating a filtered copy of a structure set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#renaming-rois">Renaming ROIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-rois">Getting ROIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filtering-a-structure-set">Filtering a structure set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-a-structure-set">Writing a structure set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assigning-structuresets-to-an-image">Assigning StructureSets to an Image</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard shortcuts for pop-out interactive viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Regions of interest (ROIs) and structure sets</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/structures.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="regions-of-interest-rois-and-structure-sets">
+<h1>Regions of interest (ROIs) and structure sets<a class="headerlink" href="#regions-of-interest-rois-and-structure-sets" title="Permalink to this heading"></a></h1>
+<p>A structure/region of interest (ROI) can be represented by either a set of contour points or a binary mask. The <code class="docutils literal notranslate"><span class="pre">ROI</span></code> class allows an ROI to be loaded from either of these sources and converted from one to the other.</p>
+<section id="the-roi-class">
+<h2>The ROI class<a class="headerlink" href="#the-roi-class" title="Permalink to this heading"></a></h2>
+<p>An <code class="docutils literal notranslate"><span class="pre">ROI</span></code> object, which contains a single ROI, can be created via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">ROI</span>
+<span class="n">roi</span> <span class="o">=</span> <span class="n">ROI</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">source</span></code> can be from any of the following:</p>
+<ul class="simple">
+<li><p>A dicom structure set file containing one or more sets of contours;</p></li>
+<li><p>A dictionary of contours, where the keys are slice positions in mm and the values are lists of lists of contour points for each contour on that slice;</p></li>
+<li><p>A nifti file containing a binary mask;</p></li>
+<li><p>A numpy file containing a binary mask;</p></li>
+<li><p>A numpy array.</p></li>
+</ul>
+<p>If the input object is a dicom file, the name of the ROI within that file must be given. In addition, if the input source is a dicom file or contour dictionary, in order to convert the contours to a mask, the user must provide either of the following arguments to the <code class="docutils literal notranslate"><span class="pre">ROI</span></code> creation:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code>: Assign an <code class="docutils literal notranslate"><span class="pre">Image</span></code> object associated with this ROI. The created mask will have the same dimensions as this image.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shape</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>, and <code class="docutils literal notranslate"><span class="pre">voxel_sizes</span></code>: This tells the ROI the dimensions of the pixel array to create when making the mask.</p></li>
+</ul>
+<p>Additional useful arguments are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">color</span></code>: set the colour of this ROI for plotting. If not specified, this will either be read from the dicom file (if given) or the ROI will be assigned a unique colour.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: set the name of this ROI. If the input is a dicom structure set file, this name will be used to select the correct ROI from the file. If not given, the ROI will be given a unique name (“ROI 1” etc)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load</span></code>: if <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), the input ROI will be converted into a mask/contours automatically upon creation. This can be time consuming if you are creating many ROIs, so setting it to <code class="docutils literal notranslate"><span class="pre">False</span></code> can save time and allow ROIs to be processed later on-demand.</p></li>
+</ul>
+<p>An <code class="docutils literal notranslate"><span class="pre">Image</span></code> object associated with this ROI can be set at any time via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
+</pre></div>
+</div>
+<p>This image can optionally be plotted in the background when the ROI is plotted.</p>
+<section id="plotting-an-roi">
+<h3>Plotting an ROI<a class="headerlink" href="#plotting-an-roi" title="Permalink to this heading"></a></h3>
+<p>ROIs can be plotted as contours or a mask or both, and with or without an associated image behind them. The simplest plot command is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This will plot a contour in the x-y plane, e.g.:</p>
+<img src="_static/struct_contour.png" alt="ROI contour plot" height="500"/>
+<p>Additional options are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">include_image</span></code>: boolean, set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to plot the associated image (if one is assigned) in the background;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">view</span></code>: specify the orientation (<code class="docutils literal notranslate"><span class="pre">x-y</span></code>, <code class="docutils literal notranslate"><span class="pre">y-z</span></code>, or <code class="docutils literal notranslate"><span class="pre">x-z</span></code>);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sl</span></code>, <code class="docutils literal notranslate"><span class="pre">pos</span></code>, or <code class="docutils literal notranslate"><span class="pre">idx</span></code>: specify the slice number, slice position in mm, or slice index;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">zoom</span></code>: amount by which to zoom in (will automatically zoom in on the centre of the ROI).</p></li>
+</ul>
+<p>The following plot types are available, set via the <code class="docutils literal notranslate"><span class="pre">plot_type</span></code> argument:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">contour</span></code>: plot a contour</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mask</span></code>: plot a binary mask</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filled</span></code>: plot a contour on top of a semi-transparent mask</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centroid</span></code>: plot a contour with the centroid marked by a cross</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filled</span> <span class="pre">centroid</span></code>: plot a contour and centroid on top of a semi-transparent mask</p></li>
+</ul>
+<p>Example contour plot with <code class="docutils literal notranslate"><span class="pre">include_image=True</span></code>:</p>
+<img src="_static/struct_contour_with_image.png" alt="ROI contour plot with image" height="500"/>
+<p>Example mask plot:</p>
+<img src="_static/struct_mask.png" alt="ROI binary mask plot" height="500"/>
+</section>
+<section id="writing-out-an-roi">
+<h3>Writing out an ROI<a class="headerlink" href="#writing-out-an-roi" title="Permalink to this heading"></a></h3>
+<p>An ROI can be written to a nifti or numpy file as a binary mask. This can be done either by specifying a filename with an appropriate extension, e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;my_roi.nii&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>would automatically write to a nifti file.</p>
+<p>Alternatively, the ROI’s name can be used to create the filename. This is done by just providing an extension, e.g. if an ROI were called “heart”, the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ext</span><span class="o">=</span><span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>would produce a file called <code class="docutils literal notranslate"><span class="pre">heart.nii</span></code> containing the ROI as a binary mask. An output directory can also be optionally provided, e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="s1">&#39;my_rois&#39;</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s1">&#39;.npy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>would produce a binary numpy file at <code class="docutils literal notranslate"><span class="pre">my_rois/heart.npy</span></code>.</p>
+</section>
+<section id="getting-geometric-properties">
+<h3>Getting geometric properties<a class="headerlink" href="#getting-geometric-properties" title="Permalink to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">ROI</span></code> class has various methods for obtaining geometric properties of the ROI:</p>
+<ul class="simple">
+<li><p><strong>Centroid</strong>: get the 3D centroid coordinates (i.e. the centre-of-mass of the ROI) in mm via <code class="docutils literal notranslate"><span class="pre">roi.get_centroid()</span></code>, or get the 2D coordinates for a single slice via <code class="docutils literal notranslate"><span class="pre">roi.get_centroid(view='x-y',</span> <span class="pre">sl=10)</span></code>, for example (the slice position in mm <code class="docutils literal notranslate"><span class="pre">pos</span></code> or slice index <code class="docutils literal notranslate"><span class="pre">idx</span></code> can be given instead of slice number <code class="docutils literal notranslate"><span class="pre">sl</span></code>)</p></li>
+<li><p><strong>Centre</strong>: get the 3D midpoint coordinates (i.e. the mean of the maximum extents in each direction, rather than centre of mass) via <code class="docutils literal notranslate"><span class="pre">roi.get_centre()</span></code>. The 2D midpoint of a slice is obtained in a similar way to the centroid, e.g. <code class="docutils literal notranslate"><span class="pre">roi.get_centre(view='x-y',</span> <span class="pre">sl=10)</span></code>.</p></li>
+<li><p><strong>Volume</strong>: <code class="docutils literal notranslate"><span class="pre">roi.get_volume(units)</span></code>, where <code class="docutils literal notranslate"><span class="pre">units</span></code> can either be <code class="docutils literal notranslate"><span class="pre">mm</span></code> or <code class="docutils literal notranslate"><span class="pre">voxels</span></code> (default <code class="docutils literal notranslate"><span class="pre">mm</span></code>).</p></li>
+<li><p><strong>Area</strong>: get the area of a given slice of an ROI by running e.g. <code class="docutils literal notranslate"><span class="pre">roi.get_area(view='x-y',</span> <span class="pre">sl=10,</span> <span class="pre">units='mm')</span></code>. To get the area of the central slice, can simply run <code class="docutils literal notranslate"><span class="pre">roi.get_area()</span></code>.</p></li>
+<li><p><strong>Length</strong>: get ROI length along a given axis by running <code class="docutils literal notranslate"><span class="pre">roi.get_length(axis,</span> <span class="pre">units)</span></code> where <code class="docutils literal notranslate"><span class="pre">axis</span></code> is <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, or <code class="docutils literal notranslate"><span class="pre">z</span></code> and <code class="docutils literal notranslate"><span class="pre">units</span></code> is <code class="docutils literal notranslate"><span class="pre">mm</span></code> or <code class="docutils literal notranslate"><span class="pre">voxels</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="structure-sets-the-structureset-class">
+<h2>Structure Sets: the StructureSet class<a class="headerlink" href="#structure-sets-the-structureset-class" title="Permalink to this heading"></a></h2>
+<p>A structure set is an object that contains multiple ROIs. This is implemented via the <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> class.</p>
+<section id="loading-a-structure-set">
+<h3>Loading a structure set<a class="headerlink" href="#loading-a-structure-set" title="Permalink to this heading"></a></h3>
+<p>A structure set is created via</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">StructureSet</span>
+<span class="n">structure_set</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The source can be:</p>
+<ul class="simple">
+<li><p>The path to a dicom structure set file containing multiple ROIs;</p></li>
+<li><p>The path to a directory containing one or more nifti or numpy files, each containing a binary ROI mask;</p></li>
+<li><p>A list of paths to nifti or numpy ROI mask files.</p></li>
+</ul>
+<p>In addition, more ROIs can be added later via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">add_rois</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">source</span></code> is any of the above source types.</p>
+<p>Alternatively, single ROIs can be added at a time via any of the valid <code class="docutils literal notranslate"><span class="pre">ROI</span></code> sources (see above), and with any of the <code class="docutils literal notranslate"><span class="pre">ROI</span></code> initialisation arguments. An empty <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> can be created and then populated, e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">()</span>
+<span class="n">structure_set</span><span class="o">.</span><span class="n">add_roi</span><span class="p">(</span><span class="s1">&#39;heart.nii&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+<span class="n">structure_set</span><span class="o">.</span><span class="n">add_roi</span><span class="p">(</span><span class="s1">&#39;some_structs.dcm&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lung&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> can also be associated with an <code class="docutils literal notranslate"><span class="pre">Image</span></code> object by specifying the <code class="docutils literal notranslate"><span class="pre">image</span></code> argument upon creation, or running <code class="docutils literal notranslate"><span class="pre">structure_set.set_image(image)</span></code>. This image will be assigned to all ROIs in the structure set.</p>
+</section>
+<section id="creating-a-filtered-copy-of-a-structure-set">
+<h3>Creating a filtered copy of a structure set<a class="headerlink" href="#creating-a-filtered-copy-of-a-structure-set" title="Permalink to this heading"></a></h3>
+<p>Sometimes you may wish to load many ROIs (e.g. from a dicom structure set file) and then filter them by name. This is done via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">filter_rois</span><span class="p">(</span><span class="n">to_keep</span><span class="p">,</span> <span class="n">to_remove</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">to_keep</span></code> and <code class="docutils literal notranslate"><span class="pre">to_remove</span></code> are optional lists containing ROI names, or wildcards with the <code class="docutils literal notranslate"><span class="pre">*</span></code> character. First, all of the ROIs belonging to <code class="docutils literal notranslate"><span class="pre">structure_set</span></code> are checked and only kept if they match the names or wildcards in <code class="docutils literal notranslate"><span class="pre">to_keep</span></code>. The remaining ROIs are then removed if their names match the names or wildcards in <code class="docutils literal notranslate"><span class="pre">to_remove</span></code>.</p>
+<p>To restore a structure set to its original state (i.e. reload it from its source), run <code class="docutils literal notranslate"><span class="pre">structure_set.reset()</span></code>.</p>
+</section>
+<section id="renaming-rois">
+<h3>Renaming ROIs<a class="headerlink" href="#renaming-rois" title="Permalink to this heading"></a></h3>
+<p>ROIs can be renamed by mapping from one or more possible original names to a single final name. In this way, multiple structure sets where the same ROI might have different names can be standardised to have the same ROI names.</p>
+<p>For example, let’s say you wish to rename the right parotid gland to <code class="docutils literal notranslate"><span class="pre">right_parotid</span></code>, but you know that it has a variety of names across different structure sets. You could do this with the following (assuming <code class="docutils literal notranslate"><span class="pre">my_structure_sets</span></code> is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">names_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;right_parotid&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;right*parotid&#39;</span><span class="p">,</span> <span class="s1">&#39;parotid*right&#39;</span><span class="p">,</span> <span class="s1">&#39;R parotid&#39;</span><span class="p">,</span> <span class="s1">&#39;parotid_R&#39;</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="k">for</span> <span class="n">structure_set</span> <span class="ow">in</span> <span class="n">my_structure_sets</span><span class="p">:</span>
+    <span class="n">structure_set</span><span class="o">.</span><span class="n">rename_rois</span><span class="p">(</span><span class="n">names_map</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, only one ROI per structure set will be renamed; for example, if a structure set for some reason contained both <code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">parotid</span></code> and <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">parotid</span></code>, only the first in the list (<code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">parotid</span></code>) would be renamed. This behaviour can be turned off by setting <code class="docutils literal notranslate"><span class="pre">first_match_only=False</span></code>; beware this could lead to duplicate ROI names.</p>
+<p>You can also choose to discard any ROIs that aren’t in your renaming map by setting <code class="docutils literal notranslate"><span class="pre">keep_renamed_only=True</span></code>.</p>
+</section>
+<section id="getting-rois">
+<h3>Getting ROIs<a class="headerlink" href="#getting-rois" title="Permalink to this heading"></a></h3>
+<p>Get a list of the <code class="docutils literal notranslate"><span class="pre">ROI</span></code> objects belonging to the structure set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">get_rois</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Get a list of names of the <code class="docutils literal notranslate"><span class="pre">ROI</span></code> objects:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">get_roi_names</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Get a dictionary of <code class="docutils literal notranslate"><span class="pre">ROI</span></code> objects with their names as keys:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">get_roi_dict</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Get an <code class="docutils literal notranslate"><span class="pre">ROI</span></code> object with a specific name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">get_roi</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Print the <code class="docutils literal notranslate"><span class="pre">ROI</span></code> names:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">print_rois</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="filtering-a-structure-set">
+<h3>Filtering a structure set<a class="headerlink" href="#filtering-a-structure-set" title="Permalink to this heading"></a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object can be copied to a new <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code>, optionally with some ROIs filtered/renamed (you might want to do this if you want to preserve the original structure set, while making a filtered version too), via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">filtered</span> <span class="o">=</span> <span class="n">structure_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">to_keep</span><span class="p">,</span> <span class="n">to_remove</span><span class="p">,</span> <span class="n">keep_renamed_only</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="writing-a-structure-set">
+<h3>Writing a structure set<a class="headerlink" href="#writing-a-structure-set" title="Permalink to this heading"></a></h3>
+<p>The ROIs in a structure set can be written to a directory of nifti or numpy files, via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">outdir</span></code> is the output directory and <code class="docutils literal notranslate"><span class="pre">ext</span></code> is either <code class="docutils literal notranslate"><span class="pre">.nii</span></code>, <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code> or <code class="docutils literal notranslate"><span class="pre">.npy</span></code>. Dicom writing will be supported in future.</p>
+</section>
+<section id="assigning-structuresets-to-an-image">
+<h3>Assigning StructureSets to an Image<a class="headerlink" href="#assigning-structuresets-to-an-image" title="Permalink to this heading"></a></h3>
+<p>Just as ROIs and structure sets can be associated with an image, the <code class="docutils literal notranslate"><span class="pre">Image</span></code> object can be associated with one or more <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. This is done via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">StructureSet</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="s2">&quot;some_image.nii&quot;</span><span class="p">)</span>
+<span class="n">structure_set</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="s2">&quot;roi_directory&quot;</span><span class="p">)</span>
+
+<span class="n">image</span><span class="o">.</span><span class="n">add_structure_set</span><span class="p">(</span><span class="n">structure_set</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, when the <code class="docutils literal notranslate"><span class="pre">Image</span></code> is plotted, the ROIs in its structure set(s) can be plotted on top. To plot all structure sets, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">structure_set</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that this could be slow if there are many structure sets containing many structures.</p>
+<p>To plot just one structure set, you can also provide the index of the structure set in the list of structure sets belonging to the image, e.g. to plot the most recently added structure set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">structure_set</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To add a legend to the plot, set <code class="docutils literal notranslate"><span class="pre">roi_legend=True</span></code>.</p>
+<p>The image’s structure sets can be cleared at any time via</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="o">.</span><span class="n">clear_structure_sets</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage and data model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="patients_and_studies.html" class="btn btn-neutral float-right" title="Patients and studies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

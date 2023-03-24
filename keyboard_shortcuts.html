@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>import_analysis &mdash; Scikit-rt 0.3.39 documentation</title>
+  <title>Keyboard shortcuts for pop-out interactive viewer &mdash; Scikit-rt 0.3.39 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -17,8 +17,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="import_analysis package" href="import_analysis.html" />
-    <link rel="prev" title="voxtox.structures module" href="voxtox.structures.html" /> 
+    <link rel="next" title="Legacy code" href="legacy.html" />
+    <link rel="prev" title="Image registration" href="registration.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,7 +41,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
@@ -50,17 +50,14 @@
 <li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard shortcuts for pop-out interactive viewer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Keyboard shortcuts for pop-out interactive viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
 <li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">import_analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="import_analysis.html">import_analysis package</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
 </ul>
 
         </div>
@@ -77,9 +74,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">import_analysis</li>
+      <li class="breadcrumb-item active">Keyboard shortcuts for pop-out interactive viewer</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/import_analysis_modules.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/keyboard_shortcuts.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -87,36 +84,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="import-analysis">
-<h1>import_analysis<a class="headerlink" href="#import-analysis" title="Permalink to this heading"></a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="import_analysis.html">import_analysis package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="import_analysis.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="import_analysis.patient.html">import_analysis.patient module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="import_analysis.patient.html#import_analysis.patient.ImportPatient"><code class="docutils literal notranslate"><span class="pre">ImportPatient</span></code></a></li>
+  <section id="keyboard-shortcuts-for-pop-out-interactive-viewer">
+<h1>Keyboard shortcuts for pop-out interactive viewer<a class="headerlink" href="#keyboard-shortcuts-for-pop-out-interactive-viewer" title="Permalink to this heading"></a></h1>
+<p>A minimal pop-up interactive viewer can be created by running <code class="docutils literal notranslate"><span class="pre">.view()</span></code> on
+any <code class="docutils literal notranslate"><span class="pre">Image</span></code>, <code class="docutils literal notranslate"><span class="pre">Dose</span></code>, <code class="docutils literal notranslate"><span class="pre">ROI</span></code> or <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> from python outside of a
+Jupyter notebook. The controls are:</p>
+<ul class="simple">
+<li><p>scroll: move 1 slice</p></li>
+<li><p>left/right keys: move 1 slice</p></li>
+<li><p>up/down keys: move 5 slices</p></li>
+<li><p>v: toggle orientation between axial, sagittal, and coronal</p></li>
+<li><p>d: toggle dose field opacity (if viewing dose field overlaid on image)</p></li>
+<li><p>c: toggle ROI plotting type between contour, filled, and mask (if viewing ROIs)</p></li>
+<li><p>j: jump between ROIs (if viewing a <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code>)</p></li>
 </ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="import_analysis.roi_names.html">import_analysis.roi_names module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="import_analysis.viewer.html">import_analysis.viewer module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="import_analysis.viewer.html#import_analysis.viewer.set_viewer_options"><code class="docutils literal notranslate"><span class="pre">set_viewer_options()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="import_analysis.html#module-import_analysis">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</div>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="voxtox.structures.html" class="btn btn-neutral float-left" title="voxtox.structures module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="import_analysis.html" class="btn btn-neutral float-right" title="import_analysis package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="registration.html" class="btn btn-neutral float-left" title="Image registration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="legacy.html" class="btn btn-neutral float-right" title="Legacy code" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
