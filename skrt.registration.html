@@ -113,10 +113,10 @@
 <p>Classes and functions relating to image registration.</p>
 <p>The following classes are defined:</p>
 <ul class="simple">
-<li><p>Registration</p></li>
-<li><p>DeformationField</p></li>
-<li><p>Grid</p></li>
-<li><p>Jacobian</p></li>
+<li><p>Registration : Class for handling image registration.</p></li>
+<li><p>DeformationField : Class representing a deformation field.</p></li>
+<li><p>Grid : Class representing a grid.</p></li>
+<li><p>Jacobian : Class representing a Jacobian determinant.</p></li>
 <li><p>RegistrationEngine</p></li>
 <li><p>Elastix</p></li>
 <li><p>NiftyReg</p></li>
@@ -148,13 +148,32 @@ parameter file.</p></li>
 </ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.registration.DeformationField">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">DeformationField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">DeformationField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.PathData" title="skrt.core.PathData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PathData</span></code></a></p>
-<p>Class representing a vector field.</p>
+<p>Class representing a deformation field.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.DeformationField.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Load vector field.</p>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise from a deformation-field source.</p>
+<dl class="simple">
+<dt>path<span class="classifier">str/array/Nifti1Image, default= “”</span></dt><dd><p>Data source.  Possibilities are the same as for skrt.image.Image,
+but should correspond to arrays of dimension 4.
+Otherwise, it can be loaded later with the load() method.</p>
+</dd>
+<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the deformation-field data will be immediately loaded.</p>
+</dd>
+<dt>signs<span class="classifier">tuple, default=None</span></dt><dd><p>Three element tuple of ints, indicating the igns to be applied to
+the (x, y, z) components of the deformation field, allowing
+for different conventions.  If None, components are taken to
+be as read from source.</p>
+</dd>
+<dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image object to be associated with the deformation field.</p>
+</dd>
+<dt>kwargs<span class="classifier">dict</span></dt><dd><p>Dictionary of keyword-value pairs, passed to the
+skrt.image.Image constructor when creating a representation
+of the deformation field.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -188,12 +207,23 @@ in voxels in each dimension.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.DeformationField.load">
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField.load" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Load deformation-field data from source. If already loaded and &lt;force&gt; 
+is False, nothing will happen.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the deformation-field data will be reloaded from source
+even if it has previously been loaded.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.DeformationField.plot">
 <span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quiver'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_xticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_yticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_xtick_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_ytick_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotate_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">major_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minor_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks_all_sides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_axis_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masked</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">mpl_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField.plot" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Plot deformation field.</p>
+<p>For explanation of parameters, see documentation for
+skrt.better_viewer.BetterViewer.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.DeformationField.view">
@@ -286,97 +316,20 @@ in mapping a point from fixed image to moving image.</p>
 <dt class="sig sig-object py" id="skrt.registration.Grid">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.dose.html#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageOverlay</span></code></a></p>
+<p>Class representating a grid.</p>
+<p>This is the same as the ImageOverlay class, but sets different
+attribute values at instantiation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Grid.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise from a medical image source.</p>
-<p><strong>Parameters:</strong></p>
-<dl>
-<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><p>Source of image data. Can be either:</p>
-<blockquote>
-<div><ol class="loweralpha simple">
-<li><p>A string, optionally with wildcards,
-containing the path to one or multiple dicom files,
-the path to a directory containg dicom files,
-or the path to a single nifti file;</p></li>
-<li><p>A list of paths, optionally with wildcards, to dicom files;</p></li>
-<li><p>A string, optionally containing wildcards, containing
-the path to a single numpy file containing a 2D or 3D array;</p></li>
-<li><p>A 2D or 3D numpy array;</p></li>
-<li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
-<li><p>An existing Image object to be cloned; in this case, all 
-other input args except &lt;title&gt; will be ignored, as these 
-will be taken from the existing Image.</p></li>
-</ol>
-</div></blockquote>
-<p>Notes:</p>
-<ol class="arabic simple">
-<li><p>If path points to a single file, all files in the same
-directory as this file are considered also.</p></li>
-</ol>
-<p>2. When path resolves to multiple dicom files, only files
-that match the values of the first file for the dicom
-attributes: “StudyInstanceUID”, “SeriesNumber”, “Modality”,
-“ImageOrientationPatient”.  When path points to a single file
-in a directory with others, this file is taken as the first
-file.  Otherwise, files are sorted according to natural sort
-order (so “2.dcm” before “11.dcm”).  To load images from files
-in a single directory (or in a directory tree) that may have
-different values for these, it could be better to use the
-skrt.patient.Patient class:</p>
-<p>from skrt import Patient
-p = Patient(“path/to/directory”, unsorted_dicom=True)</p>
-<p>For more details, see documentation of Patient class.</p>
-</dd>
-<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
-can be loaded later with the load() method.</p>
-</dd>
-<dt>title<span class="classifier">str, default=None</span></dt><dd><p>Title to use when plotting the image. If None and &lt;source&gt; is a
-path, a title will be automatically generated from the filename.</p>
-</dd>
-<dt>affine<span class="classifier">4x4 array, default=None</span></dt><dd><p>Array containing the affine matrix to use if &lt;source&gt; is a numpy
-array or path to a numpy file. If not None, this takes precendence
-over &lt;voxel_size&gt; and &lt;origin&gt;.</p>
-</dd>
-<dt>voxel_size<span class="classifier">tuple, default=(1, 1, 1)</span></dt><dd><p>Voxel sizes in mm in order (x, y, z) to use if &lt;source&gt; is a numpy
-array or path to a numpy file and &lt;affine&gt; is not provided.</p>
-</dd>
-<dt>origin<span class="classifier">tuple, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z) to use if &lt;source&gt; is a
-numpy array or path to a numpy file and &lt;affine&gt; is not provided.</p>
-</dd>
-<dt>nifti_array<span class="classifier">bool, default=False</span></dt><dd><p>If True and &lt;source&gt; is a numpy array or numpy file, the array
-will be treated as a nifti-style array, i.e. (x, y, z) in
-(row, column, slice), as opposed to dicom style.</p>
-</dd>
-<dt>downsample<span class="classifier">int/list, default=None</span></dt><dd><p>Amount by which to downsample the image. Can be a single value for
-all axes, or a list containing downsampling amounts in order
-(x, y, z).</p>
-</dd>
-<dt>dtype<span class="classifier">type, default=None</span></dt><dd><p>Type to which loaded data should be cast.</p>
-</dd>
-<dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
-timestamp generated from current date and time.</p>
-</dd>
-<dt>default_intensity<span class="classifier">tuple,None default=(-200, 300)</span></dt><dd><p>Default intensity range for image display.  This can
-be specified as a two-element tuple, giving minimum and maximum,
-or if set to None then intensity range used is from the
-minimum of zero and the image minimum, to the image maximum.
-If WindowCenter and WindowWidth are defined in a
-DICOM source file, these values will be used instead to
-define the default intensity range.</p>
-</dd>
-<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
-log_level is set to the value of skrt.core.Defaults().log_level.</p>
-</dd>
-</dl>
+<dd><p>Perform ImageOverlay initialisation, then overwrite
+selected attribute values.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Grid.view">
 <span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.view" title="Permalink to this definition"></a></dt>
-<dd><p>View self with BetterViewer along with any additional images in 
-&lt;images&gt;. Any <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> will be passed to BetterViewer
-initialisation.</p>
+<dd><p>View the Grid.</p>
 </dd></dl>
 
 </dd></dl>
@@ -385,97 +338,20 @@ initialisation.</p>
 <dt class="sig sig-object py" id="skrt.registration.Jacobian">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.dose.html#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageOverlay</span></code></a></p>
+<p>Class for representing a Jacobian determinant.</p>
+<p>This is the same as the ImageOverlay class, but sets different
+attribute values at instantiation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Jacobian.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise from a medical image source.</p>
-<p><strong>Parameters:</strong></p>
-<dl>
-<dt>path<span class="classifier">str/array/Nifti1Image, default = “”</span></dt><dd><p>Source of image data. Can be either:</p>
-<blockquote>
-<div><ol class="loweralpha simple">
-<li><p>A string, optionally with wildcards,
-containing the path to one or multiple dicom files,
-the path to a directory containg dicom files,
-or the path to a single nifti file;</p></li>
-<li><p>A list of paths, optionally with wildcards, to dicom files;</p></li>
-<li><p>A string, optionally containing wildcards, containing
-the path to a single numpy file containing a 2D or 3D array;</p></li>
-<li><p>A 2D or 3D numpy array;</p></li>
-<li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
-<li><p>An existing Image object to be cloned; in this case, all 
-other input args except &lt;title&gt; will be ignored, as these 
-will be taken from the existing Image.</p></li>
-</ol>
-</div></blockquote>
-<p>Notes:</p>
-<ol class="arabic simple">
-<li><p>If path points to a single file, all files in the same
-directory as this file are considered also.</p></li>
-</ol>
-<p>2. When path resolves to multiple dicom files, only files
-that match the values of the first file for the dicom
-attributes: “StudyInstanceUID”, “SeriesNumber”, “Modality”,
-“ImageOrientationPatient”.  When path points to a single file
-in a directory with others, this file is taken as the first
-file.  Otherwise, files are sorted according to natural sort
-order (so “2.dcm” before “11.dcm”).  To load images from files
-in a single directory (or in a directory tree) that may have
-different values for these, it could be better to use the
-skrt.patient.Patient class:</p>
-<p>from skrt import Patient
-p = Patient(“path/to/directory”, unsorted_dicom=True)</p>
-<p>For more details, see documentation of Patient class.</p>
-</dd>
-<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the image data will be immediately loaded. Otherwise, it
-can be loaded later with the load() method.</p>
-</dd>
-<dt>title<span class="classifier">str, default=None</span></dt><dd><p>Title to use when plotting the image. If None and &lt;source&gt; is a
-path, a title will be automatically generated from the filename.</p>
-</dd>
-<dt>affine<span class="classifier">4x4 array, default=None</span></dt><dd><p>Array containing the affine matrix to use if &lt;source&gt; is a numpy
-array or path to a numpy file. If not None, this takes precendence
-over &lt;voxel_size&gt; and &lt;origin&gt;.</p>
-</dd>
-<dt>voxel_size<span class="classifier">tuple, default=(1, 1, 1)</span></dt><dd><p>Voxel sizes in mm in order (x, y, z) to use if &lt;source&gt; is a numpy
-array or path to a numpy file and &lt;affine&gt; is not provided.</p>
-</dd>
-<dt>origin<span class="classifier">tuple, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z) to use if &lt;source&gt; is a
-numpy array or path to a numpy file and &lt;affine&gt; is not provided.</p>
-</dd>
-<dt>nifti_array<span class="classifier">bool, default=False</span></dt><dd><p>If True and &lt;source&gt; is a numpy array or numpy file, the array
-will be treated as a nifti-style array, i.e. (x, y, z) in
-(row, column, slice), as opposed to dicom style.</p>
-</dd>
-<dt>downsample<span class="classifier">int/list, default=None</span></dt><dd><p>Amount by which to downsample the image. Can be a single value for
-all axes, or a list containing downsampling amounts in order
-(x, y, z).</p>
-</dd>
-<dt>dtype<span class="classifier">type, default=None</span></dt><dd><p>Type to which loaded data should be cast.</p>
-</dd>
-<dt>auto_timestamp<span class="classifier">bool default=False</span></dt><dd><p>If true and no valid timestamp is found within the path string,
-timestamp generated from current date and time.</p>
-</dd>
-<dt>default_intensity<span class="classifier">tuple,None default=(-200, 300)</span></dt><dd><p>Default intensity range for image display.  This can
-be specified as a two-element tuple, giving minimum and maximum,
-or if set to None then intensity range used is from the
-minimum of zero and the image minimum, to the image maximum.
-If WindowCenter and WindowWidth are defined in a
-DICOM source file, these values will be used instead to
-define the default intensity range.</p>
-</dd>
-<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
-log_level is set to the value of skrt.core.Defaults().log_level.</p>
-</dd>
-</dl>
+<dd><p>Perform ImageOverlay initialisation, then overwrite
+selected attribute values.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Jacobian.view">
 <span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian.view" title="Permalink to this definition"></a></dt>
-<dd><p>View self with BetterViewer along with any additional images in 
-&lt;images&gt;. Any <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> will be passed to BetterViewer
-initialisation.</p>
+<dd><p>View the Jacobian determinant.</p>
 </dd></dl>
 
 </dd></dl>
@@ -663,9 +539,8 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 performing transformations.  Otherwise, delete this directory
 after use.</p>
 </dd>
-<dt>engine: class, default=None</dt><dd><p>Name idenfiying a class inheriting from
-skrt.registration.RegistrationEngine, to be used for
-image registration.  The name should be a key of
+<dt>engine: str, default=None</dt><dd><p>Name of the registration engine to use for
+image registration.  This should be a key of
 the dictionary skrt.registration.engines.  If None,
 the first key found to be a substring of &lt;engine_dir&gt;
 is used, or if there’s no match then the value of
