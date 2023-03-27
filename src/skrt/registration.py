@@ -2471,29 +2471,22 @@ class RegistrationEngine:
 
 @add_engine
 class Elastix(RegistrationEngine):
-    # Indicate that mapping of points, from fixed image to moving image,
-    # is implemented.
+    """
+    Class interfacing to elastix registration engine.
+    """
+    # Indicate whether registration engine implements mapping of points
+    # from fixed image to moving images.
     transform_points_implemented = True
 
     def __init__(self, **kwargs):
+        # Initialise paths to executables.
         self.elastix = "elastix"
         self.transformix = "transformix"
+
+        # Perform rest of initialisation via base class.
         super().__init__(**kwargs)
 
     def define_translation(self, dxdydz, fixed_image):
-        """
-        Define Elastix translation parameters from 3-element tuple or list.
-
-        **Parameter:**
-
-        dxdydz : tuple/list
-            Three-element tuple or list, giving translations in order
-            (dx, dy, dz).  Translations correspond to the amounts added
-            in mapping a point from fixed image to moving image.
-
-        fixed_image : skrt.image.Image
-            Image towards which moving image is to be warped.
-        """
         # Define translation parameters that are enough to allow
         # application before a registration step.
         translation = {
@@ -2512,43 +2505,56 @@ class Elastix(RegistrationEngine):
         return translation
 
     def get_def_cmd(self, fixed_path, outdir, tfile):
+        # Return command for computing deformation field.
         return f"{self.transformix} -def all -out {outdir} -tp {tfile}".split()
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
+        # Return command for computing Jacobian determinant.
         return f"{self.transformix} -jac all -out {outdir} -tp {tfile}".split()
 
     def get_registration_cmd(
             self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
             pfile, outdir, tfile=None):
 
+        # Start command with execuable and paths to fixed and moving images.
         cmd = [
             self.elastix,
             '-f', fixed_path,
             '-m', moving_path,
             ]
+
+        # Add paths for any masks to be applied.
         if os.path.exists(fixed_mask_path):
             cmd.extend(['-fMask', fixed_mask_path])
         if os.path.exists(moving_mask_path):
             cmd.extend(['-mMask', moving_mask_path])
+
+        # Add paths to registration parameter file and output directory.
         cmd.extend([
             "-p", pfile,
             '-out', outdir
             ])
+
+        # Add transform parameter file from previous registration step.
         if tfile is not None:
             cmd.extend(['-t0', tfile])
 
+        # Return command for performing image registration.
         return cmd
 
     def get_roi_params(self):
-        """Get default parameters to be used when transforming ROI masks."""
+        # Return parameters to include when transforming ROI masks.
         return {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
 
     def get_transformation_cmd(
             self, fixed_path, moving_path, outdir, tfile, params=None):
+        # Perform any modifications to the transform parameter file.
         if params:
             out_tfile = str(Path(outdir) / Path(tfile).name)
             adjust_parameters(tfile, out_tfile, params)
             tfile = out_tfile
+
+        # Return command for applying registration transform.
         return [
             self.transformix,
             "-def" if ".txt" == Path(moving_path).suffix else "-in",
@@ -2560,7 +2566,7 @@ class Elastix(RegistrationEngine):
         ]
 
     def set_exe_paths(self, path):
-
+        # Set paths to elastix executables.
         exe_dir = None
         sw_dir = Path(fullpath(path))
         if sw_dir.is_dir():
@@ -2571,35 +2577,30 @@ class Elastix(RegistrationEngine):
                 self.elastix = "elastix.exe"
                 self.transformix = "transformix.exe"
 
+        # Return the path to the directory containing the executables.
         return exe_dir
 
 @add_engine
 class NiftyReg(RegistrationEngine):
-    # Indicate signs of (x, y, z) components of deformation field.
+    """
+    Class interfacing to NiftyReg registration engine.
+    """
+    # Indicate signs to be applied to (x, y, z) components of deformation field.
+    # If None, components are taken to be as read from file.
     def_signs = (-1, -1, 1)
 
     def __init__(self, **kwargs):
+        # Initialise paths to executables.
         self.reg_aladin = "reg_aladin"
         self.reg_f3d = "reg_f3d"
         self.reg_jacobian = "reg_jacobian"
         self.reg_resample = "reg_resample"
         self.reg_transform = "reg_transform"
+
+        # Perform rest of initialisation via base class.
         super().__init__(**kwargs)
 
     def define_translation(self, dxdydz, fixed_image):
-        """
-        Define NiftyReg translation parameters from 3-element tuple or list.
-
-        **Parameter:**
-
-        dxdydz : tuple/list
-            Three-element tuple or list, giving translations in order
-            (dx, dy, dz).  Translations correspond to the amounts added
-            in mapping a point from fixed image to moving image.
-
-        fixed_image : skrt.image.Image
-            Image towards which moving image is to be warped.
-        """
         # Define translation parameters that are enough to allow
         # application before a registration step.
         # Signs account for different conventions between NiftyReg and Elastix.
@@ -2613,10 +2614,12 @@ class NiftyReg(RegistrationEngine):
         return translation
 
     def get_def_cmd(self, fixed_path, outdir, tfile):
+        # Return command for computing deformation field.
         return (f"{self.reg_transform} -ref {fixed_path} "
                 f"-disp {tfile} {outdir}/deformationField.nii").split()
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
+        # Return command for computing Jacobian determinant.
         if ".nii" == Path(tfile).suffix:
             return (f"{self.reg_jacobian} -trans {tfile} -ref {fixed_path} "
                     f"-jac {outdir}/spatialJacobian.nii").split()
@@ -2625,19 +2628,29 @@ class NiftyReg(RegistrationEngine):
             self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
             pfile, outdir, tfile=None):
 
+        # Read registration parameters from file.
         params = read_parameters(pfile)
+
+        # Define path to output directory.
         outdir = Path(outdir)
 
+        # Start command with execuable, paths to fixed and moving images,
+        # and path to output file (name following elastix convention).
         cmd = [
             getattr(self, params["exe"]),
             '-ref', fixed_path,
             '-flo', moving_path,
             '-res', str(outdir / "result.0.nii"),
             ]
+
+        # Add paths for any masks to be applied.
         if os.path.exists(fixed_mask_path):
             cmd.extend(['-rmask', fixed_mask_path])
         if os.path.exists(moving_mask_path):
             cmd.extend(['-fmask', moving_mask_path])
+
+        # Add path to transform from any previous (affine) step,
+        # and path to output transform.
         if "reg_aladin" in cmd[0]:
             cmd.extend(['-aff', str(outdir / "TransformParameters.0.txt")])
             if tfile:
@@ -2647,6 +2660,7 @@ class NiftyReg(RegistrationEngine):
                 cmd.extend(['-aff', tfile])
             cmd.extend(['-cpp', str(outdir / "TransformParameters.0.nii")])
 
+        # Add any other parameter-value pairs.
         for param, val in params.items():
             if "exe" != param and param not in cmd:
                 cmd.append(param)
@@ -2656,23 +2670,24 @@ class NiftyReg(RegistrationEngine):
         return cmd
 
     def get_roi_params(self):
-        """Get default parameters to be used when transforming ROI masks."""
+        # Return parameters to include when transforming ROI masks.
         return {"-inter": 0}
 
     def get_transformation_cmd(
             self, fixed_path, moving_path, outdir, tfile, params=None):
+        # Construct part of command relating to any input parameters.
         params = params or {}
         if not "-pad" in params:
             params["-pad"] = 0
-            #params["-pad"] = str(skrt.image.Image(fixed_path).get_min())
         params = [str(val) for items in params.items() for val in items]
 
+        # Return command for applying registration transform.
         return [self.reg_resample, "-ref", fixed_path, "-flo", moving_path,
                 "-res", str(Path(outdir) / 'result.nii'),
                 "-trans", tfile] + params
 
     def set_exe_paths(self, path):
-
+        # Set paths to NiftyReg executables.
         exe_dir = Path(fullpath(path)) / "bin"
         if (exe_dir / "reg_f3d").exists():
             return exe_dir
