@@ -38,4 +38,4 @@ more studies.  This is represented by the classes:
 
 A class diagram for the data model is shown below.
 
-<img src="docs/images/scikit-rt_data_model.png" alt="Scikit-rt data model" style="width:80%">
+<img src="../images/scikit-rt_data_model.png" alt="Scikit-rt data model" style="width:80%">

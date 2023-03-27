@@ -40,7 +40,7 @@ roi.plot()
 ```
 This will plot a contour in the x-y plane, e.g.:
 
-<img src="docs/images/struct_contour.png" alt="ROI contour plot" height="500"/>
+<img src="../images/struct_contour.png" alt="ROI contour plot" height="500"/>
 
 Additional options are:
 - `include_image`: boolean, set to `True` to plot the associated image (if one is assigned) in the background; 
@@ -57,11 +57,11 @@ The following plot types are available, set via the `plot_type` argument:
 
 Example contour plot with `include_image=True`:
 
-<img src="docs/images/struct_contour_with_image.png" alt="ROI contour plot with image" height="500"/>
+<img src="../images/struct_contour_with_image.png" alt="ROI contour plot with image" height="500"/>
 
 Example mask plot:
 
-<img src="docs/images/struct_mask.png" alt="ROI binary mask plot" height="500"/>
+<img src="../images/struct_mask.png" alt="ROI binary mask plot" height="500"/>
 
 
 ### Writing out an ROI

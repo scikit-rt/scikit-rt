@@ -202,4 +202,4 @@ max_dose.view()
 
 The following is an Example plot of maximum-dose objective.
 
-<img src="docs/images/maximum_dose.png" alt="Plot of maximum-dose objective" height="400"/>
+<img src="../images/maximum_dose.png" alt="Plot of maximum-dose objective" height="400"/>

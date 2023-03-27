@@ -64,12 +64,12 @@ if [[ `uname -s` == "Darwin" ]]; then
 else
     BLANK=''
 fi
-sed -i $BLANK 's/docs\/installation/installation/' 'source/examples.md'
-sed -i $BLANK 's/docs\/installation/installation/' 'source/registration.md'
-sed -i $BLANK 's/docs\/images/_static/' 'source/usage.md'
-sed -i $BLANK 's/docs\/images/_static/' 'source/patients_and_studies.md'
-sed -i $BLANK 's/docs\/images/_static/' 'source/simulation.md'
-sed -i $BLANK 's/docs\/images/_static/' 'source/structures.md'
+sed -i $BLANK 's/\.\.\/installation/installation/' 'source/examples.md'
+sed -i $BLANK 's/\.\.\/installation/installation/' 'source/registration.md'
+sed -i $BLANK 's/\.\.\/images/_static/' 'source/usage.md'
+sed -i $BLANK 's/\.\.\/images/_static/' 'source/patients_and_studies.md'
+sed -i $BLANK 's/\.\.\/images/_static/' 'source/simulation.md'
+sed -i $BLANK 's/\.\.\/images/_static/' 'source/structures.md'
 rm source/*.md\'\'
 
 # Delete and recreate html-format documentation
