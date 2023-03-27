@@ -19,7 +19,7 @@ following:
     Navigate to the example notebooks, in the directory
     `scikit-rt/examples/notebooks`.
 
-The [scikit-rt installation](installation.md) includes both
+The [scikit-rt installation](docs/installation.md) includes both
 [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/latest/) and
 [JupyterLab](https://github.com/jupyterlab/jupyterlab).  With the
 environment for using scikit-rt activated, a downloaded notebook can
