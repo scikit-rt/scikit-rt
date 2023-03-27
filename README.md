@@ -16,7 +16,7 @@ This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
 1. [Documentation and support](docs/markdown/support.md)
 2. [Installation](docs/markdown/installation.md)
-3. [Scikit-rt demos](docs/markdown/examples.md)
+3. [Scikit-rt by examples](docs/markdown/examples.md)
 4. [Usage and data model](docs/markdown/usage.md)
 5. [Images](docs/markdown/images.md)
 6. [Regions of interest and structure sets](docs/markdown/structures.md)
