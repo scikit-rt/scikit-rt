@@ -7,9 +7,9 @@ The following classes are defined:
 - DeformationField : Class representing a deformation field.
 - Grid : Class representing a grid.
 - Jacobian : Class representing a Jacobian determinant.
-- RegistrationEngine
-- Elastix
-- NiftyReg
+- RegistrationEngine : Base class for interfacing to a registration engine.
+- Elastix: Class interfacing to elastix registration engine.
+- NiftyReg: Class interfacing to NiftyReg registration engine.
 
 The following functions are defined:
 
@@ -2188,8 +2188,45 @@ class DeformationField(PathData):
 
 
 class RegistrationEngine:
-    # Indicate that mapping of points, from fixed image to moving images,
-    # isn't implemented.
+    """
+    Base class for interfacing to a registration engine.
+
+    Some methods are effectively virtual: they will raise
+    a NotImplementedError exception if called, and should be overridden
+    in subclasses.
+
+    This class defines the following variables and methods:
+
+    **Class variables:**
+    transform_points_implemented (bool): Indicate whether registration engine
+        implements mapping of points from fixed image to moving images.
+    def_signs (tuple/None): Indicate signs to be applied to
+        (x, y, z) components of deformation field.
+
+    **Methods:**
+    __init__():  Create RegistrationEngine instance.
+    define_translation(): Define translation parameters to be passed
+        to registration engine.
+    get_default_pfiles(): Get list of default parameter files.
+    get_default_pfiles_dir(): Return path to directory containing
+        default parameter files.
+    get_def_cmd(): Get registration-engine command for computing
+        deformation field.
+    get_jac_cmd(): Get registration-engine command for computing
+        Jacobian determinant.
+    get_registration_cmd(): Get registration-engine command for
+        performing image registration.
+    get_roi_params(): Get default parameters to be used when
+        transforming ROI mask.
+    get_transformation_cmd():
+        Get registration-engine command for applying registration transform.
+    set_exe_env(): Set environment variables for running
+        registration-engine software.
+    set_exe_paths():
+        Set path(s)s to registration-engine executable(s).
+    """
+    # Indicate whether registration engine implements mapping of points
+    # from fixed image to moving images.
     transform_points_implemented = False
 
     # Indicate signs to be applied to (x, y, z) components of deformation field.
@@ -2198,9 +2235,16 @@ class RegistrationEngine:
 
     def __init__(self, path=None, force=False, log_level=None):
         """
+        Create RegistrationEngine instance.
+
         **Parameters:**
         path : str/pathlib.Path, default=None
             Path to directory containing registration-engine software.
+
+        force : bool, default=False
+        If False, modify environment based on <path> only if registration
+        software can't be located in the existing environment.  If True, modify
+        environment based on <path> in all cases.
 
         log_level: str/int/None, default=None
             Severity level for event logging.  If the value is None,
@@ -2217,12 +2261,21 @@ class RegistrationEngine:
         self.set_exe_env(path, force)
 
     def define_translation(self, dxdydz, fixed_image):
+        """
+        Define translation parameters to be passed to registration engine.
+
+        **Parameters:**
+
+        dxdydz : tuple/list
+            Three-element tuple or list, giving translations in order
+            (dx, dy, dz).  Translations correspond to the amounts added
+            in mapping a point from fixed image to moving image.
+
+        fixed_image : skrt.image.Image
+            Image towards which moving image is to be warped.
+        """
         raise NotImplementedError("Method 'define_translation()' "
                                   f"not implemented for class {type(self)}")
-
-    def get_default_pfiles_dir(self):
-        """Return path to directory containing default parameter files."""
-        return get_data_dir() / f"{self.name}_parameter_files"
 
     def get_default_pfiles(self, basename_only=True):
         """
@@ -2231,7 +2284,7 @@ class RegistrationEngine:
         **Parameter:**
 
         basename_only : bool, default=True
-            If True, return list of filenames only.  If True, return list
+            If True, return list of filenames only.  If False, return list
             of paths, as pathlib.Path objects.
         """
         files = [file for file in self.get_default_pfiles_dir().iterdir()
@@ -2240,46 +2293,152 @@ class RegistrationEngine:
             return [file.name for file in files]
         return files
 
+    def get_default_pfiles_dir(self):
+        """
+        Return path to directory containing default parameter files.
+        """
+        return get_data_dir() / f"{self.name}_parameter_files"
+
     def get_def_cmd(self, fixed_path, outdir, tfile):
+        """
+        Get registration-engine command for computing deformation field.
+
+        **Parameters:**
+
+        fixed_path : str
+            Path to fixed image.
+
+        outdir : str
+            Path to directory for output deformation field.
+
+        tfile : str
+            Path to registration transform file for which deformation
+            field is to be computed.
+        """
         raise NotImplementedError("Method 'get_def_cmd()' "
                                   f"not implemented for class {type(self)}")
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
+        """
+        Get registration-engine command for computing Jacobian determinant.
+
+        **Parameters:**
+
+        fixed_path : str
+            Path to fixed image.
+
+        outdir : str
+            Path to directory for output deformation field.
+
+        tfile : str
+            Path to registration transform file for which deformation
+            field is to be computed.
+        """
         raise NotImplementedError("Method 'get_jac_cmd()' "
                                   f"not implemented for class {type(self)}")
 
     def get_registration_cmd(
             self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
             pfile, outdir, tfile=None):
+        """
+        Get registration-engine command for performing image registration.
+
+        **Parameters:**
+
+        fixed_path : str
+            Path to fixed image.
+
+        moving_path : str
+            Path to moving image.
+
+        fixed_mask_path : str
+            Path to mask for fixed image.
+
+        moving_mask_path : str
+            Path to mask for moving image.
+
+        pfile : str
+            Path to registration paramter file.
+
+        outdir : str
+            Path to directory for registration output.
+
+        tfile : str, default=None
+            Path to registration transform file from previous registration
+            step.  If None, no previous registration step is it be considered.
+        """
         raise NotImplementedError("Method 'get_registration_cmd()' "
                                   f"not implemented for class {type(self)}")
 
     def get_roi_params(self):
-        """Get default parameters to be used when transforming ROI masks."""
+        """
+        Get default parameters to be used when transforming ROI mask.
+        """
         return {}
 
     def get_transformation_cmd(
             self, fixed_path, moving_path, outdir, tfile, params=None):
+        """
+        Get registration-engine command for applying registration transform.
+
+        **Parameters:**
+
+        fixed_path : str
+            Path to fixed image.
+
+        moving_path : str
+            Path to moving image.
+
+        outdir : str
+            Path to directory for transform output.
+
+        tfile : str
+            Path to registration transform file to be applied.
+
+        params: dict, default=None
+            Dictionary of parameter-value pairs defining modifications
+            to the registration transform file prior to running the
+            transform command.  The original transform file is left
+            unaltered.
+        """
         raise NotImplementedError("Method 'get_transformation_cmd()' "
                                   f"not implemented for class {type(self)}")
 
     def set_exe_env(self, path=None, force=False):
+        """
+        Set environment variables for running registration-engine software.
 
+        **Parameters:**
+
+        path : str/pathlib.Path, default=None
+            Path to directory containing registration-engine software.
+
+        force : bool, default=False
+        If False, modify environment based on <path> only if registration
+        software can't be located in the existing environment.  If True, modify
+        environment based on <path> in all cases.
+        """
         exe_dir = None
 
+        # Check if environment already set for running the registration engine.
         if not (path and force):
             stdout = subprocess.run(
                     ["which", str(self.name)], capture_output=True).stdout
             if stdout:
                 exe_dir = Path(stdout.decode()).parent
 
-        if path is None:
+        # Return if environment already set and not forcing new setup,
+        # of if no value specified for path (no new setup possible).
+        if (exe_dir and not force) or path is None:
             return
         
-        if not exe_dir:
+        # Try to define path(s) to registration-engine executables,
+        # if not already defined, or forcing new setup.
+        if not exe_dir or force:
             exe_dir = self.set_exe_paths(path)
 
         if exe_dir:
+            # Set environment variables.
             lib_dir = exe_dir.parent / "lib"
             # Cover Linux and MacOS
             for env_var, env_val in [
@@ -2293,10 +2452,19 @@ class RegistrationEngine:
             self.logger.info(
                     f"Found {self.name} executable(s) in {exe_dir}") 
         else:
+            # Registration-engine executables not found - raise exception.
             raise RuntimeError(
                     f"path={path}; {self.name} executable(s) not found")
 
     def set_exe_paths(self, path=None):
+        """
+        Set path(s)s to registration-engine executable(s).
+
+        **Parameter:**
+
+        path : str/pathlib.Path, default=None
+            Path to directory containing registration-engine executable(s).
+        """
         raise NotImplementedError("Method 'set_exe_paths()' "
                                   f"not implemented for class {type(self)}")
 
