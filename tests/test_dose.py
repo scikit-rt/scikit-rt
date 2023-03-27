@@ -173,11 +173,13 @@ def test_get_biologically_effective_dose():
     dose, structure_set = get_synthetic_data(**doses)
     dose_data = dose.get_data()
 
-    # Obtain dose object representing biologically effective dose (BED).
+    # Obtain dose object representing biologically effective dose (BED),
+    # using long and short method names.
     alpha_beta_ratios = {"cube": 3, "sphere": 5}
     n_fraction = 20
-    bed = dose.get_biologically_effective_dose(structure_set,
+    bed1 = dose.get_biologically_effective_dose(structure_set,
             alpha_beta_ratios, n_fraction)
+    bed2 = dose.get_bed(structure_set, alpha_beta_ratios, n_fraction)
 
     small_number = 1e-8
     # Loop over ROIs.
@@ -185,11 +187,12 @@ def test_get_biologically_effective_dose():
         # Obtain BED array with non-zero values only in region of ROI.
         roi_name = key.split("_")[-1]
         roi = structure_set[roi_name]
-        bed_in_roi = bed.get_dose_in_roi_3d(roi)
+        for bed in [bed1, bed2]:
+            bed_in_roi = bed.get_dose_in_roi_3d(roi)
 
-        # Check that BED values and number of voxels in ROI are as expected.
-        roi_bed = roi_dose * (1 + roi_dose /
-                (n_fraction * alpha_beta_ratios[roi_name]))
-        assert bed_in_roi.max() == pytest.approx(roi_bed, small_number)
-        assert np.all(bed_in_roi[bed_in_roi > 0] == pytest.approx(roi_bed))
-        assert (bed_in_roi > 0).sum() == roi.get_volume("voxels")
+            # Check that BED values and number of voxels in ROI are as expected.
+            roi_bed = roi_dose * (1 + roi_dose /
+                    (n_fraction * alpha_beta_ratios[roi_name]))
+            assert bed_in_roi.max() == pytest.approx(roi_bed, small_number)
+            assert np.all(bed_in_roi[bed_in_roi > 0] == pytest.approx(roi_bed))
+            assert (bed_in_roi > 0).sum() == roi.get_volume("voxels")

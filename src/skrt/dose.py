@@ -261,7 +261,7 @@ class Dose(ImageOverlay):
         data array if not yet set."""
 
         skrt.image.Image.load(self, *args, **kwargs)
-        self._default_vmax = self.max
+        self._default_vmax = self.data.max()
         ds = self.dicom_dataset
         if ds:
             self.dose_units = getattr(ds, 'DoseUnits', None)
@@ -462,13 +462,13 @@ class Dose(ImageOverlay):
         if doses.size:
             return np.quantile(doses, quantile)
 
-    def get_bed(self, **kwargs):
+    def get_bed(self, *args, **kwargs):
         """
         Alias for skrt.dose.Dose method get_biologically_effective_dose().
 
         See aliased method for documentation.
         """
-        return get_biologically_effective_dose(**kwargs)
+        return self.get_biologically_effective_dose(*args, **kwargs)
 
     def get_biologically_effective_dose(self, rois=None, alpha_beta_ratios=None,
             n_fraction=None, fill=0, standardise=False, force=False):
@@ -500,8 +500,8 @@ class Dose(ImageOverlay):
 
         n_fraction : float, default=None
             Number of equal-dose fractions over which physical dose
-            is delivered.  If None, the value returned by self.get_n_fraction()
-            is used.
+            is delivered.  If None, and the dose has an associated plan,
+            the value returned by self.plan.get_n_fraction() is used.
 
         fill : float/str, default=0
             Specification of dose value to set outside of ROIs, and for ROIs
@@ -543,25 +543,26 @@ class Dose(ImageOverlay):
                 "without specifying any ROIs.")
             return
 
-        n_fraction = n_fraction or self.get_n_fraction()
+        if not n_fraction:
+            if hasattr(self, "plan"):
+                n_fraction = self.plan.get_n_fraction()
+
         if not n_fraction:
             self.logger.error("Method get_biologically_effective_dose() called "
                 "without specifying number of fractions.")
             return
 
-        # Set dose to be zero outside regions with alpha/beta defined.
+        # Set default dose to be fill value.
         if isinstance(fill, numbers.Number):
             bed = Dose(
                     path=(fill *
                         np.ones(self.get_data(standardise=standardise).shape)),
                     affine=self.get_affine(standardise=standardise))
-        # Set dose to be physical dose outside regions with alpha/beta defined.
+        # Set default dose to be physical dose.
         elif "physical_dose" == fill:
             bed = Dose(
                     path=self.get_data(standardise=standardise),
                     affine=self.get_affine(standardise=standardise))
-
-        bed.load()
 
         # Calculate biologically effective dose
         # inside ROIs with alpha/beta defined.
@@ -578,6 +579,10 @@ class Dose(ImageOverlay):
                 dose_in_roi += ((dose_in_roi * dose_in_roi)
                         / (n_fraction * alpha_over_beta))
                 bed.data[dose_in_roi > 0] = dose_in_roi[dose_in_roi > 0]
+
+        # Reset the default maximum plotting intensity
+        # from the maximum of the data array.
+        bed._default_vmax = bed.data.max()
 
         # Set dose_type to indicate that this is biologically effective dose.
         bed.dose_type = "EFFECTIVE"
