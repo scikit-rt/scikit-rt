@@ -254,7 +254,7 @@ skrt.core.Dated.copy_dicom().</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.get_bed">
-<span class="sig-name descname"><span class="pre">get_bed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_bed" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_bed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_bed" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for skrt.dose.Dose method get_biologically_effective_dose().</p>
 <p>See aliased method for documentation.</p>
 </dd></dl>
@@ -286,8 +286,8 @@ where keys are ROI names and values are revised values
 for alpha over beta.</p>
 </dd>
 <dt>n_fraction<span class="classifier">float, default=None</span></dt><dd><p>Number of equal-dose fractions over which physical dose
-is delivered.  If None, the value returned by self.get_n_fraction()
-is used.</p>
+is delivered.  If None, and the dose has an associated plan,
+the value returned by self.plan.get_n_fraction() is used.</p>
 </dd>
 <dt>fill<span class="classifier">float/str, default=0</span></dt><dd><p>Specification of dose value to set outside of ROIs, and for ROIs
 where alpha over beta has a null value.  If a float, this is
