@@ -244,6 +244,7 @@ be displayed as underlay.</p>
 <dt class="sig sig-object py" id="skrt.registration.Elastix">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Elastix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.registration.RegistrationEngine" title="skrt.registration.RegistrationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegistrationEngine</span></code></a></p>
+<p>Class interfacing to elastix registration engine.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Elastix.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.__init__" title="Permalink to this definition"></a></dt>
@@ -267,8 +268,8 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Elastix.define_translation">
 <span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.define_translation" title="Permalink to this definition"></a></dt>
-<dd><p>Define Elastix translation parameters from 3-element tuple or list.</p>
-<p><strong>Parameter:</strong></p>
+<dd><p>Define translation parameters to be passed to registration engine.</p>
+<p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>dxdydz<span class="classifier">tuple/list</span></dt><dd><p>Three-element tuple or list, giving translations in order
 (dx, dy, dz).  Translations correspond to the amounts added
@@ -338,7 +339,7 @@ step.  If None, no previous registration step is it be considered.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Elastix.get_roi_params">
 <span class="sig-name descname"><span class="pre">get_roi_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_roi_params" title="Permalink to this definition"></a></dt>
-<dd><p>Get default parameters to be used when transforming ROI masks.</p>
+<dd><p>Get default parameters to be used when transforming ROI mask.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -429,6 +430,7 @@ selected attribute values.</p>
 <dt class="sig sig-object py" id="skrt.registration.NiftyReg">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">NiftyReg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.registration.RegistrationEngine" title="skrt.registration.RegistrationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegistrationEngine</span></code></a></p>
+<p>Class interfacing to NiftyReg registration engine.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.NiftyReg.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.__init__" title="Permalink to this definition"></a></dt>
@@ -457,8 +459,8 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.NiftyReg.define_translation">
 <span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.define_translation" title="Permalink to this definition"></a></dt>
-<dd><p>Define NiftyReg translation parameters from 3-element tuple or list.</p>
-<p><strong>Parameter:</strong></p>
+<dd><p>Define translation parameters to be passed to registration engine.</p>
+<p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>dxdydz<span class="classifier">tuple/list</span></dt><dd><p>Three-element tuple or list, giving translations in order
 (dx, dy, dz).  Translations correspond to the amounts added
@@ -528,7 +530,7 @@ step.  If None, no previous registration step is it be considered.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_roi_params">
 <span class="sig-name descname"><span class="pre">get_roi_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_roi_params" title="Permalink to this definition"></a></dt>
-<dd><p>Get default parameters to be used when transforming ROI masks.</p>
+<dd><p>Get default parameters to be used when transforming ROI mask.</p>
 </dd></dl>
 
 <dl class="py method">
