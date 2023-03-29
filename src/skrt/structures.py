@@ -5963,8 +5963,6 @@ class StructureSet(skrt.core.Archive):
                 for idx in range(len(self.rois)):
                     self.rois[idx].mask = self.rois[idx].mask.astype('nii')
 
-            self.loaded = True
-
         else:
             if not skrt.core.is_list(sources) or isinstance(sources, np.ndarray):
                 sources = [sources]
@@ -6048,6 +6046,8 @@ class StructureSet(skrt.core.Archive):
                 except RuntimeError:
                     continue
 
+        self.loaded = True
+
         self.rename_rois(keep_renamed_only=self.keep_renamed_only)
         self.filter_rois()
         self.recolor_rois(self.colors)
@@ -6072,8 +6072,6 @@ class StructureSet(skrt.core.Archive):
             slice_thickness = min(slice_thicknesses)
             for roi in rois:
                 roi.slice_thickness_contours = slice_thickness
-
-        self.loaded = True
 
     def get_dicom_dataset(self):
         """Return pydicom.dataset.FileDataset object associated with this Image,
@@ -6362,6 +6360,7 @@ class StructureSet(skrt.core.Archive):
             to_remove = [to_remove]
 
         # Keep only the ROIs in to_keep
+        self.load()
         if to_keep is not None:
             keep = []
             for roi in self.rois:
