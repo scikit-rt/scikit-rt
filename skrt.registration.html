@@ -380,6 +380,11 @@ unaltered.</p>
 <span class="sig-name descname"><span class="pre">transform_points_implemented</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#skrt.registration.Elastix.transform_points_implemented" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.transformation_log">
+<span class="sig-name descname"><span class="pre">transformation_log</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'transformix.log'</span></em><a class="headerlink" href="#skrt.registration.Elastix.transformation_log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -584,7 +589,8 @@ auto_seg=True.</p>
 stored. Can either be a non-existing directory, in which case
 registration will be performed from scratch, or a directory already
 containing a fixed and moving image and optionally some registration
-steps.</p>
+steps.  The path shouldn’t contain spaces.  It the path does
+contain spaces, these will be replaced with underscores.</p>
 </dd>
 <dt>fixed<span class="classifier">Image/str, default=None</span></dt><dd><p>Image object representing the fixed image, or a source from which
 an Image object can be initialised. Must be set if the directory
@@ -1468,6 +1474,12 @@ transform command.  The original transform file is left
 unaltered.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_transformation_log">
+<span class="sig-name descname"><span class="pre">get_transformation_log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_transformation_log" title="Permalink to this definition"></a></dt>
+<dd><p>Get name of transformation log file.</p>
 </dd></dl>
 
 <dl class="py method">
