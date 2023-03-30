@@ -660,6 +660,9 @@ class SingleAtlasSegmentation(Data):
 
                 self.ss1_filtered = im1.structure_sets[0]
                 self.ss2_filtered = im2.structure_sets[0]
+                if not self.roi_names:
+                    self.roi_names = {roi_name : roi_name for roi_name in
+                                      self.ss2_filtered.get_roi_names()}
 
                 fixed, moving = get_fixed_and_moving(im1, im2, strategy)
 
