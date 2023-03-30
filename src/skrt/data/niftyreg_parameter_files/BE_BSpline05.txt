@@ -1,0 +1,5 @@
+// Set reg_f3d as executable for deformable registration
+(exe "reg_f3d")
+// Set grid-point spacing to 5.
+(-sx 5)
+(-be 0.01)
