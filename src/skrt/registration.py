@@ -90,7 +90,8 @@ class Registration(Data):
             stored. Can either be a non-existing directory, in which case
             registration will be performed from scratch, or a directory already
             containing a fixed and moving image and optionally some registration
-            steps.
+            steps.  The path shouldn't contain spaces.  It the path does
+            contain spaces, these will be replaced with underscores.
 
         fixed : Image/str, default=None
             Image object representing the fixed image, or a source from which
@@ -227,7 +228,8 @@ class Registration(Data):
         self.engine = engine_cls(path=engine_dir)
 
         # Set up directory
-        self.path = fullpath(path)
+        path = fullpath(path).replace(" ", "_")
+        self.path = path
         if not os.path.exists(path):
             os.makedirs(path)
         elif overwrite:
@@ -425,7 +427,7 @@ class Registration(Data):
         # if it has exactly three elements and is for a transform file.
         if isinstance(file, (tuple, list)):
             if len(file) != 3:
-                self.logger.warning("Input for file: '{file}'")
+                self.logger.warning(f"Input for file: '{file}'")
                 self.logger.warning("Translation passed as list or tuple "
                         "must contain exactly 3 elements")
                 return
@@ -991,10 +993,12 @@ class Registration(Data):
 
         # If command failed, move log out from temporary dir
         if code:
-            logfile = os.path.join(self.path, "transformation.log")
+            logfile = os.path.join(
+                    self.path, self.engine.get_transformation_log())
             if os.path.exists(logfile):
                 os.remove(logfile)
-            shutil.move(os.path.join(self._tmp_dir, "transformation.log"), self.path)
+            shutil.move(os.path.join(
+                self._tmp_dir, self.engine.get_transformation_log()), self.path)
             self.logger.warning(
                 f"Image transformation failed! See "
                 f"{logfile} for more info."
@@ -1215,7 +1219,7 @@ class Registration(Data):
     def make_tmp_dir(self):
         """Create temporary directory."""
 
-        self._tmp_dir = os.path.join(self.path, ".tmp")
+        self._tmp_dir = os.path.join(self.path, ".tmp").replace(" ", "_")
         if not os.path.exists(self._tmp_dir):
             os.mkdir(self._tmp_dir)
 
@@ -2404,6 +2408,15 @@ class RegistrationEngine:
         raise NotImplementedError("Method 'get_transformation_cmd()' "
                                   f"not implemented for class {type(self)}")
 
+    def get_transformation_log(self):
+        """
+        Get name of transformation log file.
+        """
+        if not hasattr(self, "transformation_log"):
+            raise NotImplementedError("Class attribute 'transformation_log' "
+                                  f"not implemented for class {type(self)}")
+        return self.transformation_log
+
     def set_exe_env(self, path=None, force=False):
         """
         Set environment variables for running registration-engine software.
@@ -2477,6 +2490,9 @@ class Elastix(RegistrationEngine):
     # Indicate whether registration engine implements mapping of points
     # from fixed image to moving images.
     transform_points_implemented = True
+
+    # Define name of transformation log file.
+    transformation_log = "transformix.log"
 
     def __init__(self, **kwargs):
         # Initialise paths to executables.
