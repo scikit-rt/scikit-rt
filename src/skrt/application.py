@@ -146,7 +146,7 @@ class Application():
 
         if not self.algs:
             self.status.code = 1
-            self.reason = 'No algorithms to run'
+            self.status.reason = 'No algorithms to run'
         else:
             for alg in self.algs:
                 if not alg.status.ok():

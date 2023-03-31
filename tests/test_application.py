@@ -3,7 +3,7 @@ from pathlib import Path
 from random import randint, sample, seed
 from shutil import rmtree
 
-from skrt.application import Algorithm, Application, get_paths
+from skrt.application import Algorithm, Application, Status, get_paths
 from skrt.core import Defaults, fullpath
 
 seed(1)
@@ -61,6 +61,25 @@ def test_application_creation():
     assert len(app.algs) == 2
     assert app.algs[0].name == "name1"
     assert app.algs[1].name == "name2"
+
+def test_application_creation_no_algorithms():
+    """Create test application with no algorithms and check properties."""
+
+    app = Application()
+    assert not app.algs
+    assert 1 == app.status.code
+    assert "No algorithms to run" == app.status.reason
+
+def test_application_creation_algorithm_status_not_ok():
+    """Create test application with algorithm having status not okay."""
+
+    alg1 = PyTestAlgorithm()
+    alg1.status = Status(code=1, reason="No reason")
+    app = Application([alg1])
+    assert 1 == len(app.algs)
+    assert not app.status.ok()
+    assert alg1.status.code == app.status.code
+    assert f"{alg1.name}: {alg1.status.reason}" == app.status.reason
 
 def test_application_run():
     """Test running of an application, with non-default Patient-like class."""
