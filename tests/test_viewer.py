@@ -274,3 +274,6 @@ def test_set_viewer_options():
     """Test that options.set_viewer_options() returns a non-empty dictionary."""
     viewer_options = options.set_viewer_options()
     assert viewer_options and isinstance(viewer_options, dict)
+    key = list(viewer_options.keys())[0]
+    viewer_options = options.set_viewer_options(to_exclude=key)
+    assert key not in viewer_options
