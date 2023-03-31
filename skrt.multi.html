@@ -110,20 +110,31 @@
              
   <section id="module-skrt.multi">
 <span id="skrt-multi-module"></span><h1>skrt.multi module<a class="headerlink" href="#module-skrt.multi" title="Permalink to this heading"></a></h1>
-<p>Class for iterating over multiple patients.</p>
+<p>Classes for creating, and iterating over, multi-patient datasets.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.multi.PatientDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.multi.</span></span><span class="sig-name descname"><span class="pre">PatientDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.multi.PatientDataset" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.multi.</span></span><span class="sig-name descname"><span class="pre">PatientDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.multi.PatientDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
+<p>Class for storing, and iterating over, paths to patient directories.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.multi.PatientDataset.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.multi.PatientDataset.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.multi.PatientDataset.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Create container for paths.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>paths: list, default=None</dt><dd><p>List of paths to patient directories - may contain wildcards.</p>
+</dd>
+<dt>kwargs: dict</dt><dd><p>Dictionary of keyword arguments to be passed to Patient
+constructor, called when iterating over paths.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.multi.PatientDataset.add_path">
 <span class="sig-name descname"><span class="pre">add_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.multi.PatientDataset.add_path" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Add to list of paths to patient directories.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -131,10 +142,12 @@
 <dt class="sig sig-object py" id="skrt.multi.PatientIterator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.multi.</span></span><span class="sig-name descname"><span class="pre">PatientIterator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.multi.PatientIterator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for iterating over PatientDataset object.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.multi.PatientIterator.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.multi.PatientIterator.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Initialise counter and dataset.</p>
+</dd></dl>
 
 </dd></dl>
 
