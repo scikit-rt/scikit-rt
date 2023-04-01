@@ -2237,6 +2237,9 @@ class RegistrationEngine:
     # If None, components are taken to be as read from file.
     def_signs = None
 
+    # Define engine executables.
+    exes = []
+
     def __init__(self, path=None, force=False, log_level=None):
         """
         Create RegistrationEngine instance.
@@ -2264,7 +2267,7 @@ class RegistrationEngine:
             self.name = type(self).__name__.lower()
         self.set_exe_env(path, force)
 
-    def define_translation(self, dxdydz, fixed_image):
+    def define_translation(self, dxdydz, fixed_image=None):
         """
         Define translation parameters to be passed to registration engine.
 
@@ -2275,7 +2278,7 @@ class RegistrationEngine:
             (dx, dy, dz).  Translations correspond to the amounts added
             in mapping a point from fixed image to moving image.
 
-        fixed_image : skrt.image.Image
+        fixed_image : skrt.image.Image, default=None
             Image towards which moving image is to be warped.
         """
         raise NotImplementedError("Method 'define_translation()' "
@@ -2291,8 +2294,13 @@ class RegistrationEngine:
             If True, return list of filenames only.  If False, return list
             of paths, as pathlib.Path objects.
         """
-        files = [file for file in self.get_default_pfiles_dir().iterdir()
-            if str(file).endswith(".txt")]
+        default_pfiles_dir = self.get_default_pfiles_dir()
+        if default_pfiles_dir.is_dir():
+            files = [file for file in default_pfiles_dir.iterdir()
+                     if str(file).endswith(".txt")]
+        else:
+            files = []
+
         if basename_only:
             return [file.name for file in files]
         return files
@@ -2494,15 +2502,18 @@ class Elastix(RegistrationEngine):
     # Define name of transformation log file.
     transformation_log = "transformix.log"
 
+    # Define engine executables.
+    exes = ["elastix", "transformix"]
+
     def __init__(self, **kwargs):
         # Initialise paths to executables.
-        self.elastix = "elastix"
-        self.transformix = "transformix"
+        for exe in Elastix.exes:
+            setattr(self, exe, exe)
 
         # Perform rest of initialisation via base class.
         super().__init__(**kwargs)
 
-    def define_translation(self, dxdydz, fixed_image):
+    def define_translation(self, dxdydz, fixed_image=None):
         # Define translation parameters that are enough to allow
         # application before a registration step.
         translation = {
@@ -2588,10 +2599,12 @@ class Elastix(RegistrationEngine):
         if sw_dir.is_dir():
             if (sw_dir / "bin/elastix").exists():
                 exe_dir = sw_dir / "bin"
+                for exe in Elastix.exes:
+                    setattr(self, exe, exe)
             elif (sw_dir / "elastix.exe").exists():
                 exe_dir = sw_dir
-                self.elastix = "elastix.exe"
-                self.transformix = "transformix.exe"
+                for exe in Elastix.exes:
+                    setattr(self, exe, f"{exe}.exe")
 
         # Return the path to the directory containing the executables.
         return exe_dir
@@ -2605,18 +2618,19 @@ class NiftyReg(RegistrationEngine):
     # If None, components are taken to be as read from file.
     def_signs = (-1, -1, 1)
 
+    # Define engine executables.
+    exes = ["reg_aladin", "reg_f3d", "reg_jacobian", "reg_resample",
+            "reg_transform"]
+
     def __init__(self, **kwargs):
         # Initialise paths to executables.
-        self.reg_aladin = "reg_aladin"
-        self.reg_f3d = "reg_f3d"
-        self.reg_jacobian = "reg_jacobian"
-        self.reg_resample = "reg_resample"
-        self.reg_transform = "reg_transform"
+        for exe in NiftyReg.exes:
+            setattr(self, exe, exe)
 
         # Perform rest of initialisation via base class.
         super().__init__(**kwargs)
 
-    def define_translation(self, dxdydz, fixed_image):
+    def define_translation(self, dxdydz, fixed_image=None):
         # Define translation parameters that are enough to allow
         # application before a registration step.
         # Signs account for different conventions between NiftyReg and Elastix.
@@ -2704,10 +2718,20 @@ class NiftyReg(RegistrationEngine):
 
     def set_exe_paths(self, path):
         # Set paths to NiftyReg executables.
-        exe_dir = Path(fullpath(path)) / "bin"
-        if (exe_dir / "reg_f3d").exists():
-            return exe_dir
+        exe_dir = None
+        sw_dir = Path(fullpath(path))
+        if sw_dir.is_dir():
+            if (sw_dir / "bin/reg_f3d").exists():
+                exe_dir = sw_dir / "bin"
+                for exe in NiftyReg.exes:
+                    setattr(self, exe, exe)
+            elif (sw_dir / "reg_f3d.exe").exists():
+                for exe in NiftyReg.exes:
+                    setattr(self, exe, f"{exe}.exe")
+                exe_dir = sw_dir
 
+        # Return the path to the directory containing the executables.
+        return exe_dir
 
 def adjust_parameters(infile, outfile, params):
     """

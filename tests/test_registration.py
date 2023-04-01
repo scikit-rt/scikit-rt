@@ -1,4 +1,5 @@
 """Test the skrt.registration.Registration class."""
+from inspect import signature
 import numpy as np
 import os
 from pathlib import Path
@@ -7,10 +8,10 @@ import pytest
 import subprocess
 
 from skrt import Image
-from skrt.core import Defaults
+from skrt.core import Defaults, fullpath
 from skrt.simulation import SyntheticImage
 from skrt.registration import (
-        Registration, RegistrationEngine,
+        Elastix, NiftyReg, Registration, RegistrationEngine,
         add_engine, engines, get_default_pfiles, get_default_pfiles_dir,
         get_engine_cls, read_parameters, set_elastix_dir, set_engine_dir)
 
@@ -604,3 +605,261 @@ def test_set_elastix_dir():
                     or "executable(s) not found" in str(error_info.value))
         assert 1 == len(warning_info)
         assert "set_elastix_dir() deprecated" in warning_info[0].message.args[0]
+
+def not_implemented(engine, method):
+    """Test behaviour for method not implemented for a registration engine."""
+    # Create list of null parameter values to pass to method.
+    args = len(signature(getattr(engine, method)).parameters) * [None]
+
+    # Check that call to method raises an exception.
+    with pytest.raises(NotImplementedError) as error_info:
+        getattr(engine, method)(*args)
+    assert (f"not implemented for class {type(engine)}"
+            in str(error_info.value))
+
+def check_default_pfiles(engine, files=True):
+    """
+    Check availability of default parameter files for a registration engine.
+    """
+    pfiles = engine.get_default_pfiles(basename_only=True)
+    assert isinstance(pfiles, list)
+    if files:
+        assert pfiles
+        assert isinstance(pfiles[0], str)
+        pfiles = engine.get_default_pfiles(basename_only=False)
+        assert isinstance(pfiles, list)
+        assert pfiles
+        assert isinstance(pfiles[0], Path)
+    else:
+        assert not pfiles
+
+def ensure_engine_files(engine, exe, top_dir="tmp/engines"):
+    """
+    Ensure existence of dummy files used in testing registration engines.
+
+    **Parameters:**
+    engine: str
+        Name of registration engine.
+
+    exe: str
+        Name of executable that will be searched for when setting up
+        environment for running registration engine.
+
+    top_dir: str, default="tmp/engines"
+        Path to top-level directory of registration-engine files.
+    """
+    engine_dir = Path(fullpath(top_dir)) / engine
+    bin_dir = engine_dir / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    # Ensure existence of dummy files corresponding to masks and executables.
+    for filepath in [
+            engine_dir / "fixed_mask.nii", engine_dir / "moving_mask.nii",
+            bin_dir / exe, bin_dir / f"{exe}.exe"]:
+        if not filepath.exists():
+            with open(filepath, "w") as file:
+                pass
+    return engine_dir
+
+def test_registration_engine_define_translation():
+    """Test RegistrationEngine method define_translation()."""
+    not_implemented(RegistrationEngine(), "define_translation")
+
+def test_registration_engine_get_default_pfiles():
+    """Test RegistrationEngine method get_default_pfiles()."""
+    check_default_pfiles(RegistrationEngine(), False)
+
+def test_registration_engine_get_def_cmd():
+    """Test RegistrationEngine method get_def_cmd()."""
+    not_implemented(RegistrationEngine(), "get_def_cmd")
+
+def test_registration_engine_get_jac_cmd():
+    """Test RegistrationEngine method get_jac_cmd()."""
+    not_implemented(RegistrationEngine(), "get_jac_cmd")
+
+def test_registration_engine_get_registration_cmd():
+    """Test RegistrationEngine method get_registration_cmd()."""
+    not_implemented(RegistrationEngine(), "get_registration_cmd")
+
+def test_registration_engine_get_roi_params():
+    """Test RegistrationEngine method get_roi_params()."""
+    assert {} == RegistrationEngine().get_roi_params()
+
+def test_registration_engine_get_transformation_cmd():
+    """Test RegistrationEngine method get_transformation_cmd()."""
+    not_implemented(RegistrationEngine(), "get_transformation_cmd")
+
+def test_registration_engine_get_transformation_log():
+    """Test RegistrationEngine method get_transformation_log()."""
+    not_implemented(RegistrationEngine(), "get_transformation_log")
+
+def test_registration_engine_set_exe_paths():
+    """Test RegistrationEngine method set_exe_paths()."""
+    not_implemented(RegistrationEngine(), "set_exe_paths")
+
+def test_elastix_define_translation():
+    """Test Elastix method define_translation()."""
+    engine = Elastix()
+    translation = (1, 5, -3)
+    params = engine.define_translation(translation)
+    assert isinstance(params, dict)
+    assert translation == params["TransformParameters"]
+    params = engine.define_translation(translation, sim1)
+    assert sim1.get_size() == params["Size"]
+
+def test_elastix_get_default_pfiles():
+    """Test Elastix method get_default_pfiles()."""
+    check_default_pfiles(Elastix())
+
+def test_elastix_get_def_cmd():
+    """Test Elastix method get_def_cmd()."""
+    args = ["fixed_path", "outdir", "tfile"]
+    def_cmd = Elastix().get_def_cmd(*args)
+    for arg in args[1:]:
+        assert arg in def_cmd
+
+def test_elastix_get_jac_cmd():
+    """Test Elastix method get_jac_cmd()."""
+    args = ["fixed_path", "outdir", "tfile"]
+    jac_cmd = Elastix().get_jac_cmd(*args)
+    for arg in args[1:]:
+        assert arg in jac_cmd
+
+def test_elastix_get_registration_cmd():
+    """Test Elastix method get_registration_cmd()."""
+    # Ensure existence of files checked for when creating registration command.
+    engine_dir = ensure_engine_files("elastix", "elastix")
+
+    # Define arguments, and create registration command.
+    args = ["fixed_path", "moving_path", str(engine_dir / "fixed_mask.nii"),
+            str(engine_dir / "moving_mask.nii"), "pfile", "outdir", "tfile"]
+    reg_cmd = Elastix().get_registration_cmd(*args)
+
+    # Check that expected arguments included in registration command.
+    for arg in args:
+        assert arg in reg_cmd
+
+def test_elastix_get_roi_params():
+    """Test Elastix method get_roi_params()."""
+    roi_params = Elastix().get_roi_params()
+    assert isinstance(roi_params, dict)
+    assert roi_params
+
+def test_elastix_get_transformation_cmd():
+    """Test Elastix method get_transformation_cmd()."""
+
+    # Define arguments, and create transformationcommand.
+    args = ["fixed_path", "moving_path", "outdir", "tfile", {"key": "value"}]
+    transform_cmd = Elastix().get_transformation_cmd(*args)
+
+    # Check that expected arguments included in transformation command.
+    for arg in [args[1], args[2], f"{args[2]}/{args[3]}"]:
+        assert arg in transform_cmd
+
+def test_elastix_set_exe_paths():
+    """Test Elastix method set_exe_paths()."""
+    # Ensure existence of executable checked for when setting paths.
+    engine_dir = ensure_engine_files("elastix", "elastix")
+
+    # Create instance of registration engine.
+    engine = Elastix()
+
+    # Check that when the path to the executables directory is passed directly,
+    # the executables have suffix "exe".
+    exe_dir = engine.set_exe_paths(engine_dir / "bin")
+    assert exe_dir == engine_dir / "bin"
+    for exe in type(engine).exes:
+        assert getattr(engine, exe)  == f"{exe}.exe"
+
+    # Check that when the path to the directory above the executables path
+    # is passed, the executables don't have suffix "exe".
+    exe_dir = engine.set_exe_paths(engine_dir)
+    assert exe_dir == engine_dir / "bin"
+    for exe in type(engine).exes:
+        assert getattr(engine, exe)  == exe
+
+def test_niftyreg_define_translation():
+    """Test NiftyReg method define_translation()."""
+    engine = NiftyReg()
+    translation = (1, 5, -3)
+    signs = (-1, -1, 1)
+    params = engine.define_translation(translation)
+    assert isinstance(params, list)
+    for idx, dxyz in enumerate(translation):
+        assert str(signs[idx]* dxyz) == params[idx].split()[-1]
+
+def test_nifyreg_get_default_pfiles():
+    """Test NiftyReg method get_default_pfiles()."""
+    check_default_pfiles(NiftyReg())
+
+def test_niftyreg_get_def_cmd():
+    """Test NiftyReg method get_def_cmd()."""
+    args = ["fixed_path", "outdir", "tfile"]
+    def_cmd = NiftyReg().get_def_cmd(*args)
+    for arg in args:
+        assert any(arg in item for item in def_cmd)
+
+def test_niftyreg_get_jac_cmd():
+    """Test NiftyReg method get_jac_cmd()."""
+    args = ["fixed_path", "outdir", "tfile.nii"]
+    jac_cmd = NiftyReg().get_jac_cmd(*args)
+    for arg in args:
+        assert any(arg in item for item in jac_cmd)
+
+def test_niftyreg_get_registration_cmd():
+    """Test NiftyReg method get_registration_cmd()."""
+    # Ensure existence of files checked for when creating registration command.
+    engine_dir = ensure_engine_files("niftyreg", "reg_f3d")
+
+    # Define arguments, and create registration command.
+    pfiles = [str(get_default_pfiles("Rigid.txt", "niftyreg")[0]),
+              str(get_default_pfiles("*BSpline15*", "niftyreg")[0])]
+    for pfile in pfiles:
+        args = ["fixed_path", "moving_path", str(engine_dir / "fixed_mask.nii"),
+                str(engine_dir / "moving_mask.nii"), pfile, "outdir", "tfile"]
+        reg_cmd = NiftyReg().get_registration_cmd(*args)
+
+        # Check that expectedarguments included in registration command.
+        for arg in args:
+            if pfile != arg:
+                assert any(arg in item for item in reg_cmd)
+        params = read_parameters(pfile)
+        assert params["exe"] in reg_cmd
+
+def test_niftyreg_get_roi_params():
+    """Test NiftyReg method get_roi_params()."""
+    roi_params = NiftyReg().get_roi_params()
+    assert isinstance(roi_params, dict)
+    assert roi_params
+
+def test_niftyreg_get_transformation_cmd():
+    """Test NiftyReg method get_transformation_cmd()."""
+
+    # Define arguments, and create transformationcommand.
+    args = ["fixed_path", "moving_path", "outdir", "tfile"]
+    transform_cmd = NiftyReg().get_transformation_cmd(*args)
+
+    # Check that expected arguments included in transformation command.
+    for arg in args:
+        assert any(arg in item for item in transform_cmd)
+
+def test_niftyreg_set_exe_paths():
+    """Test NiftyReg method set_exe_paths()."""
+    # Ensure existence of executable checked for when setting paths.
+    engine_dir = ensure_engine_files("niftyreg", "reg_f3d")
+
+    # Create instance of registration engine.
+    engine = NiftyReg()
+
+    # Check that when the path to the executables directory is passed directly,
+    # the executables have suffix "exe".
+    exe_dir = engine.set_exe_paths(engine_dir / "bin")
+    assert exe_dir == engine_dir / "bin"
+    for exe in type(engine).exes:
+        assert getattr(engine, exe)  == f"{exe}.exe"
+
+    # Check that when the path to the directory above the executables path
+    # is passed, the executables don't have suffix "exe".
+    exe_dir = engine.set_exe_paths(engine_dir)
+    assert exe_dir == engine_dir / "bin"
+    for exe in type(engine).exes:
+        assert getattr(engine, exe)  == exe
