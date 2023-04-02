@@ -3,6 +3,7 @@ from pathlib import Path
 from random import randint, sample, seed
 from shutil import rmtree
 
+from skrt.patient import Patient
 from skrt.application import Algorithm, Application, Status, get_paths
 from skrt.core import Defaults, fullpath
 
@@ -31,6 +32,18 @@ class PyTestPatient:
             self.test_value = test_values.get(self.id, None)
         else:
             self.test_value = None
+
+def test_algorithm_base_class():
+    """Test methods of Algorithm base class."""
+    opts = {"test_opt": "test_value"}
+    name = "test_algorithm"
+    alg = Algorithm(opts, name)
+    for key, value in opts.items():
+        assert getattr(alg, key) == value
+    assert alg.name == name
+    assert alg.initialise().ok()
+    assert alg.execute(Patient("test")).ok()
+    assert alg.finalise().ok()
 
 def test_algorithm_creation():
     """Create test algorithms and check properties."""
@@ -81,7 +94,7 @@ def test_application_creation_algorithm_status_not_ok():
     assert alg1.status.code == app.status.code
     assert f"{alg1.name}: {alg1.status.reason}" == app.status.reason
 
-def test_application_run():
+def test_application_run_non_default_patient():
     """Test running of an application, with non-default Patient-like class."""
 
     # Create <paths> list of pseudopaths,
