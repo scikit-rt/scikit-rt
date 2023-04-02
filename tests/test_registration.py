@@ -7,13 +7,16 @@ import shutil
 import pytest
 import subprocess
 
+import matplotlib
+
 from skrt import Image
 from skrt.core import Defaults, fullpath
 from skrt.simulation import SyntheticImage
 from skrt.registration import (
         Elastix, NiftyReg, Registration, RegistrationEngine,
         add_engine, engines, get_default_pfiles, get_default_pfiles_dir,
-        get_engine_cls, read_parameters, set_elastix_dir, set_engine_dir)
+        get_engine_cls, get_jacobian_colormap, read_parameters,
+        set_elastix_dir, set_engine_dir)
 
 from test_structs import compare_rois
 
@@ -863,3 +866,8 @@ def test_niftyreg_set_exe_paths():
     assert exe_dir == engine_dir / "bin"
     for exe in type(engine).exes:
         assert getattr(engine, exe)  == exe
+
+def test_get_jacobian_colormap():
+    cmap = get_jacobian_colormap()
+    assert isinstance(cmap, matplotlib.colors.LinearSegmentedColormap)
+    assert "jacobian" == cmap.name
