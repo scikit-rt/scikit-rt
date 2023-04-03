@@ -94,6 +94,13 @@ def test_application_creation_algorithm_status_not_ok():
     assert alg1.status.code == app.status.code
     assert f"{alg1.name}: {alg1.status.reason}" == app.status.reason
 
+def test_application_run_no_paths():
+    """Test running of an application when paths are undefined."""
+
+    status = Application(algs=[Algorithm()]).run()
+    assert  1 == status.code
+    assert "List of paths to patient data is empty" == status.reason
+
 def test_application_run_non_default_patient():
     """Test running of an application, with non-default Patient-like class."""
 
@@ -122,9 +129,83 @@ def test_application_run_non_default_patient():
     # of the application's algorithm.
     app.run(paths=paths, PatientClass=PyTestPatient, **opts)
 
+def check_algorithm_method_status_not_okay(alg_cls):
+    """
+    Check application status after running algorithm <alg_cls>,
+    with method returning non-zero status code.
+    """
+    # Define status code and data path.
+    code = 101
+    paths = ["test_path"]
+
+    # Create application; check status code and reason after running.
+    for reason in ["Unknown reason", None]:
+        opts = {"new_status": Status(code=code, reason=reason)}
+        alg = alg_cls(opts=opts)
+        app = Application(algs=[alg])
+        assert app.status.ok()
+        app.run(paths=paths)
+        assert not app.status.ok()
+        assert app.status.code == code
+        assert app.status.reason == reason or alg.default_reason
+
+def test_algorithm_initialise_status_not_okay():
+    """Test algorithm returning initialise status not okay."""
+
+    # Define Algorithm subclass that sets initialise status from options.
+    class TestInitialiseStatus(Algorithm):
+    
+        def initialise(self):
+            self.status = self.new_status
+            self.default_reason = (
+                    f"Problem initialising algorithm \"{self.name}\"")
+            return super().initialise()
+
+    check_algorithm_method_status_not_okay(TestInitialiseStatus)
+
+def test_algorithm_execute_status_not_okay():
+    """Test algorithm returning execute status not okay."""
+
+    # Define Algorithm subclass that sets execute status from options.
+    class TestExecuteStatus(Algorithm):
+    
+        def execute(self, patient=None):
+            self.status = self.new_status
+            self.default_reason = (
+                    f"Problem executing algorithm \"{self.name}\" "
+                    f"for data path \"{patient.path}\"")
+            return super().execute(patient)
+
+    check_algorithm_method_status_not_okay(TestExecuteStatus)
+
+def test_algorithm_finalise_status_not_okay():
+    """Test algorithm returning finalise status not okay."""
+
+    # Define Algorithm subclass that sets finalise status from options.
+    class TestFinaliseStatus(Algorithm):
+    
+        def finalise(self):
+            self.status = self.new_status
+            self.default_reason = (
+                    f"Problem finalising algorithm \"{self.name}\"")
+            return super().initialise()
+
+    check_algorithm_method_status_not_okay(TestFinaliseStatus)
 
 def create_data_paths(overwrite=False, n_path=6):
+    """
+    Ensure existence of specified number of data directories, and return paths.
 
+    **Parameters::**
+  
+    overwrite: bool, default=False
+        Delete (overwrite=True) or leave (overwrite=False) any pre-existing
+        data directories.
+        
+
+    n_path: int, default=6
+        Number of data directories required.
+    """
     data_dir = Path(fullpath("tmp/data"))
     if overwrite or not data_dir.exists():
         if data_dir.exists():
@@ -140,25 +221,59 @@ def create_data_paths(overwrite=False, n_path=6):
     return sorted(list(paths))
      
 def test_get_paths_null():
+    """Test get_paths() for null data_locations."""
     assert get_paths() == []
 
-def test_get_paths_all():
+def test_get_paths_str():
+    """Test get_paths() for data_locations input as string."""
     paths = create_data_paths(True, 6)
+    data_locations = paths[0]
+    assert get_paths(data_locations) == [str(paths[0])]
+
+def test_get_paths_all():
+    """Test get_paths() for data_locations input as dictionary."""
+    paths = create_data_paths()
     data_locations = {paths[0].parent : "0*"}
     assert get_paths(data_locations) == [str(path) for path in paths]
 
 def test_get_paths_to_keep():
+    """Test get_paths() with filenames to keep specified."""
     paths = create_data_paths()
     data_locations = {paths[0].parent : "0*"}
     names = [path.name for path in paths]
     to_keep = sample(names, 2)
     assert (get_paths(data_locations, to_keep=to_keep) ==
             [str(path) for path in paths if path.name in to_keep])
+    for single_to_keep in to_keep:
+        assert (get_paths(data_locations, to_keep=single_to_keep) ==
+                [str(path) for path in paths if path.name == single_to_keep])
 
 def test_get_paths_to_exclude():
+    """Test get_paths() with filenames to exclude specified."""
     paths = create_data_paths()
     data_locations = {paths[0].parent : "0*"}
     names = [path.name for path in paths]
     to_exclude = sample(names, 2)
     assert (get_paths(data_locations, to_exclude=to_exclude) ==
             [str(path) for path in paths if path.name not in to_exclude])
+    for single_to_exclude in to_exclude:
+        assert (get_paths(data_locations, to_exclude=single_to_exclude) ==
+                [str(path) for path in paths if path.name != single_to_exclude])
+
+def test_status_copy_attributes():
+    """Test attribute copying between Status objects."""
+    # Create Status objects with different attributes.
+    attributes = [{"code": idx, "name": f"name{idx}", "reason": f"reason{idx}"}
+                  for idx in range(2)]
+    statuses = [Status(**attributes[idx]) for idx in range(2)]
+
+    # Check that initial attributes are as expected.
+    for idx in range(2):
+        for key, value in attributes[idx].items():
+            assert getattr(statuses[idx], key) == value
+
+    # Check that attributes after copying are as expected.
+    statuses[0].copy_attributes(statuses[1])
+    for idx in range(2):
+        for key, value in attributes[1].items():
+            assert getattr(statuses[idx], key) == value

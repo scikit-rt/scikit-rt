@@ -194,6 +194,7 @@ class Application():
         '''
 
         for alg in self.algs:
+            self.status = alg.initialise()
             if not self.status.ok():
                 if not self.status.reason:
                     self.status.reason = \
@@ -225,18 +226,22 @@ class Application():
             Keyword arguments that will be passed to the <PatientClass>
             constructor.
         '''
+        if self.status.ok():
+            self.status = self.initialise()
 
         if self.status.ok():
             PatientClass = PatientClass or Patient
             paths = paths or []
             if not paths:
-                self.logger.warning('List of paths to patient data is empty')
-            for data_path in paths:
-                patient = PatientClass(path=data_path, **kwargs)
-                self.status = self.execute(patient=patient)
-                if not self.status.ok():
-                    self.logger.error(self.status)
-                    break
+                self.status.code = 1
+                self.status.reason = 'List of paths to patient data is empty'
+            else:
+                for data_path in paths:
+                    patient = PatientClass(path=data_path, **kwargs)
+                    self.status = self.execute(patient=patient)
+                    if not self.status.ok():
+                        self.logger.error(self.status)
+                        break
 
         if self.status.ok():
             self.status = self.finalise()
@@ -336,7 +341,7 @@ def get_paths(data_locations=None, max_path=None,
         If an identifier is specified as both <to_keep> and <to_exclude>,
         the latter takes precedence.
     """
-    # Return empty list if data_locations is None.n
+    # Return empty list if data_locations is None.
     paths = []
     if data_locations is None:
         return paths
@@ -348,7 +353,7 @@ def get_paths(data_locations=None, max_path=None,
     # Obtain dataset paths from list of data locations.
     if isinstance(data_locations, (list, set, tuple)):
         paths = [str(fullpath(data_location))
-                for data_locations in  data_locations]
+                for data_location in  data_locations]
 
     # Obtain dataset paths from dictionary associating directories and patterns.
     elif isinstance(data_locations, dict):
