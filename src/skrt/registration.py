@@ -2579,7 +2579,7 @@ class Elastix(RegistrationEngine):
         if params:
             out_tfile = str(Path(outdir) / Path(tfile).name)
             adjust_parameters(tfile, out_tfile, params)
-            tfile = out_tfile
+            tfile = out_tfile.replace("\\", "/")
 
         # Return command for applying registration transform.
         return [
