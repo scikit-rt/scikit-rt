@@ -5692,6 +5692,62 @@ class ROI(skrt.core.Archive):
 
         return patch
 
+    def get_intensities_3d(self, image=None, standardise=True):
+        """
+        Return copy of an image array that has values retained
+        inside self, and is set to zero elsewhere.
+
+        **Parameter:**
+
+        image : skrt.image.Image, default=None
+            Image object for which 3D array with intensity values
+            retained inside ROI, and NaN elsewhere, is to be obtained.
+            If None, the image associated with the ROI is used.
+
+        standardise : bool, default=False
+            If False, the data array will be returned in the orientation in 
+            which it was loaded; otherwise, it will be returned in standard
+            dicom-style orientation such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+        """
+        if image is None:
+            # Consider image associated with self.
+            self.create_mask()
+            image = self.image
+            roi = self
+        else:
+            # Clone self, and associate with clone the image specified in input.
+            roi = self.clone()
+            roi.set_image(image)
+
+        # Obtain intensity values.
+        im_data = image.get_data(standardise=standardise)
+        mask = roi.get_mask(standardise=standardise)
+        intensities_in_roi = np.full(im_data.shape, np.nan)
+        intensities_in_roi[mask > 0] = im_data[mask > 0]
+        return intensities_in_roi
+
+    def get_intensities(self, image=None, standardise=True):
+        """
+        Return 1D numpy array containing all of the intensity values for the 
+        voxels inside self.
+
+        **Parameters:**
+
+        image : skrt.image.Image, default=None
+            Image object for which 1D array of intensity values is
+            to be obtained.  If None, the image associated with the
+            ROI is used.
+
+        standardise : bool, default=False
+            If False, the image's data array will be used in the orientation
+            in which it was loaded; otherwise, it will be used in standard
+            dicom-style orientation such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+        """
+        intensities = self.get_intensities_3d(image, standardise)
+        return intensities[~np.isnan(intensities)]
+        
 class StructureSet(skrt.core.Archive):
     """Structure set."""
 

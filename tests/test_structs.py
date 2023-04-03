@@ -1681,3 +1681,25 @@ def test_missing():
     # Reduced-size image doesn't contain ROIs.
     sim2 = SyntheticImage([dxyz // 2 for dxyz in sim.get_n_voxels()])
     assert structure_set.missing(roi_names, in_image=sim2) == roi_names
+
+def test_get_intensities_3d():
+    """Test calculation of 3D array with intensity values inside ROI."""
+    sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5), intensity=0)
+    sim.add_cuboid((4, 2, 6), name="cube", intensity=100)
+    roi = sim.get_roi("cube")
+    for image in [None, sim]:
+        intensities = roi.get_intensities_3d(image)
+        sim_data = sim.get_data()
+        nan = np.isnan(intensities)
+        assert np.all(intensities[~nan] == sim_data[~nan])
+        assert np.all(sim_data[nan] == 0)
+
+def test_get_intensities():
+    """Test calculation of 1D array of intensity values inside ROI."""
+    sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5), intensity=0)
+    sim.add_cuboid((4, 2, 6), name="cube", intensity=100)
+    roi = sim.get_roi("cube")
+    for image in [None, sim]:
+        intensities = roi.get_intensities(image)
+        assert len(intensities) == roi.get_volume()
+        assert np.all(intensities == 100)
