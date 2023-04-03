@@ -753,6 +753,7 @@ def test_elastix_get_transformation_cmd():
     # Define arguments, and create transformationcommand.
     args = ["fixed_path", "moving_path", "outdir", "tfile", {"key": "value"}]
     transform_cmd = Elastix().get_transformation_cmd(*args)
+    print("transform_cmd", transform_cmd)
 
     # Check that expected arguments included in transformation command.
     for arg in [args[1], args[2], f"{args[2]}/{args[3]}"]:
