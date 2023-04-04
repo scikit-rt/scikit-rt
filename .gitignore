@@ -13,6 +13,8 @@ tmp
 *.dcm
 *.root
 *.csv
+*.hdf
+*.pkl.gz
 tests/tmp
 examples/*/tests/tmp
 examples/casscade/notebooks/results
