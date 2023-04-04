@@ -40,6 +40,8 @@ to directories for copying data and saving outputs.
 - [application_demo.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/application_demo.ipynb) :
   definition and running of a scikit-rt application, for (non-interactive)
   processing of datasets for multiple patients.
+- [roi_intensities.ipynb](http://localhost:8888/lab/tree/roi_intensities.ipynb) :
+  hisogramming voxel intensities inside an ROI.
 - [dose_volume_rois.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/dose_volume_rois.ipynb) :
   creation of ROI objects corresponding to volumes receiving
   a specified radiation dose.
