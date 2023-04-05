@@ -1275,6 +1275,73 @@ class Patient(skrt.core.PathData):
         all_types.sort()
         return all_types
 
+    def get_structure_set_with_image(self, roi_names=None, modality=None,
+                            study_index=None, structure_set_index=None):
+        """
+        Get structure set containing specified ROIs, after filtering
+        and renaming, and with associated image of a given modality.
+
+        The first encountered structure set satisfying constraints is
+        returned.  If no structure set satisfies constraints, None
+        is returned.
+
+        **Parameters:**
+
+        roi_names : dict, default=None
+            Dictionary where keys are the names of required ROIs, and values
+            are lists of alternative names with which the ROIs may be labelled.
+            If None, all structure sets are accepted, with no filtering or
+            renaming of ROIs.
+
+        modality : default=None
+            Modality of image that should be associated with the
+            structure set returned.  If None, all modalities are accepted.
+            
+        study_index : int, default=None
+            Index of the study to be considered.  If None, all studies
+            are considered.
+
+        structure_set_index : int, default=None
+            Index of the structure set to be considered within a study.
+            If None, all structure sets within the study are considered.
+        """
+        # Define the list of studies to be considered.
+        if study_index is not None:
+            studies = [self.studies[study_index]]
+        else:
+            studies = self.studies
+
+        rois = None
+        for study in studies:
+
+            # Define the list of structure sets to be considered.
+            if modality is not None:
+                structure_sets = study.structure_set_types.get(modality, [])
+            else:
+                structure_sets = sorted(list(structure_set_types.values()))
+            if not structure_sets:
+                continue
+            if structure_set_index is not None:
+                structure_sets = [structure_sets[structure_set_index]]
+
+            # If no constraints on ROI names, accept the first structure set.
+            if roi_names is None:
+                rois = structure_sets[0]
+                continue
+
+            # Filter structure set, and check for required ROIs.
+            for structure_set in structure_sets:
+                test_rois = structure_set.filtered_copy(
+                        names=roi_names, keep_renamed_only=True)
+                if len(test_rois.get_roi_names()) == len(roi_names):
+                    rois = test_rois
+                    break
+
+            if rois is not None:
+                break
+
+        return rois
+
     def load_demographics(self):
         """Load a patient's birth date, age, and sex."""
 
