@@ -502,6 +502,33 @@ for the associated image.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.patient.Patient.get_structure_set_with_image">
+<span class="sig-name descname"><span class="pre">get_structure_set_with_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_structure_set_with_image" title="Permalink to this definition"></a></dt>
+<dd><p>Get structure set containing specified ROIs, after filtering
+and renaming, and with associated image of a given modality.</p>
+<p>The first encountered structure set satisfying constraints is
+returned.  If no structure set satisfies constraints, None
+is returned.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where keys are the names of required ROIs, and values
+are lists of alternative names with which the ROIs may be labelled.
+If None, all structure sets are accepted, with no filtering or
+renaming of ROIs.</p>
+</dd>
+<dt>modality<span class="classifier">default=None</span></dt><dd><p>Modality of image that should be associated with the
+structure set returned.  If None, all modalities are accepted.</p>
+</dd>
+<dt>study_index<span class="classifier">int, default=None</span></dt><dd><p>Index of the study to be considered.  If None, all studies
+are considered.</p>
+</dd>
+<dt>structure_set_index<span class="classifier">int, default=None</span></dt><dd><p>Index of the structure set to be considered within a study.
+If None, all structure sets within the study are considered.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_subdir_studies">
 <span class="sig-name descname"><span class="pre">get_subdir_studies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_subdir_studies" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of studies within a given subdirectory.</p>
