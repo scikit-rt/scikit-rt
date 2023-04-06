@@ -3223,6 +3223,28 @@ outside the interval [0, 1] result in a RuntimeError.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.has_rois">
+<span class="sig-name descname"><span class="pre">has_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.has_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Determine whether structure set contains specified ROIs,
+identified by a nominal name or by an alias.</p>
+<p>This method returns True if all specified ROI names are matched
+with the name of an ROI in the structure set, and returns False
+otherwise.  Matching is case insensitive.</p>
+<dl class="simple">
+<dt>names<span class="classifier">str/list/dict</span></dt><dd><p>Specification of ROIs:
+- a single ROI name, optionally including wildcards;
+- a list of ROI names, each optionally including wildcards;
+- a dictionary, where keys are nominal ROI names,
+and values are lists of possible names, optionally including
+wildcards.</p>
+</dd>
+<dt>include_keys<span class="classifier">bool, default=True</span></dt><dd><p>If True, consider both keys and values for matching if ROI names
+are specified as a dictionary.  If False, consider values only.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.interpolate_points">
 <span class="sig-name descname"><span class="pre">interpolate_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothness_per_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.interpolate_points" title="Permalink to this definition"></a></dt>
 <dd><p>Return new StructureSet object, with interpolated contour points.</p>
