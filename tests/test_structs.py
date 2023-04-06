@@ -112,6 +112,24 @@ def test_structure_set_from_rois():
     for key in sdict1:
         assert key in sdict2
 
+def test_has_rois():
+    """Test determination of whether structure set contains specified ROIs."""
+    # Specifications of ROIs contained in structure set.
+    has_rois = ["CUBE", ["C*", "S*"], 
+                {"cuboid": "cube", "non_cuboid": ["cylinder", "sphere"]}]
+    # Specifications of ROIs not contained in structure set.
+    not_has_rois = ["cylinder", ["cube", "cylinder"],
+                    {"cuboid": "cube", "non_cuboid": ["cylinder"]}]
+    # ROI specified via key.
+    roi_as_key = {"cube": "large_cube"}
+
+    for rois in has_rois:
+        assert structure_set.has_rois(rois)
+    for rois in not_has_rois:
+        assert not structure_set.has_rois(rois)
+    for include_keys in [True, False]:
+        assert structure_set.has_rois(roi_as_key, include_keys) is include_keys
+
 def test_structure_set_addition():
     """Test addition of structure sets."""
 

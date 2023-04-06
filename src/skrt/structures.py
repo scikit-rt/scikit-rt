@@ -6322,6 +6322,60 @@ class StructureSet(skrt.core.Archive):
 
         return sorted(list(missing_rois))
 
+    def has_rois(self, names=None, include_keys=False):
+        """
+        Determine whether structure set contains specified ROIs,
+        identified by a nominal name or by an alias.
+
+        This method returns True if all specified ROI names are matched
+        with the name of an ROI in the structure set, and returns False
+        otherwise.  Matching is case insensitive.
+
+        names : str/list/dict
+            Specification of ROIs:
+            - a single ROI name, optionally including wildcards;
+            - a list of ROI names, each optionally including wildcards;
+            - a dictionary, where keys are nominal ROI names,
+            and values are lists of possible names, optionally including
+            wildcards.
+
+        include_keys : bool, default=True
+            If True, consider both keys and values for matching if ROI names
+            are specified as a dictionary.  If False, consider values only.
+        """
+        # Convert names to a dictionary, where each value is a list.
+        if isinstance(names, str):
+            names = {names: [names]}
+        elif skrt.core.is_list(names):
+            names = {name: [name] for name in names}
+        elif isinstance(names, dict):
+            for name in names:
+                if isinstance(names[name], str):
+                    names[name] = [names[name]]
+
+        # Exit is names isn't a dictionary.
+        if not isinstance(names, dict):
+            return False
+
+        # Try to match each ROI name with nominal name or any aliases.
+        for name, aliases in names.items():
+            if include_keys:
+                names_to_match = [name] + aliases
+            else:
+                names_to_match = aliases
+            for name_to_match in names_to_match:
+                for roi_name in self.get_roi_names():
+                    match = fnmatch.fnmatch(
+                            roi_name.lower(), name_to_match.lower())
+                    if match:
+                        break
+                if match:
+                    break
+            if not match:
+                return False
+
+        return True
+
     def rename_rois(
         self, names=None, first_match_only=True, keep_renamed_only=False
     ):
