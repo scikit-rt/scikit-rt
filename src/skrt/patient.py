@@ -1275,11 +1275,13 @@ class Patient(skrt.core.PathData):
         all_types.sort()
         return all_types
 
-    def get_structure_set_with_image(self, roi_names=None, modality=None,
-                            study_index=None, structure_set_index=None):
+    def get_structure_set_with_image(
+            self, roi_names=None, modality=None, study_index=None,
+            structure_set_index=None, filter_rois=False, link_image=False,
+            clone=False):
         """
-        Get structure set containing specified ROIs, after filtering
-        and renaming, and with associated image of a given modality.
+        Get structure set containing specified ROIs, and with an
+        associated image of a given modality.
 
         The first encountered structure set satisfying constraints is
         returned.  If no structure set satisfies constraints, None
@@ -1288,15 +1290,15 @@ class Patient(skrt.core.PathData):
         **Parameters:**
 
         roi_names : dict, default=None
-            Dictionary where keys are the names of required ROIs, and values
-            are lists of alternative names with which the ROIs may be labelled.
-            If None, all structure sets are accepted, with no filtering or
-            renaming of ROIs.
+            Dictionary where keys are the nominal names of required ROIs,
+            and values are lists of possible aliases.  If None, there will
+            be no selection on ROIs.
 
-        modality : default=None
+        modality : str, default=None
             Modality of image that should be associated with the
-            structure set returned.  If None, all modalities are accepted.
-            
+            structure set returned.  If None, there will be no selection
+            on image modality.
+
         study_index : int, default=None
             Index of the study to be considered.  If None, all studies
             are considered.
@@ -1304,6 +1306,24 @@ class Patient(skrt.core.PathData):
         structure_set_index : int, default=None
             Index of the structure set to be considered within a study.
             If None, all structure sets within the study are considered.
+
+        filter_rois : bool, default=True
+            If True, filter and rename ROIs of selected structure set,
+            to match the keys of <roi_names>.  Otherwise, return structure
+            set unmodified.  Ignored if <roi_names> is None.
+
+        link_image : bool, default=False
+            If True, assign selected structure set to be the only
+            structure set linked to its associated image.  If False,
+            the associated image won't be modified, and may be linked to more
+            than one structure set.
+
+        clone : bool, default=False
+            If True, clone the selected structure set and its associated
+            image, perform any modification (ROI filtering and renaming,
+            one-to-one linking of structure set and image), and return
+            the cloned structure set, associated to cloned image.  If False,
+            return the originals, with any modification performed on these.
         """
         # Define the list of studies to be considered.
         if study_index is not None:
@@ -1313,12 +1333,17 @@ class Patient(skrt.core.PathData):
 
         rois = None
         for study in studies:
+            # Exit loop if structure set satisfying conditions found.
+            if rois is not None:
+                break
 
             # Define the list of structure sets to be considered.
             if modality is not None:
                 structure_sets = study.structure_set_types.get(modality, [])
             else:
-                structure_sets = sorted(list(structure_set_types.values()))
+                structure_sets = sorted(
+                        [ss for ss in structure_set_types.values()
+                         if ss.image is not None])
             if not structure_sets:
                 continue
             if structure_set_index is not None:
@@ -1331,14 +1356,24 @@ class Patient(skrt.core.PathData):
 
             # Filter structure set, and check for required ROIs.
             for structure_set in structure_sets:
-                test_rois = structure_set.filtered_copy(
-                        names=roi_names, keep_renamed_only=True)
-                if len(test_rois.get_roi_names()) == len(roi_names):
-                    rois = test_rois
+                if structure_set.has_rois(roi_names):
+                    rois = structure_set
                     break
 
-            if rois is not None:
-                break
+        if rois:
+            # Clone selected structure set, and associated image.
+            if clone:
+                rois = rois.clone()
+                image = rois.image.clone()
+                rois.image = image
+
+            # Filter and rename ROIs.
+            if filter_rois:
+                rois.rename_rois(names=roi_names, keep_renamed_only=True)
+
+            # Define one-to-one association between structure set and image.
+            if link_image:
+                rois.image.assign_structure_set(rois)
 
         return rois
 
