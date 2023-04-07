@@ -503,27 +503,42 @@ for the associated image.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_structure_set_with_image">
-<span class="sig-name descname"><span class="pre">get_structure_set_with_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_structure_set_with_image" title="Permalink to this definition"></a></dt>
-<dd><p>Get structure set containing specified ROIs, after filtering
-and renaming, and with associated image of a given modality.</p>
+<span class="sig-name descname"><span class="pre">get_structure_set_with_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_structure_set_with_image" title="Permalink to this definition"></a></dt>
+<dd><p>Get structure set containing specified ROIs, and with an
+associated image of a given modality.</p>
 <p>The first encountered structure set satisfying constraints is
 returned.  If no structure set satisfies constraints, None
 is returned.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where keys are the names of required ROIs, and values
-are lists of alternative names with which the ROIs may be labelled.
-If None, all structure sets are accepted, with no filtering or
-renaming of ROIs.</p>
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where keys are the nominal names of required ROIs,
+and values are lists of possible aliases.  If None, there will
+be no selection on ROIs.</p>
 </dd>
-<dt>modality<span class="classifier">default=None</span></dt><dd><p>Modality of image that should be associated with the
-structure set returned.  If None, all modalities are accepted.</p>
+<dt>modality<span class="classifier">str, default=None</span></dt><dd><p>Modality of image that should be associated with the
+structure set returned.  If None, there will be no selection
+on image modality.</p>
 </dd>
 <dt>study_index<span class="classifier">int, default=None</span></dt><dd><p>Index of the study to be considered.  If None, all studies
 are considered.</p>
 </dd>
 <dt>structure_set_index<span class="classifier">int, default=None</span></dt><dd><p>Index of the structure set to be considered within a study.
 If None, all structure sets within the study are considered.</p>
+</dd>
+<dt>filter_rois<span class="classifier">bool, default=True</span></dt><dd><p>If True, filter and rename ROIs of selected structure set,
+to match the keys of &lt;roi_names&gt;.  Otherwise, return structure
+set unmodified.  Ignored if &lt;roi_names&gt; is None.</p>
+</dd>
+<dt>link_image<span class="classifier">bool, default=False</span></dt><dd><p>If True, assign selected structure set to be the only
+structure set linked to its associated image.  If False,
+the associated image won’t be modified, and may be linked to more
+than one structure set.</p>
+</dd>
+<dt>clone<span class="classifier">bool, default=False</span></dt><dd><p>If True, clone the selected structure set and its associated
+image, perform any modification (ROI filtering and renaming,
+one-to-one linking of structure set and image), and return
+the cloned structure set, associated to cloned image.  If False,
+return the originals, with any modification performed on these.</p>
 </dd>
 </dl>
 </dd></dl>
