@@ -348,8 +348,8 @@ step.  If None, no previous registration step is it be considered.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Elastix.get_transformation_cmd">
-<span class="sig-name descname"><span class="pre">get_transformation_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_transformation_cmd" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_transform_cmd">
+<span class="sig-name descname"><span class="pre">get_transform_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_transform_cmd" title="Permalink to this definition"></a></dt>
 <dd><p>Get registration-engine command for applying registration transform.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -370,6 +370,19 @@ unaltered.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_transform_strategies">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_transform_strategies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_transform_strategies" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of available strategies for applying registration transform.</p>
+<p>Possible strategies are:</p>
+<ul class="simple">
+<li><p>“pull”: transform applied to pull image or mask from the reference
+frame of the moving image to the reference frame of the fixed image;</p></li>
+<li><p>“push”: transform applied to push points from the reference frame
+of the fixed image to the reference frame of the moving image.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Elastix.set_exe_paths">
 <span class="sig-name descname"><span class="pre">set_exe_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.set_exe_paths" title="Permalink to this definition"></a></dt>
 <dd><p>Set path(s)s to registration-engine executable(s).</p>
@@ -381,13 +394,13 @@ unaltered.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="skrt.registration.Elastix.transform_points_implemented">
-<span class="sig-name descname"><span class="pre">transform_points_implemented</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#skrt.registration.Elastix.transform_points_implemented" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.registration.Elastix.transform_log">
+<span class="sig-name descname"><span class="pre">transform_log</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'transformix.log'</span></em><a class="headerlink" href="#skrt.registration.Elastix.transform_log" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="skrt.registration.Elastix.transformation_log">
-<span class="sig-name descname"><span class="pre">transformation_log</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'transformix.log'</span></em><a class="headerlink" href="#skrt.registration.Elastix.transformation_log" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.registration.Elastix.transform_points_implemented">
+<span class="sig-name descname"><span class="pre">transform_points_implemented</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#skrt.registration.Elastix.transform_points_implemented" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -549,8 +562,8 @@ step.  If None, no previous registration step is it be considered.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_transformation_cmd">
-<span class="sig-name descname"><span class="pre">get_transformation_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_transformation_cmd" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_transform_cmd">
+<span class="sig-name descname"><span class="pre">get_transform_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_transform_cmd" title="Permalink to this definition"></a></dt>
 <dd><p>Get registration-engine command for applying registration transform.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -568,6 +581,19 @@ transform command.  The original transform file is left
 unaltered.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.get_transform_strategies">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_transform_strategies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.get_transform_strategies" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of available strategies for applying registration transform.</p>
+<p>Possible strategies are:</p>
+<ul class="simple">
+<li><p>“pull”: transform applied to pull image or mask from the reference
+frame of the moving image to the reference frame of the fixed image;</p></li>
+<li><p>“push”: transform applied to push points from the reference frame
+of the fixed image to the reference frame of the moving image.</p></li>
+</ul>
 </dd></dl>
 
 <dl class="py method">
@@ -1337,13 +1363,18 @@ get_default_pfiles_dir(): Return path to directory containing</p>
 </dd>
 <dt>get_roi_params(): Get default parameters to be used when</dt><dd><p>transforming ROI mask.</p>
 </dd>
-<dt>get_transformation_cmd():</dt><dd><p>Get registration-engine command for applying registration transform.</p>
+<dt>get_transform_cmd():</dt><dd><p>Get registration-engine command for applying registration transform.</p>
 </dd>
 <dt>set_exe_env(): Set environment variables for running</dt><dd><p>registration-engine software.</p>
 </dd>
 <dt>set_exe_paths():</dt><dd><p>Set path(s)s to registration-engine executable(s).</p>
 </dd>
 </dl>
+<p><strong>Static method:</strong>
+get_transform_strategies():</p>
+<blockquote>
+<div><p>Get list of available strategies for applying registration transform.</p>
+</div></blockquote>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.__init__" title="Permalink to this definition"></a></dt>
@@ -1470,8 +1501,8 @@ step.  If None, no previous registration step is it be considered.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_transformation_cmd">
-<span class="sig-name descname"><span class="pre">get_transformation_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_transformation_cmd" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_transform_cmd">
+<span class="sig-name descname"><span class="pre">get_transform_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_transform_cmd" title="Permalink to this definition"></a></dt>
 <dd><p>Get registration-engine command for applying registration transform.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1492,9 +1523,22 @@ unaltered.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_transformation_log">
-<span class="sig-name descname"><span class="pre">get_transformation_log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_transformation_log" title="Permalink to this definition"></a></dt>
-<dd><p>Get name of transformation log file.</p>
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_transform_log">
+<span class="sig-name descname"><span class="pre">get_transform_log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_transform_log" title="Permalink to this definition"></a></dt>
+<dd><p>Get name of transform log file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_transform_strategies">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_transform_strategies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_transform_strategies" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of available strategies for applying registration transform.</p>
+<p>Possible strategies are:</p>
+<ul class="simple">
+<li><p>“pull”: transform applied to pull image or mask from the reference
+frame of the moving image to the reference frame of the fixed image;</p></li>
+<li><p>“push”: transform applied to push points from the reference frame
+of the fixed image to the reference frame of the moving image.</p></li>
+</ul>
 </dd></dl>
 
 <dl class="py method">
