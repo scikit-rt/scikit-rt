@@ -687,13 +687,13 @@ def test_registration_engine_get_roi_params():
     """Test RegistrationEngine method get_roi_params()."""
     assert {} == RegistrationEngine().get_roi_params()
 
-def test_registration_engine_get_transformation_cmd():
-    """Test RegistrationEngine method get_transformation_cmd()."""
-    not_implemented(RegistrationEngine(), "get_transformation_cmd")
+def test_registration_engine_get_transform_cmd():
+    """Test RegistrationEngine method get_transforma_cmd()."""
+    not_implemented(RegistrationEngine(), "get_transform_cmd")
 
-def test_registration_engine_get_transformation_log():
-    """Test RegistrationEngine method get_transformation_log()."""
-    not_implemented(RegistrationEngine(), "get_transformation_log")
+def test_registration_engine_get_transform_log():
+    """Test RegistrationEngine method get_transform_log()."""
+    not_implemented(RegistrationEngine(), "get_transform_log")
 
 def test_registration_engine_set_exe_paths():
     """Test RegistrationEngine method set_exe_paths()."""
@@ -747,15 +747,15 @@ def test_elastix_get_roi_params():
     assert isinstance(roi_params, dict)
     assert roi_params
 
-def test_elastix_get_transformation_cmd():
-    """Test Elastix method get_transformation_cmd()."""
+def test_elastix_get_transform_cmd():
+    """Test Elastix method get_transforma_cmd()."""
 
-    # Define arguments, and create transformationcommand.
+    # Define arguments, and create transform command.
     args = ["fixed_path", "moving_path", "outdir", "tfile", {"key": "value"}]
-    transform_cmd = Elastix().get_transformation_cmd(*args)
+    transform_cmd = Elastix().get_transform_cmd(*args)
     print("transform_cmd", transform_cmd)
 
-    # Check that expected arguments included in transformation command.
+    # Check that expected arguments included in transform command.
     for arg in [args[1], args[2], f"{args[2]}/{args[3]}"]:
         assert arg in transform_cmd
 
@@ -835,14 +835,14 @@ def test_niftyreg_get_roi_params():
     assert isinstance(roi_params, dict)
     assert roi_params
 
-def test_niftyreg_get_transformation_cmd():
-    """Test NiftyReg method get_transformation_cmd()."""
+def test_niftyreg_get_transform_cmd():
+    """Test NiftyReg method get_transform_cmd()."""
 
-    # Define arguments, and create transformationcommand.
+    # Define arguments, and create transform command.
     args = ["fixed_path", "moving_path", "outdir", "tfile"]
-    transform_cmd = NiftyReg().get_transformation_cmd(*args)
+    transform_cmd = NiftyReg().get_transform_cmd(*args)
 
-    # Check that expected arguments included in transformation command.
+    # Check that expected arguments included in transform command.
     for arg in args:
         assert any(arg in item for item in transform_cmd)
 

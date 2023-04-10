@@ -982,7 +982,7 @@ class Registration(Data):
             outfile = 'result.nii'
 
         # Perform transformation
-        cmd = self.engine.get_transformation_cmd(
+        cmd = self.engine.get_transform_cmd(
                 fixed_path=self.fixed_path.replace("\\", "/"),
                 moving_path=path, outdir=self._tmp_dir, tfile=tfile,
                 params=params)
@@ -994,11 +994,11 @@ class Registration(Data):
         # If command failed, move log out from temporary dir
         if code:
             logfile = os.path.join(
-                    self.path, self.engine.get_transformation_log())
+                    self.path, self.engine.get_transform_log())
             if os.path.exists(logfile):
                 os.remove(logfile)
             shutil.move(os.path.join(
-                self._tmp_dir, self.engine.get_transformation_log()), self.path)
+                self._tmp_dir, self.engine.get_transform_log()), self.path)
             self.logger.warning(
                 f"Image transformation failed! See "
                 f"{logfile} for more info."
@@ -2222,12 +2222,16 @@ class RegistrationEngine:
         performing image registration.
     get_roi_params(): Get default parameters to be used when
         transforming ROI mask.
-    get_transformation_cmd():
+    get_transform_cmd():
         Get registration-engine command for applying registration transform.
     set_exe_env(): Set environment variables for running
         registration-engine software.
     set_exe_paths():
         Set path(s)s to registration-engine executable(s).
+
+    **Static method:**
+    get_transform_strategies():
+        Get list of available strategies for applying registration transform.
     """
     # Indicate whether registration engine implements mapping of points
     # from fixed image to moving images.
@@ -2388,7 +2392,7 @@ class RegistrationEngine:
         """
         return {}
 
-    def get_transformation_cmd(
+    def get_transform_cmd(
             self, fixed_path, moving_path, outdir, tfile, params=None):
         """
         Get registration-engine command for applying registration transform.
@@ -2413,17 +2417,17 @@ class RegistrationEngine:
             transform command.  The original transform file is left
             unaltered.
         """
-        raise NotImplementedError("Method 'get_transformation_cmd()' "
+        raise NotImplementedError("Method 'get_transform_cmd()' "
                                   f"not implemented for class {type(self)}")
 
-    def get_transformation_log(self):
+    def get_transform_log(self):
         """
-        Get name of transformation log file.
+        Get name of transform log file.
         """
-        if not hasattr(self, "transformation_log"):
-            raise NotImplementedError("Class attribute 'transformation_log' "
+        if not hasattr(self, "transform_log"):
+            raise NotImplementedError("Class attribute 'transform_log' "
                                   f"not implemented for class {type(self)}")
-        return self.transformation_log
+        return self.transform_log
 
     def set_exe_env(self, path=None, force=False):
         """
@@ -2489,6 +2493,21 @@ class RegistrationEngine:
         raise NotImplementedError("Method 'set_exe_paths()' "
                                   f"not implemented for class {type(self)}")
 
+    @staticmethod
+    def get_transform_strategies():
+        """
+        Get list of available strategies for applying registration transform.
+
+        Possible strategies are:
+
+        - "pull": transform applied to pull image or mask from the reference
+          frame of the moving image to the reference frame of the fixed image;
+
+        - "push": transform applied to push points from the reference frame
+          of the fixed image to the reference frame of the moving image.
+        """
+        return []
+
 
 @add_engine
 class Elastix(RegistrationEngine):
@@ -2499,8 +2518,8 @@ class Elastix(RegistrationEngine):
     # from fixed image to moving images.
     transform_points_implemented = True
 
-    # Define name of transformation log file.
-    transformation_log = "transformix.log"
+    # Define name of transform log file.
+    transform_log = "transformix.log"
 
     # Define engine executables.
     exes = ["elastix", "transformix"]
@@ -2573,7 +2592,7 @@ class Elastix(RegistrationEngine):
         # Return parameters to include when transforming ROI masks.
         return {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
 
-    def get_transformation_cmd(
+    def get_transform_cmd(
             self, fixed_path, moving_path, outdir, tfile, params=None):
         # Perform any modifications to the transform parameter file.
         if params:
@@ -2608,6 +2627,11 @@ class Elastix(RegistrationEngine):
 
         # Return the path to the directory containing the executables.
         return exe_dir
+
+    @staticmethod
+    def get_transform_strategies():
+        return ["pull", "push"]
+
 
 @add_engine
 class NiftyReg(RegistrationEngine):
@@ -2703,7 +2727,7 @@ class NiftyReg(RegistrationEngine):
         # Return parameters to include when transforming ROI masks.
         return {"-inter": 0}
 
-    def get_transformation_cmd(
+    def get_transform_cmd(
             self, fixed_path, moving_path, outdir, tfile, params=None):
         # Construct part of command relating to any input parameters.
         params = params or {}
@@ -2732,6 +2756,11 @@ class NiftyReg(RegistrationEngine):
 
         # Return the path to the directory containing the executables.
         return exe_dir
+
+    @staticmethod
+    def get_transform_strategies():
+        return ["pull"]
+
 
 def adjust_parameters(infile, outfile, params):
     """
