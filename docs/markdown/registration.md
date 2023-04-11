@@ -4,7 +4,7 @@
 
 One or more image-registration packages should be installed,
 as outlined in the instructions:
-<a href="installation.html#installation-and-setup-for-image-registration">installation and setup for image registration</a>.
+[installation and setup for image registration](installation.md#installation-and-setup-for-image-registration)
 
 The currently supported image-registration packages are:
 
