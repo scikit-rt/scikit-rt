@@ -55,8 +55,13 @@ mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
 class Image(skrt.core.Archive):
-    """Loads and stores a medical image and its geometrical properties, either
-    from a dicom/nifti file or a numpy array."""
+    """
+    Class representing a medical image.
+
+    Attributes of an Image object should usually be accessed via
+    their getter methods, rather than directly, to ensure that
+    attribute values have been loaded.
+    """
 
     def __init__(
         self,

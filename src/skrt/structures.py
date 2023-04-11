@@ -87,7 +87,13 @@ class ROIDefaults:
 ROIDefaults()
 
 class ROI(skrt.core.Archive):
-    """Single region of interest (ROI)."""
+    """
+    Class representing a single region of interest (ROI).
+
+    Attributes of an ROI object should usually be accessed via
+    their getter methods, rather than directly, to ensure that
+    attribute values have been loaded.
+    """
 
     def __init__(
         self,
@@ -5749,7 +5755,14 @@ class ROI(skrt.core.Archive):
         return intensities[~np.isnan(intensities)]
         
 class StructureSet(skrt.core.Archive):
-    """Structure set."""
+    """
+    Class representing a radiotherapy structure set
+    as a collection of regions of interest (ROIs).
+
+    Attributes of a StructureSet object should usually be accessed via
+    their getter methods, rather than directly, to ensure that
+    attribute values have been loaded.
+    """
 
     def __init__(
         self,

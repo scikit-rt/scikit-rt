@@ -230,8 +230,15 @@ class ImageOverlay(skrt.image.Image):
 
 
 class Dose(ImageOverlay):
-    """Class representing a dose map. The same as an Image but with overridden
-    plotting behaviour and extra functionality relating to ROIs."""
+    """
+    Class representing a radiotherapy dose field.  This is the
+    same as the Image class, but with overridden
+    plotting behaviour, and with extra functionality relating to ROIs.
+
+    Attributes of a Dose object should usually be accessed via
+    their getter methods, rather than directly, to ensure that
+    attribute values have been loaded.
+    """
 
     def __init__(self, *args, **kwargs):
 
@@ -592,6 +599,10 @@ class Dose(ImageOverlay):
 class Plan(skrt.core.Archive):
     """
     Class representing a radiotherapy plan.
+
+    Attributes of a Plan object should usually be accessed via
+    their getter methods, rather than directly, to ensure that
+    attribute values have been loaded.
     """
 
     def __init__(self, path="", load=True):
