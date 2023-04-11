@@ -590,8 +590,25 @@ class Dose(ImageOverlay):
         return bed
 
 class Plan(skrt.core.Archive):
-    def __init__(self, path="", load=True):
+    """
+    Class representing a radiotherapy plan.
+    """
 
+    def __init__(self, path="", load=True):
+        """
+        Instantiate Plan from a DICOM rtplan file.
+
+        **Parameters:**
+
+        path: str/pathlib.Path, default=""
+            Path to DICOM rtplan file from which plan is to be instantiated.
+
+        load: bool, default=True
+            If True, load plan data immediately.  If False, plan data will
+            be loaded automatically the first time that a Plan method
+            requiring the data is called, or may be explicitly loaded
+            by calling the load() method.
+        """
         self.loaded = False
         self.path = None
         self.name = None
@@ -618,10 +635,15 @@ class Plan(skrt.core.Archive):
             self.load()
 
     def load(self, force=False):
-        '''
+        """
         Load plan data.
-        '''
 
+        **Parameter:**
+
+        force: bool, default=False
+            If True, plan data will be reloaded from file, even if
+            loaded previously.
+        """
         if self.loaded and not force:
             return
 
@@ -675,10 +697,14 @@ class Plan(skrt.core.Archive):
         self.load_constraints()
 
     def load_constraints(self, force=False):
-        '''
+        """
         Load dose constraints from plan.
-        '''
 
+        **Parameter:**
+        force: bool, default=False
+            If True, dose constraints will be reloaded from file, even if
+            loaded previously.
+        """
         if ((self.constraints_loaded and not force) or not self.structure_set):
             return
 
@@ -723,30 +749,29 @@ class Plan(skrt.core.Archive):
         self.constraints_loaded = True
 
     def get_dicom_dataset(self):
-        '''
+        """
         Return pydicom.dataset.FileDataset object associated with this plan.
-        '''
-
+        """
         self.load()
         return self.dicom_dataset
 
     def get_targets(self):
-        '''
+        """
         Return list of ROIs identified in plan as targets.
-        '''
+        """
         self.load()
         return self.targets
 
     def get_organs_at_risk(self):
-        '''
+        """
         Return list of ROIs identified in plan as organs at risk.
-        '''
+        """
         self.load()
         return self.organs_at_risk
 
     def get_dose_objective(self, objective='maximum_dose', idx_dose=0,
             dose=None):
-        '''
+        """
         Obtain Dose object representing weight or objective of dose constraint.
 
         **Parameters:**
@@ -761,14 +786,12 @@ class Plan(skrt.core.Archive):
         dose : skrt.dose.Dose, default=None
             Dose object from which dose data are to be taken.  If specified,
             idx_dose is ignored.
-        '''
-
+        """
         # Check that specified objective is known.
         if objective not in Constraint.get_weight_and_objectives():
             print(f'Unknown dose objective: \'{objective}\'')
             print(f'Known objectives: {Constraint.get_weight_and_objectives()}')
             return None
-
 
         # Return pre-existing result if available.
         dose_objective = getattr(self.objectives, objective, None)
@@ -807,42 +830,42 @@ class Plan(skrt.core.Archive):
         return dose_objective
 
     def get_approval_status(self):
-        '''Return plan approval status.'''
+        """Return plan approval status."""
         self.load()
         return self.approval_status
 
     def get_description(self):
-        '''Return plan description.'''
+        """Return plan description."""
         self.load()
         return self.description
 
     def get_prescription_description(self):
-        '''Return plan prescription description.'''
+        """Return plan prescription description."""
         self.load()
         return self.prescription_description
 
     def get_n_beam_seq(self):
-        '''Return number of beam sequences for this plan.'''
+        """Return number of beam sequences for this plan."""
         self.load()
         return self.n_beam_seq
 
     def get_n_fraction(self):
-        '''Return number of fractions for this plan.'''
+        """Return number of fractions for this plan."""
         self.load()
         return self.n_fraction
 
     def get_n_fraction_group(self):
-        '''Return number of fraction groups for this plan.'''
+        """Return number of fraction groups for this plan."""
         self.load()
         return self.n_fraction_group
 
     def get_name(self):
-        '''Return plan name.'''
+        """Return plan name."""
         self.load()
         return self.name
 
     def get_target_dose(self):
-        '''Return dose to target (tumour) for this plan.'''
+        """Return dose to target (tumour) for this plan."""
         self.load()
         return self.target_dose
 
