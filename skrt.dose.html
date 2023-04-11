@@ -610,12 +610,21 @@ if the mask image has non-boolean data.</p>
 <dt class="sig sig-object py" id="skrt.dose.Plan">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">Archive</span></code></a></p>
+<p>Class representing a radiotherapy plan.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Plan.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise dated object from a path and assign its timestamp. If
-no valid timestamp is found within the path string, it will be set
-automatically from the current date and time if auto_timestamp is True.</p>
+<dd><p>Instantiate Plan from a DICOM rtplan file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path: str/pathlib.Path, default=””</dt><dd><p>Path to DICOM rtplan file from which plan is to be instantiated.</p>
+</dd>
+<dt>load: bool, default=True</dt><dd><p>If True, load plan data immediately.  If False, plan data will
+be loaded automatically the first time that a Plan method
+requiring the data is called, or may be explicitly loaded
+by calling the load() method.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -726,12 +735,24 @@ idx_dose is ignored.</p>
 <dt class="sig sig-object py" id="skrt.dose.Plan.load">
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.load" title="Permalink to this definition"></a></dt>
 <dd><p>Load plan data.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>force: bool, default=False</dt><dd><p>If True, plan data will be reloaded from file, even if
+loaded previously.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Plan.load_constraints">
 <span class="sig-name descname"><span class="pre">load_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.load_constraints" title="Permalink to this definition"></a></dt>
 <dd><p>Load dose constraints from plan.</p>
+<p><strong>Parameter:</strong>
+force: bool, default=False</p>
+<blockquote>
+<div><p>If True, dose constraints will be reloaded from file, even if
+loaded previously.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
