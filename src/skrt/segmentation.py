@@ -1043,13 +1043,8 @@ def get_contour_propagation_strategies(engine=None, engine_dir=None):
         engine = Defaults().registration_engine
 
     # Return engine strategies for contour propagation.
-    if engine in engines:
-        if engines[engine].transform_points_implemented == True:
-            return ["pull", "push"]
-        else:
-            return ["pull"]
-
-    return []
+    return (engines[engine].get_transform_strategies() if engine in engines
+            else [])
 
 def get_fixed_and_moving(im1, im2, strategy):
     """
