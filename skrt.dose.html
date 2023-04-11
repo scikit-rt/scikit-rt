@@ -157,8 +157,12 @@ and their initial values.</p>
 <dt class="sig sig-object py" id="skrt.dose.Dose">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.dose.ImageOverlay" title="skrt.dose.ImageOverlay"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageOverlay</span></code></a></p>
-<p>Class representing a dose map. The same as an Image but with overridden
-plotting behaviour and extra functionality relating to ROIs.</p>
+<p>Class representing a radiotherapy dose field.  This is the
+same as the Image class, but with overridden
+plotting behaviour, and with extra functionality relating to ROIs.</p>
+<p>Attributes of a Dose object should usually be accessed via
+their getter methods, rather than directly, to ensure that
+attribute values have been loaded.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.__init__" title="Permalink to this definition"></a></dt>
@@ -611,6 +615,9 @@ if the mask image has non-boolean data.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">Plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.core.html#skrt.core.Archive" title="skrt.core.Archive"><code class="xref py py-class docutils literal notranslate"><span class="pre">Archive</span></code></a></p>
 <p>Class representing a radiotherapy plan.</p>
+<p>Attributes of a Plan object should usually be accessed via
+their getter methods, rather than directly, to ensure that
+attribute values have been loaded.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Plan.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Plan.__init__" title="Permalink to this definition"></a></dt>
