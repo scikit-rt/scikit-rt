@@ -51,6 +51,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage and data model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-model">Data model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-loading">Data loading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="images.html">Images</a></li>
@@ -114,8 +115,8 @@ different classes:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.image.html#skrt.image.Image">Image</a>;</p></li>
 <li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Dose">Dose</a>;</p></li>
-<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.StructureSet">StructureSet</a>;</p></li>
 <li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.ROI">ROI</a> (region of interest);</p></li>
+<li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.structures.html#skrt.structures.StructureSet">StructureSet</a>;</p></li>
 <li><p><a class="reference external" href="https://scikit-rt.github.io/scikit-rt/skrt.dose.html#skrt.dose.Plan">Plan</a>.</p></li>
 </ul>
 <p>There are associations between class instances:</p>
@@ -133,6 +134,24 @@ more studies.  This is represented by the classes:</p>
 </ul>
 <p>A class diagram for the data model is shown below.</p>
 <img src="_static/scikit-rt_data_model.png" alt="Scikit-rt data model" style="width:80%">
+</section>
+<section id="data-loading">
+<h2>Data loading<a class="headerlink" href="#data-loading" title="Permalink to this heading"></a></h2>
+<p>The constructors of the classes <code class="docutils literal notranslate"><span class="pre">Image</span></code>, <code class="docutils literal notranslate"><span class="pre">Dose</span></code>, <code class="docutils literal notranslate"><span class="pre">ROI</span></code>, <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Plan</span></code> each take a boolean parameter <code class="docutils literal notranslate"><span class="pre">load</span></code>.</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">load</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code> (the default), values of object attributes
+are loaded when the object is created.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">load</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>, values of object attributes are loaded
+by the first call to an object method that accesses an attribute,
+or may be loaded explicitly using the object’s <code class="docutils literal notranslate"><span class="pre">load()</span></code> method.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">Patient</span></code> and <code class="docutils literal notranslate"><span class="pre">Study</span></code> create data objects with <code class="docutils literal notranslate"><span class="pre">load</span></code> set to
+<code class="docutils literal notranslate"><span class="pre">False</span></code>.  Attributes of these objects should usually be accessed using
+their getter methods, rather than directly, as these will ensure
+that attribute values have been loaded.  This strategy of loading
+data as needed avoids the memory and time costs of loading data
+that might not be used.</p>
 </section>
 </section>
 

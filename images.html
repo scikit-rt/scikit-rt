@@ -114,6 +114,10 @@ or NumPy format. These images can be plotted and compared.</p>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">voxel_size</span></code> and <code class="docutils literal notranslate"><span class="pre">origin</span></code> properties are the diagonal and third column, respectively; they give voxel sizes and origin position in order (x, y, z).</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">n_voxels</span></code> property containins the number of voxels in the (x, y, z) directions (same as <code class="docutils literal notranslate"><span class="pre">Image.data.shape</span></code>, but with 0 and 1 swapped).</p></li>
 </ul>
+<p>Image properties shouldn’t usually be accessed directly.  To ensure that
+their values are set, they should instead by accessed via getter methods:
+<code class="docutils literal notranslate"><span class="pre">get_data()</span></code>; <code class="docutils literal notranslate"><span class="pre">get_affine()</span></code>; <code class="docutils literal notranslate"><span class="pre">get_voxel_size()</span></code>, <code class="docutils literal notranslate"><span class="pre">get_origin()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">get_n_voxels()</span></code>.</p>
 <p>In the standard dicom-style configuration (Left, Posterior, Superior):</p>
 <ul class="simple">
 <li><p>The x-axis increases along each column, and points towards the patient’s left (i.e. towards the heart, away from the liver).</p></li>
