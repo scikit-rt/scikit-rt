@@ -265,12 +265,16 @@ exists already, copy files to the existing directory.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_age">
 <span class="sig-name descname"><span class="pre">get_age</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_age" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get patient’s age.</p>
+<p>(This will be missing, or approximate, in anonymised data.)</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_birth_date">
 <span class="sig-name descname"><span class="pre">get_birth_date</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_birth_date" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get patient’s date of birth.</p>
+<p>(This will be missing, or incomplete, in anonymised data.)</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_dose_info">
@@ -445,7 +449,8 @@ If True, return summary information as a pandas dataframe.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_sex">
 <span class="sig-name descname"><span class="pre">get_sex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_sex" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get patient’s sex.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_structure_set_info">
@@ -677,7 +682,10 @@ for that patient.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_patient_id">
 <span class="sig-name descname"><span class="pre">get_patient_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_patient_id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get patient identifier.</p>
+<p>The patient identifier is taken to be the name of the folder
+containing the patient data.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_plan_data">
@@ -694,7 +702,8 @@ in &lt;images&gt; (which should be a list of DatedStores), if provided.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_plan_dose">
 <span class="sig-name descname"><span class="pre">get_plan_dose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_plan_dose" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get Dose object representing radiation field, summed over all fractions.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.link_plan_to_doses">
