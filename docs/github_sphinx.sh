@@ -39,7 +39,7 @@ python -m pip install --upgrade pip
 python -m pip install -e ..
 python -m pip install -e ../examples/voxtox
 python -m pip install -e ../examples/import
-python -m pip install sphinx
+python -m pip install sphinx==5.3.0
 python -m pip install sphinx-rtd-theme
 python -m pip install myst-parser
 
