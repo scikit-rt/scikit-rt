@@ -15,6 +15,11 @@ Images will be processed into a consistent format:
 - The `voxel_size` and `origin` properties are the diagonal and third column, respectively; they give voxel sizes and origin position in order (x, y, z).
 - The `n_voxels` property containins the number of voxels in the (x, y, z) directions (same as `Image.data.shape`, but with 0 and 1 swapped).
 
+Image properties shouldn't usually be accessed directly.  To ensure that
+their values are set, they should instead by accessed via getter methods:
+`get_data()`; `get_affine()`; `get_voxel_size()`, `get_origin()`,
+`get_n_voxels()`.
+
 In the standard dicom-style configuration (Left, Posterior, Superior):
 - The x-axis increases along each column, and points towards the patient's left (i.e. towards the heart, away from the liver).
 - The y-axis increase down each row, and points from the patient's front to back (posterior).
