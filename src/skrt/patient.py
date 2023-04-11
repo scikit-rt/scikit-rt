@@ -285,6 +285,12 @@ class Study(skrt.core.Archive):
         return selection
 
     def get_patient_id(self):
+        """
+        Get patient identifier.
+
+        The patient identifier is taken to be the name of the folder
+        containing the patient data.
+        """
         patient_id = os.path.basename(os.path.dirname(self.path))
         return patient_id
 
@@ -377,6 +383,9 @@ class Study(skrt.core.Archive):
         return doses
 
     def get_plan_dose(self):
+        """
+        Get Dose object representing radiation field, summed over all fractions.
+        """
 
         plan_dose = None
         dose_dict = {}
@@ -1424,19 +1433,29 @@ class Patient(skrt.core.PathData):
         self.birth_date = info["BirthDate"]
 
     def get_age(self):
+        """
+        Get patient's age.
 
+        (This will be missing, or approximate, in anonymised data.)
+        """
         if not hasattr(self, 'age'):
             self.load_demographics()
         return self.age
 
     def get_sex(self):
-
+        """
+        Get patient's sex.
+        """
         if not hasattr(self, 'sex'):
             self.load_demographics()
         return self.sex
 
     def get_birth_date(self):
+        """
+        Get patient's date of birth.
 
+        (This will be missing, or incomplete, in anonymised data.)
+        """
         if not hasattr(self, 'birth_date'):
             self.load_demographics()
         return self.birth_date
