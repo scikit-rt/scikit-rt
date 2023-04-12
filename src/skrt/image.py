@@ -6047,8 +6047,8 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
     The returned images are created from clones of the input images,
     which are left unchanged.
 
-    The first ROI of the pair may be cropped about a focus (ROI or point).
-    The second ROI of the pair may be cropped to the size of the first.
+    The second ROI of the pair may be cropped about a focus (ROI or point).
+    The first ROI of the pair may be cropped to the size of the first.
 
     **Parameters:**
 
