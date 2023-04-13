@@ -6048,7 +6048,8 @@ def get_alignment_strategy(alignment=None):
 
 def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
                  ss1_name=None, ss2_name=None, roi_names=None,
-                 im2_crop_focus=None, im2_crop_margins=None, alignment=None,
+                 im2_crop_focus=None, im2_crop_margins=None,
+                 im2_crop_about_centre=False, alignment=None,
                  voxel_size=None, bands=None):
     """
     Process pair of images, so that they match in one or more respects.
@@ -6107,6 +6108,12 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
         are two-component tuples specifying lower and upper bounds
         relative to the crop point.
 
+    im2_crop_about_centre: bool, default=False
+        For the case where im2_crop_focus is the name of an ROI:
+        if True, im2 is cropped to the centre point of the ROI plus margins;
+        if False, im2 is cropped to the ROI extents plus margins.
+        Ignored for the case where im2_crop_focus isn't the name of an ROI.
+
     alignment : tuple/dict/str, default=None
         Strategy to be used for aligning images prior to cropping
         so that they have the same size.  For strategy details, see
@@ -6136,7 +6143,8 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
 
     # Crop im2 to region around focus.
     if ss2 is not None and im2_crop_focus in ss2.get_roi_names():
-        im2.crop_to_roi(ss2[im2_crop_focus], im2_crop_margins)
+        im2.crop_to_roi(ss2[im2_crop_focus], crop_margins=im2_crop_margins,
+                        crop_about_centre=im2_crop_about_centre)
     elif ((skrt.core.is_list(im2_crop_focus) or im2_crop_focus is None)
           and skrt.core.is_list(im2_crop_margins)):
         im2.crop_about_point(im2_crop_focus, *im2_crop_margins)
