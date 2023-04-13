@@ -7266,10 +7266,11 @@ class StructureSet(skrt.core.Archive):
         extent = self.get_extent(ax=ax)
         return abs(extent[1] - extent[0])
 
-    def get_centre(self):
+    def get_centre(self, **kwargs):
         """Get 3D centre of the area covered by ROIs."""
 
-        extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
+        kwargs.pop("ax", None)
+        extents = [self.get_extent(ax=ax, **kwargs) for ax in skrt.image._axes]
         return [np.mean(ex) for ex in extents]
 
     def find_most_populated_slice(self, view="x-y"):

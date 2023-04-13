@@ -3892,9 +3892,10 @@ class Image(skrt.core.Archive):
         """
         crop_by_amounts(self, dx, dy, dz)
 
-    def crop_to_roi(self, roi, crop_margins=None, method=None):
+    def crop_to_roi(self, roi, crop_margins=None, crop_about_centre=False,
+                    method=None):
         """
-        Crop image to region covered by an ROI or StructureSet, plus margins.
+        Crop image to region defined by an ROI or StructureSet, plus margins.
 
         **Parameters:**
 
@@ -3903,13 +3904,19 @@ class Image(skrt.core.Archive):
 
         crop_margins : float/tuple, default=None
             Float or three-element tuple specifying the margins, in mm,
-            to be added to StructureSet extents.  If a float, minus and plus the
-            value specified are added to lower and upper extents respectively
-            along each axis.  If a three-element tuple, elements are
-            taken to specify margins in the order (x, y, z).  Elements
-            can be either floats (minus and plus the value added respectively
-            to lower and upper extents) or two-element tuples (elements 0 and 1
-            added respectively to lower and upper extents).
+            to be added to extents or centre point of ROI or StructureSet.  If
+            a float, minus and plus the value specified are added to lower
+            and upper extents respectively along each axis.  If a
+            three-element tuple, elements are taken to specify margins in
+            the order (x, y, z).  Elements can be either floats (minus and
+            plus the value added respectively to lower and upper extents)
+            or two-element tuples (elements 0 and 1 added respectively
+            to lower and upper extents).
+
+        crop_about_centre : bool, default=False
+            If True, image is cropped to the centre point of ROI or
+            StructureSet plus margins.  If False, image is cropped to 
+            the extents of ROI or StructureSet plus margins.
 
         method : str, default=None
             Method to use for calculating extent of <roi> region. Can be: 
@@ -3919,8 +3926,12 @@ class Image(skrt.core.Archive):
                   binary mask.
                 * None: use the method set in self.default_geom_method.
         """
-        self.crop(*roi.get_crop_limits(
-            crop_margins=crop_margins, method=method))
+        if crop_about_centre:
+            self.crop_about_point(roi.get_centre(method=method),
+                                  *checked_crop_limits(crop_margins))
+        else:
+            self.crop(*roi.get_crop_limits(
+                crop_margins=crop_margins, method=method))
 
     def crop_to_image(self, image, alignment=None):
         """

@@ -822,13 +822,33 @@ def test_crop_by_amounts():
         assert im1.get_extents()[i_ax][1] - dv2 == im2.get_extents()[i_ax][1]
 
 def test_crop_to_roi():
+    """Text cropping to ROI and StructureSet."""
+    # Create test image, featuring cuboid.
     sim = SyntheticImage((10, 12, 10), origin=(0.5, 0.5, 0.5), noise_std=100)
     sim.add_cuboid((4, 2, 6), name="cuboid")
+    ss = sim.get_structure_set()
     roi = sim.get_roi("cuboid")
-    im = sim.get_image()
-    im.crop_to_roi(roi)
-    for i in range(2):
-        assert set(roi.get_extents()[i]) == set(im.image_extent[i])
+
+    for obj in [roi, ss]:
+        # Check that image extents, after cropping to an ROI or StructureSet,
+        # are the same as the extents of the ROI or StructureSet.
+        im = sim.get_image().clone()
+        im.crop_to_roi(obj)
+        assert np.all(obj.get_extents()
+                      == [list(extent) for extent in im.get_extents()])
+
+        # Check that image extents, after cropping about the centre
+        # of an ROI or StructureSet, are as expected from the
+        # centre coordinates of the ROI or StructureSet plus margins.
+        im = sim.get_image().clone()
+        crop_margins = (2, 1, (-3, 3))
+        im.crop_to_roi(obj, crop_margins=crop_margins, crop_about_centre=True)
+        centre = obj.get_centre()
+        margins = checked_crop_limits(crop_margins)
+        assert np.all(im.get_centre() == centre)
+        extents = [(centre[idx] + margins[idx][0],
+                    centre[idx] + margins[idx][1]) for idx in range(3)]
+        assert np.all(extents == im.get_extents())
 
 def test_crop_to_image():
     # Create test images.
