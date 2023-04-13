@@ -522,15 +522,16 @@ class SingleAtlasSegmentation(Data):
     def __init__(
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
-        engine=None, engine_dir=None,
-        auto=False, auto_step=None, auto_strategies=None,
-        auto_reg_setup_only=False,
+        engine=None, engine_dir=None, auto=False, auto_step=None,
+        auto_strategies=None, auto_reg_setup_only=False,
         default_step=-1, default_strategy="pull", roi_names=None,
         ss1_index=-1, ss2_index=-1, ss1_name="Filtered1", ss2_name="Filtered2",
         initial_crop_focus=None, initial_crop_margins=None,
-        initial_alignment=None, initial_transform_name=None,
-        crop_to_match_size1=True, voxel_size1=None, bands1=None, pfiles1=None, 
+        initial_crop_about_centre=False, initial_alignment=None,
+        initial_transform_name=None, crop_to_match_size1=True,
+        voxel_size1=None, bands1=None, pfiles1=None, 
         most_points1=True, roi_crop_margins=None, default_roi_crop_margins=10,
+        roi_crop_about_centre=None, default_roi_crop_about_centre=False,
         roi_pfiles=None, crop_to_match_size2=True, voxel_size2=None,
         default_roi_bands=None, roi_bands=None, pfiles2=None,
         most_points2=True, capture_output=False,
@@ -580,6 +581,7 @@ class SingleAtlasSegmentation(Data):
         self.initial_alignment = initial_alignment
         self.initial_crop_focus = initial_crop_focus
         self.initial_crop_margins = initial_crop_margins
+        self.initial_crop_about_centre = initial_crop_about_centre
         self.crop_to_match_size1 = crop_to_match_size1
         self.voxel_size1 = voxel_size1
         self.bands1 = bands1
@@ -590,6 +592,8 @@ class SingleAtlasSegmentation(Data):
         # Set parameters for step-2 registration.
         self.roi_crop_margins = roi_crop_margins or {}
         self.default_roi_crop_margins = default_roi_crop_margins
+        self.roi_crop_about_centre = roi_crop_about_centre or {}
+        self.default_roi_crop_about_centre = default_roi_crop_about_centre
         self.crop_to_match_size2 = crop_to_match_size2
         self.voxel_size2 = voxel_size2
         self.roi_bands = roi_bands or {}
@@ -653,6 +657,7 @@ class SingleAtlasSegmentation(Data):
                         roi_names=self.roi_names,
                         im2_crop_focus=self.initial_crop_focus,
                         im2_crop_margins=self.initial_crop_margins,
+                        im2_crop_about_centre=self.initial_crop_about_centre,
                         alignment=(self.initial_alignment
                                    if self.crop_to_match_size1 else False),
                         voxel_size=self.voxel_size1,
@@ -709,8 +714,14 @@ class SingleAtlasSegmentation(Data):
                             ss2_name=self.ss2_name,
                             roi_names={roi_name: self.roi_names[roi_name]},
                             im2_crop_focus=roi_name,
-                            im2_crop_margins=self.roi_crop_margins.get(
-                                roi_name, self.default_roi_crop_margins),
+                            im2_crop_margins=(
+                                self.roi_crop_margins.get(
+                                    roi_name,
+                                    self.default_roi_crop_margins)),
+                            im2_crop_about_centre=(
+                                self.roi_crop_about_centre.get(
+                                    roi_name,
+                                    self.default_roi_crop_about_centre)),
                             alignment=(roi_name if self.crop_to_match_size2
                                        else False),
                             voxel_size=self.voxel_size2,
