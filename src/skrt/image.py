@@ -1463,6 +1463,25 @@ class Image(skrt.core.Archive):
 
         return masks[0]
 
+    def rescale(self, v_min=0.0, v_max=1.0):
+        '''
+        Linearly rescale image greyscale values,
+        so that they span a specified range.
+
+        **Parameters:**
+
+        v_min: float, default=0.0
+            Minimum greyscale value after rescaling.
+
+        v_max: float, default=1.0
+            Maximum greyscale value after rescaling.
+        '''
+        u_min = self.get_min(force=True)
+        u_max = self.get_max(force=True)
+        du = u_max - u_min
+        dv = v_max - v_min
+        self.data = v_min + ((self.data.astype(np.float32) - u_min) * (dv / du))
+
     def resize(self, image_size=None, origin=None, voxel_size=None,
             fill_value=None, image_size_unit=None, centre=None,
             keep_centre=False, method='linear'):
@@ -1719,11 +1738,14 @@ class Image(skrt.core.Archive):
         self._min = self.data.min()
         return self._min
 
-    def get_max(self):
+    def get_max(self, force=False):
         """Get maximum greyscale value of data array."""
 
+        if not force and hasattr(self, "_max"):
+            return self._max
         self.load()
-        return self.data.max()
+        self._max = self.data.max()
+        return self._max
 
     def get_centroid_idx(self, view="x-y", fraction=1):
         """

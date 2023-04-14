@@ -1497,3 +1497,27 @@ def test_get_mutual_information():
                     math.log(4, (base or math.e)), small_number)
             assert (im1.get_mutual_information(im2, base=base, variant=variant)
                     == test_value)
+
+def test_rescale():
+    """Test rescaling of image greyscale values."""
+    
+    # Create test image, and obtain greyscale characteristics.
+    im = create_test_image(shape, voxel_size, origin)
+    im.data = im.data - (0.5 * im.get_max())
+    u_min = im.get_min(force=True)
+    u_max = im.get_max(force=True)
+    du = u_max - u_min
+    u_sum = im.data.sum()
+
+    # Rescale image.
+    v_min = 0.
+    v_max = 100.
+    dv = v_max - v_min
+    im.rescale(v_min, v_max)
+
+
+    # Check greyscale characteristics of rescaled image.
+    assert im.get_min(force=True) == v_min
+    assert im.get_max(force=True) == v_max
+    assert ((u_min + ((im.data - v_min) * (du / dv))).sum()
+            == pytest.approx(u_sum, rel=0.001))
