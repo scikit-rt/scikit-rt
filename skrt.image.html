@@ -873,7 +873,7 @@ if the mask image has non-boolean data.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_max">
-<span class="sig-name descname"><span class="pre">get_max</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_max" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_max" title="Permalink to this definition"></a></dt>
 <dd><p>Get maximum greyscale value of data array.</p>
 </dd></dl>
 
@@ -1791,6 +1791,20 @@ in mm in the order x, y, z.  If voxel_size is an int or float,
 then it’s taken to specify the voxel size in mm along all axes.</p>
 </dd>
 <dt>order: int, default = 1</dt><dd><p>Order of the b-spline used in interpolating voxel intensity values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.rescale">
+<span class="sig-name descname"><span class="pre">rescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.rescale" title="Permalink to this definition"></a></dt>
+<dd><p>Linearly rescale image greyscale values,
+so that they span a specified range.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>v_min: float, default=0.0</dt><dd><p>Minimum greyscale value after rescaling.</p>
+</dd>
+<dt>v_max: float, default=1.0</dt><dd><p>Maximum greyscale value after rescaling.</p>
 </dd>
 </dl>
 </dd></dl>
