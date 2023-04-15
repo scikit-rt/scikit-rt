@@ -1463,7 +1463,7 @@ class Image(skrt.core.Archive):
 
         return masks[0]
 
-    def rescale(self, v_min=0.0, v_max=1.0):
+    def rescale(self, v_min=0.0, v_max=1.0, constant=0.5):
         '''
         Linearly rescale image greyscale values,
         so that they span a specified range.
@@ -1475,12 +1475,22 @@ class Image(skrt.core.Archive):
 
         v_max: float, default=1.0
             Maximum greyscale value after rescaling.
+
+        constant: float, default=0.5
+            Greyscale value to assign after rescaling if all values
+            in the original image are the same.  If None,
+            original value is kept.
         '''
+        # Perform rescaling.
         u_min = self.get_min(force=True)
         u_max = self.get_max(force=True)
         du = u_max - u_min
         dv = v_max - v_min
-        self.data = v_min + ((self.data.astype(np.float32) - u_min) * (dv / du))
+        if du:
+            self.data = v_min + ((self.data.astype(np.float32) - u_min)
+                                 * (dv / du))
+        elif constant is not None:
+            self.data.fill(constant)
 
     def resize(self, image_size=None, origin=None, voxel_size=None,
             fill_value=None, image_size_unit=None, centre=None,
@@ -4354,6 +4364,44 @@ class Image(skrt.core.Archive):
 
         return mi
 
+    def get_relative_structural_content(
+            self, image, v_min=None, v_max=None, constant=None):
+        """
+        Calculate relative structural content of this image
+        compared with another.
+
+        The calculation of relative structural content is based on
+        the definition of:
+
+        - https://doi.org/10.1364/JOSA.46.000740
+
+        The parameters v_min, v_max, constant allow for linear rescaling
+        of image greyscale values prior to calculation of relative
+        structural content.  Any rescaling is performed on clones of
+        the images to be compared, with the originals left unaltered.
+
+        **Parameters:**
+
+        image : skrt.image.Image
+            Image with respect to which relative structural content
+            is to be calculated.
+
+        v_min: float, default=0.0
+            Minimum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        v_max: float, default=1.0
+            Maximum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        constant: float, default=0.5
+            Greyscale value to assign after rescaling if all values
+            in the original image are the same.  If None,
+            original value is kept.
+        """
+        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
+        return ((im1.get_data()**2).sum() / (im2.get_data()**2).sum())
+
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
 
@@ -6376,3 +6424,51 @@ def entropy(p, base=2):
         base = math.e
     p_non_zero = (p > 0)
     return -np.sum(p[p_non_zero] * np.log(p[p_non_zero])) /np.log(base)
+
+def rescale_images(images, v_min=0.0, v_max=1.0, constant=0.5, clone=True):
+    """
+    For one or more images, linearly rescale greyscale values
+    so that they span a specified range.
+
+    Returns the input images if no rescaling is performed.  Otherwise
+    returns the input images rescaled (<clone> set to False) or
+    rescaled clones of the input images (<clone> set to True).
+
+    image : list
+        List of skrt.image.Image objects, for which rescaling
+        is to be performed.
+
+        v_min: float, default=0.0
+            Minimum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        v_max: float, default=1.0
+            Maximum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        constant: float, default=0.5
+            Greyscale value to assign after rescaling if all values
+            in the original image are the same.  If None,
+            original value is kept.
+
+    clone : bool, default=True
+        If True, clone each input image before rescaling.
+    """
+    if v_min is None or v_max is None:
+        return images
+
+    # Try to ensure list of images.
+    if not skrt.core.is_list(images):
+        images = [images]
+    elif not isinstance(images, list):
+        images = list(images)
+
+    # Clone if required.
+    if clone:
+        images = [image.clone() for image in images]
+
+    # Perform rescaling.
+    for image in images:
+        image.rescale(v_min=v_min, v_max=v_max, constant=constant)
+
+    return images

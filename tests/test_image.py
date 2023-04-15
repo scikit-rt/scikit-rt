@@ -14,9 +14,9 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import File, fullpath
-from skrt.image import (Image, get_alignment_translation, get_geometry,
-                        get_mask_bbox, get_translation_to_align, match_images,
-                        match_image_voxel_sizes, checked_crop_limits)
+from skrt.image import (Image, checked_crop_limits, get_alignment_translation,
+                        get_geometry, get_mask_bbox, get_translation_to_align,
+                        match_images, match_image_voxel_sizes, rescale_images)
 from skrt.simulation import SyntheticImage
 
 try:
@@ -1498,7 +1498,7 @@ def test_get_mutual_information():
             assert (im1.get_mutual_information(im2, base=base, variant=variant)
                     == test_value)
 
-def test_rescale():
+def test_rescale_images():
     """Test rescaling of image greyscale values."""
     
     # Create test image, and obtain greyscale characteristics.
@@ -1512,12 +1512,44 @@ def test_rescale():
     # Rescale image.
     v_min = 0.
     v_max = 100.
+    constant = 50.
     dv = v_max - v_min
-    im.rescale(v_min, v_max)
-
+    im2 = rescale_images(im, v_min, v_max, constant, clone=False)[0]
 
     # Check greyscale characteristics of rescaled image.
-    assert im.get_min(force=True) == v_min
-    assert im.get_max(force=True) == v_max
-    assert ((u_min + ((im.data - v_min) * (du / dv))).sum()
+    assert im2 is im
+    assert im2.get_min(force=True) == v_min
+    assert im2.get_max(force=True) == v_max
+    assert ((u_min + ((im2.data - v_min) * (du / dv))).sum()
             == pytest.approx(u_sum, rel=0.001))
+
+    # Check greyscale value after rescaling,
+    # when initial greyscale values are all the same.
+    v_fill = 10
+    im.data.fill(v_fill)
+    im2 = rescale_images((im,), v_min, v_max, constant, clone=True)[0]
+    assert im2 is not im
+    assert np.all(im2.data == constant)
+    assert np.all(im2.data != im.data)
+
+    # Check that original image is returned
+    # when lower or upper bound for rescaling is None,
+    for v_min2, v_max2 in [(None, v_max), (v_min, None)]:
+        im2 = rescale_images([im], v_min2, v_max2, constant, clone=True)[0]
+        assert im2 is im
+        assert np.all(im2.data == v_fill)
+
+def test_get_relative_structural_content():
+    """Test calculation of relative structural content."""
+    # For image compared with itself,
+    # check that relative structural content is 1.
+    im1 = create_test_image(shape, voxel_size, origin)
+    for v_min, v_max in [(None, None), (0, 1)]:
+        assert im1.get_relative_structural_content(im1, v_min, v_max) == 1
+
+    # For image filled with zeros (after rescaling), compared with another
+    # image, check that relative structural content is 0.
+    im2 = im1.clone()
+    im2.data.fill(5)
+    assert im2.get_relative_structural_content(
+            im1, v_min=0, v_max=1, constant=0) == 0
