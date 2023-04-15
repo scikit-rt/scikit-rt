@@ -1076,6 +1076,38 @@ in order (x, y, z).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_relative_structural_content">
+<span class="sig-name descname"><span class="pre">get_relative_structural_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_relative_structural_content" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate relative structural content of this image
+compared with another.</p>
+<p>The calculation of relative structural content is based on
+the definition of:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://doi.org/10.1364/JOSA.46.000740">https://doi.org/10.1364/JOSA.46.000740</a></p></li>
+</ul>
+<p>The parameters v_min, v_max, constant allow for linear rescaling
+of image greyscale values prior to calculation of relative
+structural content.  Any rescaling is performed on clones of
+the images to be compared, with the originals left unaltered.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which relative structural content
+is to be calculated.</p>
+</dd>
+<dt>v_min: float, default=0.0</dt><dd><p>Minimum greyscale value after rescaling.  If None,
+no rescaling is performed.</p>
+</dd>
+<dt>v_max: float, default=1.0</dt><dd><p>Maximum greyscale value after rescaling.  If None,
+no rescaling is performed.</p>
+</dd>
+<dt>constant: float, default=0.5</dt><dd><p>Greyscale value to assign after rescaling if all values
+in the original image are the same.  If None,
+original value is kept.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_rois">
 <span class="sig-name descname"><span class="pre">get_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Get all instances of ROIs with specified name in image structure sets.</p>
@@ -1797,7 +1829,7 @@ then it’s taken to specify the voxel size in mm along all axes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.rescale">
-<span class="sig-name descname"><span class="pre">rescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.rescale" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">rescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.rescale" title="Permalink to this definition"></a></dt>
 <dd><p>Linearly rescale image greyscale values,
 so that they span a specified range.</p>
 <p><strong>Parameters:</strong></p>
@@ -1805,6 +1837,10 @@ so that they span a specified range.</p>
 <dt>v_min: float, default=0.0</dt><dd><p>Minimum greyscale value after rescaling.</p>
 </dd>
 <dt>v_max: float, default=1.0</dt><dd><p>Maximum greyscale value after rescaling.</p>
+</dd>
+<dt>constant: float, default=0.5</dt><dd><p>Greyscale value to assign after rescaling if all values
+in the original image are the same.  If None,
+original value is kept.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3126,6 +3162,35 @@ images: list, default=None</p>
 <p><strong>Returns</strong>:</p>
 <dl class="simple">
 <dt>data<span class="classifier">np.ndarray</span></dt><dd><p>Rescaled version of the input array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.rescale_images">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">rescale_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.rescale_images" title="Permalink to this definition"></a></dt>
+<dd><p>For one or more images, linearly rescale greyscale values
+so that they span a specified range.</p>
+<p>Returns the input images if no rescaling is performed.  Otherwise
+returns the input images rescaled (&lt;clone&gt; set to False) or
+rescaled clones of the input images (&lt;clone&gt; set to True).</p>
+<dl>
+<dt>image<span class="classifier">list</span></dt><dd><p>List of skrt.image.Image objects, for which rescaling
+is to be performed.</p>
+<dl class="simple">
+<dt>v_min: float, default=0.0</dt><dd><p>Minimum greyscale value after rescaling.  If None,
+no rescaling is performed.</p>
+</dd>
+<dt>v_max: float, default=1.0</dt><dd><p>Maximum greyscale value after rescaling.  If None,
+no rescaling is performed.</p>
+</dd>
+<dt>constant: float, default=0.5</dt><dd><p>Greyscale value to assign after rescaling if all values
+in the original image are the same.  If None,
+original value is kept.</p>
+</dd>
+</dl>
+</dd>
+<dt>clone<span class="classifier">bool, default=True</span></dt><dd><p>If True, clone each input image before rescaling.</p>
 </dd>
 </dl>
 </dd></dl>
