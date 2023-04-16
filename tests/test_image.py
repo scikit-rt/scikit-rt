@@ -996,10 +996,14 @@ def test_translation_to_align():
     """Test calculation of translation to align pair of images."""
 
     # Create synthetic images featuring a sphere.
-    shapes = [(100, 100, 40), (80, 80, 50)]
-    origins = [(-50, 40, -20), (0, -10, 30)]
-    centres = [(30, 80, 0), (60, 40, 50)]
-    radii = (10, 15)
+    # shapes = [(100, 100, 40), (80, 80, 50)]
+    # origins = [(-50, 40, -20), (0, -10, 30)]
+    # centres = [(30, 80, 0), (60, 40, 50)]
+    # radii = (10, 15)
+    shapes = [(50, 50, 20), (40, 40, 25)]
+    origins = [(-25, 20, -10), (0, -5, 15)]
+    centres = [(15, 40, 0), (30, 20, 25)]
+    radii = (5, 8)
     intensity=50
     sims = []
     for idx in range(len(shapes)):
