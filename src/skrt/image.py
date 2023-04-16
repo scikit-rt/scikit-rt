@@ -4367,13 +4367,15 @@ class Image(skrt.core.Archive):
     def get_relative_structural_content(
             self, image, v_min=None, v_max=None, constant=None):
         """
-        Calculate relative structural content of this image
-        compared with another.
+        Quantify structural content of this image relative to another.
 
         The calculation of relative structural content is based on
         the definition of:
 
         - https://doi.org/10.1364/JOSA.46.000740
+        - https://doi.org/10.1080/713826248
+
+        The result should be from 0 (no agreement) to 1 (perfect agreement).
 
         The parameters v_min, v_max, constant allow for linear rescaling
         of image greyscale values prior to calculation of relative
@@ -4386,21 +4388,99 @@ class Image(skrt.core.Archive):
             Image with respect to which relative structural content
             is to be calculated.
 
-        v_min: float, default=0.0
+        v_min: float, default=None
             Minimum greyscale value after rescaling.  If None,
             no rescaling is performed.
 
-        v_max: float, default=1.0
+        v_max: float, default=None
             Maximum greyscale value after rescaling.  If None,
             no rescaling is performed.
 
-        constant: float, default=0.5
+        constant: float, default=None
             Greyscale value to assign after rescaling if all values
             in the original image are the same.  If None,
             original value is kept.
         """
         im1, im2 = rescale_images([self, image], v_min, v_max, constant)
         return ((im1.get_data()**2).sum() / (im2.get_data()**2).sum())
+
+    def get_fidelity(self, image, v_min=None, v_max=None, constant=None):
+        """
+        Calculate fidelity with which this image matches another.
+
+        The calculation of fidelity is based on the definition of:
+
+        - https://doi.org/10.1364/JOSA.46.000740
+        - https://doi.org/10.1080/713826248
+
+        The result should be from 0 (no agreement) to 1 (perfect agreement).
+
+        The parameters v_min, v_max, constant allow for linear rescaling
+        of image greyscale values prior to calculation of fidelity.  Any
+        rescaling is performed on clones of the images to be compared,
+        with the originals left unaltered.
+
+        **Parameters:**
+
+        image : skrt.image.Image
+            Image with respect to which fidelity is to be calculated.
+
+        v_min: float, default=None
+            Minimum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        v_max: float, default=None
+            Maximum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        constant: float, default=None
+            Greyscale value to assign after rescaling if all values
+            in the original image are the same.  If None,
+            original value is kept.
+        """
+        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
+        return (1 - (((im2.get_data() - im1.get_data())**2).sum()
+                / (im2.get_data()**2).sum()))
+
+    def get_correlation_quality(
+            self, image, v_min=None, v_max=None, constant=None):
+        """
+        Calculate quality of correlation between this image and another.
+
+        The calculation of correlation quality is based on the definition of:
+
+        - https://doi.org/10.1364/JOSA.46.000740
+        - https://doi.org/10.1080/713826248
+
+        The result should be from 0 (no agreement) to 1 (perfect agreement).
+
+        The parameters v_min, v_max, constant allow for linear rescaling
+        of image greyscale values prior to calculation of correlation
+        quality.  Any rescaling is performed on clones of the images
+        to be compared, with the originals left unaltered.
+
+        **Parameters:**
+
+        image : skrt.image.Image
+            Image with respect to which correlation quality is to be calculated.
+
+        v_min: float, default=None
+            Minimum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        v_max: float, default=None
+            Maximum greyscale value after rescaling.  If None,
+            no rescaling is performed.
+
+        constant: float, default=None
+            Greyscale value to assign after rescaling if all values
+            in the original image are the same.  If None,
+            original value is kept.
+        """
+        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
+        return ((im2.get_data() * im1.get_data()).sum()
+                / (im2.get_data()**2).sum())
+
 
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
