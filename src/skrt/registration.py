@@ -2852,6 +2852,34 @@ def get_default_pfiles_dir(engine=None):
     engine = engine or Defaults().registration_engine
     return get_data_dir() / f"{engine}_parameter_files"
 
+def get_engine_name(engine=None, engine_dir=None):
+    """
+    Get registration-engine name, given engine name or software directory.
+
+    **Parameters:**
+
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
+
+    engine_dir: pathlib.Path/str, default=None
+        Path to directory containing registration-engine software.
+        It's assumed that the registration engine is a key of
+        the dictionary skrt.registration.engines, that the directory
+        path includes this key, and that directory path doesn't
+        include any other keys of skrt.registration.engines.
+    """
+    # Treat case where engine is a key of engines.
+    if engine in engines:
+        return engine
+
+    # Treat case where engine_dir includes a key of engines.
+    for local_engine in engines:
+        if local_engine in str(engine_dir):
+            return local_engine
+
+    # Return default engine name.
+    return Defaults().registration_engine
 
 def get_engine_cls(engine=None, engine_dir=None):
     """
@@ -2870,17 +2898,7 @@ def get_engine_cls(engine=None, engine_dir=None):
         path includes this key, and that directory path doesn't
         include any other keys of skrt.registration.engines.
     """
-    # Treat case where engine is a key of engines.
-    if engine in engines:
-        return engines[engine]
-
-    # Treat case where engine_dir includes a key of engines.
-    for local_engine in engines:
-        if local_engine in str(engine_dir):
-            return engines[local_engine]
-
-    # Return class of default registration engine.
-    return engines.get(Defaults().registration_engine, None)
+    return engines.get(get_engine_name(engine, engine_dir), None)
 
 
 def get_image_transform_parameters(im):
