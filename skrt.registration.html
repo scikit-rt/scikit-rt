@@ -1673,6 +1673,24 @@ include any other keys of skrt.registration.engines.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.registration.get_engine_name">
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_engine_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_engine_name" title="Permalink to this definition"></a></dt>
+<dd><p>Get registration-engine name, given engine name or software directory.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>engine: str, default=None</dt><dd><p>String identifying registration engine, corresponding to
+a key of the dictionary skrt.registration.engines.</p>
+</dd>
+<dt>engine_dir: pathlib.Path/str, default=None</dt><dd><p>Path to directory containing registration-engine software.
+It’s assumed that the registration engine is a key of
+the dictionary skrt.registration.engines, that the directory
+path includes this key, and that directory path doesn’t
+include any other keys of skrt.registration.engines.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.get_image_transform_parameters">
 <span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_image_transform_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_image_transform_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Define Elastix registration-independent parameters for transforms
