@@ -1630,12 +1630,13 @@ class Registration(Data):
 
         **Parameters:**
         step : int/str/list, default=None
-            Name or number of the step for which the registration should be
-            performed. Available steps are listed in self.steps.
+            Name or number of the registration step after which
+            mutual information is to be calculated.  Available
+            steps are listed in self.steps.
 
         force : bool, default=False
             If True, transformation of the moving image will be
-            performed, even if the image was transformed previously.
+            forced, even if the image was transformed previously.
 
         **kwargs
             Keyword arguments passed to
@@ -1645,6 +1646,74 @@ class Registration(Data):
         return self.fixed_image.get_mutual_information(
                 self.get_transformed_image(step, force), **kwargs)
 
+    def get_relative_structural_content(self, step=-1, force=False, **kwargs):
+        """
+        Quantify structural content relative to fixed image of
+        transformed moving image after step.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which relative
+            structure content is to be calculated. Available steps are
+            listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_relative_structural_content()
+            See this method's documentation for options.
+        """
+        return self.get_transformed_image(
+                step, force).get_relative_structural_content(
+                        self.fixed_image, **kwargs)
+
+    def get_fidelity(self, step=-1, force=False, **kwargs):
+        """
+        Calculate fidelity with which transformed moving image after step
+        matches fixed image.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which fidelity
+            is to be calculated. Available steps are listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_relative_structural_content()
+            See this method's documentation for options.
+        """
+        return self.get_transformed_image(
+                step, force).get_fidelity(self.fixed_image, **kwargs)
+
+    def get_correlation_quality(self, step=-1, force=False, **kwargs):
+        """
+        Calculate quality of correlation between transformed moving image
+        after step and fixed image.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which correlation
+            quality is to be calculated. Available steps are listed
+            in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_relative_structural_content()
+            See this method's documentation for options.
+        """
+        return self.get_transformed_image(
+                step, force).get_correlation_quality(self.fixed_image, **kwargs)
 
 class Grid(ImageOverlay):
     """
