@@ -2199,7 +2199,6 @@ class ROI(skrt.core.Archive):
         # Compute metrics
         geom = {}
         slice_kwargs = {
-            "single_slice": True,
             "view": view,
             "sl": sl,
             "idx": idx,
@@ -2238,6 +2237,7 @@ class ROI(skrt.core.Archive):
                 centroid = self.get_centroid(
                     units=centroid_units, 
                     method=method,
+                    single_slice=True,
                     **slice_kwargs
                 )
                 for i, i_ax in enumerate(skrt.image._plot_axes[view]):
@@ -2262,6 +2262,7 @@ class ROI(skrt.core.Archive):
                         ax=ax, 
                         units=length_units,
                         method=method,
+                        single_slice=True,
                         **slice_kwargs
                     )
 
