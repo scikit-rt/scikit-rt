@@ -1643,8 +1643,11 @@ class Image(skrt.core.Archive):
                 vstack = np.vstack(meshgrid)
                 point_array = vstack.reshape(3, -1).T.reshape(ny, nx, nz, 3)
 
-                # Perform resizing
+                # Perform resizing, ensuring that original data type is kept.
+                dtype = self.data.dtype
                 self.data = interpolant(point_array)
+                if dtype != self.data.dtype:
+                    self.data = self.data.astype(dtype)
 
                 # Reset geometry
                 self.voxel_size = voxel_size
