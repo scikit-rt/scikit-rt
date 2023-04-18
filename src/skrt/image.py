@@ -923,7 +923,8 @@ class Image(skrt.core.Archive):
             raise RuntimeError(f"{self.source} not a valid image source!")
 
         # Cast to custom type
-        if self._custom_dtype is not None:
+        if (self._custom_dtype is not None
+            and self.data.dtype != self._custom_dtype):
             self.data = self.data.astype(self._custom_dtype)
 
         # Ensure array is 3D
