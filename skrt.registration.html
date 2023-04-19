@@ -269,6 +269,21 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.adjust_parameters">
+<span class="sig-name descname"><span class="pre">adjust_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.adjust_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Modify contents of a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile<span class="classifier">str/patlib.Path</span></dt><dd><p>Path to a registration parameter file.</p>
+</dd>
+<dt>outfile<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params<span class="classifier">dict</span></dt><dd><p>Dictionary of parameter names and new values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Elastix.define_translation">
 <span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.define_translation" title="Permalink to this definition"></a></dt>
 <dd><p>Define translation parameters to be passed to registration engine.</p>
@@ -390,7 +405,7 @@ of the fixed image to the reference frame of the moving image.</p></li>
 <span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.read_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Get dictionary of parameters from a registration parameter file.</p>
 <p><strong>Parameter:</strong>
-infile: str, pathlib.Path</p>
+infile: str/pathlib.Path</p>
 <blockquote>
 <div><p>Path fo registration parameter file.</p>
 </div></blockquote>
@@ -423,7 +438,7 @@ infile: str, pathlib.Path</p>
 <dd><p>Write dictionary of parameters to a registration parameter file.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>outfile: str, pathlib.Path</dt><dd><p>Path to output file.</p>
+<dt>outfile: str/pathlib.Path</dt><dd><p>Path to output file.</p>
 </dd>
 <dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
 </dd>
@@ -497,6 +512,21 @@ environment based on &lt;path&gt; in all cases.</p>
 <dl class="simple">
 <dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
 log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.adjust_parameters">
+<span class="sig-name descname"><span class="pre">adjust_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.adjust_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Modify contents of a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile<span class="classifier">str/patlib.Path</span></dt><dd><p>Path to a registration parameter file.</p>
+</dd>
+<dt>outfile<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params<span class="classifier">dict</span></dt><dd><p>Dictionary of parameter names and new values.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -628,7 +658,7 @@ of the fixed image to the reference frame of the moving image.</p></li>
 <span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.read_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Get dictionary of parameters from a registration parameter file.</p>
 <p><strong>Parameter:</strong>
-infile: str, pathlib.Path</p>
+infile: str/pathlib.Path</p>
 <blockquote>
 <div><p>Path fo registration parameter file.</p>
 </div></blockquote>
@@ -651,7 +681,7 @@ infile: str, pathlib.Path</p>
 <dd><p>Write dictionary of parameters to a registration parameter file.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>outfile: str, pathlib.Path</dt><dd><p>Path to output file.</p>
+<dt>outfile: str/pathlib.Path</dt><dd><p>Path to output file.</p>
 </dd>
 <dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
 </dd>
@@ -1465,10 +1495,14 @@ transform_points_implemented (bool): Indicate whether registration engine</p>
 </dl>
 <p><strong>Methods:</strong>
 __init__():  Create RegistrationEngine instance.
-define_translation(): Define translation parameters to be passed</p>
+adjust_parameters():</p>
 <blockquote>
-<div><p>to registration engine.</p>
+<div><p>Modify contents of a registration parameter file.</p>
 </div></blockquote>
+<dl class="simple">
+<dt>define_translation(): Define translation parameters to be passed</dt><dd><p>to registration engine.</p>
+</dd>
+</dl>
 <p>get_default_pfiles(): Get list of default parameter files.
 get_default_pfiles_dir(): Return path to directory containing</p>
 <blockquote>
@@ -1485,9 +1519,13 @@ get_default_pfiles_dir(): Return path to directory containing</p>
 </dd>
 <dt>get_transform_cmd():</dt><dd><p>Get registration-engine command for applying registration transform.</p>
 </dd>
+<dt>read_parameters():</dt><dd><p>Get dictionary of parameters from a registration parameter file.</p>
+</dd>
 <dt>set_exe_env(): Set environment variables for running</dt><dd><p>registration-engine software.</p>
 </dd>
 <dt>set_exe_paths():</dt><dd><p>Set path(s)s to registration-engine executable(s).</p>
+</dd>
+<dt>write_parameters():</dt><dd><p>Write dictionary of parameters to a registration parameter file.</p>
 </dd>
 </dl>
 <p><strong>Static method:</strong>
@@ -1511,6 +1549,21 @@ environment based on &lt;path&gt; in all cases.</p>
 <dl class="simple">
 <dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
 log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.adjust_parameters">
+<span class="sig-name descname"><span class="pre">adjust_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.adjust_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Modify contents of a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile<span class="classifier">str/patlib.Path</span></dt><dd><p>Path to a registration parameter file.</p>
+</dd>
+<dt>outfile<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params<span class="classifier">dict</span></dt><dd><p>Dictionary of parameter names and new values.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1666,7 +1719,7 @@ of the fixed image to the reference frame of the moving image.</p></li>
 <span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.read_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Get dictionary of parameters from a registration parameter file.</p>
 <p><strong>Parameter:</strong>
-infile: str, pathlib.Path</p>
+infile: str/pathlib.Path</p>
 <blockquote>
 <div><p>Path fo registration parameter file.</p>
 </div></blockquote>
@@ -1709,7 +1762,7 @@ environment based on &lt;path&gt; in all cases.</p>
 <dd><p>Write dictionary of parameters to a registration parameter file.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>outfile: str, pathlib.Path</dt><dd><p>Path to output file.</p>
+<dt>outfile: str/pathlib.Path</dt><dd><p>Path to output file.</p>
 </dd>
 <dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
 </dd>
@@ -1727,32 +1780,18 @@ to the skrt.registartion.engines dictionary.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.adjust_parameters">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">adjust_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.adjust_parameters" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">adjust_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.adjust_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Modify contents of a registration parameter file.</p>
-<p>This function will work for any file that stores parameter-value pairs
-in the format used by elastix:</p>
-<ul>
-<li><p>Lines beginning <cite>//</cite> are comments.</p></li>
-<li><p>Blank lines are ignored.</p></li>
-<li><p>A parameter-value pair is specified as:
-<a href="#id39"><span class="problematic" id="id40">``</span></a>`
-// Value is True or False.
-(parameter “true”)
-(parameter “false”)</p>
-<p>// Value is a string.
-(parameter “value”)</p>
-<p>// Value is a number.
-(parameter value)
-<a href="#id41"><span class="problematic" id="id42">``</span></a><a href="#id43"><span class="problematic" id="id44">`</span></a></p>
-</li>
-</ul>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>file<span class="classifier">str</span></dt><dd><p>Path to a registration parameter file.</p>
+<dt>infile<span class="classifier">str</span></dt><dd><p>Path to a registration parameter file.</p>
 </dd>
 <dt>outfile<span class="classifier">str</span></dt><dd><p>Path to output file.</p>
 </dd>
 <dt>params<span class="classifier">dict</span></dt><dd><p>Dictionary of parameter names and new values.</p>
+</dd>
+<dt>engine: str, default=None</dt><dd><p>String identifying registration engine, corresponding to
+a key of the dictionary skrt.registration.engines.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1776,7 +1815,7 @@ of paths, as pathlib.Path objects.</p>
 containing default parameter files is required.  If None,
 use value set for skrt.core.Default().registration_engine.</p>
 </dd>
-<dt>pattern: str, default=”<a href="#id45"><span class="problematic" id="id46">*</span></a>.txt”</dt><dd><p>Glob-style pattern for filtering on file names.</p>
+<dt>pattern: str, default=”<a href="#id39"><span class="problematic" id="id40">*</span></a>.txt”</dt><dd><p>Glob-style pattern for filtering on file names.</p>
 </dd>
 </dl>
 </dd></dl>
