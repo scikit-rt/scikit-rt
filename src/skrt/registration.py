@@ -1268,9 +1268,11 @@ class Registration(Data):
         step = self.get_step_name(step)
 
         if "p" == ftype:
-            adjust_parameters(self.pfiles[step], self.pfiles[step], params)
+            self.engine.adjust_parameters(
+                    self.pfiles[step], self.pfiles[step], params)
         elif "t" == ftype:
-            adjust_parameters(self.tfiles[step], self.tfiles[step], params)
+            self.engine.adjust_parameters(
+                    self.tfiles[step], self.tfiles[step], params)
 
         if (reset and step in self.tfiles
                 and os.path.exists(self.pfiles.get(step, ""))):
@@ -2278,6 +2280,8 @@ class RegistrationEngine:
 
     **Methods:**
     __init__():  Create RegistrationEngine instance.
+    adjust_parameters():
+        Modify contents of a registration parameter file.
     define_translation(): Define translation parameters to be passed
         to registration engine.
     get_default_pfiles(): Get list of default parameter files.
@@ -2293,10 +2297,14 @@ class RegistrationEngine:
         transforming ROI mask.
     get_transform_cmd():
         Get registration-engine command for applying registration transform.
+    read_parameters():
+        Get dictionary of parameters from a registration parameter file.
     set_exe_env(): Set environment variables for running
         registration-engine software.
     set_exe_paths():
         Set path(s)s to registration-engine executable(s).
+    write_parameters():
+        Write dictionary of parameters to a registration parameter file.
 
     **Static method:**
     get_transform_strategies():
@@ -2339,6 +2347,24 @@ class RegistrationEngine:
         if not hasattr(self, "name"):
             self.name = type(self).__name__.lower()
         self.set_exe_env(path, force)
+
+    def adjust_parameters(self, infile, outfile, params):
+        """
+        Modify contents of a registration parameter file.
+
+        **Parameters:**
+
+        infile : str/patlib.Path
+            Path to a registration parameter file.
+
+        outfile : str/pathlib.Path
+            Path to output file.
+
+        params : dict
+            Dictionary of parameter names and new values.
+        """
+        raise NotImplementedError("Method 'adjust_parameters()' "
+                                  f"not implemented for class {type(self)}")
 
     def define_translation(self, dxdydz, fixed_image=None):
         """
@@ -2503,7 +2529,7 @@ class RegistrationEngine:
         Get dictionary of parameters from a registration parameter file.
 
         **Parameter:**
-        infile: str, pathlib.Path
+        infile: str/pathlib.Path
             Path fo registration parameter file.
         """
         raise NotImplementedError("Method 'read_parameters()' "
@@ -2579,7 +2605,7 @@ class RegistrationEngine:
 
         **Parameters:**
 
-        outfile: str, pathlib.Path
+        outfile: str/pathlib.Path
             Path to output file.
 
         params: dict
@@ -2626,6 +2652,22 @@ class Elastix(RegistrationEngine):
 
         # Perform rest of initialisation via base class.
         super().__init__(**kwargs)
+
+    def adjust_parameters(self, infile, outfile, params):
+        # Modify elastix parameter file.
+        # For information about format, see section 3.4 of elastix manual:
+        # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
+
+        # Check that file to be adjusted exists.
+        if not os.path.exists(infile):
+            self.logger.warning(f"File not found: '{infile}'")
+            self.logger.warning("No parameter-adjustment performed")
+            return
+
+        # Read input
+        original_params = self.read_parameters(infile)
+        original_params.update(params)
+        self.write_parameters(outfile, original_params)
 
     def define_translation(self, dxdydz, fixed_image=None):
         # Define translation parameters that are enough to allow
@@ -2692,7 +2734,7 @@ class Elastix(RegistrationEngine):
         # Perform any modifications to the transform parameter file.
         if params:
             out_tfile = str(Path(outdir) / Path(tfile).name)
-            adjust_parameters(tfile, out_tfile, params)
+            self.adjust_parameters(tfile, out_tfile, params)
             tfile = out_tfile.replace("\\", "/")
 
         # Return command for applying registration transform.
@@ -2801,6 +2843,14 @@ class NiftyReg(RegistrationEngine):
         # Perform rest of initialisation via base class.
         super().__init__(**kwargs)
 
+    def adjust_parameters(self, infile, outfile, params):
+        # Modify NiftyReg parameter file.
+        # NiftyReg doesn't define its own file format.  Here adopt
+        # format used by elastix.  For information about this,
+        # see section 3.4 of elastix manual:
+        # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
+        return Elastix.adjust_parameters(self, infile, outfile, params)
+
     def define_translation(self, dxdydz, fixed_image=None):
         # Define translation parameters that are enough to allow
         # application before a registration step.
@@ -2830,7 +2880,7 @@ class NiftyReg(RegistrationEngine):
             pfile, outdir, tfile=None):
 
         # Read registration parameters from file.
-        params = read_parameters(pfile)
+        params = self.read_parameters(pfile)
 
         # Define path to output directory.
         outdir = Path(outdir)
@@ -2925,31 +2975,13 @@ class NiftyReg(RegistrationEngine):
         return ["pull"]
 
 
-def adjust_parameters(infile, outfile, params):
+def adjust_parameters(infile, outfile, params, engine=None):
     """
     Modify contents of a registration parameter file.
 
-    This function will work for any file that stores parameter-value pairs
-    in the format used by elastix:
-
-    - Lines beginning `//` are comments.
-    - Blank lines are ignored.
-    - A parameter-value pair is specified as:
-      ```
-      // Value is True or False.
-      (parameter "true")
-      (parameter "false")
-
-      // Value is a string.
-      (parameter "value")
-
-      // Value is a number.
-      (parameter value)
-      ```
-
     **Parameters:**
 
-    file : str
+    infile : str
         Path to a registration parameter file.
 
     outfile : str
@@ -2957,19 +2989,12 @@ def adjust_parameters(infile, outfile, params):
 
     params : dict
         Dictionary of parameter names and new values.
+
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
     """
-
-    # Check that file to be adjusted exists.
-    if not os.path.exists(infile):
-        print(f"File not found: '{infile}'")
-        print("No parameter-adjustment performed")
-        return
-
-    # Read input
-    original_params = read_parameters(infile)
-    original_params.update(params)
-    write_parameters(outfile, original_params)
-
+    return get_engine_cls(engine)().adjust_parameters(infile, outfile, params)
 
 def get_data_dir():
     """Return path to data directory within the scikit-rt package."""
