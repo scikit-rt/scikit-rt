@@ -340,8 +340,11 @@ translation to the image. Note that this will not change the Image
 object itself, only the image displayed in the viewer.</p>
 </dd>
 <dt>translation_write_style<span class="classifier">bool, default=”normal”</span></dt><dd><p>Method for writing translations to a file. Can either be “normal”
-(will write x, y, z translations) or “shift” (will shift 
-translations in an elastix transform file).</p>
+(will write x, y, z translations) or the name of a
+registration engine (will shift translations in
+a registration transform file).  For historical reasons,
+“shift” is accepted as a synonym for “elastix” as
+registration engine.</p>
 </dd>
 <dt>show_mse<span class="classifier">str, default=None</span></dt><dd><p>Color for annotation of mean-squared-error if using comparison
 images. If None, no annotation will be added. Can be set to ‘True’

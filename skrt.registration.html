@@ -145,7 +145,7 @@ parameter file.</p></li>
 <li><p>set_elastix_dir() :  Perform environment setup for using elastix software.</p></li>
 <li><p>set_engine_dir() : Perform environment setup for using registration software.</p></li>
 <li><p>shift_translation_parameters() : Add offsets to the translation parameters
-in an elastix parameter file.</p></li>
+in a registration parameter file.</p></li>
 <li><p>write_parameters() : Write dictionary of parameters to a registration
 parameter file.</p></li>
 </ul>
@@ -407,7 +407,7 @@ of the fixed image to the reference frame of the moving image.</p></li>
 <p><strong>Parameter:</strong>
 infile: str/pathlib.Path</p>
 <blockquote>
-<div><p>Path fo registration parameter file.</p>
+<div><p>Path to registration parameter file.</p>
 </div></blockquote>
 </dd></dl>
 
@@ -418,6 +418,24 @@ infile: str/pathlib.Path</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.shift_translation_parameters">
+<span class="sig-name descname"><span class="pre">shift_translation_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.shift_translation_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Add offsets to the translation parameters in a registration
+transform file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile: str</dt><dd><p>Path to input transform file.</p>
+</dd>
+<dt>dx, dy, dz: int, default=0</dt><dd><p>Amounts by which to increase translation parameters, along
+x, y, z directions.</p>
+</dd>
+<dt>outfile: str, default=None</dt><dd><p>Path to output parameter file.  If None, overwrite input
+parameter file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -654,13 +672,24 @@ of the fixed image to the reference frame of the moving image.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.read_affine">
+<span class="sig-name descname"><span class="pre">read_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.read_affine" title="Permalink to this definition"></a></dt>
+<dd><p>Read affine matrix from file.</p>
+<p><strong>Parameter:</strong>
+infile: str/pathlib.Path</p>
+<blockquote>
+<div><p>Path to file from which to read affine matrix.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.NiftyReg.read_parameters">
 <span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.read_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Get dictionary of parameters from a registration parameter file.</p>
 <p><strong>Parameter:</strong>
 infile: str/pathlib.Path</p>
 <blockquote>
-<div><p>Path fo registration parameter file.</p>
+<div><p>Path to registration parameter file.</p>
 </div></blockquote>
 </dd></dl>
 
@@ -673,6 +702,35 @@ infile: str/pathlib.Path</p>
 <dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.shift_translation_parameters">
+<span class="sig-name descname"><span class="pre">shift_translation_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.shift_translation_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Add offsets to the translation parameters in a registration
+transform file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile: str</dt><dd><p>Path to input transform file.</p>
+</dd>
+<dt>dx, dy, dz: int, default=0</dt><dd><p>Amounts by which to increase translation parameters, along
+x, y, z directions.</p>
+</dd>
+<dt>outfile: str, default=None</dt><dd><p>Path to output parameter file.  If None, overwrite input
+parameter file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.write_affine">
+<span class="sig-name descname"><span class="pre">write_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.write_affine" title="Permalink to this definition"></a></dt>
+<dd><p>Write affine matrix fo file.</p>
+<p><strong>Parameter:</strong>
+outfile: str/pathlib.Path</p>
+<blockquote>
+<div><p>Path to file to which to write affine matrix.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
@@ -1517,21 +1575,26 @@ get_default_pfiles_dir(): Return path to directory containing</p>
 </dd>
 <dt>get_roi_params(): Get default parameters to be used when</dt><dd><p>transforming ROI mask.</p>
 </dd>
-<dt>get_transform_cmd():</dt><dd><p>Get registration-engine command for applying registration transform.</p>
+<dt>get_transform_cmd(): Get registration-engine command for</dt><dd><p>applying registration transform.</p>
 </dd>
-<dt>read_parameters():</dt><dd><p>Get dictionary of parameters from a registration parameter file.</p>
+<dt>read_parameters(): Get dictionary of parameters from a</dt><dd><p>registration parameter file.</p>
 </dd>
 <dt>set_exe_env(): Set environment variables for running</dt><dd><p>registration-engine software.</p>
 </dd>
-<dt>set_exe_paths():</dt><dd><p>Set path(s)s to registration-engine executable(s).</p>
-</dd>
-<dt>write_parameters():</dt><dd><p>Write dictionary of parameters to a registration parameter file.</p>
+</dl>
+<p>set_exe_paths(): Set path(s)s to registration-engine executable(s).
+shift_translation_parameters(): Add offsets to the translation parameters</p>
+<blockquote>
+<div><p>in a registration transform file.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>write_parameters(): Write dictionary of parameters to a</dt><dd><p>registration parameter file.</p>
 </dd>
 </dl>
 <p><strong>Static method:</strong>
-get_transform_strategies():</p>
+get_transform_strategies(): Get list of available strategies</p>
 <blockquote>
-<div><p>Get list of available strategies for applying registration transform.</p>
+<div><p>for applying registration transform.</p>
 </div></blockquote>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.__init__">
@@ -1721,7 +1784,7 @@ of the fixed image to the reference frame of the moving image.</p></li>
 <p><strong>Parameter:</strong>
 infile: str/pathlib.Path</p>
 <blockquote>
-<div><p>Path fo registration parameter file.</p>
+<div><p>Path to registration parameter file.</p>
 </div></blockquote>
 </dd></dl>
 
@@ -1747,6 +1810,24 @@ environment based on &lt;path&gt; in all cases.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.shift_translation_parameters">
+<span class="sig-name descname"><span class="pre">shift_translation_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.shift_translation_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Add offsets to the translation parameters in a registration
+transform file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile: str</dt><dd><p>Path to input transform file.</p>
+</dd>
+<dt>dx, dy, dz: int, default=0</dt><dd><p>Amounts by which to increase translation parameters, along
+x, y, z directions.</p>
+</dd>
+<dt>outfile: str, default=None</dt><dd><p>Path to output parameter file.  If None, overwrite input
+parameter file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1991,8 +2072,8 @@ environment based on &lt;path&gt; in all cases.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.shift_translation_parameters">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">shift_translation_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.shift_translation_parameters" title="Permalink to this definition"></a></dt>
-<dd><p>Add offsets to the translation parameters in an elastix parameter file.</p>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">shift_translation_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.shift_translation_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Add offsets to the translation parameters in a registration transform file.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>infile: str</dt><dd><p>Path to input parameter file.</p>
@@ -2001,6 +2082,9 @@ environment based on &lt;path&gt; in all cases.</p>
 x, y, z directions.</p>
 </dd>
 <dt>outfile: str, default=None</dt><dd><p>Path to output parameter file.  If None, overwrite input parameter file.</p>
+</dd>
+<dt>engine: str, default=None</dt><dd><p>String identifying registration engine, corresponding to
+a key of the dictionary skrt.registration.engines.</p>
 </dd>
 </dl>
 </dd></dl>
