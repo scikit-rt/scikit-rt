@@ -2573,6 +2573,21 @@ class RegistrationEngine:
         raise NotImplementedError("Method 'set_exe_paths()' "
                                   f"not implemented for class {type(self)}")
 
+    def write_parameters(self, outfile, params):
+        """
+        Write dictionary of parameters to a registration parameter file.
+
+        **Parameters:**
+
+        outfile: str, pathlib.Path
+            Path to output file.
+
+        params: dict
+            Dictionary of parameters to be written to file.
+        """
+        raise NotImplementedError("Method 'write_parameters()' "
+                                  f"not implemented for class {type(self)}")
+
     @staticmethod
     def get_transform_strategies():
         """
@@ -2737,6 +2752,29 @@ class Elastix(RegistrationEngine):
         # Return the path to the directory containing the executables.
         return exe_dir
 
+    def write_parameters(self, outfile, params):
+        # Write elastix parameter file.
+        # For information about format, see section 3.4 of elastix manual:
+        # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
+        file = open(outfile, "w")
+        for name, param in params.items():
+            if "//" == name:
+                line = f"\n{name} {param}"
+            else:
+                line = f"({name}"
+                if isinstance(param, str):
+                    line += f' "{param}")'
+                elif isinstance(param, (list, tuple)):
+                    for item in param:
+                        line += " " + str(item)
+                    line += ")"
+                elif isinstance(param, bool):
+                    line += f' "{str(param).lower()}")'
+                else:
+                    line += " " + str(param) + ")"
+            file.write(line + "\n")
+        file.close()
+
     @staticmethod
     def get_transform_strategies():
         return ["pull", "push"]
@@ -2873,6 +2911,14 @@ class NiftyReg(RegistrationEngine):
 
         # Return the path to the directory containing the executables.
         return exe_dir
+
+    def write_parameters(self, outfile, params):
+        # Write NiftyReg parameter file.
+        # NiftyReg doesn't define its own file format.  Here adopt
+        # format used by elastix.  For information about this,
+        # see section 3.4 of elastix manual:
+        # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
+        return Elastix.write_parameters(self, outfile, params)
 
     @staticmethod
     def get_transform_strategies():
@@ -3305,7 +3351,7 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
     write_parameters(outfile, pars)
 
 
-def write_parameters(outfile, params):
+def write_parameters(outfile, params, engine=None):
     """
     Write dictionary of parameters to a registration parameter file.
 
@@ -3316,23 +3362,9 @@ def write_parameters(outfile, params):
 
     params: dict
         Dictionary of parameters to be written to file.
-    """
 
-    file = open(outfile, "w")
-    for name, param in params.items():
-        if "//" == name:
-            line = f"\n{name} {param}"
-        else:
-            line = f"({name}"
-            if isinstance(param, str):
-                line += f' "{param}")'
-            elif isinstance(param, (list, tuple)):
-                for item in param:
-                    line += " " + str(item)
-                line += ")"
-            elif isinstance(param, bool):
-                line += f' "{str(param).lower()}")'
-            else:
-                line += " " + str(param) + ")"
-        file.write(line + "\n")
-    file.close()
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
+    """
+    get_engine_cls(engine)().write_parameters(outfile, params)
