@@ -417,6 +417,19 @@ infile: str, pathlib.Path</p>
 <span class="sig-name descname"><span class="pre">transform_points_implemented</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#skrt.registration.Elastix.transform_points_implemented" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.write_parameters">
+<span class="sig-name descname"><span class="pre">write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.write_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Write dictionary of parameters to a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outfile: str, pathlib.Path</dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -628,6 +641,19 @@ infile: str, pathlib.Path</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.write_parameters">
+<span class="sig-name descname"><span class="pre">write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.write_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Write dictionary of parameters to a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outfile: str, pathlib.Path</dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1677,6 +1703,19 @@ environment based on &lt;path&gt; in all cases.</p>
 <span class="sig-name descname"><span class="pre">transform_points_implemented</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#skrt.registration.RegistrationEngine.transform_points_implemented" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.write_parameters">
+<span class="sig-name descname"><span class="pre">write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.write_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Write dictionary of parameters to a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outfile: str, pathlib.Path</dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -1929,13 +1968,16 @@ x, y, z directions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.write_parameters">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.write_parameters" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.write_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Write dictionary of parameters to a registration parameter file.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>outfile: str</dt><dd><p>Path to output file.</p>
 </dd>
 <dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
+</dd>
+<dt>engine: str, default=None</dt><dd><p>String identifying registration engine, corresponding to
+a key of the dictionary skrt.registration.engines.</p>
 </dd>
 </dl>
 </dd></dl>
