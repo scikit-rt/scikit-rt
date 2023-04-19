@@ -386,6 +386,17 @@ of the fixed image to the reference frame of the moving image.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.read_parameters">
+<span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.read_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Get dictionary of parameters from a registration parameter file.</p>
+<p><strong>Parameter:</strong>
+infile: str, pathlib.Path</p>
+<blockquote>
+<div><p>Path fo registration parameter file.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Elastix.set_exe_paths">
 <span class="sig-name descname"><span class="pre">set_exe_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.set_exe_paths" title="Permalink to this definition"></a></dt>
 <dd><p>Set path(s)s to registration-engine executable(s).</p>
@@ -597,6 +608,17 @@ frame of the moving image to the reference frame of the fixed image;</p></li>
 <li><p>“push”: transform applied to push points from the reference frame
 of the fixed image to the reference frame of the moving image.</p></li>
 </ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.NiftyReg.read_parameters">
+<span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.NiftyReg.read_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Get dictionary of parameters from a registration parameter file.</p>
+<p><strong>Parameter:</strong>
+infile: str, pathlib.Path</p>
+<blockquote>
+<div><p>Path fo registration parameter file.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
@@ -1614,6 +1636,17 @@ of the fixed image to the reference frame of the moving image.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.read_parameters">
+<span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.read_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Get dictionary of parameters from a registration parameter file.</p>
+<p><strong>Parameter:</strong>
+infile: str, pathlib.Path</p>
+<blockquote>
+<div><p>Path fo registration parameter file.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.set_exe_env">
 <span class="sig-name descname"><span class="pre">set_exe_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.set_exe_env" title="Permalink to this definition"></a></dt>
 <dd><p>Set environment variables for running registration-engine software.</p>
@@ -1830,8 +1863,18 @@ from the band threshold.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.read_parameters">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.read_parameters" title="Permalink to this definition"></a></dt>
-<dd><p>Get dictionary of parameters from a registratioin parameter file.</p>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.read_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Get dictionary of parameters from a registration parameter file.</p>
+<p><strong>Parameters:</strong>
+infile: str, pathlib.Path</p>
+<blockquote>
+<div><p>Path fo registration parameter file.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>engine: str, default=None</dt><dd><p>String identifying registration engine, corresponding to
+a key of the dictionary skrt.registration.engines.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
