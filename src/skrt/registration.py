@@ -388,6 +388,10 @@ class Registration(Data):
                 return
             self.set_image(path, category, force=False)
 
+    def add_pfile(self, file, name=None, params=None):
+        """Alias for add_file() with ftype='p'."""
+        self.add_file(file, name=name, params=params, ftype="p")
+
     def add_file(self, file, name=None, params=None, ftype="p"):
         """Add a single file of type <ftype> to the list of registration steps.
         This file can optionally be modified by providing a dict
@@ -1231,6 +1235,10 @@ class Registration(Data):
         if os.path.exists(self._tmp_dir):
             if not self.keep_tmp_dir:
                 shutil.rmtree(self._tmp_dir)
+
+    def adjust_pfile(self, step, params, reset=True):
+        """Alias for adjust_file() with ftype='p'."""
+        self.adjust_file(step, params, ftype='p', reset=reset)
 
     def adjust_file(self, step, params, ftype='p', reset=True):
         """Adjust parameters in a parameter or transform file for a given step. 

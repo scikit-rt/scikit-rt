@@ -453,6 +453,10 @@ class Dose(ImageOverlay):
 
         return ax
 
+    def plot_DVH(self, *args, **kwargs):
+        """Alias for plot_dvh()."""
+        self.plot_dvh(*args, **kwargs)
+
     def get_mean_dose(self, roi):
         """Get mean dose inside an ROI."""
 
