@@ -4851,8 +4851,7 @@ class ROI(skrt.core.Archive):
                 )
                 im.title = self.name
                 roi_tmp = self.clone(copy_data=False)
-                roi_tmp.image = im
-                roi_tmp.load(force=True)
+                roi_tmp.set_image(im)
             else:
                 im = skrt.image.Image(
                     np.ones(self.shape) * 1e4,
