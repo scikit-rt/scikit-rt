@@ -32,7 +32,7 @@ The following functions are defined:
 - set_elastix_dir() :  Perform environment setup for using elastix software.
 - set_engine_dir() : Perform environment setup for using registration software.
 - shift_translation_parameters() : Add offsets to the translation parameters
-  in an elastix parameter file.
+  in a registration parameter file.
 - write_parameters() : Write dictionary of parameters to a registration
   parameter file.
 """
@@ -1370,12 +1370,7 @@ class Registration(Data):
             return
 
         # Check the tfile contains a 3-parameter translation
-        pars = self.engine.read_parameters(self.tfiles[step])
-        if pars["Transform"] != "TranslationTransform":
-            self.logger.warning(
-                f"Can only manually adjust a translation step. Incorrect "
-                f"transform type for step {step}: {pars['Transform']}"
-            )
+        if not self.engine.shift_translation_parameters(self.tfiles[step]):
             return
 
         # Create BetterViewer and modify its write_translation function
@@ -1385,7 +1380,7 @@ class Registration(Data):
             [self.fixed_image, self.get_transformed_image(step=step)],
             comparison=True,
             translation=True,
-            translation_write_style="shift",
+            translation_write_style=self.engine,
             show=False,
         )
         bv.translation_output.value = self.tfiles[step]
@@ -2295,21 +2290,23 @@ class RegistrationEngine:
         performing image registration.
     get_roi_params(): Get default parameters to be used when
         transforming ROI mask.
-    get_transform_cmd():
-        Get registration-engine command for applying registration transform.
-    read_parameters():
-        Get dictionary of parameters from a registration parameter file.
+    get_transform_cmd(): Get registration-engine command for
+        applying registration transform.
+    read_parameters(): Get dictionary of parameters from a
+        registration parameter file.
     set_exe_env(): Set environment variables for running
         registration-engine software.
-    set_exe_paths():
-        Set path(s)s to registration-engine executable(s).
-    write_parameters():
-        Write dictionary of parameters to a registration parameter file.
+    set_exe_paths(): Set path(s)s to registration-engine executable(s).
+    shift_translation_parameters(): Add offsets to the translation parameters
+        in a registration transform file.
+    write_parameters(): Write dictionary of parameters to a
+        registration parameter file.
 
     **Static method:**
-    get_transform_strategies():
-        Get list of available strategies for applying registration transform.
+    get_transform_strategies(): Get list of available strategies
+        for applying registration transform.
     """
+
     # Indicate whether registration engine implements mapping of points
     # from fixed image to moving images.
     transform_points_implemented = False
@@ -2530,7 +2527,7 @@ class RegistrationEngine:
 
         **Parameter:**
         infile: str/pathlib.Path
-            Path fo registration parameter file.
+            Path to registration parameter file.
         """
         raise NotImplementedError("Method 'read_parameters()' "
                                   f"not implemented for class {type(self)}")
@@ -2597,6 +2594,28 @@ class RegistrationEngine:
             Path to directory containing registration-engine executable(s).
         """
         raise NotImplementedError("Method 'set_exe_paths()' "
+                                  f"not implemented for class {type(self)}")
+
+    def shift_translation_parameters(
+            self, infile, dx=0, dy=0, dz=0, outfile=None):
+        """
+        Add offsets to the translation parameters in a registration
+        transform file.
+        
+        **Parameters:**
+
+        infile: str
+            Path to input transform file.
+
+        dx, dy, dz: int, default=0
+            Amounts by which to increase translation parameters, along
+            x, y, z directions.
+
+        outfile: str, default=None
+            Path to output parameter file.  If None, overwrite input
+            parameter file.
+        """
+        raise NotImplementedError("Method 'shift_translation_parameters()' "
                                   f"not implemented for class {type(self)}")
 
     def write_parameters(self, outfile, params):
@@ -2794,6 +2813,25 @@ class Elastix(RegistrationEngine):
         # Return the path to the directory containing the executables.
         return exe_dir
 
+    def shift_translation_parameters(
+            self, infile, dx=0, dy=0, dz=0, outfile=None):
+        # Add offsets to the translation parameters
+        # of an elaxtix transform file.
+        if outfile is None:
+            outfile = infile
+        pars = self.read_parameters(infile)
+        init = pars["TransformParameters"]
+        if pars["Transform"] != "TranslationTransform":
+            self.logger.warning(
+                f"Can only manually adjust a translation step. Incorrect "
+                f"transform type: {pars['Transform']}"
+            )
+            return False
+
+        pars["TransformParameters"] = [init[0] - dx, init[1] - dy, init[2] - dz]
+        self.write_parameters(outfile, pars)
+        return True
+
     def write_parameters(self, outfile, params):
         # Write elastix parameter file.
         # For information about format, see section 3.4 of elastix manual:
@@ -2937,6 +2975,18 @@ class NiftyReg(RegistrationEngine):
                 "-res", str(Path(outdir) / 'result.nii'),
                 "-trans", tfile] + params
 
+    def read_affine(self, infile):
+        """
+        Read affine matrix from file. 
+
+        **Parameter:**
+        infile: str/pathlib.Path
+            Path to file from which to read affine matrix.
+        """
+        with open(infile) as file:
+            lines = [line.strip().split() for line in file.readlines()]
+        return [[float(item) for item in line] for line in lines]
+
     def read_parameters(self, infile):
         # Read NiftyReg parameter file.
         # NiftyReg doesn't define its own file format.  Here adopt
@@ -2961,6 +3011,37 @@ class NiftyReg(RegistrationEngine):
 
         # Return the path to the directory containing the executables.
         return exe_dir
+
+    def shift_translation_parameters(
+            self, infile, dx=0, dy=0, dz=0, outfile=None):
+        # Add offsets to the translation parameters
+        # of a Niftyreg transform file.
+        print(infile, dx, dy, dz, outfile)
+        if outfile is None:
+            outfile = infile
+
+        affine = self.read_affine(infile)
+
+        # Offset translation parameters.
+        # Signs account for different conventions between NiftyReg and Elastix.
+        affine[0][3] -= dx
+        affine[1][3] -= dy
+        affine[2][3] += dz
+
+        self.write_affine(affine, outfile)
+        return True
+
+    def write_affine(self, affine, outfile):
+        """
+        Write affine matrix fo file. 
+
+        **Parameter:**
+        outfile: str/pathlib.Path
+            Path to file to which to write affine matrix.
+        """
+        rows = [" ".join([str(val) for val in row]) for row in affine]
+        with open(outfile, "w") as file:
+            file.write("\n".join(rows))
 
     def write_parameters(self, outfile, params):
         # Write NiftyReg parameter file.
@@ -3019,7 +3100,7 @@ def get_default_pfiles(pattern="*.txt", engine=None, basename_only=False):
     pattern: str, default="*.txt"
         Glob-style pattern for filtering on file names.
     """
-    engine = engine or Defaults().registration_engine
+    engine = get_engine_name(engine)
     files = sorted(list(get_default_pfiles_dir(engine).glob(pattern)))
     if basename_only:
         return [file.name for file in files]
@@ -3037,8 +3118,7 @@ def get_default_pfiles_dir(engine=None):
         containing default parameter files is required.  If None,
         use value set for skrt.core.Default().registration_engine.
     """
-    engine = engine or Defaults().registration_engine
-    return get_data_dir() / f"{engine}_parameter_files"
+    return get_data_dir() / f"{get_engine_name(engine)}_parameter_files"
 
 def get_engine_name(engine=None, engine_dir=None):
     """
@@ -3344,9 +3424,10 @@ def set_engine_dir(path, engine=None, force=True):
     get_engine_cls(engine, path)(path=path, force=force)
 
 
-def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
+def shift_translation_parameters(
+        infile, dx=0, dy=0, dz=0, outfile=None, engine=None):
     """
-    Add offsets to the translation parameters in an elastix parameter file.
+    Add offsets to the translation parameters in a registration transform file.
     
     **Parameters:**
 
@@ -3359,21 +3440,13 @@ def shift_translation_parameters(infile, dx=0, dy=0, dz=0, outfile=None):
 
     outfile: str, default=None
         Path to output parameter file.  If None, overwrite input parameter file.
+
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
     """
-
-    if outfile is None:
-        outfile = infile
-    pars = read_parameters(infile)
-    init = pars["TransformParameters"]
-    if pars["Transform"] != "TranslationTransform":
-        self.logger.warning(
-            f"Can only manually adjust a translation step. Incorrect "
-            f"transform type: {pars['Transform']}"
-        )
-        return
-
-    pars["TransformParameters"] = [init[0] - dx, init[1] - dy, init[2] - dz]
-    write_parameters(outfile, pars)
+    get_engine_cls(engine)().shift_translation_parameters(
+            infile, dx=0, dy=0, dz=0, outfile=None)
 
 
 def write_parameters(outfile, params, engine=None):

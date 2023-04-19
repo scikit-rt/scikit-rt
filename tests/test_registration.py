@@ -28,6 +28,20 @@ reg_dir = "tmp/reg"
 if os.path.exists(reg_dir):
     shutil.rmtree(reg_dir)
     
+# Directory for NiftyReg files.
+niftyreg_dir = Path("tmp/niftyreg")
+if niftyreg_dir.exists():
+    shutil.rmtree(str(niftyreg_dir))
+niftyreg_dir.mkdir()
+
+# Test affine matrix.
+affine = [
+        [11, 12, 13, 14],
+        [21, 22, 23, 24],
+        [31, 32, 33, 34],
+        [41, 42, 43, 44],
+        ]
+
 # Test images
 sim1 = SyntheticImage((10, 12, 8))
 sim1.add_cube(2, centre=(4, 4, 4))
@@ -872,3 +886,42 @@ def test_get_jacobian_colormap():
     cmap = get_jacobian_colormap()
     assert isinstance(cmap, matplotlib.colors.LinearSegmentedColormap)
     assert "jacobian" == cmap.name
+
+def test_niftyreg_write_and_read_affine():
+    """Test writing and reading of affine matrix."""
+    niftyreg = NiftyReg()
+
+    # Write affine matrix to file.
+    transform_path = niftyreg_dir / "transform.txt"
+    transform_path.unlink(missing_ok=True)
+    assert not transform_path.exists()
+    niftyreg.write_affine(affine, transform_path)
+    assert transform_path.exists()
+
+    # Read affine matrix from file.
+    affine_from_file = niftyreg.read_affine(transform_path)
+    assert affine == affine_from_file
+
+def test_niftyreg_shift_translation_parameters():
+    """Test shifting of translation parameters for NiftyReg affine transform."""
+    niftyreg = NiftyReg()
+
+    # Define offsets, and signs to match elastix convention.
+    dxdydz = (94, 2, 5)
+    signs = (-1, -1, 1)
+
+    # Write initial affine matrix to file.
+    transform_path = niftyreg_dir / "transform.txt"
+    niftyreg.write_affine(affine, transform_path)
+    assert transform_path.exists()
+
+    # Apply shifts, and check that result is as expected.
+    shifted_path = niftyreg_dir / "shifted.txt"
+    niftyreg.shift_translation_parameters(transform_path, *dxdydz, shifted_path)
+    shifted = niftyreg.read_affine(shifted_path)
+    for irow, row in enumerate(shifted):
+        for icol, val in enumerate(row):
+            if irow <= 2 and icol == 3:
+                assert val == affine[irow][icol] + signs[irow] * dxdydz[irow]
+            else:
+                assert val == affine[irow][icol]

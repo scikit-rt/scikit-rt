@@ -21,7 +21,7 @@ from skrt.image import (
     _default_figsize,
 )
 from skrt.dose import Dose
-from skrt.registration import Grid, DeformationField, Jacobian
+from skrt.registration import engines, Grid, DeformationField, Jacobian
 from skrt.structures import (
     StructureSet, 
     ROI, 
@@ -319,8 +319,11 @@ class BetterViewer:
 
         translation_write_style : bool, default="normal"
             Method for writing translations to a file. Can either be "normal"
-            (will write x, y, z translations) or "shift" (will shift 
-            translations in an elastix transform file).
+            (will write x, y, z translations) or the name of a
+            registration engine (will shift translations in
+            a registration transform file).  For historical reasons,
+            "shift" is accepted as a synonym for "elastix" as
+            registration engine.
 
         show_mse : str, default=None
             Color for annotation of mean-squared-error if using comparison
@@ -956,6 +959,8 @@ class BetterViewer:
             comparison = True
         self.load_comparison(comparison)
         self.translation = translation
+        if "shift" == translation_write_style:
+            translation_write_style = "elastix"
         self.translation_write_style = translation_write_style
         self.show_mse = show_mse
         self.dta_tolerance = dta_tolerance
@@ -1348,11 +1353,12 @@ class BetterViewer:
             outfile = open(output_file, 'w')
             outfile.write(out_text)
             outfile.close()
-        elif self.translation_write_style == "shift": 
+        elif self.translation_write_style in engines: 
             from skrt.registration import shift_translation_parameters
             shift_translation_parameters(
                 output_file, 
-                *[self.tsliders[ax].value for ax in _axes]
+                *[self.tsliders[ax].value for ax in _axes],
+                engine=self.translation_write_style
             )
         else:
             print("Unrecognised translation writing option: " +
