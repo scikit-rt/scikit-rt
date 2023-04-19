@@ -538,7 +538,7 @@ class Registration(Data):
             return
         full_files = self.engine.get_default_pfiles(False)
         pfile = full_files[files.index(filename)]
-        return read_parameters(pfile)
+        return self.engine.read_parameters(pfile)
 
     def add_default_pfile(self, filename, params=None):
         """
@@ -1368,7 +1368,7 @@ class Registration(Data):
             return
 
         # Check the tfile contains a 3-parameter translation
-        pars = read_parameters(self.tfiles[step])
+        pars = self.engine.read_parameters(self.tfiles[step])
         if pars["Transform"] != "TranslationTransform":
             self.logger.warning(
                 f"Can only manually adjust a translation step. Incorrect "
@@ -1399,7 +1399,7 @@ class Registration(Data):
         """
 
         step = self.get_step_name(step)
-        return read_parameters(self.pfiles[step])
+        return self.engine.read_parameters(self.pfiles[step])
 
     def get_transform_parameters(self, step):
         """
@@ -1411,7 +1411,7 @@ class Registration(Data):
             self.logger.warning(
                     f"Registration step {step} has not yet been performed.")
             return
-        return read_parameters(self.tfiles[step])
+        return self.engine.read_parameters(self.tfiles[step])
 
     def get_step_name(self, step):
         """Convert <step> to a string containing a step name. If <step> is
@@ -2498,6 +2498,17 @@ class RegistrationEngine:
                                   f"not implemented for class {type(self)}")
         return self.transform_log
 
+    def read_parameters(self, infile):
+        """
+        Get dictionary of parameters from a registration parameter file.
+
+        **Parameter:**
+        infile: str, pathlib.Path
+            Path fo registration parameter file.
+        """
+        raise NotImplementedError("Method 'read_parameters()' "
+                                  f"not implemented for class {type(self)}")
+
     def set_exe_env(self, path=None, force=False):
         """
         Set environment variables for running registration-engine software.
@@ -2680,6 +2691,35 @@ class Elastix(RegistrationEngine):
             tfile,
         ]
 
+    def read_parameters(self, infile):
+        # Read elastix parameter file.
+        # For information about format, see section 3.4 of elastix manual:
+        # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
+        lines = [line for line in open(infile).readlines()
+                 if line.startswith("(")]
+        lines = [line[line.find("(") + 1 : line.rfind(")")].split()
+                 for line in lines]
+        params = {line[0]: " ".join(line[1:]) for line in lines}
+        for name, param in params.items():
+            if '"' in param:
+                params[name] = param.strip('"')
+                if params[name] == "false":
+                    params[name] = False
+                elif params[name] == "true":
+                    params[name] = True
+            elif len(param.split()) > 1:
+                params[name] = [p for p in param.rstrip("(").split()]
+                if "." in params[name][0]:
+                    params[name] = [float(p) for p in params[name]]
+                else:
+                    params[name] = [int(p) for p in params[name]]
+            else:
+                if "." in param:
+                    params[name] = float(param)
+                else:
+                    params[name] = int(param)
+        return params
+
     def set_exe_paths(self, path):
         # Set paths to elastix executables.
         exe_dir = None
@@ -2808,6 +2848,14 @@ class NiftyReg(RegistrationEngine):
         return [self.reg_resample, "-ref", fixed_path, "-flo", moving_path,
                 "-res", str(Path(outdir) / 'result.nii'),
                 "-trans", tfile] + params
+
+    def read_parameters(self, infile):
+        # Read NiftyReg parameter file.
+        # NiftyReg doesn't define its own file format.  Here adopt
+        # format used by elastix.  For information about this,
+        # see section 3.4 of elastix manual:
+        # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
+        return Elastix.read_parameters(self, infile)
 
     def set_exe_paths(self, path):
         # Set paths to NiftyReg executables.
@@ -3166,34 +3214,19 @@ def prepend_path(variable, path, path_must_exist=True):
             os.environ[variable] = path
 
 
-def read_parameters(infile):
+def read_parameters(infile, engine=None):
     """
-    Get dictionary of parameters from a registratioin parameter file.
-    """
+    Get dictionary of parameters from a registration parameter file.
 
-    lines = [line for line in open(infile).readlines() if line.startswith("(")]
-    lines = [line[line.find("(") + 1 : line.rfind(")")].split()
-            for line in lines]
-    params = {line[0]: " ".join(line[1:]) for line in lines}
-    for name, param in params.items():
-        if '"' in param:
-            params[name] = param.strip('"')
-            if params[name] == "false":
-                params[name] = False
-            elif params[name] == "true":
-                params[name] = True
-        elif len(param.split()) > 1:
-            params[name] = [p for p in param.rstrip("(").split()]
-            if "." in params[name][0]:
-                params[name] = [float(p) for p in params[name]]
-            else:
-                params[name] = [int(p) for p in params[name]]
-        else:
-            if "." in param:
-                params[name] = float(param)
-            else:
-                params[name] = int(param)
-    return params
+    **Parameters:**
+    infile: str, pathlib.Path
+        Path fo registration parameter file.
+
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
+    """
+    return get_engine_cls(engine)().read_parameters(infile)
 
 
 def set_elastix_dir(path, force=True):
