@@ -4866,9 +4866,11 @@ class ROI(skrt.core.Archive):
             # Create viewer
             bv = BetterViewer(im, rois=roi_tmp, **kwargs)
 
-        # Adjust UI
-        bv.make_ui(no_roi=True, no_intensity=True)
-        bv.show()
+            # Adjust UI
+            no_ui = kwargs.get("no_ui", skrt.core.Defaults().no_ui)
+            if not no_ui:
+                bv.make_ui(no_roi=True, no_intensity=True)
+                bv.show()
         return bv
 
     def _plot_mask(
@@ -7381,8 +7383,12 @@ class StructureSet(skrt.core.Archive):
                     rois = [structure_set_tmp, rois]
             kwargs["show"] = False
             bv = BetterViewer(im, rois=rois, **kwargs)
-            bv.make_ui(no_intensity=True)
-            bv.show()
+
+            # Adjust UI
+            no_ui = kwargs.get("no_ui", skrt.core.Defaults().no_ui)
+            if not no_ui:
+                bv.make_ui(no_intensity=True)
+                bv.show()
 
         return bv
 
