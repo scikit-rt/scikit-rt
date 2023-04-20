@@ -607,7 +607,7 @@ def test_set_engine_dir():
     # Check that exception is raised if engine name is unknown.
     with pytest.raises(RuntimeError) as error_info:
         set_engine_dir(path="unknown", engine="unknown")
-    assert "engine not known" in str(error_info.value)
+    assert "executable(s) not found" in str(error_info.value)
 
 
 def test_set_elastix_dir():

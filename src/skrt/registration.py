@@ -3426,10 +3426,12 @@ def set_engine_dir(path, engine=None, force=True):
         software can't be located in the existing environment.  If True, modify
         environment based on <path> in all cases.
     """
-    if not engine in engines:
-        raise RuntimeError(f"Registration engine not known: {engine}; "
+    local_engine = get_engine_name(engine, path)
+    if not local_engine in engines:
+        raise RuntimeError("Unable to determine registration engine "
+                           f"from path: {path}, engine: {engine}; "
                            f"known engines are: {list(engines)}")
-    get_engine_cls(engine, path)(path=path, force=force)
+    get_engine_cls(local_engine)(path=path, force=force)
 
 
 def shift_translation_parameters(
