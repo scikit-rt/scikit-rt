@@ -185,7 +185,8 @@ class Image(skrt.core.Archive):
         # Otherwise, load from source
         self.data = None
         self.title = title
-        self.source = str(path) if isinstance(path, pathlib.Path) else path
+        self.source = (skrt.core.fullpath(path)
+                       if isinstance(path, (str, pathlib.Path)) else path)
         if isinstance(self.source, str):
             self.source = sorted(glob.glob(self.source),
                     key=skrt.core.alphanumeric)
@@ -197,7 +198,7 @@ class Image(skrt.core.Archive):
             paths = list(self.source)
             self.source = []
             for path in paths:
-                self.source.extend(glob.glob(str(path)))
+                self.source.extend(glob.glob(skrt.core.fullpath(path)))
 
         self.source_type = None
         self.dicom_dataset = None

@@ -235,7 +235,8 @@ class ROI(skrt.core.Archive):
                     else:
                         self.input_contours[z].append(contour)
         else:
-            self.source = str(source) if isinstance(source, Path) else source
+            self.source = (skrt.core.fullpath(source)
+                           if isinstance(source, (str, Path)) else source)
 
         # Assign other properties
         self.custom_color = color is not None
@@ -5869,7 +5870,8 @@ class StructureSet(skrt.core.Archive):
             return
 
         self.name = name
-        path = str(path) if isinstance(path, Path) else path
+        path = (skrt.core.fullpath(path)
+                if isinstance(path, (str, Path)) else path)
         self.sources = path
         if self.sources is None:
             self.sources = []
