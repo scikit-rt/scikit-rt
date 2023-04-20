@@ -4587,9 +4587,6 @@ class ROI(skrt.core.Archive):
             opacity = kwargs.get(
                     "roi_opacity", 0.3 if "filled" in plot_type else 1)
 
-        if kwargs.get("title", None) is None:
-            kwargs["title"] = self.name
-
         # Set up axes
         self.set_ax(plot_type, include_image, view, ax, gs, figsize)
 
@@ -4918,6 +4915,9 @@ class ROI(skrt.core.Archive):
             self.image.plot(view, idx=idx, ax=self.ax, show=False,
                     mask=im_mask, masked=im_masked, invert_mask=im_invert_mask,
                     mask_color=im_mask_color)
+        else:
+            if kwargs.get("title", None) is None:
+                kwargs["title"] = self.name
 
         self.ax.imshow(s_colors, extent=self.mask.plot_extent[view], 
                        **mask_kwargs)
@@ -4962,6 +4962,9 @@ class ROI(skrt.core.Archive):
             self.image.plot(view, idx=idx, ax=self.ax, show=False,
                     mask=im_mask, masked=im_masked, invert_mask=im_invert_mask,
                     mask_color=im_mask_color)
+        else:
+            if kwargs.get("title", None) is None:
+                kwargs["title"] = self.name
 
         # Get contour points
         if flatten:
@@ -7121,9 +7124,6 @@ class StructureSet(skrt.core.Archive):
             linewidth = defaultParams["lines.linewidth"][0]
         roi_kwargs["linewidth"] = linewidth
 
-        if kwargs.get("title", None) is None:
-            kwargs["title"] = self.name
-
         # Plot with image
         if include_image and self.image is not None:
 
@@ -7146,6 +7146,9 @@ class StructureSet(skrt.core.Archive):
                 **kwargs
             )
             return
+
+        if kwargs.get("title", None) is None:
+            kwargs["title"] = self.name
 
         # Plot consensus
         roi_handles = []
@@ -7354,6 +7357,9 @@ class StructureSet(skrt.core.Archive):
 
         # View without image
         else:
+
+            if kwargs.get("title", None) is None:
+                kwargs["title"] = self.name
 
             structure_set_tmp = self
 
