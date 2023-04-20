@@ -109,6 +109,10 @@ Defaults({"log_level": "WARNING"})
 Defaults({"len_date": 8})
 Defaults({"len_time": 6})
 
+# Define whether to call compress_user(), when printing the attributes
+# of a Data object, for each string corresponding to a file path.
+Defaults({"compress_user": False})
+
 
 class Data:
     """
@@ -191,7 +195,7 @@ class Data:
                             try:
                                 item_string = item.__repr__(depth=(depth - 1))
                             except TypeError:
-                                item_string = item.__repr__()
+                                item_string = self.get_item_string(item)
                             comma = "," if (i + 1 < n) else ""
                             value_string = f"{value_string} {item_string}{comma}"
                         value_string = f"{value_string}]"
@@ -212,7 +216,7 @@ class Data:
                             try:
                                 item_string += item.__repr__(depth=(depth - 1))
                             except TypeError:
-                                item_string += item.__repr__()
+                                item_string += self.get_item_string(item)
                             comma = "," if (i + 1 < n) else ""
                             value_string = f"{value_string} {item_string}{comma}"
                         value_string = f"{{{value_string}}}"
@@ -233,11 +237,29 @@ class Data:
                     else:
                         value_string = f"{item.__class__}"
                 else:
-                    value_string = item.__repr__()
+                    value_string = self.get_item_string(item)
             out.append(f"  {key}: {value_string} ")
 
         out.append("}")
         return "\n".join(out)
+
+    def get_item_string(self, item):
+        """
+        Return string representation of an item.
+
+        If Defaults().compress_user is set to True, the function
+        compress_user() is called for each item corresponding to a file
+        path, where the file or its parent directory exists.
+        """
+        if (
+                Defaults().compress_user
+                and isinstance(item, (str, Path))
+                and (os.path.exists(str(item))
+                     or os.path.exists(os.path.dirname(str(item))))
+                ):
+            return compress_user(item)
+        else:
+            return item.__repr__()
 
     def clone(self, **kwargs):
         """
