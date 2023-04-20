@@ -6068,7 +6068,7 @@ class StructureSet(skrt.core.Archive):
             elif not self.loaded:
                 sources_expanded.append(source)
 
-        for source in sources_expanded:
+        for source in sorted(sources_expanded):
 
             if isinstance(source, ROI):
                 self.rois.append(source)
