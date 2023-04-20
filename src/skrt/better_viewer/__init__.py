@@ -10,7 +10,7 @@ import os
 import pandas as pd
 import re
 
-from skrt.core import is_list
+from skrt.core import is_list, Defaults
 from skrt.image import (
     get_mask,
     Image, 
@@ -33,6 +33,8 @@ from skrt.structures import (
 # ipywidgets settings
 _style = {'description_width': 'initial'}
 
+# Set default for whether to omit user-interface elements.
+Defaults({"no_ui": False})
 
 class BetterViewer:
     '''Display multiple SingleViewers and/or comparison images.'''
@@ -69,7 +71,7 @@ class BetterViewer:
         suptitle=None,
         show=True,
         include_image=False,
-        no_ui=False,
+        no_ui=None,
         ylabel_first_only=True,
         yticks_first_only=False,
         ytick_labels_first_only=True,
@@ -841,12 +843,13 @@ class BetterViewer:
             If True, and image has associated image, overlay former on the
             latter.
 
-        no_ui : bool, default=False
+        no_ui : bool, default=None
             If True, omit user-interface elements (Jupyter widgets)
             for interaction with viewed image(s).  This can be useful
             for including graphics in stored notebooks.  On GitHub, for
             example, static plots in notebooks are rendered correctly,
-            but Jupyter widgets can cause problems.
+            but Jupyter widgets can cause problems.  If None, set to
+            the value of skrt.core.Default().no_ui.
         '''
 
         # Get image file inputs
@@ -867,7 +870,7 @@ class BetterViewer:
         self.df = self.get_input_list(df)
 
         # Define whether to omit user-interface elements.
-        self.no_ui = no_ui
+        self.no_ui = Defaults().no_ui if no_ui is None else no_ui
 
         self.colorbar = kwargs.pop('colorbar', False)
 
