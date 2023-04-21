@@ -7364,7 +7364,15 @@ class StructureSet(skrt.core.Archive):
             structure_set_tmp = self
 
             # Make dummy image
-            if self.rois[0].contours_only:
+            im = self.get_dummy_image(buffer=buffer, 
+                                      voxel_size=voxel_size)
+            structure_set_tmp = self.clone(
+                copy_rois=True, 
+                copy_roi_data=False,
+            )
+            structure_set_tmp.set_image(im)
+            """
+            if self.rois[0].contours_only or True:
                 im = self.get_dummy_image(buffer=buffer, 
                                           voxel_size=voxel_size)
                 structure_set_tmp = self.clone(
@@ -7379,6 +7387,7 @@ class StructureSet(skrt.core.Archive):
                     np.ones(self.rois[0].shape) * 1e4,
                     affine=self.rois[0].affine,
                 )
+            """
 
             if rois is None:
                 rois = structure_set_tmp
