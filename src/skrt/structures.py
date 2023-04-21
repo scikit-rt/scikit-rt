@@ -4842,6 +4842,16 @@ class ROI(skrt.core.Archive):
         # View without image
         else:
 
+            # Make dummy image for background
+            roi_tmp = self.clone(copy_data=False)
+            im = self.get_dummy_image(
+                voxel_size=voxel_size,
+                buffer=buffer
+            )
+            im.title = self.name
+            roi_tmp.set_image(im)
+
+            """
             roi_tmp = self
 
             # Make dummy image for background
@@ -4859,6 +4869,7 @@ class ROI(skrt.core.Archive):
                     affine=self.affine,
                     title=self.name
                 )
+            """
 
             # Create viewer
             bv = BetterViewer(im, rois=roi_tmp, **kwargs)
