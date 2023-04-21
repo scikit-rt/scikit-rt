@@ -4834,6 +4834,8 @@ class ROI(skrt.core.Archive):
                         self.get_centre()[skrt.image._slice_axes[view]]
 
         kwargs["show"] = False
+        if "plot_type" in kwargs:
+            kwargs["roi_plot_type"] = kwargs.pop("plot_type")
 
         # View with image
         if include_image and self.image is not None:
@@ -7354,6 +7356,9 @@ class StructureSet(skrt.core.Archive):
                 "init_slice", 
                 self.image.idx_to_slice(self.find_most_populated_slice(view),
                                         skrt.image._slice_axes[view]))
+
+        if "plot_type" in kwargs:
+            kwargs["roi_plot_type"] = kwargs.pop("plot_type")
 
         # View with image
         if include_image and self.image is not None:
