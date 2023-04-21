@@ -4452,7 +4452,7 @@ class ROI(skrt.core.Archive):
     def plot(
         self,
         view="x-y",
-        plot_type=None,
+        plot_type="contour",
         sl=None,
         idx=None,
         pos=None,
@@ -4479,7 +4479,7 @@ class ROI(skrt.core.Archive):
         view : str, default="x-y"
             Orientation in which to plot. Can be "x-y", "y-z", or "x-z".
 
-        plot_type : str, default=None
+        plot_type : str, default="contour"
             Plotting type. If None, will be either "contour" or "mask" 
             depending on the input type of the ROI. Options:
 
