@@ -2017,6 +2017,9 @@ class Image(skrt.core.Archive):
                 )
 
         # Set number of voxels in [x, y, z] directions
+        for attribute in ["_affine_canonical", "_data_canonical", "_sdata"]:
+            if hasattr(self, attribute):
+                delattr(self, attribute)
         self.standardise_data()
         self.n_voxels = [self._sdata.shape[1], self._sdata.shape[0],
                          self._sdata.shape[2]]
