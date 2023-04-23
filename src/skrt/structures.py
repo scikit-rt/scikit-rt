@@ -7094,7 +7094,7 @@ class StructureSet(skrt.core.Archive):
     def plot(
         self,
         view="x-y",
-        plot_type=None,
+        plot_type="contour",
         sl=None,
         idx=None,
         pos=None,
@@ -7126,10 +7126,12 @@ class StructureSet(skrt.core.Archive):
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
 
+        if plot_type is None:
+            plot_type = kwargs.get("roi_plot_type", self.default_geom_method)
+        kwargs["roi_plot_type"] = plot_type
+
         # Ensure that linewidth and opacity for ROI plotting are defined.
         roi_kwargs = {}
-        plot_type = plot_type or kwargs.get("roi_plot_type", "contour")
-        roi_kwargs["roi_plot_type"] = plot_type
         if opacity is None:
             opacity = 0.3 if "filled" in plot_type else 1
         roi_kwargs["opacity"] = opacity
