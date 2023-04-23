@@ -419,7 +419,7 @@ class Image(skrt.core.Archive):
         dcm_type = itype in ['dcm', 'dicom']
 
         if nii_type or dcm_type:
-            # Ensure that image is loaded, and created clone.
+            # Ensure that image is loaded, and create clone.
             self.load()
             im = self.__class__(self)
 
@@ -2017,7 +2017,9 @@ class Image(skrt.core.Archive):
                 )
 
         # Set number of voxels in [x, y, z] directions
-        for attribute in ["_affine_canonical", "_data_canonical", "_sdata"]:
+        for attribute in [
+                "_affine_canonical", "_data_canonical",
+                "_saffine", "_sdata", "_sorigin"]:
             if hasattr(self, attribute):
                 delattr(self, attribute)
         self.standardise_data()
@@ -3845,14 +3847,23 @@ class Image(skrt.core.Archive):
         """
 
         lims = [xlim, ylim, zlim]
+        if all([lim is None for lim in lims]):
+            return
+
+        # Ensure DICOM representation for cropping.
+        if "nifti" in self.source_type:
+            im = self.astype("dicom")
+        else:
+            im = self
+
         for i_ax, lim in enumerate(lims):
 
             if lim is None:
                 continue
 
             # Find array indices at which to crop
-            i1 = self.pos_to_idx(lims[i_ax][0], ax=i_ax, return_int=False)
-            i2 = self.pos_to_idx(lims[i_ax][1], ax=i_ax, return_int=False)
+            i1 = im.pos_to_idx(lims[i_ax][0], ax=i_ax, return_int=False)
+            i2 = im.pos_to_idx(lims[i_ax][1], ax=i_ax, return_int=False)
             i_big, i_small = i2, i1
             if i1 > i2:
                 i_big, i_small = i_small, i_big
@@ -3862,22 +3873,30 @@ class Image(skrt.core.Archive):
             # Ensure indices are within image range
             if i_small < 0:
                 i_small = 0
-            if i_big > self.n_voxels[i_ax]:
-                i_big = self.n_voxels[i_ax]
+            if i_big > im.n_voxels[i_ax]:
+                i_big = im.n_voxels[i_ax]
 
             # Crop the data array
-            ax_to_slice = self.get_axes().index(i_ax)
-            self.data = self.data.take(indices=range(i_small, i_big),
+            ax_to_slice = im.get_axes().index(i_ax)
+            im.data = im.data.take(indices=range(i_small, i_big),
                                        axis=ax_to_slice)
 
             # Reset origin position
-            if self.image_extent[i_ax][1] > self.image_extent[i_ax][0]:
-                self.origin[i_ax] = self.idx_to_pos(i_small, ax=i_ax)
+            if im.image_extent[i_ax][1] > im.image_extent[i_ax][0]:
+                im.origin[i_ax] = im.idx_to_pos(i_small, ax=i_ax)
             else:
-                self.origin[i_ax] = self.idx_to_pos(i_big, ax=i_ax)
+                im.origin[i_ax] = im.idx_to_pos(i_big, ax=i_ax)
 
         # Reset image geometry
-        self.affine = None
+        im.affine = get_geometry(None, im.voxel_size, im.origin)[0]
+
+        # Revert to original representation.
+        if "nifti" in self.source_type:
+            im = im.astype("nifti")
+            self.data = im.data.copy()
+            self.affine, self.voxel_size, self.origin = get_geometry(
+                    im.affine, im.voxel_size, im.origin)
+
         self.set_geometry()
 
     def crop_about_point(self, point=None, xlim=None, ylim=None, zlim=None):
