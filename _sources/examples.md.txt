@@ -60,8 +60,12 @@ The following were run using data from the [VoxTox](https://www.cancerresearchuk
 data, but may be useful for code examples.
 
 - [workshop_26_09_22.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/workshop_26_09_22.ipynb) :
-  general interactive functionality.
+  overview of interactive functionality;
+  presentation by K. Harrison, 26th September 2022.
 - [kvct_to_mvct.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/kvct_to_mvct.ipynb):
   generation of a megavoltage (MV) computed-tomography (CT) guidance scan,
   starting from a (downsampled) kilovoltage (kV) CT scan, used in
   radiotherapy planning.
+- [workshop_19_01_22.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/workshop_19_01_22.ipynb) :
+  overview of interactive functionality;
+  presentation by H. Pullen, 19th January 2022.
