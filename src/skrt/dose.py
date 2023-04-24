@@ -261,7 +261,8 @@ class Dose(ImageOverlay):
         self.dose_units = None
         self.dose_type = None
         self.dose_summation_type = None
-        
+        self.n_fraction = None
+        self._equivalent_dose = None
 
     def load(self, *args, **kwargs):
         """Load self and set default maximum plotting intensity from max of
@@ -319,6 +320,12 @@ class Dose(ImageOverlay):
     def get_dose_summation_type(self):
         self.load()
         return self.dose_summation_type
+
+    def get_n_fraction(self):
+        """Return number of dose fractions."""
+        if self.n_fraction is None and hasattr(self, "plan"):
+            self.n_fraction = self.plan.get_n_fraction()
+        return self.n_fraction
 
     def get_dose_in_roi_3d(self, roi, standardise=True):
         """Return copy of the dose array that has values retained
@@ -479,9 +486,11 @@ class Dose(ImageOverlay):
 
         See aliased method for documentation.
         """
+        self._equivalent_dose = "get_bed()"
         return self.get_biologically_effective_dose(*args, **kwargs)
 
-    def get_biologically_effective_dose(self, rois=None, alpha_beta_ratios=None,
+    def get_biologically_effective_dose(
+            self, rois=None, alpha_beta_ratios=None,
             n_fraction=None, fill=0, standardise=False, force=False):
         """
         Get a Dose object where array values are biologically effective dose.
@@ -495,11 +504,11 @@ class Dose(ImageOverlay):
         **Parameters:**
 
         rois : ROI/StructureSet/list, default=None
-            Object(s) specifying ROIs for which biologically effective
-            dose is to be determined.  The object(s) can be a
-            single skrt.structures.ROI object, a single
-            skrt.structures.StructureSet object, or a list containing any
-            combination of ROI and StructureSet objects.
+            Object(s) specifying ROIs for which calculation is to be
+            performed.  The object(s) can be a single
+            skrt.structures.ROI object, a single skrt.structures.StructureSet
+            object, or a list containing any combination of ROI
+            and StructureSet objects.
 
         alpha_beta_ratios : dict, default=None
             By default, values of alpha over beta used are the values
@@ -510,15 +519,15 @@ class Dose(ImageOverlay):
             for alpha over beta.
 
         n_fraction : float, default=None
-            Number of equal-dose fractions over which physical dose
-            is delivered.  If None, and the dose has an associated plan,
-            the value returned by self.plan.get_n_fraction() is used.
+            Number of equal-dose fractions over which physical total dose
+            is delivered.  If None, the value returned by
+            self.get_n_fraction() is used.
 
-        fill : float/str, default=0
+        fill : float/None, default=0
             Specification of dose value to set outside of ROIs, and for ROIs
             where alpha over beta has a null value.  If a float, this is
-            used as the default dose value.  If 'physical_dose", physical-dose
-            values are retained.
+            used as the default dose value.  If None, physical-dose values
+            are retained.
 
         standardise : bool, default=False
             If False, the data arrays for Doses and for ROI masks will be
@@ -529,76 +538,158 @@ class Dose(ImageOverlay):
         force : bool, default=False
             Determine action if the current dose object has
             dose_type set to "EFFECTIVE".  If False, write an error message,
-            and don't apply the formula for biologically effective dose.  If
+            and don't apply the formula for recalculating dose.  If
             True, apply the formula, even if the dose_type suggests that
-            values already represent biologically effective dose.
+            dose values have already been corrected for biological effect.
         """
-        # Check that the input parameter allow
-        # calculation of biologically effective dose.
+        self._equivalent_dose = "get_biologically_effective_dose()"
+        return self.get_equivalent_dose(
+                dose_rate=0, rois=rois, alpha_beta_ratios=alpha_beta_ratios,
+                n_fraction=n_fraction, fill=fill, standardise=standardise,
+                force=force)
 
-        if not isinstance(fill, numbers.Number) and fill != "physical_dose":
+    def get_eqd(self, *args, **kwargs):
+        """
+        Alias for skrt.dose.Dose method get_equivalent_dose().
+
+        See aliased method for documentation.
+        """
+        self._equivalent_dose = "get_eqd()"
+        return self.get_equivalent_dose(*args, **kwargs)
+
+    def get_equivalent_dose(
+            self, dose_rate=2, rois=None, alpha_beta_ratios=None,
+            n_fraction=None, fill=0, standardise=False, force=False):
+        """
+        Get a Dose object where array values are equivalent dose
+        for a specified dose per fraction.
+
+        If a physical dose, D, is delivered over n equal fractions to a
+        volume element characterised by linear and quadratic coefficients
+        alpha and beta for the linear-quadratic equation, the total equivalent
+        dose, EQDd, at a dose rate d per fraction, is:
+            EQDd = D * ((D/n) + (alpha/beta)) / (d + (alpha/beta)).
+        It approaches the biologically effective dose, BED,
+        as d tends to zero:
+            EQD0 = D * (1 + (D/n) / (alpha/beta)) = BED.
+
+        **Parameters:**
+
+        dose_rate : float, default=2
+            Dose (Gy) per fraction for which calculation is to be determined.
+
+        rois : ROI/StructureSet/list, default=None
+            Object(s) specifying ROIs for which calculation is to be
+            performed.  The object(s) can be a single
+            skrt.structures.ROI object, a single skrt.structures.StructureSet
+            object, or a list containing any combination of ROI
+            and StructureSet objects.
+
+        alpha_beta_ratios : dict, default=None
+            By default, values of alpha over beta used are the values
+            set for individual ROIs, for example using
+            skrt.StructureSet.set_alpha_beta_ratios().  The default
+            values can be overridden here by passing a dictionary
+            where keys are ROI names and values are revised values
+            for alpha over beta.
+
+        n_fraction : float, default=None
+            Number of equal-dose fractions over which physical total dose
+            is delivered.  If None, the value returned by
+            self.get_n_fraction() is used.
+
+        fill : float/None, default=0
+            Specification of dose value to set outside of ROIs, and for ROIs
+            where alpha over beta has a null value.  If a float, this is
+            used as the default dose value.  If None, physical-dose values
+            are retained.
+
+        standardise : bool, default=False
+            If False, the data arrays for Doses and for ROI masks will be
+            kept in the orientation in which they were loaded; otherwise,
+            they will be converted to standard dicom-style orientation,
+            such that [column, row, slice] corresponds to the [x, y, z] axes.
+
+        force : bool, default=False
+            Determine action if the current dose object has
+            dose_type set to "EFFECTIVE".  If False, write an error message,
+            and don't apply the formula for recalculating dose.  If
+            True, apply the formula, even if the dose_type suggests that
+            dose values have already been corrected for biological effect.
+        """
+        # Ensure that a method name is set.
+        if self._equivalent_dose is None:
+            self._equivalent_dose = "get_equivalent_dose()"
+
+        # Check input values.
+        if not isinstance(fill, numbers.Number) and fill is not None:
             self.logger.error(f"Value of fill set to '{fill}' "
-                    "but must be 'physical_dose' or a number.")
+                    "but must be a number or None.")
+            self._equivalent_dose = None
             return
 
         self.load()
         if "EFFECTIVE" == self.dose_type and not force:
-            self.logger.error("Method get_biologically_effective_dose() called "
+            self.logger.error(f"Method {self._equivalent_dose} called "
                     f"for dose with type '{self.dose_type}'.  "
                     "If this is the intention, repeat call with 'force=True'")
+            self._equivalent_dose = None
             return
 
         rois = skrt.structures.get_all_rois(rois)
         if not rois:
-            self.logger.error("Method get_biologically_effective_dose() called "
+            self.logger.error(f"Method {self._equivalent_dose} called "
                 "without specifying any ROIs.")
+            self._equivalent_dose = None
             return
 
         if not n_fraction:
-            if hasattr(self, "plan"):
-                n_fraction = self.plan.get_n_fraction()
+            n_fraction = self.get_n_fraction()
 
         if not n_fraction:
-            self.logger.error("Method get_biologically_effective_dose() called "
+            self.logger.error(f"Method {self._equivalent_dose} called "
                 "without specifying number of fractions.")
+            self._equivalent_dose = None
             return
 
         # Set default dose to be fill value.
         if isinstance(fill, numbers.Number):
-            bed = Dose(
+            dose = Dose(
                     path=(fill *
                         np.ones(self.get_data(standardise=standardise).shape)),
                     affine=self.get_affine(standardise=standardise))
-        # Set default dose to be physical dose.
-        elif "physical_dose" == fill:
-            bed = Dose(
+        # Set default dose to be initial dose.
+        elif fill is None:
+            dose = Dose(
                     path=self.get_data(standardise=standardise),
                     affine=self.get_affine(standardise=standardise))
 
-        # Calculate biologically effective dose
-        # inside ROIs with alpha/beta defined.
+        # Calculate equivalent dose inside ROIs with alpha/beta defined.
         for roi in rois:
             # For current ROI, use alpha/beta given in input,
             # or use the value assigned to the ROI.
             alpha_over_beta = alpha_beta_ratios.get(
                     roi.name, roi.alpha_over_beta)
             # If alpha/beta is defined,
-            # calculate the biologically effective dose.
+            # calculate the equivalent dose.
             if alpha_over_beta is not None:
                 dose_in_roi = self.get_dose_in_roi_3d(
                         roi, standardise=standardise)
-                dose_in_roi += ((dose_in_roi * dose_in_roi)
-                        / (n_fraction * alpha_over_beta))
-                bed.data[dose_in_roi > 0] = dose_in_roi[dose_in_roi > 0]
+                dose_in_roi *= ((alpha_over_beta + dose_in_roi / n_fraction)
+                                / (dose_rate + alpha_over_beta))
+                dose.data[dose_in_roi > 0] = dose_in_roi[dose_in_roi > 0]
 
         # Reset the default maximum plotting intensity
         # from the maximum of the data array.
-        bed._default_vmax = bed.data.max()
+        dose._default_vmax = dose.data.max()
 
-        # Set dose_type to indicate that this is biologically effective dose.
-        bed.dose_type = "EFFECTIVE"
+        # Set dose_type to indicate that biological effect
+        # is taken into account.
+        dose.dose_type = "EFFECTIVE"
 
-        return bed
+        # Unset method name - it will be reset by the next caller.
+        self._equivalent_dose = None
+        return dose
 
 class Plan(skrt.core.Archive):
     """
