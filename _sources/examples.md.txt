@@ -45,8 +45,9 @@ to directories for copying data and saving outputs.
 - [dose_volume_rois.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/dose_volume_rois.ipynb) :
   creation of ROI objects corresponding to volumes receiving
   a specified radiation dose.
-- [bed.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/bed.ipynb) :
-  calculation of biologically effective dose.
+- [eqd.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/eqd.ipynb) :
+  calculation of equivalent dose, for specified dose per fraction,
+  and of biologically effective dose.
 - [grid_creation.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/grid_creation.ipynb) :
   creation of a grid image, which can be useful, for example,
   for understanding the effect of applying a registration transform.
