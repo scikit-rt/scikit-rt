@@ -8,6 +8,10 @@ and [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg),
 single- and multi-atlas segmentation, and region-of-interest (ROI)
 comparisons.
 
+Documentation: [https://scikit-rt.github.io/scikit-rt/](https://scikit-rt.github.io/scikit-rt/)  
+Code repository: [https://github.com/scikit-rt/scikit-rt/](https://github.com/scikit-rt/scikit-rt/)  
+PyPI project page: [https://pypi.org/project/scikit-rt/](https://pypi.org/project/scikit-rt/)  
+
 This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
 <img src="docs/images/Radnet Cambridge.png" alt="RadNet logo" height="150"/>
