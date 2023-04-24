@@ -2,7 +2,9 @@ Scikit-rt
 =========
 | Python toolkit for analysis of radiotherapy planning and treatment data.
 |
-| Code repository: https://github.com/scikit-rt/scikit-rt
+| Documentation: https://scikit-rt.github.io/scikit-rt/
+| Code repository: https://github.com/scikit-rt/scikit-rt/
+| PyPI project page: https://pypi.org/project/scikit-rt/
 |
 | Development supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 
