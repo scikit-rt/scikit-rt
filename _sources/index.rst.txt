@@ -1,6 +1,6 @@
 Scikit-rt
 =========
-| Python toolkit for analysis of radiotherapy planning and treatment data.
+| Scikit-rt is a Python toolkit for loading, plotting, and analysing radiotherapy data in `DICOM <https://www.dicomstandard.org/>`_ and `NIfTI <https://nifti.nimh.nih.gov/>`_ formats.  It includes image registration via `elastix <https://elastix.lumc.nl/>`_ and `NiftyReg <http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg>`_, single- and multi-atlas segmentation, and region-of-interest (ROI) comparisons.
 |
 | Documentation: https://scikit-rt.github.io/scikit-rt/
 | Code repository: https://github.com/scikit-rt/scikit-rt/
