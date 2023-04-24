@@ -279,11 +279,11 @@ D, delivered over n equal fractions as:</p>
 </div></blockquote>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>rois<span class="classifier">ROI/StructureSet/list, default=None</span></dt><dd><p>Object(s) specifying ROIs for which biologically effective
-dose is to be determined.  The object(s) can be a
-single skrt.structures.ROI object, a single
-skrt.structures.StructureSet object, or a list containing any
-combination of ROI and StructureSet objects.</p>
+<dt>rois<span class="classifier">ROI/StructureSet/list, default=None</span></dt><dd><p>Object(s) specifying ROIs for which calculation is to be
+performed.  The object(s) can be a single
+skrt.structures.ROI object, a single skrt.structures.StructureSet
+object, or a list containing any combination of ROI
+and StructureSet objects.</p>
 </dd>
 <dt>alpha_beta_ratios<span class="classifier">dict, default=None</span></dt><dd><p>By default, values of alpha over beta used are the values
 set for individual ROIs, for example using
@@ -292,14 +292,14 @@ values can be overridden here by passing a dictionary
 where keys are ROI names and values are revised values
 for alpha over beta.</p>
 </dd>
-<dt>n_fraction<span class="classifier">float, default=None</span></dt><dd><p>Number of equal-dose fractions over which physical dose
-is delivered.  If None, and the dose has an associated plan,
-the value returned by self.plan.get_n_fraction() is used.</p>
+<dt>n_fraction<span class="classifier">float, default=None</span></dt><dd><p>Number of equal-dose fractions over which physical total dose
+is delivered.  If None, the value returned by
+self.get_n_fraction() is used.</p>
 </dd>
-<dt>fill<span class="classifier">float/str, default=0</span></dt><dd><p>Specification of dose value to set outside of ROIs, and for ROIs
+<dt>fill<span class="classifier">float/None, default=0</span></dt><dd><p>Specification of dose value to set outside of ROIs, and for ROIs
 where alpha over beta has a null value.  If a float, this is
-used as the default dose value.  If ‘physical_dose”, physical-dose
-values are retained.</p>
+used as the default dose value.  If None, physical-dose values
+are retained.</p>
 </dd>
 <dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the data arrays for Doses and for ROI masks will be
 kept in the orientation in which they were loaded; otherwise,
@@ -308,9 +308,9 @@ such that [column, row, slice] corresponds to the [x, y, z] axes.</p>
 </dd>
 <dt>force<span class="classifier">bool, default=False</span></dt><dd><p>Determine action if the current dose object has
 dose_type set to “EFFECTIVE”.  If False, write an error message,
-and don’t apply the formula for biologically effective dose.  If
+and don’t apply the formula for recalculating dose.  If
 True, apply the formula, even if the dose_type suggests that
-values already represent biologically effective dose.</p>
+dose values have already been corrected for biological effect.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -353,6 +353,70 @@ ROI and dose arrays are not the same size.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_eqd">
+<span class="sig-name descname"><span class="pre">get_eqd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_eqd" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for skrt.dose.Dose method get_equivalent_dose().</p>
+<p>See aliased method for documentation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_equivalent_dose">
+<span class="sig-name descname"><span class="pre">get_equivalent_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dose_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_beta_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_equivalent_dose" title="Permalink to this definition"></a></dt>
+<dd><p>Get a Dose object where array values are equivalent dose
+for a specified dose per fraction.</p>
+<p>If a physical dose, D, is delivered over n equal fractions to a
+volume element characterised by linear and quadratic coefficients
+alpha and beta for the linear-quadratic equation, the total equivalent
+dose, EQDd, at a dose rate d per fraction, is:</p>
+<blockquote>
+<div><p>EQDd = D * ((D/n) + (alpha/beta)) / (d + (alpha/beta)).</p>
+</div></blockquote>
+<p>It approaches the biologically effective dose, BED,
+as d tends to zero:</p>
+<blockquote>
+<div><p>EQD0 = D * (1 + (D/n) / (alpha/beta)) = BED.</p>
+</div></blockquote>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>dose_rate<span class="classifier">float, default=2</span></dt><dd><p>Dose (Gy) per fraction for which calculation is to be determined.</p>
+</dd>
+<dt>rois<span class="classifier">ROI/StructureSet/list, default=None</span></dt><dd><p>Object(s) specifying ROIs for which calculation is to be
+performed.  The object(s) can be a single
+skrt.structures.ROI object, a single skrt.structures.StructureSet
+object, or a list containing any combination of ROI
+and StructureSet objects.</p>
+</dd>
+<dt>alpha_beta_ratios<span class="classifier">dict, default=None</span></dt><dd><p>By default, values of alpha over beta used are the values
+set for individual ROIs, for example using
+skrt.StructureSet.set_alpha_beta_ratios().  The default
+values can be overridden here by passing a dictionary
+where keys are ROI names and values are revised values
+for alpha over beta.</p>
+</dd>
+<dt>n_fraction<span class="classifier">float, default=None</span></dt><dd><p>Number of equal-dose fractions over which physical total dose
+is delivered.  If None, the value returned by
+self.get_n_fraction() is used.</p>
+</dd>
+<dt>fill<span class="classifier">float/None, default=0</span></dt><dd><p>Specification of dose value to set outside of ROIs, and for ROIs
+where alpha over beta has a null value.  If a float, this is
+used as the default dose value.  If None, physical-dose values
+are retained.</p>
+</dd>
+<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the data arrays for Doses and for ROI masks will be
+kept in the orientation in which they were loaded; otherwise,
+they will be converted to standard dicom-style orientation,
+such that [column, row, slice] corresponds to the [x, y, z] axes.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>Determine action if the current dose object has
+dose_type set to “EFFECTIVE”.  If False, write an error message,
+and don’t apply the formula for recalculating dose.  If
+True, apply the formula, even if the dose_type suggests that
+dose values have already been corrected for biological effect.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.get_max_dose_in_rois">
 <span class="sig-name descname"><span class="pre">get_max_dose_in_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_max_dose_in_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Return maximum dose in a set of rois.</p>
@@ -367,6 +431,12 @@ ROI and dose arrays are not the same size.</p>
 <dt class="sig sig-object py" id="skrt.dose.Dose.get_mean_dose">
 <span class="sig-name descname"><span class="pre">get_mean_dose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_mean_dose" title="Permalink to this definition"></a></dt>
 <dd><p>Get mean dose inside an ROI.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dose.Dose.get_n_fraction">
+<span class="sig-name descname"><span class="pre">get_n_fraction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_n_fraction" title="Permalink to this definition"></a></dt>
+<dd><p>Return number of dose fractions.</p>
 </dd></dl>
 
 <dl class="py method">
