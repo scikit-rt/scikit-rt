@@ -613,7 +613,7 @@ class Registration(Data):
 
             pfile = os.path.join(outdir, "InputParameters.txt")
             tfile = self.get_tfile(outdir)
-            if not os.path.exists(pfile) and not tifle:
+            if not os.path.exists(pfile) and not tfile:
                 self.logger.warning(
                     f"No parameter file ({pfile}) "
                     f"and no transform file ({outdir}/TransformParameters*) "
