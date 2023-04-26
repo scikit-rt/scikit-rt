@@ -1200,7 +1200,7 @@ class Image(skrt.core.Archive):
 
     def get_foreground_box_mask(self, dx=0, dy=0, threshold=-200):
         '''
-        Slice by slice, create rectangular mask encolosing foreground mask.
+        Slice by slice, create rectangular mask enclosing foreground mask.
 
         dx : int, default=0
             Margin along columns to be added on each side of mask bounding box.
