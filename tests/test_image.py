@@ -885,12 +885,11 @@ def test_create_foreground_mask():
     for intensity in [50, 60]:
         threshold = intensity - 5
         mask1 = sim.get_foreground_mask(threshold=threshold).get_data()
-        mask1 = mask1.astype(np.uint32)
-        mask1[mask1 > 0] =1
+        assert mask1.dtype == bool
 
         nx, ny, nz = sim.get_n_voxels()
         mask2 = np.zeros((ny, nx, nz), dtype=np.uint32)
-        mask2[sim.get_data() == intensity] = 1
+        mask2[sim.get_data() == intensity] = True
 
         assert mask1.shape == mask2.shape
         assert mask1.min() == 0

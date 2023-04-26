@@ -1369,9 +1369,9 @@ class Image(skrt.core.Archive):
         # Handle the cases where all intensities are the same.
         else:
             if test_slice.max() > rescaled_threshold:
-                label_array2 = np.ones(image_slice.shape)
+                label_array2 = np.ones(image_slice.shape, dtype=bool)
             else:
-                label_array2 = np.zeros(image_slice.shape)
+                label_array2 = np.zeros(image_slice.shape, dtype=bool)
 
         return label_array2
 
