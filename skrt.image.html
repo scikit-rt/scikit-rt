@@ -854,6 +854,32 @@ obtained.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_foreground_roi">
+<span class="sig-name descname"><span class="pre">get_foreground_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_roi" title="Permalink to this definition"></a></dt>
+<dd><p>Create ROI represening image foreground.</p>
+<p>Slice by slice, the foreground is taken to correspond to the
+largest region of contiguous pixels above a threshold value.
+A binary mask representing the foreground is created, and
+is used as source for creating an ROI.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
+regions for determination of foreground.</p>
+</dd>
+<dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, create mask from the convex hulls of the
+slice foreground masks initially obtained.</p>
+</dd>
+<dt>fill_holes<span class="classifier">bool, default=False</span></dt><dd><p>If True, fill holes in the slice foreground masks initially
+obtained.</p>
+</dd>
+<dt>dxy<span class="classifier">int, default=0</span></dt><dd><p>Margin, in pixel units, to be added to each slice foreground mask.</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to ROI constructor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_idx">
 <span class="sig-name descname"><span class="pre">get_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_idx" title="Permalink to this definition"></a></dt>
 <dd><p>Get an array index from either a slice number, index, or
