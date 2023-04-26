@@ -54,6 +54,8 @@ mpl.rcParams["font.serif"] = "Times New Roman"
 mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
+skrt.core.Defaults().foreground_name = "foreground"
+
 class Image(skrt.core.Archive):
     """
     Class representing a medical image.
@@ -1246,6 +1248,42 @@ class Image(skrt.core.Archive):
         centre = [0.5 * (extent[0] + extent[1]) for extent in extents]
         widths = [(extent[1] - extent[0]) for extent in extents]
         return (centre, widths)
+
+    def get_foreground_roi(self, threshold=None, convex_hull=False,
+            fill_holes=True, dxy=0, **kwargs):
+        '''
+        Create ROI represening image foreground.
+
+        Slice by slice, the foreground is taken to correspond to the
+        largest region of contiguous pixels above a threshold value.
+        A binary mask representing the foreground is created, and
+        is used as source for creating an ROI.
+
+        **Parameters:**
+
+        threshold : int/float, default=None
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If True, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=False
+            If True, fill holes in the slice foreground masks initially
+            obtained.
+
+        dxy : int, default=0
+            Margin, in pixel units, to be added to each slice foreground mask.
+
+        **kwargs
+            Keyword arguments passed to ROI constructor.
+        '''
+        from skrt.structures import ROI
+        if not "name" in kwargs:
+            kwargs["name"] = skrt.core.Defaults().foreground_name
+        return ROI(self.get_foreground_mask(
+            threshold, convex_hull, fill_holes, dxy), **kwargs)
 
     def get_foreground_mask(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0):

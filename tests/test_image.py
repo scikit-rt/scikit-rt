@@ -13,11 +13,12 @@ import pydicom
 from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
-from skrt.core import File, fullpath
+from skrt.core import Defaults, File, fullpath
 from skrt.image import (Image, checked_crop_limits, get_alignment_translation,
                         get_geometry, get_mask_bbox, get_translation_to_align,
                         match_images, match_image_voxel_sizes, rescale_images)
 from skrt.simulation import SyntheticImage
+from skrt.structures import ROI
 
 try:
     import mahotas
@@ -898,6 +899,41 @@ def test_create_foreground_mask():
         assert mask1.max() == mask2.max()
         assert mask1.sum() == mask2.sum()
     assert np.all(mask1 == mask2)
+
+@needs_mahotas
+def test_get_foreground_roi():
+    """Test creation of ROI representing image foreground."""
+    # Create synthetic image, featuring cube and sphere.
+    sim = SyntheticImage((100, 100, 40))
+    cube_length = 5
+    sphere_radius = 10
+
+    shapes = {
+            "cube": [cube_length, (25, 60, 12), 60, cube_length**3],
+            "sphere": [sphere_radius, (80, 20, 12), 50,
+                       (4. / 3.) * math.pi * sphere_radius**3],
+            }
+
+    for name, values in shapes.items():
+        length, centre, intensity, volume = values
+        if "cube" == name:
+            sim.add_cube(length, centre, intensity, name=name)
+        elif "sphere" == name:
+            sim.add_sphere(length, centre, intensity, name=name)
+
+    # Should detect sphere as foreground in first loop and cube in second.
+    for name, values in shapes.items():
+        length, centre, intensity, volume = values
+        threshold = intensity - 5
+        roi = sim.get_foreground_roi(threshold=threshold, name=name)
+        assert isinstance(roi, ROI)
+        assert roi.name == name
+        assert roi.get_volume() == pytest.approx(volume, rel=0.005)
+        assert tuple(roi.get_centre()) == centre
+
+    # For case where no name is specified, check that default is assigned.
+    roi = sim.get_foreground_roi(threshold=threshold)
+    assert roi.name == Defaults().foreground_name
 
 @needs_mahotas
 def test_mask_bbox():
