@@ -3905,8 +3905,8 @@ class Image(skrt.core.Archive):
             i_big, i_small = i2, i1
             if i1 > i2:
                 i_big, i_small = i_small, i_big
-            i_small = int(np.floor(i_small + 0.5))
-            i_big = int(np.floor(i_big + 0.5))
+            i_small = int(np.floor(round(i_small, 6) + 0.5))
+            i_big = int(np.floor(round(i_big, 6) + 0.5))
 
             # Ensure indices are within image range
             if i_small < 0:
@@ -4429,122 +4429,124 @@ class Image(skrt.core.Archive):
 
         return mi
 
-    def get_relative_structural_content(
-            self, image, v_min=None, v_max=None, constant=None):
+    def get_quality(self, image, metrics=None):
         """
-        Quantify structural content of this image relative to another.
+        Evaluate quality of this image relative to another.
 
-        The calculation of relative structural content is based on
-        the definition of:
+        The metrics considered are:
+
+        - relative structural content;
+        - fidelity;
+        - correlation quality.
+
+        These are defined in:
 
         - https://doi.org/10.1364/JOSA.46.000740
         - https://doi.org/10.1080/713826248
 
-        The result should be from 0 (no agreement) to 1 (perfect agreement).
+        The three metrics should each have a value between 0 and 1,
+        and are related by:
 
-        The parameters v_min, v_max, constant allow for linear rescaling
-        of image greyscale values prior to calculation of relative
-        structural content.  Any rescaling is performed on clones of
-        the images to be compared, with the originals left unaltered.
+        correlation quality = 0.5 * (relative structural content + fidelity).
+
+        Quality scores are returned in a dictionary, with a key corresponding
+        to each metric: "relative_structural_content", "fidelity",
+        "correlation_quality".  If a metric isn't evaluated, the value
+        returned for it is None.
 
         **Parameters:**
 
         image : skrt.image.Image
-            Image with respect to which relative structural content
-            is to be calculated.
+            Image with respect to which quality metrics are to be calculated.
 
-        v_min: float, default=None
-            Minimum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        v_max: float, default=None
-            Maximum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        constant: float, default=None
-            Greyscale value to assign after rescaling if all values
-            in the original image are the same.  If None,
-            original value is kept.
+        metrics: list, default=None
+            List of strings specifying quality metrics to be evaluated.
+            If None, all defined quality metrics are evaluated.
         """
-        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
-        return ((im1.get_data()**2).sum() / (im2.get_data()**2).sum())
+        # Define metrics to be evaluated.
+        all_metrics = ["relative_structural_content",
+                       "fidelity", "correlation_quality"]
+        if metrics is None:
+            metrics = all_metrics
+        else:
+            if not skrt.core.is_list(metrics):
+                metrics = [metrics]
+            metrics = [metric for metric in metrics if metric in all_metrics]
 
-    def get_fidelity(self, image, v_min=None, v_max=None, constant=None):
+        # Initialise dictionary of metric values.
+        quality = {metric: None for metric in all_metrics}
+
+        if metrics:
+            # Recale intensity values, so that the minimum is 0.
+            v_min = min(self.get_min(), image.get_min())
+            data1 = self.get_data() - v_min
+            data2 = image.get_data() - v_min
+
+            # If intensity values have non-zero sum, normalise to 1.
+            if data1.sum():
+                data1 = data1 / data1.sum()
+            if data2.sum():
+                data2 = data2 / data2.sum()
+
+            # Evaluate quality metrics.
+            denominator = (data2**2).sum()
+            metric = "relative_structural_content"
+            if metric in metrics:
+                quality[metric] = (data1**2).sum() / denominator
+            metric = "fidelity"
+            if metric in metrics:
+                quality[metric] = (
+                        1 - (((data2 - data1)**2).sum() / denominator))
+            metric = "correlation_quality"
+            if metric in metrics:
+                quality[metric] = (data2 * data1).sum() / denominator
+
+        return quality
+
+    def get_relative_structural_content(self, image):
+        """
+        Calculate structural content of this image relative to another.
+
+        Uses method get_quality().
+
+        **Parameter:**
+
+        image : skrt.image.Image
+            Image with respect to which relative structural content is
+            to be evaluated
+        """
+        metric = "relative_structural_content"
+        return self.get_quality(image, metrics=[metric])[metric]
+
+    def get_fidelity(self, image):
         """
         Calculate fidelity with which this image matches another.
 
-        The calculation of fidelity is based on the definition of:
+        Uses method get_quality().
 
-        - https://doi.org/10.1364/JOSA.46.000740
-        - https://doi.org/10.1080/713826248
-
-        The result should be from 0 (no agreement) to 1 (perfect agreement).
-
-        The parameters v_min, v_max, constant allow for linear rescaling
-        of image greyscale values prior to calculation of fidelity.  Any
-        rescaling is performed on clones of the images to be compared,
-        with the originals left unaltered.
-
-        **Parameters:**
+        **Parameter:**
 
         image : skrt.image.Image
             Image with respect to which fidelity is to be calculated.
-
-        v_min: float, default=None
-            Minimum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        v_max: float, default=None
-            Maximum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        constant: float, default=None
-            Greyscale value to assign after rescaling if all values
-            in the original image are the same.  If None,
-            original value is kept.
+            to be evaluated
         """
-        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
-        return (1 - (((im2.get_data() - im1.get_data())**2).sum()
-                / (im2.get_data()**2).sum()))
+        metric = "fidelity"
+        return self.get_quality(image, metrics=[metric])[metric]
 
-    def get_correlation_quality(
-            self, image, v_min=None, v_max=None, constant=None):
+    def get_correlation_quality(self, image):
         """
         Calculate quality of correlation between this image and another.
 
-        The calculation of correlation quality is based on the definition of:
+        Uses method get_quality().
 
-        - https://doi.org/10.1364/JOSA.46.000740
-        - https://doi.org/10.1080/713826248
-
-        The result should be from 0 (no agreement) to 1 (perfect agreement).
-
-        The parameters v_min, v_max, constant allow for linear rescaling
-        of image greyscale values prior to calculation of correlation
-        quality.  Any rescaling is performed on clones of the images
-        to be compared, with the originals left unaltered.
-
-        **Parameters:**
+        **Parameter:**
 
         image : skrt.image.Image
             Image with respect to which correlation quality is to be calculated.
-
-        v_min: float, default=None
-            Minimum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        v_max: float, default=None
-            Maximum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        constant: float, default=None
-            Greyscale value to assign after rescaling if all values
-            in the original image are the same.  If None,
-            original value is kept.
+            to be evaluated
         """
-        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
-        return ((im2.get_data() * im1.get_data()).sum()
-                / (im2.get_data()**2).sum())
+        metric = "correlation_quality"
+        return self.get_quality(image, metrics=[metric])[metric]
 
 
 class ImageComparison(Image):
@@ -6353,6 +6355,10 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
     im2 = im2.clone_with_structure_set(ss2, roi_names, ss2_index, ss1_name)
     ss2 = im2.structure_sets[0] if im2.structure_sets else None
 
+    if alignment is not False:
+        im1.crop_to_image(im2, alignment)
+        im2.crop_to_image(im1, alignment)
+
     # Resample images to same voxel size.
     match_image_voxel_sizes(im1, im2, voxel_size)
 
@@ -6368,6 +6374,9 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
     if alignment is not False:
         im1.crop_to_image(im2, alignment)
         im2.crop_to_image(im1, alignment)
+        if (im1.get_voxel_size() == im2.get_voxel_size()
+            and not im1.has_same_geometry(im2)):
+            im1.match_size(im1)
 
     # Perform banding of image grey levels.
     im1.apply_selective_banding(bands)
@@ -6409,9 +6418,9 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     order: int, default = 1
         Order of the b-spline used in interpolating voxel intensity values.
     """
-    # No resampling needed:V
+    # No resampling needed.
     if not voxel_size:
-        return
+        return (im1, im2)
 
     # Initialise voxel sizes for resampled images.
     vs1 = None
