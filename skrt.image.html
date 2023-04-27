@@ -664,31 +664,13 @@ to be considered in the centroid calculation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_correlation_quality">
-<span class="sig-name descname"><span class="pre">get_correlation_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_correlation_quality" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_correlation_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_correlation_quality" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate quality of correlation between this image and another.</p>
-<p>The calculation of correlation quality is based on the definition of:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://doi.org/10.1364/JOSA.46.000740">https://doi.org/10.1364/JOSA.46.000740</a></p></li>
-<li><p><a class="reference external" href="https://doi.org/10.1080/713826248">https://doi.org/10.1080/713826248</a></p></li>
-</ul>
-<p>The result should be from 0 (no agreement) to 1 (perfect agreement).</p>
-<p>The parameters v_min, v_max, constant allow for linear rescaling
-of image greyscale values prior to calculation of correlation
-quality.  Any rescaling is performed on clones of the images
-to be compared, with the originals left unaltered.</p>
-<p><strong>Parameters:</strong></p>
+<p>Uses method get_quality().</p>
+<p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which correlation quality is to be calculated.</p>
-</dd>
-<dt>v_min: float, default=None</dt><dd><p>Minimum greyscale value after rescaling.  If None,
-no rescaling is performed.</p>
-</dd>
-<dt>v_max: float, default=None</dt><dd><p>Maximum greyscale value after rescaling.  If None,
-no rescaling is performed.</p>
-</dd>
-<dt>constant: float, default=None</dt><dd><p>Greyscale value to assign after rescaling if all values
-in the original image are the same.  If None,
-original value is kept.</p>
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which correlation quality is to be calculated.
+to be evaluated</p>
 </dd>
 </dl>
 </dd></dl>
@@ -765,31 +747,13 @@ returned in order [x, y, z].</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_fidelity">
-<span class="sig-name descname"><span class="pre">get_fidelity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_fidelity" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_fidelity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_fidelity" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate fidelity with which this image matches another.</p>
-<p>The calculation of fidelity is based on the definition of:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://doi.org/10.1364/JOSA.46.000740">https://doi.org/10.1364/JOSA.46.000740</a></p></li>
-<li><p><a class="reference external" href="https://doi.org/10.1080/713826248">https://doi.org/10.1080/713826248</a></p></li>
-</ul>
-<p>The result should be from 0 (no agreement) to 1 (perfect agreement).</p>
-<p>The parameters v_min, v_max, constant allow for linear rescaling
-of image greyscale values prior to calculation of fidelity.  Any
-rescaling is performed on clones of the images to be compared,
-with the originals left unaltered.</p>
-<p><strong>Parameters:</strong></p>
+<p>Uses method get_quality().</p>
+<p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which fidelity is to be calculated.</p>
-</dd>
-<dt>v_min: float, default=None</dt><dd><p>Minimum greyscale value after rescaling.  If None,
-no rescaling is performed.</p>
-</dd>
-<dt>v_max: float, default=None</dt><dd><p>Maximum greyscale value after rescaling.  If None,
-no rescaling is performed.</p>
-</dd>
-<dt>constant: float, default=None</dt><dd><p>Greyscale value to assign after rescaling if all values
-in the original image are the same.  If None,
-original value is kept.</p>
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which fidelity is to be calculated.
+to be evaluated</p>
 </dd>
 </dl>
 </dd></dl>
@@ -819,7 +783,7 @@ explanations, see skrt.image.Image.get_foreground_mask() documentation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_box_mask">
 <span class="sig-name descname"><span class="pre">get_foreground_box_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_box_mask" title="Permalink to this definition"></a></dt>
-<dd><p>Slice by slice, create rectangular mask encolosing foreground mask.</p>
+<dd><p>Slice by slice, create rectangular mask enclosing foreground mask.</p>
 <dl class="simple">
 <dt>dx<span class="classifier">int, default=0</span></dt><dd><p>Margin along columns to be added on each side of mask bounding box.</p>
 </dd>
@@ -1158,6 +1122,38 @@ in order (x, y, z).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_quality">
+<span class="sig-name descname"><span class="pre">get_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_quality" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluate quality of this image relative to another.</p>
+<p>The metrics considered are:</p>
+<ul class="simple">
+<li><p>relative structural content;</p></li>
+<li><p>fidelity;</p></li>
+<li><p>correlation quality.</p></li>
+</ul>
+<p>These are defined in:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://doi.org/10.1364/JOSA.46.000740">https://doi.org/10.1364/JOSA.46.000740</a></p></li>
+<li><p><a class="reference external" href="https://doi.org/10.1080/713826248">https://doi.org/10.1080/713826248</a></p></li>
+</ul>
+<p>The three metrics should each have a value between 0 and 1,
+and are related by:</p>
+<p>correlation quality = 0.5 * (relative structural content + fidelity).</p>
+<p>Quality scores are returned in a dictionary, with a key corresponding
+to each metric: “relative_structural_content”, “fidelity”,
+“correlation_quality”.  If a metric isn’t evaluated, the value
+returned for it is None.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which quality metrics are to be calculated.</p>
+</dd>
+<dt>metrics: list, default=None</dt><dd><p>List of strings specifying quality metrics to be evaluated.
+If None, all defined quality metrics are evaluated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_range">
 <span class="sig-name descname"><span class="pre">get_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_range" title="Permalink to this definition"></a></dt>
 <dd><p>Get range of the image in mm along a given axis.</p>
@@ -1165,33 +1161,13 @@ in order (x, y, z).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_relative_structural_content">
-<span class="sig-name descname"><span class="pre">get_relative_structural_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_relative_structural_content" title="Permalink to this definition"></a></dt>
-<dd><p>Quantify structural content of this image relative to another.</p>
-<p>The calculation of relative structural content is based on
-the definition of:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://doi.org/10.1364/JOSA.46.000740">https://doi.org/10.1364/JOSA.46.000740</a></p></li>
-<li><p><a class="reference external" href="https://doi.org/10.1080/713826248">https://doi.org/10.1080/713826248</a></p></li>
-</ul>
-<p>The result should be from 0 (no agreement) to 1 (perfect agreement).</p>
-<p>The parameters v_min, v_max, constant allow for linear rescaling
-of image greyscale values prior to calculation of relative
-structural content.  Any rescaling is performed on clones of
-the images to be compared, with the originals left unaltered.</p>
-<p><strong>Parameters:</strong></p>
+<span class="sig-name descname"><span class="pre">get_relative_structural_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_relative_structural_content" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate structural content of this image relative to another.</p>
+<p>Uses method get_quality().</p>
+<p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which relative structural content
-is to be calculated.</p>
-</dd>
-<dt>v_min: float, default=None</dt><dd><p>Minimum greyscale value after rescaling.  If None,
-no rescaling is performed.</p>
-</dd>
-<dt>v_max: float, default=None</dt><dd><p>Maximum greyscale value after rescaling.  If None,
-no rescaling is performed.</p>
-</dd>
-<dt>constant: float, default=None</dt><dd><p>Greyscale value to assign after rescaling if all values
-in the original image are the same.  If None,
-original value is kept.</p>
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image with respect to which relative structural content is
+to be evaluated</p>
 </dd>
 </dl>
 </dd></dl>
