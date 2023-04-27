@@ -2,6 +2,7 @@
 
 import numbers
 import pathlib
+from inspect import signature
 
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
@@ -1198,7 +1199,7 @@ class Image(skrt.core.Archive):
 
         return (x_array, y_array, z_array)
 
-    def get_foreground_box_mask(self, dx=0, dy=0, threshold=-200):
+    def get_foreground_box_mask(self, dx=0, dy=0, threshold=-150):
         '''
         Slice by slice, create rectangular mask enclosing foreground mask.
 
@@ -1218,7 +1219,7 @@ class Image(skrt.core.Archive):
 
         return foreground_box_mask
 
-    def get_foreground_bbox(self, threshold=None, convex_hull=False,
+    def get_foreground_bbox(self, threshold=-150, convex_hull=False,
             fill_holes=True, dxy=0):
         """
         Obtain bounding box of image foreground.
@@ -1234,7 +1235,7 @@ class Image(skrt.core.Archive):
             self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy)))
 
     def get_foreground_bbox_centre_and_widths(self,
-            threshold=None, convex_hull=False, fill_holes=True, dxy=0):
+            threshold=-150, convex_hull=False, fill_holes=True, dxy=0):
         """
         Get centre and widths in mm along all three axes of a
         bounding box enclosing the image foreground.  Centre
@@ -1249,7 +1250,72 @@ class Image(skrt.core.Archive):
         widths = [(extent[1] - extent[0]) for extent in extents]
         return (centre, widths)
 
-    def get_foreground_roi(self, threshold=None, convex_hull=False,
+    def get_foreground_comparison(
+            self, other, name1=None, name2=None,
+            threshold=-150, convex_hull=False, fill_holes=True, dxy=0,
+            voxel_size=None, **kwargs):
+        """
+        Return a pandas DataFrame comparing the foregrounds of
+        this image and another.
+
+        ROIs obtaining the image foregrounds are obtained, then
+        these are compared using skrt.structures.ROI.get_comparison().
+
+        **Parameters:**
+
+        other: skrt.image.Image
+            Image with which this image is to be compared.
+
+        name1: str, default=None
+            Name to be assigned to the ROI representing the foreground
+            of this image.  If null, the name used is the image title,
+            of if this is null then f"{skrt.core.Defaults().foreground_name}_1"
+            is used.
+
+        name2: str, default=None
+            Name to be assigned to the ROI representing the foreground
+            of this image.  If null, the name used is the image title,
+            of if this is null then f"{skrt.core.Defaults().foreground_name}_2"
+            is used.
+
+        threshold : int/float, default=None
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If True, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=False
+            If True, fill holes in the slice foreground masks initially
+            obtained.
+
+        dxy : int, default=0
+            Margin, in pixel units, to be added to each slice foreground mask.
+
+        voxel_size : tuple, default=None
+            Voxel size (dx, dy, dz) in mm passed to
+            skrt.structures.ROI.get_comparison().  The default there
+            (1, 1, 1) is different from the default set here (None).
+
+        kwargs: dict
+            Keyword arguments, in addition to voxel_size, passed to
+            skrt.structures.ROI.get_comparison().
+        """
+        name1 = (name1 or self.title
+                 or f"{skrt.core.Defaults().foreground_name}_1")
+        name2 = (name2 or self.title
+                 or f"{skrt.core.Defaults().foreground_name}_2")
+        roi1 = self.get_foreground_roi(
+                threshold=threshold, convex_hull=convex_hull,
+                fill_holes=fill_holes, dxy=dxy, name=name1)
+        roi2 = other.get_foreground_roi(
+                threshold=threshold, convex_hull=convex_hull,
+                fill_holes=fill_holes, dxy=dxy, name=name2)
+
+        return roi1.get_comparison(roi2, voxel_size=voxel_size, **kwargs)
+
+    def get_foreground_roi(self, threshold=-150, convex_hull=False,
             fill_holes=True, dxy=0, **kwargs):
         '''
         Create ROI represening image foreground.
@@ -1285,7 +1351,7 @@ class Image(skrt.core.Archive):
         return ROI(self.get_foreground_mask(
             threshold, convex_hull, fill_holes, dxy), **kwargs)
 
-    def get_foreground_mask(self, threshold=None, convex_hull=False,
+    def get_foreground_mask(self, threshold=-150, convex_hull=False,
             fill_holes=True, dxy=0):
         '''
         Create foreground mask.
@@ -1328,7 +1394,7 @@ class Image(skrt.core.Archive):
 
         return out_image
 
-    def get_slice_foreground(self, idx=0, threshold=None,
+    def get_slice_foreground(self, idx=0, threshold=-150,
             convex_hull=False, fill_holes=False, dxy=0):
         '''
         Create foreground mask for image slice.
@@ -1413,7 +1479,7 @@ class Image(skrt.core.Archive):
 
         return label_array2
 
-    def select_foreground(self, threshold=None, convex_hull=False,
+    def select_foreground(self, threshold=-150, convex_hull=False,
             fill_holes=True, dxy=0, background=None):
         '''
         Modify image to show intensity information only for foreground.
