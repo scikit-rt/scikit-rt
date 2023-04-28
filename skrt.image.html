@@ -641,6 +641,70 @@ to be considered in the centroid calculation.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_comparison">
+<span class="sig-name descname"><span class="pre">get_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_as_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nice_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimal_places</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_comparison" title="Permalink to this definition"></a></dt>
+<dd><p>Return a pandas DataFrame comparing this image with another.</p>
+<p>If this image doesn’t have the same shape and geometry as
+the other image, comparison metrics are evaluated for a clone
+of this image, resized to match the other.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>other<span class="classifier">skrt.image.Image</span></dt><dd><p>Other image, with which to compare this image.</p>
+</dd>
+<dt>metrics<span class="classifier">list, default=None</span></dt><dd><p>List of metrics to evaluate.  Available metrics:</p>
+<p>Calculated in Image.get_mutual_information():</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“mutual_information”;</p></li>
+<li><p>“normalised_mutual_information”;</p></li>
+<li><p>“information_quality_ratio”;</p></li>
+<li><p>“rajski_distance”.</p></li>
+</ul>
+</div></blockquote>
+<p>Calculated in Image.get_quality():</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“relative_structural_content”;</p></li>
+<li><p>“fidelity”;</p></li>
+<li><p>“correlation_quality”.</p></li>
+</ul>
+</div></blockquote>
+<p>If None, defaults to [“mutual_information”]</p>
+</dd>
+<dt>name<span class="classifier">str, default=None</span></dt><dd><p>Name identifying comparison.  If null, the name is
+constructed from the titles of the two images compared,
+as “title1_vs_title2”.</p>
+</dd>
+<dt>name_as_index<span class="classifier">bool, default=True</span></dt><dd><p>If True, the index column of the pandas DataFrame will 
+contain the name of this comparison; otherwise, the name will
+appear in a column labelled “images”.</p>
+</dd>
+<dt>nice_columns<span class="classifier">bool, default=False</span></dt><dd><p>If False, column labels will be the same as the input metric names;
+if True, the names will be capitalized and underscores will be 
+replaced with spaces.</p>
+</dd>
+<dt>decimal_places<span class="classifier">int, default=None</span></dt><dd><p>Number of decimal places to keep for each metric. If None, full
+precision will be used.</p>
+</dd>
+<dt>base<span class="classifier">int/None, default=2</span></dt><dd><p>Base to use when taking logarithms, in calculations of
+mutual information and variants.  If None, use base e.</p>
+</dd>
+<dt>bins<span class="classifier">int/list, default=50</span></dt><dd><p>Numbers of bins to use when histogramming grey-level joint
+probabilities for self and other, in calculations of
+mutual information and variants.  This is passed as
+the bins parameter of numpy.histogram2d:
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html">https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html</a></p>
+</dd>
+<dt>xyrange<span class="classifier">list, default=None</span></dt><dd><p>Upper and lower of each axis when histogramming grey-level
+joint probabilities for self and image, in calculations of
+mutual informatio and variants.  This is passed as
+the range parameter of numpy.histogram2d:
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html">https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_coordinate_arrays">
 <span class="sig-name descname"><span class="pre">get_coordinate_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_coordinate_arrays" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain (x, y, z) arrays of coordinates of voxel centres.</p>
@@ -797,7 +861,7 @@ regions for determination of foreground.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_comparison">
-<span class="sig-name descname"><span class="pre">get_foreground_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_comparison" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_foreground_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_comparison" title="Permalink to this definition"></a></dt>
 <dd><p>Return a pandas DataFrame comparing the foregrounds of
 this image and another.</p>
 <p>ROIs obtaining the image foregrounds are obtained, then
@@ -806,15 +870,10 @@ these are compared using skrt.structures.ROI.get_comparison().</p>
 <dl class="simple">
 <dt>other: skrt.image.Image</dt><dd><p>Image with which this image is to be compared.</p>
 </dd>
-<dt>name1: str, default=None</dt><dd><p>Name to be assigned to the ROI representing the foreground
-of this image.  If null, the name used is the image title,
-of if this is null then f”{skrt.core.Defaults().foreground_name}_1”
-is used.</p>
-</dd>
-<dt>name2: str, default=None</dt><dd><p>Name to be assigned to the ROI representing the foreground
-of this image.  If null, the name used is the image title,
-of if this is null then f”{skrt.core.Defaults().foreground_name}_2”
-is used.</p>
+<dt>name: str, default=None</dt><dd><p>Name to be assigned to the ROI representing the foreground
+of this image, and by default used as row index in DataFrame.
+If null, the name used is the image title, or if this is null
+then f”{skrt.core.Defaults().foreground_name}_1” is used.</p>
 </dd>
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
 regions for determination of foreground.</p>
@@ -1026,7 +1085,7 @@ mm; needed to compute correct aspect ratio and plot extent.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_mutual_information">
-<span class="sig-name descname"><span class="pre">get_mutual_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_mutual_information" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_mutual_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mutual_information'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_mutual_information" title="Permalink to this definition"></a></dt>
 <dd><p>For this and another image, calculate mutual information or a variant.</p>
 <p>The two images considered must have the same shape.</p>
 <p><strong>Parameters:</strong></p>
@@ -1047,6 +1106,9 @@ the range parameter of numpy.histogram2d:
 </dd>
 <dt>variant<span class="classifier">str, default=None</span></dt><dd><p>Variant of mutual information to be returned.</p>
 <ul class="simple">
+<li><p>“mi”, “mutual_information”:
+return mutual information, as introduced in:
+<a class="reference external" href="https://doi.org/10.1002/j.1538-7305.1948.tb01338.x">https://doi.org/10.1002/j.1538-7305.1948.tb01338.x</a></p></li>
 <li><p>“nmi”, “normalised_mutual_information”:
 return normalised mutual information (range 1 to 2) as defined in:
 <a class="reference external" href="https://doi.org/10.1117/12.310835">https://doi.org/10.1117/12.310835</a></p></li>
@@ -1058,7 +1120,7 @@ return information quality ratio (range 0 to 1) as defined in:
 return Rajski distance (range 1 to 0) as defined in:
 <a class="reference external" href="https://doi.org/10.1016/S0019-9958(61)80055-7">https://doi.org/10.1016/S0019-9958(61)80055-7</a>
 =&gt; rajski_distance = 2 - normalised_mutual_information</p></li>
-<li><p>Any other value, return mutual information.</p></li>
+<li><p>Any other value, return None</p></li>
 </ul>
 </dd>
 </dl>
@@ -2901,6 +2963,15 @@ a combination of these inputs.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_image_comparison_metrics">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_image_comparison_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_image_comparison_metrics" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of image-comparison metrics.</p>
+<p>This returns the combined list of metrics based on mutual information
+(returned by get_mi_metrics()) and quality metrics
+(returned by get_quality_metrics()).</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.get_mask">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_to_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Return mask as Image object, with boolean data, resizing if required.</p>
@@ -2935,6 +3006,23 @@ with values in mm.</p>
 to be obtained.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_mi_metrics">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_mi_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_mi_metrics" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of metrics based on mutual information.</p>
+<p>All metrics listed here should be recognised by
+Image.get_mutual_information(), and all metrics recognised by
+Image.get_mutual_information() should be listed here.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.get_quality_metrics">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_quality_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_quality_metrics" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of metrics measuring quality of one metric relative to another.</p>
+<p>All metrics listed here should be recognised by Image.get_quality(),
+and all metrics recognised by Image.get_quality() should be listed here.</p>
 </dd></dl>
 
 <dl class="py function">
