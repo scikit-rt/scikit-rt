@@ -7,17 +7,20 @@ import os
 import random
 import pytest
 import numpy as np
+import pandas as pd
 import shutil
 import pydicom
 
 from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
-from skrt.core import File, fullpath
+from skrt.core import Defaults, File, fullpath
 from skrt.image import (Image, checked_crop_limits, get_alignment_translation,
-                        get_geometry, get_mask_bbox, get_translation_to_align,
+                        get_geometry, get_image_comparison_metrics,
+                        get_mask_bbox, get_translation_to_align,
                         match_images, match_image_voxel_sizes, rescale_images)
 from skrt.simulation import SyntheticImage
+from skrt.structures import ROI
 
 try:
     import mahotas
@@ -885,12 +888,11 @@ def test_create_foreground_mask():
     for intensity in [50, 60]:
         threshold = intensity - 5
         mask1 = sim.get_foreground_mask(threshold=threshold).get_data()
-        mask1 = mask1.astype(np.uint32)
-        mask1[mask1 > 0] =1
+        assert mask1.dtype == bool
 
         nx, ny, nz = sim.get_n_voxels()
         mask2 = np.zeros((ny, nx, nz), dtype=np.uint32)
-        mask2[sim.get_data() == intensity] = 1
+        mask2[sim.get_data() == intensity] = True
 
         assert mask1.shape == mask2.shape
         assert mask1.min() == 0
@@ -899,6 +901,41 @@ def test_create_foreground_mask():
         assert mask1.max() == mask2.max()
         assert mask1.sum() == mask2.sum()
     assert np.all(mask1 == mask2)
+
+@needs_mahotas
+def test_get_foreground_roi():
+    """Test creation of ROI representing image foreground."""
+    # Create synthetic image, featuring cube and sphere.
+    sim = SyntheticImage((100, 100, 40))
+    cube_length = 5
+    sphere_radius = 10
+
+    shapes = {
+            "cube": [cube_length, (25, 60, 12), 60, cube_length**3],
+            "sphere": [sphere_radius, (80, 20, 12), 50,
+                       (4. / 3.) * math.pi * sphere_radius**3],
+            }
+
+    for name, values in shapes.items():
+        length, centre, intensity, volume = values
+        if "cube" == name:
+            sim.add_cube(length, centre, intensity, name=name)
+        elif "sphere" == name:
+            sim.add_sphere(length, centre, intensity, name=name)
+
+    # Should detect sphere as foreground in first loop and cube in second.
+    for name, values in shapes.items():
+        length, centre, intensity, volume = values
+        threshold = intensity - 5
+        roi = sim.get_foreground_roi(threshold=threshold, name=name)
+        assert isinstance(roi, ROI)
+        assert roi.name == name
+        assert roi.get_volume() == pytest.approx(volume, rel=0.005)
+        assert tuple(roi.get_centre()) == centre
+
+    # For case where no name is specified, check that default is assigned.
+    roi = sim.get_foreground_roi(threshold=threshold)
+    assert roi.name == Defaults().foreground_name
 
 @needs_mahotas
 def test_mask_bbox():
@@ -1548,38 +1585,83 @@ def test_get_relative_structural_content():
     # For image compared with itself,
     # check that relative structural content is 1.
     im1 = create_test_image(shape, voxel_size, origin)
-    for v_min, v_max in [(None, None), (0, 1)]:
-        assert im1.get_relative_structural_content(im1, v_min, v_max) == 1
+    assert im1.get_relative_structural_content(im1) == 1
 
-    # For image of zeros (after rescaling), compared with another image,
+    # For image of zeros, compared with another image,
     # check that relative structural content is 0.
-    im2 = im1.clone()
-    im2.data.fill(5)
-    assert im2.get_relative_structural_content(
-            im1, v_min=0, v_max=1, constant=0) == 0
+    im2 = create_test_image(shape, voxel_size, origin, "zeros")
+    assert im2.get_relative_structural_content(im1) == 0
 
 def test_get_fidelity():
     """Test calculation of fidelity."""
     # For image compared with itself, check that fidelity is 1.
     im1 = create_test_image(shape, voxel_size, origin)
-    for v_min, v_max in [(None, None), (0, 1)]:
-        assert im1.get_fidelity(im1, v_min, v_max) == 1
+    assert im1.get_fidelity(im1) == 1
 
-    # For image of zeros (after rescaling), compared with another image,
+    # For image of zeros, compared with another image,
     # check that fidelity is 0.
-    im2 = im1.clone()
-    im2.data.fill(5)
-    assert im2.get_fidelity(im1, v_min=0, v_max=1, constant=0) == 0
+    im2 = create_test_image(shape, voxel_size, origin, "zeros")
+    assert im2.get_fidelity(im1) == 0
 
 def test_get_correlation_quality():
     """Test calculation of correlation quality."""
     # For image compared with itself, check that correlation_quality is 1.
     im1 = create_test_image(shape, voxel_size, origin)
-    for v_min, v_max in [(None, None), (0, 1)]:
-        assert im1.get_correlation_quality(im1, v_min, v_max) == 1
+    assert im1.get_correlation_quality(im1) == 1
 
-    # For image of zeros (after rescaling), compared with another image,
+    # For image of zeros, compared with another image,
     # check that correlation quality is 0.
-    im2 = im1.clone()
-    im2.data.fill(5)
-    assert im2.get_correlation_quality(im1, v_min=0, v_max=1, constant=0) == 0
+    im2 = create_test_image(shape, voxel_size, origin, "zeros")
+    assert im2.get_correlation_quality(im1) == 0
+
+def test_get_quality():
+    """Test quality of image with respect to another image."""
+    # Create test images, and perform comparison.
+    im1 = create_test_image(shape, voxel_size, origin)
+    im2 = create_test_image(shape, voxel_size, origin)
+
+    metrics = {
+            "relative_structural_content" : 1,
+            "fidelity" : 0.5,
+            "correlation_quality" : 0.75
+            }
+
+    # Check that only None values returned for null or invalid metrics.
+    for metric in [[], "", "unknown_metric"]:
+        scores = im1.get_quality(im2, metric)
+        assert isinstance(scores, dict)
+        assert len(scores) == len(metrics)
+        assert all([score is None for score in scores.values()])
+
+    # Check that scores are as expected for images with random intensity values.
+    scores = im1.get_quality(im2, list(metrics))
+    assert isinstance(scores, dict)
+    assert len(scores) == len(metrics)
+    for metric, score in metrics.items():
+        assert scores[metric] == pytest.approx(score, abs=0.02)
+
+def test_get_image_comparison_metrics():
+    """Check that get_image_comparison_metrics() returns a list of strings."""
+    metrics = get_image_comparison_metrics()
+    assert isinstance(metrics, list)
+    for metric in metrics:
+        assert isinstance(metric, str)
+
+def test_get_comparison():
+    """Test evaluation of image-comparison metrics."""
+    # Create test images, and perform comparison.
+    im1 = create_test_image(shape, voxel_size, origin)
+    im2 = create_test_image(shape, voxel_size, origin)
+    metrics = get_image_comparison_metrics()
+    comparison = im1.get_comparison(im2, metrics=metrics)
+
+    # Check that resulting DataFrame is as expected.
+    assert isinstance(comparison, pd.DataFrame)
+    assert comparison.shape[0] == 1
+    assert comparison.shape[1] == len(metrics)
+    assert list(comparison.columns) == metrics
+
+    # Check that exception is raised for unknown metric.
+    with pytest.raises(RuntimeError) as error_info:
+        comparison = im1.get_comparison(im2, metrics=["unknown_metric"])
+    assert "Metric unknown_metric not recognised" in str(error_info.value)

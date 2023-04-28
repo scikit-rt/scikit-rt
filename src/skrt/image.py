@@ -2,6 +2,7 @@
 
 import numbers
 import pathlib
+from inspect import signature
 
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from pydicom.dataset import FileDataset, FileMetaDataset
@@ -20,6 +21,7 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import nibabel
 import numpy as np
+import pandas as pd
 import os
 import shutil
 import pydicom
@@ -53,6 +55,8 @@ mpl.rcParams["figure.figsize"] = (7.4, 4.8)
 mpl.rcParams["font.serif"] = "Times New Roman"
 mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
+
+skrt.core.Defaults().foreground_name = "foreground"
 
 class Image(skrt.core.Archive):
     """
@@ -1196,9 +1200,9 @@ class Image(skrt.core.Archive):
 
         return (x_array, y_array, z_array)
 
-    def get_foreground_box_mask(self, dx=0, dy=0, threshold=-200):
+    def get_foreground_box_mask(self, dx=0, dy=0, threshold=-150):
         '''
-        Slice by slice, create rectangular mask encolosing foreground mask.
+        Slice by slice, create rectangular mask enclosing foreground mask.
 
         dx : int, default=0
             Margin along columns to be added on each side of mask bounding box.
@@ -1216,7 +1220,7 @@ class Image(skrt.core.Archive):
 
         return foreground_box_mask
 
-    def get_foreground_bbox(self, threshold=None, convex_hull=False,
+    def get_foreground_bbox(self, threshold=-150, convex_hull=False,
             fill_holes=True, dxy=0):
         """
         Obtain bounding box of image foreground.
@@ -1232,7 +1236,7 @@ class Image(skrt.core.Archive):
             self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy)))
 
     def get_foreground_bbox_centre_and_widths(self,
-            threshold=None, convex_hull=False, fill_holes=True, dxy=0):
+            threshold=-150, convex_hull=False, fill_holes=True, dxy=0):
         """
         Get centre and widths in mm along all three axes of a
         bounding box enclosing the image foreground.  Centre
@@ -1247,7 +1251,99 @@ class Image(skrt.core.Archive):
         widths = [(extent[1] - extent[0]) for extent in extents]
         return (centre, widths)
 
-    def get_foreground_mask(self, threshold=None, convex_hull=False,
+    def get_foreground_comparison(
+            self, other, name=None, threshold=-150, convex_hull=False,
+            fill_holes=True, dxy=0, voxel_size=None, **kwargs):
+        """
+        Return a pandas DataFrame comparing the foregrounds of
+        this image and another.
+
+        ROIs obtaining the image foregrounds are obtained, then
+        these are compared using skrt.structures.ROI.get_comparison().
+
+        **Parameters:**
+
+        other: skrt.image.Image
+            Image with which this image is to be compared.
+
+        name: str, default=None
+            Name to be assigned to the ROI representing the foreground
+            of this image, and by default used as row index in DataFrame.
+            If null, the name used is the image title, or if this is null
+            then f"{skrt.core.Defaults().foreground_name}_1" is used.
+
+        threshold : int/float, default=None
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If True, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=False
+            If True, fill holes in the slice foreground masks initially
+            obtained.
+
+        dxy : int, default=0
+            Margin, in pixel units, to be added to each slice foreground mask.
+
+        voxel_size : tuple, default=None
+            Voxel size (dx, dy, dz) in mm passed to
+            skrt.structures.ROI.get_comparison().  The default there
+            (1, 1, 1) is different from the default set here (None).
+
+        kwargs: dict
+            Keyword arguments, in addition to voxel_size, passed to
+            skrt.structures.ROI.get_comparison().
+        """
+        name = (name or self.title
+                or f"{skrt.core.Defaults().foreground_name}_1")
+        roi1 = self.get_foreground_roi(
+                threshold=threshold, convex_hull=convex_hull,
+                fill_holes=fill_holes, dxy=dxy, name=name)
+        roi2 = other.get_foreground_roi(
+                threshold=threshold, convex_hull=convex_hull,
+                fill_holes=fill_holes, dxy=dxy)
+
+        return roi1.get_comparison(roi2, voxel_size=voxel_size, **kwargs)
+
+    def get_foreground_roi(self, threshold=-150, convex_hull=False,
+            fill_holes=True, dxy=0, **kwargs):
+        '''
+        Create ROI represening image foreground.
+
+        Slice by slice, the foreground is taken to correspond to the
+        largest region of contiguous pixels above a threshold value.
+        A binary mask representing the foreground is created, and
+        is used as source for creating an ROI.
+
+        **Parameters:**
+
+        threshold : int/float, default=None
+            Intensity value above which pixels in a slice are assigned to
+            regions for determination of foreground.
+    
+        convex_hull : bool, default=False
+            If True, create mask from the convex hulls of the
+            slice foreground masks initially obtained.
+
+        fill_holes : bool, default=False
+            If True, fill holes in the slice foreground masks initially
+            obtained.
+
+        dxy : int, default=0
+            Margin, in pixel units, to be added to each slice foreground mask.
+
+        **kwargs
+            Keyword arguments passed to ROI constructor.
+        '''
+        from skrt.structures import ROI
+        if not "name" in kwargs:
+            kwargs["name"] = skrt.core.Defaults().foreground_name
+        return ROI(self.get_foreground_mask(
+            threshold, convex_hull, fill_holes, dxy), **kwargs)
+
+    def get_foreground_mask(self, threshold=-150, convex_hull=False,
             fill_holes=True, dxy=0):
         '''
         Create foreground mask.
@@ -1290,7 +1386,7 @@ class Image(skrt.core.Archive):
 
         return out_image
 
-    def get_slice_foreground(self, idx=0, threshold=None,
+    def get_slice_foreground(self, idx=0, threshold=-150,
             convex_hull=False, fill_holes=False, dxy=0):
         '''
         Create foreground mask for image slice.
@@ -1369,13 +1465,13 @@ class Image(skrt.core.Archive):
         # Handle the cases where all intensities are the same.
         else:
             if test_slice.max() > rescaled_threshold:
-                label_array2 = np.ones(image_slice.shape)
+                label_array2 = np.ones(image_slice.shape, dtype=bool)
             else:
-                label_array2 = np.zeros(image_slice.shape)
+                label_array2 = np.zeros(image_slice.shape, dtype=bool)
 
         return label_array2
 
-    def select_foreground(self, threshold=None, convex_hull=False,
+    def select_foreground(self, threshold=-150, convex_hull=False,
             fill_holes=True, dxy=0, background=None):
         '''
         Modify image to show intensity information only for foreground.
@@ -3867,8 +3963,8 @@ class Image(skrt.core.Archive):
             i_big, i_small = i2, i1
             if i1 > i2:
                 i_big, i_small = i_small, i_big
-            i_small = int(np.floor(i_small + 0.5))
-            i_big = int(np.floor(i_big + 0.5))
+            i_small = int(np.floor(round(i_small, 6) + 0.5))
+            i_big = int(np.floor(round(i_big, 6) + 0.5))
 
             # Ensure indices are within image range
             if i_small < 0:
@@ -4311,8 +4407,135 @@ class Image(skrt.core.Archive):
 
         return masked_image
 
+    def get_comparison(
+            self, other, metrics=None, name=None, name_as_index=True,
+            nice_columns=False, decimal_places=None,
+            base=2, bins=100, xyrange=None):
+        """
+        Return a pandas DataFrame comparing this image with another.
+
+        If this image doesn't have the same shape and geometry as
+        the other image, comparison metrics are evaluated for a clone
+        of this image, resized to match the other.
+
+        **Parameters:**
+        
+        other : skrt.image.Image
+            Other image, with which to compare this image.
+
+        metrics : list, default=None
+            List of metrics to evaluate.  Available metrics:
+                
+            Calculated in Image.get_mutual_information():
+
+                * "mutual_information";
+                * "normalised_mutual_information";
+                * "information_quality_ratio";
+                * "rajski_distance".
+
+            Calculated in Image.get_quality():
+
+                * "relative_structural_content";
+                * "fidelity";
+                * "correlation_quality".
+
+            If None, defaults to ["mutual_information"]
+
+        name : str, default=None
+            Name identifying comparison.  If null, the name is
+            constructed from the titles of the two images compared,
+            as "title1_vs_title2".
+
+        name_as_index : bool, default=True
+            If True, the index column of the pandas DataFrame will 
+            contain the name of this comparison; otherwise, the name will
+            appear in a column labelled "images".
+
+        nice_columns : bool, default=False
+            If False, column labels will be the same as the input metric names;
+            if True, the names will be capitalized and underscores will be 
+            replaced with spaces.
+
+        decimal_places : int, default=None
+            Number of decimal places to keep for each metric. If None, full
+            precision will be used.
+
+        base : int/None, default=2
+            Base to use when taking logarithms, in calculations of
+            mutual information and variants.  If None, use base e.
+
+        bins : int/list, default=50
+            Numbers of bins to use when histogramming grey-level joint
+            probabilities for self and other, in calculations of
+            mutual information and variants.  This is passed as
+            the bins parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+
+        xyrange : list, default=None
+            Upper and lower of each axis when histogramming grey-level
+            joint probabilities for self and image, in calculations of
+            mutual informatio and variants.  This is passed as
+            the range parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+        """
+        # Ensure that images for comparison have the same geometry.
+        if self.has_same_geometry(other):
+            im1 = self
+        else:
+            im1 = self.clone()
+            im1.match_size(other)
+        im2 = other
+
+        # Ensure that comparison name is defined.
+        if not name:
+            title1 = im1.title or "image"
+            title2 = im2.title or "other"
+            name = f"{title1}_vs_{title2}"
+
+        # Set default metric.
+        metrics = metrics or ["mutual_information"]
+
+        # Check that specified metrics are recognised,
+        # and identify quality metrics.
+        quality_metrics = []
+        for metric in metrics:
+            if metric not in get_image_comparison_metrics():
+                raise RuntimeError(f"Metric {metric} not recognised by "
+                                   "Image.get_comparison()")
+            if metric in get_quality_metrics():
+                quality_metrics.append(metric)
+
+        # Compute metric scores.
+        quality_scores = im1.get_quality(im2, quality_metrics)
+        scores = {}
+        for metric in metrics:
+            # Store scores for quality metrics.
+            if metric in get_quality_metrics():
+                scores[metric] = quality_scores[metric]
+            # Store scores for mutual information and variants.
+            else:
+                scores[metric] = im1.get_mutual_information(
+                        im2, base=base, bins=bins, xyrange=xyrange,
+                        variant=metric)
+            if decimal_places is not None:
+                scores[metric] = round(scores[metric], decimal_places)
+
+        # Convert to pandas DataFrame.
+        df = pd.DataFrame(scores, index=[name])
+
+        # Turn name into a regular column if requested
+        if not name_as_index:
+            df = df.reset_index().rename({"index": "images"}, axis=1)
+
+        # Capitalize column names and remove underscores if requested.
+        if nice_columns:
+            df.columns = [col.capitalize().replace("_", " ")
+                          if len(col) > 3 else col.upper()
+                          for col in df.columns]
+        return df
+
     def get_mutual_information(self, image, base=2, bins=100, xyrange=None,
-                               variant=None):
+                               variant="mutual_information"):
         """
         For this and another image, calculate mutual information or a variant.
 
@@ -4341,6 +4564,10 @@ class Image(skrt.core.Archive):
         variant : str, default=None
             Variant of mutual information to be returned.
 
+            - "mi", "mutual_information":
+              return mutual information, as introduced in:
+              https://doi.org/10.1002/j.1538-7305.1948.tb01338.x
+
             - "nmi", "normalised_mutual_information":
               return normalised mutual information (range 1 to 2) as defined in:
               https://doi.org/10.1117/12.310835
@@ -4355,8 +4582,12 @@ class Image(skrt.core.Archive):
               https://doi.org/10.1016/S0019-9958(61)80055-7
               => rajski_distance = 2 - normalised_mutual_information
 
-            - Any other value, return mutual information.
+            - Any other value, return None
         """
+        # Check that requested variant is recognised.
+        if not variant in get_mi_metrics():
+            return
+
         # Check base for taking logarithms.
         if base is None:
             base = math.e
@@ -4382,6 +4613,8 @@ class Image(skrt.core.Archive):
 
         mi = hx + hy - hxy
         # Return mutual information or a variant.
+        if variant in ["mi", "mutual_information"]:
+            return mi
         if variant in ["nmi", "normalised_mutual_information"]:
             return 1 + mi / (hxy or small_number)
         elif variant in ["iqr", "information_quality_ratio"]:
@@ -4389,124 +4622,124 @@ class Image(skrt.core.Archive):
         if variant in ["rajski", "rajski_distance"]:
             return 1 - mi / (hxy or small_number)
 
-        return mi
-
-    def get_relative_structural_content(
-            self, image, v_min=None, v_max=None, constant=None):
+    def get_quality(self, image, metrics=None):
         """
-        Quantify structural content of this image relative to another.
+        Evaluate quality of this image relative to another.
 
-        The calculation of relative structural content is based on
-        the definition of:
+        The metrics considered are:
+
+        - relative structural content;
+        - fidelity;
+        - correlation quality.
+
+        These are defined in:
 
         - https://doi.org/10.1364/JOSA.46.000740
         - https://doi.org/10.1080/713826248
 
-        The result should be from 0 (no agreement) to 1 (perfect agreement).
+        The three metrics should each have a value between 0 and 1,
+        and are related by:
 
-        The parameters v_min, v_max, constant allow for linear rescaling
-        of image greyscale values prior to calculation of relative
-        structural content.  Any rescaling is performed on clones of
-        the images to be compared, with the originals left unaltered.
+        correlation quality = 0.5 * (relative structural content + fidelity).
+
+        Quality scores are returned in a dictionary, with a key corresponding
+        to each metric: "relative_structural_content", "fidelity",
+        "correlation_quality".  If a metric isn't evaluated, the value
+        returned for it is None.
 
         **Parameters:**
 
         image : skrt.image.Image
-            Image with respect to which relative structural content
-            is to be calculated.
+            Image with respect to which quality metrics are to be calculated.
 
-        v_min: float, default=None
-            Minimum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        v_max: float, default=None
-            Maximum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        constant: float, default=None
-            Greyscale value to assign after rescaling if all values
-            in the original image are the same.  If None,
-            original value is kept.
+        metrics: list, default=None
+            List of strings specifying quality metrics to be evaluated.
+            If None, all defined quality metrics are evaluated.
         """
-        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
-        return ((im1.get_data()**2).sum() / (im2.get_data()**2).sum())
+        # Define metrics to be evaluated.
+        all_metrics = ["relative_structural_content",
+                       "fidelity", "correlation_quality"]
+        if metrics is None:
+            metrics = all_metrics
+        else:
+            if not skrt.core.is_list(metrics):
+                metrics = [metrics]
+            metrics = [metric for metric in metrics if metric in all_metrics]
 
-    def get_fidelity(self, image, v_min=None, v_max=None, constant=None):
+        # Initialise dictionary of metric values.
+        quality = {metric: None for metric in all_metrics}
+
+        if metrics:
+            # Recale intensity values, so that the minimum is 0.
+            v_min = min(self.get_min(), image.get_min())
+            data1 = self.get_data() - v_min
+            data2 = image.get_data() - v_min
+
+            # If intensity values have non-zero sum, normalise to 1.
+            if data1.sum():
+                data1 = data1 / data1.sum()
+            if data2.sum():
+                data2 = data2 / data2.sum()
+
+            # Evaluate quality metrics.
+            denominator = (data2**2).sum()
+            metric = "relative_structural_content"
+            if metric in metrics:
+                quality[metric] = (data1**2).sum() / denominator
+            metric = "fidelity"
+            if metric in metrics:
+                quality[metric] = (
+                        1 - (((data2 - data1)**2).sum() / denominator))
+            metric = "correlation_quality"
+            if metric in metrics:
+                quality[metric] = (data2 * data1).sum() / denominator
+
+        return quality
+
+    def get_relative_structural_content(self, image):
+        """
+        Calculate structural content of this image relative to another.
+
+        Uses method get_quality().
+
+        **Parameter:**
+
+        image : skrt.image.Image
+            Image with respect to which relative structural content is
+            to be evaluated
+        """
+        metric = "relative_structural_content"
+        return self.get_quality(image, metrics=[metric])[metric]
+
+    def get_fidelity(self, image):
         """
         Calculate fidelity with which this image matches another.
 
-        The calculation of fidelity is based on the definition of:
+        Uses method get_quality().
 
-        - https://doi.org/10.1364/JOSA.46.000740
-        - https://doi.org/10.1080/713826248
-
-        The result should be from 0 (no agreement) to 1 (perfect agreement).
-
-        The parameters v_min, v_max, constant allow for linear rescaling
-        of image greyscale values prior to calculation of fidelity.  Any
-        rescaling is performed on clones of the images to be compared,
-        with the originals left unaltered.
-
-        **Parameters:**
+        **Parameter:**
 
         image : skrt.image.Image
             Image with respect to which fidelity is to be calculated.
-
-        v_min: float, default=None
-            Minimum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        v_max: float, default=None
-            Maximum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        constant: float, default=None
-            Greyscale value to assign after rescaling if all values
-            in the original image are the same.  If None,
-            original value is kept.
+            to be evaluated
         """
-        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
-        return (1 - (((im2.get_data() - im1.get_data())**2).sum()
-                / (im2.get_data()**2).sum()))
+        metric = "fidelity"
+        return self.get_quality(image, metrics=[metric])[metric]
 
-    def get_correlation_quality(
-            self, image, v_min=None, v_max=None, constant=None):
+    def get_correlation_quality(self, image):
         """
         Calculate quality of correlation between this image and another.
 
-        The calculation of correlation quality is based on the definition of:
+        Uses method get_quality().
 
-        - https://doi.org/10.1364/JOSA.46.000740
-        - https://doi.org/10.1080/713826248
-
-        The result should be from 0 (no agreement) to 1 (perfect agreement).
-
-        The parameters v_min, v_max, constant allow for linear rescaling
-        of image greyscale values prior to calculation of correlation
-        quality.  Any rescaling is performed on clones of the images
-        to be compared, with the originals left unaltered.
-
-        **Parameters:**
+        **Parameter:**
 
         image : skrt.image.Image
             Image with respect to which correlation quality is to be calculated.
-
-        v_min: float, default=None
-            Minimum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        v_max: float, default=None
-            Maximum greyscale value after rescaling.  If None,
-            no rescaling is performed.
-
-        constant: float, default=None
-            Greyscale value to assign after rescaling if all values
-            in the original image are the same.  If None,
-            original value is kept.
+            to be evaluated
         """
-        im1, im2 = rescale_images([self, image], v_min, v_max, constant)
-        return ((im2.get_data() * im1.get_data()).sum()
-                / (im2.get_data()**2).sum())
+        metric = "correlation_quality"
+        return self.get_quality(image, metrics=[metric])[metric]
 
 
 class ImageComparison(Image):
@@ -6315,6 +6548,10 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
     im2 = im2.clone_with_structure_set(ss2, roi_names, ss2_index, ss1_name)
     ss2 = im2.structure_sets[0] if im2.structure_sets else None
 
+    if alignment is not False:
+        im1.crop_to_image(im2, alignment)
+        im2.crop_to_image(im1, alignment)
+
     # Resample images to same voxel size.
     match_image_voxel_sizes(im1, im2, voxel_size)
 
@@ -6330,6 +6567,9 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
     if alignment is not False:
         im1.crop_to_image(im2, alignment)
         im2.crop_to_image(im1, alignment)
+        if (im1.get_voxel_size() == im2.get_voxel_size()
+            and not im1.has_same_geometry(im2)):
+            im1.match_size(im1)
 
     # Perform banding of image grey levels.
     im1.apply_selective_banding(bands)
@@ -6371,9 +6611,9 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     order: int, default = 1
         Order of the b-spline used in interpolating voxel intensity values.
     """
-    # No resampling needed:V
+    # No resampling needed.
     if not voxel_size:
-        return
+        return (im1, im2)
 
     # Initialise voxel sizes for resampled images.
     vs1 = None
@@ -6579,3 +6819,45 @@ def rescale_images(images, v_min=0.0, v_max=1.0, constant=0.5, clone=True):
         image.rescale(v_min=v_min, v_max=v_max, constant=constant)
 
     return images
+
+def get_image_comparison_metrics():
+    """
+    Get list of image-comparison metrics.
+
+    This returns the combined list of metrics based on mutual information
+    (returned by get_mi_metrics()) and quality metrics
+    (returned by get_quality_metrics()).
+    """
+    return (get_mi_metrics() + get_quality_metrics())
+
+def get_mi_metrics():
+    """
+    Get list of metrics based on mutual information.
+
+    All metrics listed here should be recognised by
+    Image.get_mutual_information(), and all metrics recognised by
+    Image.get_mutual_information() should be listed here.
+    """
+    return [
+            "iqr",
+            "information_quality_ratio",
+            "mi",
+            "mutual_information",
+            "nmi",
+            "normalised_mutual_information",
+            "rajski",
+            "rajski_distance",
+            ]
+
+def get_quality_metrics():
+    """
+    Get list of metrics measuring quality of one metric relative to another.
+
+    All metrics listed here should be recognised by Image.get_quality(),
+    and all metrics recognised by Image.get_quality() should be listed here.
+    """
+    return [
+            "correlation_quality",
+            "fidelity",
+            "relative_structural_content",
+            ]
