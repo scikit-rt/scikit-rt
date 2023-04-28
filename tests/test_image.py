@@ -7,6 +7,7 @@ import os
 import random
 import pytest
 import numpy as np
+import pandas as pd
 import shutil
 import pydicom
 
@@ -15,7 +16,8 @@ from pydicom._storage_sopclass_uids import\
 
 from skrt.core import Defaults, File, fullpath
 from skrt.image import (Image, checked_crop_limits, get_alignment_translation,
-                        get_geometry, get_mask_bbox, get_translation_to_align,
+                        get_geometry, get_image_comparison_metrics,
+                        get_mask_bbox, get_translation_to_align,
                         match_images, match_image_voxel_sizes, rescale_images)
 from skrt.simulation import SyntheticImage
 from skrt.structures import ROI
@@ -1585,12 +1587,10 @@ def test_get_relative_structural_content():
     im1 = create_test_image(shape, voxel_size, origin)
     assert im1.get_relative_structural_content(im1) == 1
 
-    # For image of zeros (after rescaling), compared with another image,
+    # For image of zeros, compared with another image,
     # check that relative structural content is 0.
-    im2 = im1.clone()
-    im2.data.fill(5)
-#    assert im2.get_relative_structural_content(
-#            im1, v_min=0, v_max=1, constant=0) == 0
+    im2 = create_test_image(shape, voxel_size, origin, "zeros")
+    assert im2.get_relative_structural_content(im1) == 0
 
 def test_get_fidelity():
     """Test calculation of fidelity."""
@@ -1598,11 +1598,10 @@ def test_get_fidelity():
     im1 = create_test_image(shape, voxel_size, origin)
     assert im1.get_fidelity(im1) == 1
 
-    # For image of zeros (after rescaling), compared with another image,
+    # For image of zeros, compared with another image,
     # check that fidelity is 0.
-    im2 = im1.clone()
-    im2.data.fill(5)
-#    assert im2.get_fidelity(im1, v_min=0, v_max=1, constant=0) == 0
+    im2 = create_test_image(shape, voxel_size, origin, "zeros")
+    assert im2.get_fidelity(im1) == 0
 
 def test_get_correlation_quality():
     """Test calculation of correlation quality."""
@@ -1610,8 +1609,59 @@ def test_get_correlation_quality():
     im1 = create_test_image(shape, voxel_size, origin)
     assert im1.get_correlation_quality(im1) == 1
 
-    # For image of zeros (after rescaling), compared with another image,
+    # For image of zeros, compared with another image,
     # check that correlation quality is 0.
-    im2 = im1.clone()
-    im2.data.fill(5)
-#    assert im2.get_correlation_quality(im1, v_min=0, v_max=1, constant=0) == 0
+    im2 = create_test_image(shape, voxel_size, origin, "zeros")
+    assert im2.get_correlation_quality(im1) == 0
+
+def test_get_quality():
+    """Test quality of image with respect to another image."""
+    # Create test images, and perform comparison.
+    im1 = create_test_image(shape, voxel_size, origin)
+    im2 = create_test_image(shape, voxel_size, origin)
+
+    metrics = {
+            "relative_structural_content" : 1,
+            "fidelity" : 0.5,
+            "correlation_quality" : 0.75
+            }
+
+    # Check that only None values returned for null or invalid metrics.
+    for metric in [[], "", "unknown_metric"]:
+        scores = im1.get_quality(im2, metric)
+        assert isinstance(scores, dict)
+        assert len(scores) == len(metrics)
+        assert all([score is None for score in scores.values()])
+
+    # Check that scores are as expected for images with random intensity values.
+    scores = im1.get_quality(im2, list(metrics))
+    assert isinstance(scores, dict)
+    assert len(scores) == len(metrics)
+    for metric, score in metrics.items():
+        assert scores[metric] == pytest.approx(score, abs=0.02)
+
+def test_get_image_comparison_metrics():
+    """Check that get_image_comparison_metrics() returns a list of strings."""
+    metrics = get_image_comparison_metrics()
+    assert isinstance(metrics, list)
+    for metric in metrics:
+        assert isinstance(metric, str)
+
+def test_get_comparison():
+    """Test evaluation of image-comparison metrics."""
+    # Create test images, and perform comparison.
+    im1 = create_test_image(shape, voxel_size, origin)
+    im2 = create_test_image(shape, voxel_size, origin)
+    metrics = get_image_comparison_metrics()
+    comparison = im1.get_comparison(im2, metrics=metrics)
+
+    # Check that resulting DataFrame is as expected.
+    assert isinstance(comparison, pd.DataFrame)
+    assert comparison.shape[0] == 1
+    assert comparison.shape[1] == len(metrics)
+    assert list(comparison.columns) == metrics
+
+    # Check that exception is raised for unknown metric.
+    with pytest.raises(RuntimeError) as error_info:
+        comparison = im1.get_comparison(im2, metrics=["unknown_metric"])
+    assert "Metric unknown_metric not recognised" in str(error_info.value)

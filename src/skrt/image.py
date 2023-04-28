@@ -21,6 +21,7 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import nibabel
 import numpy as np
+import pandas as pd
 import os
 import shutil
 import pydicom
@@ -1251,9 +1252,8 @@ class Image(skrt.core.Archive):
         return (centre, widths)
 
     def get_foreground_comparison(
-            self, other, name1=None, name2=None,
-            threshold=-150, convex_hull=False, fill_holes=True, dxy=0,
-            voxel_size=None, **kwargs):
+            self, other, name=None, threshold=-150, convex_hull=False,
+            fill_holes=True, dxy=0, voxel_size=None, **kwargs):
         """
         Return a pandas DataFrame comparing the foregrounds of
         this image and another.
@@ -1266,17 +1266,11 @@ class Image(skrt.core.Archive):
         other: skrt.image.Image
             Image with which this image is to be compared.
 
-        name1: str, default=None
+        name: str, default=None
             Name to be assigned to the ROI representing the foreground
-            of this image.  If null, the name used is the image title,
-            of if this is null then f"{skrt.core.Defaults().foreground_name}_1"
-            is used.
-
-        name2: str, default=None
-            Name to be assigned to the ROI representing the foreground
-            of this image.  If null, the name used is the image title,
-            of if this is null then f"{skrt.core.Defaults().foreground_name}_2"
-            is used.
+            of this image, and by default used as row index in DataFrame.
+            If null, the name used is the image title, or if this is null
+            then f"{skrt.core.Defaults().foreground_name}_1" is used.
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
@@ -1302,16 +1296,14 @@ class Image(skrt.core.Archive):
             Keyword arguments, in addition to voxel_size, passed to
             skrt.structures.ROI.get_comparison().
         """
-        name1 = (name1 or self.title
-                 or f"{skrt.core.Defaults().foreground_name}_1")
-        name2 = (name2 or self.title
-                 or f"{skrt.core.Defaults().foreground_name}_2")
+        name = (name or self.title
+                or f"{skrt.core.Defaults().foreground_name}_1")
         roi1 = self.get_foreground_roi(
                 threshold=threshold, convex_hull=convex_hull,
-                fill_holes=fill_holes, dxy=dxy, name=name1)
+                fill_holes=fill_holes, dxy=dxy, name=name)
         roi2 = other.get_foreground_roi(
                 threshold=threshold, convex_hull=convex_hull,
-                fill_holes=fill_holes, dxy=dxy, name=name2)
+                fill_holes=fill_holes, dxy=dxy)
 
         return roi1.get_comparison(roi2, voxel_size=voxel_size, **kwargs)
 
@@ -4415,8 +4407,135 @@ class Image(skrt.core.Archive):
 
         return masked_image
 
+    def get_comparison(
+            self, other, metrics=None, name=None, name_as_index=True,
+            nice_columns=False, decimal_places=None,
+            base=2, bins=100, xyrange=None):
+        """
+        Return a pandas DataFrame comparing this image with another.
+
+        If this image doesn't have the same shape and geometry as
+        the other image, comparison metrics are evaluated for a clone
+        of this image, resized to match the other.
+
+        **Parameters:**
+        
+        other : skrt.image.Image
+            Other image, with which to compare this image.
+
+        metrics : list, default=None
+            List of metrics to evaluate.  Available metrics:
+                
+            Calculated in Image.get_mutual_information():
+
+                * "mutual_information";
+                * "normalised_mutual_information";
+                * "information_quality_ratio";
+                * "rajski_distance".
+
+            Calculated in Image.get_quality():
+
+                * "relative_structural_content";
+                * "fidelity";
+                * "correlation_quality".
+
+            If None, defaults to ["mutual_information"]
+
+        name : str, default=None
+            Name identifying comparison.  If null, the name is
+            constructed from the titles of the two images compared,
+            as "title1_vs_title2".
+
+        name_as_index : bool, default=True
+            If True, the index column of the pandas DataFrame will 
+            contain the name of this comparison; otherwise, the name will
+            appear in a column labelled "images".
+
+        nice_columns : bool, default=False
+            If False, column labels will be the same as the input metric names;
+            if True, the names will be capitalized and underscores will be 
+            replaced with spaces.
+
+        decimal_places : int, default=None
+            Number of decimal places to keep for each metric. If None, full
+            precision will be used.
+
+        base : int/None, default=2
+            Base to use when taking logarithms, in calculations of
+            mutual information and variants.  If None, use base e.
+
+        bins : int/list, default=50
+            Numbers of bins to use when histogramming grey-level joint
+            probabilities for self and other, in calculations of
+            mutual information and variants.  This is passed as
+            the bins parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+
+        xyrange : list, default=None
+            Upper and lower of each axis when histogramming grey-level
+            joint probabilities for self and image, in calculations of
+            mutual informatio and variants.  This is passed as
+            the range parameter of numpy.histogram2d:
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html
+        """
+        # Ensure that images for comparison have the same geometry.
+        if self.has_same_geometry(other):
+            im1 = self
+        else:
+            im1 = self.clone()
+            im1.match_size(other)
+        im2 = other
+
+        # Ensure that comparison name is defined.
+        if not name:
+            title1 = im1.title or "image"
+            title2 = im2.title or "other"
+            name = f"{title1}_vs_{title2}"
+
+        # Set default metric.
+        metrics = metrics or ["mutual_information"]
+
+        # Check that specified metrics are recognised,
+        # and identify quality metrics.
+        quality_metrics = []
+        for metric in metrics:
+            if metric not in get_image_comparison_metrics():
+                raise RuntimeError(f"Metric {metric} not recognised by "
+                                   "Image.get_comparison()")
+            if metric in get_quality_metrics():
+                quality_metrics.append(metric)
+
+        # Compute metric scores.
+        quality_scores = im1.get_quality(im2, quality_metrics)
+        scores = {}
+        for metric in metrics:
+            # Store scores for quality metrics.
+            if metric in get_quality_metrics():
+                scores[metric] = quality_scores[metric]
+            # Store scores for mutual information and variants.
+            else:
+                scores[metric] = im1.get_mutual_information(
+                        im2, base=base, bins=bins, xyrange=xyrange,
+                        variant=metric)
+            if decimal_places is not None:
+                scores[metric] = round(scores[metric], decimal_places)
+
+        # Convert to pandas DataFrame.
+        df = pd.DataFrame(scores, index=[name])
+
+        # Turn name into a regular column if requested
+        if not name_as_index:
+            df = df.reset_index().rename({"index": "images"}, axis=1)
+
+        # Capitalize column names and remove underscores if requested.
+        if nice_columns:
+            df.columns = [col.capitalize().replace("_", " ")
+                          if len(col) > 3 else col.upper()
+                          for col in df.columns]
+        return df
+
     def get_mutual_information(self, image, base=2, bins=100, xyrange=None,
-                               variant=None):
+                               variant="mutual_information"):
         """
         For this and another image, calculate mutual information or a variant.
 
@@ -4445,6 +4564,10 @@ class Image(skrt.core.Archive):
         variant : str, default=None
             Variant of mutual information to be returned.
 
+            - "mi", "mutual_information":
+              return mutual information, as introduced in:
+              https://doi.org/10.1002/j.1538-7305.1948.tb01338.x
+
             - "nmi", "normalised_mutual_information":
               return normalised mutual information (range 1 to 2) as defined in:
               https://doi.org/10.1117/12.310835
@@ -4459,8 +4582,12 @@ class Image(skrt.core.Archive):
               https://doi.org/10.1016/S0019-9958(61)80055-7
               => rajski_distance = 2 - normalised_mutual_information
 
-            - Any other value, return mutual information.
+            - Any other value, return None
         """
+        # Check that requested variant is recognised.
+        if not variant in get_mi_metrics():
+            return
+
         # Check base for taking logarithms.
         if base is None:
             base = math.e
@@ -4486,14 +4613,14 @@ class Image(skrt.core.Archive):
 
         mi = hx + hy - hxy
         # Return mutual information or a variant.
+        if variant in ["mi", "mutual_information"]:
+            return mi
         if variant in ["nmi", "normalised_mutual_information"]:
             return 1 + mi / (hxy or small_number)
         elif variant in ["iqr", "information_quality_ratio"]:
             return mi / (hxy or small_number)
         if variant in ["rajski", "rajski_distance"]:
             return 1 - mi / (hxy or small_number)
-
-        return mi
 
     def get_quality(self, image, metrics=None):
         """
@@ -6692,3 +6819,45 @@ def rescale_images(images, v_min=0.0, v_max=1.0, constant=0.5, clone=True):
         image.rescale(v_min=v_min, v_max=v_max, constant=constant)
 
     return images
+
+def get_image_comparison_metrics():
+    """
+    Get list of image-comparison metrics.
+
+    This returns the combined list of metrics based on mutual information
+    (returned by get_mi_metrics()) and quality metrics
+    (returned by get_quality_metrics()).
+    """
+    return (get_mi_metrics() + get_quality_metrics())
+
+def get_mi_metrics():
+    """
+    Get list of metrics based on mutual information.
+
+    All metrics listed here should be recognised by
+    Image.get_mutual_information(), and all metrics recognised by
+    Image.get_mutual_information() should be listed here.
+    """
+    return [
+            "iqr",
+            "information_quality_ratio",
+            "mi",
+            "mutual_information",
+            "nmi",
+            "normalised_mutual_information",
+            "rajski",
+            "rajski_distance",
+            ]
+
+def get_quality_metrics():
+    """
+    Get list of metrics measuring quality of one metric relative to another.
+
+    All metrics listed here should be recognised by Image.get_quality(),
+    and all metrics recognised by Image.get_quality() should be listed here.
+    """
+    return [
+            "correlation_quality",
+            "fidelity",
+            "relative_structural_content",
+            ]
