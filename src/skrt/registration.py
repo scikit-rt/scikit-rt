@@ -1651,7 +1651,7 @@ class Registration(Data):
         return self.fixed_image.get_mutual_information(
                 self.get_transformed_image(step, force), **kwargs)
 
-    def get_relative_structural_content(self, step=-1, force=False, **kwargs):
+    def get_relative_structural_content(self, step=-1, force=False):
         """
         Quantify structural content relative to fixed image of
         transformed moving image after step.
@@ -1665,17 +1665,11 @@ class Registration(Data):
         force : bool, default=False
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
-
-        **kwargs
-            Keyword arguments passed to
-            skrt.image.Image.get_relative_structural_content()
-            See this method's documentation for options.
         """
         return self.get_transformed_image(
-                step, force).get_relative_structural_content(
-                        self.fixed_image, **kwargs)
+                step, force).get_relative_structural_content(self.fixed_image)
 
-    def get_fidelity(self, step=-1, force=False, **kwargs):
+    def get_fidelity(self, step=-1, force=False):
         """
         Calculate fidelity with which transformed moving image after step
         matches fixed image.
@@ -1688,16 +1682,11 @@ class Registration(Data):
         force : bool, default=False
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
-
-        **kwargs
-            Keyword arguments passed to
-            skrt.image.Image.get_relative_structural_content()
-            See this method's documentation for options.
         """
         return self.get_transformed_image(
-                step, force).get_fidelity(self.fixed_image, **kwargs)
+                step, force).get_fidelity(self.fixed_image)
 
-    def get_correlation_quality(self, step=-1, force=False, **kwargs):
+    def get_correlation_quality(self, step=-1, force=False):
         """
         Calculate quality of correlation between transformed moving image
         after step and fixed image.
@@ -1711,14 +1700,9 @@ class Registration(Data):
         force : bool, default=False
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
-
-        **kwargs
-            Keyword arguments passed to
-            skrt.image.Image.get_relative_structural_content()
-            See this method's documentation for options.
         """
         return self.get_transformed_image(
-                step, force).get_correlation_quality(self.fixed_image, **kwargs)
+                step, force).get_correlation_quality(self.fixed_image)
 
 class Grid(ImageOverlay):
     """
