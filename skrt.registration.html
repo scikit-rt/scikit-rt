@@ -1029,6 +1029,52 @@ forced, even if the image was transformed previously.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.get_foreground_comparison">
+<span class="sig-name descname"><span class="pre">get_foreground_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_foreground_comparison" title="Permalink to this definition"></a></dt>
+<dd><p>Return a pandas DataFrame comparing the foregrounds of
+fixed image and transformed moving image after step.</p>
+<p><strong>Parameters:</strong>
+step : int/str/list, default=None</p>
+<blockquote>
+<div><p>Name or number of the registration step after which
+mutual information is to be calculated.  Available
+steps are listed in self.steps.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, transformation of the moving image will be
+forced, even if the image was transformed previously.</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to
+skrt.image.Image.get_foreground_comparison()
+See this method’s documentation for options.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.get_image_comparison">
+<span class="sig-name descname"><span class="pre">get_image_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_image_comparison" title="Permalink to this definition"></a></dt>
+<dd><p>Return a pandas DataFrame comparing fixed image
+and transformed moving image after step.</p>
+<p><strong>Parameters:</strong>
+step : int/str/list, default=None</p>
+<blockquote>
+<div><p>Name or number of the registration step after which
+mutual information is to be calculated.  Available
+steps are listed in self.steps.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, transformation of the moving image will be
+forced, even if the image was transformed previously.</p>
+</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to
+skrt.image.Image.get_comparison()
+See this method’s documentation for options.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_input_parameters">
 <span class="sig-name descname"><span class="pre">get_input_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_input_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Get dict of input parameters for a given step.</p>
@@ -1063,7 +1109,7 @@ steps are listed in self.steps.</p>
 <dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, transformation of the moving image will be
 forced, even if the image was transformed previously.</p>
 </dd>
-<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to
+<dt><a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to
 skrt.image.Image.get_mutual_information()
 See this method’s documentation for options.</p>
 </dd>
@@ -1369,13 +1415,13 @@ this image even if it already exists.</p>
 <dd><p>Call one of the transform functions, depending on the type of
 <cite>to_transform</cite>. Functions called depending on type are:</p>
 <dl class="simple">
-<dt>Image:</dt><dd><p>transform_image(to_transform, <a href="#id3"><span class="problematic" id="id4">`</span></a><a href="#id5"><span class="problematic" id="id6">**</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a>kwargs)</p>
+<dt>Image:</dt><dd><p>transform_image(to_transform, <a href="#id7"><span class="problematic" id="id8">`</span></a><a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>kwargs)</p>
 </dd>
-<dt>str:</dt><dd><p>transform_data(to_transform, <a href="#id9"><span class="problematic" id="id10">`</span></a><a href="#id11"><span class="problematic" id="id12">**</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a>kwargs)</p>
+<dt>str:</dt><dd><p>transform_data(to_transform, <a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs)</p>
 </dd>
-<dt>StructureSet:</dt><dd><p>transform_structure_set(to_transform, <a href="#id15"><span class="problematic" id="id16">`</span></a><a href="#id17"><span class="problematic" id="id18">**</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>kwargs)</p>
+<dt>StructureSet:</dt><dd><p>transform_structure_set(to_transform, <a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs)</p>
 </dd>
-<dt>ROI:</dt><dd><p>transform_roi(to_transform, <a href="#id21"><span class="problematic" id="id22">`</span></a><a href="#id23"><span class="problematic" id="id24">**</span></a><a href="#id25"><span class="problematic" id="id26">`</span></a>kwargs)</p>
+<dt>ROI:</dt><dd><p>transform_roi(to_transform, <a href="#id25"><span class="problematic" id="id26">`</span></a><a href="#id27"><span class="problematic" id="id28">**</span></a><a href="#id29"><span class="problematic" id="id30">`</span></a>kwargs)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1519,7 +1565,7 @@ the result of the final step will be shown.</p>
 <dt>compare_with_fixed<span class="classifier">bool, default=True</span></dt><dd><p>If True, the result will be displayed in comparison with the
 fixed image.</p>
 </dd>
-<dt><a href="#id27"><span class="problematic" id="id28">`</span></a><a href="#id29"><span class="problematic" id="id30">**</span></a><a href="#id31"><span class="problematic" id="id32">`</span></a>kwargs :</dt><dd><p>Optional keyword arguments to pass to BetterViewer.</p>
+<dt><a href="#id31"><span class="problematic" id="id32">`</span></a><a href="#id33"><span class="problematic" id="id34">**</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>kwargs :</dt><dd><p>Optional keyword arguments to pass to BetterViewer.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1896,7 +1942,7 @@ of paths, as pathlib.Path objects.</p>
 containing default parameter files is required.  If None,
 use value set for skrt.core.Default().registration_engine.</p>
 </dd>
-<dt>pattern: str, default=”<a href="#id33"><span class="problematic" id="id34">*</span></a>.txt”</dt><dd><p>Glob-style pattern for filtering on file names.</p>
+<dt>pattern: str, default=”<a href="#id37"><span class="problematic" id="id38">*</span></a>.txt”</dt><dd><p>Glob-style pattern for filtering on file names.</p>
 </dd>
 </dl>
 </dd></dl>
