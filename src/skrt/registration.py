@@ -1627,6 +1627,52 @@ class Registration(Data):
             kwargs = {} if is_jac else {"signs": self.engine.def_signs}
             return dtype(path=output_file, image=image, title=title, **kwargs)
 
+    def get_image_comparison(self, step=-1, force=False, **kwargs):
+        """
+        Return a pandas DataFrame comparing fixed image
+        and transformed moving image after step.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which
+            mutual information is to be calculated.  Available
+            steps are listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_comparison()
+            See this method's documentation for options.
+        """
+        return self.fixed_image.get_comparison(
+                self.get_transformed_image(step, force), **kwargs)
+
+    def get_foreground_comparison(self, step=-1, force=False, **kwargs):
+        """
+        Return a pandas DataFrame comparing the foregrounds of
+        fixed image and transformed moving image after step.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which
+            mutual information is to be calculated.  Available
+            steps are listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_foreground_comparison()
+            See this method's documentation for options.
+        """
+        return self.fixed_image.get_comparison(
+                self.get_foreground_image(step, force), **kwargs)
+
     def get_mutual_information(self, step=-1, force=False, **kwargs):
         """
         For fixed image and transformed moving image after step,
