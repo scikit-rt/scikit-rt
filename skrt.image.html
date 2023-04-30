@@ -824,7 +824,7 @@ to be evaluated</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_bbox">
-<span class="sig-name descname"><span class="pre">get_foreground_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_bbox" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_foreground_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_bbox" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain bounding box of image foreground.</p>
 <p>The bounding box is returned as
 [(xmin, xmax), (ymin, ymax), (zmin, zmax)], with values in mm.</p>
@@ -835,7 +835,7 @@ explanations, see skrt.image.Image.get_foreground_mask() documentation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_bbox_centre_and_widths">
-<span class="sig-name descname"><span class="pre">get_foreground_bbox_centre_and_widths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_bbox_centre_and_widths" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_foreground_bbox_centre_and_widths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_bbox_centre_and_widths" title="Permalink to this definition"></a></dt>
 <dd><p>Get centre and widths in mm along all three axes of a
 bounding box enclosing the image foreground.  Centre
 and widths are returned as a tuple ([x, y, z], [dx, dy, dz]).</p>
@@ -846,7 +846,7 @@ explanations, see skrt.image.Image.get_foreground_mask() documentation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_box_mask">
-<span class="sig-name descname"><span class="pre">get_foreground_box_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_box_mask" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_foreground_box_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_box_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Slice by slice, create rectangular mask enclosing foreground mask.</p>
 <dl class="simple">
 <dt>dx<span class="classifier">int, default=0</span></dt><dd><p>Margin along columns to be added on each side of mask bounding box.</p>
@@ -854,14 +854,16 @@ explanations, see skrt.image.Image.get_foreground_mask() documentation.</p>
 <dt>dy<span class="classifier">int, default=0</span></dt><dd><p>Margin along rows to be added on each side of mask bounding box.</p>
 </dd>
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
-regions for determination of foreground.</p>
+regions for determination of foreground.  If None, use value
+of Defaults().foreground_threshold.  If still None, use
+Otsu threshold.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_comparison">
-<span class="sig-name descname"><span class="pre">get_foreground_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_comparison" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_foreground_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_comparison" title="Permalink to this definition"></a></dt>
 <dd><p>Return a pandas DataFrame comparing the foregrounds of
 this image and another.</p>
 <p>ROIs obtaining the image foregrounds are obtained, then
@@ -876,7 +878,9 @@ If null, the name used is the image title, or if this is null
 then f”{skrt.core.Defaults().foreground_name}_1” is used.</p>
 </dd>
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
-regions for determination of foreground.</p>
+regions for determination of foreground.  If None, use value
+of Defaults().foreground_threshold.  If still None, use
+Otsu threshold.</p>
 </dd>
 <dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, create mask from the convex hulls of the
 slice foreground masks initially obtained.</p>
@@ -898,14 +902,16 @@ skrt.structures.ROI.get_comparison().</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_mask">
-<span class="sig-name descname"><span class="pre">get_foreground_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_mask" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_foreground_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Create foreground mask.</p>
 <p>Slice by slice, the foreground is taken to correspond to the
 largest region of contiguous pixels above a threshold value.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
-regions for determination of foreground.</p>
+regions for determination of foreground.  If None, use value
+of Defaults().foreground_threshold.  If still None, use
+Otsu threshold.</p>
 </dd>
 <dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, create mask from the convex hulls of the
 slice foreground masks initially obtained.</p>
@@ -920,7 +926,7 @@ obtained.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_foreground_roi">
-<span class="sig-name descname"><span class="pre">get_foreground_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_roi" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_foreground_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_foreground_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Create ROI represening image foreground.</p>
 <p>Slice by slice, the foreground is taken to correspond to the
 largest region of contiguous pixels above a threshold value.
@@ -929,7 +935,9 @@ is used as source for creating an ROI.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
-regions for determination of foreground.</p>
+regions for determination of foreground.  If None, use value
+of Defaults().foreground_threshold.  If still None, use
+Otsu threshold.</p>
 </dd>
 <dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, create mask from the convex hulls of the
 slice foreground masks initially obtained.</p>
@@ -1338,7 +1346,7 @@ slice.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_slice_foreground">
-<span class="sig-name descname"><span class="pre">get_slice_foreground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_slice_foreground" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_slice_foreground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_slice_foreground" title="Permalink to this definition"></a></dt>
 <dd><p>Create foreground mask for image slice.</p>
 <p>The foreground is taken to correspond to the largest region
 of contiguous pixels above a threshold value.</p>
@@ -1347,7 +1355,9 @@ of contiguous pixels above a threshold value.</p>
 <dt>idx<span class="classifier">int, default=0</span></dt><dd><p>Index of slice for which foreground mask is to be obtained.</p>
 </dd>
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels are assigned to regions
-for determination of foreground.</p>
+for determination of foreground.  If None, use value
+of Defaults().foreground_threshold.  If still None, use
+Otsu threshold.</p>
 </dd>
 <dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, return the convex hull of the foreground mask
 initially obtained.</p>
@@ -2061,7 +2071,7 @@ Disregarded if the value of the centre parameter isn’t None.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.select_foreground">
-<span class="sig-name descname"><span class="pre">select_foreground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.select_foreground" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">select_foreground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.select_foreground" title="Permalink to this definition"></a></dt>
 <dd><p>Modify image to show intensity information only for foreground.</p>
 <p>Slice by slice, the foreground is taken to correspond to the
 largest region of contiguous pixels above a threshold value.
@@ -2070,7 +2080,9 @@ same same (background) intensity value.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>threshold<span class="classifier">int/float, default=None</span></dt><dd><p>Intensity value above which pixels in a slice are assigned to
-regions for determination of foreground.</p>
+regions for determination of foreground.  If None, use value
+of Defaults().foreground_threshold.  If still None, use
+Otsu threshold.</p>
 </dd>
 <dt>convex_hull<span class="classifier">bool, default=False</span></dt><dd><p>If True, create mask from the convex hulls of the
 slice foreground masks initially obtained.</p>
