@@ -822,11 +822,6 @@ class SingleAtlasSegmentation(Data):
         else:
             return self.registrations[strategy][step]
 
-    def get_mutual_information(self, strategy=None, step=None, roi_name=None,
-            reg_step=None, force=False, **kwargs):
-        reg = self.get_registration(strategy, step, roi_name, force)
-        return reg.get_mutual_information(reg_step, **kwargs)
-
     def get_segmentation(self, strategy=None, step=None, reg_step=None,
             force=False):
         strategy = get_strategy(strategy, self.default_strategy,
@@ -886,7 +881,7 @@ class SingleAtlasSegmentation(Data):
             steps=None, reg_steps=None, force=False, metrics=None,
             slice_stats=None, default_by_slice=None, 
             voxel_size=None, name_as_index=False,
-            mi_variants=None, mi_init=False, mi_reg_step=False, **kwargs):
+            **kwargs):
 
         if not hasattr(self, "ss1_filtered"):
             return
@@ -899,24 +894,6 @@ class SingleAtlasSegmentation(Data):
         slice_stats = slice_stats or self.default_slice_stats
         default_by_slice = get_option(default_by_slice, self.default_by_slice,
                                       get_by_slice_methods())
-
-        if mi_variants is None:
-            mi_variants = ["mi"]
-        elif isinstance(mi_variants, str):
-            mi_variants = [mi_variants]
-        elif not mi_variants:
-            mi_variants = []
-
-        mi_parameters = list(signature(Image.get_mutual_information).parameters)
-        comparison_parameters = list(signature(
-            SingleAtlasSegmentation.get_comparison).parameters)
-        mi_kwargs = {}
-        comparison_kwargs = {}
-        for key, value in kwargs.items():
-            if key in mi_parameters:
-                mi_kwargs[key] = value
-            else:
-                comparison_kwargs[key] = value
 
         df = None
         ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
@@ -937,7 +914,7 @@ class SingleAtlasSegmentation(Data):
                             ss2, metrics=metrics, slice_stats=slice_stats,
                             default_by_slice=default_by_slice,
                             voxel_size=voxel_size, name_as_index=name_as_index,
-                            **comparison_kwargs)
+                            **kwargs)
 
                     if df_tmp is None:
                         continue
@@ -948,23 +925,6 @@ class SingleAtlasSegmentation(Data):
                         if value is not None:
                             df_tmp[label] = pd.Series(
                                     df_tmp.shape[0] * [value])
-
-                    if mi_init:
-                        for mi_variant in mi_variants:
-                            mi_kwargs["variant"] = mi_variant
-                            mi = self.get_mutual_information(
-                                    strategy, 0, None, 0, **mi_kwargs)
-                            df_tmp[f"{mi_variant}_init"] = pd.Series(
-                                    df_tmp.shape[0] * [mi])
-
-                    if mi_reg_step:
-                        for mi_variant in mi_variants:
-                            mi_kwargs["variant"] = mi_variant
-                            #print(df_tmp.apply(lambda row: print(row), axis=1))
-                            df_tmp[f"{mi_variant}_reg_step"] = df_tmp.apply(
-                                    lambda row: self.get_mutual_information(
-                                        strategy, step, row["ROI"], reg_step,
-                                        **mi_kwargs), axis=1)
 
                     if df is None:
                         df = df_tmp
