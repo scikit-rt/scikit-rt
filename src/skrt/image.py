@@ -57,6 +57,7 @@ mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
 skrt.core.Defaults().foreground_name = "foreground"
+skrt.core.Defaults().foreground_threshold = -150
 
 class Image(skrt.core.Archive):
     """
@@ -1200,7 +1201,7 @@ class Image(skrt.core.Archive):
 
         return (x_array, y_array, z_array)
 
-    def get_foreground_box_mask(self, dx=0, dy=0, threshold=-150):
+    def get_foreground_box_mask(self, dx=0, dy=0, threshold=None):
         '''
         Slice by slice, create rectangular mask enclosing foreground mask.
 
@@ -1212,7 +1213,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
         '''
 
         foreground_mask = self.get_foreground_mask(threshold)
@@ -1220,7 +1223,7 @@ class Image(skrt.core.Archive):
 
         return foreground_box_mask
 
-    def get_foreground_bbox(self, threshold=-150, convex_hull=False,
+    def get_foreground_bbox(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0):
         """
         Obtain bounding box of image foreground.
@@ -1236,7 +1239,7 @@ class Image(skrt.core.Archive):
             self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy)))
 
     def get_foreground_bbox_centre_and_widths(self,
-            threshold=-150, convex_hull=False, fill_holes=True, dxy=0):
+            threshold=None, convex_hull=False, fill_holes=True, dxy=0):
         """
         Get centre and widths in mm along all three axes of a
         bounding box enclosing the image foreground.  Centre
@@ -1252,7 +1255,7 @@ class Image(skrt.core.Archive):
         return (centre, widths)
 
     def get_foreground_comparison(
-            self, other, name=None, threshold=-150, convex_hull=False,
+            self, other, name=None, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0, voxel_size=None, **kwargs):
         """
         Return a pandas DataFrame comparing the foregrounds of
@@ -1274,7 +1277,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
@@ -1307,7 +1312,7 @@ class Image(skrt.core.Archive):
 
         return roi1.get_comparison(roi2, voxel_size=voxel_size, **kwargs)
 
-    def get_foreground_roi(self, threshold=-150, convex_hull=False,
+    def get_foreground_roi(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0, **kwargs):
         '''
         Create ROI represening image foreground.
@@ -1321,7 +1326,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
@@ -1343,7 +1350,7 @@ class Image(skrt.core.Archive):
         return ROI(self.get_foreground_mask(
             threshold, convex_hull, fill_holes, dxy), **kwargs)
 
-    def get_foreground_mask(self, threshold=-150, convex_hull=False,
+    def get_foreground_mask(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0):
         '''
         Create foreground mask.
@@ -1355,7 +1362,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
@@ -1386,7 +1395,7 @@ class Image(skrt.core.Archive):
 
         return out_image
 
-    def get_slice_foreground(self, idx=0, threshold=-150,
+    def get_slice_foreground(self, idx=0, threshold=None,
             convex_hull=False, fill_holes=False, dxy=0):
         '''
         Create foreground mask for image slice.
@@ -1401,7 +1410,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels are assigned to regions
-            for determination of foreground.
+            for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, return the convex hull of the foreground mask
@@ -1471,7 +1482,7 @@ class Image(skrt.core.Archive):
 
         return label_array2
 
-    def select_foreground(self, threshold=-150, convex_hull=False,
+    def select_foreground(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0, background=None):
         '''
         Modify image to show intensity information only for foreground.
@@ -1485,7 +1496,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
