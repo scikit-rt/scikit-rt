@@ -1117,6 +1117,30 @@ See this method’s documentation for options.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Registration.get_quality">
+<span class="sig-name descname"><span class="pre">get_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_quality" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluate quality relative to fixed image of transformed moving image
+after step.</p>
+<p>For information on quality metrics, see documentation of
+skrt.image.Image.get_quality().</p>
+<p><strong>Parameters:</strong>
+step : int/str/list, default=None</p>
+<blockquote>
+<div><p>Name or number of the registration step after which relative
+structure content is to be calculated. Available steps are
+listed in self.steps.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, transformation of the moving image will be
+forced, even if the image was transformed previously.</p>
+</dd>
+<dt>metrics: list, default=None</dt><dd><p>List of strings specifying quality metrics to be evaluated.
+If None, all defined quality metrics are evaluated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_registration_cmd">
 <span class="sig-name descname"><span class="pre">get_registration_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_previous_tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_registration_cmd" title="Permalink to this definition"></a></dt>
 <dd><p>Get registration command for a given step.</p>
