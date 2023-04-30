@@ -1697,6 +1697,31 @@ class Registration(Data):
         return self.fixed_image.get_mutual_information(
                 self.get_transformed_image(step, force), **kwargs)
 
+    def get_quality(self, step=-1, force=False, metrics=None):
+        """
+        Evaluate quality relative to fixed image of transformed moving image
+        after step.
+
+        For information on quality metrics, see documentation of
+        skrt.image.Image.get_quality().
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which relative
+            structure content is to be calculated. Available steps are
+            listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        metrics: list, default=None
+            List of strings specifying quality metrics to be evaluated.
+            If None, all defined quality metrics are evaluated.
+        """
+        return self.get_transformed_image(
+                step, force).get_quality(self.fixed_image, metrics)
+
     def get_relative_structural_content(self, step=-1, force=False):
         """
         Quantify structural content relative to fixed image of
