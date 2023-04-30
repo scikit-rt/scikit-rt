@@ -1627,7 +1627,7 @@ class Registration(Data):
             kwargs = {} if is_jac else {"signs": self.engine.def_signs}
             return dtype(path=output_file, image=image, title=title, **kwargs)
 
-    def get_image_comparison(self, step=-1, force=False, **kwargs):
+    def get_comparison(self, step=-1, force=False, **kwargs):
         """
         Return a pandas DataFrame comparing fixed image
         and transformed moving image after step.
