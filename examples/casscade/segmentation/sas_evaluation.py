@@ -12,7 +12,7 @@ import pandas as pd
 from skrt import Image, Patient, StructureSet
 from skrt.application import Algorithm, Application, get_paths
 from skrt.core import Defaults, fullpath, is_list, qualified_name, tic, toc
-from skrt.registration import get_default_pfiles_dir, set_elastix_dir
+from skrt.registration import get_default_pfiles, get_engine_name
 from skrt.segmentation import SasTuner
 
 global_side = "right"
@@ -41,12 +41,6 @@ class SasEvaluation(Algorithm):
             Severity level for event logging.  If the value is None,
             log_level is set to the value of skrt.core.Defaults().log_level.
         '''
-        # Path to Elastix installation.
-        self.elastix_dir = None
-
-        # Obtain path to default Elastix parameter files.
-        self.pfiles_dir = get_default_pfiles_dir()
-
         # Path to directory for registration output.
         self.workdir = "segmentation_workdir"
 
@@ -66,11 +60,16 @@ class SasEvaluation(Algorithm):
 
         # Type of selection to be performed for atlases.
         # Possible values are:
-        # - "random": random selection
-        # - "mi", "mutual_information": select in order or mutual information
-        #   (highest to lowest) with respect to the target
+        # - "random": random selection;
+        # - "mutual_information": select in order of mutual information;
+        # - "fidelity": select in order of fidelity;
+        # - "correlation_quality": select in order of correlation quality;
         # - None: select in order of input.
         self.atlas_selection = None
+
+        # Registration engine, and path to associated software directory.
+        self.engine = None
+        self.engine_dir = None
 
         # Dictionary of names for renaming ROIs, where the keys are new
         # names and values are lists of possible names of ROIs that should
@@ -80,8 +79,11 @@ class SasEvaluation(Algorithm):
         # Initial crop focus, and margins to leave when cropping.
         self.initial_crop_focus = None
         self.initial_crop_margins = None
+        self.initial_crop_about_centre = False
         self.default_crop_margins = 0
         self.roi_crop_margins = None
+        self.default_roi_crop_about_centre = False
+        self.roi_crop_about_centre = None
 
         # Define whether target and atlas images should be cropped
         # to the same size prior to registration.  Size matching is performed
@@ -126,11 +128,8 @@ class SasEvaluation(Algorithm):
         self.initial_transform_name = None
 
         # Parameter files to be used in registration.
-        self.pfiles1={
-                "translation": self.pfiles_dir / "MI_Translation.txt",
-                "bspline": self.pfiles_dir / "MI_BSpline15.txt",
-            }
-        self.pfiles2 = dict(self.pfiles1)
+        self.pfiles1= {}
+        self.pfiles2 = {}
         self.roi_pfiles = None
 
         # Variations to evaluate in registration parameters.
@@ -182,25 +181,24 @@ class SasEvaluation(Algorithm):
         # calculating slice-by-slice statistics.
         self.default_by_slice = None
 
-        # Specification of step(s) for which to calculate mutual information,
-        # variants to calculate, and calculation parameters.
-        self.mi_init = False
-        self.mi_reg_step = False
-        self.mi_variants = None
-        self.base = 2
-        self.bins = 100
-        self.xyrange = None
-
         # File to which to write dataframe of comparison metrics.
         self.analysis_csv = "analysis.csv"
 
         # Override default properties, based on contents of opts dictionary.
         super().__init__(opts, name, log_level)
 
-        # Set path to Elastix installation.
-        if isinstance(self.elastix_dir, str):
-            self.elastix_dir = Path(fullpath(self.elastix_dir))
-            set_elastix_dir(self.elastix_dir)
+        # Try to ensure that name of registration engine is set.
+        self.engine = get_engine_name(self.engine, self.engine_dir)
+
+
+        # If parameter files not specified, set engine-dependent defaults.
+        if not self.pfiles1 :
+            self.pfiles1 = {
+                    "bspline": get_default_pfiles("*BSpline15*", self.engine)[0]
+                    }
+            self.pfiles1 = {} # Hello
+        if not self.pfiles2:
+            self.pfiles2 = dict(self.pfiles1)
 
         # Ensure that output file is always created, even if empty.
         Path(self.analysis_csv).touch()
@@ -241,10 +239,14 @@ class SasEvaluation(Algorithm):
                     ss1=None,
                     ss2=atlas_objs[atlas_id][1],
                     log_level=self.log_level,
-                    workdir=Path(self.workdir) / f"{patient.id}_{atlas_id}",
+                    engine = self.engine,
+                    engine_dir = self.engine_dir,
+                    workdir=(Path(self.workdir)
+                             / self.engine / f"{patient.id}_{atlas_id}"),
                     roi_names=self.roi_names,
                     initial_crop_focus=self.initial_crop_focus,
                     initial_crop_margins=self.initial_crop_margins,
+                    initial_crop_about_centre=self.initial_crop_about_centre,
                     initial_alignment=self.initial_alignment,
                     initial_transform_name=self.initial_transform_name,
                     crop_to_match_size1=self.crop_to_match_size1,
@@ -254,6 +256,9 @@ class SasEvaluation(Algorithm):
                     most_points1=self.most_points1,
                     roi_crop_margins=self.roi_crop_margins,
                     default_roi_crop_margins=self.default_roi_crop_margins,
+                    roi_crop_about_centre=self.roi_crop_about_centre,
+                    default_roi_crop_about_centre=(
+                        self.default_roi_crop_about_centre),
                     crop_to_match_size2=self.crop_to_match_size2,
                     voxel_size2=self.voxel_size2,
                     default_roi_bands=self.default_roi_bands,
@@ -271,12 +276,6 @@ class SasEvaluation(Algorithm):
                     slice_stats=self.slice_stats,
                     default_by_slice=self.default_by_slice,
                     voxel_size=self.voxel_size,
-                    mi_init = self.mi_init,
-                    mi_reg_step = self.mi_reg_step,
-                    mi_variants = self.mi_variants,
-                    base = self.base,
-                    bins = self.bins,
-                    xyrange = self.xyrange,
                     )
             print(tuner.df)
 
@@ -336,7 +335,8 @@ class SasEvaluation(Algorithm):
 
     def select_atlases(self, n_atlas=None, exclude_ids=None, selection=None):
 
-        allowed_selections = {None, "random", "mi", "mutual_information"}
+        allowed_selections = {None, "random", "mutual_information",
+                              "fidelity", "correlation_quality"}
         if selection not in allowed_selections:
             raise RuntimeError(f"Selection {selection} not allowed; "
                                f"allowed selections: {allowed_selections}")
@@ -366,7 +366,8 @@ class SasEvaluation(Algorithm):
             return {atlas_id: atlas_objs[atlas_id]
                     for atlas_id in list(atlas_ids)[: n_atlas]}
 
-        if selection in ["mi", "mutual_information"]:
+        if selection in ["mutual_information", "fidelity",
+                         "correlation_quality"]:
             scores = {}
             for atlas_ids in atlas_objs:
                 sas = SingleAtlasSegmentation(
@@ -375,13 +376,18 @@ class SasEvaluation(Algorithm):
                         ss1=None,
                         ss2=atlas_objs[atlas_id][1],
                         log_level=self.log_level,
-                        workdir=Path(self.workdir) / "atlas_selection",
+                        engine = self.engine,
+                        engine_dir = self.engine_dir,
+                        workdir=(Path(self.workdir)
+                                 / self.engine / "atlas_selection"),
                         overwrite=True,
                         auto=True,
                         auto_reg_setup_only=True,
                         roi_names=self.roi_names,
                         initial_crop_focus=self.initial_crop_focus,
                         initial_crop_margins=self.initial_crop_margins,
+                        initial_crop_about_centre=(
+                            self.initial_crop_about_centre),
                         initial_alignment=self.initial_alignment,
                         initial_transform_name=self.initial_transform_name,
                         crop_to_match_size1=self.crop_to_match_size1,
@@ -392,7 +398,7 @@ class SasEvaluation(Algorithm):
                         capture_output=self.capture_output,
                         )
                 reg = sas.get_registration(step=0)
-                score = reg.get_mutual_information(reg_step=0)
+                score = getattr(reg, f"get_{selection}")(reg_step=0)
                 if score not in scores:
                     scores[score] = []
                 scores[score].append(atlas_id)
@@ -406,17 +412,21 @@ class SasEvaluation(Algorithm):
                     if i_atlas >= n_atlas:
                         return atlas_objs2
 
-def get_app(setup_script=''):
+def get_app(setup_script='', engine="elastix"):
     '''
     Define and configure application to be run.
     '''
 
     opts = {}
     if "Linux" == platform.system():
-        opts["elastix_dir"] = "~/sw20/elastix-5.0.1"
+        if "elastix" == engine:
+            opts["engine_dir"] = "~/sw20/elastix-5.0.1"
         opts["workdir"] = ("/r02/radnet/casscade/workdir")
     else:
-        opts["elastix_dir"] = "~/sw/elastix-5.0.1"
+        if "elastix" == engine:
+            opts["engine_dir"] = "~/sw/elastix-5.0.1"
+        elif "niftyreg" == engine:
+            opts["engine_dir"] = "~/sw/niftyreg"
         opts["workdir"] = ("segmentation_workdir")
 
     opts["strategies"] = "pull"
@@ -477,10 +487,6 @@ def get_app(setup_script=''):
             ]
     
     opts["slice_stats"] = {"intersection": ["mean", "stdev"]}
-
-    opts["mi_init"] = True
-    opts["mi_reg_step"] = True
-    opts["mi_variants"] = ["mi", "nmi", "iqr", ]
 
     opts["analysis_csv"] = "analysis.csv"
 
