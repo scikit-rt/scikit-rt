@@ -6582,7 +6582,7 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
         im2.crop_to_image(im1, alignment)
         if (im1.get_voxel_size() == im2.get_voxel_size()
             and not im1.has_same_geometry(im2)):
-            im1.match_size(im1)
+            im1.match_size(im2)
 
     # Perform banding of image grey levels.
     im1.apply_selective_banding(bands)
