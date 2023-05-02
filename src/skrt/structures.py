@@ -6679,12 +6679,25 @@ class StructureSet(skrt.core.Archive):
             Only used if <copy_rois> is True
         """
 
+        # Load StructureSet, but prevent loading of ROIs.
+        # Loading ROIs here consumes time and memory creating masks
+        # for ROIs that may be discarded after filtering.
+        roi_load = self.roi_kwargs.get("load", None)
+        self.roi_kwargs["load"] = False
         self.load()
+
         ss = self.clone(copy_roi_data=copy_roi_data)
         if name is not None:
             ss.name = name
         ss.rename_rois(names, keep_renamed_only=keep_renamed_only)
         ss.filter_rois(to_keep, to_remove)
+
+        # Ensure that self.roi_kwargs is the same as at input.
+        if roi_load is None:
+            self.roi_kwargs.pop("load")
+        else:
+            self.roi_kwargs["load"] = roi_load
+
         return ss
 
     def get_rois(self, names=None, ignore_empty=False):
