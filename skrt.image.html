@@ -890,9 +890,13 @@ obtained.</p>
 </dd>
 <dt>dxy<span class="classifier">int, default=0</span></dt><dd><p>Margin, in pixel units, to be added to each slice foreground mask.</p>
 </dd>
-<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm passed to
-skrt.structures.ROI.get_comparison().  The default there
-(1, 1, 1) is different from the default set here (None).</p>
+<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for foreground
+masks in comparisons.  If None, the mask voxel size of
+&lt;other&gt; is used if not None; otherwise the default voxel
+size for dummy images, namely (1, 1, 1), is used.  If an
+element of the tuple specifying voxel size is None, the
+value for the corresponding element of the mask voxel size
+of &lt;other&gt; is used.</p>
 </dd>
 <dt>kwargs: dict</dt><dd><p>Keyword arguments, in addition to voxel_size, passed to
 skrt.structures.ROI.get_comparison().</p>
@@ -3332,6 +3336,55 @@ skrt.image.match_image_voxel_size().</p>
 Keys specify band limits, and values indicte the values
 to be assigned.  For more information, see documentation of
 method skrt.image.Image.apply_banding().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.match_images_for_comparison">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">match_images_for_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.match_images_for_comparison" title="Permalink to this definition"></a></dt>
+<dd><p>Process pair of images, to allow their comparison.</p>
+<p>Images are optionally aligned, then their geometries are matched,
+so that they can be handled by the image-comparison methods
+Image.get_comparison() and Image.get_quality().</p>
+<p>This function provides a subset of the processing options offered
+by match_images(), and addition can change the origin of the first
+image, to align better with the second image.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>im1, im2<span class="classifier">skrt.image.Image</span></dt><dd><p>Images to be matched for comparison.</p>
+</dd>
+<dt>ss1, ss2<span class="classifier">skrt.structures.StructureSet, default=None</span></dt><dd><p>Structure sets to associate with images im1, im2.  If a value
+is None, and image matching involves ROI alignment, a structure
+set already associated with the relevant image is used
+(im1.structure_sets[ss1_index], im2.structure_sets[ss2_index]).</p>
+</dd>
+<dt>ss1_index, ss2_index<span class="classifier">int, default=-1</span></dt><dd><p>Structure set indices to use for ROI alignment based on
+structure sets already associated with images.</p>
+</dd>
+<dt>ss1_name, ss2_name<span class="classifier">str, default=None</span></dt><dd><p>Names to be assigned to structure sets associated with the
+returned image objects.  If a value is None, the original
+name is kept.</p>
+</dd>
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary for renaming and filtering ROIs for inclusion
+in the structure sets associated with the output images.
+Keys are names for ROIs to be kept, and values are lists of
+alternative names with which these ROIs may have been
+labelled in the input structure sets.  The alternative names
+can contain wildcards with the ‘*’ symbol.  If a value of
+None is given, all ROIs in the input structure sets are kept,
+with no renaming.</p>
+</dd>
+<dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for aligning images prior to cropping
+so that they have the same size.  For strategy details, see
+documentation of skrt.image.get_alignment_translation().
+After alignment, im1 is cropped to the size of im2, then im2
+is cropped to the size of im1.  To omit cropping to the same
+size, set alginment to False.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple/str/float, default=None</span></dt><dd><p>Specification of voxel size for image resampling.
+For possible values, see documentation for function
+skrt.image.match_image_voxel_size().</p>
 </dd>
 </dl>
 </dd></dl>
