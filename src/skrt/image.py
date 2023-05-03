@@ -1317,9 +1317,6 @@ class Image(skrt.core.Archive):
                 threshold=threshold, convex_hull=convex_hull,
                 fill_holes=fill_holes, dxy=dxy)
 
-        print("Hello", roi1.get_voxel_size(), roi2.get_voxel_size(), voxel_size)
-        #roi1, roi2 = roi1.match_mask_voxel_size(roi2, voxel_size, -1)
-
         return roi1.get_comparison(roi2, voxel_size=None, **kwargs)
 
     def get_foreground_roi(self, threshold=None, convex_hull=False,
