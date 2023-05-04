@@ -294,6 +294,88 @@ class Study(skrt.core.Archive):
         patient_id = os.path.basename(os.path.dirname(self.path))
         return patient_id
 
+    def get_objs(self, dtype, subtypes=None):
+        """
+        Get list of study-associated objects of specified type and subtype(s).
+
+        **Parameters:**
+
+        dtype: str
+            String identifying type of objects to be returned.  This may
+            be any of: "image", "structure_set", "dose", "plan".
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of objects
+            to be returned.  A subtype may correspond to an imaging modality,
+            for example "ct", "mr", "us", or may be a generic identifier,
+            for example "rtstruct", "rtdose", "rtplan".  If None,
+            all subtypes are accepted.
+        """
+        obj_types = getattr(self, f"{dtype.lower()}_types", {})
+        subtypes = subtypes or list(obj_types)
+        if isinstance(subtypes, str):
+            subtypes = [subtypes]
+        return sum([obj_types.get(subtype.lower(), [])
+                    for subtype in subtypes], [])
+
+    def get_images(self, subtypes=None):
+        """
+        Get list of study-associated images of specified subtype(s).
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of images
+            to be returned.  A subtype corresponds to an imaging modality,
+            for example "ct", "mr", "us".  If None, all subtypes are accepted.
+        """
+        return self.get_objs("image", subtypes)
+
+    def get_structure_sets(self, subtypes=None):
+        """
+        Get list of study-associated structure sets of specified subtype(s).
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of structure
+            sets to be returned.  A subtype may correspond to the modality
+            of the image associated with a structure set, or may be the
+            generic identifier "rtstruct" if there is no associated image.
+            If None, all subtypes are accepted.
+        """
+        return self.get_objs("structure_set", subtypes)
+
+    def get_doses(self, subtypes=None):
+        """
+        Get list of study-associated doses of specified subtype(s).
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of doses
+            to be returned.  A subtype may correspond to the modality
+            of the image associated with a dose, or may be the generic
+            identifier "rtdose" if there is no associated image.
+            If None, all subtypes are accepted.
+        """
+        return self.get_objs("dose", subtypes)
+
+    def get_plans(self, subtypes=None):
+        """
+        Get list of study-associated plans of specified subtype(s).
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of plans
+            to be returned.  A subtype may correspond to the modality
+            of the image associated with a dose, or may be the generic
+            identifier "rtplan" if there is no associated image.
+            If None, all subtypes are accepted.
+        """
+        return self.get_objs("plan", subtypes)
+
     def get_plan_data(self, dtype="RtPlan", subdir="RTPLAN", exclude=[], images=[]):
         """Get list of RT dose or plan objects specified by dtype='RtDose' or
         'RtPlan' <dtype>, respectively) by searching within a given directory,
@@ -1283,6 +1365,147 @@ class Patient(skrt.core.PathData):
 
         all_types.sort()
         return all_types
+
+    def get_studies(self, subdirs=None):
+        '''
+        Get list of studies for this patient.
+
+        Optionally restrict to studies within specified sub-directories.
+
+        **Parameter:**
+
+        subdirs : str/list, default=None
+            Subdirectory, or list of subdirectories, grouping studies.
+            If specified, only studies in this subdirectory, or
+            in these subdirectories, are considered.
+        '''
+        if subdirs:
+            if isinstance(subdirs, str):
+                subdirs = [subdirs]
+            studies = [study for study in self.studies
+                       if study.subdir in subdirs]
+        else:
+            studies = self.studies
+
+        return sorted(studies)
+
+    def get_objs(self, dtype, subtypes=None, subdirs=None):
+        '''
+        Get list of patient-associated objects of specified type and subtype(s).
+
+        Objects may be taken across all studies, or across studies within
+        specified sub-directories.
+
+        **Parameters:**
+
+        dtype: str
+            String identifying type of objects to be returned.  This may
+            be any of: "image", "structure_set", "dose", "plan".
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of objects
+            to be returned.  A subtype may correspond to an imaging modality,
+            for example "ct", "mr", "us", or may be a generic identifier,
+            for example "rtstruct", "rtdose", "rtplan".  If None,
+            all subtypes are accepted.
+
+        subdirs : str/list, default=None
+            Subdirectory, or list of subdirectories, grouping studies.
+            If specified, only studies in this subdirectory, or
+            in these subdirectories, are considered.
+        '''
+        return sum([study.get_objs(dtype, subtypes)
+                    for study in self.get_studies(subdirs)], [])
+
+    def get_images(self, subtypes=None, subdirs=None):
+        """
+        Get list of patient-associated images of specified subtype(s).
+
+        Images may be taken across all studies, or across studies within
+        specified sub-directories.
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of images
+            to be returned.  A subtype corresponds to an imaging modality,
+            for example "ct", "mr", "us".  If None, all subtypes are accepted.
+
+        subdirs : str/list, default=None
+            Subdirectory, or list of subdirectories, grouping studies.
+            If specified, only studies in this subdirectory, or
+            in these subdirectories, are considered.
+        """
+        return self.get_objs("image", subtypes, subdirs)
+
+    def get_structure_sets(self, subtypes=None, subdirs=None):
+        """
+        Get list of patient-associated structure sets of specified subtype(s).
+
+        Structure sets may be taken across all studies, or across studies within
+        specified sub-directories.
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of structure
+            sets to be returned.  A subtype may correspond to the modality
+            of the image associated with a structure set, or may be the
+            generic identifier "rtstruct" if there is no associated image.
+            If None, all subtypes are accepted.
+
+        subdirs : str/list, default=None
+            Subdirectory, or list of subdirectories, grouping studies.
+            If specified, only studies in this subdirectory, or
+            in these subdirectories, are considered.
+        """
+        return self.get_objs("structure_set", subtypes, subdirs)
+
+    def get_doses(self, subtypes=None, subdirs=None):
+        """
+        Get list of patient-associated doses of specified subtype(s).
+
+        Doses may be taken across all studies, or across studies within
+        specified sub-directories.
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of doses
+            to be returned.  A subtype may correspond to the modality
+            of the image associated with a dose, or may be the generic
+            identifier "rtdose" if there is no associated image.
+            If None, all subtypes are accepted.
+
+        subdirs : str/list, default=None
+            Subdirectory, or list of subdirectories, grouping studies.
+            If specified, only studies in this subdirectory, or
+            in these subdirectories, are considered.
+        """
+        return self.get_objs("dose", subtypes, subdirs)
+
+    def get_plans(self, subtypes=None, subdirs=None):
+        """
+        Get list of patient-associated plans of specified subtype(s).
+
+        Plans may be taken across all studies, or across studies within
+        specified sub-directories.
+
+        **Parameter:**
+
+        subtypes: str/list, default=None
+            String, or list of strings, identifying subtype(s) of plans
+            to be returned.  A subtype may correspond to the modality
+            of the image associated with a dose, or may be the generic
+            identifier "rtplan" if there is no associated image.
+            If None, all subtypes are accepted.
+
+        subdirs : str/list, default=None
+            Subdirectory, or list of subdirectories, grouping studies.
+            If specified, only studies in this subdirectory, or
+            in these subdirectories, are considered.
+        """
+        return self.get_objs("plan", subtypes, subdirs)
 
     def get_structure_set_with_image(
             self, roi_names=None, modality=None, study_index=None,
