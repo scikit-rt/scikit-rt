@@ -4795,6 +4795,10 @@ class ROI(skrt.core.Archive):
         self.origin = im.get_origin()
         self.affine = im.get_affine()
 
+    def get_image(self):
+        """Return Image object associated with this ROI."""
+        return self.image
+
     def view(self, include_image=False, voxel_size=[1, 1], buffer=5, **kwargs):
         """View the ROI.
 
@@ -6248,6 +6252,10 @@ class StructureSet(skrt.core.Archive):
         # Assign self to the image
         if image is not None and add_to_image:
             image.add_structure_set(self)
+
+    def get_image(self):
+        """Return Image object associated with this StructureSet."""
+        return self.image
 
     def contains(self, roi_names, in_image=False):
         """

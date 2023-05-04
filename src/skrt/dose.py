@@ -36,6 +36,10 @@ class ImageOverlay(skrt.image.Image):
             image = skrt.image.Image(image)
         self.image = image
 
+    def get_image(self):
+        """Return associated image."""
+        return self.image
+
     def plot(
         self, 
         view=None,
@@ -989,6 +993,10 @@ class Plan(skrt.core.Archive):
         if self.image is not None:
             self.image.add_plan(self)
 
+    def get_image(self):
+        """Return Image object associated with this plan."""
+        return self.image
+
     def set_structure_set(self, structure_set):
         """Set associated structure set, initialising it if needed."""
 
@@ -1003,6 +1011,10 @@ class Plan(skrt.core.Archive):
         # Assign self to the structure set and its rois
         if self.structure_set is not None:
             self.structure_set.add_plan(self)
+
+    def get_structure_set(self):
+        """Return StructureSet object associated with this plan."""
+        return self.structure_set
 
     def add_dose(self, dose):
         """Add a Dose object to be associated with this plan. This does not
@@ -1022,6 +1034,9 @@ class Plan(skrt.core.Archive):
 
         self.doses = []
 
+    def get_doses(self):
+        """Return Dose objects associated with this plan."""
+        return self.doses
 
 class Constraint(skrt.core.Data):
     '''
