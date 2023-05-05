@@ -325,6 +325,43 @@ and their initial values.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.segmentation.get_atlases">
+<span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_atlases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_atlas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_atlases" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain dictionary of atlas objects (structure set and associated image).</p>
+<p>By default, all structure sets in each dataset are considered, in
+reverse order of timestamp, and the first structure set with an
+associated image is accepted.  It’s possible to consider only
+a specified structure set, or only structure sets that include specified
+ROIs.</p>
+<p>In the dictionary returned, keys are identifiers, and values are
+tuples of the form (skrt.image.Image, skrt.structures.StructureSet).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>paths: str/pathlib.Path/list</dt><dd><p>Path, or list of paths, to patient datasets to be considered as atlases.</p>
+</dd>
+<dt>subtypes: </dt><dd><p>String, or list of strings, identifying subtype(s) of
+imaging modality, for example “ct”, “mr”, “us”, to be considered
+as atlases.  If None, all imaging modalities are considered.</p>
+</dd>
+<dt>structure_set_index: int, default=None</dt><dd><p>Index, across all studies, of the structure set to be considered.
+If None, each structure set is considered, in reverse order
+of timestamp.  Setting the index to be different from None can
+be useful if, for example, only the earliest structure set
+(index 0), or only the most-recent structure set (index -1),
+should be considered.</p>
+</dd>
+<dt>unsorted_dicom: bool, default=True</dt><dd><p>If False, assume that data in a patient dataset are organised
+according to the VoxTox model.  If True, don’t assume any particular
+organisation, and create data hierarchy based on information
+read from DICOM files.</p>
+</dd>
+<dt>max_atlas: int, default=None</dt><dd><p>Maximum number of atlases to be returned.  If None, there is
+no maximum.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_contour_propagation_strategies">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_contour_propagation_strategies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_contour_propagation_strategies" title="Permalink to this definition"></a></dt>
 <dd><p>Return list of contour propagation strategies for registration engine.</p>
