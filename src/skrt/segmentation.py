@@ -987,6 +987,102 @@ def ensure_structure_set(ss):
     """Return StructureSet cloned from <im>; return None if <im> is None."""
     return (ss if ss is None else StructureSet(ss))
 
+def get_atlases(paths, subtypes=None, roi_names=None, structure_set_index=None,
+                unsorted_dicom=True, max_atlas=None):
+    """
+    Obtain dictionary of atlas objects (structure set and associated image).
+
+    By default, all structure sets in each dataset are considered, in
+    reverse order of timestamp, and the first structure set with an
+    associated image is accepted.  It's possible to consider only
+    a specified structure set, or only structure sets that include specified
+    ROIs.
+
+    In the dictionary returned, keys are identifiers, and values are
+    tuples of the form (skrt.image.Image, skrt.structures.StructureSet).
+
+    **Parameters:**
+
+    paths: str/pathlib.Path/list
+        Path, or list of paths, to patient datasets to be considered as atlases.
+
+    subtypes: 
+            String, or list of strings, identifying subtype(s) of
+            imaging modality, for example "ct", "mr", "us", to be considered
+            as atlases.  If None, all imaging modalities are considered.
+
+    structure_set_index: int, default=None
+        Index, across all studies, of the structure set to be considered.
+        If None, each structure set is considered, in reverse order
+        of timestamp.  Setting the index to be different from None can
+        be useful if, for example, only the earliest structure set
+        (index 0), or only the most-recent structure set (index -1),
+        should be considered.
+
+    unsorted_dicom: bool, default=True
+        If False, assume that data in a patient dataset are organised
+        according to the VoxTox model.  If True, don't assume any particular
+        organisation, and create data hierarchy based on information
+        read from DICOM files.
+
+    max_atlas: int, default=None
+        Maximum number of atlases to be returned.  If None, there is
+        no maximum.
+    """
+    # If single path given as input, convert to a single-element list.
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
+
+    # Ensure value set for maximum number of atlases to be returned.
+    if max_atlas is None:
+        max_atlas = len(paths)
+
+    # Create dictionary of atlas objects.
+    atlases = {}
+    for path in paths:
+        if len(atlases) >= max_atlas:
+            break
+
+        # Read dataset, and load structure sets.
+        atlas = Patient(path, unsorted_dicom=unsorted_dicom)
+        structure_sets = atlas.get_structure_sets(subtypes)
+        im_atlas = None
+        ss_atlas = None
+
+        # Consider only structure set identified by a particular index.
+        if structure_set_index is not None:
+            try:
+                structure_sets = [structure_sets[structure_set_index]]
+            except IndexError:
+                structure_sets = []
+
+        # Consider structure sets in order of timestamp,
+        # starting from most recent.
+        for structure_set in reversed(structure_sets):
+            # Disregard structure set if it doesn't have an associated image.
+            im_atlas = ss_atlas.get_image()
+            if im_atlas is None:
+                continue
+
+            # Disregard structure set if it doesn't contain specified ROIs.
+            if roi_names:
+                ss_atlas = structure_set.filtered_copy(
+                        names=roi_names, keep_renamed_only=True,
+                        copy_roi_data=False)
+                if len(ss_atlas) != len(roi_names):
+                    ss_atlas = None
+            else:
+                ss_atlas = structure_set
+
+            if ss_atlas is not None:
+                break
+
+        # Add entry to atlas dictionary.
+        if im_atlas is not None and ss_atlas is not None:
+            atlases[atlas.id] = (im_atlas, ss_atlas)
+
+    return atlases
+
 def get_contour_propagation_strategies(engine=None, engine_dir=None):
     """
     Return list of contour propagation strategies for registration engine.
