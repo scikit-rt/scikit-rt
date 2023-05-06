@@ -297,6 +297,8 @@ class Study(skrt.core.Archive):
     def get_objs(self, dtype, subtypes=None):
         """
         Get list of study-associated objects of specified type and subtype(s).
+        
+        Returned objects are sorted by timestamp (earliest first).
 
         **Parameters:**
 
@@ -315,8 +317,8 @@ class Study(skrt.core.Archive):
         subtypes = subtypes or list(obj_types)
         if isinstance(subtypes, str):
             subtypes = [subtypes]
-        return sum([obj_types.get(subtype.lower(), [])
-                    for subtype in subtypes], [])
+        return sorted(sum([obj_types.get(subtype.lower(), [])
+                    for subtype in subtypes], []))
 
     def get_images(self, subtypes=None):
         """
@@ -1396,6 +1398,8 @@ class Patient(skrt.core.PathData):
         Objects may be taken across all studies, or across studies within
         specified sub-directories.
 
+        Returned objects are sorted by timestamp (earliest first).
+
         **Parameters:**
 
         dtype: str
@@ -1414,8 +1418,8 @@ class Patient(skrt.core.PathData):
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
         '''
-        return sum([study.get_objs(dtype, subtypes)
-                    for study in self.get_studies(subdirs)], [])
+        return sorted(sum([study.get_objs(dtype, subtypes)
+                    for study in self.get_studies(subdirs)], []))
 
     def get_images(self, subtypes=None, subdirs=None):
         """
