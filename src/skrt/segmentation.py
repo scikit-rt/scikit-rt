@@ -51,6 +51,7 @@ from copy import deepcopy
 from inspect import signature
 from itertools import combinations
 from pathlib import Path
+import random
 from shutil import rmtree
 
 import pandas as pd
@@ -59,6 +60,7 @@ from skrt.core import (
         Data, Defaults, get_dict_permutations, get_logger, get_stat_functions,
         is_list, tic, toc)
 from skrt.image import Image, match_images
+from skrt.patient import Patient
 from skrt.structures import (
         StructureSet,
         get_by_slice_methods, get_comparison_metrics, get_consensus_types)
@@ -987,8 +989,9 @@ def ensure_structure_set(ss):
     """Return StructureSet cloned from <im>; return None if <im> is None."""
     return (ss if ss is None else StructureSet(ss))
 
-def get_atlases(paths, subtypes=None, roi_names=None, structure_set_index=None,
-                unsorted_dicom=True, max_atlas=None):
+def get_atlases(paths, subtypes=None, subdirs=None, roi_names=None,
+                structure_set_index=None, unsorted_dicom=True,
+                ordering=None, seed=None, exclude_ids=None, max_atlas=None):
     """
     Obtain dictionary of atlas objects (structure set and associated image).
 
@@ -1007,9 +1010,15 @@ def get_atlases(paths, subtypes=None, roi_names=None, structure_set_index=None,
         Path, or list of paths, to patient datasets to be considered as atlases.
 
     subtypes: 
-            String, or list of strings, identifying subtype(s) of
-            imaging modality, for example "ct", "mr", "us", to be considered
-            as atlases.  If None, all imaging modalities are considered.
+        String, or list of strings, identifying subtype(s) of
+        imaging modality, for example "ct", "mr", "us", to be considered
+        as atlases.  If None, all imaging modalities are considered.
+
+    subdirs : str/list, default=None
+        Subdirectory, or list of subdirectories, grouping studies.
+        If specified, only studies in this subdirectory, or
+        in these subdirectories, are considered.  Disregarded if
+        unsorted_dicom is True.
 
     structure_set_index: int, default=None
         Index, across all studies, of the structure set to be considered.
@@ -1025,6 +1034,22 @@ def get_atlases(paths, subtypes=None, roi_names=None, structure_set_index=None,
         organisation, and create data hierarchy based on information
         read from DICOM files.
 
+    ordering: str, default="sorted"
+        Way in which atlas paths are to be ordered:
+
+        - None: no ordering is performed;
+        - "sorted": paths are sorted;
+        - "reverse_sorted": paths are sorted in reverse;
+        - "random": path order is randomised.
+        
+    seed: int, default=None
+        Value to be used for random-number seed.  Disregarded if None, or
+        if ordering requested is different from "random".
+
+    exclude_ids: str/list, default=None
+        Identifier, or list of identifiers, for any patient datasets
+        to be disregarded when defining atlases.
+
     max_atlas: int, default=None
         Maximum number of atlases to be returned.  If None, there is
         no maximum.
@@ -1033,9 +1058,35 @@ def get_atlases(paths, subtypes=None, roi_names=None, structure_set_index=None,
     if isinstance(paths, (str, Path)):
         paths = [paths]
 
+    # Order paths as requested.
+    allowed_ordering=[None, "random", "sorted", "reverse_sorted"]
+    if ordering not in allowed_ordering:
+        raise RuntimeError(f"Ordering {ordering} not allowed; "
+                           f"allowed orderings: {allowed_ordering}")
+    if ordering is not None:
+        paths = list(paths)
+        if "sorted" == ordering:
+            paths.sort()
+        elif "reverse_sorted" == ordering:
+            paths.sort(reverse=True)
+        else:
+            if seed is not None:
+                random.seed(seed)
+            random.shuffle(paths)
+
+    # Try to ensure that identifier(s) for datasets to be excluded
+    # are in a list.
+    exclude_ids = exclude_ids or []
+    if isinstance(exclude_ids, str):
+        exclude_ids = [exclude_ids]
+
     # Ensure value set for maximum number of atlases to be returned.
     if max_atlas is None:
         max_atlas = len(paths)
+
+    # Disallow study subdirectories for unsorted data.
+    if unsorted_dicom:
+        subdirs = None
 
     # Create dictionary of atlas objects.
     atlases = {}
@@ -1043,11 +1094,15 @@ def get_atlases(paths, subtypes=None, roi_names=None, structure_set_index=None,
         if len(atlases) >= max_atlas:
             break
 
-        # Read dataset, and load structure sets.
+        # Read dataset.
         atlas = Patient(path, unsorted_dicom=unsorted_dicom)
-        structure_sets = atlas.get_structure_sets(subtypes)
-        im_atlas = None
-        ss_atlas = None
+
+        # Skip dataset if id is among those to be excluded.
+        if atlas.id in exclude_ids:
+            continue
+
+        # Load structure sets.
+        structure_sets = atlas.get_structure_sets(subtypes, subdirs)
 
         # Consider only structure set identified by a particular index.
         if structure_set_index is not None:
@@ -1056,11 +1111,15 @@ def get_atlases(paths, subtypes=None, roi_names=None, structure_set_index=None,
             except IndexError:
                 structure_sets = []
 
+        # Intialise atlas image and structure set.
+        im_atlas = None
+        ss_atlas = None
+
         # Consider structure sets in order of timestamp,
         # starting from most recent.
         for structure_set in reversed(structure_sets):
             # Disregard structure set if it doesn't have an associated image.
-            im_atlas = ss_atlas.get_image()
+            im_atlas = structure_set.get_image()
             if im_atlas is None:
                 continue
 
