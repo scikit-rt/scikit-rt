@@ -459,6 +459,7 @@ If True, return summary information as a pandas dataframe.</p>
 <dd><p>Get list of patient-associated objects of specified type and subtype(s).</p>
 <p>Objects may be taken across all studies, or across studies within
 specified sub-directories.</p>
+<p>Returned objects are sorted by timestamp (earliest first).</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>dtype: str</dt><dd><p>String identifying type of objects to be returned.  This may
@@ -831,6 +832,7 @@ for that patient.</p>
 <dt class="sig sig-object py" id="skrt.patient.Study.get_objs">
 <span class="sig-name descname"><span class="pre">get_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_objs" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of study-associated objects of specified type and subtype(s).</p>
+<p>Returned objects are sorted by timestamp (earliest first).</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>dtype: str</dt><dd><p>String identifying type of objects to be returned.  This may
