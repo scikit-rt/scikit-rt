@@ -294,7 +294,7 @@ class Study(skrt.core.Archive):
         patient_id = os.path.basename(os.path.dirname(self.path))
         return patient_id
 
-    def get_objs(self, dtype, subtypes=None):
+    def get_objs(self, dtype, subtypes=None, associations=None):
         """
         Get list of study-associated objects of specified type and subtype(s).
         
@@ -312,15 +312,31 @@ class Study(skrt.core.Archive):
             for example "ct", "mr", "us", or may be a generic identifier,
             for example "rtstruct", "rtdose", "rtplan".  If None,
             all subtypes are accepted.
+
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the objects to be returned.  For example, associations=["image"]
+            indicates that objects without an associated Image object are to be
+            disregarded.  If None, there are no required associations.
         """
+        # Obtain object(s) of required data type and subtype(s).
         obj_types = getattr(self, f"{dtype.lower()}_types", {})
         subtypes = subtypes or list(obj_types)
         if isinstance(subtypes, str):
             subtypes = [subtypes]
-        return sorted(sum([obj_types.get(subtype.lower(), [])
-                    for subtype in subtypes], []))
+        objs = sum([obj_types.get(subtype.lower(), [])
+                    for subtype in subtypes], [])
 
-    def get_images(self, subtypes=None):
+        # Return object(s) with required associations.
+        if associations is None:
+            associations = []
+        elif isinstance(associations, str):
+            associations = [associations]
+        return sorted(
+                [obj for obj in objs
+                 if all([obj.getattr(dtype, None) for dtype in associations])])
+
+    def get_images(self, subtypes=None, associations=None):
         """
         Get list of study-associated images of specified subtype(s).
 
@@ -330,10 +346,17 @@ class Study(skrt.core.Archive):
             String, or list of strings, identifying subtype(s) of images
             to be returned.  A subtype corresponds to an imaging modality,
             for example "ct", "mr", "us".  If None, all subtypes are accepted.
-        """
-        return self.get_objs("image", subtypes)
 
-    def get_structure_sets(self, subtypes=None):
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the images to be returned.  For example,
+            associations=["structure_sets"] indicates that Image objects
+            without at least one associated StructureSet object are to be
+            disregarded.  If None, there are no required associations.
+        """
+        return self.get_objs("image", subtypes, associations)
+
+    def get_structure_sets(self, subtypes=None, associations=None):
         """
         Get list of study-associated structure sets of specified subtype(s).
 
@@ -345,10 +368,17 @@ class Study(skrt.core.Archive):
             of the image associated with a structure set, or may be the
             generic identifier "rtstruct" if there is no associated image.
             If None, all subtypes are accepted.
-        """
-        return self.get_objs("structure_set", subtypes)
 
-    def get_doses(self, subtypes=None):
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the structure sets to be returned.  For example,
+            associations=["image"] indicates that StructureSet objects
+            without an associated Image object are to be disregarded.  If None,
+            there are no required associations.
+        """
+        return self.get_objs("structure_set", subtypes, associations)
+
+    def get_doses(self, subtypes=None, associations=None):
         """
         Get list of study-associated doses of specified subtype(s).
 
@@ -360,10 +390,16 @@ class Study(skrt.core.Archive):
             of the image associated with a dose, or may be the generic
             identifier "rtdose" if there is no associated image.
             If None, all subtypes are accepted.
-        """
-        return self.get_objs("dose", subtypes)
 
-    def get_plans(self, subtypes=None):
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the doses to be returned.  For example, associations=["image"]
+            indicates that Dose objects without an associated Image object
+            are to be disregarded.  If None, there are no required associations.
+        """
+        return self.get_objs("dose", subtypes, associations)
+
+    def get_plans(self, subtypes=None, associations=None):
         """
         Get list of study-associated plans of specified subtype(s).
 
@@ -375,8 +411,15 @@ class Study(skrt.core.Archive):
             of the image associated with a dose, or may be the generic
             identifier "rtplan" if there is no associated image.
             If None, all subtypes are accepted.
+
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the plans to be returned.  For example,
+            associations=["structure_set"] indicates that Plan objects without
+            an associated StructureSet object are to be disregarded.  If None,
+            there are no required associations.
         """
-        return self.get_objs("plan", subtypes)
+        return self.get_objs("plan", subtypes, associations)
 
     def get_plan_data(self, dtype="RtPlan", subdir="RTPLAN", exclude=[], images=[]):
         """Get list of RT dose or plan objects specified by dtype='RtDose' or
@@ -1391,7 +1434,7 @@ class Patient(skrt.core.PathData):
 
         return sorted(studies)
 
-    def get_objs(self, dtype, subtypes=None, subdirs=None):
+    def get_objs(self, dtype, subtypes=None, associations=None, subdirs=None):
         '''
         Get list of patient-associated objects of specified type and subtype(s).
 
@@ -1413,15 +1456,21 @@ class Patient(skrt.core.PathData):
             for example "rtstruct", "rtdose", "rtplan".  If None,
             all subtypes are accepted.
 
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the objects to be returned.  For example, associations=["image"]
+            indicates that objects without an associated Image object are to be
+            disregarded.  If None, there are no required associations.
+
         subdirs : str/list, default=None
             Subdirectory, or list of subdirectories, grouping studies.
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
         '''
-        return sorted(sum([study.get_objs(dtype, subtypes)
+        return sorted(sum([study.get_objs(dtype, subtypes, associations)
                     for study in self.get_studies(subdirs)], []))
 
-    def get_images(self, subtypes=None, subdirs=None):
+    def get_images(self, subtypes=None, associations=None, subdirs=None):
         """
         Get list of patient-associated images of specified subtype(s).
 
@@ -1435,14 +1484,22 @@ class Patient(skrt.core.PathData):
             to be returned.  A subtype corresponds to an imaging modality,
             for example "ct", "mr", "us".  If None, all subtypes are accepted.
 
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the images to be returned.  For example,
+            associations=["structure_sets"] indicates that Image objects
+            without at least one associated StructureSet object are to be
+            disregarded.  If None, there are no required associations.
+
         subdirs : str/list, default=None
             Subdirectory, or list of subdirectories, grouping studies.
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
         """
-        return self.get_objs("image", subtypes, subdirs)
+        return self.get_objs("image", subtypes, associations, subdirs)
 
-    def get_structure_sets(self, subtypes=None, subdirs=None):
+    def get_structure_sets(self, subtypes=None, associations=None,
+                           subdirs=None):
         """
         Get list of patient-associated structure sets of specified subtype(s).
 
@@ -1458,6 +1515,13 @@ class Patient(skrt.core.PathData):
             generic identifier "rtstruct" if there is no associated image.
             If None, all subtypes are accepted.
 
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the structure sets to be returned.  For example,
+            associations=["image"] indicates that StructureSet objects
+            without an associated Image object are to be disregarded.  If None,
+            there are no required associations.
+
         subdirs : str/list, default=None
             Subdirectory, or list of subdirectories, grouping studies.
             If specified, only studies in this subdirectory, or
@@ -1465,7 +1529,7 @@ class Patient(skrt.core.PathData):
         """
         return self.get_objs("structure_set", subtypes, subdirs)
 
-    def get_doses(self, subtypes=None, subdirs=None):
+    def get_doses(self, subtypes=None, associations=None, subdirs=None):
         """
         Get list of patient-associated doses of specified subtype(s).
 
@@ -1481,14 +1545,20 @@ class Patient(skrt.core.PathData):
             identifier "rtdose" if there is no associated image.
             If None, all subtypes are accepted.
 
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the doses to be returned.  For example, associations=["image"]
+            indicates that Dose objects without an associated Image object
+            are to be disregarded.  If None, there are no required associations.
+
         subdirs : str/list, default=None
             Subdirectory, or list of subdirectories, grouping studies.
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
         """
-        return self.get_objs("dose", subtypes, subdirs)
+        return self.get_objs("dose", subtypes, associations, subdirs)
 
-    def get_plans(self, subtypes=None, subdirs=None):
+    def get_plans(self, subtypes=None, associations=None, subdirs=None):
         """
         Get list of patient-associated plans of specified subtype(s).
 
@@ -1504,12 +1574,19 @@ class Patient(skrt.core.PathData):
             identifier "rtplan" if there is no associated image.
             If None, all subtypes are accepted.
 
+        associations: str/list, default=None
+            String, or list of strings, identifying required associations for
+            the plans to be returned.  For example,
+            associations=["structure_set"] indicates that Plan objects without
+            an associated StructureSet object are to be disregarded.  If None,
+            there are no required associations.
+
         subdirs : str/list, default=None
             Subdirectory, or list of subdirectories, grouping studies.
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
         """
-        return self.get_objs("plan", subtypes, subdirs)
+        return self.get_objs("plan", subtypes, associations, subdirs)
 
     def get_structure_set_with_image(
             self, roi_names=None, modality=None, study_index=None,
