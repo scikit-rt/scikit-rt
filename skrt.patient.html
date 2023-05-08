@@ -328,7 +328,7 @@ True, sum doses independently of any previous result.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_doses">
-<span class="sig-name descname"><span class="pre">get_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_doses" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_doses" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of patient-associated doses of specified subtype(s).</p>
 <p>Doses may be taken across all studies, or across studies within
 specified sub-directories.</p>
@@ -339,6 +339,11 @@ to be returned.  A subtype may correspond to the modality
 of the image associated with a dose, or may be the generic
 identifier “rtdose” if there is no associated image.
 If None, all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the doses to be returned.  For example, associations=[“image”]
+indicates that Dose objects without an associated Image object
+are to be disregarded.  If None, there are no required associations.</p>
 </dd>
 <dt>subdirs<span class="classifier">str/list, default=None</span></dt><dd><p>Subdirectory, or list of subdirectories, grouping studies.
 If specified, only studies in this subdirectory, or
@@ -396,7 +401,7 @@ If True, return summary information as a pandas dataframe.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_images">
-<span class="sig-name descname"><span class="pre">get_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_images" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_images" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of patient-associated images of specified subtype(s).</p>
 <p>Images may be taken across all studies, or across studies within
 specified sub-directories.</p>
@@ -405,6 +410,12 @@ specified sub-directories.</p>
 <dt>subtypes: str/list, default=None</dt><dd><p>String, or list of strings, identifying subtype(s) of images
 to be returned.  A subtype corresponds to an imaging modality,
 for example “ct”, “mr”, “us”.  If None, all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the images to be returned.  For example,
+associations=[“structure_sets”] indicates that Image objects
+without at least one associated StructureSet object are to be
+disregarded.  If None, there are no required associations.</p>
 </dd>
 <dt>subdirs<span class="classifier">str/list, default=None</span></dt><dd><p>Subdirectory, or list of subdirectories, grouping studies.
 If specified, only studies in this subdirectory, or
@@ -455,7 +466,7 @@ If True, return summary information as a pandas dataframe.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_objs">
-<span class="sig-name descname"><span class="pre">get_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_objs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_objs" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of patient-associated objects of specified type and subtype(s).</p>
 <p>Objects may be taken across all studies, or across studies within
 specified sub-directories.</p>
@@ -470,6 +481,11 @@ to be returned.  A subtype may correspond to an imaging modality,
 for example “ct”, “mr”, “us”, or may be a generic identifier,
 for example “rtstruct”, “rtdose”, “rtplan”.  If None,
 all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the objects to be returned.  For example, associations=[“image”]
+indicates that objects without an associated Image object are to be
+disregarded.  If None, there are no required associations.</p>
 </dd>
 <dt>subdirs<span class="classifier">str/list, default=None</span></dt><dd><p>Subdirectory, or list of subdirectories, grouping studies.
 If specified, only studies in this subdirectory, or
@@ -513,7 +529,7 @@ If True, return summary information as a pandas dataframe.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_plans">
-<span class="sig-name descname"><span class="pre">get_plans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_plans" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_plans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_plans" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of patient-associated plans of specified subtype(s).</p>
 <p>Plans may be taken across all studies, or across studies within
 specified sub-directories.</p>
@@ -524,6 +540,12 @@ to be returned.  A subtype may correspond to the modality
 of the image associated with a dose, or may be the generic
 identifier “rtplan” if there is no associated image.
 If None, all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the plans to be returned.  For example,
+associations=[“structure_set”] indicates that Plan objects without
+an associated StructureSet object are to be disregarded.  If None,
+there are no required associations.</p>
 </dd>
 <dt>subdirs<span class="classifier">str/list, default=None</span></dt><dd><p>Subdirectory, or list of subdirectories, grouping studies.
 If specified, only studies in this subdirectory, or
@@ -639,7 +661,7 @@ return the originals, with any modification performed on these.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Patient.get_structure_sets">
-<span class="sig-name descname"><span class="pre">get_structure_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_structure_sets" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_structure_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Patient.get_structure_sets" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of patient-associated structure sets of specified subtype(s).</p>
 <p>Structure sets may be taken across all studies, or across studies within
 specified sub-directories.</p>
@@ -650,6 +672,12 @@ sets to be returned.  A subtype may correspond to the modality
 of the image associated with a structure set, or may be the
 generic identifier “rtstruct” if there is no associated image.
 If None, all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the structure sets to be returned.  For example,
+associations=[“image”] indicates that StructureSet objects
+without an associated Image object are to be disregarded.  If None,
+there are no required associations.</p>
 </dd>
 <dt>subdirs<span class="classifier">str/list, default=None</span></dt><dd><p>Subdirectory, or list of subdirectories, grouping studies.
 If specified, only studies in this subdirectory, or
@@ -786,7 +814,7 @@ relative to image positions.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_doses">
-<span class="sig-name descname"><span class="pre">get_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_doses" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_doses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_doses" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of study-associated doses of specified subtype(s).</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -796,18 +824,29 @@ of the image associated with a dose, or may be the generic
 identifier “rtdose” if there is no associated image.
 If None, all subtypes are accepted.</p>
 </dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the doses to be returned.  For example, associations=[“image”]
+indicates that Dose objects without an associated Image object
+are to be disregarded.  If None, there are no required associations.</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_images">
-<span class="sig-name descname"><span class="pre">get_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_images" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_images" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of study-associated images of specified subtype(s).</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>subtypes: str/list, default=None</dt><dd><p>String, or list of strings, identifying subtype(s) of images
 to be returned.  A subtype corresponds to an imaging modality,
 for example “ct”, “mr”, “us”.  If None, all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the images to be returned.  For example,
+associations=[“structure_sets”] indicates that Image objects
+without at least one associated StructureSet object are to be
+disregarded.  If None, there are no required associations.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -830,7 +869,7 @@ for that patient.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_objs">
-<span class="sig-name descname"><span class="pre">get_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_objs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_objs" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of study-associated objects of specified type and subtype(s).</p>
 <p>Returned objects are sorted by timestamp (earliest first).</p>
 <p><strong>Parameters:</strong></p>
@@ -843,6 +882,11 @@ to be returned.  A subtype may correspond to an imaging modality,
 for example “ct”, “mr”, “us”, or may be a generic identifier,
 for example “rtstruct”, “rtdose”, “rtplan”.  If None,
 all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the objects to be returned.  For example, associations=[“image”]
+indicates that objects without an associated Image object are to be
+disregarded.  If None, there are no required associations.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -875,7 +919,7 @@ in &lt;images&gt; (which should be a list of DatedStores), if provided.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_plans">
-<span class="sig-name descname"><span class="pre">get_plans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_plans" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_plans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_plans" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of study-associated plans of specified subtype(s).</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -885,12 +929,18 @@ of the image associated with a dose, or may be the generic
 identifier “rtplan” if there is no associated image.
 If None, all subtypes are accepted.</p>
 </dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the plans to be returned.  For example,
+associations=[“structure_set”] indicates that Plan objects without
+an associated StructureSet object are to be disregarded.  If None,
+there are no required associations.</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.get_structure_sets">
-<span class="sig-name descname"><span class="pre">get_structure_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_structure_sets" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_structure_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.get_structure_sets" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of study-associated structure sets of specified subtype(s).</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -899,6 +949,12 @@ sets to be returned.  A subtype may correspond to the modality
 of the image associated with a structure set, or may be the
 generic identifier “rtstruct” if there is no associated image.
 If None, all subtypes are accepted.</p>
+</dd>
+<dt>associations: str/list, default=None</dt><dd><p>String, or list of strings, identifying required associations for
+the structure sets to be returned.  For example,
+associations=[“image”] indicates that StructureSet objects
+without an associated Image object are to be disregarded.  If None,
+there are no required associations.</p>
 </dd>
 </dl>
 </dd></dl>
