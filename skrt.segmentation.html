@@ -326,7 +326,7 @@ and their initial values.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_atlases">
-<span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_atlases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_atlas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_atlases" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_atlases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_atlas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_atlases" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain dictionary of atlas objects (structure set and associated image).</p>
 <p>By default, all structure sets in each dataset are considered, in
 reverse order of timestamp, and the first structure set with an
@@ -359,20 +359,6 @@ should be considered.</p>
 according to the VoxTox model.  If True, don’t assume any particular
 organisation, and create data hierarchy based on information
 read from DICOM files.</p>
-</dd>
-<dt>ordering: str, default=”sorted”</dt><dd><p>Way in which atlas paths are to be ordered:</p>
-<ul class="simple">
-<li><p>None: no ordering is performed;</p></li>
-<li><p>“sorted”: paths are sorted;</p></li>
-<li><p>“reverse_sorted”: paths are sorted in reverse;</p></li>
-<li><p>“random”: path order is randomised.</p></li>
-</ul>
-</dd>
-<dt>seed: int, default=None</dt><dd><p>Value to be used for random-number seed.  Disregarded if None, or
-if ordering requested is different from “random”.</p>
-</dd>
-<dt>exclude_ids: str/list, default=None</dt><dd><p>Identifier, or list of identifiers, for any patient datasets
-to be disregarded when defining atlases.</p>
 </dd>
 <dt>max_atlas: int, default=None</dt><dd><p>Maximum number of atlases to be returned.  If None, there is
 no maximum.</p>
