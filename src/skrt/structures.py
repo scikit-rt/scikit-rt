@@ -8,6 +8,7 @@ from shapely import affinity
 from shapely import geometry
 from shapely import ops
 import fnmatch
+import logging
 import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
@@ -30,6 +31,7 @@ from skrt.dicom_writer import DicomWriter
 # Set global defaults.
 skrt.core.Defaults({"by_slice": "union"})
 skrt.core.Defaults({"slice_stats": ["mean"]})
+skrt.core.Defaults({"shapely_log_level": logging.ERROR})
 
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""
@@ -8089,6 +8091,11 @@ def get_dicom_sequence(ds=None, basename=""):
 def contour_to_polygon(contour):
     """Convert a list of contour points to a Shapely polygon, ensuring that 
     the polygon is valid."""
+
+    # Disable shapely INFO messages issued when a polygon isn't valid:
+    # "callback - INFO - Ring Self-intersection at or near point"
+    logging.getLogger('shapely.geos').setLevel(
+            skrt.core.Defaults().shapely_log_level)
 
     polygon = geometry.Polygon(contour)
 
