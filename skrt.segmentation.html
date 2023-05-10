@@ -327,7 +327,7 @@ and their initial values.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_atlases">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_atlases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_atlas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_atlases" title="Permalink to this definition"></a></dt>
-<dd><p>Obtain dictionary of atlas objects (structure set and associated image).</p>
+<dd><p>Obtain dictionary of atlas tuples (structure set and associated image).</p>
 <p>By default, all structure sets in each dataset are considered, in
 reverse order of timestamp, and the first structure set with an
 associated image is accepted.  It’s possible to consider only
@@ -457,6 +457,67 @@ or False.</p>
 <dt class="sig sig-object py" id="skrt.segmentation.get_structure_set_index">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_structure_set_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ss_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_structure_set_index" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.segmentation.select_atlases">
+<span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">select_atlases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atlases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_atlas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_to_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.select_atlases" title="Permalink to this definition"></a></dt>
+<dd><p>Select atlases to register against target.</p>
+<p><strong>Parameters:</strong>
+atlases: dict</p>
+<blockquote>
+<div><p>Dictionary of atlas tuples (structure set and associated image),
+such as returned by skrt.segmentation.get_atlases().</p>
+</div></blockquote>
+<dl class="simple">
+<dt>target: skrt.image.Image, default=None</dt><dd><p>Image against which to register.  When selection ordering
+isn’t based on a comparison metric, this can be None.</p>
+</dd>
+<dt>n_atlas: int, default=None</dt><dd><p>Number of atlases to select, from those given as input.  If None,
+all input atlases are returned, ordered according to selection.</p>
+</dd>
+<dt>exclude_ids: list, default=None</dt><dd><p>List of atlas identifiers to be excluded from selection.  This may
+be used, for example, if the target image is also an atlas,
+and self-registration isn’t wanted.  If None, no atlases are
+excluded.</p>
+</dd>
+<dt>selection: str/None, default=None</dt><dd><p>Ordering to be performed prior to selecting the first
+&lt;n_atlas&gt; atlases:</p>
+<ul class="simple">
+<li><p>None: the input order is retained;</p></li>
+<li><p>“random”: atlases are ordered randomly;</p></li>
+<li><p>“sorted”: atlases are sorted in alphabetic order of identifier;</p></li>
+<li><p>“reverse_sorted”: atlases are sorted in reverse alphabetic order
+of identifier;</p></li>
+<li><p>image-comparison metric: atlases are compared with the target,
+and are ordered according to the specified image-comparison metric.
+Possibilities include “mutual-information”,
+“information quality ratio”, “fidelity”  For a list of available
+metrics, see documentation for skrt.image.Image.get_comparison().</p></li>
+<li><p>foreground-comparison metric: atlas foregrounds are compared with
+the target foreground and are ordered according to the specified
+foreground-comparison metric.  Possibilities include “dice”,
+“centroid”, “volume_ratio”.  For a list of available metrics,
+see documentation for skrt.structures.ROI.get_comparison().</p></li>
+</ul>
+</dd>
+<dt>high_to_low: bool, default=True</dt><dd><p>When ordering for selection is based on a comparison metric,
+the ordering is from high to low if high_to_low is True, or
+otherwise is from low to high.</p>
+</dd>
+<dt>alignment: tuple/dict/str, default=None</dt><dd><p>Strategy to be used for aligning atlases and target when
+comparing them.  For strategy details, see documentation of
+skrt.image.get_alignment_translation().  The value set is
+passed to skrt.image.match_images_for_comparison(), to match
+atlas and target prior to evaluation of a comparison metric.
+Disregarded when ordering for selection isn’t based on
+a comparison metric.</p>
+</dd>
+<dt>kwargs: dict</dt><dd><p>Keyword arguments passed to comparison methods:
+skrt.image.get_comparison() or skrt.image.get_foreground_comparison(),
+depending on selection specified.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
