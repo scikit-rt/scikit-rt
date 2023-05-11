@@ -4564,7 +4564,6 @@ class ROI(skrt.core.Archive):
         `**`kwargs :
             Extra keyword arguments to pass to the relevant plot function.
         """
-
         self.load()
         if self.empty:
             return
@@ -7162,6 +7161,10 @@ class StructureSet(skrt.core.Archive):
             linewidth = defaultParams["lines.linewidth"][0]
         roi_kwargs["linewidth"] = linewidth
 
+        # Ensure that title is set to be a string.
+        if kwargs.get("title", None) is None:
+            kwargs["title"] = self.name or ""
+
         # Plot with image
         if include_image and self.image is not None:
 
@@ -7184,9 +7187,6 @@ class StructureSet(skrt.core.Archive):
                 **kwargs
             )
             return
-
-        if kwargs.get("title", None) is None:
-            kwargs["title"] = self.name or ""
 
         # Plot consensus
         roi_handles = []
@@ -7385,6 +7385,10 @@ class StructureSet(skrt.core.Archive):
         if "plot_type" in kwargs:
             kwargs["roi_plot_type"] = kwargs.pop("plot_type")
 
+        # Ensure that title is set to be a string.
+        if kwargs.get("title", None) is None:
+            kwargs["title"] = self.name or ""
+
         # View with image
         if include_image and self.image is not None:
             if rois is None:
@@ -7398,9 +7402,6 @@ class StructureSet(skrt.core.Archive):
 
         # View without image
         else:
-
-            if kwargs.get("title", None) is None:
-                kwargs["title"] = self.name
 
             structure_set_tmp = self
 

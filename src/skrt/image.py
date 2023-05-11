@@ -2916,6 +2916,7 @@ class Image(skrt.core.Archive):
             roi_opacity = roi_kwargs.get("opacity",
                     0.3 if "filled" in roi_plot_type else 1)
         roi_kwargs["opacity"] = roi_opacity
+        roi_kwargs["title"] = roi_kwargs.get("title", title) or ""
 
         if dose_kwargs is None:
             dose_kwargs = {}
