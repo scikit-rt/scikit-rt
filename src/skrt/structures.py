@@ -7186,7 +7186,7 @@ class StructureSet(skrt.core.Archive):
             return
 
         if kwargs.get("title", None) is None:
-            kwargs["title"] = self.name
+            kwargs["title"] = self.name or ""
 
         # Plot consensus
         roi_handles = []
@@ -7239,7 +7239,7 @@ class StructureSet(skrt.core.Archive):
 
             central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                          opacity=opacity, linewidth=linewidth, show=False,
-                         ax=ax)
+                         ax=ax, **kwargs)
 
             self.fig = central.fig
             self.ax = central.ax
