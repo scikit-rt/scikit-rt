@@ -592,6 +592,9 @@ class Image(skrt.core.Archive):
         if sl is None and idx is None and pos is None:
             return self.dicom_dataset
 
+        if not getattr(self, "_z_paths", None):
+            return
+
         # Otherwise, load the dataset for that slice
         return pydicom.dcmread(
             self.get_dicom_filepath(sl=sl, idx=idx, pos=pos), force=True
