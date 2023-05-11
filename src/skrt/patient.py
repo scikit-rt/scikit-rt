@@ -334,7 +334,7 @@ class Study(skrt.core.Archive):
             associations = [associations]
         return sorted(
                 [obj for obj in objs
-                 if all([obj.getattr(dtype, None) for dtype in associations])])
+                 if all([getattr(obj, dtype, None) for dtype in associations])])
 
     def get_images(self, subtypes=None, associations=None):
         """
@@ -1651,12 +1651,16 @@ class Patient(skrt.core.PathData):
                 break
 
             # Define the list of structure sets to be considered.
+            """
             if modality is not None:
                 structure_sets = study.structure_set_types.get(modality, [])
             else:
                 structure_sets = sorted(
                         [ss for ss in structure_set_types.values()
                          if ss.image is not None])
+            """
+            structure_sets = study.get_structure_sets(
+                    subtypes=modality, associations="image")
             if not structure_sets:
                 continue
             if structure_set_index is not None:
