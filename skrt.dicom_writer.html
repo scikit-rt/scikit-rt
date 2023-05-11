@@ -325,6 +325,21 @@ these are deleted.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_referenced_frame_of_reference_sequence">
+<span class="sig-name descname"><span class="pre">set_referenced_frame_of_reference_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_referenced_frame_of_reference_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Set attributes for referenced frame of reference sequence.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image from which attributes of referenced frame
+of reference are to be determined.  If no associated DICOM
+dataset can be loaded for this image, then
+self.ds.ReferencedFrameOfReferenceSequence is set as
+an empty sequence.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_structure_set">
 <span class="sig-name descname"><span class="pre">set_structure_set</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_structure_set" title="Permalink to this definition"></a></dt>
 <dd><p>Add to dataset information for structure set.</p>
