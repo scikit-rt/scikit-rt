@@ -481,6 +481,71 @@ class DicomWriter:
                 f'{self.mediaStorageSOPInstanceUID}.{sl}')
         self.ds.SOPInstanceUID = self.ds.file_meta.MediaStorageSOPInstanceUID
 
+    def set_referenced_frame_of_reference_sequence(self, image):
+        """
+        Set attributes for referenced frame of reference sequence.
+
+        **Parameter:**
+
+        image : skrt.image.Image
+            Image from which attributes of referenced frame
+            of reference are to be determined.  If no associated DICOM
+            dataset can be loaded for this image, then
+            self.ds.ReferencedFrameOfReferenceSequence is set as
+            an empty sequence.
+        """
+        # Try to determine referenced frame of reference UID from image.
+        ds = image.get_dicom_dataset() if image is not None else None
+        self.referenced_frame_of_reference_uid = getattr(
+                ds, "FrameOfReferenceUID", None)
+
+        # Create new sequence if not already defined from header source,
+        # or if existing sequence is to be overwritten from input object.
+        if (self.referenced_frame_of_reference_uid is not None
+            or not hasattr(self.ds, "ReferencedFrameOfReferenceSequence")):
+            self.ds.ReferencedFrameOfReferenceSequence = Sequence()
+
+        # Exit if unable to determine referenced frame of reference UID.
+        if self.referenced_frame_of_reference_uid is None:
+            return
+
+        # Create dataset for referenced frame of reference.
+        referenced_frame_of_reference = Dataset()
+        referenced_frame_of_reference.FrameOfReferenceUID = (
+                self.referenced_frame_of_reference_uid)
+        referenced_frame_of_reference.RTReferencedStudySequence = Sequence()
+
+        # Create dataset for rt referenced study.
+        rt_referenced_study = Dataset()
+        rt_referenced_study.ReferencedSOPClassUID = "1.2.840.10008.3.1.2.3.2"
+        rt_referenced_study.ReferencedSOPInstanceUID = getattr(
+                ds, "StudyInstanceUID", None)
+        rt_referenced_study.RTReferencedSeriesSequence = Sequence()
+
+        # Create dataset for rt referenced series.
+        rt_referenced_series = Dataset()
+        rt_referenced_series.SeriesInstanceUID = getattr(
+                ds, "SeriesInstanceUID", None)
+        rt_referenced_series.ContourImageSequence = Sequence()
+
+        # Create the contour-image sequence.
+        for idx in range(image.get_n_voxels()[2]):
+            ds = image.get_dicom_dataset(idx + 1)
+            contour_image = Dataset()
+            contour_image.ReferencedSOPClassUID = getattr(
+                    ds, "SOPClassUID", None)
+            contour_image.ReferencedSOPInstanceUID = getattr(
+                    ds, "SOPInstanceUID", None)
+            rt_referenced_series.ContourImageSequence.append(contour_image)
+
+        # Append completed datasets to sequences.
+        rt_referenced_study.RTReferencedSeriesSequence.append(
+                rt_referenced_series)
+        referenced_frame_of_reference.RTReferencedStudySequence.append(
+                rt_referenced_study)
+        self.ds.ReferencedFrameOfReferenceSequence.append(
+            referenced_frame_of_reference)
+
     def set_structure_set(self):
         '''
         Add to dataset information for structure set.
@@ -489,12 +554,14 @@ class DicomWriter:
         Several DICOM sequences are left empty, or partially populated,
         which outside of Scikit-rt may sometimes cause problems.
         '''
+        # Obtain reference to any image associated with structure set.
+        image = self.data.get_image()
+
         # Initialise sequences.
-        self.ds.ReferencedFrameOfReferenceSequence = Sequence()
+        self.set_referenced_frame_of_reference_sequence(image)
         self.ds.StructureSetROISequence = Sequence()
         self.ds.RTROIObservationsSequence = Sequence()
         self.ds.ROIContourSequence = Sequence()
-
         rois = self.data.get_rois()
         numbers = [roi.number for roi in rois if roi.number is not None]
         index = max(numbers or [0])
@@ -509,7 +576,8 @@ class DicomWriter:
             structure_set_roi = Dataset()
             structure_set_roi.ROINumber = number
             structure_set_roi.ROIName = name
-            structure_set_roi.ReferencedFrameOfReferenceUID = None
+            structure_set_roi.ReferencedFrameOfReferenceUID = (
+                    self.referenced_frame_of_reference_uid)
             structure_set_roi.ROIGenerationAlgorithm = None
             self.ds.StructureSetROISequence.append(structure_set_roi)
 
@@ -529,6 +597,13 @@ class DicomWriter:
             roi_contour.ContourSequence = Sequence()
 
             for z_point, contours in sorted(roi.get_contours().items()):
+                image_ds = (image.get_dicom_dataset(pos=z_point)
+                            if image is not None else None)
+                referenced_sop_class_uid = getattr(
+                        image_ds, "SOPClassUID", None)
+                referenced_sop_instance_uid = getattr(
+                        image_ds, "SOPInstanceUID", None)
+
                 for xy_points in contours:
                     xyz_points = [[x_point, y_point, z_point]
                             for x_point, y_point in xy_points]
@@ -541,8 +616,10 @@ class DicomWriter:
                     contour.NumberOfContourPoints = len(xyz_points)
                     contour.ContourImageSequence = Sequence()
                     contour_image = Dataset()
-                    contour_image.ReferencedSOPClassUID = None
-                    contour_image.ReferencedSOPInstanceUID = None
+                    contour_image.ReferencedSOPClassUID = (
+                            referenced_sop_class_uid)
+                    contour_image.ReferencedSOPInstanceUID = (
+                            referenced_sop_instance_uid)
                     contour.ContourImageSequence.append(contour_image)
                     roi_contour.ContourSequence.append(contour)
 
