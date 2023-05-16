@@ -5302,12 +5302,16 @@ class ROI(skrt.core.Archive):
                 new_key = key + translation[2]
                 new_contours[new_key] = []
                 for contour in contours:
+                    if len(contour) < 3:
+                        continue
                     polygon = contour_to_polygon(contour)
                     polygon = affinity.translate(polygon, *translation_2d)
                     polygon = affinity.rotate(polygon, angle, centre_2d)
                     polygon = affinity.scale(polygon, scale, scale, scale,
                             centre_2d)
                     new_contours[new_key].append(polygon_to_contour(polygon))
+                if not new_contours[new_key]:
+                    new_contours.pop(new_key)
 
             self.reset_contours(new_contours)
 
