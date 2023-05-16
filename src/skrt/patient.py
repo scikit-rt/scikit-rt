@@ -918,9 +918,7 @@ class Study(skrt.core.Archive):
             If True, delete pre-existing output directories.
 
         outdir - str, default='.'
-            Top-level directory to which nifti files for InnerEye will
-            be written for study.  Each output image will be in a separate
-            sub-directory, along with a file per associated ROI.
+            Top-level directory to which data will be copied.
 
         images_to_copy : list/str/dict, default=None
             String specifiying image type for which all images are
