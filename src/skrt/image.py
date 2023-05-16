@@ -6632,7 +6632,7 @@ def match_images_for_comparison(
     Image.get_comparison() and Image.get_quality().
 
     This function provides a subset of the processing options offered
-    by match_images(), and addition can change the origin of the first
+    by match_images(), and in addition can change the origin of the first
     image, to align better with the second image.
 
     **Parameters:**
