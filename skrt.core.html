@@ -294,7 +294,7 @@ automatically from the current date and time if auto_timestamp is True.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.copy_dicom">
-<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom" title="Permalink to this definition"></a></dt>
 <dd><p>Copy (single) source dicom file.</p>
 <p>Derived classes may override this method, to provide for
 copying multiple files.  See, for example:</p>
@@ -315,6 +315,10 @@ file.</p>
 <dt>sort<span class="classifier">bool, default=True</span></dt><dd><p>If True, the copied dicom file will be given name of form
 ‘MODALITY_YYMMDD_hhmmss’.  If False, the file is copied
 with name unaltered.</p>
+</dd>
+<dt>index<span class="classifier">int, default=None</span></dt><dd><p>Integer representing associated object position in an ordered
+list of objects of source data type.  Used in construction
+of output filename if not None, otherwise Ignored.</p>
 </dd>
 </dl>
 </dd></dl>

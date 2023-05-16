@@ -419,7 +419,7 @@ is kept.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.copy_dicom">
-<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image_dicom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.copy_dicom" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image_dicom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.copy_dicom" title="Permalink to this definition"></a></dt>
 <dd><p>Copy source dicom files.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -435,6 +435,10 @@ if all files have a different instance number, or else
 will be numbered sequentially from 1, in order of increasing
 z-coordinate.  If False, files are copied to the output directory
 with their names unaltered.</p>
+</dd>
+<dt>args<span class="classifier">list</span></dt><dd><p>Arguments to be ignored.</p>
+</dd>
+<dt>kwargs<span class="classifier">dict</span></dt><dd><p>Keyword arguments to be ignored.</p>
 </dd>
 </dl>
 </dd></dl>
