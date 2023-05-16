@@ -3688,7 +3688,8 @@ class Image(skrt.core.Archive):
             if verbose:
                 print("Wrote dicom file(s) to directory:", outdir)
 
-    def copy_dicom(self, outdir="image_dicom", overwrite=True, sort=True):
+    def copy_dicom(self, outdir="image_dicom", overwrite=True, sort=True,
+                   *args, **kwargs):
         """
         Copy source dicom files.
 
@@ -3709,6 +3710,12 @@ class Image(skrt.core.Archive):
             will be numbered sequentially from 1, in order of increasing
             z-coordinate.  If False, files are copied to the output directory
             with their names unaltered.
+
+        args : list
+            Arguments to be ignored.
+
+        kwargs : dict
+            Keyword arguments to be ignored.
         """
         self.load()
 
