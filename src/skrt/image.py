@@ -1859,7 +1859,7 @@ class Image(skrt.core.Archive):
 
         # Perform resampling
         voxel_size = [None, None, match_to.get_voxel_size()[2]]
-        init_vz = to_resample.voxel_size[2]
+        init_vz = to_resample.get_voxel_size()[2]
         init_nz = int(to_resample.n_voxels[2])
         to_resample.resample(voxel_size)
         print(
@@ -3983,6 +3983,7 @@ class Image(skrt.core.Archive):
             return
 
         # Ensure DICOM representation for cropping.
+        self.load()
         if "nifti" in self.source_type:
             im = self.astype("dicom")
         else:
