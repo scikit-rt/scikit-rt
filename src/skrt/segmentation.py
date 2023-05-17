@@ -51,6 +51,7 @@ from copy import deepcopy
 from inspect import signature
 from itertools import combinations
 from pathlib import Path
+import random
 from shutil import rmtree
 
 import pandas as pd
@@ -58,7 +59,10 @@ import pandas as pd
 from skrt.core import (
         Data, Defaults, get_dict_permutations, get_logger, get_stat_functions,
         is_list, tic, toc)
-from skrt.image import Image, match_images
+from skrt.image import (
+        Image, get_mi_metrics, get_quality_metrics, match_images,
+        match_images_for_comparison)
+from skrt.patient import Patient
 from skrt.structures import (
         StructureSet,
         get_by_slice_methods, get_comparison_metrics, get_consensus_types)
@@ -822,11 +826,6 @@ class SingleAtlasSegmentation(Data):
         else:
             return self.registrations[strategy][step]
 
-    def get_mutual_information(self, strategy=None, step=None, roi_name=None,
-            reg_step=None, force=False, **kwargs):
-        reg = self.get_registration(strategy, step, roi_name, force)
-        return reg.get_mutual_information(reg_step, **kwargs)
-
     def get_segmentation(self, strategy=None, step=None, reg_step=None,
             force=False):
         strategy = get_strategy(strategy, self.default_strategy,
@@ -886,7 +885,7 @@ class SingleAtlasSegmentation(Data):
             steps=None, reg_steps=None, force=False, metrics=None,
             slice_stats=None, default_by_slice=None, 
             voxel_size=None, name_as_index=False,
-            mi_variants=None, mi_init=False, mi_reg_step=False, **kwargs):
+            **kwargs):
 
         if not hasattr(self, "ss1_filtered"):
             return
@@ -899,24 +898,6 @@ class SingleAtlasSegmentation(Data):
         slice_stats = slice_stats or self.default_slice_stats
         default_by_slice = get_option(default_by_slice, self.default_by_slice,
                                       get_by_slice_methods())
-
-        if mi_variants is None:
-            mi_variants = ["mi"]
-        elif isinstance(mi_variants, str):
-            mi_variants = [mi_variants]
-        elif not mi_variants:
-            mi_variants = []
-
-        mi_parameters = list(signature(Image.get_mutual_information).parameters)
-        comparison_parameters = list(signature(
-            SingleAtlasSegmentation.get_comparison).parameters)
-        mi_kwargs = {}
-        comparison_kwargs = {}
-        for key, value in kwargs.items():
-            if key in mi_parameters:
-                mi_kwargs[key] = value
-            else:
-                comparison_kwargs[key] = value
 
         df = None
         ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
@@ -937,7 +918,7 @@ class SingleAtlasSegmentation(Data):
                             ss2, metrics=metrics, slice_stats=slice_stats,
                             default_by_slice=default_by_slice,
                             voxel_size=voxel_size, name_as_index=name_as_index,
-                            **comparison_kwargs)
+                            **kwargs)
 
                     if df_tmp is None:
                         continue
@@ -948,23 +929,6 @@ class SingleAtlasSegmentation(Data):
                         if value is not None:
                             df_tmp[label] = pd.Series(
                                     df_tmp.shape[0] * [value])
-
-                    if mi_init:
-                        for mi_variant in mi_variants:
-                            mi_kwargs["variant"] = mi_variant
-                            mi = self.get_mutual_information(
-                                    strategy, 0, None, 0, **mi_kwargs)
-                            df_tmp[f"{mi_variant}_init"] = pd.Series(
-                                    df_tmp.shape[0] * [mi])
-
-                    if mi_reg_step:
-                        for mi_variant in mi_variants:
-                            mi_kwargs["variant"] = mi_variant
-                            #print(df_tmp.apply(lambda row: print(row), axis=1))
-                            df_tmp[f"{mi_variant}_reg_step"] = df_tmp.apply(
-                                    lambda row: self.get_mutual_information(
-                                        strategy, step, row["ROI"], reg_step,
-                                        **mi_kwargs), axis=1)
 
                     if df is None:
                         df = df_tmp
@@ -1026,6 +990,256 @@ def ensure_image(im):
 def ensure_structure_set(ss):
     """Return StructureSet cloned from <im>; return None if <im> is None."""
     return (ss if ss is None else StructureSet(ss))
+
+def get_atlases(paths, subtypes=None, subdirs=None, roi_names=None,
+                structure_set_index=None, unsorted_dicom=True, max_atlas=None):
+    """
+    Obtain dictionary of atlas tuples (structure set and associated image).
+
+    By default, all structure sets in each dataset are considered, in
+    reverse order of timestamp, and the first structure set with an
+    associated image is accepted.  It's possible to consider only
+    a specified structure set, or only structure sets that include specified
+    ROIs.
+
+    In the dictionary returned, keys are identifiers, and values are
+    tuples of the form (skrt.image.Image, skrt.structures.StructureSet).
+
+    **Parameters:**
+
+    paths: str/pathlib.Path/list
+        Path, or list of paths, to patient datasets to be considered as atlases.
+
+    subtypes: 
+        String, or list of strings, identifying subtype(s) of
+        imaging modality, for example "ct", "mr", "us", to be considered
+        as atlases.  If None, all imaging modalities are considered.
+
+    subdirs : str/list, default=None
+        Subdirectory, or list of subdirectories, grouping studies.
+        If specified, only studies in this subdirectory, or
+        in these subdirectories, are considered.  Disregarded if
+        unsorted_dicom is True.
+
+    structure_set_index: int, default=None
+        Index, across all studies, of the structure set to be considered.
+        If None, each structure set is considered, in reverse order
+        of timestamp.  Setting the index to be different from None can
+        be useful if, for example, only the earliest structure set
+        (index 0), or only the most-recent structure set (index -1),
+        should be considered.
+
+    unsorted_dicom: bool, default=True
+        If False, assume that data in a patient dataset are organised
+        according to the VoxTox model.  If True, don't assume any particular
+        organisation, and create data hierarchy based on information
+        read from DICOM files.
+
+    max_atlas: int, default=None
+        Maximum number of atlases to be returned.  If None, there is
+        no maximum.
+    """
+    logger = get_logger(identifier="funcName")
+
+    # If single path given as input, convert to a single-element list.
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
+
+    # Ensure value set for maximum number of atlases to be returned.
+    if max_atlas is None:
+        max_atlas = len(paths)
+
+    # Disallow study subdirectories for unsorted data.
+    if unsorted_dicom:
+        subdirs = None
+
+    # Create dictionary of atlas tuples.
+    atlases = {}
+    for path in paths:
+        if len(atlases) >= max_atlas:
+            break
+
+        # Read dataset.
+        logger.info(f"Reading atlas dataset from: '{path}'")
+        atlas = Patient(path, unsorted_dicom=unsorted_dicom)
+
+        # Load structure sets.
+        structure_sets = atlas.get_structure_sets(subtypes, subdirs)
+
+        # Consider only structure set identified by a particular index.
+        if structure_set_index is not None:
+            try:
+                structure_sets = [structure_sets[structure_set_index]]
+            except IndexError:
+                structure_sets = []
+
+        # Intialise atlas image and structure set.
+        im_atlas = None
+        ss_atlas = None
+
+        # Consider structure sets in order of timestamp,
+        # starting from most recent.
+        for structure_set in reversed(structure_sets):
+            # Disregard structure set if it doesn't have an associated image.
+            im_atlas = structure_set.get_image()
+            if im_atlas is None:
+                continue
+
+            # Disregard structure set if it doesn't contain specified ROIs.
+            if roi_names:
+                ss_atlas = structure_set.filtered_copy(
+                        names=roi_names, keep_renamed_only=True,
+                        copy_roi_data=False)
+                if len(ss_atlas.get_roi_names()) != len(roi_names):
+                    ss_atlas = None
+            else:
+                ss_atlas = structure_set
+
+            if ss_atlas is not None:
+                break
+
+        # Add entry to atlas dictionary.
+        if im_atlas is not None and ss_atlas is not None:
+            atlases[atlas.id] = (im_atlas, ss_atlas)
+
+    return atlases
+
+def select_atlases(atlases, target=None, n_atlas=None, exclude_ids=None,
+                   selection=None, high_to_low=True, alignment=None,
+                   **kwargs):
+    """
+    Select atlases to register against target.
+
+    **Parameters:**
+    atlases: dict
+        Dictionary of atlas tuples (structure set and associated image),
+        such as returned by skrt.segmentation.get_atlases().
+
+    target: skrt.image.Image, default=None
+        Image against which to register.  When selection ordering
+        isn't based on a comparison metric, this can be None.
+
+    n_atlas: int, default=None
+        Number of atlases to select, from those given as input.  If None,
+        all input atlases are returned, ordered according to selection.
+
+    exclude_ids: list, default=None
+        List of atlas identifiers to be excluded from selection.  This may
+        be used, for example, if the target image is also an atlas,
+        and self-registration isn't wanted.  If None, no atlases are
+        excluded.
+
+    selection: str/None, default=None
+        Ordering to be performed prior to selecting the first
+        <n_atlas> atlases:
+
+        - None: the input order is retained;
+
+        - "random": atlases are ordered randomly;
+
+        - "sorted": atlases are sorted in alphabetic order of identifier;
+
+        - "reverse_sorted": atlases are sorted in reverse alphabetic order
+          of identifier;
+
+        - image-comparison metric: atlases are compared with the target,
+          and are ordered according to the specified image-comparison metric.
+          Possibilities include "mutual-information",
+          "information quality ratio", "fidelity"  For a list of available
+          metrics, see documentation for skrt.image.Image.get_comparison().
+
+        - foreground-comparison metric: atlas foregrounds are compared with
+          the target foreground and are ordered according to the specified
+          foreground-comparison metric.  Possibilities include "dice",
+          "centroid", "volume_ratio".  For a list of available metrics,
+          see documentation for skrt.structures.ROI.get_comparison().
+          
+    high_to_low: bool, default=True
+        When ordering for selection is based on a comparison metric,
+        the ordering is from high to low if high_to_low is True, or
+        otherwise is from low to high.
+
+    alignment: tuple/dict/str, default=None
+        Strategy to be used for aligning atlases and target when
+        comparing them.  For strategy details, see documentation of
+        skrt.image.get_alignment_translation().  The value set is
+        passed to skrt.image.match_images_for_comparison(), to match
+        atlas and target prior to evaluation of a comparison metric.
+        Disregarded when ordering for selection isn't based on
+        a comparison metric.
+
+    kwargs: dict
+        Keyword arguments passed to comparison methods:
+        skrt.image.get_comparison() or skrt.image.get_foreground_comparison(),
+        depending on selection specified.
+    """
+    # If no constraints defined, return input atlases.
+    if n_atlas is None and exclude_ids is None and selection is None:
+        return atlases
+
+    logger = get_logger(identifier="funcName")
+
+    # Check that specified selection is allowed.
+    metric_independent_selections = [None, "random", "sorted", "reverse_sorted"]
+    allowed_selections = (metric_independent_selections + get_mi_metrics()
+                          + get_quality_metrics() + get_comparison_metrics())
+    if selection not in allowed_selections:
+        raise RuntimeError(f"Selection {selection} not allowed; "
+                           f"allowed selections: {allowed_selections}")
+
+    # Create list of non-excluded identifiers.
+    if exclude_ids:
+        if not is_list(exclude_ids):
+            exclude_ids = [exclude_ids]
+        atlas_ids = [atlas_id for atlas_id in atlases
+                     if atlas_id not in exclude_ids]
+    else:
+        atlas_ids = list(atlases)
+
+    # Check number of atlases against request.
+    n_atlas = n_atlas if n_atlas is not None else len(atlas_ids)
+    if n_atlas > len(atlas_ids):
+        raise RuntimeError(f"Requested selection of {n_atlas} atlases, "
+                           f"but only {len(atlas_ids)} atlases "
+                           f"after exclusions: {atlas_ids}")
+
+    # Deal with selections not requiring metric evaluations.
+    if selection in metric_independent_selections:
+        if "random" == selection:
+            atlas_ids = random.sample(atlas_ids, n_atlas)
+        elif "sorted" == selection:
+            atlas_ids.sort()
+        elif "reverse_sorted" == selection:
+            atlas_ids.sort(reverse=True)
+        return {atlas_id: atlases[atlas_id] for atlas_id in atlas_ids}
+
+    # Determine type of comparison to be performed for selection.
+    if selection in get_image_comparison_metrics():
+        comparison_method = "get_comparison"
+    else:
+        comparison_method = "get_foreground_comparison"
+    kwargs["metrics"] = [selection]
+
+    # Obtain comparison scores.
+    scores = {}
+    for atlas_id in list(atlas_ids):
+        im1, im2 = match_images_for_comparison(
+            target, atlases[atlas_id][0], alignment=alignment)
+        df = getattr(im1, comparison_method)(im2, **kwargs)
+        score = df.iloc[0][selection]
+        # Save list of atlas identifiers for each score.
+        if score not in scores:
+            scores[score] = []
+        scores[score].append(atlas_id)
+
+    # Sort scores, from high to low or from low to high,
+    # then loop through to select the requested number of atlases.
+    selected_atlases = {}
+    for score, atlas_ids in sorted(scores.items(), reverse=high_to_low):
+        for atlas_id in atlas_ids:
+            selected_atlases[atlas_id] = atlases[atlas_id]
+            if len(selected_atlases) >= n_atlas:
+                return selected_atlases
 
 def get_contour_propagation_strategies(engine=None, engine_dir=None):
     """

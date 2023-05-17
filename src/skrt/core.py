@@ -853,7 +853,7 @@ class Dated(PathData):
         '''
         return (self > other) or (self == other)
 
-    def copy_dicom(self, outdir=None, overwrite=True, sort=True):
+    def copy_dicom(self, outdir=None, overwrite=True, sort=True, index=None):
         """
         Copy (single) source dicom file.
 
@@ -878,6 +878,11 @@ class Dated(PathData):
             If True, the copied dicom file will be given name of form
             'MODALITY_YYMMDD_hhmmss'.  If False, the file is copied
             with name unaltered.
+
+        index : int, default=None
+            Integer representing associated object position in an ordered
+            list of objects of source data type.  Used in construction
+            of output filename if not None, otherwise Ignored.
         """
         if not callable(getattr(self, "load", None)):
             raise NotImplementedError(
@@ -903,7 +908,10 @@ class Dated(PathData):
 
         # Define path to the output file.
         if sort:
-            name = f"{modality}_{self.timestamp}.dcm" if sort else path.name()
+            idx = "" if index is None else f"_{index+1:03}"
+            name = f"{modality}_{self.timestamp}{idx}.dcm"
+        else:
+            name = path.name()
         outpath = outdir / name
 
         # Copy file.
@@ -947,13 +955,13 @@ class Dated(PathData):
         if (isinstance(indices, dict)
                 and isinstance(data_type, str)
                 and isinstance(indices.get(data_type, None), list)
-                and isinstance(data_index, int)
-                and data_index not in indices[data_type]):
+                and isinstance(index, int)
+                and index not in indices[data_type]):
             return
 
         # Create output directory, and copy object files.
         outdir = make_dir(outdir, overwrite)
-        self.copy_dicom(outdir, overwrite, sort)
+        self.copy_dicom(outdir, overwrite, sort, index)
 
 class MachineData(Dated):
     """Dated object with an associated machine name."""

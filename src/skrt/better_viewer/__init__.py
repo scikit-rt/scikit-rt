@@ -1699,7 +1699,7 @@ class SingleViewer:
         zlim=None,
         zoom=None,
         zoom_centre=None,
-        zoom_ui=None,
+        zoom_ui=False,
         cmap=None,
         colorbar=False,
         colorbar_label=None,

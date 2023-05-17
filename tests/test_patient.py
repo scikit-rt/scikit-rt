@@ -211,6 +211,11 @@ def test_null_patient():
     assert(p.id == '')
     assert(p.path == '')
     assert(p.studies == [])
+    assert(p.get_studies() == [])
+    assert(p.get_images() == [])
+    assert(p.get_structure_sets() == [])
+    assert(p.get_doses() == [])
+    assert(p.get_plans() == [])
 
 def test_null_study():
     s = Study()
@@ -221,6 +226,10 @@ def test_null_study():
     assert(s.subdir == '')
     assert(s.time == '')
     assert(s.timestamp == '')
+    assert(s.get_images() == [])
+    assert(s.get_structure_sets() == [])
+    assert(s.get_doses() == [])
+    assert(s.get_plans() == [])
 
 def test_unsorted_images():
     '''Test loading to patient object of unsorted DICOM images.'''
@@ -253,7 +262,7 @@ def test_unsorted_images():
 
     # Check that there is a single study, then check its date and time.
     assert len(p.studies) == 1
-    s = p.studies[0]
+    s = p.get_studies()[0]
     assert s.study_instance_uid == study_instance_uid
     assert s.date == study_date
     assert s.time == study_time
@@ -261,6 +270,8 @@ def test_unsorted_images():
     # Check that the number of images loaded is correct,
     # that they have the right modality, that the series numbers
     # are as expected, and that the image data can be loaded.
+    assert len(p.get_images()) == len(series_numbers)
+    assert len(s.get_images()) == len(series_numbers)
     series_numbers2 = []
     for key, images in s.image_types.items():
         assert key == modality.lower()

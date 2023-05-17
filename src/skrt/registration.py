@@ -1627,6 +1627,52 @@ class Registration(Data):
             kwargs = {} if is_jac else {"signs": self.engine.def_signs}
             return dtype(path=output_file, image=image, title=title, **kwargs)
 
+    def get_comparison(self, step=-1, force=False, **kwargs):
+        """
+        Return a pandas DataFrame comparing fixed image
+        and transformed moving image after step.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which
+            mutual information is to be calculated.  Available
+            steps are listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_comparison()
+            See this method's documentation for options.
+        """
+        return self.fixed_image.get_comparison(
+                self.get_transformed_image(step, force), **kwargs)
+
+    def get_foreground_comparison(self, step=-1, force=False, **kwargs):
+        """
+        Return a pandas DataFrame comparing the foregrounds of
+        fixed image and transformed moving image after step.
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which
+            mutual information is to be calculated.  Available
+            steps are listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        **kwargs
+            Keyword arguments passed to
+            skrt.image.Image.get_foreground_comparison()
+            See this method's documentation for options.
+        """
+        return self.fixed_image.get_comparison(
+                self.get_foreground_image(step, force), **kwargs)
+
     def get_mutual_information(self, step=-1, force=False, **kwargs):
         """
         For fixed image and transformed moving image after step,
@@ -1651,7 +1697,32 @@ class Registration(Data):
         return self.fixed_image.get_mutual_information(
                 self.get_transformed_image(step, force), **kwargs)
 
-    def get_relative_structural_content(self, step=-1, force=False, **kwargs):
+    def get_quality(self, step=-1, force=False, metrics=None):
+        """
+        Evaluate quality relative to fixed image of transformed moving image
+        after step.
+
+        For information on quality metrics, see documentation of
+        skrt.image.Image.get_quality().
+
+        **Parameters:**
+        step : int/str/list, default=None
+            Name or number of the registration step after which relative
+            structure content is to be calculated. Available steps are
+            listed in self.steps.
+
+        force : bool, default=False
+            If True, transformation of the moving image will be
+            forced, even if the image was transformed previously.
+
+        metrics: list, default=None
+            List of strings specifying quality metrics to be evaluated.
+            If None, all defined quality metrics are evaluated.
+        """
+        return self.get_transformed_image(
+                step, force).get_quality(self.fixed_image, metrics)
+
+    def get_relative_structural_content(self, step=-1, force=False):
         """
         Quantify structural content relative to fixed image of
         transformed moving image after step.
@@ -1665,17 +1736,11 @@ class Registration(Data):
         force : bool, default=False
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
-
-        **kwargs
-            Keyword arguments passed to
-            skrt.image.Image.get_relative_structural_content()
-            See this method's documentation for options.
         """
         return self.get_transformed_image(
-                step, force).get_relative_structural_content(
-                        self.fixed_image, **kwargs)
+                step, force).get_relative_structural_content(self.fixed_image)
 
-    def get_fidelity(self, step=-1, force=False, **kwargs):
+    def get_fidelity(self, step=-1, force=False):
         """
         Calculate fidelity with which transformed moving image after step
         matches fixed image.
@@ -1688,16 +1753,11 @@ class Registration(Data):
         force : bool, default=False
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
-
-        **kwargs
-            Keyword arguments passed to
-            skrt.image.Image.get_relative_structural_content()
-            See this method's documentation for options.
         """
         return self.get_transformed_image(
-                step, force).get_fidelity(self.fixed_image, **kwargs)
+                step, force).get_fidelity(self.fixed_image)
 
-    def get_correlation_quality(self, step=-1, force=False, **kwargs):
+    def get_correlation_quality(self, step=-1, force=False):
         """
         Calculate quality of correlation between transformed moving image
         after step and fixed image.
@@ -1711,14 +1771,9 @@ class Registration(Data):
         force : bool, default=False
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
-
-        **kwargs
-            Keyword arguments passed to
-            skrt.image.Image.get_relative_structural_content()
-            See this method's documentation for options.
         """
         return self.get_transformed_image(
-                step, force).get_correlation_quality(self.fixed_image, **kwargs)
+                step, force).get_correlation_quality(self.fixed_image)
 
 class Grid(ImageOverlay):
     """

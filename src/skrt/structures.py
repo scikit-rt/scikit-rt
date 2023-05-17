@@ -8,6 +8,7 @@ from shapely import affinity
 from shapely import geometry
 from shapely import ops
 import fnmatch
+import logging
 import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
@@ -30,6 +31,7 @@ from skrt.dicom_writer import DicomWriter
 # Set global defaults.
 skrt.core.Defaults({"by_slice": "union"})
 skrt.core.Defaults({"slice_stats": ["mean"]})
+skrt.core.Defaults({"shapely_log_level": logging.ERROR})
 
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""
@@ -4562,7 +4564,6 @@ class ROI(skrt.core.Archive):
         `**`kwargs :
             Extra keyword arguments to pass to the relevant plot function.
         """
-
         self.load()
         if self.empty:
             return
@@ -4794,6 +4795,10 @@ class ROI(skrt.core.Archive):
         self.voxel_size = im.get_voxel_size()
         self.origin = im.get_origin()
         self.affine = im.get_affine()
+
+    def get_image(self):
+        """Return Image object associated with this ROI."""
+        return self.image
 
     def view(self, include_image=False, voxel_size=[1, 1], buffer=5, **kwargs):
         """View the ROI.
@@ -5297,12 +5302,16 @@ class ROI(skrt.core.Archive):
                 new_key = key + translation[2]
                 new_contours[new_key] = []
                 for contour in contours:
+                    if len(contour) < 3:
+                        continue
                     polygon = contour_to_polygon(contour)
                     polygon = affinity.translate(polygon, *translation_2d)
                     polygon = affinity.rotate(polygon, angle, centre_2d)
                     polygon = affinity.scale(polygon, scale, scale, scale,
                             centre_2d)
                     new_contours[new_key].append(polygon_to_contour(polygon))
+                if not new_contours[new_key]:
+                    new_contours.pop(new_key)
 
             self.reset_contours(new_contours)
 
@@ -6249,6 +6258,10 @@ class StructureSet(skrt.core.Archive):
         if image is not None and add_to_image:
             image.add_structure_set(self)
 
+    def get_image(self):
+        """Return Image object associated with this StructureSet."""
+        return self.image
+
     def contains(self, roi_names, in_image=False):
         """
         Return whether structure set contains named ROIs,
@@ -6679,12 +6692,25 @@ class StructureSet(skrt.core.Archive):
             Only used if <copy_rois> is True
         """
 
+        # Load StructureSet, but prevent loading of ROIs.
+        # Loading ROIs here consumes time and memory creating masks
+        # for ROIs that may be discarded after filtering.
+        roi_load = self.roi_kwargs.get("load", None)
+        self.roi_kwargs["load"] = False
         self.load()
+
         ss = self.clone(copy_roi_data=copy_roi_data)
         if name is not None:
             ss.name = name
         ss.rename_rois(names, keep_renamed_only=keep_renamed_only)
         ss.filter_rois(to_keep, to_remove)
+
+        # Ensure that self.roi_kwargs is the same as at input.
+        if roi_load is None:
+            self.roi_kwargs.pop("load")
+        else:
+            self.roi_kwargs["load"] = roi_load
+
         return ss
 
     def get_rois(self, names=None, ignore_empty=False):
@@ -7139,6 +7165,10 @@ class StructureSet(skrt.core.Archive):
             linewidth = defaultParams["lines.linewidth"][0]
         roi_kwargs["linewidth"] = linewidth
 
+        # Ensure that title is set to be a string.
+        if kwargs.get("title", None) is None:
+            kwargs["title"] = self.name or ""
+
         # Plot with image
         if include_image and self.image is not None:
 
@@ -7161,9 +7191,6 @@ class StructureSet(skrt.core.Archive):
                 **kwargs
             )
             return
-
-        if kwargs.get("title", None) is None:
-            kwargs["title"] = self.name
 
         # Plot consensus
         roi_handles = []
@@ -7216,7 +7243,7 @@ class StructureSet(skrt.core.Archive):
 
             central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                          opacity=opacity, linewidth=linewidth, show=False,
-                         ax=ax)
+                         ax=ax, **kwargs)
 
             self.fig = central.fig
             self.ax = central.ax
@@ -7362,6 +7389,10 @@ class StructureSet(skrt.core.Archive):
         if "plot_type" in kwargs:
             kwargs["roi_plot_type"] = kwargs.pop("plot_type")
 
+        # Ensure that title is set to be a string.
+        if kwargs.get("title", None) is None:
+            kwargs["title"] = self.name or ""
+
         # View with image
         if include_image and self.image is not None:
             if rois is None:
@@ -7375,9 +7406,6 @@ class StructureSet(skrt.core.Archive):
 
         # View without image
         else:
-
-            if kwargs.get("title", None) is None:
-                kwargs["title"] = self.name
 
             structure_set_tmp = self
 
@@ -8068,6 +8096,11 @@ def get_dicom_sequence(ds=None, basename=""):
 def contour_to_polygon(contour):
     """Convert a list of contour points to a Shapely polygon, ensuring that 
     the polygon is valid."""
+
+    # Disable shapely INFO messages issued when a polygon isn't valid:
+    # "callback - INFO - Ring Self-intersection at or near point"
+    logging.getLogger('shapely.geos').setLevel(
+            skrt.core.Defaults().shapely_log_level)
 
     polygon = geometry.Polygon(contour)
 

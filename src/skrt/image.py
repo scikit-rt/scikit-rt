@@ -57,6 +57,7 @@ mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.size"] = 14.0
 
 skrt.core.Defaults().foreground_name = "foreground"
+skrt.core.Defaults().foreground_threshold = -150
 
 class Image(skrt.core.Archive):
     """
@@ -590,6 +591,9 @@ class Image(skrt.core.Archive):
         # If no specific slice is requested, just return the last loaded dataset
         if sl is None and idx is None and pos is None:
             return self.dicom_dataset
+
+        if not getattr(self, "_z_paths", None):
+            return
 
         # Otherwise, load the dataset for that slice
         return pydicom.dcmread(
@@ -1140,12 +1144,15 @@ class Image(skrt.core.Archive):
                 voxel_size2.append(self.voxel_size[i])
         voxel_size = voxel_size2
 
+        # Exit if no change to voxel size.
+        if list(voxel_size) == list(self.voxel_size):
+            return
+
         # Define scale factors to obtain requested voxel size
         scale = [self.voxel_size[i] / voxel_size[i] for i in range(3)]
 
         self.data = scipy.ndimage.zoom(self.data, scale, order=order,
                 mode='nearest')
-
 
         # Reset properties
         self.origin = [
@@ -1200,7 +1207,7 @@ class Image(skrt.core.Archive):
 
         return (x_array, y_array, z_array)
 
-    def get_foreground_box_mask(self, dx=0, dy=0, threshold=-150):
+    def get_foreground_box_mask(self, dx=0, dy=0, threshold=None):
         '''
         Slice by slice, create rectangular mask enclosing foreground mask.
 
@@ -1212,7 +1219,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
         '''
 
         foreground_mask = self.get_foreground_mask(threshold)
@@ -1220,7 +1229,7 @@ class Image(skrt.core.Archive):
 
         return foreground_box_mask
 
-    def get_foreground_bbox(self, threshold=-150, convex_hull=False,
+    def get_foreground_bbox(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0):
         """
         Obtain bounding box of image foreground.
@@ -1236,7 +1245,7 @@ class Image(skrt.core.Archive):
             self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy)))
 
     def get_foreground_bbox_centre_and_widths(self,
-            threshold=-150, convex_hull=False, fill_holes=True, dxy=0):
+            threshold=None, convex_hull=False, fill_holes=True, dxy=0):
         """
         Get centre and widths in mm along all three axes of a
         bounding box enclosing the image foreground.  Centre
@@ -1252,7 +1261,7 @@ class Image(skrt.core.Archive):
         return (centre, widths)
 
     def get_foreground_comparison(
-            self, other, name=None, threshold=-150, convex_hull=False,
+            self, other, name=None, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0, voxel_size=None, **kwargs):
         """
         Return a pandas DataFrame comparing the foregrounds of
@@ -1274,7 +1283,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
@@ -1288,9 +1299,13 @@ class Image(skrt.core.Archive):
             Margin, in pixel units, to be added to each slice foreground mask.
 
         voxel_size : tuple, default=None
-            Voxel size (dx, dy, dz) in mm passed to
-            skrt.structures.ROI.get_comparison().  The default there
-            (1, 1, 1) is different from the default set here (None).
+            Voxel size (dx, dy, dz) in mm to be used for foreground
+            masks in comparisons.  If None, the mask voxel size of
+            <other> is used if not None; otherwise the default voxel
+            size for dummy images, namely (1, 1, 1), is used.  If an
+            element of the tuple specifying voxel size is None, the
+            value for the corresponding element of the mask voxel size
+            of <other> is used.
 
         kwargs: dict
             Keyword arguments, in addition to voxel_size, passed to
@@ -1305,9 +1320,9 @@ class Image(skrt.core.Archive):
                 threshold=threshold, convex_hull=convex_hull,
                 fill_holes=fill_holes, dxy=dxy)
 
-        return roi1.get_comparison(roi2, voxel_size=voxel_size, **kwargs)
+        return roi1.get_comparison(roi2, voxel_size=None, **kwargs)
 
-    def get_foreground_roi(self, threshold=-150, convex_hull=False,
+    def get_foreground_roi(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0, **kwargs):
         '''
         Create ROI represening image foreground.
@@ -1321,7 +1336,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
@@ -1343,7 +1360,7 @@ class Image(skrt.core.Archive):
         return ROI(self.get_foreground_mask(
             threshold, convex_hull, fill_holes, dxy), **kwargs)
 
-    def get_foreground_mask(self, threshold=-150, convex_hull=False,
+    def get_foreground_mask(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0):
         '''
         Create foreground mask.
@@ -1355,7 +1372,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
@@ -1386,7 +1405,7 @@ class Image(skrt.core.Archive):
 
         return out_image
 
-    def get_slice_foreground(self, idx=0, threshold=-150,
+    def get_slice_foreground(self, idx=0, threshold=None,
             convex_hull=False, fill_holes=False, dxy=0):
         '''
         Create foreground mask for image slice.
@@ -1401,7 +1420,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels are assigned to regions
-            for determination of foreground.
+            for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, return the convex hull of the foreground mask
@@ -1424,6 +1445,11 @@ class Image(skrt.core.Archive):
         test_slice = np.uint32(image_slice - image_slice.min())
         # Make this a 2D array.
         test_slice = np.squeeze(test_slice)
+
+        # Fallback to default threshold.
+        if threshold is None:
+            threshold = skrt.core.Defaults().foreground_threshold
+
         # Calculate Otsu threshold, or rescale threshold value provided.
         if threshold is None:
             rescaled_threshold = mahotas.thresholding.otsu(test_slice)
@@ -1471,7 +1497,7 @@ class Image(skrt.core.Archive):
 
         return label_array2
 
-    def select_foreground(self, threshold=-150, convex_hull=False,
+    def select_foreground(self, threshold=None, convex_hull=False,
             fill_holes=True, dxy=0, background=None):
         '''
         Modify image to show intensity information only for foreground.
@@ -1485,7 +1511,9 @@ class Image(skrt.core.Archive):
 
         threshold : int/float, default=None
             Intensity value above which pixels in a slice are assigned to
-            regions for determination of foreground.
+            regions for determination of foreground.  If None, use value
+            of Defaults().foreground_threshold.  If still None, use
+            Otsu threshold.
     
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
@@ -1831,7 +1859,7 @@ class Image(skrt.core.Archive):
 
         # Perform resampling
         voxel_size = [None, None, match_to.get_voxel_size()[2]]
-        init_vz = to_resample.voxel_size[2]
+        init_vz = to_resample.get_voxel_size()[2]
         init_nz = int(to_resample.n_voxels[2])
         to_resample.resample(voxel_size)
         print(
@@ -2891,6 +2919,7 @@ class Image(skrt.core.Archive):
             roi_opacity = roi_kwargs.get("opacity",
                     0.3 if "filled" in roi_plot_type else 1)
         roi_kwargs["opacity"] = roi_opacity
+        roi_kwargs["title"] = roi_kwargs.get("title", title) or ""
 
         if dose_kwargs is None:
             dose_kwargs = {}
@@ -3659,7 +3688,8 @@ class Image(skrt.core.Archive):
             if verbose:
                 print("Wrote dicom file(s) to directory:", outdir)
 
-    def copy_dicom(self, outdir="image_dicom", overwrite=True, sort=True):
+    def copy_dicom(self, outdir="image_dicom", overwrite=True, sort=True,
+                   *args, **kwargs):
         """
         Copy source dicom files.
 
@@ -3680,6 +3710,12 @@ class Image(skrt.core.Archive):
             will be numbered sequentially from 1, in order of increasing
             z-coordinate.  If False, files are copied to the output directory
             with their names unaltered.
+
+        args : list
+            Arguments to be ignored.
+
+        kwargs : dict
+            Keyword arguments to be ignored.
         """
         self.load()
 
@@ -3947,6 +3983,7 @@ class Image(skrt.core.Archive):
             return
 
         # Ensure DICOM representation for cropping.
+        self.load()
         if "nifti" in self.source_type:
             im = self.astype("dicom")
         else:
@@ -3963,8 +4000,8 @@ class Image(skrt.core.Archive):
             i_big, i_small = i2, i1
             if i1 > i2:
                 i_big, i_small = i_small, i_big
-            i_small = int(np.floor(round(i_small, 6) + 0.5))
-            i_big = int(np.floor(round(i_big, 6) + 0.5))
+            i_small = int(np.floor(round(i_small, 3) + 0.5))
+            i_big = int(np.floor(round(i_big, 3) + 0.5))
 
             # Ensure indices are within image range
             if i_small < 0:
@@ -6568,8 +6605,8 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
         im1.crop_to_image(im2, alignment)
         im2.crop_to_image(im1, alignment)
         if (im1.get_voxel_size() == im2.get_voxel_size()
-            and not im1.has_same_geometry(im2)):
-            im1.match_size(im1)
+            and im1.get_n_voxels() != im2.get_n_voxels()):
+            im1.resize(im2.get_n_voxels(), method="nearest")
 
     # Perform banding of image grey levels.
     im1.apply_selective_banding(bands)
@@ -6580,6 +6617,87 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
         if ss:
             im.clear_structure_sets()
             ss.set_image(im)
+
+    return (im1, im2)
+
+def match_images_for_comparison(
+        im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
+        ss1_name=None, ss2_name=None, roi_names=None, alignment=None,
+        voxel_size=None):
+    """
+    Process pair of images, to allow their comparison.
+
+    Images are optionally aligned, then their geometries are matched,
+    so that they can be handled by the image-comparison methods
+    Image.get_comparison() and Image.get_quality().
+
+    This function provides a subset of the processing options offered
+    by match_images(), and in addition can change the origin of the first
+    image, to align better with the second image.
+
+    **Parameters:**
+
+    im1, im2 : skrt.image.Image
+        Images to be matched for comparison.
+
+    ss1, ss2 : skrt.structures.StructureSet, default=None
+        Structure sets to associate with images im1, im2.  If a value
+        is None, and image matching involves ROI alignment, a structure
+        set already associated with the relevant image is used
+        (im1.structure_sets[ss1_index], im2.structure_sets[ss2_index]).
+
+    ss1_index, ss2_index : int, default=-1
+        Structure set indices to use for ROI alignment based on
+        structure sets already associated with images.
+
+    ss1_name, ss2_name : str, default=None
+        Names to be assigned to structure sets associated with the
+        returned image objects.  If a value is None, the original
+        name is kept.
+
+    roi_names : dict, default=None
+        Dictionary for renaming and filtering ROIs for inclusion
+        in the structure sets associated with the output images.
+        Keys are names for ROIs to be kept, and values are lists of
+        alternative names with which these ROIs may have been
+        labelled in the input structure sets.  The alternative names
+        can contain wildcards with the '*' symbol.  If a value of
+        None is given, all ROIs in the input structure sets are kept,
+        with no renaming.
+
+    alignment : tuple/dict/str, default=None
+        Strategy to be used for aligning images prior to cropping
+        so that they have the same size.  For strategy details, see
+        documentation of skrt.image.get_alignment_translation().
+        After alignment, im1 is cropped to the size of im2, then im2
+        is cropped to the size of im1.  To omit cropping to the same
+        size, set alginment to False.
+
+    voxel_size : tuple/str/float, default=None
+         Specification of voxel size for image resampling.
+         For possible values, see documentation for function
+         skrt.image.match_image_voxel_size().
+    """
+    im1 = im1.clone_with_structure_set(ss1, roi_names, ss1_index, ss1_name)
+    ss1 = im1.structure_sets[0] if im1.structure_sets else None
+    im2 = im2.clone_with_structure_set(ss2, roi_names, ss2_index, ss2_name)
+    ss2 = im2.structure_sets[0] if im2.structure_sets else None
+
+    # Resample images to same voxel size.
+    if voxel_size is not None:
+        match_image_voxel_sizes(im1, im2, voxel_size)
+
+    # Translate first image, to try to align with second image.
+    if alignment is not None:
+        translation = im1.get_alignment_translation(im2, alignment)
+        im1.translate_origin(translation)
+
+    # Crop images to one another.
+    im2.crop_to_image(im1)
+    im1.crop_to_image(im2)
+
+    # Match geometries.
+    im1.match_size(im2, method="nearest")
 
     return (im1, im2)
 
