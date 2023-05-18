@@ -3423,7 +3423,7 @@ def prepend_path(variable, path, path_must_exist=True):
         if variable in os.environ:
             if os.environ[variable]:
                 os.environ[variable] = os.pathsep.join(
-                        path, os.environ[variable])
+                        [path, os.environ[variable]])
         else:
             os.environ[variable] = path
 
