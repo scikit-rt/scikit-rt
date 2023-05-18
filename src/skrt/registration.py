@@ -2613,10 +2613,9 @@ class RegistrationEngine:
 
         # Check if environment already set for running the registration engine.
         if not (path and force):
-            stdout = subprocess.run(
-                    ["which", str(self.name)], capture_output=True).stdout
-            if stdout:
-                exe_dir = Path(stdout.decode()).parent
+            exe_path = shutil.which(self.name)
+            if exe_path is not None:
+                exe_dir = Path(exe_path).parent
 
         # Return if environment already set and not forcing new setup,
         # of if no value specified for path (no new setup possible).
@@ -2631,7 +2630,7 @@ class RegistrationEngine:
         if exe_dir:
             # Set environment variables.
             lib_dir = exe_dir.parent / "lib"
-            # Cover Linux and MacOS
+            # Cover Linux, MacOS, Windows.
             for env_var, env_val in [
                     ("DYLD_FALLBACK_LIBRARY_PATH", lib_dir),
                     ("LD_LIBRARY_PATH", lib_dir),
@@ -2771,11 +2770,11 @@ class Elastix(RegistrationEngine):
 
     def get_def_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing deformation field.
-        return f"{self.transformix} -def all -out {outdir} -tp {tfile}".split()
+        return [self.transformix, "-def", "all", "-out", outdir, "-tp", tfile]
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing Jacobian determinant.
-        return f"{self.transformix} -jac all -out {outdir} -tp {tfile}".split()
+        return [self.transformix, "-jac", "all", "-out", outdir, "-tp", tfile]
 
     def get_registration_cmd(
             self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
@@ -2967,14 +2966,14 @@ class NiftyReg(RegistrationEngine):
 
     def get_def_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing deformation field.
-        return (f"{self.reg_transform} -ref {fixed_path} "
-                f"-disp {tfile} {outdir}/deformationField.nii").split()
+        return [self.reg_transform, "-ref", fixed_path, "-disp",
+                tfile, f"{outdir}/deformationField.nii"]
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing Jacobian determinant.
         if ".nii" == Path(tfile).suffix:
-            return (f"{self.reg_jacobian} -trans {tfile} -ref {fixed_path} "
-                    f"-jac {outdir}/spatialJacobian.nii").split()
+            return [self.reg_jacobian, "-trans", tfile, "-ref", fixed_path,
+                    "-jac", f"{outdir}/spatialJacobian.nii"]
 
     def get_registration_cmd(
             self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
@@ -3423,7 +3422,8 @@ def prepend_path(variable, path, path_must_exist=True):
     if path_ok:
         if variable in os.environ:
             if os.environ[variable]:
-                os.environ[variable] = f'{path}:{os.environ[variable]}'
+                os.environ[variable] = os.pathsep.join(
+                        path, os.environ[variable])
         else:
             os.environ[variable] = path
 
@@ -3511,7 +3511,7 @@ def shift_translation_parameters(
         a key of the dictionary skrt.registration.engines.
     """
     get_engine_cls(engine)().shift_translation_parameters(
-            infile, dx=0, dy=0, dz=0, outfile=None)
+            infile, dx=dx, dy=dy, dz=dz, outfile=outfile)
 
 
 def write_parameters(outfile, params, engine=None):
