@@ -228,7 +228,7 @@ class Registration(Data):
         self.engine = engine_cls(path=engine_dir)
 
         # Set up directory
-        path = fullpath(path).replace(" ", "_")
+        #path = fullpath(path).replace(" ", "_")
         self.path = path
         if not os.path.exists(path):
             os.makedirs(path)
@@ -1223,7 +1223,8 @@ class Registration(Data):
     def make_tmp_dir(self):
         """Create temporary directory."""
 
-        self._tmp_dir = os.path.join(self.path, ".tmp").replace(" ", "_")
+        #self._tmp_dir = os.path.join(self.path, ".tmp").replace(" ", "_")
+        self._tmp_dir = os.path.join(self.path, ".tmp")
         if not os.path.exists(self._tmp_dir):
             os.mkdir(self._tmp_dir)
 
