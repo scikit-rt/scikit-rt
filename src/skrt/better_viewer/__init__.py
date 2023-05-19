@@ -1569,12 +1569,17 @@ class BetterViewer:
             if v.ui_roi_deselect_all.value:
                 for roi in v.rois:
                     roi.checkbox.value = False
-                v.ui_roi_deselect_all.value = False
 
             # Show all ROIs
             if v.ui_roi_select_all.value:
                 for roi in v.rois:
                     roi.checkbox.value = True
+
+        # Toggle values for deselection/selection.
+        for v in self.viewers:
+            if v.ui_roi_deselect_all.value:
+                v.ui_roi_deselect_all.value = False
+            if v.ui_roi_select_all.value:
                 v.ui_roi_select_all.value = False
 
         # Deal with view change
