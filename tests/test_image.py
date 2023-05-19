@@ -999,22 +999,23 @@ def test_foreground_bbox_centre_and_widths():
 @needs_mahotas
 def test_create_intensity_mask():
     sim = SyntheticImage((100, 100, 40))
-    sim.add_cube(side_length=5, name="cube", centre=(25, 60, 12), intensity=60)
-    sim.add_sphere(radius=10, name="sphere", centre=(80, 20, 12), intensity=50)
+    sim.add_cube(
+            side_length=5, name="cube", centre=(25, 60, 12), intensity=60.4)
+    sim.add_sphere(
+            radius=10, name="sphere", centre=(80, 20, 12), intensity=50.6)
 
     nx, ny, nz = sim.get_n_voxels()
-    ones = np.ones((ny, nx, nz), dtype=np.uint32)
+    ones = np.ones((ny, nx, nz), dtype=bool)
     masks = [
             ((None, None), ones),
-            ((45, 55), ones * (sim.get_data() == 50)),
-            ((55, None), ones * (sim.get_data() == 60)),
-            ((None, 55),  1 - ones * (sim.get_data() == 60)),
+            ((50.59, 50.61), ones * (sim.get_data() == 50.6)),
+            ((60, None), ones * (sim.get_data() == 60.4)),
+            ((None, 55),  1 - ones * (sim.get_data() == 60.4)),
             ]
 
     for intensities, mask2 in masks:
         vmin, vmax = intensities
         mask1 = sim.get_intensity_mask(vmin, vmax).get_data()
-        mask1 = mask1.astype(np.uint32)
         mask1[mask1 > 0] = 1
 
         assert mask1.shape == mask2.shape

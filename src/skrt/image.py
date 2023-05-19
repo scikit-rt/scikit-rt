@@ -1442,7 +1442,7 @@ class Image(skrt.core.Archive):
         image_slice = self.get_data()[:, :, idx]
 
         # Obtain intensity values relative to the minimum.
-        test_slice = np.uint32(image_slice - image_slice.min())
+        test_slice = image_slice - image_slice.min()
         # Make this a 2D array.
         test_slice = np.squeeze(test_slice)
 
@@ -1452,7 +1452,8 @@ class Image(skrt.core.Archive):
 
         # Calculate Otsu threshold, or rescale threshold value provided.
         if threshold is None:
-            rescaled_threshold = mahotas.thresholding.otsu(test_slice)
+            rescaled_threshold = mahotas.thresholding.otsu(
+                    test_slice.astype(np.uint32))
         else:
             rescaled_threshold = threshold - image_slice.min()
 
@@ -1572,7 +1573,7 @@ class Image(skrt.core.Archive):
         self.load()
 
         if vmin is None and vmax is None:
-            return Image(np.ones(self.data.shape, dtype=np.int8),
+            return Image(np.ones(self.data.shape, dtype=bool),
                          affine = self.get_affine())
 
         masks = [self.get_foreground_mask(
