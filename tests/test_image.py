@@ -998,12 +998,18 @@ def test_foreground_bbox_centre_and_widths():
 
 @needs_mahotas
 def test_create_intensity_mask():
+    """
+    Test creation of intensity masks.
+    """
+    # Create synthetic image (default intensity -1024),
+    # featuring cube and sphere of higher intensities.
     sim = SyntheticImage((100, 100, 40))
     sim.add_cube(
             side_length=5, name="cube", centre=(25, 60, 12), intensity=60.4)
     sim.add_sphere(
             radius=10, name="sphere", centre=(80, 20, 12), intensity=50.6)
 
+    # Create expected masks given different minimum and maximum intensities.
     nx, ny, nz = sim.get_n_voxels()
     ones = np.ones((ny, nx, nz), dtype=bool)
     masks = [
@@ -1013,12 +1019,17 @@ def test_create_intensity_mask():
             ((None, 55),  1 - ones * (sim.get_data() == 60.4)),
             ]
 
+    # Check intensitiy masks against expected masks.
     for intensities, mask2 in masks:
         vmin, vmax = intensities
         mask1 = sim.get_intensity_mask(vmin, vmax).get_data()
         mask1[mask1 > 0] = 1
 
         assert mask1.shape == mask2.shape
+        # If there are no constraints on vmin and vmax,
+        # all elements of the intensity mask should be True
+        # (minimum and maximum both 1).
+        # Otherwise, the minimum should be 0 and the maximum should be 1.
         if vmin is None and vmax is None:
             assert mask1.min() == 1
         else:
@@ -1027,6 +1038,9 @@ def test_create_intensity_mask():
         assert mask1.min() == mask2.min()
         assert mask1.max() == mask2.max()
         assert mask1.sum() == mask2.sum()
+
+        # Check that intensity mask is voxel for voxel identical
+        # to the created mask.
         assert np.all(mask1 == mask2)
 
 @needs_mahotas
