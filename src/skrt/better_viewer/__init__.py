@@ -76,6 +76,8 @@ class BetterViewer:
         yticks_first_only=False,
         ytick_labels_first_only=True,
         colorbar_last_only=True,
+        zoom=None,
+        zoom_ui=None,
         **kwargs,
     ):
         '''
@@ -909,6 +911,10 @@ class BetterViewer:
         kwargs = {key.replace('colour', 'color'): val for key, val in kwargs.items()}
         mask_threshold = kwargs.get("mask_threshold", 0.5)
 
+        if zoom_ui is None:
+            zoom_ui = (zoom is not None
+                       or any([bool(self.rois[i]) for i in range(self.n)]))
+
         for i in range(self.n):
             
             no_ylabel = (no_ylabel_default if
@@ -939,6 +945,8 @@ class BetterViewer:
                 no_ylabel=no_ylabel,
                 no_yticks=no_yticks,
                 no_ytick_labels=no_ytick_labels,
+                zoom=zoom,
+                zoom_ui=zoom_ui,
                 **kwargs,
             )
             self.viewers.append(viewer)
@@ -1699,7 +1707,7 @@ class SingleViewer:
         zlim=None,
         zoom=None,
         zoom_centre=None,
-        zoom_ui=False,
+        zoom_ui=None,
         cmap=None,
         colorbar=False,
         colorbar_label=None,
@@ -1895,7 +1903,7 @@ class SingleViewer:
         self.zoom_centre = zoom_centre
         self.zoom_ui = zoom_ui
         if zoom_ui is None:
-            self.zoom_ui = bool(self.has_rois)
+            self.zoom_ui = bool(self.has_rois or zoom is not None)
         self.major_ticks = major_ticks
         self.minor_ticks = minor_ticks
         self.ticks_all_sides = ticks_all_sides
