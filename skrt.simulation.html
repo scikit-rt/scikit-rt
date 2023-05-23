@@ -379,7 +379,41 @@ initialisation.</p>
 <dd><p>Write image data to an output file.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.simulation.SyntheticImage.write_dicom_dataset">
+<span class="sig-name descname"><span class="pre">write_dicom_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'001'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'synthetic_dicom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.SyntheticImage.write_dicom_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Write image and associated structure set as a patient DICOM dataset.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>patient_id: str, default=”001”</dt><dd><p>Patient identifier to be assigned to the dataset.</p>
+</dd>
+<dt>outdir: str/pathlib.Pat, default=”synthetic_dicom”</dt><dd><p>Path to directory where dataset is to be written.</p>
+</dd>
+<dt>modality: str, default=”CT”</dt><dd><p>Modality to be assigned to synthetic image.</p>
+</dd>
+<dt>series_number: int, default=1</dt><dd><p>Series number to be assigned to synthetic image.</p>
+</dd>
+<dt>root_uid<span class="classifier">str, default=None</span></dt><dd><p>Root to be used in Globally Unique Identifiers (GUIDs).  This
+should uniquely identify the institution or group generating
+the GUID.  If None, the value of pydicom.uid.PYDICOM_ROOT_UID
+is used.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, default=False</span></dt><dd><p>If True, print information about progress of dataset writing.</p>
+</dd>
+</dl>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.simulation.get_value">
+<span class="sig-prename descclassname"><span class="pre">skrt.simulation.</span></span><span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.get_value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.simulation.get_values">
+<span class="sig-prename descclassname"><span class="pre">skrt.simulation.</span></span><span class="sig-name descname"><span class="pre">get_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vals</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.get_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.simulation.make_grid">
@@ -407,6 +441,33 @@ same units as the voxel dimensions of the reference image.</p>
 in numbers of voxels.  If False, values for spacing and
 thickness are taken to be in the same units as the
 voxel dimensions of the reference image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.simulation.make_head">
+<span class="sig-prename descclassname"><span class="pre">skrt.simulation.</span></span><span class="sig-name descname"><span class="pre">make_head</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[256,</span> <span class="pre">256,</span> <span class="pre">(50,</span> <span class="pre">80)]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">1,</span> <span class="pre">3]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.make_head" title="Permalink to this definition"></a></dt>
+<dd><p>Create an image featuring a loose approximation of a head.</p>
+<p>In the parameters described below, each value may be a single
+number or a two-element tuple.  In the latter case, the number used
+will be drawn at random from a uniform distribution over the range
+from the first element to the second.</p>
+<p><strong>Parameters:</strong>
+shape : int/tuple</p>
+<blockquote>
+<div><p>Dimensions of the image array to create in order (x, y, z).
+If an int is given, the image will be created with dimensions
+(shape, shape, shape).</p>
+</div></blockquote>
+<dl class="simple">
+<dt>origin<span class="classifier">tuple, default=None</span></dt><dd><p>Origin in mm for the image in order (x, y, z).  If None, set
+the origin so that that the image centre is at (0, 0, 0).</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=(1, 1, 3)</span></dt><dd><p>Voxel sizes in mm for the image in order (x, y, z).</p>
+</dd>
+<dt>noise_std<span class="classifier">float, default=None</span></dt><dd><p>Standard deviation of Gaussian noise to apply to the image.
+If None, no noise will be applied.</p>
 </dd>
 </dl>
 </dd></dl>
