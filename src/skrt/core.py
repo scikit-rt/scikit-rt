@@ -743,8 +743,7 @@ class PathData(Data):
         '''
         Return number of data files associated with this object.
         '''
-        if os.path.isdir(self.path):
-            return get_n_file(self.path)
+        # Only 1 data file associated with a non-Archive object.
         return 1
 
     def print_paths(self, max_path=None):
@@ -2191,16 +2190,6 @@ def qualified__name(cls):
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
 
-def get_n_file(data_dir):
-    """
-    Count number of files below a directory, ignoring hidden files.
-    
-    **Parameter:**
-    data_dir: str, pathlib.Path
-        Path to directory below which files are to be counted.
-    """
-    return len([path for path in Path(data_dir).glob("**/[!.]*")
-                if path.is_file()]) 
 
 def print_paths(data_dir, max_path=None):
     """
