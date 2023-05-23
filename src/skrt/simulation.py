@@ -3,10 +3,12 @@
 import os
 import numpy as np
 import nibabel
+import pathlib
 import shutil
 from scipy import ndimage
 
 from skrt.image import Image, _axes
+from skrt.patient import Patient
 from skrt.structures import StructureSet, ROI
 import skrt.core
 
@@ -232,6 +234,72 @@ class SyntheticImage(Image):
                 outdir = outname.replace(ext, "")
         structure_set.write(outdir=outdir, ext=ext_to_use, 
                             overwrite=overwrite_roi_dir)
+
+    def write_dicom_dataset(
+            self, patient_id="001", outdir="synthetic_dicom", modality="CT",
+            series_number=1, root_uid=None, verbose=False):
+        """
+        Write image and associated structure set as a patient DICOM dataset.
+
+        **Parameters:**
+
+        patient_id: str, default="001"
+            Patient identifier to be assigned to the dataset.
+
+        outdir: str/pathlib.Pat, default="synthetic_dicom"
+            Path to directory where dataset is to be written.
+
+        modality: str, default="CT"
+            Modality to be assigned to synthetic image.
+
+        series_number: int, default=1
+            Series number to be assigned to synthetic image.
+
+        root_uid : str, default=None
+            Root to be used in Globally Unique Identifiers (GUIDs).  This
+            should uniquely identify the institution or group generating
+            the GUID.  If None, the value of pydicom.uid.PYDICOM_ROOT_UID
+            is used.
+
+        verbose : bool, default=False
+            If True, print information about progress of dataset writing.
+        """
+        # Define permanent and temporary output directories. 
+        patient_dir = pathlib.Path(outdir) / patient_id
+        if patient_dir.exists():
+            shutil.rmtree(patient_dir)
+        tmp_dir = pathlib.Path(outdir) / "tmp" / patient_id
+            
+        # Obtain reference to structure set, and write associated image.
+        # (The original image is a simulation.SyntheticImage object,
+        # but the associated # image is a skrt.patient.Image object.)
+        ss = self.get_structure_set()
+        ss.get_image().write(
+            tmp_dir, patient_id=patient_id, modality=modality,
+            root_uid=root_uid, header_extras={"SeriesNumber": series_number},
+            verbose=verbose)
+        
+        # Write structure set, if non-empty,
+        # after associating to it the DICOM image,
+        if ss.get_roi_names():
+            im = Image(tmp_dir)
+            ds = im.get_dicom_dataset()
+            header_extras = {
+                "StudyInstanceUID" : ds.StudyInstanceUID,
+                "StudyDate" : ds.StudyDate,
+                "StudyTime" : ds.StudyTime,
+            }
+            ss.set_image(im)
+            ss.write(outdir=tmp_dir, ext=".dcm", patient_id=patient_id,
+                     modality=modality, root_uid=root_uid,
+                     header_extras=header_extras, verbose=verbose)
+        
+        # Load the DICOM data, then rewrite as a sorted dataset.
+        p = Patient(tmp_dir, unsorted_dicom=True)
+        p.copy_dicom(patient_dir.parent)
+        shutil.rmtree(tmp_dir.parent)
+        
+        return patient_dir
 
     def get_background(self, with_noise=True, force=False):
         """Make blank image array or noisy array."""
@@ -570,3 +638,139 @@ def make_grid(image, spacing=(30, 30, 30), thickness=(2, 2, 2),
     grid_image.add_grid(spacing, thickness, foreground)
 
     return grid_image
+
+
+def make_head(
+        shape=[256, 256, (50, 80)],
+        origin = None,
+        voxel_size = [1, 1, 3],
+        noise_std = 10,
+        ):
+    """
+    Create an image featuring a loose approximation of a head.
+
+    In the parameters described below, each value may be a single
+    number or a two-element tuple.  In the latter case, the number used
+    will be drawn at random from a uniform distribution over the range
+    from the first element to the second.
+
+    **Parameters:**
+    shape : int/tuple
+        Dimensions of the image array to create in order (x, y, z).
+        If an int is given, the image will be created with dimensions
+        (shape, shape, shape).
+
+    origin : tuple, default=None
+        Origin in mm for the image in order (x, y, z).  If None, set
+        the origin so that that the image centre is at (0, 0, 0).
+
+    voxel_size : tuple, default=(1, 1, 3)
+        Voxel sizes in mm for the image in order (x, y, z).
+
+    noise_std : float, default=None
+        Standard deviation of Gaussian noise to apply to the image.
+        If None, no noise will be applied.
+    """
+    ##################
+    # Image settings #
+    ##################
+    shape = [round(value) for value in get_values(shape)]
+    origin = get_values(origin) or [-shape[0] / 2, -shape[1] / 2, 0]
+    voxel_size = get_values(voxel_size)
+    noise_std = get_value(noise_std)
+
+    ####################################
+    # Randomised anatomical parameters #
+    ####################################
+    # Head
+    head_height = np.random.uniform(100, 170)
+    head_radius = np.random.uniform(40, 80)
+
+    # Ears
+    ear_offset_x = np.random.uniform(-5, 5)
+    ear_offset_y = np.random.uniform(-5, 5)
+    ear_offset_z = np.random.uniform(-5, 10)
+    ear_size_x = np.random.uniform(20, 60)
+    ear_size_y = np.random.uniform(5, 20)
+    ear_size_z = np.random.uniform(40, 60)
+
+    # Eyes
+    eye_angle = np.random.uniform(15, 40)
+    eye_radius = np.random.uniform(5, 15)
+    eye_offset_z = np.random.uniform(0, 10)
+
+    # Teeth
+    teeth_bottom_row_from_chin = np.random.uniform(10, 20)
+    teeth_row_spacing = np.random.uniform(5, 15)
+    teeth_angle_spacing = np.random.uniform(5, 10)
+    teeth_size = np.random.uniform(5, 10)
+    teeth_radius_frac = np.random.uniform(0.7, 0.9)
+
+    ##############
+    # Make image #
+    ##############
+    # Background and head
+    head_image = SyntheticImage(
+            shape, voxel_size=voxel_size, origin=origin, noise_std=noise_std)
+    centre = head_image.get_centre()
+    head_image.add_cylinder(
+            radius=head_radius, length=head_height, group='head')
+
+    # Add ears
+    for i in [-1, 1]:
+        head_image.add_cuboid(
+            side_length=[ear_size_x, ear_size_y, ear_size_z],
+            centre=[
+                centre[0] + i * (head_radius + ear_offset_x),
+                centre[1] + ear_offset_y,
+                centre[2] + ear_offset_z
+            ],
+            group='head'
+        )
+
+    # Add eyes
+    for i, name in zip([-1, 1], ['right', 'left']):
+        head_image.add_sphere(
+            radius=eye_radius,
+            centre=[
+                centre[0] + head_radius * np.sin(np.radians(eye_angle)) * i,
+                centre[1] + head_radius * np.cos(np.radians(eye_angle)),
+                centre[2] + eye_offset_z
+            ],
+            intensity=40,
+            name='eye_' + name
+        )
+
+    # Add teeth
+    for i in [-2, -1, 1, 2]:
+        radius = head_radius * teeth_radius_frac
+        angle = np.sign(i) * np.radians((abs(i) - 0.5) * teeth_angle_spacing)
+        z = centre[2] - head_height / 2 + teeth_bottom_row_from_chin
+        head_image.add_cube(
+            side_length=teeth_size,
+            centre=[
+                centre[0] + np.sin(angle) * radius,
+                centre[1] + np.cos(angle) * radius,
+                z
+            ],
+            intensity=100,
+            group='teeth'
+        )
+        head_image.add_cube(
+            side_length=teeth_size,
+            centre=[
+                centre[0] + np.sin(angle) * radius,
+                centre[1] + np.cos(angle) * radius,
+                z + teeth_row_spacing
+            ],
+            intensity=100,
+            group='teeth'
+        )
+
+    return head_image
+
+def get_value(val):
+    return np.random.uniform(*val) if skrt.core.is_list(val) else val
+
+def get_values(vals):
+    return [get_value(val) for val in vals] if skrt.core.is_list(vals) else None
