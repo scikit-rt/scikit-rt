@@ -743,8 +743,27 @@ class PathData(Data):
         '''
         Return number of data files associated with this object.
         '''
-        # Only 1 data file associated with a non-Archive object.
+        if os.path.isdir(self.path):
+            return get_n_file(self.path)
         return 1
+
+    def print_paths(self, max_path=None):
+        '''
+        Print paths of data files associated with this object.
+
+        File paths are listed in natural order, with one path per line.
+        
+        **Parameters:**
+        max_path: int/None, default=None
+            Indication of maximum number of paths to print.  If a positive
+            integer, the first <max_path> paths are printed.  If a negative
+            integer, the last <max_path> paths are printed.  If None,
+            all paths are printed.
+        '''
+        if os.path.isdir(self.path):
+            print_paths(self.path, max_path)
+        else:
+            print(self.path)
 
 
 class Dated(PathData):
@@ -2171,3 +2190,48 @@ def qualified__name(cls):
     """
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
+
+def get_n_file(data_dir):
+    """
+    Count number of files below a directory, ignoring hidden files.
+    
+    **Parameter:**
+    data_dir: str, pathlib.Path
+        Path to directory below which files are to be counted.
+    """
+    return len([path for path in Path(data_dir).glob("**/[!.]*")
+                if path.is_file()]) 
+
+def print_paths(data_dir, max_path=None):
+    """
+    Print paths to files below a directory, ignoring hidden files.
+    
+    File paths are listed in natural order, with one path per line.
+    
+    **Parameters:**
+    data_dir: str, pathlib.Path
+        Path to directory below which file paths are to be printed.
+        
+    max_path: int/None, default=None
+        Indication of maximum number of paths to print.  If a positive
+        integer, the first <max_path> paths are printed.  If a negative
+        integer, the last <max_path> paths are printed.  If None,
+        all paths are printed.
+    """
+    # Obtain sorted list of paths.
+    local_paths = sorted(
+            list(Path(data_dir).glob("**/[!.]*")), key=alphanumeric)
+
+    # Reduce number of paths as needed.
+    if max_path is None:
+        selected_paths = local_paths
+    else:
+        if max_path >= 0:
+            selected_paths = local_paths[: max_path]
+        else:
+            selected_paths = local_paths[max_path:]
+
+    # Print paths.
+    for path in selected_paths:
+        out_path = compress_user(path) if Defaults().compress_user else path
+        print(out_path)
