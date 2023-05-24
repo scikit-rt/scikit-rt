@@ -48,6 +48,9 @@ to directories for copying data and saving outputs.
 - [eqd.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/eqd.ipynb) :
   calculation of equivalent dose, for specified dose per fraction,
   and of biologically effective dose.
+- [synthetic_dicom_dataset.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/synthetic_dicom_dataset.ipynb) :
+  creation and writing (DICOM format) of a synthetic image and associated
+  structure set, which can be useful for code testing.
 - [grid_creation.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/grid_creation.ipynb) :
   creation of a grid image, which can be useful, for example,
   for understanding the effect of applying a registration transform.
