@@ -369,9 +369,9 @@ class BetterViewer:
             with dateutil.parser.
 
         init_view : string, default=None
-            Orientation ('x-y', 'y-z', 'x-z' at which to initially display
-            the image(s).  If None, the initial view is chosen to match
-            the image orienation.
+            Orientation ('x-y', 'x-z', 'y-x', 'y-z', 'z-x' , 'z-y')
+            at which to initially display the image(s).  If None, the
+            initial view is chosen to match the image orienation.
 
         init_slice : integer, default=None
             Slice number in the initial orientation direction at which to
@@ -1811,11 +1811,7 @@ class SingleViewer:
                 init_view = view
             else:
                 init_view = 'x-y'
-        view_map = {"y-x": "x-y", "z-x": "x-z", "z-y": "y-z"}
-        if init_view in view_map:
-            self.view = view_map[init_view]
-        else:
-            self.view = init_view
+        self.view = init_view
 
         # Set initial slice number for each orientation
         self.slice = {
@@ -1901,8 +1897,11 @@ class SingleViewer:
         self.standalone = standalone
         self.custom_ax_lims = {
             'x-y': [xlim, ylim],
-            'y-z': [zlim, ylim],
-            'x-z': [zlim, xlim]
+            'x-z': [xlim, zlim],
+            'y-x': [ylim, xlim],
+            'y-z': [ylim, zlim],
+            'z-x': [zlim, xlim],
+            'z-y': [zlim, ylim],
         }
         self.zoom = zoom
         self.zoom_centre = zoom_centre
@@ -2234,7 +2233,7 @@ class SingleViewer:
         # View radio buttons
         if not shared_ui:
             self.ui_view = ipyw.RadioButtons(
-                options=['x-y', 'y-z', 'x-z'],
+                options=['x-y', 'x-z', 'y-x', 'y-z', 'z-x', 'z-y'],
                 value=self.view,
                 description='Slice plane selection:',
                 disabled=False,

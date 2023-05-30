@@ -544,8 +544,8 @@ class ROI(skrt.core.Archive):
 
     def reset_contours(self, contours=None, most_points=False):
         """Reset x-y contours to a given dict of slices and contour lists, 
-        and ensure that mask and y-z/x-z contours will be recreated. If 
-        contours is None, contours will be reset using own x-y contours.
+        and ensure that mask and y-x/y-x/y-z/z-x/z-y contours will be recreated.
+        If contours is None, contours will be reset using own x-y contours.
         If most_points is True, only the contour with most points for
         each slice is considered."""
 
@@ -740,7 +740,7 @@ class ROI(skrt.core.Archive):
 
         view : str
             Orientation considered for 2D image or projection.
-            Can be "x-y", "y-z", or "x-z".
+            Can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
         """
 
         self.load()
@@ -4472,6 +4472,8 @@ class ROI(skrt.core.Archive):
         save_as=None,
         include_image=False,
         no_invert=False,
+        voxel_size=[1, 1],
+        buffer=5,
         **kwargs,
     ):
         """Plot this ROI as either a mask or a contour.
@@ -4479,7 +4481,8 @@ class ROI(skrt.core.Archive):
         **Parameters:**
 
         view : str, default="x-y"
-            Orientation in which to plot. Can be "x-y", "y-z", or "x-z".
+            Orientation in which to plot. Can be "x-y", "x-z", "y-x", "y-z",
+            "z-x", or "z-y".
 
         plot_type : str, default="contour"
             Plotting type. If None, will be either "contour" or "mask" 
@@ -4561,6 +4564,16 @@ class ROI(skrt.core.Archive):
             in the opposite direction. Otherwise, the plot will be left as
             it appeared when drawn by matplotlib.
 
+        voxel_size : list, default=[1, 1]
+            If the ROI does not have an associated image and is described only
+            by contours, this will be the voxel sizes used in the x-y direction
+            when converting the ROI to a mask if a mask plot type is selected.
+
+        buffer : int, default=5
+            If the ROI does not have an associated image and is described only
+            by contours, this will be the number of buffer voxels 
+            (i.e. whitespace) displayed around the ROI.
+
         `**`kwargs :
             Extra keyword arguments to pass to the relevant plot function.
         """
@@ -4568,19 +4581,33 @@ class ROI(skrt.core.Archive):
         if self.empty:
             return
 
+        image_ready = kwargs.pop("image_ready", False)
+        if image_ready or (include_image and self.image):
+            roi = self
+        else:
+            roi = self.clone(copy_data=False)
+            im = roi.get_dummy_image(
+                voxel_size=voxel_size,
+                buffer=buffer
+            )
+            im.title = roi.name
+            roi.set_image(im)
+            roi.reset_contours()
+        roi.create_mask()
+
         if plot_type is None:
-            plot_type = kwargs.get("roi_plot_type", self.default_geom_method)
+            plot_type = kwargs.get("roi_plot_type", roi.default_geom_method)
 
         if sl is None and idx is None and pos is None:
-            idx = self.get_mid_idx(view)
+            idx = roi.get_mid_idx(view)
         else:
-            idx = self.get_idx(view, sl, idx, pos)
+            idx = roi.get_idx(view, sl, idx, pos)
 
         show_centroid = "centroid" in plot_type
         if zoom and zoom_centre is None:
-            zoom_centre = self.get_zoom_centre(view)
+            zoom_centre = roi.get_zoom_centre(view)
         if color is None:
-            color = self.color
+            color = roi.color
         else:
             color = matplotlib.colors.to_rgba(color)
 
@@ -4589,7 +4616,7 @@ class ROI(skrt.core.Archive):
                     "roi_opacity", 0.3 if "filled" in plot_type else 1)
 
         # Set up axes
-        self.set_ax(plot_type, include_image, view, ax, gs, figsize)
+        roi.set_ax(plot_type, include_image, view, ax, gs, figsize)
 
         # Adjust centroid marker size
         if contour_kwargs is None:
@@ -4604,7 +4631,7 @@ class ROI(skrt.core.Archive):
 
         # Plot a mask
         if plot_type == "mask":
-            self._plot_mask(
+            roi._plot_mask(
                 view,
                 idx,
                 mask_kwargs,
@@ -4619,7 +4646,7 @@ class ROI(skrt.core.Archive):
 
         # Plot a contour
         elif plot_type in ["contour", "centroid"]:
-            self._plot_contour(
+            roi._plot_contour(
                 view,
                 idx,
                 contour_kwargs,
@@ -4630,6 +4657,7 @@ class ROI(skrt.core.Archive):
                 color=color,
                 show=False,
                 include_image=include_image,
+                image_ready=image_ready,
                 **kwargs,
             )
 
@@ -4637,10 +4665,10 @@ class ROI(skrt.core.Archive):
         elif "filled" in plot_type:
             if opacity is None:
                 opacity = 0.3
-            self._plot_mask(view, idx, mask_kwargs, opacity, color=color,
+            roi._plot_mask(view, idx, mask_kwargs, opacity, color=color,
                            show=False, include_image=include_image, **kwargs)
-            kwargs["ax"] = self.ax
-            self._plot_contour(
+            #kwargs["ax"] = self.ax
+            roi._plot_contour(
                 view,
                 idx,
                 contour_kwargs,
@@ -4651,24 +4679,25 @@ class ROI(skrt.core.Archive):
                 color=color,
                 show=False,
                 include_image=False,
+                image_ready=image_ready,
                 **kwargs,
             )
 
         # Check whether y axis needs to be inverted
-        if view == "x-y" and self.ax.get_ylim()[1] > self.ax.get_ylim()[0]:
-            self.ax.invert_yaxis()
+        #if view == "x-y" and self.ax.get_ylim()[1] > self.ax.get_ylim()[0]:
+        #    self.ax.invert_yaxis()
 
         # Draw legend
         legend = kwargs.get("legend", False)
         if legend:
             name = kwargs.get("name", self.name)
-            roi_handle = self.get_patch(
+            roi_handle = roi.get_patch(
                     plot_type, color, opacity, linewidth, name)
             if roi_handle:
                 bbox_to_anchor = kwargs.get("legend_bbox_to_anchor", None)
                 loc = kwargs.get("legend_loc", "lower left")
 
-                self.ax.legend(handles=[roi_handle],
+                roi.ax.legend(handles=[roi_handle],
                         bbox_to_anchor=bbox_to_anchor, loc=loc,
                         facecolor="white", framealpha=1
                         )
@@ -4681,7 +4710,7 @@ class ROI(skrt.core.Archive):
 
         # Save to file
         if save_as:
-            self.fig.savefig(save_as)
+            roi.fig.savefig(save_as)
             plt.close()
 
     def get_dummy_image(self, **kwargs):
@@ -4822,28 +4851,22 @@ class ROI(skrt.core.Archive):
 
         from skrt.better_viewer import BetterViewer
         self.load()
-        
-        # Set initial zoom amount and centre
-        if self.image is not None and not self.contours_only:
-            view = kwargs.get("init_view", "x-y")
-            axes = skrt.image._plot_axes[view]
-            extents = [self.get_length(ax=ax) for ax in axes]
-            im_lims = [self.image.get_length(ax=ax) for ax in axes]
-            zoom = min([im_lims[i] / extents[i] for i in range(2)]) * 0.8
-            zoom_centre = self.get_centre()
-            if zoom > 1:
-                kwargs.setdefault("zoom", zoom)
-                kwargs.setdefault("zoom_centre", zoom_centre)
-            if "init_pos" not in kwargs and "init_slice" not in kwargs:
-                kwargs["init_pos"] = \
-                        self.get_centre()[skrt.image._slice_axes[view]]
 
-        kwargs["show"] = False
-        if "plot_type" in kwargs:
-            kwargs["roi_plot_type"] = kwargs.pop("plot_type")
+        view = kwargs.pop("init_view", None) or kwargs.get("view", "x-y")
+        sl = kwargs.pop("init_slice", None) or kwargs.get("sl", None)
+        idx = kwargs.pop("init_idx", None) or kwargs.get("idx", None)
+        pos = kwargs.pop("init_pos", None) or kwargs.get("pos", None)
+        for key in ["sl", "idx", "pos", "view"]:
+            kwargs.pop(key, None)
+        kwargs["roi_plot_type"] = kwargs.pop("plot_type", "contour")
 
         # View with image
         if include_image and self.image is not None:
+            if sl is None and idx is None and pos is None:
+                idx = self.get_mid_idx(view)
+            else:
+                idx = self.get_idx(view, sl, idx, pos)
+            kwargs["init_idx"] = idx
             bv = BetterViewer(self.image, rois=self, **kwargs)
 
         # View without image
@@ -4857,7 +4880,17 @@ class ROI(skrt.core.Archive):
             )
             im.title = self.name
             roi_tmp.set_image(im)
+            roi_tmp.reset_contours()
+            if sl is None and idx is None and pos is None:
+                idx = roi_tmp.get_mid_idx(view)
+            else:
+                idx = roi_tmp.get_idx(view, sl, idx, pos)
+            kwargs["init_idx"] = idx
 
+            kwargs.setdefault("show", False)
+            if not "roi_kwargs" in kwargs:
+                kwargs["roi_kwargs"] = {}
+            kwargs["roi_kwargs"]["image_ready"] = True
             """
             roi_tmp = self
 
@@ -4943,6 +4976,7 @@ class ROI(skrt.core.Archive):
         # Adjust axes
         skrt.image.Image.label_ax(self, view, idx, **kwargs)
         skrt.image.Image.zoom_ax(self, view, zoom, zoom_centre)
+
         if show:
             plt.show()
 
@@ -4959,6 +4993,7 @@ class ROI(skrt.core.Archive):
         color=None,
         flatten=False,
         show=True,
+        image_ready=False,
         **kwargs,
     ):
         """Plot the ROI as a contour."""
@@ -4992,9 +5027,26 @@ class ROI(skrt.core.Archive):
             contours = self.get_contours(view, idx_as_key=True)[idx]
 
         # Plot contour
+        x_ax, y_ax = skrt.image._plot_axes[view]
+        ylims = sorted(self.image.get_extents()[y_ax])
+        """
+        if ylims[1] > ylims[0] and self.image is not None:
+            if include_image:
+                ylims = self.image.get_extents()[y_ax]
+            else:
+                ylims = self.image.plot_extent[view][2:]
+        """
+        #if ylims[1] > ylims[0] and self.image is not None:
+            #if dummy_image:
+            #    self.create_mask()
+            #ylims = self.mask.plot_extent[view][2:]
+            #else:
+        #    ylims = self.image.get_extents()[y_ax]
+
         for points in contours:
             points_x = [p[0] for p in points]
-            points_y = [p[1] for p in points]
+            points_y = [(p[1] if 1 == y_ax else ylims[0] + (ylims[1] - p[1]))
+                        for p in points]
             points_x.append(points_x[0])
             points_y.append(points_y[0])
             self.ax.plot(points_x, points_y, **contour_kwargs)
@@ -5006,8 +5058,10 @@ class ROI(skrt.core.Archive):
                     view, single_slice=True, idx=idx)
             else:
                 centroid_3d = self.get_centroid()
-                x_ax, y_ax = skrt.image._plot_axes[view]
-                centroid_points = [centroid_3d[x_ax], centroid_3d[y_ax]]
+                centroid_points = [centroid_3d[x_ax], centroid_y]
+            centroid_points[1] = (
+                    centroid_points[1] if ylims[1] < ylims[0]
+                    else ylims[1] + (ylims[0] - centroid_points[1]))
             self.ax.plot(
                 *centroid_points,
                 "+",
@@ -5036,6 +5090,8 @@ class ROI(skrt.core.Archive):
         include_image=False,
         legend_bbox_to_anchor=None,
         legend_loc="lower left",
+        voxel_size=[1, 1],
+        buffer=5,
         **kwargs
     ):
         """Plot comparison with another ROI. If no sl/idx/pos are given,
@@ -5084,23 +5140,57 @@ class ROI(skrt.core.Archive):
 
         show : bool, default=True
             If True, the plot will be displayed.
+
+        voxel_size : list, default=[1, 1]
+            If the ROI does not have an associated image and is described only
+            by contours, this will be the voxel sizes used in the x-y direction
+            when converting the ROI to a mask if a mask plot type is selected.
+
+        buffer : int, default=5
+            If the ROI does not have an associated image and is described only
+            by contours, this will be the number of buffer voxels 
+            (i.e. whitespace) displayed around the ROI.
         """
+        image_ready = kwargs.get("image_ready", False)
+        if image_ready or (include_image and self.image and other.image):
+            roi1 = self
+            roi2 = other 
+        else:
+            roi1 = self.clone(copy_data=False)
+            roi2 = other.clone(copy_data=False)
+            if include_image and (self.image or other.image):
+                if self.image:
+                    roi2.set_image(self.image)
+                    roi2.reset_contours()
+                else:
+                    roi1.set_image(other.image)
+                    roi1.reset_contours()
+            else:
+                im = StructureSet([roi1, roi2]).combine_rois().get_dummy_image(
+                        voxel_size=voxel_size, buffer=buffer)
+                im.title = f"{roi1.name} vs {roi2.name}"
+                for roi in [roi1, roi2]:
+                    roi.set_image(im)
+                    roi.create_mask()
+                    roi.reset_contours()
+                z_ax = skrt.image._slice_axes[view]
+        kwargs["image_ready"] = True
 
         # Ensure ROIs are plotted in different colours
-        if self.color == other.color:
+        if roi1.color == roi2.color:
             roi2_color = ROIDefaults().get_default_roi_color()
         else:
-            roi2_color = other.color
+            roi2_color = roi2.color
 
         # Get index to plot
         z_ax = skrt.image._slice_axes[view]
 
         # Compute position in mm to plot
         if sl is None and pos is None and idx is None:
-            pos1 = self.idx_to_pos(self.get_mid_idx(view), z_ax)
+            pos1 = roi1.idx_to_pos(roi1.get_mid_idx(view), z_ax)
         else:
-            pos1 = self.idx_to_pos(
-                self.get_idx(view, sl=sl, idx=idx, pos=pos), 
+            pos1 = roi2.idx_to_pos(
+                roi1.get_idx(view, sl=sl, idx=idx, pos=pos), 
                 z_ax
             )
 
@@ -5108,18 +5198,18 @@ class ROI(skrt.core.Archive):
         if not mid_slice_for_both:
             pos2 = pos1
         else:
-            pos2 = other.idx_to_pos(other.get_mid_idx(view), z_ax)
+            pos2 = roi2.idx_to_pos(other.get_mid_idx(view), z_ax)
 
         # Plot self
-        self.plot(show=False, view=view, pos=pos1, include_image=include_image, 
+        roi1.plot(show=False, view=view, pos=pos1, include_image=include_image, 
                   **kwargs)
 
         # Adjust kwargs for plotting second ROI
-        kwargs["ax"] = self.ax
+        kwargs["ax"] = roi1.ax
         kwargs["color"] = roi2_color
-        other.plot(show=False, view=view, pos=pos2, include_image=False, 
+        roi2.plot(show=False, view=view, pos=pos2, include_image=False, 
                    **kwargs)
-        self.ax.set_title(self.get_comparison_name(other))
+        roi1.ax.set_title(roi1.get_comparison_name(roi2))
 
         # Create legend
         if legend:
@@ -5132,15 +5222,15 @@ class ROI(skrt.core.Archive):
                 roi1_name = names[0]
                 roi2_name = names[1]
             else:
-                roi1_name = self.name
-                roi2_name = other.name
+                roi1_name = roi1.name
+                roi2_name = roi2.name
             handles = [
-                self.get_patch(
-                    plot_type, self.color, opacity, linewidth, roi1_name),
-                self.get_patch(
+                roi1.get_patch(
+                    plot_type, roi1.color, opacity, linewidth, roi1_name),
+                roi1.get_patch(
                     plot_type, roi2_color, opacity, linewidth, roi2_name),
             ]
-            self.ax.legend(
+            roi1.ax.legend(
                 handles=handles, framealpha=1, facecolor="white", 
                 bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc
             )
@@ -5150,7 +5240,7 @@ class ROI(skrt.core.Archive):
             plt.show()
         if save_as:
             plt.tight_layout()
-            self.fig.savefig(save_as)
+            roi1.fig.savefig(save_as)
 
     def get_aspect_ratio(
         self, view, *args, **kwargs
@@ -5612,9 +5702,9 @@ class ROI(skrt.core.Archive):
             view = 'x-y'
             suffixes = ('anterior', 'posterior')
         elif 'z' == axis.lower():
-            view = 'y-z'
+            view = 'z-y'
             suffixes = ('inferior', 'superior')
-            # In the 'y-z' view, y and z axes map to shapely x and y axes.
+            # In the 'z-y' view, y and z axes map to shapely x and y axes.
             axis = 'y'
 
         # Define polygon representing ROI contour as low or high,
@@ -7031,7 +7121,10 @@ class StructureSet(skrt.core.Archive):
         indices = []
         for roi in self.get_rois(ignore_empty=True):
             indices.extend(roi.get_indices(view))
-        return np.bincount(indices).argmax()
+        values, counts = np.unique(indices, return_counts=True)
+        #return np.bincount(indices).argmax()
+        return np.quantile(
+                values[counts == counts.max()], 0.5, method="nearest")
 
     def plot_comparisons(
         self, other=None, comp_type="auto", outdir=None, legend=True, 
@@ -7138,6 +7231,8 @@ class StructureSet(skrt.core.Archive):
         exclude_from_consensus=None,
         consensus_color="blue",
         consensus_linewidth=None,
+        voxel_size=[1, 1],
+        buffer=5,
         **kwargs,
     ):
         """Plot the ROIs in this structure set.
@@ -7147,14 +7242,27 @@ class StructureSet(skrt.core.Archive):
         'exclude_from_consensus' is set to the name of an ROI, that ROI will
         be excluded from the consensus calculation and plotted individually.
         """
+        image_ready = kwargs.pop("image_ready", False)
+        if image_ready or (include_image and self.image):
+            structure_set = self
+        else:
+            structure_set = self.clone(copy_rois=True, copy_roi_data=False)
+            im = structure_set.get_dummy_image(
+                    voxel_size=voxel_size, buffer=buffer)
+            structure_set.set_image(im)
+            for roi in structure_set.get_rois():
+                roi.reset_contours()
+
+        for roi in structure_set.get_rois():
+                roi.create_mask()
 
         # If no sl/idx/pos given, use the slice with the most ROIs
         if sl is None and idx is None and pos is None:
-            idx = self.get_mid_idx(view)
+            idx = structure_set.get_mid_idx(view)
 
         if plot_type is None:
-            plot_type = kwargs.get("roi_plot_type", self.default_geom_method)
-        kwargs["roi_plot_type"] = plot_type
+            plot_type = kwargs.get(
+                    "roi_plot_type", structure_set.default_geom_method)
 
         # Ensure that linewidth and opacity for ROI plotting are defined.
         roi_kwargs = {}
@@ -7167,12 +7275,13 @@ class StructureSet(skrt.core.Archive):
 
         # Ensure that title is set to be a string.
         if kwargs.get("title", None) is None:
-            kwargs["title"] = self.name or ""
+            kwargs["title"] = structure_set.name or ""
 
         # Plot with image
-        if include_image and self.image is not None:
+        if include_image and structure_set.image is not None:
 
-            self.image.plot(
+            roi_kwargs["image_ready"] = True
+            structure_set.image.plot(
                 view,
                 sl=sl, 
                 idx=idx,
@@ -7192,16 +7301,20 @@ class StructureSet(skrt.core.Archive):
             )
             return
 
+        kwargs["image_ready"] = True
+
         # Plot consensus
         roi_handles = []
         if consensus_type is not None:
 
             # Plot consensus contour
-            consensus = self.get_consensus(consensus_type, 
-                                           color=consensus_color,
-                                           exclude=exclude_from_consensus)
+            consensus = structure_set.get_consensus(
+                    consensus_type, 
+                    color=consensus_color,
+                    exclude=exclude_from_consensus)
             consensus_kwargs = {} if exclude_from_consensus is not None \
                     else kwargs
+            consensus_kwargs["image_ready"] = True
             if consensus_linewidth is None:
                 consensus_linewidth = defaultParams["lines.linewidth"][0] + 1
 
@@ -7210,8 +7323,8 @@ class StructureSet(skrt.core.Archive):
                 color=consensus_color, linewidth=consensus_linewidth, 
                 opacity=opacity, show=False, ax=ax, **consensus_kwargs)
 
-            self.ax = consensus.ax
-            self.fig = consensus.fig
+            structure_set.ax = consensus.ax
+            structure_set.fig = consensus.fig
 
             if legend:
                 roi_handles.append(
@@ -7221,10 +7334,12 @@ class StructureSet(skrt.core.Archive):
             # Plot excluded ROI on top
             if exclude_from_consensus is not None:
                 kwargs["include_image"] = False
-                excluded = self.get_roi(exclude_from_consensus)
-                excluded.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
-                              opacity=opacity, linewidth=linewidth, show=False,
-                              ax=self.ax, **kwargs)
+                kwargs["image_ready"] = True
+                excluded = structure_set.get_roi(exclude_from_consensus)
+                excluded.plot(
+                        view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
+                        opacity=opacity, linewidth=linewidth, show=False,
+                        ax=structure_set.ax, **kwargs)
                 if legend:
                     roi_handles.append(
                         excluded.get_patch(plot_type, excluded.color, opacity,
@@ -7233,20 +7348,20 @@ class StructureSet(skrt.core.Archive):
         # Otherwise, plot first ROI and get axes
         else:
             if centre_on_roi is not None:
-                central = self.get_roi(centre_on_roi)
+                central = structure_set.get_roi(centre_on_roi)
                 idx = central.get_mid_idx(view)
                 sl = None
                 pos = None
                 first_roi = central
             else:
-                central = self.get_rois(ignore_empty=True)[0]
+                central = structure_set.get_rois(ignore_empty=True)[0]
 
             central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                          opacity=opacity, linewidth=linewidth, show=False,
                          ax=ax, **kwargs)
 
-            self.fig = central.fig
-            self.ax = central.ax
+            structure_set.fig = central.fig
+            structure_set.ax = central.ax
 
             if legend:
                 roi_handles.append(
@@ -7254,15 +7369,15 @@ class StructureSet(skrt.core.Archive):
                             linewidth, central.name))
 
             # Plot other ROIs
-            for i, roi in enumerate(self.get_rois(ignore_empty=True)):
+            for i, roi in enumerate(structure_set.get_rois(ignore_empty=True)):
 
                 if roi is central:
                     continue
 
-                plot_kwargs = {} if i < len(self.rois) - 1 else kwargs
+                plot_kwargs = {} if i < len(structure_set.rois) - 1 else kwargs
                 roi.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
                          opacity=opacity, linewidth=linewidth, show=False,
-                         ax=self.ax, **kwargs)
+                         ax=structure_set.ax, **kwargs)
 
                 if legend:
                     if (idx is None and pos is None and sl is None) or \
@@ -7272,7 +7387,7 @@ class StructureSet(skrt.core.Archive):
 
         # Draw legend
         if legend and len(roi_handles):
-            self.ax.legend(handles=roi_handles,
+            structure_set.ax.legend(handles=roi_handles,
                     bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc,
                     facecolor="white", framealpha=1
             )
@@ -7284,7 +7399,7 @@ class StructureSet(skrt.core.Archive):
 
         # Save to file
         if save_as:
-            self.fig.savefig(save_as)
+            structure_set.fig.savefig(save_as)
             plt.close()
 
     def plot_consensus(self, consensus_type, view="x-y", sl=None, idx=None,
@@ -7371,6 +7486,7 @@ class StructureSet(skrt.core.Archive):
         self.rois[0].load()
         if self.image is not None and not self.get_rois(ignore_empty=True)[0].contours_only:
             view = kwargs.get("init_view", "x-y")
+            """
             axes = skrt.image._plot_axes[view]
             extents = [self.get_length(ax=ax) for ax in axes]
             im_lims = [self.image.get_length(ax=ax) for ax in axes]
@@ -7379,6 +7495,7 @@ class StructureSet(skrt.core.Archive):
             if zoom > 1:
                 kwargs.setdefault("zoom", zoom)
                 kwargs.setdefault("zoom_centre", zoom_centre)
+            """
 
             # Set initial slice
             kwargs.setdefault(
@@ -7417,6 +7534,8 @@ class StructureSet(skrt.core.Archive):
                 copy_roi_data=False,
             )
             structure_set_tmp.set_image(im)
+            for roi in structure_set_tmp.get_rois():
+                roi.reset_contours()
             """
             if self.rois[0].contours_only or True:
                 im = self.get_dummy_image(buffer=buffer, 
@@ -7443,6 +7562,9 @@ class StructureSet(skrt.core.Archive):
                 else:
                     rois = [structure_set_tmp, rois]
             kwargs["show"] = False
+            if not "roi_kwargs" in kwargs:
+                kwargs["roi_kwargs"] = {}
+            kwargs["roi_kwargs"]["image_ready"] = True
             bv = BetterViewer(im, rois=rois, **kwargs)
 
             # Adjust UI
@@ -7960,14 +8082,27 @@ class StructureSet(skrt.core.Archive):
             roi_new = ROI(source=all_polygons, image=image, name=name)
 
         else:
+            #image_is_none = (image is None)
+            #if image_is_none:
+            #    image = self.create_dummy_image()
             # Use data from one of the ROIs as a starting point.
-            roi0 = self.get_roi(roi_names[0])
-            roi_new = ROI(source=roi0.get_mask().copy(), affine=roi0.affine,
-                    name=name, image=image)
+            #roi0 = self.get_roi(roi_names[0])
+            #roi_new = ROI(source=roi0.get_mask().copy(), affine=roi0.affine,
+            #        name=name, image=image)
+            roi_new = self.get_roi(roi_names[0]).clone()
+            roi_new.set_image(image)
+            roi_new.create_mask()
 
             # Combine with data from the other ROIs.
             for i in range(1, len(roi_names)):
-                roi_new.mask.data |= self.get_roi(roi_names[i]).get_mask()
+                roi_tmp = self.get_roi(roi_names[i]).clone()
+                roi_tmp.set_image(image)
+                roi_tmp.create_mask()
+                roi_new.mask.data |= roi_tmp.mask.data
+
+            #if image_is_none:
+            #    image = None
+            roi_new = ROI(source=roi_new.mask.data, image=image, name=name)
 
         return roi_new
 
@@ -8807,7 +8942,7 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
 
         view : str, default="x-y"
             Orientation to consider when taking centroid components relative
-            to a slice.  Can be "x-y", "y-z", or "x-z".
+            to a slice.  Can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
     """
     metrics = [
             "abs_centroid",

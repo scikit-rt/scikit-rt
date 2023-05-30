@@ -40,8 +40,9 @@ except ModuleNotFoundError:
     _has_mahotas = False
 
 _axes = ["x", "y", "z"]
-_slice_axes = {"x-y": 2, "y-z": 0, "x-z": 1}
-_plot_axes = {"x-y": [0, 1], "y-z": [2, 1], "x-z": [2, 0]}
+_slice_axes = {"x-y": 2, "x-z": 1, "y-x": 2, "y-z": 0, "z-x": 1, "z-y": 0}
+_plot_axes = {"x-y": [0, 1], "x-z": [0, 2], "y-x": [1, 0], "y-z": [1, 2],
+              "z-x": [2, 0], "z-y": [2, 1]}
 _default_figsize = 6
 _default_stations = {"0210167": "LA3", "0210292": "LA4"}
 _default_bolus_names = ["planning bolus", "virtual bolus", "bolus",
@@ -1898,7 +1899,7 @@ class Image(skrt.core.Archive):
         **Parameters:**
 
         view : str, default="x-y"
-            Orientation; can be "x-y", "y-z", or "x-z".
+            Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
         fraction : float, default=1
             Minimum fraction of the maximum intensity that a voxel must record
@@ -1928,7 +1929,7 @@ class Image(skrt.core.Archive):
         **Parameters:**
 
         view : str, default="x-y"
-            Orientation; can be "x-y", "y-z", or "x-z".
+            Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
         fraction : float, default=1
             Minimum fraction of the maximum intensity that a voxel must record
@@ -1948,7 +1949,7 @@ class Image(skrt.core.Archive):
         **Parameters:**
 
         view : str, default="x-y"
-            Orientation; can be "x-y", "y-z", or "x-z".
+            Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
         fraction : float, default=1
             Minimum fraction of the maximum intensity that a voxel must record
@@ -2167,7 +2168,9 @@ class Image(skrt.core.Archive):
             for i in range(3)
         ]
         self.plot_extent = {
-            view: self.image_extent[x_ax] + self.image_extent[y_ax][::-1]
+            view: self.image_extent[x_ax] +
+            (self.image_extent[y_ax][::-1] if 1 == y_ax
+             else self.image_extent[y_ax])
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
         self.image_size = [
@@ -2199,8 +2202,8 @@ class Image(skrt.core.Archive):
         **Parameters:**
         
         view : str
-            Orientation in which to compute the index. Can be "x-y", "y-z", or
-            "x-z".
+            Orientation in which to compute the index. 
+            Can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
         sl : int, default=None
             Slice number. If given, this number will be converted to an index 
@@ -2236,7 +2239,7 @@ class Image(skrt.core.Archive):
         **Parameters:**
         
         view : str
-            Orientation; can be "x-y", "y-z", or "x-z".
+            Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
         sl : int, default=None
             Slice number; used if not None.
@@ -2276,14 +2279,20 @@ class Image(skrt.core.Archive):
                 return self._current_slice
 
         # Create slice
-        transposes = {"x-y": [0, 1, 2], "y-z": [0, 2, 1], "x-z": [1, 2, 0]}
+        transposes = {
+                "x-y": [0, 1, 2], "x-z": [2, 1, 0],
+                "y-x": [1, 0, 2], "y-z": [2, 0, 1],
+                "z-x": [1, 2, 0], "z-y": [0, 2, 1],
+                }
         transpose = pad_transpose(transposes[view], self.data.ndim)
         list(_plot_axes[view]) + [_slice_axes[view]]
-        data = np.transpose(self.get_standardised_data(force=force_standardise), 
+        data = np.transpose(self.get_standardised_data(force=force_standardise),
                             transpose)
+        x_ax, y_ax = _plot_axes[view]
+        if y_ax != 1:
+            data = data[::-1, :, :]
 
         # Apply shifts in plane if requested
-        x_ax, y_ax = _plot_axes[view]
         if shift[x_ax]:
             shift_x = round(shift[x_ax] / self.voxel_size[x_ax])
             data = np.roll(data, shift_x, axis=1)
@@ -2398,8 +2407,8 @@ class Image(skrt.core.Archive):
         **Parameters:**
         
         view : str
-            Orientation (any of "x-y", "x-z", "y-z"); needed to compute
-            correct aspect ratio and plot extent.
+            Orientation; (any of "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y");
+            needed to compute correct aspect ratio and plot extent.
 
         mpl_kwargs : dict, default=None
             Dict of kwargs with which to overwrite default kwargs.
@@ -2527,8 +2536,8 @@ class Image(skrt.core.Archive):
         
         view : str, default=None
             Orientation in which to plot the image. Can be any of 'x-y',
-            'y-z', and 'x-z'.  If None, the initial view is chosen to match
-            the image orienation.
+            'x-z', 'y-x', 'y-z', 'z-x', and 'z-y'.  If None, the initial
+            view is chosen to match the image orienation.
 
         sl : int, default=None
             Slice number to plot. Takes precedence over <idx> and <pos> if not
@@ -3084,8 +3093,16 @@ class Image(skrt.core.Archive):
 
         # Plot ROIs
         plotted_rois = []
+        image_ready = roi_kwargs.get("image_ready", False)
+        roi_kwargs["image_ready"] = True
         if consensus_type is None:
-            for roi in rois_to_plot:
+            for roi0 in rois_to_plot:
+                if image_ready or roi0.image is self:
+                    roi = roi0
+                else:
+                    roi = roi0.clone(copy_data=False)
+                    roi.set_image(self)
+                    roi.create_contours(force=True)
                 if roi.on_slice(view, pos=pos):
                     roi.plot(
                         view,
@@ -3102,7 +3119,13 @@ class Image(skrt.core.Archive):
 
         # Consensus plot
         else:
-            roi_input[0].plot(
+            if image_ready or roi_input[0].image is self:
+                roi = roi_input[0]
+            else:
+                roi = roi_input[0].clone(copy_data=False)
+                roi.set_image(self)
+                roi.create_contours(force=True)
+            roi.plot(
                 view,
                 pos=pos,
                 ax=self.ax,
@@ -3464,7 +3487,7 @@ class Image(skrt.core.Archive):
         in a given orientation.
 
         view : str
-            Orientation ('x-y', 'y-z', or 'x-z')
+            Orientation ('x-y', 'x-z', 'y-x', 'y-z', 'z-x', or 'z-y')
 
         zoom : float/list, default=None
             Zoom factors; either a single value for all axes, or three values

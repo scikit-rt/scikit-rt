@@ -74,8 +74,9 @@ class ImageOverlay(skrt.image.Image):
         **Parameters**:
 
         view : str
-            Orientation in which to compute the index. Can be "x-y", "y-z", or
-            "x-z".  If None, the initial view is chosen to match
+            Orientation in which to compute the index. Can be "x-y", "x-z",
+            "y-x", "y-z", "z-x", or
+            "z-y".  If None, the initial view is chosen to match
             the image orienation.
 
         sl : int, default=None
