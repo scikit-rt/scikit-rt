@@ -4454,7 +4454,7 @@ class ROI(skrt.core.Archive):
     def plot(
         self,
         view="x-y",
-        plot_type="contour",
+        plot_type=None,
         sl=None,
         idx=None,
         pos=None,
@@ -5060,8 +5060,8 @@ class ROI(skrt.core.Archive):
                 centroid_3d = self.get_centroid()
                 centroid_points = [centroid_3d[x_ax], centroid_y]
             centroid_points[1] = (
-                    centroid_points[1] if ylims[1] < ylims[0]
-                    else ylims[1] + (ylims[0] - centroid_points[1]))
+                    centroid_points[1] if 1 == y_ax
+                    else ylims[0] + (ylims[1] - centroid_points[1]))
             self.ax.plot(
                 *centroid_points,
                 "+",
@@ -7262,10 +7262,6 @@ class StructureSet(skrt.core.Archive):
         if sl is None and idx is None and pos is None:
             idx = structure_set.get_mid_idx(view)
 
-        if plot_type is None:
-            plot_type = kwargs.get(
-                    "roi_plot_type", structure_set.default_geom_method)
-
         # Ensure that linewidth and opacity for ROI plotting are defined.
         roi_kwargs = {}
         if opacity is None:
@@ -7288,7 +7284,8 @@ class StructureSet(skrt.core.Archive):
                 sl=sl, 
                 idx=idx,
                 pos=pos,
-                rois=self,
+                rois=structure_set,
+                roi_plot_type=plot_type,
                 roi_kwargs=roi_kwargs,
                 centre_on_roi=centre_on_roi,
                 show=show,
@@ -7406,6 +7403,7 @@ class StructureSet(skrt.core.Archive):
 
     def plot_consensus(self, consensus_type, view="x-y", sl=None, idx=None,
                        pos=None, rois_in_background=False, color=None, 
+                       voxel_size=[1, 1], buffer=5, include_image=False,
                        show=True, **kwargs):
         """Plot the consensus contour, with all ROIs in grey behind it if
         rois_in_background=True."""
@@ -7422,7 +7420,20 @@ class StructureSet(skrt.core.Archive):
         if consensus.empty:
             print(f"{consensus_type} contour is empty")
             return
-        consensus.plot(color=color, pos=pos, view=view, show=False, **kwargs)
+
+        image_ready = kwargs.pop("image_ready", False)
+        if not image_ready and not (include_image and self.image):
+            im = consensus.get_dummy_image(
+                    voxel_size=voxel_size,
+                    buffer=buffer
+                    )
+            im.title = consensus.name
+            consensus.set_image(im)
+            consensus.reset_contours()
+        consensus.create_mask()
+
+        consensus.plot(color=color, pos=pos, view=view, show=False,
+                       image_ready=True, **kwargs)
 
         if rois_in_background:
             kwargs["ax"] = consensus.ax
