@@ -7313,6 +7313,8 @@ class StructureSet(skrt.core.Archive):
                     exclude=exclude_from_consensus)
             consensus_kwargs = {} if exclude_from_consensus is not None \
                     else kwargs
+            consensus.create_mask()
+            consensus.image = consensus.mask.clone()
             consensus_kwargs["image_ready"] = True
             if consensus_linewidth is None:
                 consensus_linewidth = defaultParams["lines.linewidth"][0] + 1
