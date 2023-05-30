@@ -614,8 +614,9 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 <dd><p>Plot this overlay, optionally overlaid on its associated Image.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
-<dt>view<span class="classifier">str</span></dt><dd><p>Orientation in which to compute the index. Can be “x-y”, “y-z”, or
-“x-z”.  If None, the initial view is chosen to match
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation in which to compute the index. Can be “x-y”, “x-z”,
+“y-x”, “y-z”, “z-x”, or
+“z-y”.  If None, the initial view is chosen to match
 the image orienation.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number to plot. Takes precedence over &lt;idx&gt; and &lt;pos&gt; if not

@@ -379,9 +379,9 @@ date is found within the directory name. The date is taken from the
 first unbroken string of numbers that can be successfully parsed
 with dateutil.parser.</p>
 </dd>
-<dt>init_view<span class="classifier">string, default=None</span></dt><dd><p>Orientation (‘x-y’, ‘y-z’, ‘x-z’ at which to initially display
-the image(s).  If None, the initial view is chosen to match
-the image orienation.</p>
+<dt>init_view<span class="classifier">string, default=None</span></dt><dd><p>Orientation (‘x-y’, ‘x-z’, ‘y-x’, ‘y-z’, ‘z-x’ , ‘z-y’)
+at which to initially display the image(s).  If None, the
+initial view is chosen to match the image orienation.</p>
 </dd>
 <dt>init_slice<span class="classifier">integer, default=None</span></dt><dd><p>Slice number in the initial orientation direction at which to
 display the first image (can be changed interactively later). If

@@ -602,7 +602,7 @@ unweighted mean of the coordinates of voxels with an intensity at
 least a given fraction of the maximum.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “y-z”, or “x-z”.</p>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”.</p>
 </dd>
 <dt>fraction<span class="classifier">float, default=1</span></dt><dd><p>Minimum fraction of the maximum intensity that a voxel must record
 to be considered in the centroid calculation.</p>
@@ -619,7 +619,7 @@ unweighted mean of the coordinates of voxels with an intensity at
 least a given fraction of the maximum.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “y-z”, or “x-z”.</p>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”.</p>
 </dd>
 <dt>fraction<span class="classifier">float, default=1</span></dt><dd><p>Minimum fraction of the maximum intensity that a voxel must record
 to be considered in the centroid calculation.</p>
@@ -636,7 +636,7 @@ unweighted mean of the coordinates of voxels with an intensity at
 least a given fraction of the maximum.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “y-z”, or “x-z”.</p>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation; can be “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”.</p>
 </dd>
 <dt>fraction<span class="classifier">float, default=1</span></dt><dd><p>Minimum fraction of the maximum intensity that a voxel must record
 to be considered in the centroid calculation.</p>
@@ -969,8 +969,8 @@ central slice of the image in the orienation specified in &lt;view&gt; will
 be returned.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>view<span class="classifier">str</span></dt><dd><p>Orientation in which to compute the index. Can be “x-y”, “y-z”, or
-“x-z”.</p>
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation in which to compute the index. 
+Can be “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If given, this number will be converted to an index 
 and returned.</p>
@@ -1088,8 +1088,8 @@ self._default_vmax by default.</p>
 </dl>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>view<span class="classifier">str</span></dt><dd><p>Orientation (any of “x-y”, “x-z”, “y-z”); needed to compute
-correct aspect ratio and plot extent.</p>
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation; (any of “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”);
+needed to compute correct aspect ratio and plot extent.</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dict of kwargs with which to overwrite default kwargs.</p>
 </dd>
@@ -1231,7 +1231,7 @@ even if it has previously been computed.</p>
 <dd><p>Estimate the ideal width/height ratio for a plot of this image
 in a given orientation.</p>
 <dl class="simple">
-<dt>view<span class="classifier">str</span></dt><dd><p>Orientation (‘x-y’, ‘y-z’, or ‘x-z’)</p>
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation (‘x-y’, ‘x-z’, ‘y-x’, ‘y-z’, ‘z-x’, or ‘z-y’)</p>
 </dd>
 <dt>zoom<span class="classifier">float/list, default=None</span></dt><dd><p>Zoom factors; either a single value for all axes, or three values
 in order (x, y, z).</p>
@@ -1334,7 +1334,7 @@ If &lt;sl&gt;, &lt;pos&gt;, and &lt;idx&gt; are all None, the central slice of t
 in the orientation specified in &lt;view&gt; will be returned.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>view<span class="classifier">str</span></dt><dd><p>Orientation; can be “x-y”, “y-z”, or “x-z”.</p>
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation; can be “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number; used if not None.</p>
 </dd>
@@ -1701,8 +1701,8 @@ that of the image with smaller z voxels.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
 <dt>view<span class="classifier">str, default=None</span></dt><dd><p>Orientation in which to plot the image. Can be any of ‘x-y’,
-‘y-z’, and ‘x-z’.  If None, the initial view is chosen to match
-the image orienation.</p>
+‘x-z’, ‘y-x’, ‘y-z’, ‘z-x’, and ‘z-y’.  If None, the initial
+view is chosen to match the image orienation.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number to plot. Takes precedence over &lt;idx&gt; and &lt;pos&gt; if not
 None. If all of &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are None, the central
@@ -2409,8 +2409,8 @@ previously loaded.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
 <dt>view<span class="classifier">str, default=None</span></dt><dd><p>Orientation in which to plot the image. Can be any of ‘x-y’,
-‘y-z’, and ‘x-z’.  If None, the initial view is chosen to match
-the image orienation.</p>
+‘x-z’, ‘y-x’, ‘y-z’, ‘z-x’, and ‘z-y’.  If None, the initial
+view is chosen to match the image orienation.</p>
 </dd>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number to plot. Takes precedence over &lt;idx&gt; and &lt;pos&gt; if not
 None. If all of &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are None, the central
