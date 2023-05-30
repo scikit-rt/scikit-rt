@@ -7169,8 +7169,9 @@ class StructureSet(skrt.core.Archive):
             roi1.plot_surface_distances(roi2, signed=signed, save_as=outname, **kwargs)
 
     def write(self, outname=None, outdir=".", ext=None, overwrite=False,
-            header_source=None, patient_id=None, modality=None,
-            root_uid=None, verbose=True, header_extras={}, **kwargs):
+              header_source=None, patient_id=None, patient_position=None,
+              modality=None, root_uid=None, verbose=True, header_extras={},
+              **kwargs):
         """Write to a dicom StructureSet file or directory of nifti files."""
 
         if ext is not None and not ext.startswith("."):
@@ -7189,6 +7190,7 @@ class StructureSet(skrt.core.Archive):
                 header_source=header_source,
                 orientation=None,
                 patient_id=patient_id,
+                patient_position=patient_position,
                 modality='RTSTRUCT',
                 root_uid=root_uid,
                 header_extras=header_extras,

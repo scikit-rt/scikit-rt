@@ -237,7 +237,8 @@ class SyntheticImage(Image):
 
     def write_dicom_dataset(
             self, patient_id="001", outdir="synthetic_dicom", modality="CT",
-            series_number=1, root_uid=None, verbose=False):
+            series_number=1, structure_set_label="Geometric structures",
+            root_uid=None, verbose=False):
         """
         Write image and associated structure set as a patient DICOM dataset.
 
@@ -254,6 +255,9 @@ class SyntheticImage(Image):
 
         series_number: int, default=1
             Series number to be assigned to synthetic image.
+
+        structure_set_label: str, default="Geometric structures"
+            Label to be assigned to structure set, if present.
 
         root_uid : str, default=None
             Root to be used in Globally Unique Identifiers (GUIDs).  This
@@ -285,9 +289,11 @@ class SyntheticImage(Image):
             im = Image(tmp_dir)
             ds = im.get_dicom_dataset()
             header_extras = {
+                "SeriesNumber" : ds.SeriesNumber,
                 "StudyInstanceUID" : ds.StudyInstanceUID,
                 "StudyDate" : ds.StudyDate,
                 "StudyTime" : ds.StudyTime,
+                "StructureSetLabel" : structure_set_label,
             }
             ss.set_image(im)
             ss.write(outdir=tmp_dir, ext=".dcm", patient_id=patient_id,
@@ -697,7 +703,7 @@ def make_head(
     # Eyes
     eye_angle = np.random.uniform(15, 40)
     eye_radius = np.random.uniform(5, 15)
-    eye_offset_z = np.random.uniform(0, 10)
+    eye_offset_z = np.random.uniform(-20, -30)
 
     # Teeth
     teeth_bottom_row_from_chin = np.random.uniform(10, 20)
@@ -729,13 +735,13 @@ def make_head(
         )
 
     # Add eyes
-    for i, name in zip([-1, 1], ['right', 'left']):
+    for i, name in zip([-1, 1], ['left', 'right']):
         head_image.add_sphere(
             radius=eye_radius,
             centre=[
-                centre[0] + head_radius * np.sin(np.radians(eye_angle)) * i,
-                centre[1] + head_radius * np.cos(np.radians(eye_angle)),
-                centre[2] + eye_offset_z
+                centre[0] - head_radius * np.sin(np.radians(eye_angle)) * i,
+                centre[1] - head_radius * np.cos(np.radians(eye_angle)),
+                centre[2] - eye_offset_z
             ],
             intensity=40,
             name='eye_' + name
@@ -750,7 +756,7 @@ def make_head(
             side_length=teeth_size,
             centre=[
                 centre[0] + np.sin(angle) * radius,
-                centre[1] + np.cos(angle) * radius,
+                centre[1] - np.cos(angle) * radius,
                 z
             ],
             intensity=100,
@@ -760,7 +766,7 @@ def make_head(
             side_length=teeth_size,
             centre=[
                 centre[0] + np.sin(angle) * radius,
-                centre[1] + np.cos(angle) * radius,
+                centre[1] - np.cos(angle) * radius,
                 z + teeth_row_spacing
             ],
             intensity=100,

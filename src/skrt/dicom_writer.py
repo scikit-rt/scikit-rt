@@ -52,9 +52,10 @@ class DicomWriter:
     '''
 
     def __init__(self, outdir=None, data=None, affine=None,
-            overwrite=True, header_source=None, orientation=None,
-            patient_id=None, modality=None, root_uid=None, header_extras=None,
-            source_type=None, outname=None):
+                 overwrite=True, header_source=None, orientation=None,
+                 patient_id=None, patient_position=None, modality=None,
+                 root_uid=None, header_extras=None,
+                 source_type=None, outname=None):
         '''
         Create instance of DicomWriter class.
 
@@ -90,6 +91,12 @@ class DicomWriter:
 
         patient_id : str, default=None
             Patient identifier.
+
+        patient_position : str, default=None
+            Indicator of patient position relative to imaging equipment.
+            Examples include: "HFS" (head first, supine),
+            "FFP" (feet first, prone), "FFS" (feet first, supine).  If None,
+            use "HFS".
 
         modality : str, default=None
             Modality of data collection.  Supported modalities are
@@ -133,7 +140,8 @@ class DicomWriter:
         self.overwrite = overwrite
         self.header_source = header_source
         self.orientation = orientation or [1, 0, 0, 0, 1, 0]
-        self.patient_id = patient_id or ""
+        self.patient_id = patient_id or "Unknown"
+        self.patient_position = patient_position or "HFS"
         self.modality = modality.upper() if modality is not None else 'CT'
         self.header_extras = header_extras or {}
         self.source_type = source_type
@@ -201,7 +209,7 @@ class DicomWriter:
         '''
         ds.OperatorsName = None
         ds.StructureSetDate = self.date
-        ds.StructureSetLabel = ''
+        ds.StructureSetLabel = 'Unknown'
         ds.StructureSetTime = self.time
 
         return ds
@@ -242,14 +250,14 @@ class DicomWriter:
         ds.InstanceCreationDate = self.date
         ds.InstanceCreationTime = self.time
         ds.InstitutionName = None
-        ds.Manufacturer = None
+        ds.Manufacturer = "Unknown"
         ds.ManufacturerModelName = None
         ds.Modality = self.modality
         ds.PatientID = self.patient_id
-        ds.PatientPosition = None
+        ds.PatientPosition = self.patient_position
         ds.PatientAge = None
         ds.PatientBirthDate = None
-        ds.PatientName = None
+        ds.PatientName = self.patient_id
         ds.PatientSex = None
         ds.ReferringPhysicianName = None
         ds.SeriesDate = self.date
