@@ -2461,7 +2461,7 @@ class Image(skrt.core.Archive):
 
     def plot(
         self,
-        view=None,
+        view="x-y",
         sl=None,
         idx=None,
         pos=None,
@@ -2534,7 +2534,7 @@ class Image(skrt.core.Archive):
 
         **Parameters:**
         
-        view : str, default=None
+        view : str/None, default='x-y'
             Orientation in which to plot the image. Can be any of 'x-y',
             'x-z', 'y-x', 'y-z', 'z-x', and 'z-y'.  If None, the initial
             view is chosen to match the image orienation.
@@ -4857,7 +4857,7 @@ class ImageComparison(Image):
 
     def plot(
         self,
-        view=None,
+        view="x-y",
         sl=None,
         idx=None,
         pos=None,
@@ -5090,7 +5090,7 @@ class ImageComparison(Image):
                     framealpha=1
                 )
 
-    def get_difference(self, view=None, sl=None, idx=None, pos=None, 
+    def get_difference(self, view="x-y", sl=None, idx=None, pos=None, 
                        invert=False, ab=False, reset_slices=True):
         """Get array containing difference between two Images."""
 

@@ -368,7 +368,7 @@ class BetterViewer:
             first unbroken string of numbers that can be successfully parsed
             with dateutil.parser.
 
-        init_view : string, default=None
+        init_view : string/None, default='x-y'
             Orientation ('x-y', 'x-z', 'y-x', 'y-z', 'z-x' , 'z-y')
             at which to initially display the image(s).  If None, the
             initial view is chosen to match the image orienation.
@@ -1698,7 +1698,7 @@ class SingleViewer:
     def __init__(
         self,
         im=None,
-        init_view=None,
+        init_view='x-y',
         init_slice=None,
         init_idx=None,
         init_pos=None,
