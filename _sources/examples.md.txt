@@ -35,6 +35,8 @@ The following notebooks either use public datasets or don't require
 input data.  They can be run as they are, possibly after modifying paths
 to directories for copying data and saving outputs.
 
+- [patient_datasets.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/patient_datasets.ipynb) : introduction to
+  working with patient datasets.
 - [plotting_demo.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/plotting_demo.ipynb) :
   plotting capabilities.
 - [application_demo.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/application_demo.ipynb) :
