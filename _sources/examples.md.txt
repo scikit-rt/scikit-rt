@@ -42,6 +42,7 @@ to directories for copying data and saving outputs.
 - [application_demo.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/application_demo.ipynb) :
   definition and running of a scikit-rt application, for (non-interactive)
   processing of datasets for multiple patients.
+- [image_processing.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/image_processing.ipynb) : image cropping, resampling, translation, size matching, and intensity banding.
 - [roi_intensities.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/roi_intensities.ipynb) :
   hisogramming voxel intensities inside an ROI.
 - [dose_volume_rois.ipynb](https://github.com/scikit-rt/scikit-rt/blob/master/examples/notebooks/dose_volume_rois.ipynb) :
