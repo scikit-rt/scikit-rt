@@ -1120,7 +1120,9 @@ class BetterViewer:
         # Only allow share_slider if images have same frame of reference
         if self.share_slider:
             self.share_slider *= all(
-                [v.image.has_same_geometry(self.viewers[0].image) for v in self.viewers]
+                [v.image.has_same_geometry(
+                    self.viewers[0].image, standardise=True)
+                 for v in self.viewers]
             )
 
         # Make UI for first image
@@ -1275,7 +1277,8 @@ class BetterViewer:
             'overlay',
             'chequerboard',
         ]
-        if all([v.image.has_same_geometry(self.viewers[0].image) for v in self.viewers]):
+        if all([v.image.has_same_geometry(
+            self.viewers[0].image, standardise=True) for v in self.viewers]):
             comp_opts.extend([
                 'difference',
                 'absolute difference',
