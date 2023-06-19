@@ -21,8 +21,8 @@
 // ***************** Transformation **************************
 
 (AutomaticScalesEstimation "true")
-// (AutomaticTransformInitialization "false")
-(AutomaticTransformInitialization "true")
+(AutomaticTransformInitialization "false")
+// (AutomaticTransformInitialization "true")
 (HowToCombineTransforms "Compose")
 
 // ******************* Similarity measure *********************
