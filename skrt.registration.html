@@ -164,7 +164,7 @@ Otherwise, it can be loaded later with the load() method.</p>
 </dd>
 <dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, the deformation-field data will be immediately loaded.</p>
 </dd>
-<dt>signs<span class="classifier">tuple, default=None</span></dt><dd><p>Three element tuple of ints, indicating the igns to be applied to
+<dt>signs<span class="classifier">tuple, default=None</span></dt><dd><p>Three element tuple of ints, indicating the signs to be applied to
 the (x, y, z) components of the deformation field, allowing
 for different conventions.  If None, components are taken to
 be as read from source.</p>
@@ -504,6 +504,279 @@ selected attribute values.</p>
 <dt class="sig sig-object py" id="skrt.registration.Jacobian.view">
 <span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian.view" title="Permalink to this definition"></a></dt>
 <dd><p>View the Jacobian determinant.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.registration.Matlab">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">Matlab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skrt.registration.RegistrationEngine" title="skrt.registration.RegistrationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegistrationEngine</span></code></a></p>
+<p>Class interfacing to MATLAB registration engine.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.adjust_parameters">
+<span class="sig-name descname"><span class="pre">adjust_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.adjust_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Modify contents of a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile<span class="classifier">str/patlib.Path</span></dt><dd><p>Path to a registration parameter file.</p>
+</dd>
+<dt>outfile<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params<span class="classifier">dict</span></dt><dd><p>Dictionary of parameter names and new values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.define_translation">
+<span class="sig-name descname"><span class="pre">define_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxdydz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.define_translation" title="Permalink to this definition"></a></dt>
+<dd><p>Define translation parameters to be passed to registration engine.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>dxdydz<span class="classifier">tuple/list</span></dt><dd><p>Three-element tuple or list, giving translations in order
+(dx, dy, dz).  Translations correspond to the amounts added
+in mapping a point from fixed image to moving image.</p>
+</dd>
+<dt>fixed_image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image towards which moving image is to be warped.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.exes">
+<span class="sig-name descname"><span class="pre">exes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['matlabreg']</span></em><a class="headerlink" href="#skrt.registration.Matlab.exes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.get_def_cmd">
+<span class="sig-name descname"><span class="pre">get_def_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.get_def_cmd" title="Permalink to this definition"></a></dt>
+<dd><p>Get registration-engine command for computing deformation field.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>fixed_path<span class="classifier">str</span></dt><dd><p>Path to fixed image.</p>
+</dd>
+<dt>outdir<span class="classifier">str</span></dt><dd><p>Path to directory for output deformation field.</p>
+</dd>
+<dt>tfile<span class="classifier">str</span></dt><dd><p>Path to registration transform file for which deformation
+field is to be computed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.get_jac_cmd">
+<span class="sig-name descname"><span class="pre">get_jac_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.get_jac_cmd" title="Permalink to this definition"></a></dt>
+<dd><p>Get registration-engine command for computing Jacobian determinant.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>fixed_path<span class="classifier">str</span></dt><dd><p>Path to fixed image.</p>
+</dd>
+<dt>outdir<span class="classifier">str</span></dt><dd><p>Path to directory for output deformation field.</p>
+</dd>
+<dt>tfile<span class="classifier">str</span></dt><dd><p>Path to registration transform file for which deformation
+field is to be computed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.get_registration_cmd">
+<span class="sig-name descname"><span class="pre">get_registration_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_mask_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.get_registration_cmd" title="Permalink to this definition"></a></dt>
+<dd><p>Get registration-engine command for performing image registration.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>fixed_path<span class="classifier">str</span></dt><dd><p>Path to fixed image.</p>
+</dd>
+<dt>moving_path<span class="classifier">str</span></dt><dd><p>Path to moving image.</p>
+</dd>
+<dt>fixed_mask_path<span class="classifier">str</span></dt><dd><p>Path to mask for fixed image.</p>
+</dd>
+<dt>moving_mask_path<span class="classifier">str</span></dt><dd><p>Path to mask for moving image.</p>
+</dd>
+<dt>pfile<span class="classifier">str</span></dt><dd><p>Path to registration paramter file.</p>
+</dd>
+<dt>outdir<span class="classifier">str</span></dt><dd><p>Path to directory for registration output.</p>
+</dd>
+<dt>tfile<span class="classifier">str, default=None</span></dt><dd><p>Path to registration transform file from previous registration
+step.  If None, no previous registration step is it be considered.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.get_roi_params">
+<span class="sig-name descname"><span class="pre">get_roi_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.get_roi_params" title="Permalink to this definition"></a></dt>
+<dd><p>Get default parameters to be used when transforming ROI mask.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.get_transform_cmd">
+<span class="sig-name descname"><span class="pre">get_transform_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.get_transform_cmd" title="Permalink to this definition"></a></dt>
+<dd><p>Get registration-engine command for applying registration transform.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>fixed_path<span class="classifier">str</span></dt><dd><p>Path to fixed image.</p>
+</dd>
+<dt>moving_path<span class="classifier">str</span></dt><dd><p>Path to moving image.</p>
+</dd>
+<dt>outdir<span class="classifier">str</span></dt><dd><p>Path to directory for transform output.</p>
+</dd>
+<dt>tfile<span class="classifier">str</span></dt><dd><p>Path to registration transform file to be applied.</p>
+</dd>
+<dt>params: dict, default=None</dt><dd><p>Dictionary of parameter-value pairs defining modifications
+to the registration transform file prior to running the
+transform command.  The original transform file is left
+unaltered.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.get_transform_strategies">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_transform_strategies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.get_transform_strategies" title="Permalink to this definition"></a></dt>
+<dd><p>Get list of available strategies for applying registration transform.</p>
+<p>Possible strategies are:</p>
+<ul class="simple">
+<li><p>“pull”: transform applied to pull image or mask from the reference
+frame of the moving image to the reference frame of the fixed image;</p></li>
+<li><p>“push”: transform applied to push points from the reference frame
+of the fixed image to the reference frame of the moving image.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.read_affine">
+<span class="sig-name descname"><span class="pre">read_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.read_affine" title="Permalink to this definition"></a></dt>
+<dd><p>Read affine matrix from file.</p>
+<p><strong>Parameter:</strong>
+infile: str/pathlib.Path</p>
+<blockquote>
+<div><p>Path to file from which to read affine matrix.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.read_parameters">
+<span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.read_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Get dictionary of parameters from a registration parameter file.</p>
+<p><strong>Parameter:</strong>
+infile: str/pathlib.Path</p>
+<blockquote>
+<div><p>Path to registration parameter file.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.recursive_transform">
+<span class="sig-name descname"><span class="pre">recursive_transform</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#skrt.registration.Matlab.recursive_transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.set_exe_env">
+<span class="sig-name descname"><span class="pre">set_exe_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.set_exe_env" title="Permalink to this definition"></a></dt>
+<dd><p>Set environment variables for running MATLAB registration.</p>
+<p>MATLAB registration can be run using compiled or uncompiled MATLAB
+code.  In both cases, the environment setup can be performed
+before or after starting the Python session that runs scikit-rt.</p>
+<p><strong>To run compiled MATLAB code:</strong></p>
+<ul class="simple">
+<li><p>To set environment from scikit-rt:</p>
+<ol class="arabic simple">
+<li><p>Set skrt.registration.Defaults().matlab_runtime to be the path to
+the MATLAB runtime installation directory.</p></li>
+<li><p>When creating a skrt.registration.Matlab() instance, pass as the
+&lt;path&gt; parameter the path to the directory that contains
+the compiled MATLAB application.</p></li>
+</ol>
+</li>
+<li><p>To set environment prior to starting Python:</p>
+<ol class="arabic simple">
+<li><p>Set platform dependent environment variable for MATLAB runtime:
+<a class="reference external" href="https://uk.mathworks.com/help/compiler/mcr-path-settings-for-run-time-deployment.html">https://uk.mathworks.com/help/compiler/mcr-path-settings-for-run-time-deployment.html</a></p></li>
+<li><p>Add to PATH variable the path to the directory that contains
+the compiled MATLAB application.</p></li>
+<li><p>After starting Python and importing scikit-rt, set:
+skrt.registration.Defaults().matlab_runtime = True</p></li>
+</ol>
+</li>
+</ul>
+<p><strong>To run uncompiled MATLAB code:</strong></p>
+<ul class="simple">
+<li><p>To set environment from scikit-rt:</p>
+<ol class="arabic simple">
+<li><p>Set skrt.registration.Defaults().matlab_app to be the
+path to the directory that contains the MATLAB executable.</p></li>
+<li><p>When creating a skrt.registration.Matlab() instance, pass as the
+&lt;path&gt; parameter the path to the directory that contains
+the uncompiled MATLAB registration code.</p></li>
+</ol>
+</li>
+<li><p>To set environment prior to starting Python:</p>
+<ol class="arabic simple">
+<li><p>Add to PATH variable the path to the directory that contains
+the MATLAB executable.</p></li>
+<li><p>Add to MATLABPATH variable the path to the directory that
+contains the uncompiled MATLAB registration code.</p></li>
+</ol>
+</li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>If skrt.registration.Defaults().matlab_runtime evaluates to
+True, this is the path to the directory containing the
+compiled MATLAB application for image registration.  Otherwise,
+this is the path to the directory that contains the MATLAB
+executable.  Ignored if set to None.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False, modify environment based on &lt;path&gt; only if
+registration software can’t be located in the existing
+environment.  If True, modify environment based on &lt;path&gt;
+in all cases.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.shift_translation_parameters">
+<span class="sig-name descname"><span class="pre">shift_translation_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.shift_translation_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Add offsets to the translation parameters in a registration
+transform file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>infile: str</dt><dd><p>Path to input transform file.</p>
+</dd>
+<dt>dx, dy, dz: int, default=0</dt><dd><p>Amounts by which to increase translation parameters, along
+x, y, z directions.</p>
+</dd>
+<dt>outfile: str, default=None</dt><dd><p>Path to output parameter file.  If None, overwrite input
+parameter file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.write_affine">
+<span class="sig-name descname"><span class="pre">write_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.write_affine" title="Permalink to this definition"></a></dt>
+<dd><p>Write affine matrix fo file.</p>
+<p><strong>Parameter:</strong>
+outfile: str/pathlib.Path</p>
+<blockquote>
+<div><p>Path to file to which to write affine matrix.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Matlab.write_parameters">
+<span class="sig-name descname"><span class="pre">write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Matlab.write_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Write dictionary of parameters to a registration parameter file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>outfile: str/pathlib.Path</dt><dd><p>Path to output file.</p>
+</dd>
+<dt>params: dict</dt><dd><p>Dictionary of parameters to be written to file.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1201,7 +1474,7 @@ the latter should be used.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_transformed_grid">
 <span class="sig-name descname"><span class="pre">get_transformed_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(30,</span> <span class="pre">30,</span> <span class="pre">30)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">2,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_transformed_grid" title="Permalink to this definition"></a></dt>
-<dd><p>Obtaing transformed grid.</p>
+<dd><p>Obtain transformed grid.</p>
 <p>A three-dimensional grid is defined in the space of
 the moving image, and is transformed by applying the
 result of a registration step.</p>
@@ -1375,7 +1648,7 @@ for a step with a pre-defined transform file.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.run_transformix_on_all">
-<span class="sig-name descname"><span class="pre">run_transformix_on_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.run_transformix_on_all" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run_transformix_on_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.run_transformix_on_all" title="Permalink to this definition"></a></dt>
 <dd><p>Create a Jacobian determinant or deformation field file,
 and return either a Jacobian or DeformationField object initialised
 from the output file.</p>
@@ -1451,7 +1724,7 @@ this image even if it already exists.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_data">
-<span class="sig-name descname"><span class="pre">transform_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_data" title="Permalink to this definition"></a></dt>
 <dd><p>Transform a nifti file or point cloud at a given path
 for a given step, ensuring that the step has been run. Return
 the path to the transformed file inside self._tmp_dir.</p>
@@ -1617,6 +1890,9 @@ transform_points_implemented (bool): Indicate whether registration engine</p>
 <div><p>implements mapping of points from fixed image to moving images.</p>
 </div></blockquote>
 <dl class="simple">
+<dt>recursive_transform (bool): Indicate whether a transform for a</dt><dd><p>registration step other than the first requires the transform output
+from the preceding step.</p>
+</dd>
 <dt>def_signs (tuple/None): Indicate signs to be applied to</dt><dd><p>(x, y, z) components of deformation field.</p>
 </dd>
 </dl>
@@ -1857,6 +2133,11 @@ infile: str/pathlib.Path</p>
 </div></blockquote>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.recursive_transform">
+<span class="sig-name descname"><span class="pre">recursive_transform</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#skrt.registration.RegistrationEngine.recursive_transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.set_exe_env">
 <span class="sig-name descname"><span class="pre">set_exe_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.set_exe_env" title="Permalink to this definition"></a></dt>
@@ -2070,6 +2351,31 @@ from 0 at x == 1 to 1 at saturation value;</p></li>
 <dt>sat_values<span class="classifier">dict, default={0: 1, 1: 0.5, 2: 1}</span></dt><dd><p>Dictionary of saturation values for the colour bands.  The
 saturation value is the (unsigned) distance along the x scale
 from the band threshold.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.registration.get_parameters">
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain parameter dictionary from default parameter file.</p>
+<p><strong>Parameter:</strong>
+pattern: str, default=None</p>
+<blockquote>
+<div><p>Glob-style pattern for identifying default parameter file(s).</p>
+</div></blockquote>
+<dl class="simple">
+<dt>engine: str, default=None</dt><dd><p>Name of registration engine for which a default parameter file
+is to be read.  If None, use value set for
+skrt.core.Default().registration_engine.</p>
+</dd>
+<dt>idx: int, default=0</dt><dd><p>Index of parameter file to be read, from sorted list of those
+matching &lt;pattern&gt;.  To avoid ambiguity, it’s usually best to
+choose &lt;pattern&gt; so that only one file is matched.  A list
+of matching files can be obtained using get_default_pfiles().</p>
+</dd>
+<dt>params: dict, default=None</dt><dd><p>Dictionary of parameter-value pairs, with which to update dictionary
+read from file.  Ignored if None.</p>
 </dd>
 </dl>
 </dd></dl>
