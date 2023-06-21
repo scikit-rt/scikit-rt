@@ -62,6 +62,7 @@ class SyntheticImage(Image):
         # Assign properties
         shape = skrt.core.to_list(shape)
         self.shape = [shape[1], shape[0], shape[2]]
+        self.n_voxels = shape
         #self.voxel_size = [abs(v) for v in skrt.core.to_list(voxel_size)]
         self.voxel_size = skrt.core.to_list(voxel_size)
         self.origin = origin

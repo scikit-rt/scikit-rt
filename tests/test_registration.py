@@ -15,7 +15,7 @@ from skrt.simulation import SyntheticImage
 from skrt.registration import (
         Elastix, NiftyReg, Registration, RegistrationEngine,
         add_engine, engines, get_default_pfiles, get_default_pfiles_dir,
-        get_engine_cls, get_jacobian_colormap, read_parameters,
+        get_engine_cls, get_jacobian_colormap, get_parameters, read_parameters,
         set_elastix_dir, set_engine_dir)
 
 from test_structs import compare_rois
@@ -363,6 +363,27 @@ def test_adjust_parameters():
     assert "(DefaultPixelValue 10)" in text
     os.remove(new_file)
 
+def test_get_parameters():
+    """Test parameter retrieval from an elastix parameter file."""
+    
+    pattern = "MI_Translation.txt"
+
+    params = {"DefaultPixelValue": 0}
+    parameters = get_parameters(pattern)
+    for key, value in params.items():
+        assert key in parameters
+        assert parameters[key] == value
+
+    params = {"DefaultPixelValue": 10}
+    parameters = get_parameters(pattern, params=params)
+    for key, value in params.items():
+        assert key in parameters
+        assert parameters[key] == value
+
+    with pytest.raises(IndexError) as error_info:
+        get_parameters(pattern, idx=5)
+    assert ("list index out of range" in str(error_info.value))
+
 @needs_elastix
 def test_shift_parameters():
     """Test shifting translation parameters by a given amount."""
@@ -602,7 +623,7 @@ def test_set_engine_dir():
         with pytest.raises(RuntimeError) as error_info:
             set_engine_dir(path="unknown", engine=engine)
         assert ("not implemented" in str(error_info.value)
-                or "executable(s) not found" in str(error_info.value))
+                or "not found" in str(error_info.value))
 
     # Check that exception is raised if engine name is unknown.
     with pytest.raises(RuntimeError) as error_info:

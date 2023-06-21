@@ -427,7 +427,7 @@ class Image(skrt.core.Archive):
         if nii_type or dcm_type:
             # Ensure that image is loaded, and create clone.
             self.load()
-            im = self.__class__(self)
+            im = self.clone()
 
             # Modify image data if source_type isn't the requested type.
             if ((nii_type and 'nifti' not in self.source_type)
@@ -3783,7 +3783,7 @@ class Image(skrt.core.Archive):
         coords_1d = [
             np.arange(
                 self.origin[i],
-                self.origin[i] + self.n_voxels[i] * self.voxel_size[i],
+                self.origin[i] + (self.n_voxels[i] -0.5) * self.voxel_size[i],
                 self.voxel_size[i],
             )
             for i in range(3)
