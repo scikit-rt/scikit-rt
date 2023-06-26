@@ -916,14 +916,18 @@ class Dated(PathData):
                     f"{type(self)}.copy_dicom() failed - "
                     "class has no load() method")
             return
-        self.load()
+
+        # Create clone for data loading.
+        # Clone is deleted once data are no longer needed.
+        obj = self.clone()
+        obj.load()
 
         # Check that object has dicom file to be copied.
-        path = Path(self.path)
-        ds = getattr(self, "dicom_dataset", None)
+        path = Path(obj.path)
+        ds = getattr(obj, "dicom_dataset", None)
         if not ds or not path.exists():
             raise NotImplementedError(
-                    f"{type(self)}.copy_dicom() failed - "
+                    f"{type(obj)}.copy_dicom() failed - "
                     "object has no associated DICOM file")
             return
 
@@ -936,7 +940,7 @@ class Dated(PathData):
         # Define path to the output file.
         if sort:
             idx = "" if index is None else f"_{index+1:03}"
-            name = f"{modality}_{self.timestamp}{idx}.dcm"
+            name = f"{modality}_{obj.timestamp}{idx}.dcm"
         else:
             name = path.name()
         outpath = outdir / name

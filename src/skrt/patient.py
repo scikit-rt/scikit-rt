@@ -964,17 +964,23 @@ class Study(skrt.core.Archive):
             # Loop over images of current type.
             for idx1, im in enumerate(self.image_types[image_type]):
 
+                # Create clone for data loading.
+                # Clone is deleted once data are no longer needed.
+                im2 = im.clone()
+
                 # Check that image can be loaded.
                 # If not, give warning and skip.
                 try:
-                    im.load()
+                    im2.load()
                 except:
-                    im.data = None
+                    im2.data = None
 
-                if im.data is None:
+                if im2.data is None:
                     print(f"Problems loading: {image_type}")
                     print(getattr(im, "dicom_paths", []))
+                    del im2
                     continue
+                del im2
                 
                 # Copy image.
                 im.copy_dicom_files(image_type, idx1, image_indices,
