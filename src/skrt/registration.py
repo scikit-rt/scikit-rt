@@ -3003,8 +3003,8 @@ class Matlab(RegistrationEngine):
     # If None, components are taken to be as read from file.
     #def_signs = (-1, -1, -1)
 
-    # Define engine executables.
-    exes = ["matlabreg"]
+    # Define engine executable.
+    exes = ["mskrt.matlabreg"]
 
     # Indicate whether a transform for a registration step other than the first
     # requires the transform output from the preceding step.
@@ -3075,7 +3075,7 @@ class Matlab(RegistrationEngine):
 
         if "matlab" in self.exe_cmd:
             args = ",".join([f"'{arg}'" for arg in cmd])
-            cmd = self.exe_cmd + [f"{type(self).exes[0]}({args})"]
+            cmd = self.exe_cmd + [f"{self.call}({args})"]
         else:
             cmd = self.exe_cmd + cmd
 
@@ -3097,7 +3097,7 @@ class Matlab(RegistrationEngine):
 
         if "matlab" in self.exe_cmd:
             args = ",".join([f"'{arg}'" for arg in cmd])
-            cmd = self.exe_cmd + [f"{type(self).exes[0]}({args})"]
+            cmd = self.exe_cmd + [f"{self.call}({args})"]
         else:
             cmd = self.exe_cmd + cmd
 
@@ -3163,7 +3163,7 @@ class Matlab(RegistrationEngine):
 
           2. When creating a skrt.registration.Matlab() instance, pass as the
              <path> parameter the path to the directory that contains
-             the uncompiled MATLAB registration code.
+             the uncompiled MATLAB registration package directory (+mskrt).
 
         - To set environment prior to starting Python:
 
@@ -3171,7 +3171,8 @@ class Matlab(RegistrationEngine):
              the MATLAB executable.
 
           2. Add to MATLABPATH variable the path to the directory that
-             contains the uncompiled MATLAB registration code.
+             contains the uncompiled MATLAB registration package directory
+             (+mskrt).
 
         **Parameters:**
 
@@ -3222,7 +3223,7 @@ class Matlab(RegistrationEngine):
                                     + f"'{env_val}'")
 
             # Check that the runtime application can be found.
-            exe = "matlabreg"
+            exe = type(self).exes[0].split(".")[-1]
             if force or shutil.which(exe) is None:
                 if isinstance(path, (Path, str)):
                     if not prepend_path("PATH", path):
@@ -3235,7 +3236,8 @@ class Matlab(RegistrationEngine):
                         "Application for running MATLAB registration "
                         f"not found: '{exe}'")
 
-            self.exe_cmd = ["matlabreg"]
+            self.exe_cmd = [exe]
+            self.call = ""
 
         else:
             # Uncompiled MATLAB code to be called from MATLAB executable.
@@ -3263,6 +3265,7 @@ class Matlab(RegistrationEngine):
                             + f"'{path}'")
 
             self.exe_cmd = ["matlab", "-batch"]
+            self.call = type(self).exes[0]
 
     def shift_translation_parameters(
             self, infile, dx=0, dy=0, dz=0, outfile=None):
