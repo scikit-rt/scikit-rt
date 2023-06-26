@@ -545,7 +545,7 @@ in mapping a point from fixed image to moving image.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.registration.Matlab.exes">
-<span class="sig-name descname"><span class="pre">exes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['matlabreg']</span></em><a class="headerlink" href="#skrt.registration.Matlab.exes" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">exes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['mskrt.matlabreg']</span></em><a class="headerlink" href="#skrt.registration.Matlab.exes" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -709,7 +709,7 @@ skrt.registration.Defaults().matlab_runtime = True</p></li>
 path to the directory that contains the MATLAB executable.</p></li>
 <li><p>When creating a skrt.registration.Matlab() instance, pass as the
 &lt;path&gt; parameter the path to the directory that contains
-the uncompiled MATLAB registration code.</p></li>
+the uncompiled MATLAB registration package directory (+mskrt).</p></li>
 </ol>
 </li>
 <li><p>To set environment prior to starting Python:</p>
@@ -717,7 +717,8 @@ the uncompiled MATLAB registration code.</p></li>
 <li><p>Add to PATH variable the path to the directory that contains
 the MATLAB executable.</p></li>
 <li><p>Add to MATLABPATH variable the path to the directory that
-contains the uncompiled MATLAB registration code.</p></li>
+contains the uncompiled MATLAB registration package directory
+(+mskrt).</p></li>
 </ol>
 </li>
 </ul>
