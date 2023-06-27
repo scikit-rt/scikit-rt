@@ -1,12 +1,10 @@
 FROM jupyter/minimal-notebook
 
-# Install mahotas.
-RUN conda install mahotas
+# Install specific version of python.
+RUN conda install python=3.10
 
 # Install scikit-rt.
 RUN git clone https://github.com/scikit-rt/scikit-rt \
-    && which python \
-    && which pip \
     && python -m pip install -e scikit-rt \
     && mkdir ${HOME}/workdir
 
