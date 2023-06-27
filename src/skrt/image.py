@@ -5579,7 +5579,7 @@ def get_dicom_orientation(ds):
 
     orientation = np.array(ds.ImageOrientationPatient).reshape(2, 3)
     axes = [
-        sum([abs(int(orientation[i, j] * j)) for j in range(3)])
+        sum([abs(round(orientation[i, j] * j)) for j in range(3)])
         for i in range(2)
     ]
     axes.append(3 - sum(axes))
