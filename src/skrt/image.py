@@ -5466,18 +5466,14 @@ def load_dicom_many_files(paths):
 
         # Check attributes are consistent with others
         attr_ok = True
-        print(path)
         for attr in attrs_to_check:
             own_attr = getattr(ds, attr)
-            print(attr, own_attr)
             if attr_vals[attr] is None:
                 attr_vals[attr] = own_attr
             elif attr_vals[attr] != own_attr:
                 attr_ok = False
                 break
         "ImageOrientationPatient"
-        print(attr_ok)
-        print()
 
         if not attr_ok:
             continue
