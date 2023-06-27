@@ -5466,13 +5466,18 @@ def load_dicom_many_files(paths):
 
         # Check attributes are consistent with others
         attr_ok = True
+        print(path)
         for attr in attrs_to_check:
             own_attr = getattr(ds, attr)
+            print(attr, own_attr)
             if attr_vals[attr] is None:
                 attr_vals[attr] = own_attr
             elif attr_vals[attr] != own_attr:
                 attr_ok = False
                 break
+        "ImageOrientationPatient"
+        print(attr_ok)
+        print()
 
         if not attr_ok:
             continue
@@ -5978,7 +5983,12 @@ def set_image_orientation_patient(ds):
             'F' : [0, 0, -1],
             }
     
-    if not hasattr(ds, 'ImageOrientationPatient'):
+    if hasattr(ds, 'ImageOrientationPatient'):
+        # Reduce precision,
+        # as stored values may differ at higher precision.
+        ds.ImageOrientationPatient = [
+                round(val, 6) for val in ds.ImageOrientationPatient]
+    else:
         patient_orientation =  getattr(ds, 'PatientOrientation', [])
         unknown_orientations = (
             {"AL", "LA", "PR", "RP"}.intersection(patient_orientation))

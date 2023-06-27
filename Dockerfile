@@ -5,7 +5,9 @@ RUN conda install mahotas
 
 # Install scikit-rt.
 RUN git clone https://github.com/scikit-rt/scikit-rt \
-    && pip install -e scikit-rt \
+    && which python \
+    && which pip \
+    && python -m pip install -e scikit-rt \
     && mkdir ${HOME}/workdir
 
 # Copy example Jupyter notebooks.
