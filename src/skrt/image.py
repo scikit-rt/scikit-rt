@@ -1033,6 +1033,8 @@ class Image(skrt.core.Archive):
         (self._sorigin) will also be inferred from self._affine.
         """
 
+        self.load()
+
         # Adjust dicom
         if self.source_type == "dicom":
 
