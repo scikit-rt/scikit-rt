@@ -72,6 +72,7 @@ class MultiAtlasSegmentation(Data):
     def __init__(
         self, im1=None, im2=None, ss1=None, ss2=None, log_level=None,
         workdir="segmentation_workdir", overwrite=False,
+        engine=None, engine_dir=None,
         auto=False, auto_step=None, auto_strategies=None,
         auto_reg_setup_only=False,
         default_step=None, default_strategy="pull", roi_names=None,
@@ -100,16 +101,20 @@ class MultiAtlasSegmentation(Data):
         if self.overwrite and self.workdir.exists():
             rmtree(self.workdir)
 
+        # Set registration engine and software directory.
+        self.engine = engine
+        self.engine_dir = engine_dir
+
         # Define contour-propagation strategies and segmentation steps.
-        args = [kwargs.get(key, None) for key in ["engine", "engine_dir"]]
-        self.strategies = get_contour_propagation_strategies(*args)
+        self.strategies = get_contour_propagation_strategies(
+                "engine", "engine_dir")
         self.steps = get_segmentation_steps()
 
         # Note that these values are passed to the SingleAtlasSegmentation
         # constructor, and automatic segmenation should always be enabled.
         self.auto = True
 
-        # Set step and strategies for automatic segmenation,
+        # Set step and strategies for automatic segmentation,
         # default step and strategy, and names or ROIs to be segmented.
         self.auto_step = get_option(auto_step, default_step, self.steps)
         self.default_step = get_option(default_step, self.auto_step, self.steps)
@@ -169,6 +174,7 @@ class MultiAtlasSegmentation(Data):
                 active_ids.append(idx)
                 args = (self.im1, self.im2[idx], self.ss1, self.ss2[idx],
                         self.log_level, self.workdir / str(idx), self.overwrite,
+                        self.engine, self.engine_dir,
                         sas_auto, self.auto_step, self.auto_strategies,
                         reg_setup_only, self.default_step,
                         self.default_strategy, self.roi_names,)
@@ -305,9 +311,6 @@ class MultiAtlasSegmentation(Data):
             name_as_index=False, atlas_ids_to_compare=False,
             combination_length=None, **kwargs):
 
-        if not hasattr(self, "ss1_filtered"):
-            return
-
         consensus_types = get_options(
                 consensus_types, self.consensus_types, get_consensus_types())
         if not (is_list(atlas_ids) and atlas_ids and is_list(atlas_ids[0])):
@@ -335,6 +338,9 @@ class MultiAtlasSegmentation(Data):
 
         sas_id = get_options(atlas_ids_to_compare, True, all_atlas_ids)[0]
         sas = self.get_sas(sas_id)
+        if getattr(sas, "ss1_filtered", None) is None:
+            return
+
         step_reg_steps = {}
         for step in steps:
             all_reg_steps = sas.get_reg_steps(step)
@@ -667,7 +673,11 @@ class SingleAtlasSegmentation(Data):
                         voxel_size=self.voxel_size1,
                         bands=self.bands1)
 
-                self.ss1_filtered = im1.structure_sets[0]
+                if im1.structure_sets:
+                    self.ss1_filtered = im1.structure_sets[0]
+                else:
+                    self.ss1_filtered = None
+
                 self.ss2_filtered = im2.structure_sets[0]
                 if not self.roi_names:
                     self.roi_names = {roi_name : roi_name for roi_name in
@@ -887,7 +897,7 @@ class SingleAtlasSegmentation(Data):
             voxel_size=None, name_as_index=False,
             **kwargs):
 
-        if not hasattr(self, "ss1_filtered"):
+        if getattr(self, "ss1_filtered", None) is None:
             return
 
         strategies = get_options(
