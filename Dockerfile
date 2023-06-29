@@ -12,14 +12,17 @@ RUN git clone https://github.com/scikit-rt/scikit-rt \
 COPY examples/notebooks/image*.ipynb ${HOME}/workdir/
 
 # Install elastix.
-ARG ELASTIX_VERSION="5.0.1"
-ARG ELASTIX_TARBALL="elastix-${ELASTIX_VERSION}-linux.tar.bz2"
-RUN wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VERSION}/${ELASTIX_TARBALL} \
-    && tar -xf ${ELASTIX_TARBALL} \
-    && rm ${ELASTIX_TARBALL}
+ARG ELASTIX_VERSION="5.1.0"
+ARG ELASTIX_LINUX="elastix-${ELASTIX_VERSION}-linux"
+ARG ELASTIX_ZIP="${ELASTIX_LINUX}.zip"
+RUN wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VERSION}/${ELASTIX_ZIP} \
+    && unzip ${ELASTIX_ZIP} -d ${ELASTIX_LINUX} \
+    && rm ${ELASTIX_ZIP} \
+    && chmod a+x ${ELASTIX_LINUX}/bin/elastix \
+    && chmod a+x ${ELASTIX_LINUX}/bin/transformix
 
 # Set up environment for running elastix.
-ARG ELASTIX_DIR="${HOME}/elastix-${ELASTIX_VERSION}-linux"
+ARG ELASTIX_DIR="${HOME}/{ELASTIX_LINUX}"
 ENV PATH="${ELASTIX_DIR}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${ELASTIX_DIR}/lib"
 
@@ -28,14 +31,20 @@ ARG SCHEME="basic"
 ARG TEX_DIR="${HOME}/tex/latest"
 RUN wget https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz \
     && tar -zxvf install-tl-unx.tar.gz \
-    && ./install-tl*/install-tl --scheme ${SCHEME} --texdir ${TEX_DIR} --no-interaction\
-    && rm -rf install-tl* \
+    && ./install-tl*/install-tl --scheme ${SCHEME} --texdir ${TEX_DIR} --no-interaction \
+    && rm -rf install-tl*
+
+USER root
 
 # Add TexLive executables directory to path,
 # and install packages needed to use LaTeX with Matplotlib.
-USER root
 ENV PATH="${TEX_DIR}/bin/x86_64-linux:${PATH}"
 RUN tlmgr install cm-super collection-fontsrecommended dvipng type1cm underscore
+
+# Install library needed by elastix
+RUN apt-get update \
+    && apt-get -y install libgomp1
+
 USER ${NB_UID}
 
 # Enable jupyter lab
