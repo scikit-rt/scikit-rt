@@ -9,7 +9,18 @@ RUN git clone https://github.com/scikit-rt/scikit-rt \
     && mkdir ${HOME}/workdir
 
 # Copy example Jupyter notebooks.
-COPY examples/notebooks/image*.ipynb ${HOME}/workdir/
+ARG NOTEBOOKS="examples/notebooks"
+ARG WORKDIR="${HOME}/workdir"
+COPY ${NOTEBOOKS}/patient_datasets.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/plotting_demo.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/application_demo.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/image_processing.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/roi_intensities.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/dose_volume_rois.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/eqd.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/synthetic_dicom_dataset.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/grid_creation.ipynb ${WORKDIR}
+COPY ${NOTEBOOKS}/image_registration_checks.ipynb ${WORKDIR}
 
 # Install elastix.
 ARG ELASTIX_VERSION="5.1.0"
@@ -22,7 +33,7 @@ RUN wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VER
     && chmod a+x ${ELASTIX_LINUX}/bin/transformix
 
 # Set up environment for running elastix.
-ARG ELASTIX_DIR="${HOME}/{ELASTIX_LINUX}"
+ARG ELASTIX_DIR="${HOME}/${ELASTIX_LINUX}"
 ENV PATH="${ELASTIX_DIR}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${ELASTIX_DIR}/lib"
 
