@@ -6,14 +6,14 @@ USER root
 # This shouldn't be ${HOME}, as this will be recreated
 # when image is used with jupyterhub on a kubernetes cluseter.
 ARG STORE="/opt"
-RUN cd "${STORE}"
+WORKDIR "${STORE}"
 
 # Install specific version of python.
 RUN conda install python=3.10
 
 # Install scikit-rt.
-#RUN git clone https://github.com/scikit-rt/scikit-rt \
-#    && python -m pip install -e scikit-rt
+RUN git clone https://github.com/scikit-rt/scikit-rt \
+    && python -m pip install -e scikit-rt
 
 # Copy example Jupyter notebooks.
 ARG NOTEBOOKS="examples/notebooks"
@@ -65,8 +65,9 @@ RUN apt-get update \
 USER ${NB_UID}
 # Copy examples to home directory,
 # for when not using image with jupyterhub on a kubernetes cluseter.
-RUN mkdir -p ${HOME}/examples \
-    && cp -rp ${EXAMPLES} ${HOME}/examples
+WORKDIR "${HOME}"
+RUN mkdir -p ./examples \
+    && cp -rp ${EXAMPLES} ./examples
 
 # Enable jupyter lab
 ENV JUPYTER_ENABLE_LAB="yes"
