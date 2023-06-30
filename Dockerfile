@@ -1,26 +1,34 @@
 FROM jupyter/minimal-notebook
 
+USER root
+
+# Set directory for storing files.
+# This shouldn't be ${HOME}, as this will be recreated
+# when image is used with jupyterhub on a kubernetes cluseter.
+ARG STORE="/opt"
+RUN cd "${STORE}"
+
 # Install specific version of python.
 RUN conda install python=3.10
 
 # Install scikit-rt.
-RUN git clone https://github.com/scikit-rt/scikit-rt \
-    && python -m pip install -e scikit-rt \
-    && mkdir ${HOME}/workdir
+#RUN git clone https://github.com/scikit-rt/scikit-rt \
+#    && python -m pip install -e scikit-rt
 
 # Copy example Jupyter notebooks.
 ARG NOTEBOOKS="examples/notebooks"
-ARG WORKDIR="${HOME}/workdir"
-COPY ${NOTEBOOKS}/patient_datasets.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/plotting_demo.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/application_demo.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/image_processing.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/roi_intensities.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/dose_volume_rois.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/eqd.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/synthetic_dicom_dataset.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/grid_creation.ipynb ${WORKDIR}
-COPY ${NOTEBOOKS}/image_registration_checks.ipynb ${WORKDIR}
+ARG EXAMPLES="${STORE}/examples"
+RUN mkdir -p ${EXAMPLES}
+COPY ${NOTEBOOKS}/patient_datasets.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/plotting_demo.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/application_demo.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/image_processing.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/roi_intensities.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/dose_volume_rois.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/eqd.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/synthetic_dicom_dataset.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/grid_creation.ipynb ${EXAMPLES}
+COPY ${NOTEBOOKS}/image_registration_checks.ipynb ${EXAMPLES}
 
 # Install elastix.
 ARG ELASTIX_VERSION="5.1.0"
@@ -33,19 +41,17 @@ RUN wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VER
     && chmod a+x ${ELASTIX_LINUX}/bin/transformix
 
 # Set up environment for running elastix.
-ARG ELASTIX_DIR="${HOME}/${ELASTIX_LINUX}"
+ARG ELASTIX_DIR="${STORE}/${ELASTIX_LINUX}"
 ENV PATH="${ELASTIX_DIR}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${ELASTIX_DIR}/lib"
 
 # Install TexLive with basic scheme.
 ARG SCHEME="basic"
-ARG TEX_DIR="${HOME}/tex/latest"
+ARG TEX_DIR="${STORE}/tex/latest"
 RUN wget https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz \
     && tar -zxvf install-tl-unx.tar.gz \
     && ./install-tl*/install-tl --scheme ${SCHEME} --texdir ${TEX_DIR} --no-interaction \
     && rm -rf install-tl*
-
-USER root
 
 # Add TexLive executables directory to path,
 # and install packages needed to use LaTeX with Matplotlib.
@@ -57,11 +63,13 @@ RUN apt-get update \
     && apt-get -y install libgomp1
 
 USER ${NB_UID}
+# Copy examples to home directory,
+# for when not using image with jupyterhub on a kubernetes cluseter.
+RUN mkdir -p ${HOME}/examples \
+    && cp -rp ${EXAMPLES} ${HOME}/examples
 
 # Enable jupyter lab
 ENV JUPYTER_ENABLE_LAB="yes"
-
-WORKDIR "${HOME}/workdir"
 
 LABEL "org.opencontainers.image.description"="Toolkit for radiotherapy image analysis"
 LABEL "org.opencontainers.image.documentation"="https://scikit-rt.github.io/scikit-rt/"
