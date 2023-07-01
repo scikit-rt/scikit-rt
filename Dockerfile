@@ -2,11 +2,9 @@ FROM jupyter/minimal-notebook
 
 USER root
 
-# Set directory for storing files.
-# This shouldn't be ${HOME}, as this will be recreated
-# when image is used with jupyterhub on a kubernetes cluseter.
-ARG STORE="/opt"
-WORKDIR "${STORE}"
+# Set directory for software installation.
+ARG SW_DIR="/opt"
+WORKDIR "${SW_DIR}"
 
 # Install specific version of python.
 RUN conda install python=3.10
@@ -14,21 +12,6 @@ RUN conda install python=3.10
 # Install scikit-rt.
 RUN git clone https://github.com/scikit-rt/scikit-rt \
     && python -m pip install -e scikit-rt
-
-# Copy example Jupyter notebooks.
-ARG NOTEBOOKS="examples/notebooks"
-ARG EXAMPLES="${STORE}/examples"
-RUN mkdir -p ${EXAMPLES}
-COPY ${NOTEBOOKS}/patient_datasets.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/plotting_demo.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/application_demo.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/image_processing.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/roi_intensities.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/dose_volume_rois.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/eqd.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/synthetic_dicom_dataset.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/grid_creation.ipynb ${EXAMPLES}
-COPY ${NOTEBOOKS}/image_registration_checks.ipynb ${EXAMPLES}
 
 # Install elastix.
 ARG ELASTIX_VERSION="5.1.0"
@@ -41,13 +24,26 @@ RUN wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VER
     && chmod a+x ${ELASTIX_LINUX}/bin/transformix
 
 # Set up environment for running elastix.
-ARG ELASTIX_DIR="${STORE}/${ELASTIX_LINUX}"
+ARG ELASTIX_DIR="${SW_DIR}/${ELASTIX_LINUX}"
 ENV PATH="${ELASTIX_DIR}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${ELASTIX_DIR}/lib"
 
+# Install NiftyReg.
+ARG NIFTYREG_VERSION="1.3.9"
+ARG NIFTYREG_LINUX="NiftyReg-${NIFTYREG_VERSION}-Linux-x86_64-Release"
+ARG NIFTYREG_TARBALL="${NIFTYREG_LINUX}.tar.gz"
+RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VERSION}/${NIFTYREG_TARBALL} \
+    && tar -zxvf ${NIFTYREG_TARBALL} \
+    && rm ${NIFTYREG_TARBALL}
+
+# Set up environment for running NiftyReg.
+ARG NIFTYREG_DIR="${SW_DIR}/${NIFTYREG_LINUX}"
+ENV PATH="${NIFTYREG_DIR}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${NIFTYREG_DIR}/lib"
+
 # Install TexLive with basic scheme.
 ARG SCHEME="basic"
-ARG TEX_DIR="${STORE}/tex/latest"
+ARG TEX_DIR="${SW_DIR}/tex/latest"
 RUN wget https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz \
     && tar -zxvf install-tl-unx.tar.gz \
     && ./install-tl*/install-tl --scheme ${SCHEME} --texdir ${TEX_DIR} --no-interaction \
@@ -63,11 +59,10 @@ RUN apt-get update \
     && apt-get -y install libgomp1
 
 USER ${NB_UID}
-# Copy examples to home directory,
-# for when not using image with jupyterhub on a kubernetes cluseter.
+# Copy examples to home directory.
 WORKDIR "${HOME}"
 RUN mkdir -p ./examples \
-    && cp -rp ${EXAMPLES} ./examples
+    && cp -rp ${SW_DIR}/scikit-rt/examples/notebooks/* ./examples
 
 # Enable jupyter lab
 ENV JUPYTER_ENABLE_LAB="yes"
