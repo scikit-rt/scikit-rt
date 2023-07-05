@@ -1109,24 +1109,62 @@ def test_roi_split_in_two():
 def test_combine_rois():
     '''Test combining of ROIs.'''
 
-    # Define non-composite ROIs.
-    sim = SyntheticImage((100, 100, 100))
-    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 50), intensity=1)
-    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 50), intensity=10)
-    cube = sim.get_roi('cube')
-    sphere = sim.get_roi('sphere')
-    ss = sim.get_structure_set()
-    
-    # Use different methods for defining composite ROI.
-    for method in ["auto", "mask", "contour"]:
-        cube_and_sphere = ss.combine_rois(method=method)
+    # Consider two situations:
+    # - disjoint sphere and cube (different centres);
+    # - sphere fully contained in cube (same centre).
+    cube_centre = (30, 30, 50)
+    for sphere_centre in [(70, 70, 50), cube_centre]:
+        # Define non-composite ROIs.
+        sim = SyntheticImage((100, 100, 100))
+        sim.add_cube(side_length=40, name="cube", centre=cube_centre,
+                     intensity=1)
+        sim.add_sphere(radius=20, name="sphere", centre=sphere_centre,
+                       intensity=10)
+        cube = sim.get_roi('cube')
+        sphere = sim.get_roi('sphere')
+        ss = sim.get_structure_set()
+        cube_and_sphere_name = "+".join(ss.get_roi_names())
+        same_centre = np.all(cube.get_centre() == sphere.get_centre())
 
-        assert (cube_and_sphere.get_volume() == pytest.approx(
-            cube.get_volume() + sphere.get_volume(), rel=0.001))
+        # Use different methods for defining composite ROI.
+        for method in ["auto", "mask", "contour"]:
+            # Consider combination through union and through intersection.
+            for intersection in [False, True]:
+                cube_and_sphere = ss.combine_rois(
+                        method=method, intersection=intersection)
 
-        if method != "contour":
-            assert np.all(cube_and_sphere.get_mask() ==
-                    cube.get_mask() + sphere.get_mask())
+                # Check name of composite ROI.
+                prefix = "intersection:" if intersection else ""
+                assert cube_and_sphere.get_name() == (
+                        prefix + cube_and_sphere_name)
+
+                # Check volume of composite ROI.
+                if intersection:
+                    cube_and_sphere_volume = (
+                            0 if not same_centre else pytest.approx(
+                                sphere.get_volume(), rel=0.001))
+                else:
+                    cube_and_sphere_volume = (
+                            pytest.approx(cube.get_volume()
+                                          + sphere.get_volume(), rel=0.001)
+                            if not same_centre else
+                            pytest.approx(cube.get_volume(), rel=0.001))
+                assert cube_and_sphere.get_volume() == cube_and_sphere_volume
+
+                # Check mask of composite ROI.
+                if method != "contour":
+                    if intersection:
+                        if same_centre:
+                            assert (np.all(cube_and_sphere.get_mask()
+                                           == sphere.get_mask()))
+                    else:
+                        if same_centre:
+                            assert np.all(cube_and_sphere.get_mask()
+                                          == cube.get_mask())
+                        else:
+                            assert np.all(cube_and_sphere.get_mask()
+                                          == cube.get_mask()
+                                          + sphere.get_mask())
 
 def test_mask_image():
     '''Test retrieval of image objects repreenting ROI masks.'''

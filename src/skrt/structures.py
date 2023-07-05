@@ -8040,16 +8040,21 @@ class StructureSet(skrt.core.Archive):
         # Store the new order of ROIs.
         self.rois = rois
 
-    def combine_rois(self, name=None, roi_names=None, image=None, method=None):
+    def combine_rois(self, name=None, roi_names=None, image=None, method=None,
+                     intersection=False):
         '''
         Combine two or more ROIs as a single ROI.
+
+        The result represents either the union (default) or the intersection
+        of the input ROIs.
 
         **Parameters:**
 
         name : str, default=None
             Name to be given to the composite ROI.  If None, the
             name assigned is formed by joining together the names
-            of the original ROIs.
+            of the original ROIs, with the prefix "intersection:"
+            added if <intersection> is set to True.
 
         roi_names : list, default=None
             List of names of ROIs to be combined.  If None, all of the
@@ -8068,6 +8073,10 @@ class StructureSet(skrt.core.Archive):
                           first name in <roi_names>.
 
             If None, "auto" is used.
+
+        intersection : bool, default=False
+            If False, the result of combining ROIs represents their union; if
+            True, the result represents their intersection.
         '''
 
         # If None values passed, set default behaviour.
@@ -8075,6 +8084,9 @@ class StructureSet(skrt.core.Archive):
             roi_names = self.get_roi_names()
         if name is None:
             name = '+'.join(roi_names)
+            if intersection:
+                name = f"intersection:{name}" 
+
         if method in [None, "auto"]:
             method = self[roi_names[0]].default_geom_method
         if image is None:
@@ -8089,9 +8101,18 @@ class StructureSet(skrt.core.Archive):
                         all_polygons[key] = []
                     all_polygons[key].extend(polygons)
 
-            # Evaluate the unary union of polygons for each slice.
-            all_polygons = {key: [ops.unary_union(all_polygons[key])]
-                     for key in all_polygons}
+            if intersection:
+                # Evaluate the intersection of polygons for each slice.
+                intersections = {}
+                for key, polygons in all_polygons.items():
+                    intersection = get_intersection(polygons)
+                    if intersection is not None:
+                        intersections[key] = [intersection]
+                all_polygons = intersections
+            else:
+                # Evaluate the union of polygons for each slice.
+                all_polygons = {key: [ops.unary_union(all_polygons[key])]
+                                for key in all_polygons}
 
             # Create the composite ROI.
             roi_new = ROI(source=all_polygons, image=image, name=name)
@@ -8113,7 +8134,10 @@ class StructureSet(skrt.core.Archive):
                 roi_tmp = self.get_roi(roi_names[i]).clone()
                 roi_tmp.set_image(image)
                 roi_tmp.create_mask()
-                roi_new.mask.data |= roi_tmp.mask.data
+                if intersection:
+                    roi_new.mask.data &= roi_tmp.mask.data
+                else:
+                    roi_new.mask.data |= roi_tmp.mask.data
 
             #if image_is_none:
             #    image = None
@@ -9305,3 +9329,36 @@ def expand_slice_stats(slice_stats=None, default_by_slice=None):
         return slice_stats
 
     return {}
+
+def get_intersection(polygons):
+    """
+    Return intersection of a collection of polygons.
+
+    If the input polygons have no intersection, None is returned.
+
+    **Parameter:**
+
+    polygons: list
+        List of shapely.geometry.polygon.Polygon and/or
+        shapely.geometry.multipolygon.MultiPolygon objects
+        for which the intersection is to be calculated.
+    """
+    # Ensure that polygons is a list of Polygon/MultiPolygon objects.
+    if not skrt.core.is_list(polygons):
+        polygons = [polygons]
+    polygons = [polygon for polygon in polygons
+                if isinstance(polygon, (geometry.polygon.Polygon,
+                                        geometry.multipolygon.MultiPolygon))
+                and not polygon.is_empty]
+    if not polygons:
+        return
+
+    # Calculate intersection of all polygons.
+    result = polygons[0]
+    for idx in range(1, len(polygons)):
+        result = result.intersection(polygons[idx])
+        if result.is_empty:
+            result = None
+            break
+
+    return result
