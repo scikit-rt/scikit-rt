@@ -21,6 +21,7 @@ import pydicom
 import re
 import shutil
 import skimage.measure
+import math
 import time
 import warnings
 
@@ -5877,6 +5878,16 @@ class ROI(skrt.core.Archive):
         """
         intensities = self.get_intensities_3d(image, standardise)
         return intensities[~np.isnan(intensities)]
+
+    def get_structuring_element(self, dxyz=(1, 1, 1), units="mm"):
+        voxel_size = self.get_voxel_size() if "mm" == units else (1, 1, 1)
+        n_voxels = [math.ceil(abs(dxyz[idx]) / voxel_size[idx])
+                    for idx in range(3)]
+        shape = [1 + 2 * n_voxels[idx] for idx in [1, 0, 2]]
+        element = ones(shape)
+        
+        return element
+
         
 class StructureSet(skrt.core.Archive):
     """
@@ -9362,3 +9373,29 @@ def get_intersection(polygons):
             break
 
     return result
+
+def get_structuring_element(radius=1, voxel_size=(1, 1, 1)):
+    """
+    Obtain spherical structuring element, taking into account voxel size.
+
+    **Parameters:**
+
+    radius: float, default=1
+        Radius (mm) of spherical structuring element to be generated.
+
+    voxel_size: tuple, default=(1, 1, 1)
+        Voxel size (mm) along (x, y, z) axes.
+    """
+    # Initialise numpy array with required number of voxels in each dimension.
+    n_voxels = [math.ceil(radius / dxyz) for dxyz in voxel_size]
+    shape = [1 + 2 * n_voxel for n_voxel in n_voxels]
+    element = np.ones(shape)
+
+    # Calculate distances (mm) from array centre of each voxel.
+    element[n_voxels[0], n_voxels[1], n_voxels[2]] = 0
+    distances = ndimage.distance_transform_edt(element, voxel_size)
+
+    # Return boolean array where values are True for voxels within
+    # the specified radius from the array centre, and False otherwise.
+    # Axes are transposed to map from (x, y, z) to (column, row, slice).
+    return (distances.transpose(1, 0, 2) <= radius)

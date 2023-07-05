@@ -14,12 +14,14 @@ import matplotlib.colors
 from shapely.geometry import Polygon
 from shapely.validation import explain_validity
 
+from skimage.morphology import ball
+
 from skrt.core import fullpath, Defaults
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
         get_comparison_metrics, get_slice_positions, expand_slice_stats, \
-        get_metric_method
+        get_metric_method, get_structuring_element
 
 
 # Make temporary test dir
@@ -1759,3 +1761,22 @@ def test_get_intensities():
         intensities = roi.get_intensities(image)
         assert len(intensities) == roi.get_volume()
         assert np.all(intensities == 100)
+
+def test_get_structuring_element():
+    """Test generation of structuring element."""
+
+    # Check that element generated for different radii 
+    # matches result of skimage.morphology.ball,
+    # taking into account different voxel size.
+    for radius in range(1, 4):
+        assert np.all(get_structuring_element(radius) == ball(radius))
+        assert np.all(get_structuring_element(2 * radius, (2, 2, 2))
+                      == ball(radius))
+
+    # Check that element has correct shape
+    # when voxel size is different in each dimension.
+    radius = 4
+    voxel_size = (2, 4, 1)
+    element = get_structuring_element(radius, voxel_size)
+    assert element.shape == tuple([1 + 2 * radius / voxel_size[idx]
+                                   for idx in [1, 0, 2]])
