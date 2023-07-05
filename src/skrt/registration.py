@@ -2923,7 +2923,7 @@ class Elastix(RegistrationEngine):
                 if "." in params[name][0]:
                     params[name] = [float(p) for p in params[name]]
                 else:
-                    params[name] = [int(p) for p in params[name]]
+                    params[name] = [int(float(p)) for p in params[name]]
             else:
                 if "." in param:
                     params[name] = float(param)
