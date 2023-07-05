@@ -5879,14 +5879,29 @@ class ROI(skrt.core.Archive):
         intensities = self.get_intensities_3d(image, standardise)
         return intensities[~np.isnan(intensities)]
 
-    def get_structuring_element(self, dxyz=(1, 1, 1), units="mm"):
-        voxel_size = self.get_voxel_size() if "mm" == units else (1, 1, 1)
-        n_voxels = [math.ceil(abs(dxyz[idx]) / voxel_size[idx])
-                    for idx in range(3)]
-        shape = [1 + 2 * n_voxels[idx] for idx in [1, 0, 2]]
-        element = ones(shape)
-        
-        return element
+    def get_dilation(self, margin=1):
+        """
+        Obtain result of increasing ROI by a specified margin in mm.
+
+        The name of the new ROI will be the name of the original
+        plus a suffix indicating the margin.
+
+        **Parameter:**
+
+        margin: float, default=1
+            Amount (mm) 
+        """
+        # Obtain spherical structuring element,
+        # with radius equal to the requested margin.
+        element = get_structuring_element(
+                radius=margin, voxel_size=self.get_voxel_size())
+
+        # Perform dilation of ROI mask.
+        dilation = ndimage.binary_dilation(self.get_mask(), element)
+
+        # Return ROI created from the dilated mask.
+        return ROI(source=dilation, image=self.image,
+                   name=f"{self.name}+{margin}")
 
         
 class StructureSet(skrt.core.Archive):

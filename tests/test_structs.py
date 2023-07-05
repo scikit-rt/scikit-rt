@@ -1780,3 +1780,14 @@ def test_get_structuring_element():
     element = get_structuring_element(radius, voxel_size)
     assert element.shape == tuple([1 + 2 * radius / voxel_size[idx]
                                    for idx in [1, 0, 2]])
+
+def test_get_dilation():
+    """Test dilating ROIs by different amounts."""
+    for margin in [1, 2, 4, 8]:
+        for roi in [sphere, cube]:
+            dilated_roi = roi.get_dilation(margin=margin)
+            assert all([roi.get_bbox_centre_and_widths()[1][idx] + 2 * margin
+                  == dilated_roi.get_bbox_centre_and_widths()[1][idx]
+                        for idx in range(3)])
+            assert dilated_roi.name == f"{roi.name}+{margin}"
+            del dilated_roi
