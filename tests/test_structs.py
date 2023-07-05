@@ -1791,3 +1791,14 @@ def test_get_dilation():
                         for idx in range(3)])
             assert dilated_roi.name == f"{roi.name}+{margin}"
             del dilated_roi
+
+def test_get_erosion():
+    """Test eroding ROIs by different amounts."""
+    for margin in [1, 2, 4, 8]:
+        for roi in [sphere, cube]:
+            eroded_roi = roi.get_erosion(margin=margin)
+            assert all([roi.get_bbox_centre_and_widths()[1][idx] - 2 * margin
+                  == eroded_roi.get_bbox_centre_and_widths()[1][idx]
+                        for idx in range(3)])
+            assert eroded_roi.name == f"{roi.name}-{margin}"
+            del eroded_roi

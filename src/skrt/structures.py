@@ -5883,13 +5883,13 @@ class ROI(skrt.core.Archive):
         """
         Obtain result of increasing ROI by a specified margin in mm.
 
-        The name of the new ROI will be the name of the original
+        The name of the new ROI is the name of the original
         plus a suffix indicating the margin.
 
         **Parameter:**
 
         margin: float, default=1
-            Amount (mm) 
+            Thickness (mm) of margin by which ROI is to be increased. 
         """
         # Obtain spherical structuring element,
         # with radius equal to the requested margin.
@@ -5902,6 +5902,30 @@ class ROI(skrt.core.Archive):
         # Return ROI created from the dilated mask.
         return ROI(source=dilation, image=self.image,
                    name=f"{self.name}+{margin}")
+
+    def get_erosion(self, margin=1):
+        """
+        Obtain result of decreasing ROI by a specified margin in mm.
+
+        The name of the new ROI is the name of the original
+        plus a suffix indicating the margin.
+
+        **Parameter:**
+
+        margin: float, default=1
+            Thickness (mm) of margin by which ROI is to be decreased.
+        """
+        # Obtain spherical structuring element,
+        # with radius equal to the requested margin.
+        element = get_structuring_element(
+                radius=margin, voxel_size=self.get_voxel_size())
+
+        # Perform erosion of ROI mask.
+        erosion = ndimage.binary_erosion(self.get_mask(), element)
+
+        # Return ROI created from the eroded mask.
+        return ROI(source=erosion, image=self.image,
+                   name=f"{self.name}-{margin}")
 
         
 class StructureSet(skrt.core.Archive):
