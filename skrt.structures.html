@@ -1054,6 +1054,19 @@ if loaded from dicom; otherwise, return None.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_dilation">
+<span class="sig-name descname"><span class="pre">get_dilation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dilation" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain result of increasing ROI by a specified margin in mm.</p>
+<p>The name of the new ROI is the name of the original
+plus a suffix indicating the margin.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>margin: float, default=1</dt><dd><p>Thickness (mm) of margin by which ROI is to be increased.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_dummy_image">
 <span class="sig-name descname"><span class="pre">get_dummy_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dummy_image" title="Permalink to this definition"></a></dt>
 <dd><p>Make a dummy image that covers the area spanned by this ROI. 
@@ -1078,6 +1091,19 @@ direction.</p>
 <dt>slice_thickness<span class="classifier">float, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the z direction.  If None,
 the value used is the minimum distance between slice positions
 in the x-y contours dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_erosion">
+<span class="sig-name descname"><span class="pre">get_erosion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_erosion" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain result of decreasing ROI by a specified margin in mm.</p>
+<p>The name of the new ROI is the name of the original
+plus a suffix indicating the margin.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>margin: float, default=1</dt><dd><p>Thickness (mm) of margin by which ROI is to be decreased.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2699,13 +2725,16 @@ that ROIs are copied if copy_rois=True.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.combine_rois">
-<span class="sig-name descname"><span class="pre">combine_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.combine_rois" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">combine_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.combine_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Combine two or more ROIs as a single ROI.</p>
+<p>The result represents either the union (default) or the intersection
+of the input ROIs.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
 <dt>name<span class="classifier">str, default=None</span></dt><dd><p>Name to be given to the composite ROI.  If None, the
 name assigned is formed by joining together the names
-of the original ROIs.</p>
+of the original ROIs, with the prefix “intersection:”
+added if &lt;intersection&gt; is set to True.</p>
 </dd>
 <dt>roi_names<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to be combined.  If None, all of the
 structure set’s ROIs are combined.</p>
@@ -2726,6 +2755,9 @@ of the ROI with the first name in &lt;roi_names&gt;.</p>
 </ul>
 </div></blockquote>
 <p>If None, “auto” is used.</p>
+</dd>
+<dt>intersection<span class="classifier">bool, default=False</span></dt><dd><p>If False, the result of combining ROIs represents their union; if
+True, the result represents their intersection.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3852,6 +3884,20 @@ by StructureSet.get_consensus should be listed here.</p>
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.structures.get_intersection">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polygons</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_intersection" title="Permalink to this definition"></a></dt>
+<dd><p>Return intersection of a collection of polygons.</p>
+<p>If the input polygons have no intersection, None is returned.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>polygons: list</dt><dd><p>List of shapely.geometry.polygon.Polygon and/or
+shapely.geometry.multipolygon.MultiPolygon objects
+for which the intersection is to be calculated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.get_metric_method">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_metric_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_metric_method" title="Permalink to this definition"></a></dt>
 <dd><p>Map between metric identifier as listed in get_comparison_metrics()
@@ -3909,6 +3955,19 @@ for ROIs roi1, roi2:</p>
 roi1 and roi2.</p></li>
 </ul>
 <p>If None, value of skrt.core.Defaults().by_slice is used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.structures.get_structuring_element">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">get_structuring_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.get_structuring_element" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain spherical structuring element, taking into account voxel size.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>radius: float, default=1</dt><dd><p>Radius (mm) of spherical structuring element to be generated.</p>
+</dd>
+<dt>voxel_size: tuple, default=(1, 1, 1)</dt><dd><p>Voxel size (mm) along (x, y, z) axes.</p>
 </dd>
 </dl>
 </dd></dl>
