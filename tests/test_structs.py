@@ -1802,3 +1802,19 @@ def test_get_erosion():
                         for idx in range(3)])
             assert eroded_roi.name == f"{roi.name}-{margin}"
             del eroded_roi
+
+def test_resize_contours():
+    """Test resizing ROI contours by different amounts."""
+
+    for dxy in [-4.5, -1, 0, 1, 4.5]:
+        for roi1 in [cube, sphere]:
+            roi2 = roi1.clone()
+            roi2.resize_contours(dxy=dxy)
+
+            width1 = roi1.get_bbox_centre_and_widths(method="contour")[1]
+            width2 = roi2.get_bbox_centre_and_widths(method="contour")[1]
+            for idx in [0, 1]:
+                assert width1[idx] + 2 * dxy == width2[idx]
+            assert width1[2] == width2[2]
+
+            del roi2

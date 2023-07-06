@@ -5927,6 +5927,34 @@ class ROI(skrt.core.Archive):
         return ROI(source=erosion, image=self.image,
                    name=f"{self.name}-{margin}")
 
+    def resize_contours(self, dxy=0, origin="centroid"):
+        """
+        Resize x-y contours by scaling about an origin.
+
+        **Parameters:**
+
+        dxy: float, default=0
+            Nominal positive or negative amount (mm) by which contour
+            (x, y) points are to be moved relative to origin.
+        origin, str/tuple, default="centroid"
+            Keyword ("centroid" or "centre") or (x, y) tuple indicating
+            the origin with respect to which scaling is to be performed.
+        """
+        contours = {}
+        all_polygons = self.get_polygons()
+        scale_factor = lambda v1, v2, dv : (v2 - v1 + 2 * dv) / (v2 - v1)
+
+        for z, polygons in all_polygons.items():
+            contours[z] = []
+            for polygon in polygons:
+                x1, y1, x2, y2 = polygon.bounds
+                xs = scale_factor(x1, x2, dxy)
+                ys = scale_factor(y1, y2, dxy)
+                polygon_new = affinity.scale(polygon, xs, ys, 1., origin)
+                contours[z].append(polygon_to_contour(polygon_new))
+
+        self.reset_contours(contours)
+
         
 class StructureSet(skrt.core.Archive):
     """
