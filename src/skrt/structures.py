@@ -409,7 +409,7 @@ class ROI(skrt.core.Archive):
         other = StructureSet(others).combine_rois(
                 image=self.mask, method="mask")
         name = "-".join([self.name] + [roi.name for roi in others])
-        return ROI(source=(self.mask & ~other.mask),
+        return ROI(source=(self.get_mask() & ~other.get_mask()),
                    image=self.image, name=name)
 
     def intersect_rois(self, rois):
@@ -6595,14 +6595,14 @@ class StructureSet(skrt.core.Archive):
 
         # Check that image is specified.
         # If yes,  ensure that ROI masks have the same voxel size as this image.
-        if isinstance(in_image, skrt.image.Image):
+        if issubclass(type(in_image), skrt.image.Image):
             im = in_image
             ss = self.clone()
             ss.set_image(im, add_to_image=False)
         else:
             im = self.image
             ss = self
-        if not isinstance(im, skrt.image.Image):
+        if not issubclass(type(im), skrt.image.Image):
             return False
 
         # Check whether ROIs are contained in image.
@@ -8327,30 +8327,45 @@ class StructureSet(skrt.core.Archive):
             roi_new = ROI(source=all_polygons, image=image, name=name)
 
         else:
-            #image_is_none = (image is None)
-            #if image_is_none:
-            #    image = self.create_dummy_image()
-            # Use data from one of the ROIs as a starting point.
-            #roi0 = self.get_roi(roi_names[0])
-            #roi_new = ROI(source=roi0.get_mask().copy(), affine=roi0.affine,
-            #        name=name, image=image)
+            # Ensure that image used as reference for mask creation
+            # contains all ROIs.
+            have_image = issubclass(type(image), skrt.image.Image)
+            roi_names_in_ss = [roi_name for roi_name in self.get_roi_names()
+                               if roi_name in roi_names]
+            in_image = have_image and self.contains(
+                    roi_names_in_ss, in_image=image)
+            if in_image:
+                ss_image = image
+            else:
+                if have_image:
+                    voxel_size = image.get_voxel_size()
+                else:
+                    voxel_size = (1, 1, 1)
+                ss_image = (StructureSet(self.get_rois(roi_names_in_ss))
+                            .get_dummy_image(
+                                voxel_size=voxel_size[0: 2],
+                                slice_thickness=voxel_size[2]))
+
+            # Clone first ROI as starting point.
             roi_new = self.get_roi(roi_names[0]).clone()
-            roi_new.set_image(image)
+            roi_new.set_image(ss_image)
             roi_new.create_mask()
 
             # Combine with data from the other ROIs.
             for i in range(1, len(roi_names)):
                 roi_tmp = self.get_roi(roi_names[i]).clone()
-                roi_tmp.set_image(image)
+                roi_tmp.set_image(ss_image)
                 roi_tmp.create_mask()
                 if intersection:
                     roi_new.mask.data &= roi_tmp.mask.data
                 else:
                     roi_new.mask.data |= roi_tmp.mask.data
 
-            #if image_is_none:
-            #    image = None
-            roi_new = ROI(source=roi_new.mask.data, image=image, name=name)
+            # Create the composite ROI.
+            roi_new = ROI(source=roi_new.mask.data, image=ss_image, name=name)
+            if have_image and not in_image:
+                roi_new.set_image(image)
+                roi_new.create_mask()
 
         return roi_new
 
