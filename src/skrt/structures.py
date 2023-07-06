@@ -703,7 +703,7 @@ class ROI(skrt.core.Archive):
         other : ROI/StructureSet/list
             ROI with which alignment is to be performed.  This can be
             specified directly as a single ROI.  Alternatively, it can
-            be a StructureSet, or a list or ROI/StructureSet objects,
+            be a StructureSet, or a list of ROI/StructureSet objects,
             in which case the individual ROIs will be combined.
 
         z_fraction1 : float, default=None
@@ -6956,7 +6956,7 @@ class StructureSet(skrt.core.Archive):
         other : ROI/StructureSet/list
             ROI with which alignment is to be performed.  This can be
             specified directly as a single ROI.  Alternatively, it can
-            be a StructureSet, or a list or ROI/StructureSet objects,
+            be a StructureSet, or a list of ROI/StructureSet objects,
             in which case the individual ROIs will be combined.
 
         z_fraction1 : float, default=None
@@ -9210,13 +9210,13 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
     roi1 : ROI/StructureSet/list
         ROI that is to be translation to achieve the alignment.  This
         can be specified directly as a single ROI.  Alternatively,
-        it can be a StructureSet, or a list or ROI/StructureSet objects,
+        it can be a StructureSet, or a list of ROI/StructureSet objects,
         in which case the individual ROIs will be combined.
 
     roi2 : ROI/StructureSet/list
         ROI with which alignment is to be performed.  This can be
         specified directly as a single ROI.  Alternatively, it can
-        be a StructureSet, or a list or ROI/StructureSet objects,
+        be a StructureSet, or a list of ROI/StructureSet objects,
         in which case the individual ROIs will be combined.
 
     z_fraction1 : float, default=None
