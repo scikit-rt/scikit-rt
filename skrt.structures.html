@@ -227,6 +227,20 @@ does not affect the structure set associated with the Plan object.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.add_rois">
+<span class="sig-name descname"><span class="pre">add_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.add_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Add ROI(s) to this ROI.</p>
+<p>This method returns the result of the addition.  The original
+ROIs are left unaltered.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>rois: ROI/StructureSet/list</dt><dd><p>ROI(s) to be added.  This can be a single ROI, a StructureSet,
+or a list of ROI/StructureSet objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.clear_plans">
 <span class="sig-name descname"><span class="pre">clear_plans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.clear_plans" title="Permalink to this definition"></a></dt>
 <dd><p>Clear all plan maps associated with this ROI.</p>
@@ -1990,7 +2004,7 @@ each ROI.</p>
 <dl class="simple">
 <dt>other<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI with which alignment is to be performed.  This can be
 specified directly as a single ROI.  Alternatively, it can
-be a StructureSet, or a list or ROI/StructureSet objects,
+be a StructureSet, or a list of ROI/StructureSet objects,
 in which case the individual ROIs will be combined.</p>
 </dd>
 <dt>z_fraction1<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;self&gt; on which
@@ -2111,6 +2125,20 @@ parameter s of scipy.interpolate.splprep - see documentation at:</p>
 <p><a class="reference external" href="https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep">https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep</a></p>
 <p>A smoothness_per_point of 0 forces the B-spline to pass through
 all of the pre-interpolation contour points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.intersect_rois">
+<span class="sig-name descname"><span class="pre">intersect_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.intersect_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Intersect ROI(s) with this ROI.</p>
+<p>This method returns the result of the intersection.  The original
+ROIs are left unaltered.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>rois: ROI/StructureSet/list</dt><dd><p>ROI(s) to intersect.  This can be a single ROI, a StructureSet,
+or a list of ROI/StructureSet objects.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2390,6 +2418,21 @@ reset using own mask.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.resize_contours">
+<span class="sig-name descname"><span class="pre">resize_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'centroid'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.resize_contours" title="Permalink to this definition"></a></dt>
+<dd><p>Resize x-y contours by scaling about an origin.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>dxy: float, default=0</dt><dd><p>Nominal positive or negative amount (mm) by which contour
+(x, y) points are to be moved relative to origin.</p>
+</dd>
+<dt>origin, str/tuple, default=”centroid”</dt><dd><p>Keyword (“centroid” or “centre”) or (x, y) tuple indicating
+the origin with respect to which scaling is to be performed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.set_alpha_over_beta">
 <span class="sig-name descname"><span class="pre">set_alpha_over_beta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha_over_beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.set_alpha_over_beta" title="Permalink to this definition"></a></dt>
 <dd><p>Set ratio for ROI tissue of coefficients of linear-quadratic equation.</p>
@@ -2512,6 +2555,20 @@ ROI is to be split.</p>
 ROI is to be split.</p>
 </dd>
 <dt>names: list, default=None</dt><dd><p>List of names to be applied to the component ROIs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.subtract_rois">
+<span class="sig-name descname"><span class="pre">subtract_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.subtract_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Subtract ROI(s) from this ROI.</p>
+<p>This method returns the result of the subtraction.  The original
+ROIs are left unaltered.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>rois: ROI/StructureSet/list</dt><dd><p>ROI(s) to be added.  This can be a single ROI, a StructureSet,
+or a list of ROI/StructureSet objects.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2773,7 +2830,7 @@ optionally testing whether the ROIs be fully contained in an image.</p>
 to be considered.</p>
 </dd>
 <dt>in_image<span class="classifier">bool/skrt.image.Image, default=False</span></dt><dd><p>Specification of whether to test that ROIs are fully contained
-in an image.  If in_image is in Image object, the boolean returned
+in an image.  If in_image is an Image object, the boolean returned
 indicates whether all named ROIs are contained within this image.
 If in_image is True, the boolean returned indicates whether
 all named ROIs are contained within the image associated with
@@ -3268,7 +3325,7 @@ representing the combination.</p>
 <dl class="simple">
 <dt>other<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI with which alignment is to be performed.  This can be
 specified directly as a single ROI.  Alternatively, it can
-be a StructureSet, or a list or ROI/StructureSet objects,
+be a StructureSet, or a list of ROI/StructureSet objects,
 in which case the individual ROIs will be combined.</p>
 </dd>
 <dt>z_fraction1<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;self&gt; on which
@@ -3980,12 +4037,12 @@ roi1 and roi2.</p></li>
 <dl class="simple">
 <dt>roi1<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI that is to be translation to achieve the alignment.  This
 can be specified directly as a single ROI.  Alternatively,
-it can be a StructureSet, or a list or ROI/StructureSet objects,
+it can be a StructureSet, or a list of ROI/StructureSet objects,
 in which case the individual ROIs will be combined.</p>
 </dd>
 <dt>roi2<span class="classifier">ROI/StructureSet/list</span></dt><dd><p>ROI with which alignment is to be performed.  This can be
 specified directly as a single ROI.  Alternatively, it can
-be a StructureSet, or a list or ROI/StructureSet objects,
+be a StructureSet, or a list of ROI/StructureSet objects,
 in which case the individual ROIs will be combined.</p>
 </dd>
 <dt>z_fraction1<span class="classifier">float, default=None</span></dt><dd><p>Position along z axis of slice through &lt;roi1&gt; on which
