@@ -297,6 +297,137 @@ class ROI(skrt.core.Archive):
     def __eq__(self, other):
         return other is self
 
+    def __add__(self, other):
+        '''
+        Define ROI addition.
+
+        The result of the addition of self and other is an ROI object
+        created from a boolean mask that is the logical OR of the
+        boolean masks representing self and other.  The image associated
+        with the result ROI is the image associated with self.  The name
+        of the result ROI is the names of self and other, joined by a
+        plus sign.
+        '''
+        return self.add_rois(other)
+
+    def __iadd__(self, other):
+        '''
+        Define ROI addition in place.
+
+        The result of the addition of self and other is an ROI object
+        created from a boolean mask that is the logical OR of the
+        boolean masks representing self and other.  The image associated
+        with the result ROI is the image associated with self.  The name
+        of the result ROI is the names of self and other, joined by a
+        plus sign.
+        '''
+        return self + other
+
+    def __sub__(self, other):
+        '''
+        Define ROI subtraction.
+
+        The result of the subtraction of other from self is an ROI object
+        created from a boolean mask that is the logical or of the
+        boolean mask representing self and the negation of the boolean
+        mask representing other.  The image associated with the result ROI
+        is the image associated with self.  The name of the result ROI is
+        the names of self and other, joined by a minus sign.
+        '''
+        return self.subtract_rois(other)
+
+    def __isub__(self, other):
+        '''
+        Define ROI subtraction in place.
+
+        The result of the subtraction of other from self is an ROI object
+        created from a boolean mask that is the logical or of the
+        boolean mask representing self and the negation of the boolean
+        mask representing other.  The image associated with the result ROI
+        is the image associated with self.  The name of the result ROI is
+        the names of self and other, joined by a minus sign.
+        '''
+        return self - other
+
+    def __mul__(self, other):
+        '''
+        Define ROI multiplication.
+
+        The result of the multiplication of self and other is an ROI object
+        created from a boolean mask that is the logical AND of the
+        boolean masks representing self and other.  The image associated
+        with the result ROI is the image associated with self.  The name
+        of the result ROI is the names of self and other, joined by a
+        plus sign.
+        '''
+        return self.intersect_rois(other)
+
+    def __imul__(self, other):
+        '''
+        Define ROI multiplication.
+
+        The result of the multiplication of self and other is an ROI object
+        created from a boolean mask that is the logical AND of the
+        boolean masks representing self and other.  The image associated
+        with the result ROI is the image associated with self.  The name
+        of the result ROI is the names of self and other, joined by a
+        plus sign.
+        '''
+        return self * other
+
+    def add_rois(self, rois):
+        """
+        Add ROI(s) to this ROI.
+
+        This method returns the result of the addition.  The original
+        ROIs are left unaltered.
+
+        **Parameter:**
+
+        rois: ROI/StructureSet/list
+            ROI(s) to be added.  This can be a single ROI, a StructureSet,
+            or a list of ROI/StructureSet objects.
+        """
+        return StructureSet([self] + get_all_rois(rois)).combine_rois(
+                image=self.image, method="mask")
+
+    def subtract_rois(self, rois):
+        """
+        Subtract ROI(s) from this ROI.
+
+        This method returns the result of the subtraction.  The original
+        ROIs are left unaltered.
+
+        **Parameter:**
+
+        rois: ROI/StructureSet/list
+            ROI(s) to be added.  This can be a single ROI, a StructureSet,
+            or a list of ROI/StructureSet objects.
+        """
+        self.create_mask()
+        others = get_all_rois(rois)
+        other = StructureSet(others).combine_rois(
+                image=self.mask, method="mask")
+        name = "-".join([self.name] + [roi.name for roi in others])
+        return ROI(source=(self.mask & ~other.mask),
+                   image=self.image, name=name)
+
+    def intersect_rois(self, rois):
+        """
+        Intersect ROI(s) with this ROI.
+
+        This method returns the result of the intersection.  The original
+        ROIs are left unaltered.
+
+        **Parameter:**
+
+        rois: ROI/StructureSet/list
+            ROI(s) to intersect.  This can be a single ROI, a StructureSet,
+            or a list of ROI/StructureSet objects.
+        """
+        return StructureSet([self] + get_all_rois(rois)).combine_rois(
+                image=self.image, method="mask", intersection=True)
+
     def load(self, force=False):
         """Load ROI from file or source. The loading sequence is as follows:
 
@@ -6443,7 +6574,7 @@ class StructureSet(skrt.core.Archive):
 
         in_image : bool/skrt.image.Image, default=False
             Specification of whether to test that ROIs are fully contained
-            in an image.  If in_image is in Image object, the boolean returned
+            in an image.  If in_image is an Image object, the boolean returned
             indicates whether all named ROIs are contained within this image.
             If in_image is True, the boolean returned indicates whether
             all named ROIs are contained within the image associated with
