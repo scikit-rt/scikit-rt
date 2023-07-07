@@ -1068,19 +1068,6 @@ if loaded from dicom; otherwise, return None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.structures.ROI.get_dilation">
-<span class="sig-name descname"><span class="pre">get_dilation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dilation" title="Permalink to this definition"></a></dt>
-<dd><p>Obtain result of increasing ROI by a specified margin in mm.</p>
-<p>The name of the new ROI is the name of the original
-plus a suffix indicating the margin.</p>
-<p><strong>Parameter:</strong></p>
-<dl class="simple">
-<dt>margin: float, default=1</dt><dd><p>Thickness (mm) of margin by which ROI is to be increased.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_dummy_image">
 <span class="sig-name descname"><span class="pre">get_dummy_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dummy_image" title="Permalink to this definition"></a></dt>
 <dd><p>Make a dummy image that covers the area spanned by this ROI. 
@@ -1105,19 +1092,6 @@ direction.</p>
 <dt>slice_thickness<span class="classifier">float, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the z direction.  If None,
 the value used is the minimum distance between slice positions
 in the x-y contours dictionary.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.structures.ROI.get_erosion">
-<span class="sig-name descname"><span class="pre">get_erosion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_erosion" title="Permalink to this definition"></a></dt>
-<dd><p>Obtain result of decreasing ROI by a specified margin in mm.</p>
-<p>The name of the new ROI is the name of the original
-plus a suffix indicating the margin.</p>
-<p><strong>Parameter:</strong></p>
-<dl class="simple">
-<dt>margin: float, default=1</dt><dd><p>Thickness (mm) of margin by which ROI is to be decreased.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2428,6 +2402,21 @@ reset using own mask.</p>
 </dd>
 <dt>origin, str/tuple, default=”centroid”</dt><dd><p>Keyword (“centroid” or “centre”) or (x, y) tuple indicating
 the origin with respect to which scaling is to be performed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.resized">
+<span class="sig-name descname"><span class="pre">resized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.resized" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain result of resizing ROI by a specified margin in mm.</p>
+<p>Size is increased by a postive margin or decreased by
+a negative margin.  The name of the new ROI is the name of
+the original plus a suffix indicating the margin.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>margin: float, default=1</dt><dd><p>Size (mm) of positive or negative margin to be added
+around the ROI.</p>
 </dd>
 </dl>
 </dd></dl>
