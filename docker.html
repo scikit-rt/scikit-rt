@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scikit-rt with Docker &mdash; Scikit-rt 0.5.12 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage and data model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="images.html">Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structures.html">Regions of interest (ROIs) and structure sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard shortcuts for pop-out interactive viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Scikit-rt with Docker</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/docker.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="scikit-rt-with-docker">
+<h1>Scikit-rt with Docker<a class="headerlink" href="#scikit-rt-with-docker" title="Permalink to this heading"></a></h1>
+<p>A <a class="reference external" href="https://www.docker.com/">Docker</a> image for
+<a class="reference external" href="https://scikit-rt.github.io/scikit-rt/">scikit-rt</a> is built for each release,
+based on a <a class="reference download internal" download="" href="_downloads/cd2df2821756f2e3042dc580d6f70b63/Dockerfile"><span class="xref download myst">Dockerfile</span></a>, and is pushed to the
+<a class="reference external" href="https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry">GitHub container registry</a>.
+The image includes the image-registration packages
+<a class="reference external" href="https://elastix.lumc.nl/">elastix</a> and
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a>.  When run,
+it starts a <a class="reference external" href="https://jupyterlab.readthedocs.io/en/latest/">JupyterLab</a>
+session, within the scikit-rt environment.</p>
+<p>If you have an installation of <a class="reference external" href="https://www.docker.com/">Docker</a>,
+one approach to working interactively sith scikit-rt is as follows:</p>
+<ol class="arabic">
+<li><p>Download the scikit-rt Docker image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">pull</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="p">:</span><span class="n">latest</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">latest</span></code> tag can optionally be replaced by a specific tag for any of the
+<a class="reference external" href="https://github.com/scikit-rt/scikit-rt/pkgs/container/scikit-rt">tagged image versions</a>.</p>
+</li>
+<li><p>Choose a work directory on your local file system, copy here any files
+and data that you would want to be able to access with scikit-rt, then
+start a Docker container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">v</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">directory</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">jovyan</span><span class="o">/</span><span class="n">work</span> <span class="o">-</span><span class="n">p</span> <span class="mi">8888</span><span class="p">:</span><span class="mi">8888</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+</pre></div>
+</div>
+<p>The following are noted:</p>
+<ul class="simple">
+<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-v</span></code> maps a work directory on the local file system
+(<code class="docutils literal notranslate"><span class="pre">/path/to/work/directory</span></code>) to the work directory of the docker container
+(<code class="docutils literal notranslate"><span class="pre">/home/jovyan/work</span></code>).  The former can be any existing path to which
+you have write access; the latter should be a subdirectory of
+`/home/jovyan’.  Paths should always be absolute (not relative).</p></li>
+<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-p</span></code> maps the server port (first value: 8888) on the local
+machine to the server port (second value: 8888) on the container side.
+The port number on the local machine should be different from
+any other port numbers used by applications running locally; the
+port number on the container side is fixed.</p></li>
+</ul>
+</li>
+<li><p>Information will be printed to screen about Jupyter start-up.  Copy the
+last URL listed (typically starting: http://127.0.0.1:8888), and open this
+URL in a web browser.  This should open a jupyter lab session.
+If the session fails to open:</p>
+<ul class="simple">
+<li><p>Check that you’ve correctly copied the URL, including all characters
+of the access token.</p></li>
+<li><p>Check that the local port number used in step 2 isn’t the same as the
+port number used by another application running locally.</p></li>
+</ul>
+<p>Keep a record of the URL for the Jupyter session, as this will be needed
+if you end the session and subseqently want to resume it.</p>
+</li>
+<li><p>The Jupyter session runs in the container from the directory
+<code class="docutils literal notranslate"><span class="pre">/home/jovyan</span></code>.  You should have access to a directory <code class="docutils literal notranslate"><span class="pre">examples</span></code>,
+containing the notebooks from <a class="reference internal" href="examples.html"><span class="std std-doc">Scikit-rt by examples</span></a>.
+You should also have access to the work directory shared with your
+local file system, and specified in step 2.  The environment is set up
+so that you can import scikit-rt (<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code>) and its dependent
+packages, and so that you can perform image registration with
+<a class="reference external" href="https://elastix.lumc.nl/">elastix</a> and
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a>.</p></li>
+<li><p>Before ending a session or deleting the container, ensure that all files
+that you want to keep have been copied to the work directory specified
+in step 2, and are showing up on your local file system.  Files in
+other directories are preserved between sessions, but are lost when
+the container is deleted.</p></li>
+<li><p>To end your session, and stop the container, select <code class="docutils literal notranslate"><span class="pre">File</span></code> from
+the Jupyter part of your web browser, and then select
+<code class="docutils literal notranslate"><span class="pre">Shut</span> <span class="pre">Down</span></code>.</p></li>
+<li><p>To resume a session:</p>
+<ul>
+<li><p>Determine the identifier, <code class="docutils literal notranslate"><span class="pre">&lt;container_id&gt;</span></code>, of your container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">ps</span> <span class="o">-</span><span class="n">a</span>
+</pre></div>
+</div>
+</li>
+<li><p>Restart the container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">container</span> <span class="n">restart</span> <span class="o">&lt;</span><span class="n">container_id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Open in a web browser the URL recorded in step 3.  In case you have
+no record of the URL, you should be able to recover it from the
+container log, which can be accessed with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">logs</span> <span class="o">&lt;</span><span class="n">container_id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><strong>Warning</strong>: If you use <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code>, as in step 2, to start the container,
+rather than <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">container</span> <span class="pre">restart</span></code>, this will create a new
+container instance.  Modifications made outside the work directory
+of the previous container instance won’t be visible.  The previous
+instance remains available, and may be restarted as outlined in this step.</p>
+</li>
+<li><p>To delete a container:</p>
+<ul>
+<li><p>Make sure that you have a copy outside the container
+of all files that you want to keep, for example by copying them to
+the work directory shared between container and local file system,
+and specified in step 2.</p></li>
+<li><p>Determine the identifier, <code class="docutils literal notranslate"><span class="pre">&lt;container_id&gt;</span></code>, and status of the
+container to be deleted:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">ps</span> <span class="o">-</span><span class="n">a</span>
+</pre></div>
+</div>
+</li>
+<li><p>If the container is running, then stop it.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">stop</span> <span class="o">&lt;</span><span class="n">container_id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This command can also be run if in doubt - if the container is
+already stopped, it will have no effect.</p>
+</li>
+<li><p>Remove the stopped container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">rm</span> <span class="o">&lt;</span><span class="n">container_id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ol>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
