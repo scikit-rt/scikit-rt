@@ -26,6 +26,7 @@ Scikit-rt
    simulation.md
    registration.md
    keyboard_shortcuts.md
+   docker.md
    legacy.md
 
 .. toctree::
