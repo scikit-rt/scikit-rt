@@ -6010,53 +6010,39 @@ class ROI(skrt.core.Archive):
         intensities = self.get_intensities_3d(image, standardise)
         return intensities[~np.isnan(intensities)]
 
-    def get_dilation(self, margin=1):
+    def resized(self, margin):
         """
-        Obtain result of increasing ROI by a specified margin in mm.
+        Obtain result of resizing ROI by a specified margin in mm.
 
-        The name of the new ROI is the name of the original
-        plus a suffix indicating the margin.
+        Size is increased by a postive margin or decreased by
+        a negative margin.  The name of the new ROI is the name of
+        the original plus a suffix indicating the margin.
 
         **Parameter:**
 
         margin: float, default=1
-            Thickness (mm) of margin by which ROI is to be increased. 
+           Size (mm) of positive or negative margin to be added
+           around the ROI.
         """
         # Obtain spherical structuring element,
         # with radius equal to the requested margin.
         element = get_structuring_element(
-                radius=margin, voxel_size=self.get_voxel_size())
+                radius=abs(margin), voxel_size=self.get_voxel_size())
 
-        # Perform dilation of ROI mask.
-        dilation = ndimage.binary_dilation(self.get_mask(), element)
+        if margin > 0:
+            # Perform dilation of ROI mask.
+            mask = ndimage.binary_dilation(self.get_mask(), element)
+            sign = "+"
+        elif margin < 0:
+            # Perform erosion of ROI mask.
+            mask = ndimage.binary_erosion(self.get_mask(), element)
+            sign = "-"
+        else:
+            return self.clone()
 
-        # Return ROI created from the dilated mask.
-        return ROI(source=dilation, image=self.image,
-                   name=f"{self.name}+{margin}")
-
-    def get_erosion(self, margin=1):
-        """
-        Obtain result of decreasing ROI by a specified margin in mm.
-
-        The name of the new ROI is the name of the original
-        plus a suffix indicating the margin.
-
-        **Parameter:**
-
-        margin: float, default=1
-            Thickness (mm) of margin by which ROI is to be decreased.
-        """
-        # Obtain spherical structuring element,
-        # with radius equal to the requested margin.
-        element = get_structuring_element(
-                radius=margin, voxel_size=self.get_voxel_size())
-
-        # Perform erosion of ROI mask.
-        erosion = ndimage.binary_erosion(self.get_mask(), element)
-
-        # Return ROI created from the eroded mask.
-        return ROI(source=erosion, image=self.image,
-                   name=f"{self.name}-{margin}")
+        # Return ROI created from the resized mask.
+        return ROI(source=mask, image=self.image,
+                   name=f"{self.name}{sign}{abs(margin)}")
 
     def resize_contours(self, dxy=0, origin="centroid"):
         """

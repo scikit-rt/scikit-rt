@@ -1781,27 +1781,19 @@ def test_get_structuring_element():
     assert element.shape == tuple([1 + 2 * radius / voxel_size[idx]
                                    for idx in [1, 0, 2]])
 
-def test_get_dilation():
-    """Test dilating ROIs by different amounts."""
-    for margin in [1, 2, 4, 8]:
-        for roi in [sphere, cube]:
-            dilated_roi = roi.get_dilation(margin=margin)
-            assert all([roi.get_bbox_centre_and_widths()[1][idx] + 2 * margin
-                  == dilated_roi.get_bbox_centre_and_widths()[1][idx]
-                        for idx in range(3)])
-            assert dilated_roi.name == f"{roi.name}+{margin}"
-            del dilated_roi
-
-def test_get_erosion():
-    """Test eroding ROIs by different amounts."""
-    for margin in [1, 2, 4, 8]:
-        for roi in [sphere, cube]:
-            eroded_roi = roi.get_erosion(margin=margin)
-            assert all([roi.get_bbox_centre_and_widths()[1][idx] - 2 * margin
-                  == eroded_roi.get_bbox_centre_and_widths()[1][idx]
-                        for idx in range(3)])
-            assert eroded_roi.name == f"{roi.name}-{margin}"
-            del eroded_roi
+def test_resized():
+    """Test increasing and decreasing ROIs by different amounts."""
+    for sign, symbol in [(1, "+"), (-1, "-")]:
+        for margin in [1, 2, 4, 8]:
+            signed_margin = sign * margin
+            for roi in [sphere, cube]:
+                resized_roi = roi.resized(margin=(signed_margin))
+                assert all([(roi.get_bbox_centre_and_widths()[1][idx]
+                             + 2 * signed_margin)
+                             == resized_roi.get_bbox_centre_and_widths()[1][idx]
+                             for idx in range(3)])
+                assert resized_roi.name == f"{roi.name}{symbol}{margin}"
+    del resized_roi
 
 def test_resize_contours():
     """Test resizing ROI contours by different amounts."""
@@ -1818,3 +1810,39 @@ def test_resize_contours():
             assert width1[2] == width2[2]
 
             del roi2
+
+def test_roi_algebra():
+    """Test ROI addition, subtraction, and multiplication."""
+
+    # Test algebraic operations with cube and sphere.
+    xyz1 = (30, 30, 50)
+    xyz2 = (70, 70, 50)
+    for cube_centre in [xyz1]:
+        for sphere_centre in [xyz1, xyz2]:
+            sim = SyntheticImage((100, 100, 100))
+            sim.add_cube(side_length=40, name="cube", centre=cube_centre,
+                         intensity=1)
+            sim.add_sphere(radius=20, name="sphere", centre=sphere_centre,
+                           intensity=10)
+            cube = sim.get_roi('cube')
+            sphere = sim.get_roi('sphere')
+
+            if cube_centre == sphere_centre:
+                # Check results when cube and sphere have same centre.
+                assert (cube + sphere).get_volume() == cube.get_volume()
+                assert (cube * sphere).get_volume() == sphere.get_volume()
+                assert ((cube - sphere).get_volume()
+                        == cube.get_volume() - sphere.get_volume())
+                assert np.all((cube + sphere).get_mask() == cube.get_mask())
+                assert np.all((cube * sphere).get_mask() == sphere.get_mask())
+                assert np.all((cube - sphere).get_mask()
+                              == cube.get_mask() & ~sphere.get_mask())
+            else:
+                # Check results when cube and sphere are disjoint.
+                assert ((cube + sphere).get_volume()
+                        == cube.get_volume() + sphere.get_volume())
+                assert (cube * sphere).get_volume() == 0
+                assert (cube - sphere).get_volume() == cube.get_volume()
+                assert np.all((cube + sphere).get_mask()
+                              == cube.get_mask() | sphere.get_mask())
+                assert np.all((cube - sphere).get_mask() == cube.get_mask())
