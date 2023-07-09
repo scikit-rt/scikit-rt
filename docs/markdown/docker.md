@@ -2,7 +2,7 @@
 
 A [Docker](https://www.docker.com/) image for
 [scikit-rt](https://scikit-rt.github.io/scikit-rt/) is built for each release
-(see; <a href="../../Dockerfile" type="text/plain">Dockerfile]</a>), and
+(see; <a href="https://github.com/scikit-rt/scikit-rt/blob/master/Dockerfile" type="text/plain">Dockerfile]</a>), and
  is pushed to the
 [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 When the image is run, it starts a
