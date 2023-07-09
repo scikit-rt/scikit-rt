@@ -1,17 +1,20 @@
 # Scikit-rt with Docker
 
 A [Docker](https://www.docker.com/) image for
-[scikit-rt](https://scikit-rt.github.io/scikit-rt/) is built for each release,
-based on a [Dockerfile](../../Dockerfile), and is pushed to the
+[scikit-rt](https://scikit-rt.github.io/scikit-rt/) is built for each release
+(see; <a href="../../Dockerfile" type="text/plain">Dockerfile]</a>), and
+ is pushed to the
 [GitHub container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
-The image includes the image-registration packages
+When the image is run, it starts a
+[JupyterLab](https://jupyterlab.readthedocs.io/en/latest/)
+session within the scikit-rt environment, with the image-registration packages
 [elastix](https://elastix.lumc.nl/) and
-[NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg).  When run,
-it starts a [JupyterLab](https://jupyterlab.readthedocs.io/en/latest/)
-session, within the scikit-rt environment.
+[NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg) available.
 
 If you have an installation of [Docker](https://www.docker.com/),
-one approach to working interactively sith scikit-rt is as follows:
+one approach to working interactively with scikit-rt is as outlined below.
+
+## Running scikit-rt Docker image
 
 1. Download the scikit-rt Docker image:
 
@@ -24,7 +27,7 @@ one approach to working interactively sith scikit-rt is as follows:
 
 2. Choose a work directory on your local file system, copy here any files
    and data that you would want to be able to access with scikit-rt, then
-   start a Docker container:
+   run the scikit-rt Docker image in a container:
 
    ```
    docker run -v /path/to/work/directory:/home/jovyan/work -p 8888:8888 ghcr.io/scikit-rt/scikit-rt
@@ -36,7 +39,7 @@ one approach to working interactively sith scikit-rt is as follows:
      (`/path/to/work/directory`) to the work directory of the docker container
      (`/home/jovyan/work`).  The former can be any existing path to which
      you have write access; the latter should be a subdirectory of
-     `/home/jovyan'.  Paths should always be absolute (not relative).
+     `/home/jovyan`.  Paths should always be absolute (not relative).
    - The argument to `-p` maps the server port (first value: 8888) on the local
      machine to the server port (second value: 8888) on the container side.
      The port number on the local machine should be different from
@@ -44,7 +47,7 @@ one approach to working interactively sith scikit-rt is as follows:
      port number on the container side is fixed.
 
 3. Information will be printed to screen about Jupyter start-up.  Copy the
-   last URL listed (typically starting: http://127.0.0.1:8888), and open this
+   last URL listed (typically starting: http://127.0.0.1), and open this
    URL in a web browser.  This should open a jupyter lab session.
    If the session fails to open:
 
@@ -54,7 +57,7 @@ one approach to working interactively sith scikit-rt is as follows:
      port number used by another application running locally.
 
    Keep a record of the URL for the Jupyter session, as this will be needed
-   if you end the session and subseqently want to resume it.
+   if you end the session, and subseqently want to resume it.
 
 4. The Jupyter session runs in the container from the directory
    `/home/jovyan`.  You should have access to a directory `examples`,
@@ -66,6 +69,8 @@ one approach to working interactively sith scikit-rt is as follows:
    [elastix](https://elastix.lumc.nl/) and
    [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg).
 
+## Ending a session
+
 5. Before ending a session or deleting the container, ensure that all files
    that you want to keep have been copied to the work directory specified
    in step 2, and are showing up on your local file system.  Files in
@@ -76,7 +81,9 @@ one approach to working interactively sith scikit-rt is as follows:
    the Jupyter part of your web browser, and then select
    `Shut Down`.
 
-6. To resume a session:
+## Resuming a session
+
+7. To resume a session:
 
    - Determine the identifier, `<container_id>`, of your container:
 
@@ -102,9 +109,11 @@ one approach to working interactively sith scikit-rt is as follows:
    rather than `docker container restart`, this will create a new
    container instance.  Modifications made outside the work directory
    of the previous container instance won't be visible.  The previous
-   instance remains available, and may be restarted as outlined in this step.
+   instance remains available, and may be restarted as outlined above.
 
-7. To delete a container:
+## Deleting a container
+
+8. To delete a container:
 
    - Make sure that you have a copy outside the container
      of all files that you want to keep, for example by copying them to 
@@ -123,9 +132,6 @@ one approach to working interactively sith scikit-rt is as follows:
      ```
      docker stop <container_id>
      ```
-
-     This command can also be run if in doubt - if the container is
-     already stopped, it will have no effect.
 
    - Remove the stopped container:
 
