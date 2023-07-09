@@ -54,7 +54,13 @@
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard shortcuts for pop-out interactive viewer</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Scikit-rt with Docker</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Scikit-rt with Docker</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-scikit-rt-docker-image">Running scikit-rt Docker image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ending-a-session">Ending a session</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resuming-a-session">Resuming a session</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deleting-a-container">Deleting a container</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
@@ -91,16 +97,19 @@
   <section id="scikit-rt-with-docker">
 <h1>Scikit-rt with Docker<a class="headerlink" href="#scikit-rt-with-docker" title="Permalink to this heading"></a></h1>
 <p>A <a class="reference external" href="https://www.docker.com/">Docker</a> image for
-<a class="reference external" href="https://scikit-rt.github.io/scikit-rt/">scikit-rt</a> is built for each release,
-based on a <a class="reference download internal" download="" href="_downloads/cd2df2821756f2e3042dc580d6f70b63/Dockerfile"><span class="xref download myst">Dockerfile</span></a>, and is pushed to the
+<a class="reference external" href="https://scikit-rt.github.io/scikit-rt/">scikit-rt</a> is built for each release
+(see; <a href="../../Dockerfile" type="text/plain">Dockerfile]</a>), and
+is pushed to the
 <a class="reference external" href="https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry">GitHub container registry</a>.
-The image includes the image-registration packages
+When the image is run, it starts a
+<a class="reference external" href="https://jupyterlab.readthedocs.io/en/latest/">JupyterLab</a>
+session within the scikit-rt environment, with the image-registration packages
 <a class="reference external" href="https://elastix.lumc.nl/">elastix</a> and
-<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a>.  When run,
-it starts a <a class="reference external" href="https://jupyterlab.readthedocs.io/en/latest/">JupyterLab</a>
-session, within the scikit-rt environment.</p>
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a> available.</p>
 <p>If you have an installation of <a class="reference external" href="https://www.docker.com/">Docker</a>,
-one approach to working interactively sith scikit-rt is as follows:</p>
+one approach to working interactively with scikit-rt is as outlined below.</p>
+<section id="running-scikit-rt-docker-image">
+<h2>Running scikit-rt Docker image<a class="headerlink" href="#running-scikit-rt-docker-image" title="Permalink to this heading"></a></h2>
 <ol class="arabic">
 <li><p>Download the scikit-rt Docker image:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">pull</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="p">:</span><span class="n">latest</span>
@@ -111,7 +120,7 @@ one approach to working interactively sith scikit-rt is as follows:</p>
 </li>
 <li><p>Choose a work directory on your local file system, copy here any files
 and data that you would want to be able to access with scikit-rt, then
-start a Docker container:</p>
+run the scikit-rt Docker image in a container:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">v</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">directory</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">jovyan</span><span class="o">/</span><span class="n">work</span> <span class="o">-</span><span class="n">p</span> <span class="mi">8888</span><span class="p">:</span><span class="mi">8888</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
@@ -121,7 +130,7 @@ start a Docker container:</p>
 (<code class="docutils literal notranslate"><span class="pre">/path/to/work/directory</span></code>) to the work directory of the docker container
 (<code class="docutils literal notranslate"><span class="pre">/home/jovyan/work</span></code>).  The former can be any existing path to which
 you have write access; the latter should be a subdirectory of
-`/home/jovyan’.  Paths should always be absolute (not relative).</p></li>
+<code class="docutils literal notranslate"><span class="pre">/home/jovyan</span></code>.  Paths should always be absolute (not relative).</p></li>
 <li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-p</span></code> maps the server port (first value: 8888) on the local
 machine to the server port (second value: 8888) on the container side.
 The port number on the local machine should be different from
@@ -130,7 +139,7 @@ port number on the container side is fixed.</p></li>
 </ul>
 </li>
 <li><p>Information will be printed to screen about Jupyter start-up.  Copy the
-last URL listed (typically starting: http://127.0.0.1:8888), and open this
+last URL listed (typically starting: http://127.0.0.1), and open this
 URL in a web browser.  This should open a jupyter lab session.
 If the session fails to open:</p>
 <ul class="simple">
@@ -140,7 +149,7 @@ of the access token.</p></li>
 port number used by another application running locally.</p></li>
 </ul>
 <p>Keep a record of the URL for the Jupyter session, as this will be needed
-if you end the session and subseqently want to resume it.</p>
+if you end the session, and subseqently want to resume it.</p>
 </li>
 <li><p>The Jupyter session runs in the container from the directory
 <code class="docutils literal notranslate"><span class="pre">/home/jovyan</span></code>.  You should have access to a directory <code class="docutils literal notranslate"><span class="pre">examples</span></code>,
@@ -151,6 +160,11 @@ so that you can import scikit-rt (<code class="docutils literal notranslate"><sp
 packages, and so that you can perform image registration with
 <a class="reference external" href="https://elastix.lumc.nl/">elastix</a> and
 <a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a>.</p></li>
+</ol>
+</section>
+<section id="ending-a-session">
+<h2>Ending a session<a class="headerlink" href="#ending-a-session" title="Permalink to this heading"></a></h2>
+<ol class="arabic simple" start="5">
 <li><p>Before ending a session or deleting the container, ensure that all files
 that you want to keep have been copied to the work directory specified
 in step 2, and are showing up on your local file system.  Files in
@@ -159,6 +173,11 @@ the container is deleted.</p></li>
 <li><p>To end your session, and stop the container, select <code class="docutils literal notranslate"><span class="pre">File</span></code> from
 the Jupyter part of your web browser, and then select
 <code class="docutils literal notranslate"><span class="pre">Shut</span> <span class="pre">Down</span></code>.</p></li>
+</ol>
+</section>
+<section id="resuming-a-session">
+<h2>Resuming a session<a class="headerlink" href="#resuming-a-session" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="7">
 <li><p>To resume a session:</p>
 <ul>
 <li><p>Determine the identifier, <code class="docutils literal notranslate"><span class="pre">&lt;container_id&gt;</span></code>, of your container:</p>
@@ -183,8 +202,13 @@ container log, which can be accessed with:</p>
 rather than <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">container</span> <span class="pre">restart</span></code>, this will create a new
 container instance.  Modifications made outside the work directory
 of the previous container instance won’t be visible.  The previous
-instance remains available, and may be restarted as outlined in this step.</p>
+instance remains available, and may be restarted as outlined above.</p>
 </li>
+</ol>
+</section>
+<section id="deleting-a-container">
+<h2>Deleting a container<a class="headerlink" href="#deleting-a-container" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="8">
 <li><p>To delete a container:</p>
 <ul>
 <li><p>Make sure that you have a copy outside the container
@@ -201,8 +225,6 @@ container to be deleted:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">stop</span> <span class="o">&lt;</span><span class="n">container_id</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>This command can also be run if in doubt - if the container is
-already stopped, it will have no effect.</p>
 </li>
 <li><p>Remove the stopped container:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">rm</span> <span class="o">&lt;</span><span class="n">container_id</span><span class="o">&gt;</span>
@@ -212,6 +234,7 @@ already stopped, it will have no effect.</p>
 </ul>
 </li>
 </ol>
+</section>
 </section>
 
 
