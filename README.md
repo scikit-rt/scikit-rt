@@ -29,4 +29,5 @@ This work was supported by Cancer Research UK RadNet Cambridge [C17918/A28870].
 9. [Image registration](docs/markdown/registration.md)
 10. [Keyboard shortcuts for pop-out interactive viewer](docs/markdown/keyboard_shortcuts.md)
 11. [Scikit-rt with Docker](docs/markdown/docker.md)
-12. [Legacy code](docs/markdown/legacy.md)
+12. [Scikit-rt with Kubernetes](docs/markdown/kubernetes.md)
+13. [Legacy code](docs/markdown/legacy.md)
