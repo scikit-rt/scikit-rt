@@ -1,0 +1,27 @@
+# Modifications to JupyterHub Helm chart 2.0.0, to use scikit-rt image.
+#
+# - JupyterHub Helm charts:
+#   https://hub.jupyter.org/helm-chart/
+# - Scikit-rt repository:
+#   https://github.com/scikit-rt/
+# - Scikit-rt Dockerfile:
+#   https://github.com/scikit-rt/scikit-rt/blob/master/Dockerfile
+# - Scikit-rt container images:
+#   https://github.com/scikit-rt/scikit-rt/pkgs/container/scikit-rt
+#
+singleuser:
+  image:
+    name: ghcr.io/scikit-rt/scikit-rt
+    tag: latest
+  lifecycleHooks:
+    postStart:
+      exec:
+        command:
+          - "bash"
+          - "-c"
+          - >
+            rm -rf ~/examples;
+            mkdir -p ~/examples;
+            cp -u /opt/scikit-rt/examples/notebooks/*.ipynb ~/examples;
+            mkdir -p work;
+  cmd: null
