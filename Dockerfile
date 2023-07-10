@@ -15,13 +15,14 @@ RUN git clone https://github.com/scikit-rt/scikit-rt \
 
 # Install elastix.
 ARG ELASTIX_VERSION="5.1.0"
-ARG ELASTIX_LINUX="elastix-${ELASTIX_VERSION}-linux"
+ARG ELASTIX="elastix-${ELASTIX_VERSION}"
+ARG ELASTIX_LINUX="${ELASTIX}-linux"
 ARG ELASTIX_ZIP="${ELASTIX_LINUX}.zip"
 RUN wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VERSION}/${ELASTIX_ZIP} \
-    && unzip ${ELASTIX_ZIP} -d ${ELASTIX_LINUX} \
+    && unzip ${ELASTIX_ZIP} -d ${ELASTIX} \
     && rm ${ELASTIX_ZIP} \
-    && chmod a+x ${ELASTIX_LINUX}/bin/elastix \
-    && chmod a+x ${ELASTIX_LINUX}/bin/transformix
+    && chmod a+x ${ELASTIX}/bin/elastix \
+    && chmod a+x ${ELASTIX}/bin/transformix
 
 # Set up environment for running elastix.
 ARG ELASTIX_DIR="${SW_DIR}/${ELASTIX_LINUX}"
@@ -30,14 +31,16 @@ ENV LD_LIBRARY_PATH="${ELASTIX_DIR}/lib"
 
 # Install NiftyReg.
 ARG NIFTYREG_VERSION="1.3.9"
-ARG NIFTYREG_LINUX="NiftyReg-${NIFTYREG_VERSION}-Linux-x86_64-Release"
+ARG NIFTYREG="NiftyReg-${NIFTYREG_VERSION}"
+ARG NIFTYREG_LINUX="${NIFTYREG}-Linux-x86_64-Release"
 ARG NIFTYREG_TARBALL="${NIFTYREG_LINUX}.tar.gz"
 RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VERSION}/${NIFTYREG_TARBALL} \
     && tar -zxvf ${NIFTYREG_TARBALL} \
     && rm ${NIFTYREG_TARBALL}
+    && mv ${NIFTYREG_LINUX} ${NIFTYREG}
 
 # Set up environment for running NiftyReg.
-ARG NIFTYREG_DIR="${SW_DIR}/${NIFTYREG_LINUX}"
+ARG NIFTYREG_DIR="${SW_DIR}/${NIFTYREG}"
 ENV PATH="${NIFTYREG_DIR}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${NIFTYREG_DIR}/lib"
 
