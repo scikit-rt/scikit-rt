@@ -38,7 +38,7 @@ def set_viewer_options(to_exclude=None, usetex=False, **kwargs):
     # For axes, set spacing (pad) and size of label and title
     plt.rc("axes", labelpad=0, labelsize=25, titlepad=17, titlesize=25)
 
-    # Set default text charactieristics.
+    # Set default text characteristics.
     # Possible weight values are:
     # 100, 200, 300, 400 / "normal", 500, 600, 700 / "bold", 800, 900.
     if usetex:
