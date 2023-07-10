@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scikit-rt with Kubernetes &mdash; Scikit-rt 0.5.12 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Legacy code" href="legacy.html" />
+    <link rel="prev" title="Scikit-rt with Docker" href="docker.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Scikit-rt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Help topics:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="support.html">Documentation and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Scikit-rt by examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage and data model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="images.html">Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structures.html">Regions of interest (ROIs) and structure sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patients_and_studies.html">Patients and studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Synthetic data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registration.html">Image registration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard_shortcuts.html">Keyboard shortcuts for pop-out interactive viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docker.html">Scikit-rt with Docker</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Scikit-rt with Kubernetes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#software-installation">Software installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#jupyterhub-configuration-and-start-up">JupyterHub configuration and start up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connecting-to-jupyterhub">Connecting to JupyterHub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-scikit-rt-on-jupyterhub">Working with scikit-rt on JupyterHub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#disconnecting-and-reconnecting">Disconnecting and reconnecting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stopping-and-restarting-kubernetes-cluster">Stopping and restarting Kubernetes cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deleting-jupyterhub-and-kubernetes-cluster">Deleting JupyterHub and Kubernetes cluster</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">Legacy code</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="skrt_modules.html">skrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voxtox_modules.html">voxtox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="import_analysis_modules.html">import_analysis</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Scikit-rt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Scikit-rt with Kubernetes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/kubernetes.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="scikit-rt-with-kubernetes">
+<h1>Scikit-rt with Kubernetes<a class="headerlink" href="#scikit-rt-with-kubernetes" title="Permalink to this heading"></a></h1>
+<p>The <a class="reference external" href="https://github.com/scikit-rt/scikit-rt/pkgs/container/scikit-rt">scikit-rt Docker image</a> can be used with <a class="reference external" href="https://hub.jupyter.org/">JupyterHub</a> on
+a <a class="reference external" href="https://kubernetes.io/">Kubertetes</a> cluster, to create a standardised
+scikit-rt environment for a group of users, for example for training.</p>
+<p><a class="reference external" href="https://z2jh.jupyter.org/">Zero to JupyterHub with Kubernetes</a> provides instructions for setting up a Kubernetes cluster on cloud
+resources, and for installing and customising JupyterHub.  The instructions
+below outline the procedure for a local Kubernetes cluster, mainly
+for demonstration purposes.  The customisation relative to scikit-rt is
+the same for cluster set up on cloud rresources. The instructions
+have been tested on a MacBook, but should work also on other platforms.</p>
+<section id="software-installation">
+<h2>Software installation<a class="headerlink" href="#software-installation" title="Permalink to this heading"></a></h2>
+<p>The following are needed:</p>
+<ol class="arabic simple">
+<li><p>Install and start <a class="reference external" href="https://docs.docker.com/desktop/">Docker Desktop</a>.</p></li>
+<li><p>Install the Kubernetes command line tool:
+<a class="reference external" href="https://kubernetes.io/docs/tasks/tools/">kubectl</a>.</p></li>
+<li><p>Install <a class="reference external" href="https://minikube.sigs.k8s.io/docs/">minikube</a> software
+for creating a local Kubernetes cluster, and start your
+cluster - steps 1 and 2 of:
+<a class="reference external" href="https://minikube.sigs.k8s.io/docs/start/">minikube start</a>.</p></li>
+<li><p>Install a package manager for Kubernetes:
+[Helm][https://helm.sh/docs/intro/install/].</p></li>
+</ol>
+</section>
+<section id="jupyterhub-configuration-and-start-up">
+<h2>JupyterHub configuration and start up<a class="headerlink" href="#jupyterhub-configuration-and-start-up" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="5">
+<li><p>Update the list of repositories of Kubernetes configuration files
+(Helm charts) known to Helm, to include the
+<a class="reference external" href="https://jupyterhub.github.io/helm-chart/">JupyterHub Helm chart repository</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">helm</span> <span class="n">repo</span> <span class="n">add</span> <span class="n">jupyterhub</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">jupyterhub</span><span class="o">.</span><span class="n">github</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">helm</span><span class="o">-</span><span class="n">chart</span><span class="o">/</span>
+<span class="n">helm</span> <span class="n">repo</span> <span class="n">update</span>
+</pre></div>
+</div>
+</li>
+<li><p>Download the scikit-rt customisation of the JupyterHub configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">skrt</span><span class="o">-</span><span class="n">jupyterhub</span><span class="o">.</span><span class="n">yaml</span> <span class="o">&gt;</span> <span class="n">skrt</span><span class="o">-</span><span class="n">jupyterhub</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</li>
+<li><p>Install and start JupyterHub, with scikit-rt customisation, on your
+Kubernetes cluster:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">helm</span> <span class="n">upgrade</span> <span class="o">--</span><span class="n">cleanup</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">fail</span> \
+ <span class="o">--</span><span class="n">install</span> <span class="n">jupyterhub</span> <span class="n">jupyterhub</span><span class="o">/</span><span class="n">jupyterhub</span> \
+ <span class="o">--</span><span class="n">namespace</span> <span class="n">jupyter</span> \
+ <span class="o">--</span><span class="n">create</span><span class="o">-</span><span class="n">namespace</span> \
+ <span class="o">--</span><span class="n">version</span><span class="o">=</span><span class="mf">2.0.0</span> \
+ <span class="o">--</span><span class="n">values</span> <span class="n">skrt</span><span class="o">-</span><span class="n">jupyterhub</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>This may take some time to complete, while Docker images are downloaded
+in the background.</p>
+</li>
+</ol>
+</section>
+<section id="connecting-to-jupyterhub">
+<h2>Connecting to JupyterHub<a class="headerlink" href="#connecting-to-jupyterhub" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="8">
+<li><p>Check the status of pods in the <code class="docutils literal notranslate"><span class="pre">jupyter</span></code> namespace of
+your Kubernetes cluster:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">kubectl</span> <span class="n">get</span> <span class="n">pods</span> <span class="o">-</span><span class="n">n</span> <span class="n">jupyter</span>
+</pre></div>
+</div>
+</li>
+<li><p>When all pods are shown as running, connect to JupyterHub
+with the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">minikube</span> <span class="n">service</span> <span class="o">-</span><span class="n">n</span> <span class="n">jupyter</span> <span class="n">proxy</span><span class="o">-</span><span class="n">public</span>
+</pre></div>
+</div>
+<p>This will print the connection URL (the second URL shown), and
+will open it in a web browser.  Leave the command running.</p>
+</li>
+<li><p>As authentication hasn’t been enabled for this demonstration,
+you can log in to JupyterHub with any combination of username
+and password.</p></li>
+</ol>
+</section>
+<section id="working-with-scikit-rt-on-jupyterhub">
+<h2>Working with scikit-rt on JupyterHub<a class="headerlink" href="#working-with-scikit-rt-on-jupyterhub" title="Permalink to this heading"></a></h2>
+<ol class="arabic simple" start="11">
+<li><p>The JupyterHub session runs from the container directory /home/jovyan.  You
+should have access to a directory <code class="docutils literal notranslate"><span class="pre">examples</span></code>, containing the notebooks
+from [Scikit-rt by examples]
+(https://scikit-rt.github.io/scikit-rt/examples.html).  The environment
+is set up so that you can import scikit-rt (<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code>) and its
+dependent packages, and so that you can perform image registration
+with <a class="reference external" href="https://elastix.lumc.nl/">elastix</a> and
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a>.</p></li>
+<li><p>To save to the local file system a notebook or other file from
+your JupyterHub session, right-click on the file in the Jupyter
+<code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">Browser</span></code>, and select <code class="docutils literal notranslate"><span class="pre">Download</span></code>.  If the <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">Browser</span></code>
+isn’t visible, click on the folder icon towards the top left
+of the Jupyter part of your web browser.</p></li>
+</ol>
+</section>
+<section id="disconnecting-and-reconnecting">
+<h2>Disconnecting and reconnecting<a class="headerlink" href="#disconnecting-and-reconnecting" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="13">
+<li><p>To disconnect form JupyterHub, select <code class="docutils literal notranslate"><span class="pre">File</span></code> from
+the Jupyter part of your web browser, and then select <code class="docutils literal notranslate"><span class="pre">Log</span> <span class="pre">Out</span></code>.</p></li>
+<li><p>Optionally disable further connections by interupting the
+command given in step 9:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">minikube</span> <span class="n">service</span> <span class="o">-</span><span class="n">n</span> <span class="n">jupyter</span> <span class="n">proxy</span><span class="o">-</span><span class="n">public</span>
+</pre></div>
+</div>
+<p>Reissuing the command will reenable connections.</p>
+</li>
+<li><p>Reconnect to JupyterHub by logging in again at the URL for
+the <code class="docutils literal notranslate"><span class="pre">proxy-public</span></code> service (step 9 or step 14).  JupyterHub
+provides a multi-workspace environment.  If you use the same
+username as previously, you will find the work environment,
+and any file modifications, the same as when you logged out.
+If you use a different username, you will find a reinitialised
+environment.  Each username with which you connect will have
+an independent workspace.  (This functionality becomes more
+useful when supporting a group of users, with authenticated
+login.)</p></li>
+</ol>
+</section>
+<section id="stopping-and-restarting-kubernetes-cluster">
+<h2>Stopping and restarting Kubernetes cluster<a class="headerlink" href="#stopping-and-restarting-kubernetes-cluster" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="16">
+<li><p>To stop your Kubernetes cluster, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">minikube</span> <span class="n">stop</span>
+</pre></div>
+</div>
+</li>
+<li><p>To restart your Kubernetes cluster, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">minikube</span> <span class="n">start</span>
+</pre></div>
+</div>
+</li>
+<li><p>To reconnect to JupyterHub after restarting your Kubernetes cluster,
+repeat steps 9 and 15.</p></li>
+</ol>
+</section>
+<section id="deleting-jupyterhub-and-kubernetes-cluster">
+<h2>Deleting JupyterHub and Kubernetes cluster<a class="headerlink" href="#deleting-jupyterhub-and-kubernetes-cluster" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="19">
+<li><p>Before deleting JupyterHub or your Kubernetes cluster, ensure
+that you have copies outside of the containers used of any files
+that you want to keep.  For JupyterHub, this can be achieved, for
+example, by downloading files to the local file system, as
+outlined in step 12.</p></li>
+<li><p>To delete the Jupyter resources on your Kubernetes cluster, without
+deleting the cluster, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">kubectl</span> <span class="n">delete</span> <span class="nb">all</span> <span class="o">--</span><span class="nb">all</span> <span class="o">-</span><span class="n">n</span> <span class="n">jupyter</span>
+<span class="n">kubectl</span> <span class="n">delete</span> <span class="n">namespace</span> <span class="n">jupyter</span>
+</pre></div>
+</div>
+</li>
+<li><p>To delete your Kubernetes cluster, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">minikube</span> <span class="n">delete</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="docker.html" class="btn btn-neutral float-left" title="Scikit-rt with Docker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="legacy.html" class="btn btn-neutral float-right" title="Legacy code" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

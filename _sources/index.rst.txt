@@ -27,6 +27,7 @@ Scikit-rt
    registration.md
    keyboard_shortcuts.md
    docker.md
+   kubernetes.md
    legacy.md
 
 .. toctree::
