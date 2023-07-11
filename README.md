@@ -1,5 +1,7 @@
 # Scikit-rt
 
+[![License](https://img.shields.io/github/license/scikit-rt/scikit-rt)](https://github.com/scikit-rt/scikit-rt/blob/master/LICENSE)
+
 Scikit-rt provides tools for loading, plotting, and analysing
 radiotherapy data in [DICOM](https://www.dicomstandard.org/) and
 [NIfTI](https://nifti.nimh.nih.gov/) formats.  It includes
