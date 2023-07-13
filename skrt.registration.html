@@ -321,6 +321,12 @@ field is to be computed.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.Elastix.get_dose_params">
+<span class="sig-name descname"><span class="pre">get_dose_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_dose_params" title="Permalink to this definition"></a></dt>
+<dd><p>Get default parameters to be used when transforming dose.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Elastix.get_jac_cmd">
 <span class="sig-name descname"><span class="pre">get_jac_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Elastix.get_jac_cmd" title="Permalink to this definition"></a></dt>
 <dd><p>Get registration-engine command for computing Jacobian determinant.</p>
@@ -1770,7 +1776,7 @@ and set it to self.transformed_images[step].</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_roi">
-<span class="sig-name descname"><span class="pre">transform_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_roi" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Transform a single ROI using the output transform from a given
 registration step (by default, the final step). If the registration
 step has not yet been performed, the step and all preceding steps
@@ -1784,7 +1790,9 @@ path that can be used to initialise an ROI object.</p>
 default, the final step will be used.</p>
 </dd>
 <dt>outfile<span class="classifier">str, default=None</span></dt><dd><p>If None, the transformed ROI object will be returned; otherwise,
-it will be written to the path specified in &lt;outfile&gt;.</p>
+it will be written to the path specified in &lt;outfile&gt;.
+If outfile has no suffix, it will be treated as the path to
+a directory.</p>
 </dd>
 <dt>params<span class="classifier">dict, default=None</span></dt><dd><p>Optional list of parameters to temporarily overwrite in the
 transform file before applying the transform. Should be a dict,
@@ -1807,12 +1815,17 @@ contours defined if, for example, it’s transformed as a mask,
 and the non-zero regions of the transformed mask are outside
 the fixed image.</p>
 </dd>
+<dt>recurse<span class="classifier">bool, default=True</span></dt><dd><p>If True, and registration engine stores single-step transforms
+(engine property recursive_transform set to True), apply
+transforms step by step for all steps up to the one requested.
+if False, only apply transform relating to the current step.</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.transform_structure_set">
-<span class="sig-name descname"><span class="pre">transform_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_structure_set" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">transform_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.transform_structure_set" title="Permalink to this definition"></a></dt>
 <dd><p>Transform a structure set using the output transform from a given
 registration step (by default, the final step). If the registration
 step has not yet been performed, the step and all preceding steps
@@ -1825,8 +1838,10 @@ object or a path that can be used to initialise a StructureSet.</p>
 <dt>step<span class="classifier">int/str, default=-1</span></dt><dd><p>Name or number of step for which to apply the transform; by
 default, the final step will be used.</p>
 </dd>
-<dt>outfile<span class="classifier">str, default=None</span></dt><dd><p>If None, the transformed StructureSet object will be returned;
-otherwise, it will be written to the path specified in &lt;outfile&gt;.</p>
+<dt>outfile<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>If None, the transformed StructureSet object will be returned;
+otherwise, it will be written to the path specified in &lt;outfile&gt;.
+If outfile has no suffix, it will be treated as the path to
+a directory.</p>
 </dd>
 <dt>params<span class="classifier">dict, default=None</span></dt><dd><p>Optional list of parameters to temporarily overwrite in the
 transform file before applying the transform. Should be a dict,
@@ -1841,6 +1856,11 @@ from the reference frame of the moving image to the reference
 frame of the fixed image.  If True, the transform is applied
 to push ROI contour points from the reference frame of the
 fixed image to the reference frame of the moving image.</p>
+</dd>
+<dt>recurse<span class="classifier">bool, default=True</span></dt><dd><p>If True, and registration engine stores single-step transforms
+(engine property recursive_transform set to True), apply
+transforms step by step for all steps up to the one requested.
+if False, only apply transform relating to the current step.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1916,6 +1936,8 @@ get_default_pfiles_dir(): Return path to directory containing</p>
 </div></blockquote>
 <dl class="simple">
 <dt>get_def_cmd(): Get registration-engine command for computing</dt><dd><p>deformation field.</p>
+</dd>
+<dt>get_dose_params(): Get default parameters to be used when</dt><dd><p>transforming dose.</p>
 </dd>
 <dt>get_jac_cmd(): Get registration-engine command for computing</dt><dd><p>Jacobian determinant.</p>
 </dd>
@@ -2036,6 +2058,12 @@ of paths, as pathlib.Path objects.</p>
 <dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_default_pfiles_dir">
 <span class="sig-name descname"><span class="pre">get_default_pfiles_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_default_pfiles_dir" title="Permalink to this definition"></a></dt>
 <dd><p>Return path to directory containing default parameter files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.get_dose_params">
+<span class="sig-name descname"><span class="pre">get_dose_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.get_dose_params" title="Permalink to this definition"></a></dt>
+<dd><p>Get default parameters to be used when transforming dose.</p>
 </dd></dl>
 
 <dl class="py method">
