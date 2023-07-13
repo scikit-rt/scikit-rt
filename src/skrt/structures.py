@@ -5438,6 +5438,10 @@ class ROI(skrt.core.Archive):
 
             outname = os.path.join(outdir, outname)
 
+        # If output directory specified, ensure that it exists.
+        if outdir and not os.path.exists(outdir):
+            os.makedirs(outdir)
+
         # Write points to text file, in format that can be read by transformix
         if ext == ".txt":
             self.get_contours()

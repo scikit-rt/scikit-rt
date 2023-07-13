@@ -66,7 +66,7 @@ from skrt.patient import Patient
 from skrt.structures import (
         StructureSet,
         get_by_slice_methods, get_comparison_metrics, get_consensus_types)
-from skrt.registration import Registration, engines
+from skrt.registration import Registration, engines, get_engine_cls
 
 class MultiAtlasSegmentation(Data):
     def __init__(
@@ -569,9 +569,10 @@ class SingleAtlasSegmentation(Data):
         if overwrite and self.workdir.exists():
             rmtree(self.workdir)
 
-        # Set registration engine and software directory.
+        # Set registration engine name, software directory, and class.
         self.engine = engine
         self.engine_dir = engine_dir
+        self.engine_cls = get_engine_cls(self.engine, self.engine_dir)
 
         # Define recognised contour-propagation strategies
         # and segmentation steps.
@@ -707,7 +708,7 @@ class SingleAtlasSegmentation(Data):
                 reg = self.registrations[strategy][self.steps[0]]
                 im2 = (reg.fixed_source if "push" == strategy
                        else reg.moving_source)
-                self.segment_structure_set(im2.structure_sets[0],
+                self.segment_structure_set(im2.get_structure_sets()[0],
                         strategy, self.steps[0], self.most_points1)
 
         if self.steps[1] in steps and (
@@ -787,16 +788,30 @@ class SingleAtlasSegmentation(Data):
                     del self.segmentations[strategy][self.steps[1]][reg_step]
 
     def segment_roi(self, roi, strategy, step, most_points=True):
-        for reg_step in self.registrations[strategy][step][roi.name].steps:
+
+        reg = self.get_registration(strategy, step, roi.name)
+        for ireg_step, reg_step in enumerate(reg.steps):
             if (not reg_step in self.segmentations[strategy][step]
                 or not self.segmentations[strategy][step][reg_step]):
                 self.segmentations[strategy][step][reg_step] = StructureSet(
                         name=f"{strategy}_{step}_{reg_step}")
+
+            if self.engine_cls.recursive_transform and ireg_step:
+                to_transform = self.get_segmentation(
+                        strategy, step, ireg_step - 1)[roi.name].path
+            else:
+                to_transform = roi
+
+            outfile = (Path(reg.outdirs[reg_step])
+                       / "segmentation" / f"{roi.name}.nii.gz")
             self.segmentations[strategy][step][reg_step].add_roi(
-                    self.registrations[strategy][step][roi.name].transform(
-                        to_transform=roi,
+                    reg.transform_roi(
+                        to_transform,
                         step=reg_step,
-                        transform_points=(strategy == "push"))
+                        transform_points=(strategy == "push"),
+                        outfile=outfile,
+                        recurse=False
+                        )
                     )
 
             if (strategy == "pull" and most_points):
@@ -804,13 +819,24 @@ class SingleAtlasSegmentation(Data):
                         .reset_contours(most_points=True)
 
     def segment_structure_set(self, ss, strategy, step, most_points=True):
-        for reg_step in self.registrations[strategy][step].steps:
-            self.segmentations[strategy][step][reg_step] = (
-                    self.registrations[strategy][step].transform(
-                        to_transform=ss,
-                        step=reg_step,
-                        transform_points=(strategy == "push"))
+
+        reg = self.get_registration(strategy, step)
+        for ireg_step, reg_step in enumerate(reg.steps):
+            if self.engine_cls.recursive_transform and ireg_step:
+                to_transform = self.get_segmentation(
+                        strategy, step, ireg_step - 1).path
+            else:
+                to_transform = ss
+
+            outfile = Path(reg.outdirs[reg_step]) / "segmentation"
+            reg.transform_structure_set(
+                    to_transform,
+                    step=reg_step,
+                    transform_points=(strategy == "push"),
+                    recurse=False,
+                    outfile=outfile,
                     )
+            self.segmentations[strategy][step][reg_step] = StructureSet(outfile)
 
             if (strategy == "pull" and most_points):
                 self.segmentations[strategy][step][reg_step]\

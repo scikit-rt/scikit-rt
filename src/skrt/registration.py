@@ -232,7 +232,7 @@ class Registration(Data):
 
         # Set up directory
         #path = fullpath(path).replace(" ", "_")
-        self.path = path
+        self.path = fullpath(path)
         if not os.path.exists(path):
             os.makedirs(path)
         elif overwrite:
@@ -814,7 +814,7 @@ class Registration(Data):
 
         # Run
         cmd = self.get_registration_cmd(step, use_previous_tfile)
-        self.logger.debug(f"Running command:\n {' '.join(cmd)}")
+        self.logger.debug(f"Step {step} - running command:\n {' '.join(cmd)}")
         code = subprocess.run(
                 cmd, capture_output=self.capture_output).returncode
 
@@ -926,8 +926,7 @@ class Registration(Data):
         # If image is a Dose object, set pixel type to float
         is_dose = isinstance(im, Dose)
         if is_dose:
-            params = params or {}
-            params["ResultImagePixelType"] = "float"
+            params = {**self.engine.get_dose_params(), **(params or {})}
 
         # Save image temporarily as nifti if needed
         im = skrt.image.Image(im)
@@ -1004,10 +1003,10 @@ class Registration(Data):
         # Perform transformation
         cmd = self.engine.get_transform_cmd(
                 fixed_path=self.fixed_path.replace("\\", "/"),
-                moving_path=path, outdir=self._tmp_dir, tfile=tfile,
-                params=params)
+                moving_path=path, outdir=self._tmp_dir,
+                tfile=tfile, params=params)
 
-        self.logger.debug(f'Running command:\n {" ".join(cmd)}')
+        self.logger.debug(f'Step {step} - running command:\n {" ".join(cmd)}')
         code = subprocess.run(
                 cmd, capture_output=self.capture_output).returncode
 
@@ -1029,7 +1028,7 @@ class Registration(Data):
         return os.path.join(self._tmp_dir, outfile)
 
     def transform_roi(self, roi, step=-1, outfile=None, params=None,
-            transform_points=False, require_contours=False):
+            transform_points=False, require_contours=False, recurse=True):
         """Transform a single ROI using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -1048,6 +1047,8 @@ class Registration(Data):
         outfile : str, default=None
             If None, the transformed ROI object will be returned; otherwise,
             it will be written to the path specified in <outfile>.
+            If outfile has no suffix, it will be treated as the path to
+            a directory.
 
         params : dict, default=None
             Optional list of parameters to temporarily overwrite in the
@@ -1072,14 +1073,21 @@ class Registration(Data):
            contours defined if, for example, it's transformed as a mask,
            and the non-zero regions of the transformed mask are outside
            the fixed image.
+
+        recurse : bool, default=True
+            If True, and registration engine stores single-step transforms
+            (engine property recursive_transform set to True), apply
+            transforms step by step for all steps up to the one requested.
+            if False, only apply transform relating to the current step.
         """
         if transform_points and not self.engine.transform_points_implemented:
             raise RuntimeError("Transform of points not implemented "
                                f"for class {type(self.engine)}")
 
         # Save ROI temporarily as nifti if needed
-        roi = ROI(roi)
-        roi.load()
+        if not isinstance(roi, ROI):
+            roi = ROI(roi)
+        roi.create_mask()
         self.make_tmp_dir()
         if (roi.source_type == "mask" and roi.mask.source_type == "nifti"
                 and not transform_points):
@@ -1108,7 +1116,8 @@ class Registration(Data):
             image = self.get_transformed_image(step)
 
         # Transform the nifti file or point cloud
-        result_path = self.transform_data(roi_path, step, default_params)
+        result_path = self.transform_data(
+                roi_path, step, default_params, recurse=recurse)
         if result_path is None or not os.path.exists(str(result_path)):
             return
 
@@ -1117,10 +1126,18 @@ class Registration(Data):
         if require_contours and not roi.get_contours():
             return
 
-        # Copy to output dir if outfile is set
-        if outfile is not None:
-            shutil.copy(result_path, outfile)
-            return
+        # Rewrite roi if outfile is set.
+        if isinstance(outfile, (str, Path)):
+            outfile = Path(outfile)
+            if not outfile.suffix:
+                outdir = str(outfile)
+                outname = f"{roi.name}.nii.gz"
+            else:
+                outdir = str(outfile.parent)
+                outname = outfile.name
+            roi.write(outname, outdir, verbose=(self.logger.level < 20))
+            roi = ROI(Path(outdir) / outname, name=roi.name,
+                      color=roi.color, image=image)
 
         # Delete the temporary directory.
         self.rm_tmp_dir()
@@ -1130,7 +1147,7 @@ class Registration(Data):
 
     def transform_structure_set(
         self, structure_set, step=-1, outfile=None, params=None,
-        transform_points=False):
+        transform_points=False, recurse=True):
         """Transform a structure set using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -1146,9 +1163,11 @@ class Registration(Data):
             Name or number of step for which to apply the transform; by
             default, the final step will be used.
 
-        outfile : str, default=None
+        outfile : str/pathlib.Path, default=None
             If None, the transformed StructureSet object will be returned;
             otherwise, it will be written to the path specified in <outfile>.
+            If outfile has no suffix, it will be treated as the path to
+            a directory.
 
         params : dict, default=None
             Optional list of parameters to temporarily overwrite in the
@@ -1165,18 +1184,34 @@ class Registration(Data):
            frame of the fixed image.  If True, the transform is applied
            to push ROI contour points from the reference frame of the
            fixed image to the reference frame of the moving image.
+
+        recurse : bool, default=True
+            If True, and registration engine stores single-step transforms
+            (engine property recursive_transform set to True), apply
+            transforms step by step for all steps up to the one requested.
+            if False, only apply transform relating to the current step.
         """
 
+        if not isinstance(structure_set, StructureSet):
+            structure_set = StructureSet(structure_set)
         final = StructureSet()
         for roi in structure_set:
             transformed_roi = self.transform_roi(roi, step, params=params,
-                    transform_points=transform_points)
+                    transform_points=transform_points, recurse=recurse)
             if transformed_roi is not None:
                 final.add_roi(transformed_roi)
 
         # Write structure set if outname is given
-        if outfile is not None:
-            final.write(outfile, verbose=(self.logger.level < 20))
+        if isinstance(outfile, (str, Path)):
+            outfile = Path(outfile)
+            if not outfile.suffix:
+                outdir = str(outfile)
+                outfile = None,
+            else:
+                outdir = str(outfile.parent)
+                outfile = outfile.name
+            
+            final.write(outfile, outdir, verbose=(self.logger.level < 20))
             return
 
         # Otherwise, return structure set
@@ -1648,7 +1683,8 @@ class Registration(Data):
 
         # Obtain Jacobian determinant or deformation field.
         if cmd is not None:
-            self.logger.debug(f'Running command:\n {" ".join(cmd)}')
+            self.logger.debug(
+                    f'Step {step} - running command:\n {" ".join(cmd)}')
             code = subprocess.run(
                     cmd, capture_output=self.capture_output).returncode
             if code:
@@ -2411,6 +2447,8 @@ class RegistrationEngine:
         default parameter files.
     get_def_cmd(): Get registration-engine command for computing
         deformation field.
+    get_dose_params(): Get default parameters to be used when
+        transforming dose.
     get_jac_cmd(): Get registration-engine command for computing
         Jacobian determinant.
     get_registration_cmd(): Get registration-engine command for
@@ -2556,6 +2594,12 @@ class RegistrationEngine:
         """
         raise NotImplementedError("Method 'get_def_cmd()' "
                                   f"not implemented for class {type(self)}")
+
+    def get_dose_params(self):
+        """
+        Get default parameters to be used when transforming dose.
+        """
+        return {}
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
         """
@@ -2844,6 +2888,12 @@ class Elastix(RegistrationEngine):
     def get_def_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing deformation field.
         return [self.transformix, "-def", "all", "-out", outdir, "-tp", tfile]
+
+    def get_dose_params(self):
+        """
+        Get default parameters to be used when transforming dose.
+        """
+        return {"ResultImagePixelType": "float"}
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing Jacobian determinant.
@@ -3630,7 +3680,7 @@ def get_engine_name(engine=None, engine_dir=None):
 
     # Treat case where engine_dir includes a key of engines.
     for local_engine in engines:
-        if local_engine in str(engine_dir):
+        if local_engine in str(engine_dir).lower():
             return local_engine
 
     # Return default engine name.
