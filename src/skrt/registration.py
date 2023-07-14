@@ -4082,6 +4082,6 @@ def get_engines(engine_dirs=None, force=False, defaults=None, verbose=False,
 
     if verbose:
         s = "" if 1 == len(ok_engines) else "s"
-        print(f"Available image-registration engine{s}: {ok_engines}")
+        print(f"Available registration engine{s}: {ok_engines}")
 
     return ok_engines
