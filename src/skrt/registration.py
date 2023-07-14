@@ -2512,7 +2512,8 @@ class RegistrationEngine:
 
         if not hasattr(self, "name"):
             self.name = type(self).__name__.lower()
-        self.set_exe_env(path, force)
+        if path is not None:
+            self.set_exe_env(path, force)
 
     def adjust_parameters(self, infile, outfile, params):
         """
@@ -2696,6 +2697,33 @@ class RegistrationEngine:
                                   f"not implemented for class {type(self)}")
         return self.transform_log
 
+    def is_available(self, path=None, force=False, defaults=None):
+        """
+        Check whether registration engine is available.
+
+        The environment setup can optionally be modified before checking.
+
+        **Parameters:**
+
+        path : str/pathlib.Path, default=None
+            Path to set as directory containing registration-engine software.
+
+        force : bool, default=False
+            If False, modify environment based on <path> only if registration
+            software can't be located in the existing environment.  If True,
+            modify environment based on <path> in all cases.
+
+        defaults : dict, default=None
+            Dictionary of key-value pairs with which to update
+            skrt.core.Defaults().
+        """
+        Defaults(**(defaults or {}))
+        try:
+            self.set_exe_env(path, force)
+            return True
+        except RuntimeError:
+            return False
+
     def read_parameters(self, infile):
         """
         Get dictionary of parameters from a registration parameter file.
@@ -2734,11 +2762,6 @@ class RegistrationEngine:
             if exe_path is not None:
                 exe_dir = Path(exe_path).parent
 
-        # Return if environment already set and not forcing new setup,
-        # of if no value specified for path (no new setup possible).
-        if (exe_dir and not force) or path is None:
-            return
-        
         # Try to define path(s) to registration-engine executables,
         # if not already defined, or forcing new setup.
         if not exe_dir or force:
@@ -4013,3 +4036,52 @@ def write_parameters(outfile, params, engine=None):
         a key of the dictionary skrt.registration.engines.
     """
     get_engine_cls(engine)().write_parameters(outfile, params)
+
+def get_engines(engine_dirs=None, force=False, defaults=None, verbose=False,
+                no_exception=False):
+    """
+    Obtain list of names of available registration engines.
+
+    The environment setup can optionally be modified before checking.
+
+    **Parameters:**
+
+    engine_dirs : dict, default=None
+        Dictionary where each key is the name of a registration engine,
+        and the associated value is the path to be set as the
+        directory containing the registration-engine software.  This
+        can be left as the default of None if all setup has been
+        performed before calling this function.
+
+    force : bool, default=False
+        If False, modify environment based on <engine_dirs> only
+        if registration software can't be located in the existing
+        environment.  If True, modify environment based on <engine_dirs>
+        in all cases.
+
+    defaults : dict, default=None
+        Dictionary of key-value pairs with which to update
+        skrt.core.Defaults().
+
+    verbose : bool, default=False
+        If True, print a message indicating available registration engines.
+
+    no_exception: bool, default=False
+        If False, raise an exception if no registration engine is available.
+    """
+    Defaults(**(defaults or {}))
+    engine_dirs = engine_dirs or {}
+    ok_engines = [engine for engine, engine_cls in engines.items()
+               if engine_cls().is_available(
+                   engine_dirs.get(engine, None), force)]
+
+    if not no_exception and not ok_engines:
+        raise RuntimeError(
+            "No registration engines available; "
+            f"setup needed for one of the known engines: {sorted(engines)}")
+
+    if verbose:
+        s = "" if 1 == len(ok_engines) else "s"
+        print(f"Available image-registration engine{s}: {ok_engines}")
+
+    return ok_engines

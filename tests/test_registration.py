@@ -15,8 +15,8 @@ from skrt.simulation import SyntheticImage
 from skrt.registration import (
         Elastix, NiftyReg, Registration, RegistrationEngine,
         add_engine, engines, get_default_pfiles, get_default_pfiles_dir,
-        get_engine_cls, get_jacobian_colormap, get_parameters, read_parameters,
-        set_elastix_dir, set_engine_dir)
+        get_engine_cls, get_engines, get_jacobian_colormap, get_parameters,
+        read_parameters, set_elastix_dir, set_engine_dir)
 
 from test_structs import compare_rois
 
@@ -599,9 +599,11 @@ def test_add_engine():
         pass
     assert n_engine + 1 == len(engines)
     assert "newengine" in engines
+    assert not NewEngine().is_available()
+    assert "newengine" not in get_engines(no_exception=True)
 
 def test_engines():
-    for engine in ["newengine", "elastix", "niftyreg"]:
+    for engine in engines:
         engine_tests(engine)
 
 def test_default_engine():
