@@ -25,18 +25,18 @@ RUN wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VER
     && chmod a+x ${ELASTIX}/bin/transformix
 
 # Set up environment for running elastix.
-ARG ELASTIX_DIR="${SW_DIR}/${ELASTIX_LINUX}"
+ARG ELASTIX_DIR="${SW_DIR}/${ELASTIX}"
 ENV PATH="${ELASTIX_DIR}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${ELASTIX_DIR}/lib"
 
 # Install NiftyReg.
-ARG NIFTYREG_VERSION="1.3.9"
-ARG NIFTYREG="NiftyReg-${NIFTYREG_VERSION}"
-ARG NIFTYREG_LINUX="${NIFTYREG}-Linux-x86_64-Release"
+ARG NIFTYREG_VERSION="2023.07.11"
+ARG NIFTYREG="NiftyReg"
+ARG NIFTYREG_LINUX="${NIFTYREG}-${NIFTYREG_VERSION}-Linux"
 ARG NIFTYREG_TARBALL="${NIFTYREG_LINUX}.tar.gz"
-RUN wget https://sourceforge.net/projects/niftyreg/files/nifty_reg-${NIFTYREG_VERSION}/${NIFTYREG_TARBALL} \
+RUN wget https://github.com/kh296/niftyreg-build/releases/download/${NIFTYREG_VERSION}/${NIFTYREG_TARBALL} \
     && tar -zxvf ${NIFTYREG_TARBALL} \
-    && rm ${NIFTYREG_TARBALL}
+    && rm ${NIFTYREG_TARBALL} \
     && mv ${NIFTYREG_LINUX} ${NIFTYREG}
 
 # Set up environment for running NiftyReg.
@@ -60,6 +60,9 @@ RUN tlmgr install cm-super collection-fontsrecommended dvipng type1cm underscore
 # Install library needed by elastix
 RUN apt-get update \
     && apt-get -y install libgomp1
+
+# Remove cache.
+RUN rm -rf ${HOME}/.cache
 
 USER ${NB_UID}
 # Copy examples to home directory.
