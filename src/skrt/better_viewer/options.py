@@ -43,6 +43,8 @@ def set_viewer_options(to_exclude=None, usetex=False, **kwargs):
     # 100, 200, 300, 400 / "normal", 500, 600, 700 / "bold", 800, 900.
     if usetex:
         plt.rc("font", family="serif", serif=["Times"])
+    else:
+        plt.rc("font", family="DejaVu Sans", serif=["Times"])
     plt.rc("font", size=20, weight=400)
 
     # Set default font size for legends.
