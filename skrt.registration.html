@@ -2154,6 +2154,25 @@ of the fixed image to the reference frame of the moving image.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.is_available">
+<span class="sig-name descname"><span class="pre">is_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.is_available" title="Permalink to this definition"></a></dt>
+<dd><p>Check whether registration engine is available.</p>
+<p>The environment setup can optionally be modified before checking.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to set as directory containing registration-engine software.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False, modify environment based on &lt;path&gt; only if registration
+software can’t be located in the existing environment.  If True,
+modify environment based on &lt;path&gt; in all cases.</p>
+</dd>
+<dt>defaults<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of key-value pairs with which to update
+skrt.core.Defaults().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.read_parameters">
 <span class="sig-name descname"><span class="pre">read_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.read_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Get dictionary of parameters from a registration parameter file.</p>
@@ -2328,6 +2347,34 @@ It’s assumed that the registration engine is a key of
 the dictionary skrt.registration.engines, that the directory
 path includes this key, and that directory path doesn’t
 include any other keys of skrt.registration.engines.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.registration.get_engines">
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_engines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_dirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exception</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_engines" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain list of names of available registration engines.</p>
+<p>The environment setup can optionally be modified before checking.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>engine_dirs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary where each key is the name of a registration engine,
+and the associated value is the path to be set as the
+directory containing the registration-engine software.  This
+can be left as the default of None if all setup has been
+performed before calling this function.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False, modify environment based on &lt;engine_dirs&gt; only
+if registration software can’t be located in the existing
+environment.  If True, modify environment based on &lt;engine_dirs&gt;
+in all cases.</p>
+</dd>
+<dt>defaults<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of key-value pairs with which to update
+skrt.core.Defaults().</p>
+</dd>
+<dt>verbose<span class="classifier">bool, default=False</span></dt><dd><p>If True, print a message indicating available registration engines.</p>
+</dd>
+<dt>no_exception: bool, default=False</dt><dd><p>If False, raise an exception if no registration engine is available.</p>
 </dd>
 </dl>
 </dd></dl>
