@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scikit-rt with Docker &mdash; Scikit-rt 0.5.12 documentation</title>
+  <title>Scikit-rt with Docker &mdash; Scikit-rt 0.5.13 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -58,6 +58,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#running-scikit-rt-docker-image">Running scikit-rt Docker image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ending-a-session">Ending a session</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resuming-a-session">Resuming a session</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connecting-to-a-container">Connecting to a container</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#deleting-a-container">Deleting a container</a></li>
 </ul>
 </li>
@@ -122,7 +123,7 @@ one approach to working interactively with scikit-rt is as outlined below.</p>
 <li><p>Choose a work directory on your local file system, copy here any files
 and data that you would want to be able to access with scikit-rt, then
 run the scikit-rt Docker image in a container:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">v</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">directory</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">jovyan</span><span class="o">/</span><span class="n">work</span> <span class="o">-</span><span class="n">p</span> <span class="mi">8888</span><span class="p">:</span><span class="mi">8888</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">v</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">directory</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">jovyan</span><span class="o">/</span><span class="n">work</span> <span class="o">-</span><span class="n">p</span> <span class="mi">9090</span><span class="p">:</span><span class="mi">8888</span> <span class="n">ghcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span><span class="o">/</span><span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
 </div>
 <p>The following are noted:</p>
@@ -132,19 +133,21 @@ run the scikit-rt Docker image in a container:</p>
 (<code class="docutils literal notranslate"><span class="pre">/home/jovyan/work</span></code>).  The former can be any existing path to which
 you have write access; the latter should be a subdirectory of
 <code class="docutils literal notranslate"><span class="pre">/home/jovyan</span></code>.  Paths should always be absolute (not relative).</p></li>
-<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-p</span></code> maps the server port (first value: 8888) on the local
-machine to the server port (second value: 8888) on the container side.
-The port number on the local machine should be different from
-any other port numbers used by applications running locally; the
-port number on the container side is fixed.</p></li>
+<li><p>The argument to <code class="docutils literal notranslate"><span class="pre">-p</span></code> maps the server port (9090) on the local
+machine to the server port (8888) on the container side.
+The port number on the local machine can be any port number not
+used by an application running locally; the port number on the
+container side is fixed.</p></li>
 </ul>
 </li>
 <li><p>Information will be printed to screen about Jupyter start-up.  Copy the
-last URL listed (typically starting: http://127.0.0.1), and open this
-URL in a web browser.  This should open a jupyter lab session.
-If the session fails to open:</p>
+last URL listed (starting: http://127.0.0.1:8888) to the address bar
+of a web browser.  Replace the container port number (8888) by the local
+port number chosen in step 2 (for example, 9090), and open the resulting
+URL.  This should give access to a jupyter lab session.  If the session
+fails to open:</p>
 <ul class="simple">
-<li><p>Check that you’ve correctly copied the URL, including all characters
+<li><p>Check that you have the correct URL, including all characters
 of the access token.</p></li>
 <li><p>Check that the local port number used in step 2 isn’t the same as the
 port number used by another application running locally.</p></li>
@@ -203,13 +206,42 @@ container log, which can be accessed with:</p>
 rather than <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">container</span> <span class="pre">restart</span></code>, this will create a new
 container instance.  Modifications made outside the work directory
 of the previous container instance won’t be visible.  The previous
-instance remains available, and may be restarted as outlined above.</p>
+instance remains available, and may be restarted as outlined in this step.</p>
 </li>
+</ol>
+</section>
+<section id="connecting-to-a-container">
+<h2>Connecting to a container<a class="headerlink" href="#connecting-to-a-container" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="8">
+<li><p>To connect to a (running) container:</p>
+<ul>
+<li><p>Determine the identifier, <code class="docutils literal notranslate"><span class="pre">&lt;container_id&gt;</span></code>, of your container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">ps</span> <span class="o">-</span><span class="n">a</span>
+</pre></div>
+</div>
+</li>
+<li><p>To connect to a bash shell in the container:</p>
+<ul class="simple">
+<li><p>without root privileges:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">exec</span> <span class="o">-</span><span class="n">it</span> <span class="o">&lt;</span><span class="n">container</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span> <span class="n">bash</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>with root privileges:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">exec</span> <span class="o">-</span><span class="n">u</span> <span class="n">root</span> <span class="o">-</span><span class="n">it</span> <span class="o">&lt;</span><span class="n">container</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span> <span class="n">bash</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p>To terminate the connection, from the bash shell type <code class="docutils literal notranslate"><span class="pre">exit</span></code>.</p></li>
 </ol>
 </section>
 <section id="deleting-a-container">
 <h2>Deleting a container<a class="headerlink" href="#deleting-a-container" title="Permalink to this heading"></a></h2>
-<ol class="arabic" start="8">
+<ol class="arabic" start="10">
 <li><p>To delete a container:</p>
 <ul>
 <li><p>Make sure that you have a copy outside the container
