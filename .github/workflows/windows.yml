@@ -1,6 +1,6 @@
 # Workflow for running Scikit-rt tests on Windows.
 
-name: Windows test
+name: windows
 
 on: [push, pull_request]
 

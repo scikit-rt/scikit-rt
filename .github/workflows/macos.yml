@@ -1,6 +1,6 @@
 # Workflow for running Scikit-rt tests on MacOS.
 
-name: MacOS test
+name: macos
 
 on: [push, pull_request]
 

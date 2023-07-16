@@ -2,7 +2,7 @@
 # based on:
 #     https://codesalad.dev/blog/push-to-github-container-registry-using-github-actions-7
 
-name: Docker build
+name: docker
 
 on: [push, pull_request]
 

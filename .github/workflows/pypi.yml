@@ -2,7 +2,7 @@
 # Based on:
 # https://jacobtomlinson.dev/posts/2021/automating-releases-of-python-packages-with-github-actions/
 
-name: PyPi build
+name: pypi
 
 on: [push, pull_request]
 

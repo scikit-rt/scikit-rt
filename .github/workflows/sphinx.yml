@@ -1,6 +1,6 @@
 # Workflow for building Scikit-rt documentation, using Sphinx.
 
-name: Sphinx build
+name: sphinx
 
 on: push
 
