@@ -1,6 +1,11 @@
 # Scikit-rt
 
 [![License](https://img.shields.io/github/license/scikit-rt/scikit-rt)](https://github.com/scikit-rt/scikit-rt/blob/master/LICENSE)
+[![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/scikit-rt/scikit-rt/actions/workflows/docker.yml?query=branch%3Amaster)
+[![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/pypi.yml/badge.svg?branch=master)](https://github.com/scikit-rt/scikit-rt/actions/workflows/pypi.yml?query=branch%3Amaster)
+[![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/sphinx.yml/badge.svg?branch=master)](https://github.com/scikit-rt/scikit-rt/actions/workflows/sphinx.yml?query=branch%3Amaster)
+[![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/macos.yml/badge.svg?branch=master)](https://github.com/scikit-rt/scikit-rt/actions/workflows/macos.yml?query=branch%3Amaster)
+[![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/windows.yml/badge.svg?branch=master)](https://github.com/scikit-rt/scikit-rt/actions/workflows/windows.yml?query=branch%3Amaster)
 
 Scikit-rt provides tools for loading, plotting, and analysing
 radiotherapy data in [DICOM](https://www.dicomstandard.org/) and
