@@ -51,11 +51,37 @@ _default_bolus_names = ["planning bolus", "virtual bolus", "bolus",
         "temp-for bolus", "temp- for bolus", "Temp for p/bolus",
         "treatment bolus", "t1-for bolus", "0.5CM BOLUS"]
 
-# Matplotlib settings
-mpl.rcParams["figure.figsize"] = (7.4, 4.8)
-mpl.rcParams["font.serif"] = "Times New Roman"
-mpl.rcParams["font.family"] = "serif"
-mpl.rcParams["font.size"] = 14.0
+# Set Matplotlib runtime configuration.
+# For details of Matplotlib configuration, see:
+# https://matplotlib.org/stable/tutorials/introductory/customizing.html
+# Sizes are in points.
+
+# Set default figure size.
+plt.rc("figure", figsize=(7.4, 4.8))
+
+# For axes, set spacing (pad) and size of label and title
+plt.rc("axes", labelpad=0, labelsize=25, titlepad=17, titlesize=25)
+
+# Set default text characteristics.
+# Possible weight values are:
+# 100, 200, 300, 400 / "normal", 500, 600, 700 / "bold", 800, 900.
+plt.rc("font", family="serif", size=20, weight=400)
+
+# Set default font size for legends.
+plt.rc("legend", fontsize=16)
+
+# Set mathematics typeface when using matplotlib's built-in fonts.
+plt.rc("mathtext", fontset="dejavuserif")
+
+# For ticks, set label size and direction ("in", "out", "inout").
+plt.rc(("xtick", "ytick"), labelsize=25, direction="out")
+
+# For major and minor ticks, set size and width.
+# For major ticks, set spacing (pad) of label.
+plt.rc(("xtick.major"), pad=3)
+plt.rc(("xtick.major", "ytick.major"), size=9, width=1.0)
+plt.rc(("xtick.minor", "ytick.minor"), size=4.5, width=1.0)
+plt.rc(("ytick.major"), pad=2)
 
 skrt.core.Defaults().foreground_name = "foreground"
 skrt.core.Defaults().foreground_threshold = -150

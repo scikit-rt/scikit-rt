@@ -41,11 +41,9 @@ def set_viewer_options(to_exclude=None, usetex=False, **kwargs):
     # Set default text characteristics.
     # Possible weight values are:
     # 100, 200, 300, 400 / "normal", 500, 600, 700 / "bold", 800, 900.
+    plt.rc("font", family="serif", size=20, weight=400)
     if usetex:
-        plt.rc("font", family="serif", serif=["Times"])
-    else:
-        plt.rc("font", family="DejaVu Sans", serif=["Times"])
-    plt.rc("font", size=20, weight=400)
+        plt.rc("font", serif=["Times"])
 
     # Set default font size for legends.
     plt.rc("legend", fontsize=16)
