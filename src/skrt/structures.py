@@ -6978,27 +6978,19 @@ class StructureSet(skrt.core.Archive):
             copies of the data from the original StructureSet. Otherwise,
             the new ROIs will contain references to the same data, e.g. the 
             same numpy ndarray object for the mask/same dict for the contours.
-            Only used if <copy_rois> is True
         """
 
-        # Load StructureSet, but prevent loading of ROIs.
-        # Loading ROIs here consumes time and memory creating masks
-        # for ROIs that may be discarded after filtering.
-        roi_load = self.roi_kwargs.get("load", None)
-        self.roi_kwargs["load"] = False
-        self.load()
-
-        ss = self.clone(copy_roi_data=copy_roi_data)
+        # Initially clone structure set without copying ROI data, so avoiding
+        # copying data for ROIs that may be discarded after filtering.
+        ss = self.clone(copy_roi_data=False)
         if name is not None:
             ss.name = name
         ss.rename_rois(names, keep_renamed_only=keep_renamed_only)
         ss.filter_rois(to_keep, to_remove)
 
-        # Ensure that self.roi_kwargs is the same as at input.
-        if roi_load is None:
-            self.roi_kwargs.pop("load")
-        else:
-            self.roi_kwargs["load"] = roi_load
+        # Substitute clones for references.
+        if copy_roi_data:
+            ss.rois = [roi.clone() for roi in ss.get_rois()]
 
         return ss
 
