@@ -30,7 +30,7 @@ one approach to working interactively with scikit-rt is as outlined below.
    run the scikit-rt Docker image in a container:
 
    ```
-   docker run -v /path/to/work/directory:/home/jovyan/work -p 8888:8888 ghcr.io/scikit-rt/scikit-rt
+   docker run -v /path/to/work/directory:/home/jovyan/work -p 9090:8888 ghcr.io/scikit-rt/scikit-rt
    ```
 
    The following are noted:
@@ -40,18 +40,20 @@ one approach to working interactively with scikit-rt is as outlined below.
      (`/home/jovyan/work`).  The former can be any existing path to which
      you have write access; the latter should be a subdirectory of
      `/home/jovyan`.  Paths should always be absolute (not relative).
-   - The argument to `-p` maps the server port (first value: 8888) on the local
-     machine to the server port (second value: 8888) on the container side.
-     The port number on the local machine should be different from
-     any other port numbers used by applications running locally; the
-     port number on the container side is fixed.
+   - The argument to `-p` maps the server port (9090) on the local
+     machine to the server port (8888) on the container side.
+     The port number on the local machine can be any port number not
+     used by an application running locally; the port number on the
+     container side is fixed.
 
 3. Information will be printed to screen about Jupyter start-up.  Copy the
-   last URL listed (typically starting: http://127.0.0.1), and open this
-   URL in a web browser.  This should open a jupyter lab session.
-   If the session fails to open:
+   last URL listed (starting: http://127.0.0.1:8888) to the address bar
+   of a web browser.  Replace the container port number (8888) by the local
+   port number chosen in step 2 (for example, 9090), and open the resulting
+   URL.  This should give access to a jupyter lab session.  If the session
+   fails to open:
 
-   - Check that you've correctly copied the URL, including all characters 
+   - Check that you have the correct URL, including all characters 
      of the access token.
    - Check that the local port number used in step 2 isn't the same as the
      port number used by another application running locally.
@@ -109,32 +111,56 @@ one approach to working interactively with scikit-rt is as outlined below.
    rather than `docker container restart`, this will create a new
    container instance.  Modifications made outside the work directory
    of the previous container instance won't be visible.  The previous
-   instance remains available, and may be restarted as outlined above.
+   instance remains available, and may be restarted as outlined in this step.
 
-## Deleting a container
+## Connecting to a container
 
-8. To delete a container:
+8. To connect to a (running) container:
 
-   - Make sure that you have a copy outside the container
-     of all files that you want to keep, for example by copying them to 
-     the work directory shared between container and local file system,
-     and specified in step 2.
-
-   - Determine the identifier, `<container_id>`, and status of the
-     container to be deleted:
+   - Determine the identifier, `<container_id>`, of your container:
 
      ```
      docker ps -a
      ```
 
-   - If the container is running, then stop it.
+   - To connect to a bash shell in the container:
 
+     - without root privileges:
      ```
-     docker stop <container_id>
+     docker exec -it <container-id> bash
      ```
 
-   - Remove the stopped container:
+     - with root privileges:
+     ```
+     docker exec -u root -it <container-id> bash
+     ```
 
-     ```
-     docker rm <container_id>
-     ```
+9. To terminate the connection, from the bash shell type `exit`.
+
+## Deleting a container
+
+10. To delete a container:
+
+    - Make sure that you have a copy outside the container
+      of all files that you want to keep, for example by copying them to 
+      the work directory shared between container and local file system,
+      and specified in step 2.
+
+    - Determine the identifier, `<container_id>`, and status of the
+      container to be deleted:
+
+      ```
+      docker ps -a
+      ```
+
+    - If the container is running, then stop it.
+
+      ```
+      docker stop <container_id>
+      ```
+
+    - Remove the stopped container:
+
+      ```
+      docker rm <container_id>
+      ```
