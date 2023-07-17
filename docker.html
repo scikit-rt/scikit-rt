@@ -60,6 +60,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#resuming-a-session">Resuming a session</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#connecting-to-a-container">Connecting to a container</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#deleting-a-container">Deleting a container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deleting-an-image">Deleting an image</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="kubernetes.html">Scikit-rt with Kubernetes</a></li>
@@ -264,6 +265,27 @@ container to be deleted:</p>
 </li>
 <li><p>Remove the stopped container:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">rm</span> <span class="o">&lt;</span><span class="n">container_id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="deleting-an-image">
+<h2>Deleting an image<a class="headerlink" href="#deleting-an-image" title="Permalink to this heading"></a></h2>
+<ol class="arabic" start="11">
+<li><p>To delete an image:</p>
+<ul>
+<li><p>Determine the identifier, <code class="docutils literal notranslate"><span class="pre">&lt;image_id&gt;</span></code>, of the image to be deleted:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">images</span>
+</pre></div>
+</div>
+</li>
+<li><p>Following the instructions of step 10, delete any (stopped or running)
+containers that use the image.</p></li>
+<li><p>Delete the image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">rmi</span> <span class="o">&lt;</span><span class="n">image_id</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </li>
