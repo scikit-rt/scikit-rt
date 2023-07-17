@@ -167,3 +167,22 @@ one approach to working interactively with scikit-rt is as outlined below.
       ```
       docker rm <container_id>
       ```
+
+## Deleting an image
+
+11. To delete an image:
+
+    - Determine the identifier, `<image_id>`, of the image to be deleted:
+
+      ```
+      docker images
+      ```
+
+    - Following the instructions of step 10, delete any (stopped or running)
+      containers that use the image.
+
+    - Delete the image:
+
+      ```
+      docker rmi <image_id>
+      ```
