@@ -4,7 +4,7 @@
 
 [![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/docker.yml/badge.svg)](https://github.com/scikit-rt/scikit-rt/actions/workflows/docker.yml)
 [![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/pypi.yml/badge.svg)](https://github.com/scikit-rt/scikit-rt/actions/workflows/pypi.yml)
-[![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/sphinx.yml)](https://github.com/scikit-rt/scikit-rt/actions/workflows/sphinx.yml)
+[![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/sphinx.yml/badge.svg)](https://github.com/scikit-rt/scikit-rt/actions/workflows/sphinx.yml)
 [![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/macos.yml/badge.svg)](https://github.com/scikit-rt/scikit-rt/actions/workflows/macos.yml)
 [![GitHub Actions](https://github.com/scikit-rt/scikit-rt/actions/workflows/windows.yml/badge.svg)](https://github.com/scikit-rt/scikit-rt/actions/workflows/windows.yml)
 
