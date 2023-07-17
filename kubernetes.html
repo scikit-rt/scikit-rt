@@ -121,7 +121,7 @@ for creating a local Kubernetes cluster, and start your
 cluster - steps 1 and 2 of:
 <a class="reference external" href="https://minikube.sigs.k8s.io/docs/start/">minikube start</a>.</p></li>
 <li><p>Install a package manager for Kubernetes:
-[Helm][https://helm.sh/docs/intro/install/].</p></li>
+<a class="reference external" href="https://helm.sh/docs/intro/install/">Helm</a>.</p></li>
 </ol>
 </section>
 <section id="jupyterhub-configuration-and-start-up">
@@ -180,14 +180,18 @@ and password.</p></li>
 <section id="working-with-scikit-rt-on-jupyterhub">
 <h2>Working with scikit-rt on JupyterHub<a class="headerlink" href="#working-with-scikit-rt-on-jupyterhub" title="Permalink to this heading"></a></h2>
 <ol class="arabic simple" start="11">
-<li><p>The JupyterHub session runs from the container directory /home/jovyan.  You
+<li><p>The JupyterHub session runs from the container directory
+<code class="docutils literal notranslate"><span class="pre">/home/jovyan</span></code>.  You
 should have access to a directory <code class="docutils literal notranslate"><span class="pre">examples</span></code>, containing the notebooks
 from [Scikit-rt by examples]
 (https://scikit-rt.github.io/scikit-rt/examples.html).  The environment
 is set up so that you can import scikit-rt (<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">skrt</span></code>) and its
 dependent packages, and so that you can perform image registration
 with <a class="reference external" href="https://elastix.lumc.nl/">elastix</a> and
-<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a>.</p></li>
+<a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a>.  All
+of the <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/examples.html#notebooks-using-public-datasets-or-not-requiring-data">example notebooks using public datasets, or not requiring
+data</a>,
+can be run without modification.</p></li>
 <li><p>To save to the local file system a notebook or other file from
 your JupyterHub session, right-click on the file in the Jupyter
 <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">Browser</span></code>, and select <code class="docutils literal notranslate"><span class="pre">Download</span></code>.  If the <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">Browser</span></code>
@@ -215,8 +219,8 @@ and any file modifications, the same as when you logged out.
 If you use a different username, you will find a reinitialised
 environment.  Each username with which you connect will have
 an independent workspace.  (This functionality becomes more
-useful when supporting a group of users, with authenticated
-login.)</p></li>
+useful when supporting a group of users, after setting up
+<a class="reference external" href="https://z2jh.jupyter.org/en/stable/administrator/authentication.html">authentication and authorisation</a>.)</p></li>
 </ol>
 </section>
 <section id="stopping-and-restarting-kubernetes-cluster">

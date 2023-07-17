@@ -26,7 +26,7 @@ The following are needed:
    [minikube start](https://minikube.sigs.k8s.io/docs/start/).
 
 4. Install a package manager for Kubernetes:
-   [Helm][https://helm.sh/docs/intro/install/].
+   [Helm](https://helm.sh/docs/intro/install/).
 
 ## JupyterHub configuration and start up
 
@@ -84,14 +84,18 @@ The following are needed:
 
 ## Working with scikit-rt on JupyterHub
 
-11. The JupyterHub session runs from the container directory /home/jovyan.  You
+11. The JupyterHub session runs from the container directory
+    `/home/jovyan`.  You
     should have access to a directory `examples`, containing the notebooks
     from [Scikit-rt by examples]
     (https://scikit-rt.github.io/scikit-rt/examples.html).  The environment
     is set up so that you can import scikit-rt (`import skrt`) and its
     dependent packages, and so that you can perform image registration
     with [elastix](https://elastix.lumc.nl/) and
-    [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg).
+    [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg).  All
+    of the [example notebooks using public datasets, or not requiring
+    data](https://scikit-rt.github.io/scikit-rt/examples.html#notebooks-using-public-datasets-or-not-requiring-data),
+    can be run without modification.
 
 12. To save to the local file system a notebook or other file from
     your JupyterHub session, right-click on the file in the Jupyter
@@ -121,8 +125,8 @@ The following are needed:
     If you use a different username, you will find a reinitialised
     environment.  Each username with which you connect will have
     an independent workspace.  (This functionality becomes more
-    useful when supporting a group of users, with authenticated
-    login.)
+    useful when supporting a group of users, after setting up
+    [authentication and authorisation](https://z2jh.jupyter.org/en/stable/administrator/authentication.html).)
 
 ## Stopping and restarting Kubernetes cluster
 
