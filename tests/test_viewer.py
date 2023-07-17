@@ -36,9 +36,45 @@ im2 = Image(data2)
 
 
 # Decorator to close matplotlib figures (prevents too many figures from existing)
+#def close_after(func):
+#    def do_then_close():
+#        func()
+#        plt.close("all")
+#    return do_then_close
+
+# Decorator to close matplotlib figures
+# (prevents too many figures from existing).
+# Allow retries to counter Tkinter failures
+# that occassionally occur on Windows:
+# ===============================================
+# E       _tkinter.TclError: Can't find a usable init.tcl in the following directories:
+# E           {C:\hostedtoolcache\windows\Python\3.8.10\x64\tcl\tcl8.6}
+# E
+# E       C:/hostedtoolcache/windows/Python/3.8.10/x64/tcl/tcl8.6/init.tcl: couldn't read file "C:/hostedtoolcache/windows/Python/3.8.10/x64/tcl/tcl8.6/init.tcl": No error
+# E       couldn't read file "C:/hostedtoolcache/windows/Python/3.8.10/x64/tcl/tcl8.6/init.tcl": No error
+# E           while executing
+# E       "source C:/hostedtoolcache/windows/Python/3.8.10/x64/tcl/tcl8.6/init.tcl"
+# E           ("uplevel" body line 1)
+# E           invoked from within
+# E       "uplevel #0 [list source $tclfile]"
+# E
+# E
+# E       This probably means that Tcl wasn't installed properly.
+# ===============================================
 def close_after(func):
-    def do_then_close():
-        func()
+    from time import sleep
+    from tkinter import TclError
+    def do_then_close(max_try=2, wait=1):
+        n_try = 0
+        while n_try < max_try:
+            try:
+                func()
+                n_try = max_try
+            except (TclError) as error:
+                n_try += 1
+                if n_try == max_try:
+                    raise error
+                sleep(wait)
         plt.close("all")
     return do_then_close
 
