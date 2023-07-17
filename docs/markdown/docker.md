@@ -70,6 +70,9 @@ one approach to working interactively with scikit-rt is as outlined below.
    packages, and so that you can perform image registration with 
    [elastix](https://elastix.lumc.nl/) and
    [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg).
+   All of the [example notebooks using public datasets, or not requiring
+    data](https://scikit-rt.github.io/scikit-rt/examples.html#notebooks-using-public-datasets-or-not-requiring-data),
+    can be run without modification.
 
 ## Ending a session
 
