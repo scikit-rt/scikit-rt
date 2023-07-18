@@ -9,6 +9,7 @@ as outlined in the instructions:
 The currently supported image-registration packages are:
 
 - [elastix](https://elastix.lumc.nl/)
+- [matlab-skrt](https://github.com/kh296/matlab-skrt/)
 - [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg)
 
 ## Example registration
@@ -83,7 +84,7 @@ reg = Registration(
 )
 ```
 The arguments to the `Registration` class initialisation are:
-- `engine`: Name of registration engine ("elastix" or "niftyreg").
+- `engine`: Name of registration engine ("elastix", "matlab", or "niftyreg").
 - `engine_dir` Path to location of registration software.  Parameter
   not needed if environment setup for registration software performed
   prior to using scikit-rt.
