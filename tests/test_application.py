@@ -41,9 +41,9 @@ def test_algorithm_base_class():
     for key, value in opts.items():
         assert getattr(alg, key) == value
     assert alg.name == name
-    assert alg.initialise().ok()
-    assert alg.execute(Patient("test")).ok()
-    assert alg.finalise().ok()
+    assert alg.initialise().is_ok()
+    assert alg.execute(Patient("test")).is_ok()
+    assert alg.finalise().is_ok()
 
 def test_algorithm_creation():
     """Create test algorithms and check properties."""
@@ -90,7 +90,7 @@ def test_application_creation_algorithm_status_not_ok():
     alg1.status = Status(code=1, reason="No reason")
     app = Application([alg1])
     assert 1 == len(app.algs)
-    assert not app.status.ok()
+    assert not app.status.is_ok()
     assert alg1.status.code == app.status.code
     assert f"{alg1.name}: {alg1.status.reason}" == app.status.reason
 
@@ -127,7 +127,7 @@ def test_application_run_non_default_patient():
     # Run the application, creating PyTestPatient instance for each path.
     # Additional assertions included in the execute() method
     # of the application's algorithm.
-    app.run(paths=paths, PatientClass=PyTestPatient, **opts)
+    app.run(paths=paths, patient_cls=PyTestPatient, **opts)
 
 def check_algorithm_method_status_not_okay(alg_cls):
     """
@@ -143,9 +143,9 @@ def check_algorithm_method_status_not_okay(alg_cls):
         opts = {"new_status": Status(code=code, reason=reason)}
         alg = alg_cls(opts=opts)
         app = Application(algs=[alg])
-        assert app.status.ok()
+        assert app.status.is_ok()
         app.run(paths=paths)
-        assert not app.status.ok()
+        assert not app.status.is_ok()
         assert app.status.code == code
         assert app.status.reason == reason or alg.default_reason
 
