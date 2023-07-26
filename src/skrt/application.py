@@ -294,17 +294,6 @@ class Status():
         """Print status information."""
         return f"Status {self.code} ({self.name}): {self.reason}"
 
-    def ok(self):
-        '''
-        Return boolean indicating whether status is okay (exit code non-zero).
-        '''
-        if self.code:
-            is_ok = False
-        else:
-            is_ok = True
-
-        return is_ok
-
     def copy_attributes(self, status):
         '''
         Copy attributes from another Status object.
@@ -317,6 +306,17 @@ class Status():
         self.code = status.code
         self.name = status.name
         self.reason = status.reason
+
+    def ok(self):
+        '''
+        Return boolean indicating whether status is okay (exit code non-zero).
+        '''
+        if self.code:
+            is_ok = False
+        else:
+            is_ok = True
+
+        return is_ok
 
 
 def get_paths(data_locations=None, max_path=None,
