@@ -88,6 +88,10 @@ that at least one of the following image-registration packages be installed:
   the elastix manual:  
   [https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf](https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf).
 
+- [matlab-skrt](https://github.com/kh296/matlab-skrt/)  
+  For installation and environment setup, see:  
+  [https://github.com/kh296/matlab-skrt/blob/main/examples/scikit-rt.md](https://github.com/kh296/matlab-skrt/blob/main/examples/scikit-rt.md)
+
 - [NiftyReg](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg)  
   For installation and environment setup, see:  
   [http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install](http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install)
@@ -98,14 +102,22 @@ scikit-rt of the registration software (registration engine):
 1. Before starting scikit-rt, follow the instructions linked for
    the relevant registration package.
 
-2. At run time, use code similar to the following:
+2. At run time, use code similar to the following :
 
    ```
    from skrt.registration import set_engine_dir
 
    set_engine_dir("/path/to/elastix/directory", engine="elastix")
    set_engine_dir("/path/to/niftyreg/directory", engine="niftyreg")
-   ```
+
+    # matlab-skrt option 1: use source code with MATLAB executable.
+    Defaults().matlab_app = "/path/to/directory/containing/MATLAB/executable"
+    set_engine_dir("/path/to/directory/containing/mskrt/package"
+
+    # matlab-skrt option 2: use compiled code with MATLAB runtime environment.
+    Defaults().matlab_runtime = "/path/to/matlab/runtime/install/directory"
+    set_engine_dir("/path/to/directory/containing/matlabreg/executable", engine="matlab")
+    ```
 
    The parameter `engine` passed to the `set_engine_dir()` function
    may be omitted if the name of the registration engine is a substring
@@ -113,4 +125,16 @@ scikit-rt of the registration software (registration engine):
 
 3. When creating registration or segmentation objects, pass the
    installation directory of the registration engine to be used via
-   the `engine_dir` parameter.
+   the `engine_dir` parameter.  When using `matlab-skrt`, the location
+   of the MATLAB executable or of the MATLAB runtime installation must
+   still be set:
+
+    ```
+    from skrt.core import Defaults
+    
+    # matlab-skrt option 1: define location of MATLAB executable.
+    Defaults().matlab_app = "/path/to/directory/containing/MATLAB/executable"
+
+    # matlab-skrt option 2: define location of MATLAB runtime installation.
+    Defaults().matlab_runtime = "/path/to/matlab/runtime/install/directory"
+    ```

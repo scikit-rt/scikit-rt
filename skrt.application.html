@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=be3f1746"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -114,10 +114,17 @@
              
   <section id="module-skrt.application">
 <span id="skrt-application-module"></span><h1>skrt.application module<a class="headerlink" href="#module-skrt.application" title="Permalink to this heading"></a></h1>
-<p>Framework for running analysis over patient data.</p>
+<p>Classes and functions defining a framework for analysing patient datasets.</p>
+<p>The following classes are defined:</p>
+<ul class="simple">
+<li><p>Algorithm: Base class for analysis algorithms.</p></li>
+<li><p>Application: Class that represents an application as a sequence of algorithms,
+and manages algorithm execution.</p></li>
+<li><p>Status : Class that represents the exit status of an algorithm or application.</p></li>
+</ul>
 <p>This module provides for construction of an analysis application
 as a sequence of algorithms, each of which inherits from the
-Algorithm class.  This defines three methods relating to execution:</p>
+Algorithm base class.  This defines three methods relating to execution:</p>
 <ul class="simple">
 <li><p><strong>initialise()</strong> - run before any patient data are read;</p></li>
 <li><p><strong>execute()</strong> - run once for each patient;</p></li>
@@ -127,8 +134,10 @@ Algorithm class.  This defines three methods relating to execution:</p>
 providing information on whether execution problems were encountered.
 Running of algorithm methods is handled by the Application class.</p>
 <p>This module also provides the following function that may be useful within an
-application:
-* <strong>get_paths()</strong> - get list of paths to patient datasets.</p>
+application:</p>
+<ul class="simple">
+<li><p><strong>get_paths()</strong> - get list of paths to patient datasets.</p></li>
+</ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.application.Algorithm">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Algorithm" title="Permalink to this definition"></a></dt>
@@ -203,7 +212,8 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 <dt class="sig sig-object py" id="skrt.application.Application">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Application</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Represent application as sequence of algorithm, and manage execution.</p>
+<p>Class that represents an application as a sequence of algorithms,
+and manages algorithm execution.</p>
 <p><strong>Methods:</strong></p>
 <ul class="simple">
 <li><p><strong>__init__()</strong>: Create instance of Application class.</p></li>
@@ -253,14 +263,14 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.application.Application.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PatientClass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.run" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.run" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise analysis, process patient data, finalise analysis.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>paths: list, default=None</dt><dd><p>List of paths to folders containing patient data.  If null,
 set to empty list.</p>
 </dd>
-<dt>PatientClass: class, default=None</dt><dd><p>Class to be used to create objects representing patient
+<dt>patient_cls: class, default=None</dt><dd><p>Class to be used to create objects representing patient
 datasets.  The class constructor must have a parameter
 &lt;path&gt;, which will be passed, one by one, the elements of
 &lt;paths&gt;.  The class constructor may have any number of
@@ -280,12 +290,12 @@ constructor.</p>
 <dt class="sig sig-object py" id="skrt.application.Status">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">Status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Represent an exit status.</p>
+<p>Class that represents the exit status of an algorithm or application.</p>
 <p><strong>Methods:</strong></p>
 <ul class="simple">
 <li><p><strong>__init__()</strong>: Create instance of Status class.</p></li>
 <li><p><strong>copy_attributes()</strong>: Copy attributes from another Status object.</p></li>
-<li><p><strong>ok()</strong>: Return boolean, indicating whether status is okay.</p></li>
+<li><p><strong>is_ok()</strong>: Return boolean, indicating whether status is okay.</p></li>
 </ul>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.application.Status.__init__">
@@ -322,8 +332,8 @@ algorithm methods, with attributes set to indicate exit status.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.application.Status.ok">
-<span class="sig-name descname"><span class="pre">ok</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status.ok" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.application.Status.is_ok">
+<span class="sig-name descname"><span class="pre">is_ok</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Status.is_ok" title="Permalink to this definition"></a></dt>
 <dd><p>Return boolean indicating whether status is okay (exit code non-zero).</p>
 </dd></dl>
 

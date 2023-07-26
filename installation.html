@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=be3f1746"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -181,6 +181,9 @@ that at least one of the following image-registration packages be installed:</p>
 For installation and environment setup, see <em>Getting started</em> section of
 the elastix manual:<br />
 <a class="reference external" href="https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf">https://elastix.lumc.nl/download/elastix-5.1.0-manual.pdf</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/kh296/matlab-skrt/">matlab-skrt</a><br />
+For installation and environment setup, see:<br />
+<a class="reference external" href="https://github.com/kh296/matlab-skrt/blob/main/examples/scikit-rt.md">https://github.com/kh296/matlab-skrt/blob/main/examples/scikit-rt.md</a></p></li>
 <li><p><a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a><br />
 For installation and environment setup, see:<br />
 <a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install">http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg_install</a></p></li>
@@ -190,11 +193,19 @@ scikit-rt of the registration software (registration engine):</p>
 <ol class="arabic">
 <li><p>Before starting scikit-rt, follow the instructions linked for
 the relevant registration package.</p></li>
-<li><p>At run time, use code similar to the following:</p>
+<li><p>At run time, use code similar to the following :</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_engine_dir</span>
 
 <span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/elastix/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;elastix&quot;</span><span class="p">)</span>
 <span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/niftyreg/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;niftyreg&quot;</span><span class="p">)</span>
+
+ <span class="c1"># matlab-skrt option 1: use source code with MATLAB executable.</span>
+ <span class="n">Defaults</span><span class="p">()</span><span class="o">.</span><span class="n">matlab_app</span> <span class="o">=</span> <span class="s2">&quot;/path/to/directory/containing/MATLAB/executable&quot;</span>
+ <span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/directory/containing/mskrt/package&quot;</span>
+
+ <span class="c1"># matlab-skrt option 2: use compiled code with MATLAB runtime environment.</span>
+ <span class="n">Defaults</span><span class="p">()</span><span class="o">.</span><span class="n">matlab_runtime</span> <span class="o">=</span> <span class="s2">&quot;/path/to/matlab/runtime/install/directory&quot;</span>
+ <span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/directory/containing/matlabreg/executable&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;matlab&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The parameter <code class="docutils literal notranslate"><span class="pre">engine</span></code> passed to the <code class="docutils literal notranslate"><span class="pre">set_engine_dir()</span></code> function
@@ -203,7 +214,19 @@ of the installation path.</p>
 </li>
 <li><p>When creating registration or segmentation objects, pass the
 installation directory of the registration engine to be used via
-the <code class="docutils literal notranslate"><span class="pre">engine_dir</span></code> parameter.</p></li>
+the <code class="docutils literal notranslate"><span class="pre">engine_dir</span></code> parameter.  When using <code class="docutils literal notranslate"><span class="pre">matlab-skrt</span></code>, the location
+of the MATLAB executable or of the MATLAB runtime installation must
+still be set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.core</span> <span class="kn">import</span> <span class="n">Defaults</span>
+
+<span class="c1"># matlab-skrt option 1: define location of MATLAB executable.</span>
+<span class="n">Defaults</span><span class="p">()</span><span class="o">.</span><span class="n">matlab_app</span> <span class="o">=</span> <span class="s2">&quot;/path/to/directory/containing/MATLAB/executable&quot;</span>
+
+<span class="c1"># matlab-skrt option 2: define location of MATLAB runtime installation.</span>
+<span class="n">Defaults</span><span class="p">()</span><span class="o">.</span><span class="n">matlab_runtime</span> <span class="o">=</span> <span class="s2">&quot;/path/to/matlab/runtime/install/directory&quot;</span>
+</pre></div>
+</div>
+</li>
 </ol>
 </section>
 </section>

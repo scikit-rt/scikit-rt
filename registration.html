@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=be3f1746"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -103,6 +103,7 @@ as outlined in the instructions:
 <p>The currently supported image-registration packages are:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://elastix.lumc.nl/">elastix</a></p></li>
+<li><p><a class="reference external" href="https://github.com/kh296/matlab-skrt/">matlab-skrt</a></p></li>
 <li><p><a class="reference external" href="http://cmictig.cs.ucl.ac.uk/wiki/index.php/NiftyReg">NiftyReg</a></p></li>
 </ul>
 </section>
@@ -180,7 +181,7 @@ for locating example parameter files included in the scikit-rt package.</p></li>
 </div>
 <p>The arguments to the <code class="docutils literal notranslate"><span class="pre">Registration</span></code> class initialisation are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">engine</span></code>: Name of registration engine (“elastix” or “niftyreg”).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">engine</span></code>: Name of registration engine (“elastix”, “matlab”, or “niftyreg”).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">engine_dir</span></code> Path to location of registration software.  Parameter
 not needed if environment setup for registration software performed
 prior to using scikit-rt.</p></li>

@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=be3f1746"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -123,6 +123,7 @@
 <li><p>Jacobian : Class representing a Jacobian determinant.</p></li>
 <li><p>RegistrationEngine : Base class for interfacing to a registration engine.</p></li>
 <li><p>Elastix: Class interfacing to elastix registration engine.</p></li>
+<li><p>Matlab: Class interfacing to MATLAB-based registration engine.</p></li>
 <li><p>NiftyReg: Class interfacing to NiftyReg registration engine.</p></li>
 </ul>
 <p>The following functions are defined:</p>
@@ -136,10 +137,14 @@ to skrt.registartion.engines dictionary.</p></li>
 default parameter files for specified engine.</p></li>
 <li><p>get_engine_cls() : Get registration-engine class, given engine name
 or software directory.</p></li>
+<li><p>get_engine_name : Get registration-engine name, given engine name
+or software directory.</p></li>
+<li><p>get_engines : Obtain list of names of available registration engines.</p></li>
 <li><p>get_image_transform_parameters() : Define Elastix registration-independent
 parameters for transforms to the space of a specified image.</p></li>
 <li><p>get_jacobian_colormap() : Return custom colour map, for highlighting
 features of Jacobian determinant.</p></li>
+<li><p>get_parameters : Obtain parameter dictionary from default parameter file.</p></li>
 <li><p>prepend_path() : Prepend path to environment variable.</p></li>
 <li><p>read_parameters() : Get dictionary of parameters from a registration
 parameter file.</p></li>
