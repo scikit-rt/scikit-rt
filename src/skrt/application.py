@@ -1,9 +1,16 @@
 '''
-Framework for running analysis over patient data.
+Classes and functions defining a framework for analysing patient datasets.
+
+The following classes are defined:
+
+- Algorithm: Base class for analysis algorithms.
+- Application: Class that represents an application as a sequence of algorithms,
+  and manages algorithm execution.
+- Status : Class that represents the exit status of an algorithm or application.
 
 This module provides for construction of an analysis application
 as a sequence of algorithms, each of which inherits from the
-Algorithm class.  This defines three methods relating to execution:
+Algorithm base class.  This defines three methods relating to execution:
 
 * **initialise()** - run before any patient data are read;
 * **execute()** - run once for each patient;
@@ -111,7 +118,8 @@ class Algorithm():
 
 class Application():
     '''
-    Represent application as sequence of algorithm, and manage execution.
+    Class that represents an application as a sequence of algorithms,
+    and manages algorithm execution.
 
     **Methods:**
 
@@ -251,7 +259,7 @@ class Application():
 
 class Status():
     '''
-    Represent an exit status.
+    Class that represents the exit status of an algorithm or application.
 
     **Methods:**
 
