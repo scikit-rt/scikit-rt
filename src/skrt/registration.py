@@ -9,6 +9,7 @@ The following classes are defined:
 - Jacobian : Class representing a Jacobian determinant.
 - RegistrationEngine : Base class for interfacing to a registration engine.
 - Elastix: Class interfacing to elastix registration engine.
+- Matlab: Class interfacing to MATLAB-based registration engine.
 - NiftyReg: Class interfacing to NiftyReg registration engine.
 
 The following functions are defined:
@@ -22,10 +23,14 @@ The following functions are defined:
   default parameter files for specified engine.
 - get_engine_cls() : Get registration-engine class, given engine name
   or software directory.
+- get_engine_name : Get registration-engine name, given engine name
+  or software directory.
+- get_engines : Obtain list of names of available registration engines.
 - get_image_transform_parameters() : Define Elastix registration-independent
   parameters for transforms to the space of a specified image.
 - get_jacobian_colormap() : Return custom colour map, for highlighting
   features of Jacobian determinant.
+- get_parameters : Obtain parameter dictionary from default parameter file.
 - prepend_path() : Prepend path to environment variable.
 - read_parameters() : Get dictionary of parameters from a registration
   parameter file.
