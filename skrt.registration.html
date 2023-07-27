@@ -115,7 +115,7 @@
   <section id="module-skrt.registration">
 <span id="skrt-registration-module"></span><h1>skrt.registration module<a class="headerlink" href="#module-skrt.registration" title="Permalink to this heading"></a></h1>
 <p>Classes and functions relating to image registration.</p>
-<p>The following classes are defined:</p>
+<p>This module defines the following classes:</p>
 <ul class="simple">
 <li><p>Registration : Class for handling image registration.</p></li>
 <li><p>DeformationField : Class representing a deformation field.</p></li>
@@ -126,7 +126,7 @@
 <li><p>Matlab: Class interfacing to MATLAB-based registration engine.</p></li>
 <li><p>NiftyReg: Class interfacing to NiftyReg registration engine.</p></li>
 </ul>
-<p>The following functions are defined:</p>
+<p>This module defines the following functions:</p>
 <ul class="simple">
 <li><p>add_engine() : Decorator for adding RegistrationEngine subclasses
 to skrt.registartion.engines dictionary.</p></li>
@@ -188,7 +188,7 @@ of the deformation field.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.DeformationField.convert_spacing">
 <span class="sig-name descname"><span class="pre">convert_spacing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spacing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_in_mm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField.convert_spacing" title="Permalink to this definition"></a></dt>
-<dd><p>Convert grid spacing in mm or voxels to list containing grid spacing 
+<dd><p>Convert grid spacing in mm or voxels to list containing grid spacing
 in voxels in each dimension.</p>
 </dd></dl>
 
@@ -216,7 +216,7 @@ in voxels in each dimension.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.DeformationField.load">
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.DeformationField.load" title="Permalink to this definition"></a></dt>
-<dd><p>Load deformation-field data from source. If already loaded and &lt;force&gt; 
+<dd><p>Load deformation-field data from source. If already loaded and &lt;force&gt;
 is False, nothing will happen.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -429,7 +429,7 @@ infile: str/pathlib.Path</p>
 <dd><p>Set path(s)s to registration-engine executable(s).</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
+<dt>path<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -491,12 +491,6 @@ attribute values at instantiation.</p>
 selected attribute values.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Grid.view">
-<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Grid.view" title="Permalink to this definition"></a></dt>
-<dd><p>View the Grid.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -511,12 +505,6 @@ attribute values at instantiation.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Perform ImageOverlay initialisation, then overwrite
 selected attribute values.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.registration.Jacobian.view">
-<span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Jacobian.view" title="Permalink to this definition"></a></dt>
-<dd><p>View the Jacobian determinant.</p>
 </dd></dl>
 
 </dd></dl>
@@ -985,7 +973,7 @@ infile: str/pathlib.Path</p>
 <dd><p>Set path(s)s to registration-engine executable(s).</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
+<dt>path<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1224,7 +1212,7 @@ then write list of registration steps to a file.</p>
 <dd><p>Adjust parameters in a parameter or transform file for a given step.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>step<span class="classifier">str/int</span></dt><dd><p>Name or number of step for which the parameter file should be 
+<dt>step<span class="classifier">str/int</span></dt><dd><p>Name or number of step for which the parameter file should be
 adjusted.</p>
 </dd>
 <dt>params<span class="classifier">dict</span></dt><dd><p>Dict of parameter names and desired parameter values. Any parameters
@@ -1464,8 +1452,8 @@ a parameter file and/or a transform file assigned.</p>
 <dt class="sig sig-object py" id="skrt.registration.Registration.get_step_number">
 <span class="sig-name descname"><span class="pre">get_step_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.get_step_number" title="Permalink to this definition"></a></dt>
 <dd><p>Convert &lt;step&gt; to an int containing the number of a given step.
-If &lt;step&gt; is an int, check it corresponds to a step number, ensure it 
-is positive, and return it. Otherwise if it’s a string, return the 
+If &lt;step&gt; is an int, check it corresponds to a step number, ensure it
+is positive, and return it. Otherwise if it’s a string, return the
 index of that step name in self.steps.</p>
 </dd></dl>
 
@@ -1534,7 +1522,7 @@ output directory for that step.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.is_registered">
 <span class="sig-name descname"><span class="pre">is_registered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.is_registered" title="Permalink to this definition"></a></dt>
-<dd><p>Check whether a registration step has already been performed (i.e. 
+<dd><p>Check whether a registration step has already been performed (i.e.
 has a valid output transform file).</p>
 </dd></dl>
 
@@ -1589,7 +1577,7 @@ will be produced according to the new translation parameters.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.Registration.print_log">
 <span class="sig-name descname"><span class="pre">print_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.Registration.print_log" title="Permalink to this definition"></a></dt>
-<dd><p>Print registration output log for a given step (by default, the 
+<dd><p>Print registration output log for a given step (by default, the
 last step).</p>
 </dd></dl>
 
@@ -2210,11 +2198,11 @@ environment based on &lt;path&gt; in all cases.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.registration.RegistrationEngine.set_exe_paths">
-<span class="sig-name descname"><span class="pre">set_exe_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.set_exe_paths" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_exe_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.RegistrationEngine.set_exe_paths" title="Permalink to this definition"></a></dt>
 <dd><p>Set path(s)s to registration-engine executable(s).</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>path<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
+<dt>path<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to directory containing registration-engine executable(s).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2398,7 +2386,7 @@ to the space of a specified image.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.registration.get_jacobian_colormap">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_jacobian_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_per_band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{0:</span> <span class="pre">1,</span> <span class="pre">1:</span> <span class="pre">0.5,</span> <span class="pre">2:</span> <span class="pre">1}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_jacobian_colormap" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">get_jacobian_colormap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_per_band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.get_jacobian_colormap" title="Permalink to this definition"></a></dt>
 <dd><p>Return custom colour map, for highlighting features of Jacobian determinant.</p>
 <p>Following image registration, the Jacobian determinant of
 the registration transformation reflects the characteristics of the
@@ -2431,9 +2419,9 @@ from 0 at x == 1 to 1 at saturation value;</p></li>
 <dl class="simple">
 <dt>col_per_band<span class="classifier">int, default=1000</span></dt><dd><p>Number of colours (anchor points) per band in the colour map.</p>
 </dd>
-<dt>sat_values<span class="classifier">dict, default={0: 1, 1: 0.5, 2: 1}</span></dt><dd><p>Dictionary of saturation values for the colour bands.  The
+<dt>sat_values<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of saturation values for the colour bands.  The
 saturation value is the (unsigned) distance along the x scale
-from the band threshold.</p>
+from the band threshold.  If None, use dictionary {0: 1, 1: 0.5, 2: 1}.</p>
 </dd>
 </dl>
 </dd></dl>
