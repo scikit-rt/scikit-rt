@@ -1,7 +1,6 @@
 """Classes for creating, and iterating over, multi-patient datasets."""
 
 import glob
-import os
 from pathlib import Path
 
 from skrt.core import Data
@@ -12,6 +11,7 @@ class PatientDataset(Data):
     """
     Class for storing, and iterating over, paths to patient directories.
     """
+
     def __init__(self, paths=None, **kwargs):
         """
         Create container for paths.
@@ -25,13 +25,16 @@ class PatientDataset(Data):
             Dictionary of keyword arguments to be passed to Patient
             constructor, called when iterating over paths.
         """
+        # Perform base-class initialisation.
+        super().__init__()
+
         # Store paths.
-        if isinstance(paths, str) or isinstance(paths, Path):
+        if isinstance(paths, (Path, str)):
             paths = [paths]
         self.paths = []
         if paths:
-            for p in paths:
-                self.paths.extend(glob.glob(str(p)))
+            for path in paths:
+                self.paths.extend(glob.glob(str(path)))
 
         # Store keyword arguments for Patient constructor.
         self.kwargs = kwargs
