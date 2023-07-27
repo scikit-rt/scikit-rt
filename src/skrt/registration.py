@@ -1,7 +1,7 @@
 """
 Classes and functions relating to image registration.
 
-The following classes are defined:
+This module defines the following classes:
 
 - Registration : Class for handling image registration.
 - DeformationField : Class representing a deformation field.
@@ -12,7 +12,7 @@ The following classes are defined:
 - Matlab: Class interfacing to MATLAB-based registration engine.
 - NiftyReg: Class interfacing to NiftyReg registration engine.
 
-The following functions are defined:
+This module defines the following functions:
 
 - add_engine() : Decorator for adding RegistrationEngine subclasses
   to skrt.registartion.engines dictionary.
@@ -41,24 +41,23 @@ The following functions are defined:
 - write_parameters() : Write dictionary of parameters to a registration
   parameter file.
 """
-import matplotlib.pyplot as plt
-import matplotlib.cm
-import matplotlib.colors
-import numbers
-import numpy as np
 import os
-import platform
 from pathlib import Path
-from pkg_resources import resource_filename
+import platform
 import shutil
 import subprocess
 import warnings
 
+import matplotlib.cm
+import matplotlib.colors
+import matplotlib.pyplot as plt
+import numpy as np
+from pkg_resources import resource_filename
+
+from skrt.core import fullpath, get_logger, Data, to_list, Defaults, PathData
+from skrt.dose import ImageOverlay, Dose
 import skrt.image
 from skrt.structures import ROI, StructureSet
-from skrt.core import (fullpath, get_logger, Data, is_list, to_list,
-        Defaults, PathData)
-from skrt.dose import ImageOverlay, Dose
 from skrt.simulation import make_grid
 
 # Set default registration engine.
@@ -67,6 +66,8 @@ Defaults().matlab_app = True
 Defaults().matlab_runtime = None
 
 engines = {}
+
+
 def add_engine(cls):
     """
     Decorator for adding skrt.registration.RegistrationEngine subclasses
@@ -82,11 +83,24 @@ class Registration(Data):
     """
 
     def __init__(
-        self, path, fixed=None, moving=None, fixed_mask=None,
-        moving_mask=None, pfiles=None, auto=False, overwrite=False,
-        tfiles=None, initial_alignment=None, initial_transform_name=None,
-        capture_output=False, log_level=None, keep_tmp_dir=False,
-        engine=None, engine_dir=None):
+        self,
+        path,
+        fixed=None,
+        moving=None,
+        fixed_mask=None,
+        moving_mask=None,
+        pfiles=None,
+        auto=False,
+        overwrite=False,
+        tfiles=None,
+        initial_alignment=None,
+        initial_transform_name=None,
+        capture_output=False,
+        log_level=None,
+        keep_tmp_dir=False,
+        engine=None,
+        engine_dir=None,
+    ):
         """
         Load data for an image registration, and run the registration if
         auto_seg=True.
@@ -214,35 +228,43 @@ class Registration(Data):
         engine_dir: str/pathlib.Path, default=None
             Path to directory containing software for registration engine.
         """
+        # Perform base-class initialisation.
+        super().__init__()
 
         # Set up event logging, output capture, and handling of self._tmp_dir
-        self.log_level = \
-                Defaults().log_level if log_level is None else log_level
+        self.log_level = (
+            Defaults().log_level if log_level is None else log_level
+        )
         self.logger = get_logger(
-                name=type(self).__name__, log_level=self.log_level)
+            name=type(self).__name__, log_level=self.log_level
+        )
         self.capture_output = capture_output
         self.keep_tmp_dir = keep_tmp_dir
 
         # Set registration engine.
         engine_cls = get_engine_cls(engine, engine_dir)
 
-        if not (isinstance(engine_cls, type)
-                and issubclass(engine_cls, RegistrationEngine)):
+        if not (
+            isinstance(engine_cls, type)
+            and issubclass(engine_cls, RegistrationEngine)
+        ):
             raise RuntimeError(
                 f"Unable to determine RegistrationClass for engine: '{engine}',"
                 f"engine_dir: '{engine_dir}';"
-                "\nknown engines are: {sorted(engines)}")
+                "\nknown engines are: {sorted(engines)}"
+            )
 
         self.engine = engine_cls(path=engine_dir)
 
         # Set up directory
-        #path = fullpath(path).replace(" ", "_")
+        # path = fullpath(path).replace(" ", "_")
         self.path = fullpath(path)
         if not os.path.exists(path):
             os.makedirs(path)
         elif overwrite:
             shutil.rmtree(path)
             os.mkdir(path)
+        self._tmp_dir = None
 
         # Set up fixed and moving images and optional masks
         self.fixed_path = os.path.join(self.path, "fixed.nii.gz")
@@ -251,6 +273,9 @@ class Registration(Data):
         self.moving_mask_path = os.path.join(self.path, "moving_mask.nii.gz")
         self.fixed_source = fixed
         self.moving_source = moving
+        self.fixed_image = None
+        self.moving_image = None
+        self.moving_grid = None
         im_fixed = None
         im_moving = None
         if fixed is not None:
@@ -266,13 +291,14 @@ class Registration(Data):
 
         # Set initial transform corresponding to initial alignment.
         if im_fixed and im_moving and initial_alignment:
-
             initial_translation = im_fixed.get_alignment_translation(
-                    im_moving, initial_alignment)
+                im_moving, initial_alignment
+            )
 
             if initial_translation:
-                initial_transform_name = (initial_transform_name
-                        or "initial_alignment")
+                initial_transform_name = (
+                    initial_transform_name or "initial_alignment"
+                )
                 tfiles = tfiles or {}
                 tfiles = {initial_transform_name: initial_translation, **tfiles}
 
@@ -285,7 +311,7 @@ class Registration(Data):
         self.transformed_images = {}
         self.jacobians = {}
         self.deformation_fields = {}
-        self.file_types = {'t': tfiles, 'p': pfiles}
+        self.file_types = {"t": tfiles, "p": pfiles}
         for ftype, files in self.file_types.items():
             if isinstance(files, (str, Path)):
                 files = [str(files)]
@@ -340,8 +366,13 @@ class Registration(Data):
             this image even if it already exists.
         """
 
-        categories = ["fixed", "moving", "fixed_mask", "moving_mask",
-                "moving_grid"]
+        categories = [
+            "fixed",
+            "moving",
+            "fixed_mask",
+            "moving_mask",
+            "moving_grid",
+        ]
         if category not in categories:
             raise RuntimeError(
                 f"Unrecognised image category {category}; "
@@ -352,8 +383,8 @@ class Registration(Data):
             im = skrt.image.Image(im)
         path = getattr(self, f"{category}_path")
         if not os.path.exists(path) or force:
-            skrt.image.Image.write(im, path, verbose=(self.logger.level < 20))
-        if 'grid' in category or 'mask' in category:
+            skrt.image.Image.write(im, path, verbose=self.logger.level < 20)
+        if "grid" in category or "mask" in category:
             setattr(self, f"{category}", skrt.image.Image(path))
         else:
             setattr(self, f"{category}_image", skrt.image.Image(path))
@@ -363,7 +394,6 @@ class Registration(Data):
     def set_fixed_image(self, im):
         """Assign a fixed image."""
         return self.set_image(im, "fixed")
-        
 
     def set_fixed_mask(self, im):
         """Assign a fixed-image mask."""
@@ -389,9 +419,12 @@ class Registration(Data):
             path = getattr(self, f"{category}_path")
             if not os.path.exists(path):
                 self.logger.warning(
-                    f"No {category} image found at {path}! "
-                    f"Make sure you run Registration.set_{category}_image"
-                    " before running a registration."
+                    "No %s image found at %s! "
+                    "Make sure you run Registration.set_%s_image"
+                    " before running a registration.",
+                    category,
+                    path,
+                    category,
                 )
                 return
             self.set_image(path, category, force=False)
@@ -428,10 +461,9 @@ class Registration(Data):
             file ('p') or a transform file ('t').
         """
         # Check that file type is recognised.
-        if not ftype.lower() in self.file_types:
-            self.logger.warning(f"File ignored: '{file}'")
-            self.logger.warning(f"File type not recognised: '{ftype}'")
-            self.logger.warning(f"\nValid file types are: '{self.file_types}'")
+        if ftype.lower() not in self.file_types:
+            self.logger.warning("File type not recognised: '%s'", ftype)
+            self.logger.warning("\nValid file types are: '%s'", self.file_types)
             return
         ftype = ftype.lower()
 
@@ -439,28 +471,34 @@ class Registration(Data):
         # if it has exactly three elements and is for a transform file.
         if isinstance(file, (tuple, list)):
             if len(file) != 3:
-                self.logger.warning(f"Input for file: '{file}'")
-                self.logger.warning("Translation passed as list or tuple "
-                        "must contain exactly 3 elements")
+                self.logger.warning("Input for file: '%s'", file)
+                self.logger.warning(
+                    "Translation passed as list or tuple "
+                    "must contain exactly 3 elements"
+                )
                 return
-            if ftype != 't':
-                self.logger.warning(f"Translation may only be passed as list "
-                        "or tuple for transform")
+            if ftype != "t":
+                self.logger.warning(
+                    "Translation may only be passed as list "
+                    "or tuple for transform"
+                )
                 return
 
         # If name is null, infer from file name.
         if not name:
             if isinstance(file, (dict, tuple, list)):
                 self.logger.warning(
-                        "If passing parameters from dict, tuple or list, "
-                        "<name> must be set.")
+                    "If passing parameters from dict, tuple or list, "
+                    "<name> must be set."
+                )
                 return
             name = Path(file).stem
 
         # Create dictionary for translation from list or tuple
         if isinstance(file, (tuple, list)):
             file = self.engine.define_translation(
-                    file, getattr(self, "fixed_image", None))
+                file, getattr(self, "fixed_image", None)
+            )
 
         # Check whether name already exists and add counter if so
         i = 1
@@ -483,8 +521,9 @@ class Registration(Data):
             path = f"{outdir}/InputParameters.txt"
             self.pfiles[name] = path
         elif "t" == ftype.lower():
-            path = (self.get_tfile(outdir)
-                    or f"{outdir}/TransformParameters.0.txt")
+            path = (
+                self.get_tfile(outdir) or f"{outdir}/TransformParameters.0.txt"
+            )
             self.tfiles[name] = path
 
         # Create new file, or copy existing file.
@@ -492,7 +531,7 @@ class Registration(Data):
             Path(path).touch()
             self.adjust_file(name, file, ftype)
         elif isinstance(file, list):
-            with open(path, "w") as out_file:
+            with open(path, "w", encoding="utf-8") as out_file:
                 out_file.write("\n".join(file))
         else:
             shutil.copy(file, path)
@@ -504,7 +543,7 @@ class Registration(Data):
         # Rewrite text file containing list of steps
         self.write_steps()
 
-    def add_files(self, files, ftype='p'):
+    def add_files(self, files, ftype="p"):
         """Add multiple files of type <ftype> to the list of registration steps,
         then write list of registration steps to a file.
 
@@ -545,9 +584,10 @@ class Registration(Data):
             filename += ".txt"
         if filename not in files:
             self.logger.warning(
-                    f"Default file {name} not found. Available files:")
-            self.list_default_pfiles(self)
-            return
+                "Default file {name} not found. Available files:"
+            )
+            self.list_default_pfiles()
+            return None
         full_files = self.engine.get_default_pfiles(False)
         pfile = full_files[files.index(filename)]
         return self.engine.read_parameters(pfile)
@@ -574,8 +614,9 @@ class Registration(Data):
             filename += ".txt"
         if filename not in files:
             self.logger.warning(
-                    f"Default file {name} not found. Available files:")
-            self.list_default_pfiles(self)
+                "Default file %s not found. Available files:", filename
+            )
+            self.list_default_pfiles()
             return
 
         full_files = self.engine.get_default_pfiles(False)
@@ -586,7 +627,7 @@ class Registration(Data):
         """Write list of registration steps to a file at
         self.path/registration_steps.txt."""
 
-        with open(self.steps_file, "w") as file:
+        with open(self.steps_file, "w", encoding="utf-8") as file:
             for step in self.steps:
                 file.write(step + "\n")
 
@@ -599,7 +640,7 @@ class Registration(Data):
             return
 
         # Load list of step names
-        with open(self.steps_file) as file:
+        with open(self.steps_file, encoding="utf-8") as file:
             steps = [line.strip() for line in file.readlines()]
 
         # Check each step name has an associated output directory and
@@ -613,9 +654,13 @@ class Registration(Data):
             outdir = os.path.join(self.path, step)
             if not os.path.exists(outdir):
                 self.logger.warning(
-                    f"No output directory ({self.path}/{step}) "
-                    f"found for registration step {step} listed in "
-                    f"{self.steps_file}. This step will be ignored."
+                    "No output directory (%s/%s) "
+                    "found for registration step %s listed in "
+                    "%s. This step will be ignored.",
+                    self.path,
+                    step,
+                    step,
+                    self.steps_file,
                 )
                 continue
 
@@ -623,10 +668,14 @@ class Registration(Data):
             tfile = self.get_tfile(outdir)
             if not os.path.exists(pfile) and not tfile:
                 self.logger.warning(
-                    f"No parameter file ({pfile}) "
-                    f"and no transform file ({outdir}/TransformParameters*) "
-                    f"found for registration step {step} listed in "
-                    f"{self.steps_file}. This step will be ignored."
+                    "No parameter file (%s) "
+                    "and no transform file (%s/TransformParameters*) "
+                    "found for registration step %s listed in "
+                    "%s. This step will be ignored.",
+                    pfile,
+                    outdir,
+                    step,
+                    self.steps_file,
                 )
                 continue
 
@@ -649,17 +698,19 @@ class Registration(Data):
             jac_path = os.path.join(outdir, "spatialJacobian.nii")
             if os.path.exists(jac_path):
                 self.jacobians[step] = Jacobian(
-                    jac_path, title="Jacobian determinant",
-                    image=self.transformed_images[step]
+                    jac_path,
+                    title="Jacobian determinant",
+                    image=self.transformed_images[step],
                 )
 
             # Check for deformation field
             df_path = os.path.join(outdir, "deformationField.nii")
             if os.path.exists(df_path):
                 self.deformation_fields[step] = DeformationField(
-                    path=df_path, signs=self.engine.def_signs,
+                    path=df_path,
+                    signs=self.engine.def_signs,
                     title="Deformation field",
-                    image=self.transformed_images[step]
+                    image=self.transformed_images[step],
                 )
 
     def clear(self):
@@ -695,9 +746,11 @@ class Registration(Data):
             prev_step = self.steps[i - 1]
             if prev_step not in self.tfiles:
                 self.logger.warning(
-                    f"Previous step {prev_step} has not yet "
-                    f"been performed! Input transform file for step {step}"
-                    " will not be used."
+                    "Previous step %s has not yet "
+                    "been performed! Input transform file for step %s"
+                    " will not be used.",
+                    prev_step,
+                    step,
                 )
             else:
                 tfile = self.tfiles[prev_step]
@@ -706,16 +759,22 @@ class Registration(Data):
 
         # Construct command
         return self.engine.get_registration_cmd(
-                fixed_path=self.fixed_path.replace("\\", "/"),
-                moving_path=self.moving_path.replace("\\", "/"),
-                fixed_mask_path=self.fixed_mask_path.replace("\\", "/"),
-                moving_mask_path=self.moving_mask_path.replace("\\", "/"),
-                pfile=self.pfiles[step].replace("\\", "/"),
-                outdir=self.outdirs[step].replace("\\", "/"),
-                tfile=tfile)
+            fixed_path=self.fixed_path.replace("\\", "/"),
+            moving_path=self.moving_path.replace("\\", "/"),
+            fixed_mask_path=self.fixed_mask_path.replace("\\", "/"),
+            moving_mask_path=self.moving_mask_path.replace("\\", "/"),
+            pfile=self.pfiles[step].replace("\\", "/"),
+            outdir=self.outdirs[step].replace("\\", "/"),
+            tfile=tfile,
+        )
 
-    def register(self, step=None, force=False, use_previous_tfile=True,
-            ensure_transformed_moving=True):
+    def register(
+        self,
+        step=None,
+        force=False,
+        use_previous_tfile=True,
+        ensure_transformed_moving=True,
+    ):
         """Run a registration. By default the registration will be run for
         all steps in self.steps, but can optionally be run for just one step
         by setting <step> to a step name or number. Note that if
@@ -755,17 +814,25 @@ class Registration(Data):
 
         # Check all steps exist and convert numbers to names
         steps = []
-        for step in steps_input:
-            steps.append(self.get_step_name(step))
+        for next_step in steps_input:
+            steps.append(self.get_step_name(next_step))
 
         # Run registration for each step
-        for step in steps:
-            self.register_step(step, force=force,
-                    use_previous_tfile=use_previous_tfile,
-                    ensure_transformed_moving=ensure_transformed_moving)
+        for next_step in steps:
+            self.register_step(
+                next_step,
+                force=force,
+                use_previous_tfile=use_previous_tfile,
+                ensure_transformed_moving=ensure_transformed_moving,
+            )
 
-    def register_step(self, step, force=False, use_previous_tfile=True,
-            ensure_transformed_moving=True):
+    def register_step(
+        self,
+        step,
+        force=False,
+        use_previous_tfile=True,
+        ensure_transformed_moving=True,
+    ):
         """Run a single registration step, if it has a parameter file
         assigned. Note that if use_previous_tfile=True,
         any prior steps that have not yet been run will be run.
@@ -803,7 +870,7 @@ class Registration(Data):
             if ensure_transformed_moving:
                 self.transform_moving_image(step)
             return
-        
+
         # Obtain step index and name.
         i = self.get_step_number(step)
         step = self.get_step_name(step)
@@ -819,54 +886,52 @@ class Registration(Data):
 
         # Run
         cmd = self.get_registration_cmd(step, use_previous_tfile)
-        self.logger.debug(f"Step {step} - running command:\n {' '.join(cmd)}")
+        self.logger.debug(
+            "Step %s - running command:\n %s", step, " ".join(cmd)
+        )
         code = subprocess.run(
-                cmd, capture_output=self.capture_output).returncode
+            cmd, capture_output=self.capture_output, check=False
+        ).returncode
 
         # Check whether registration succeeded
         if code:
-            logfile = os.path.join(self.outdirs[step],
-                                   f"{type(self.engine).__name__.lower()}.log")
-            """
-            self.logger.error(
-                f"Registration step {step} failed! See "
-                f"{logfile} or run Registration.print_log({step}) for "
-                " more info."
+            logfile = os.path.join(
+                self.outdirs[step], f"{type(self.engine).__name__.lower()}.log"
             )
-            """
             raise RuntimeError(
                 f"Registration step {step} failed! See "
                 f"{logfile} or run Registration.print_log({step}) for "
                 " more info."
-                    )
-        else:
-            self.tfiles[step] = self.get_tfile(self.outdirs[step])
-            result_path = os.path.join(self.outdirs[step], "result.0.nii")
-            im = skrt.image.Image(result_path, title="Transformed moving")
-            if np.isnan(np.sum(im.get_data())):
-                im.data = np.nan_to_num(im.get_data())
-                im.write(result_path, verbose=(self.logger.level < 20))
-            self.transformed_images[step] = im
+            )
+
+        self.tfiles[step] = self.get_tfile(self.outdirs[step])
+        result_path = os.path.join(self.outdirs[step], "result.0.nii")
+        im = skrt.image.Image(result_path, title="Transformed moving")
+        if np.isnan(np.sum(im.get_data())):
+            im.data = np.nan_to_num(im.get_data())
+            im.write(result_path, verbose=self.logger.level < 20)
+        self.transformed_images[step] = im
 
     def is_registered(self, step):
-        """Check whether a registration step has already been performed (i.e. 
+        """Check whether a registration step has already been performed (i.e.
         has a valid output transform file)."""
 
         step = self.get_step_name(step)
         return step in self.tfiles and os.path.exists(self.tfiles[step])
 
     def print_log(self, step=-1):
-        """Print registration output log for a given step (by default, the 
+        """Print registration output log for a given step (by default, the
         last step)."""
 
         step = self.get_step_name(step)
-        logfile = os.path.join(self.outdirs[step],
-                               f"{type(self.engine).__name__.lower()}.log")
+        logfile = os.path.join(
+            self.outdirs[step], f"{type(self.engine).__name__.lower()}.log"
+        )
         if not os.path.exists(logfile):
             print(f"No log found - try running registration step {step}.")
             return
 
-        with open(logfile) as file:
+        with open(logfile, encoding="utf-8") as file:
             for line in file.readlines():
                 print(line)
 
@@ -887,18 +952,20 @@ class Registration(Data):
 
         if issubclass(type(to_transform), skrt.image.Image):
             return self.transform_image(to_transform, **kwargs)
-        elif isinstance(to_transform, str):
+        if isinstance(to_transform, str):
             return self.transform_data(to_transform, **kwargs)
-        elif isinstance(to_transform, ROI):
+        if isinstance(to_transform, ROI):
             return self.transform_roi(to_transform, **kwargs)
-        elif isinstance(to_transform, StructureSet):
+        if isinstance(to_transform, StructureSet):
             return self.transform_structure_set(to_transform, **kwargs)
-        else:
-            self.logger.warning(
-                    f"Unrecognised transform input type {type(to_transform)}")
+        self.logger.warning(
+            "Unrecognised transform input type %s", type(to_transform)
+        )
+        return None
 
-    def transform_image(self, im, step=-1, outfile=None, params=None,
-                        rois=None):
+    def transform_image(
+        self, im, step=-1, outfile=None, params=None, rois=None
+    ):
         """
         Transform an image using the output transform from a given
         registration step (by default, the final step). If the registration
@@ -940,12 +1007,12 @@ class Registration(Data):
             im_path = im.path
         else:
             im_path = os.path.join(self._tmp_dir, "image.nii.gz")
-            im.write(im_path, verbose=(self.logger.level < 20))
+            im.write(im_path, verbose=self.logger.level < 20)
 
         # Transform the nifti file
         result_path = self.transform_data(im_path, step, params)
         if result_path is None:
-            return
+            return None
 
         # Copy to output dir if outfile is set
         if outfile is not None:
@@ -957,7 +1024,7 @@ class Registration(Data):
                 df_path2 = Path(outfile).parent / df_path1.name
                 if not df_path2.exists():
                     shutil.copy(df_path1, df_path2)
-            return
+            return None
 
         # Otherwise, return Image object
         if is_dose:
@@ -1000,40 +1067,54 @@ class Registration(Data):
         tfile = self.tfiles[step]
 
         # Define parameters specific to data type.
-        if '.txt' == os.path.splitext(path)[1]:
-            outfile = 'outputpoints.txt' 
+        if ".txt" == os.path.splitext(path)[1]:
+            outfile = "outputpoints.txt"
         else:
-            outfile = 'result.nii'
+            outfile = "result.nii"
 
         # Perform transformation
         cmd = self.engine.get_transform_cmd(
-                fixed_path=self.fixed_path.replace("\\", "/"),
-                moving_path=path, outdir=self._tmp_dir,
-                tfile=tfile, params=params)
+            fixed_path=self.fixed_path.replace("\\", "/"),
+            moving_path=path,
+            outdir=self._tmp_dir,
+            tfile=tfile,
+            params=params,
+        )
 
-        self.logger.debug(f'Step {step} - running command:\n {" ".join(cmd)}')
+        self.logger.debug(
+            "Step %s - running command:\n %s", step, " ".join(cmd)
+        )
         code = subprocess.run(
-                cmd, capture_output=self.capture_output).returncode
+            cmd, capture_output=self.capture_output, check=False
+        ).returncode
 
         # If command failed, move log out from temporary dir
         if code:
-            logfile = os.path.join(
-                    self.path, self.engine.get_transform_log())
+            logfile = os.path.join(self.path, self.engine.get_transform_log())
             if os.path.exists(logfile):
                 os.remove(logfile)
-            shutil.move(os.path.join(
-                self._tmp_dir, self.engine.get_transform_log()), self.path)
-            self.logger.warning(
-                f"Image transformation failed! See "
-                f"{logfile} for more info."
+            shutil.move(
+                os.path.join(self._tmp_dir, self.engine.get_transform_log()),
+                self.path,
             )
-            return
+            self.logger.warning(
+                "Image transformation failed! See %s for more info.", logfile
+            )
+            return None
 
         # Return path to result
         return os.path.join(self._tmp_dir, outfile)
 
-    def transform_roi(self, roi, step=-1, outfile=None, params=None,
-            transform_points=False, require_contours=False, recurse=True):
+    def transform_roi(
+        self,
+        roi,
+        step=-1,
+        outfile=None,
+        params=None,
+        transform_points=False,
+        require_contours=False,
+        recurse=True,
+    ):
         """Transform a single ROI using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -1086,21 +1167,26 @@ class Registration(Data):
             if False, only apply transform relating to the current step.
         """
         if transform_points and not self.engine.transform_points_implemented:
-            raise RuntimeError("Transform of points not implemented "
-                               f"for class {type(self.engine)}")
+            raise RuntimeError(
+                "Transform of points not implemented "
+                f"for class {type(self.engine)}"
+            )
 
         # Save ROI temporarily as nifti if needed
         if not isinstance(roi, ROI):
             roi = ROI(roi)
         roi.create_mask()
         self.make_tmp_dir()
-        if (roi.source_type == "mask" and roi.mask.source_type == "nifti"
-                and not transform_points):
+        if (
+            roi.source_type == "mask"
+            and roi.mask.source_type == "nifti"
+            and not transform_points
+        ):
             roi_path = roi.mask.path
         else:
-            ext = 'txt' if transform_points else 'nii.gz'
+            ext = "txt" if transform_points else "nii.gz"
             roi_path = os.path.join(self._tmp_dir, f"{roi.name}.{ext}")
-            roi.write(roi_path, verbose=(self.logger.level < 20))
+            roi.write(roi_path, verbose=self.logger.level < 20)
 
         # Set default parameters
         default_params = self.engine.get_roi_params()
@@ -1116,20 +1202,21 @@ class Registration(Data):
             elif isinstance(self.moving_source, str):
                 image = skrt.image.Image(self.moving_source)
             else:
-                image = getattr(self, 'moving_image', None)
+                image = getattr(self, "moving_image", None)
         else:
             image = self.get_transformed_image(step)
 
         # Transform the nifti file or point cloud
         result_path = self.transform_data(
-                roi_path, step, default_params, recurse=recurse)
+            roi_path, step, default_params, recurse=recurse
+        )
         if result_path is None or not os.path.exists(str(result_path)):
-            return
+            return None
 
         # Create ROI object, and check that it has contours defined.
         roi = ROI(result_path, name=roi.name, color=roi.color, image=image)
         if require_contours and not roi.get_contours():
-            return
+            return None
 
         # Rewrite roi if outfile is set.
         if isinstance(outfile, (str, Path)):
@@ -1140,9 +1227,13 @@ class Registration(Data):
             else:
                 outdir = str(outfile.parent)
                 outname = outfile.name
-            roi.write(outname, outdir, verbose=(self.logger.level < 20))
-            roi = ROI(Path(outdir) / outname, name=roi.name,
-                      color=roi.color, image=image)
+            roi.write(outname, outdir, verbose=self.logger.level < 20)
+            roi = ROI(
+                Path(outdir) / outname,
+                name=roi.name,
+                color=roi.color,
+                image=image,
+            )
 
         # Delete the temporary directory.
         self.rm_tmp_dir()
@@ -1151,8 +1242,14 @@ class Registration(Data):
         return roi
 
     def transform_structure_set(
-        self, structure_set, step=-1, outfile=None, params=None,
-        transform_points=False, recurse=True):
+        self,
+        structure_set,
+        step=-1,
+        outfile=None,
+        params=None,
+        transform_points=False,
+        recurse=True,
+    ):
         """Transform a structure set using the output transform from a given
         registration step (by default, the final step). If the registration
         step has not yet been performed, the step and all preceding steps
@@ -1201,8 +1298,13 @@ class Registration(Data):
             structure_set = StructureSet(structure_set)
         final = StructureSet()
         for roi in structure_set:
-            transformed_roi = self.transform_roi(roi, step, params=params,
-                    transform_points=transform_points, recurse=recurse)
+            transformed_roi = self.transform_roi(
+                roi,
+                step,
+                params=params,
+                transform_points=transform_points,
+                recurse=recurse,
+            )
             if transformed_roi is not None:
                 final.add_roi(transformed_roi)
 
@@ -1211,13 +1313,13 @@ class Registration(Data):
             outfile = Path(outfile)
             if not outfile.suffix:
                 outdir = str(outfile)
-                outfile = None,
+                outfile = (None,)
             else:
                 outdir = str(outfile.parent)
                 outfile = outfile.name
-            
-            final.write(outfile, outdir, verbose=(self.logger.level < 20))
-            return
+
+            final.write(outfile, outdir, verbose=self.logger.level < 20)
+            return None
 
         # Otherwise, return structure set
         final.name = "Transformed"
@@ -1227,7 +1329,7 @@ class Registration(Data):
             elif isinstance(self.moving_source, str):
                 image = skrt.image.Image(self.moving_source)
             else:
-                image = getattr(self, 'moving_image', None)
+                image = getattr(self, "moving_image", None)
         else:
             image = self.get_transformed_image(step)
         if image is not None:
@@ -1242,7 +1344,8 @@ class Registration(Data):
         outfile = os.path.join(self.outdirs[step], "result.0.nii")
         self.transform(self.moving_image, step=step, outfile=outfile)
         self.transformed_images[step] = skrt.image.Image(
-            outfile, title="Transformed moving")
+            outfile, title="Transformed moving"
+        )
 
     def get_transformed_image(self, step=-1, force=False):
         """Get the transformed moving image for a given step, by default the
@@ -1254,7 +1357,7 @@ class Registration(Data):
         step = self.get_step_name(step)
         was_registered = self.ensure_registered(step)
 
-        # If forcing and registration had already been done, re-transform the 
+        # If forcing and registration had already been done, re-transform the
         # moving image (otherwise, moving image will have just been recreated
         # anyway by running registration)
         if (force or step not in self.transformed_images) and was_registered:
@@ -1263,8 +1366,7 @@ class Registration(Data):
         # Return clone of the transformed image object
         if step in self.transformed_images:
             return self.transformed_images[step].clone()
-        else:
-            return None
+        return None
 
     def ensure_registered(self, step):
         """If a step has not already been registered, perform registration
@@ -1279,7 +1381,7 @@ class Registration(Data):
     def make_tmp_dir(self):
         """Create temporary directory."""
 
-        #self._tmp_dir = os.path.join(self.path, ".tmp").replace(" ", "_")
+        # self._tmp_dir = os.path.join(self.path, ".tmp").replace(" ", "_")
         self._tmp_dir = os.path.join(self.path, ".tmp")
         if not os.path.exists(self._tmp_dir):
             os.mkdir(self._tmp_dir)
@@ -1287,7 +1389,7 @@ class Registration(Data):
     def rm_tmp_dir(self):
         """Delete temporary directory and its contents."""
 
-        if not hasattr(self, "_tmp_dir"):
+        if self._tmp_dir is None:
             return
         if os.path.exists(self._tmp_dir):
             if not self.keep_tmp_dir:
@@ -1295,15 +1397,15 @@ class Registration(Data):
 
     def adjust_pfile(self, step, params, reset=True):
         """Alias for adjust_file() with ftype='p'."""
-        self.adjust_file(step, params, ftype='p', reset=reset)
+        self.adjust_file(step, params, ftype="p", reset=reset)
 
-    def adjust_file(self, step, params, ftype='p', reset=True):
-        """Adjust parameters in a parameter or transform file for a given step. 
+    def adjust_file(self, step, params, ftype="p", reset=True):
+        """Adjust parameters in a parameter or transform file for a given step.
 
         **Parameters:**
 
         step : str/int
-            Name or number of step for which the parameter file should be 
+            Name or number of step for which the parameter file should be
             adjusted.
 
         params : dict
@@ -1323,10 +1425,10 @@ class Registration(Data):
             registration transforms.
         """
         # Check that file type is recognised.
-        if not ftype.lower() in self.file_types:
-            self.logger.warning(f"File ignored: '{file}'")
-            self.logger.warning(f"File type not recognised: '{ftype}'")
-            self.logger.warning(f"\nValid file types are: '{self.file_types}'")
+
+        if ftype.lower() not in self.file_types:
+            self.logger.warning("File type not recognised: '%s'", ftype)
+            self.logger.warning("\nValid file types are: '%s'", self.file_types)
             return
         ftype = ftype.lower()
 
@@ -1334,13 +1436,18 @@ class Registration(Data):
 
         if "p" == ftype:
             self.engine.adjust_parameters(
-                    self.pfiles[step], self.pfiles[step], params)
+                self.pfiles[step], self.pfiles[step], params
+            )
         elif "t" == ftype:
             self.engine.adjust_parameters(
-                    self.tfiles[step], self.tfiles[step], params)
+                self.tfiles[step], self.tfiles[step], params
+            )
 
-        if (reset and step in self.tfiles
-                and os.path.exists(self.pfiles.get(step, ""))):
+        if (
+            reset
+            and step in self.tfiles
+            and os.path.exists(self.pfiles.get(step, ""))
+        ):
             del self.tfiles[step]
 
     def view_init(self, **kwargs):
@@ -1349,8 +1456,8 @@ class Registration(Data):
         from skrt.better_viewer import BetterViewer
 
         kwargs.setdefault(
-            "intensity", 
-            [self.fixed_image._default_vmin, self.fixed_image._default_vmax]
+            "intensity",
+            [self.fixed_image._default_vmin, self.fixed_image._default_vmax],
         )
         kwargs.setdefault("match_axes", "y")
         kwargs.setdefault("title", ["Fixed", "Moving"])
@@ -1385,8 +1492,11 @@ class Registration(Data):
             ims = [self.fixed_image, self.transformed_images[step]]
             kwargs.setdefault("comparison", True)
             kwargs.setdefault(
-                "intensity", 
-                [self.fixed_image._default_vmin, self.fixed_image._default_vmax]
+                "intensity",
+                [
+                    self.fixed_image._default_vmin,
+                    self.fixed_image._default_vmax,
+                ],
             )
             kwargs.setdefault("title", ["Fixed", "Transformed moving"])
         else:
@@ -1394,8 +1504,9 @@ class Registration(Data):
             kwargs.setdefault("title", "Transformed moving")
         BetterViewer(ims, **kwargs)
 
-    def manually_adjust_translation(self, step=None,
-                                    reapply_transformation=True):
+    def manually_adjust_translation(
+        self, step=None, reapply_transformation=True
+    ):
         """
         Open BetterViewer and manually adjust the translation between the
         fixed image and the result of a registration. If the "write translation"
@@ -1425,18 +1536,19 @@ class Registration(Data):
                     "be manually adjusted must be specified when running "
                     "Registration.manually_adjust_transform()."
                 )
-                return
+                return None
         step = self.get_step_name(step)
 
         # Check registration has been run
         if not self.is_registered(step):
             self.logger.warning(
-                    f"Registration for {step} has not yet been performed.")
-            return
+                "Registration for %s has not yet been performed.", step
+            )
+            return None
 
         # Check the tfile contains a 3-parameter translation
         if not self.engine.shift_translation_parameters(self.tfiles[step]):
-            return
+            return None
 
         # Create BetterViewer and modify its write_translation function
         from skrt.better_viewer import BetterViewer
@@ -1471,8 +1583,9 @@ class Registration(Data):
         step = self.get_step_name(step)
         if not self.is_registered(step):
             self.logger.warning(
-                    f"Registration step {step} has not yet been performed.")
-            return
+                "Registration step %s has not yet been performed.", step
+            )
+            return None
         return self.engine.read_parameters(self.tfiles[step])
 
     def get_step_name(self, step):
@@ -1482,38 +1595,41 @@ class Registration(Data):
         a parameter file and/or a transform file assigned."""
 
         if isinstance(step, str):
-            if not step in self.steps:
+            if step not in self.steps:
                 raise RuntimeError(f"Step {step} not a valid registration step")
         else:
             step = self.steps[step]
 
         if not self.pfiles.get(step, None) and not self.tfiles.get(step, None):
-            raise RuntimeError(f"Step {step} not a valid registration step"
-                    f"\nStep{step} has neither pfile nor tfile assigned")
-        
+            raise RuntimeError(
+                f"Step {step} not a valid registration step"
+                f"\nStep{step} has neither pfile nor tfile assigned"
+            )
+
         return step
 
     def get_step_number(self, step):
         """Convert <step> to an int containing the number of a given step.
-        If <step> is an int, check it corresponds to a step number, ensure it 
-        is positive, and return it. Otherwise if it's a string, return the 
+        If <step> is an int, check it corresponds to a step number, ensure it
+        is positive, and return it. Otherwise if it's a string, return the
         index of that step name in self.steps."""
 
         if isinstance(step, int):
             if step >= len(self.steps) or step < -len(self.steps):
-                raise IndexError(f"Step {step} not a valid index number for "
-                                 f"step list of length {len(self.steps)}")
+                raise IndexError(
+                    f"Step {step} not a valid index number for "
+                    f"step list of length {len(self.steps)}"
+                )
             if step < 0:
                 return len(self.steps) + step
             return step
 
         try:
             return self.steps.index(step)
-        except ValueError:
-            raise ValueError(f"Step {step} not found")
+        except ValueError as error:
+            raise ValueError(f"Step {step} not found") from error
 
     def _get_jac_or_def(self, step, is_jac, force):
-
         # Settings for jacobian or deformation field
         if is_jac:
             storage = self.jacobians
@@ -1530,15 +1646,25 @@ class Registration(Data):
 
         # Create new object
         storage[step] = self.run_transformix_on_all(
-            is_jac, outdir=self.outdirs[step], tfile=self.tfiles[step], 
-            image=self.transformed_images[step], step=step, force=force
+            is_jac,
+            outdir=self.outdirs[step],
+            tfile=self.tfiles[step],
+            image=self.transformed_images[step],
+            step=step,
+            force=force,
         )
         return storage[step]
 
-    def get_transformed_grid(self, step=-1, force=False,
-            spacing=(30, 30, 30), thickness=(2, 2, 2),
-            voxel_units=False, color='green'):
-        '''
+    def get_transformed_grid(
+        self,
+        step=-1,
+        force=False,
+        spacing=(30, 30, 30),
+        thickness=(2, 2, 2),
+        voxel_units=False,
+        color="green",
+    ):
+        """
         Obtain transformed grid.
 
         A three-dimensional grid is defined in the space of
@@ -1577,7 +1703,7 @@ class Registration(Data):
             Colour to use for grid lines.  The colour may be specified
             in any of the forms recognised by matplotlib:
             https://matplotlib.org/stable/tutorials/colors/colors.html
-        '''
+        """
 
         # If object already exists, return it unless forcing
         storage = self.transformed_grids
@@ -1593,37 +1719,58 @@ class Registration(Data):
         foreground = 1
 
         # Ensure that untransformed grid exists
-        if not hasattr(self, 'moving_grid') or force:
+        if self.moving_grid is None or force:
             if issubclass(type(self.moving_source), skrt.image.Image):
                 image = self.moving_source
             elif isinstance(self.moving_source, str):
                 image = skrt.image.Image(self.moving_source)
             else:
-                image = getattr(self, 'moving_image', None)
-            self.set_moving_grid(make_grid(image, spacing,
-                thickness, background, foreground, voxel_units))
-            self.moving_grid = Grid(self.moving_grid.path,
-                    color=color, image=self.moving_image, title='Grid')
+                image = getattr(self, "moving_image", None)
+            self.set_moving_grid(
+                make_grid(
+                    image,
+                    spacing,
+                    thickness,
+                    background,
+                    foreground,
+                    voxel_units,
+                )
+            )
+            self.moving_grid = Grid(
+                self.moving_grid.path,
+                color=color,
+                image=self.moving_image,
+                title="Grid",
+            )
 
         istep = self.get_step_number(step)
         if self.engine.recursive_transform and istep:
             # Start from transformed grid from previous step.
             moving_grid = self.get_transformed_grid(
-                    step=(istep - 1), force=force, spacing=spacing,
-                    thickness=thickness, voxel_units=voxel_units, color=color)
+                step=(istep - 1),
+                force=force,
+                spacing=spacing,
+                thickness=thickness,
+                voxel_units=voxel_units,
+                color=color,
+            )
             moving_grid_path = moving_grid.path
         else:
             # Start from untransformed grid.
             moving_grid_path = self.moving_grid_path
 
         grid_path = Path(
-                self.transform_data(
-                    path=moving_grid_path, step=step, recurse=False))
-        grid_path = grid_path.rename(Path(self.outdirs[step]) / 'grid.nii')
+            self.transform_data(path=moving_grid_path, step=step, recurse=False)
+        )
+        grid_path = grid_path.rename(Path(self.outdirs[step]) / "grid.nii")
 
-        #self.transformed_grids[step] = skrt.image.Image(str(grid_path))
-        self.transformed_grids[step] = Grid(str(grid_path), color=color,
-                image=self.transformed_images[step], title='Transformed grid')
+        # self.transformed_grids[step] = skrt.image.Image(str(grid_path))
+        self.transformed_grids[step] = Grid(
+            str(grid_path),
+            color=color,
+            image=self.transformed_images[step],
+            title="Transformed grid",
+        )
 
         return self.transformed_grids[step]
 
@@ -1648,18 +1795,19 @@ class Registration(Data):
             jac2.image = jac1.image
             jac2.data[jac2.data > 0] = 1 / jac2.data[jac2.data > 0]
             jac2._data_canonical[jac2._data_canonical > 0] = (
-                    1 / jac2._data_canonical[jac2._data_canonical > 0])
+                1 / jac2._data_canonical[jac2._data_canonical > 0]
+            )
             return jac2
-        else:
-            return self._get_jac_or_def(step, True, force)
+        return self._get_jac_or_def(step, True, force)
 
     def get_deformation_field(self, step=-1, force=False):
         """Generate deformation field for a given registration step."""
-        
+
         return self._get_jac_or_def(step, False, force)
 
     def run_transformix_on_all(
-            self, is_jac, outdir, tfile, image=None, step=-1, force=False):
+        self, is_jac, outdir, tfile, image=None, step=-1, force=False
+    ):
         """
         Create a Jacobian determinant or deformation field file,
         and return either a Jacobian or DeformationField object initialised
@@ -1676,27 +1824,34 @@ class Registration(Data):
             expected_outname = "spatialJacobian.nii"
             title = "Jacobian determinant"
             cmd = self.engine.get_jac_cmd(
-                    fixed_path=self.fixed_path.replace("\\", "/"),
-                    outdir=outdir, tfile=tfile)
+                fixed_path=self.fixed_path.replace("\\", "/"),
+                outdir=outdir,
+                tfile=tfile,
+            )
         else:
             dtype = DeformationField
             expected_outname = "deformationField.nii"
             title = "Deformation field"
             cmd = self.engine.get_def_cmd(
-                    fixed_path=self.fixed_path.replace("\\", "/"),
-                    outdir=outdir, tfile=tfile)
+                fixed_path=self.fixed_path.replace("\\", "/"),
+                outdir=outdir,
+                tfile=tfile,
+            )
 
         # Obtain Jacobian determinant or deformation field.
         if cmd is not None:
             self.logger.debug(
-                    f'Step {step} - running command:\n {" ".join(cmd)}')
+                "Step %s - running command:\n %s", step, " ".join(cmd)
+            )
             code = subprocess.run(
-                    cmd, capture_output=self.capture_output).returncode
+                cmd, capture_output=self.capture_output, check=False
+            ).returncode
             if code:
-                logfile = os.path.join(outdir, 'transform.log')
+                logfile = os.path.join(outdir, "transform.log")
                 raise RuntimeError(
-                        f"Creation of {title }failed. See {logfile} for"
-                        " more info.")
+                    f"Creation of {title }failed. See {logfile} for"
+                    " more info."
+                )
 
         # Create output object
         output_file = os.path.join(outdir, expected_outname)
@@ -1714,6 +1869,8 @@ class Registration(Data):
                 obj._image.data += df._image.data
                 obj._image._data_canonical += df._image._data_canonical
             return obj
+
+        return None
 
     def get_comparison(self, step=-1, force=False, **kwargs):
         """
@@ -1736,7 +1893,8 @@ class Registration(Data):
             See this method's documentation for options.
         """
         return self.fixed_image.get_comparison(
-                self.get_transformed_image(step, force), **kwargs)
+            self.get_transformed_image(step, force), **kwargs
+        )
 
     def get_foreground_comparison(self, step=-1, force=False, **kwargs):
         """
@@ -1758,8 +1916,9 @@ class Registration(Data):
             skrt.image.Image.get_foreground_comparison()
             See this method's documentation for options.
         """
-        return self.fixed_image.get_comparison(
-                self.get_foreground_image(step, force), **kwargs)
+        return self.fixed_image.get_foreground_comparison(
+            self.get_transformed_image(step, force), **kwargs
+        )
 
     def get_mutual_information(self, step=-1, force=False, **kwargs):
         """
@@ -1783,7 +1942,8 @@ class Registration(Data):
             See this method's documentation for options.
         """
         return self.fixed_image.get_mutual_information(
-                self.get_transformed_image(step, force), **kwargs)
+            self.get_transformed_image(step, force), **kwargs
+        )
 
     def get_quality(self, step=-1, force=False, metrics=None):
         """
@@ -1807,8 +1967,9 @@ class Registration(Data):
             List of strings specifying quality metrics to be evaluated.
             If None, all defined quality metrics are evaluated.
         """
-        return self.get_transformed_image(
-                step, force).get_quality(self.fixed_image, metrics)
+        return self.get_transformed_image(step, force).get_quality(
+            self.fixed_image, metrics
+        )
 
     def get_relative_structural_content(self, step=-1, force=False):
         """
@@ -1826,7 +1987,8 @@ class Registration(Data):
             forced, even if the image was transformed previously.
         """
         return self.get_transformed_image(
-                step, force).get_relative_structural_content(self.fixed_image)
+            step, force
+        ).get_relative_structural_content(self.fixed_image)
 
     def get_fidelity(self, step=-1, force=False):
         """
@@ -1842,8 +2004,9 @@ class Registration(Data):
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
         """
-        return self.get_transformed_image(
-                step, force).get_fidelity(self.fixed_image)
+        return self.get_transformed_image(step, force).get_fidelity(
+            self.fixed_image
+        )
 
     def get_correlation_quality(self, step=-1, force=False):
         """
@@ -1860,8 +2023,10 @@ class Registration(Data):
             If True, transformation of the moving image will be
             forced, even if the image was transformed previously.
         """
-        return self.get_transformed_image(
-                step, force).get_correlation_quality(self.fixed_image)
+        return self.get_transformed_image(step, force).get_correlation_quality(
+            self.fixed_image
+        )
+
 
 class Grid(ImageOverlay):
     """
@@ -1871,7 +2036,7 @@ class Grid(ImageOverlay):
     attribute values at instantiation.
     """
 
-    def __init__(self, *args, color='green', **kwargs):
+    def __init__(self, *args, color="green", **kwargs):
         """
         Perform ImageOverlay initialisation, then overwrite
         selected attribute values.
@@ -1885,10 +2050,6 @@ class Grid(ImageOverlay):
         self._default_colorbar_label = "Intensity"
         self._default_vmin = 0
         self._default_vmax = 1
-
-    def view(self, **kwargs):
-        """View the Grid."""
-        return ImageOverlay.view(self, kwarg_name="grid", **kwargs)
 
 
 class Jacobian(ImageOverlay):
@@ -1914,11 +2075,7 @@ class Jacobian(ImageOverlay):
         self._default_vmax = 2
         self._default_opacity = 0.8
         self.load()
-        #self.data = -self.data
-
-    def view(self, **kwargs):
-        """View the Jacobian determinant."""
-        return ImageOverlay.view(self, kwarg_name="jacobian", **kwargs)
+        # self.data = -self.data
 
 
 class DeformationField(PathData):
@@ -1955,6 +2112,8 @@ class DeformationField(PathData):
 
         # Initialise own image object
         self._image = skrt.image.Image(path=path, load=False, **kwargs)
+        self.ax = None
+        self.fig = None
         self.signs = signs
         if load:
             self.load()
@@ -1976,11 +2135,11 @@ class DeformationField(PathData):
 
     def load(self, force=False):
         """
-        Load deformation-field data from source. If already loaded and <force> 
+        Load deformation-field data from source. If already loaded and <force>
         is False, nothing will happen.
 
         **Parameters:**
-        
+
         force : bool, default=True
             If True, the deformation-field data will be reloaded from source
             even if it has previously been loaded.
@@ -1992,8 +2151,9 @@ class DeformationField(PathData):
         # Warning: this may not give the intended result for all data sources...
         self._image.load(force)
         assert self._image.get_data().ndim == 4
-        self._image.data = np.transpose(
-                self._image.data, (1, 0, 2, 3))[::-1, ::-1, :, :]
+        self._image.data = np.transpose(self._image.data, (1, 0, 2, 3))[
+            ::-1, ::-1, :, :
+        ]
 
         # Apply convention-dependent signs to components of deformation field.
         if self.signs:
@@ -2014,7 +2174,7 @@ class DeformationField(PathData):
         df_x = np.squeeze(data[:, :, x_ax])
         df_y = np.squeeze(data[:, :, y_ax])
         if 1 == y_ax:
-            df_y = - df_y
+            df_y = -df_y
         if not scale_in_mm:
             df_x /= self._image.voxel_size[x_ax]
             df_y /= self._image.voxel_size[y_ax]
@@ -2023,12 +2183,14 @@ class DeformationField(PathData):
         xs = np.arange(0, data.shape[1])
         ys = np.arange(0, data.shape[0])
         if scale_in_mm:
-            xs = (self._image._sorigin[x_ax] + xs
-                  * self._image._svoxel_size[x_ax])
+            xs = (
+                self._image._sorigin[x_ax] + xs * self._image._svoxel_size[x_ax]
+            )
             if self._image.voxel_size[x_ax] < 0:
                 df_x = df_x[::-1]
-            ys = (self._image._sorigin[y_ax] + ys
-                  * self._image._svoxel_size[y_ax])
+            ys = (
+                self._image._sorigin[y_ax] + ys * self._image._svoxel_size[y_ax]
+            )
             if self._image.voxel_size[y_ax] < 0:
                 df_y = df_y[::-1]
         y, x = np.meshgrid(ys, xs)
@@ -2053,8 +2215,11 @@ class DeformationField(PathData):
         # Check that type of information requested is unknown.
         if displacement not in self.displacement_images:
             print(f"Displacement type not known: '{displacement}'")
-            print(f"Known displacement types: {list(self.displacement_images)}")
-            return
+            print(
+                "Known displacement types: "
+                + f"{list(self.displacement_images)}"
+            )
+            return None
 
         # Check if OverlayImage of displacement requested is already stored.
         # If not, then create and store it.
@@ -2068,17 +2233,18 @@ class DeformationField(PathData):
                 # Signed displacements along axis.
                 im_data = np.squeeze(im_data[:, :, :, idx])
             im = ImageOverlay(
-                    im_data, affine=self._image.get_standardised_affine())
+                im_data, affine=self._image.get_standardised_affine()
+            )
             if "nifti" in self._image.source_type:
                 im = im.astype("nii")
-
 
             im._default_cmap = self._default_cmap
             if "3d" == displacement:
                 im._default_colorbar_label = self._3d_colorbar_label
             else:
                 im._default_colorbar_label = (
-                        f"{displacement}-{self._default_colorbar_label}")
+                    f"{displacement}-{self._default_colorbar_label}"
+                )
             im._default_opacity = self._default_opacity
             im._default_vmin = self._default_vmin
             im._default_vmax = self._default_vmax
@@ -2122,7 +2288,7 @@ class DeformationField(PathData):
         masked=True,
         invert_mask=False,
         mask_color="black",
-        **mpl_kwargs
+        **mpl_kwargs,
     ):
         """
         Plot deformation field.
@@ -2139,15 +2305,28 @@ class DeformationField(PathData):
 
         # Plot the underlying image
         if include_image and self.image is not None:
-            self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax, gs=gs,
-                    show=False, title="", colorbar=max((colorbar - 1), 0),
-                    no_xlabel=no_xlabel, no_ylabel=no_ylabel,
-                    no_xticks=no_xticks, no_yticks=no_yticks,
-                    no_xtick_labels=no_xtick_labels,
-                    no_ytick_labels=no_ytick_labels,
-                    mask=mask, mask_threshold=mask_threshold,
-                    masked=masked, invert_mask=invert_mask,
-                    mask_color=mask_color)
+            self.image.plot(
+                view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                ax=self.ax,
+                gs=gs,
+                show=False,
+                title="",
+                colorbar=max((colorbar - 1), 0),
+                no_xlabel=no_xlabel,
+                no_ylabel=no_ylabel,
+                no_xticks=no_xticks,
+                no_yticks=no_yticks,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels,
+                mask=mask,
+                mask_threshold=mask_threshold,
+                masked=masked,
+                invert_mask=invert_mask,
+                mask_color=mask_color,
+            )
             xlim = self.ax.get_xlim()
             ylim = self.ax.get_ylim()
 
@@ -2155,18 +2334,20 @@ class DeformationField(PathData):
         df_spacing = self.convert_spacing(df_spacing, scale_in_mm)
 
         # Get vectors and positions on this slice
-        data_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos, 
-                                    scale_in_mm=scale_in_mm)
+        data_slice = self.get_slice(
+            view, sl=sl, idx=idx, pos=pos, scale_in_mm=scale_in_mm
+        )
 
         # Define plot's pre-zoom aspect ratio and axis limits.
         im_kwargs = self._image.get_mpl_kwargs(view, None, scale_in_mm)
-        xlim = xlim or im_kwargs["extent"][0: 2]
-        ylim = ylim or im_kwargs["extent"][2: 4]
+        xlim = xlim or im_kwargs["extent"][0:2]
+        ylim = ylim or im_kwargs["extent"][2:4]
         aspect = im_kwargs["aspect"]
 
         # Define plot opacity.
         mpl_kwargs["alpha"] = df_opacity or mpl_kwargs.get(
-                "alpha", self._default_opacity)
+            "alpha", self._default_opacity
+        )
 
         # Extract kwargs for colour bar and label.
         clb_kwargs = mpl_kwargs.pop("clb_kwargs", {})
@@ -2174,26 +2355,53 @@ class DeformationField(PathData):
 
         # Create plot
         if df_plot_type == "quiver":
-            self._plot_quiver(view, data_slice, df_spacing, colorbar,
-                    clb_kwargs, clb_label_kwargs, mpl_kwargs)
+            self._plot_quiver(
+                view,
+                data_slice,
+                df_spacing,
+                colorbar,
+                clb_kwargs,
+                clb_label_kwargs,
+                mpl_kwargs,
+            )
         elif df_plot_type == "grid":
             self._plot_grid(view, data_slice, df_spacing, mpl_kwargs)
-        elif df_plot_type in ["x-displacement", "y-displacement",
-                "z-displacement", "3d-displacement"]:
-            self._plot_displacement(df_plot_type=df_plot_type,
-                    view=view, sl=sl, idx=idx, pos=pos,
-                    include_image=False, ax=self.ax, gs=gs, show=False,
-                    title="", colorbar=colorbar, no_xlabel=no_xlabel,
-                    no_ylabel=no_ylabel, no_xticks=no_xticks,
-                    no_yticks=no_yticks, no_xtick_labels=no_xtick_labels,
-                    no_ytick_labels=no_ytick_labels,
-                    annotate_slice=annotate_slice,
-                    major_ticks=major_ticks, minor_ticks=minor_ticks,
-                    ticks_all_sides=ticks_all_sides,
-                    no_axis_labels=no_axis_labels, mask=mask,
-                    mask_threshold=mask_threshold, masked=masked,
-                    invert_mask=invert_mask, mask_color=mask_color,
-                    mpl_kwargs = mpl_kwargs)
+        elif df_plot_type in [
+            "x-displacement",
+            "y-displacement",
+            "z-displacement",
+            "3d-displacement",
+        ]:
+            self._plot_displacement(
+                df_plot_type=df_plot_type,
+                view=view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                include_image=False,
+                ax=self.ax,
+                gs=gs,
+                show=False,
+                title="",
+                colorbar=colorbar,
+                no_xlabel=no_xlabel,
+                no_ylabel=no_ylabel,
+                no_xticks=no_xticks,
+                no_yticks=no_yticks,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels,
+                annotate_slice=annotate_slice,
+                major_ticks=major_ticks,
+                minor_ticks=minor_ticks,
+                ticks_all_sides=ticks_all_sides,
+                no_axis_labels=no_axis_labels,
+                mask=mask,
+                mask_threshold=mask_threshold,
+                masked=masked,
+                invert_mask=invert_mask,
+                mask_color=mask_color,
+                mpl_kwargs=mpl_kwargs,
+            )
         else:
             print(f"Unrecognised plot type '{df_plot_type}'")
 
@@ -2204,13 +2412,23 @@ class DeformationField(PathData):
 
         # Label and zoom axes
         idx = self._image.get_idx(view, sl=sl, idx=idx, pos=pos)
-        self._image.label_ax(view, idx=idx, scale_in_mm=scale_in_mm,
-                title=title, no_xlabel=no_xlabel, no_ylabel=no_ylabel,
-                no_xticks=no_xticks, no_yticks=no_yticks,
-                no_xtick_labels=no_xtick_labels,
-                no_ytick_labels=no_ytick_labels, annotate_slice=annotate_slice,
-                major_ticks=major_ticks, ticks_all_sides=ticks_all_sides,
-                no_axis_labels=no_axis_labels, **mpl_kwargs)
+        self._image.label_ax(
+            view,
+            idx=idx,
+            scale_in_mm=scale_in_mm,
+            title=title,
+            no_xlabel=no_xlabel,
+            no_ylabel=no_ylabel,
+            no_xticks=no_xticks,
+            no_yticks=no_yticks,
+            no_xtick_labels=no_xtick_labels,
+            no_ytick_labels=no_ytick_labels,
+            annotate_slice=annotate_slice,
+            major_ticks=major_ticks,
+            ticks_all_sides=ticks_all_sides,
+            no_axis_labels=no_axis_labels,
+            **mpl_kwargs,
+        )
         self._image.zoom_ax(view, zoom, zoom_centre)
 
         # Display image
@@ -2224,14 +2442,14 @@ class DeformationField(PathData):
             plt.close()
 
     def _plot_quiver(
-        self, 
-        view, 
+        self,
+        view,
         data_slice,
         spacing,
         colorbar=0,
         clb_kwargs=None,
         clb_label_kwargs=None,
-        mpl_kwargs=None, 
+        mpl_kwargs=None,
     ):
         """Draw a quiver plot."""
 
@@ -2248,8 +2466,9 @@ class DeformationField(PathData):
         # Make plotting kwargs
         mpl_kwargs = mpl_kwargs or {}
         vmin = mpl_kwargs.pop("vmin", 0)
-        vmax = mpl_kwargs.pop("vmax",
-                self.get_displacement_image("3d").get_data().max() * 1.1)
+        vmax = mpl_kwargs.pop(
+            "vmax", self.get_displacement_image("3d").get_data().max() * 1.1
+        )
         default_kwargs = {"cmap": "jet"}
         default_kwargs.update(mpl_kwargs)
         default_kwargs["clim"] = default_kwargs.get("clim", (vmin, vmax))
@@ -2261,29 +2480,22 @@ class DeformationField(PathData):
         if arrows_x.any() or arrows_y.any():
             if "color" in default_kwargs:
                 self.ax.quiver(
-                        plot_x,
-                        plot_y,
-                        arrows_x,
-                        arrows_y,
-                        **default_kwargs
-                        )
+                    plot_x, plot_y, arrows_x, arrows_y, **default_kwargs
+                )
             else:
                 M = np.hypot(arrows_x, arrows_y)
                 quiver = self.ax.quiver(
-                        plot_x,
-                        plot_y,
-                        arrows_x,
-                        arrows_y,
-                        M,
-                        **default_kwargs
-                        )
+                    plot_x, plot_y, arrows_x, arrows_y, M, **default_kwargs
+                )
                 # Add colorbar
-                if colorbar > 0 and mpl_kwargs.get(
-                        "alpha", self._default_opacity) > 0:
-                    clb = self.fig.colorbar(quiver, ax=self.ax,
-                            **clb_kwargs)
-                    clb.set_label(self._quiver_colorbar_label,
-                            **clb_label_kwargs)
+                if (
+                    colorbar > 0
+                    and mpl_kwargs.get("alpha", self._default_opacity) > 0
+                ):
+                    clb = self.fig.colorbar(quiver, ax=self.ax, **clb_kwargs)
+                    clb.set_label(
+                        self._quiver_colorbar_label, **clb_label_kwargs
+                    )
                     clb.solids.set_edgecolor("face")
         else:
             # If arrow lengths are zero, plot dots
@@ -2291,11 +2503,11 @@ class DeformationField(PathData):
             self.ax.scatter(plot_x, plot_y, color=dot_colour, marker=".")
 
     def _plot_grid(
-        self, 
-        view, 
+        self,
+        view,
         data_slice,
         spacing,
-        mpl_kwargs=None, 
+        mpl_kwargs=None,
     ):
         """Draw a grid plot."""
 
@@ -2345,17 +2557,26 @@ class DeformationField(PathData):
         displacement = df_plot_type.split("-")[0]
         im = self.get_displacement_image(displacement)
         if im is not None:
-
             # Set default values for vmin, vmax, cmap, alpha.
             kwargs["mpl_kwargs"] = kwargs.get("mpl_kwargs", {})
-            vmax = max(abs(im._default_vmax), abs(im.get_data().max()),
-                    abs(im._default_vmin), abs(im.get_data().min()), 0)
+            vmax = max(
+                abs(im._default_vmax),
+                abs(im.get_data().max()),
+                abs(im._default_vmin),
+                abs(im.get_data().min()),
+                0,
+            )
 
-            mpl_kwargs = {"vmin": -vmax, "vmax": vmax,
-                    "cmap": im._default_cmap, "alpha": im._default_opacity}
+            mpl_kwargs = {
+                "vmin": -vmax,
+                "vmax": vmax,
+                "cmap": im._default_cmap,
+                "alpha": im._default_opacity,
+            }
             for key, default_value in mpl_kwargs.items():
-                kwargs["mpl_kwargs"][key] = (
-                        kwargs["mpl_kwargs"].get(key, default_value))
+                kwargs["mpl_kwargs"][key] = kwargs["mpl_kwargs"].get(
+                    key, default_value
+                )
 
             # Disregard kwargs that aren't valid here,
             # but are valid for other representations of deformation field.
@@ -2370,7 +2591,7 @@ class DeformationField(PathData):
         View the deformation field.
 
         **Parameters:**
-        
+
         include_image : bool, default=True
             If True, the image associated with the deformation field will
             be displayed as underlay.
@@ -2379,6 +2600,7 @@ class DeformationField(PathData):
         """
 
         from skrt.better_viewer import BetterViewer
+
         self.load()
 
         # Ensure that df keyword isn't passed also via kwargs.
@@ -2390,18 +2612,19 @@ class DeformationField(PathData):
             im = self.image
         else:
             im = skrt.image.Image(
-                    np.ones(self._image.get_data().shape[0: 3]) * 1e4,
-                    affine=self._image.get_affine())
+                np.ones(self._image.get_data().shape[0:3]) * 1e4,
+                affine=self._image.get_affine(),
+            )
             im._default_cmap = self._default_cmap
             im._default_colorbar_label = self._default_colorbar_label
             im._default_vmin = self._default_vmin
             im._default_vmax = self._default_vmax
-        
+
         # Create viewer
         return BetterViewer(im, df=self, **kwargs)
-    
+
     def convert_spacing(self, spacing, scale_in_mm):
-        """Convert grid spacing in mm or voxels to list containing grid spacing 
+        """Convert grid spacing in mm or voxels to list containing grid spacing
         in voxels in each dimension."""
 
         self.load()
@@ -2409,8 +2632,10 @@ class DeformationField(PathData):
         spacing = to_list(spacing)
         output = []
         if scale_in_mm:
-            output = [abs(round(spacing[i] / self._image.voxel_size[i])) 
-                      for i in range(3)]
+            output = [
+                abs(round(spacing[i] / self._image.voxel_size[i]))
+                for i in range(3)
+            ]
         else:
             output = spacing
 
@@ -2510,10 +2735,12 @@ class RegistrationEngine:
             log_level is set to the value of skrt.core.Defaults().log_level.
         """
         # Set up event logging.
-        self.log_level = \
-                Defaults().log_level if log_level is None else log_level
+        self.log_level = (
+            Defaults().log_level if log_level is None else log_level
+        )
         self.logger = get_logger(
-                name=type(self).__name__, log_level=self.log_level)
+            name=type(self).__name__, log_level=self.log_level
+        )
 
         if not hasattr(self, "name"):
             self.name = type(self).__name__.lower()
@@ -2535,8 +2762,10 @@ class RegistrationEngine:
         params : dict
             Dictionary of parameter names and new values.
         """
-        raise NotImplementedError("Method 'adjust_parameters()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'adjust_parameters()' "
+            f"not implemented for class {type(self)}"
+        )
 
     def define_translation(self, dxdydz, fixed_image=None):
         """
@@ -2552,8 +2781,10 @@ class RegistrationEngine:
         fixed_image : skrt.image.Image, default=None
             Image towards which moving image is to be warped.
         """
-        raise NotImplementedError("Method 'define_translation()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'define_translation()' "
+            f"not implemented for class {type(self)}"
+        )
 
     def get_default_pfiles(self, basename_only=True):
         """
@@ -2567,8 +2798,11 @@ class RegistrationEngine:
         """
         default_pfiles_dir = self.get_default_pfiles_dir()
         if default_pfiles_dir.is_dir():
-            files = [file for file in default_pfiles_dir.iterdir()
-                     if str(file).endswith(".txt")]
+            files = [
+                file
+                for file in default_pfiles_dir.iterdir()
+                if str(file).endswith(".txt")
+            ]
         else:
             files = []
 
@@ -2598,8 +2832,9 @@ class RegistrationEngine:
             Path to registration transform file for which deformation
             field is to be computed.
         """
-        raise NotImplementedError("Method 'get_def_cmd()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'get_def_cmd()' " f"not implemented for class {type(self)}"
+        )
 
     def get_dose_params(self):
         """
@@ -2623,12 +2858,20 @@ class RegistrationEngine:
             Path to registration transform file for which deformation
             field is to be computed.
         """
-        raise NotImplementedError("Method 'get_jac_cmd()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'get_jac_cmd()' " f"not implemented for class {type(self)}"
+        )
 
     def get_registration_cmd(
-            self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
-            pfile, outdir, tfile=None):
+        self,
+        fixed_path,
+        moving_path,
+        fixed_mask_path,
+        moving_mask_path,
+        pfile,
+        outdir,
+        tfile=None,
+    ):
         """
         Get registration-engine command for performing image registration.
 
@@ -2656,8 +2899,10 @@ class RegistrationEngine:
             Path to registration transform file from previous registration
             step.  If None, no previous registration step is it be considered.
         """
-        raise NotImplementedError("Method 'get_registration_cmd()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'get_registration_cmd()' "
+            f"not implemented for class {type(self)}"
+        )
 
     def get_roi_params(self):
         """
@@ -2666,7 +2911,8 @@ class RegistrationEngine:
         return {}
 
     def get_transform_cmd(
-            self, fixed_path, moving_path, outdir, tfile, params=None):
+        self, fixed_path, moving_path, outdir, tfile, params=None
+    ):
         """
         Get registration-engine command for applying registration transform.
 
@@ -2690,17 +2936,20 @@ class RegistrationEngine:
             transform command.  The original transform file is left
             unaltered.
         """
-        raise NotImplementedError("Method 'get_transform_cmd()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'get_transform_cmd()' "
+            f"not implemented for class {type(self)}"
+        )
 
     def get_transform_log(self):
         """
         Get name of transform log file.
         """
         if not hasattr(self, "transform_log"):
-            raise NotImplementedError("Class attribute 'transform_log' "
-                                  f"not implemented for class {type(self)}")
-        return self.transform_log
+            raise NotImplementedError(
+                "Class attribute 'transform_log' "
+                f"not implemented for class {type(self)}"
+            )
 
     def is_available(self, path=None, force=False, defaults=None):
         """
@@ -2737,8 +2986,10 @@ class RegistrationEngine:
         infile: str/pathlib.Path
             Path to registration parameter file.
         """
-        raise NotImplementedError("Method 'read_parameters()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'read_parameters()' "
+            f"not implemented for class {type(self)}"
+        )
 
     def set_exe_env(self, path=None, force=False):
         """
@@ -2777,38 +3028,41 @@ class RegistrationEngine:
             lib_dir = exe_dir.parent / "lib"
             # Cover Linux, MacOS, Windows.
             for env_var, env_val in [
-                    ("DYLD_FALLBACK_LIBRARY_PATH", lib_dir),
-                    ("LD_LIBRARY_PATH", lib_dir),
-                    ("PATH", exe_dir)
-                    ]:
+                ("DYLD_FALLBACK_LIBRARY_PATH", lib_dir),
+                ("LD_LIBRARY_PATH", lib_dir),
+                ("PATH", exe_dir),
+            ]:
                 if not (os.environ.get(env_var, "")).startswith(str(env_val)):
                     prepend_path(env_var, env_val)
 
-            self.logger.info(
-                    f"Found {self.name} executable(s) in {exe_dir}") 
+            self.logger.info("Found %s executable(s) in %s", self.name, exe_dir)
         else:
             # Registration-engine executables not found - raise exception.
             raise RuntimeError(
-                    f"path={path}; {self.name} executable(s) not found")
+                f"path={path}; {self.name} executable(s) not found"
+            )
 
-    def set_exe_paths(self, path=None):
+    def set_exe_paths(self, path):
         """
         Set path(s)s to registration-engine executable(s).
 
         **Parameter:**
 
-        path : str/pathlib.Path, default=None
+        path : str/pathlib.Path
             Path to directory containing registration-engine executable(s).
         """
-        raise NotImplementedError("Method 'set_exe_paths()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'set_exe_paths()' "
+            f"not implemented for class {type(self)}"
+        )
 
     def shift_translation_parameters(
-            self, infile, dx=0, dy=0, dz=0, outfile=None):
+        self, infile, dx=0, dy=0, dz=0, outfile=None
+    ):
         """
         Add offsets to the translation parameters in a registration
         transform file.
-        
+
         **Parameters:**
 
         infile: str
@@ -2822,8 +3076,10 @@ class RegistrationEngine:
             Path to output parameter file.  If None, overwrite input
             parameter file.
         """
-        raise NotImplementedError("Method 'shift_translation_parameters()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'shift_translation_parameters()' "
+            f"not implemented for class {type(self)}"
+        )
 
     def write_parameters(self, outfile, params):
         """
@@ -2837,8 +3093,10 @@ class RegistrationEngine:
         params: dict
             Dictionary of parameters to be written to file.
         """
-        raise NotImplementedError("Method 'write_parameters()' "
-                                  f"not implemented for class {type(self)}")
+        raise NotImplementedError(
+            "Method 'write_parameters()' "
+            f"not implemented for class {type(self)}"
+        )
 
     @staticmethod
     def get_transform_strategies():
@@ -2861,6 +3119,7 @@ class Elastix(RegistrationEngine):
     """
     Class interfacing to elastix registration engine.
     """
+
     # Indicate whether registration engine implements mapping of points
     # from fixed image to moving images.
     transform_points_implemented = True
@@ -2886,7 +3145,7 @@ class Elastix(RegistrationEngine):
 
         # Check that file to be adjusted exists.
         if not os.path.exists(infile):
-            self.logger.warning(f"File not found: '{infile}'")
+            self.logger.warning("File not found: '%s'", infile)
             self.logger.warning("No parameter-adjustment performed")
             return
 
@@ -2899,13 +3158,13 @@ class Elastix(RegistrationEngine):
         # Define translation parameters that are enough to allow
         # application before a registration step.
         translation = {
-                "Transform": "TranslationTransform",
-                "NumberOfParameters": 3,
-                "TransformParameters": dxdydz,
-                "InitialTransformParametersFileName": "NoInitialTransform",
-                "UseBinaryFormatForTransformationParameters": False,
-                "HowToCombineTransforms": "Compose"
-                }
+            "Transform": "TranslationTransform",
+            "NumberOfParameters": 3,
+            "TransformParameters": dxdydz,
+            "InitialTransformParametersFileName": "NoInitialTransform",
+            "UseBinaryFormatForTransformationParameters": False,
+            "HowToCombineTransforms": "Compose",
+        }
 
         if fixed_image is not None:
             # Add parameters needed to allow warping of the moving image.
@@ -2915,7 +3174,15 @@ class Elastix(RegistrationEngine):
 
     def get_def_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing deformation field.
-        return [self.transformix, "-def", "all", "-out", outdir, "-tp", tfile]
+        return [
+            getattr(self, "transformix"),
+            "-def",
+            "all",
+            "-out",
+            outdir,
+            "-tp",
+            tfile,
+        ]
 
     def get_dose_params(self):
         """
@@ -2925,34 +3192,47 @@ class Elastix(RegistrationEngine):
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing Jacobian determinant.
-        return [self.transformix, "-jac", "all", "-out", outdir, "-tp", tfile]
+        return [
+            getattr(self, "transformix"),
+            "-jac",
+            "all",
+            "-out",
+            outdir,
+            "-tp",
+            tfile,
+        ]
 
     def get_registration_cmd(
-            self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
-            pfile, outdir, tfile=None):
-
+        self,
+        fixed_path,
+        moving_path,
+        fixed_mask_path,
+        moving_mask_path,
+        pfile,
+        outdir,
+        tfile=None,
+    ):
         # Start command with execuable and paths to fixed and moving images.
         cmd = [
-            self.elastix,
-            '-f', fixed_path,
-            '-m', moving_path,
-            ]
+            getattr(self, "elastix"),
+            "-f",
+            fixed_path,
+            "-m",
+            moving_path,
+        ]
 
         # Add paths for any masks to be applied.
         if os.path.exists(fixed_mask_path):
-            cmd.extend(['-fMask', fixed_mask_path])
+            cmd.extend(["-fMask", fixed_mask_path])
         if os.path.exists(moving_mask_path):
-            cmd.extend(['-mMask', moving_mask_path])
+            cmd.extend(["-mMask", moving_mask_path])
 
         # Add paths to registration parameter file and output directory.
-        cmd.extend([
-            "-p", pfile,
-            '-out', outdir
-            ])
+        cmd.extend(["-p", pfile, "-out", outdir])
 
         # Add transform parameter file from previous registration step.
         if tfile is not None:
-            cmd.extend(['-t0', tfile])
+            cmd.extend(["-t0", tfile])
 
         # Return command for performing image registration.
         return cmd
@@ -2962,7 +3242,8 @@ class Elastix(RegistrationEngine):
         return {"ResampleInterpolator": '"FinalNearestNeighborInterpolator"'}
 
     def get_transform_cmd(
-            self, fixed_path, moving_path, outdir, tfile, params=None):
+        self, fixed_path, moving_path, outdir, tfile, params=None
+    ):
         # Perform any modifications to the transform parameter file.
         if params:
             out_tfile = str(Path(outdir) / Path(tfile).name)
@@ -2971,7 +3252,7 @@ class Elastix(RegistrationEngine):
 
         # Return command for applying registration transform.
         return [
-            self.transformix,
+            getattr(self, "transformix"),
             "-def" if ".txt" == Path(moving_path).suffix else "-in",
             moving_path,
             "-out",
@@ -2984,10 +3265,11 @@ class Elastix(RegistrationEngine):
         # Read elastix parameter file.
         # For information about format, see section 3.4 of elastix manual:
         # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
-        lines = [line for line in open(infile).readlines()
-                 if line.startswith("(")]
-        lines = [line[line.find("(") + 1 : line.rfind(")")].split()
-                 for line in lines]
+        with open(infile, encoding="utf-8") as file:
+            lines = [line for line in file.readlines() if line.startswith("(")]
+        lines = [
+            line[line.find("(") + 1 : line.rfind(")")].split() for line in lines
+        ]
         params = {line[0]: " ".join(line[1:]) for line in lines}
         for name, param in params.items():
             if '"' in param:
@@ -2997,7 +3279,7 @@ class Elastix(RegistrationEngine):
                 elif params[name] == "true":
                     params[name] = True
             elif len(param.split()) > 1:
-                params[name] = [p for p in param.rstrip("(").split()]
+                params[name] = param.rstrip("(").split()
                 if "." in params[name][0]:
                     params[name] = [float(p) for p in params[name]]
                 else:
@@ -3027,7 +3309,8 @@ class Elastix(RegistrationEngine):
         return exe_dir
 
     def shift_translation_parameters(
-            self, infile, dx=0, dy=0, dz=0, outfile=None):
+        self, infile, dx=0, dy=0, dz=0, outfile=None
+    ):
         # Add offsets to the translation parameters
         # of an elaxtix transform file.
         if outfile is None:
@@ -3036,8 +3319,9 @@ class Elastix(RegistrationEngine):
         init = pars["TransformParameters"]
         if pars["Transform"] != "TranslationTransform":
             self.logger.warning(
-                f"Can only manually adjust a translation step. Incorrect "
-                f"transform type: {pars['Transform']}"
+                "Can only manually adjust a translation step. "
+                "Incorrect transform type: %s",
+                pars["Transform"],
             )
             return False
 
@@ -3049,37 +3333,38 @@ class Elastix(RegistrationEngine):
         # Write elastix parameter file.
         # For information about format, see section 3.4 of elastix manual:
         # https://elastix.lumc.nl/download/elastix-5.0.1-manual.pdf
-        file = open(outfile, "w")
-        for name, param in params.items():
-            if "//" == name:
-                line = f"\n{name} {param}"
-            else:
-                line = f"({name}"
-                if isinstance(param, str):
-                    line += f' "{param}")'
-                elif isinstance(param, (list, tuple)):
-                    for item in param:
-                        line += " " + str(item)
-                    line += ")"
-                elif isinstance(param, bool):
-                    line += f' "{str(param).lower()}")'
+        with open(outfile, "w", encoding="utf-8") as file:
+            for name, param in params.items():
+                if "//" == name:
+                    line = f"\n{name} {param}"
                 else:
-                    line += " " + str(param) + ")"
-            file.write(line + "\n")
-        file.close()
+                    line = f"({name}"
+                    if isinstance(param, str):
+                        line += f' "{param}")'
+                    elif isinstance(param, (list, tuple)):
+                        for item in param:
+                            line += " " + str(item)
+                        line += ")"
+                    elif isinstance(param, bool):
+                        line += f' "{str(param).lower()}")'
+                    else:
+                        line += " " + str(param) + ")"
+                file.write(line + "\n")
 
     @staticmethod
     def get_transform_strategies():
         return ["pull", "push"]
+
 
 @add_engine
 class Matlab(RegistrationEngine):
     """
     Class interfacing to MATLAB registration engine.
     """
+
     # Indicate signs to be applied to (x, y, z) components of deformation field.
     # If None, components are taken to be as read from file.
-    #def_signs = (-1, -1, -1)
+    # def_signs = (-1, -1, -1)
 
     # Define engine executable.
     exes = ["mskrt.matlabreg"]
@@ -3104,11 +3389,11 @@ class Matlab(RegistrationEngine):
         # needs translations for mapping from moving image to fixed image.
         # Negative signs allow for this.
         translation = [
-                f"1 0 0 {-dxdydz[0]}",
-                f"0 1 0 {-dxdydz[1]}",
-                f"0 0 1 {-dxdydz[2]}",
-                "0 0 0 1",
-                ]
+            f"1 0 0 {-dxdydz[0]}",
+            f"0 1 0 {-dxdydz[1]}",
+            f"0 0 1 {-dxdydz[2]}",
+            "0 0 0 1",
+        ]
 
         return translation
 
@@ -3121,9 +3406,15 @@ class Matlab(RegistrationEngine):
         return
 
     def get_registration_cmd(
-            self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
-            pfile, outdir, tfile=None):
-
+        self,
+        fixed_path,
+        moving_path,
+        fixed_mask_path,
+        moving_mask_path,
+        pfile,
+        outdir,
+        tfile=None,
+    ):
         # Read registration parameters from file.
         params = self.read_parameters(pfile)
 
@@ -3138,11 +3429,11 @@ class Matlab(RegistrationEngine):
         # Start command with execuable, paths to fixed and moving images,
         # and path to output file (name following elastix convention).
         cmd = [
-                params["exe"],
-                moving_path,
-                fixed_path,
-                str(outdir),
-            ]
+            params["exe"],
+            moving_path,
+            fixed_path,
+            str(outdir),
+        ]
 
         # Add any other parameter-value pairs.
         for param, val in params.items():
@@ -3164,14 +3455,21 @@ class Matlab(RegistrationEngine):
         return {"interp": "nearest"}
 
     def get_transform_cmd(
-            self, fixed_path, moving_path, outdir, tfile, params=None):
+        self, fixed_path, moving_path, outdir, tfile, params=None
+    ):
         # Construct part of command relating to any input parameters.
         params = params or {}
         interp = params.pop("interp", "nearest")
         params = [str(val) for items in params.items() for val in items]
 
-        cmd = ["imwarp", moving_path, fixed_path,
-               str(Path(outdir)), tfile, interp] + params
+        cmd = [
+            "imwarp",
+            moving_path,
+            fixed_path,
+            str(Path(outdir)),
+            tfile,
+            interp,
+        ] + params
 
         if "matlab" in self.exe_cmd:
             args = ",".join([f"'{arg}'" for arg in cmd])
@@ -3184,13 +3482,13 @@ class Matlab(RegistrationEngine):
 
     def read_affine(self, infile):
         """
-        Read affine matrix from file. 
+        Read affine matrix from file.
 
         **Parameter:**
         infile: str/pathlib.Path
             Path to file from which to read affine matrix.
         """
-        with open(infile) as file:
+        with open(infile, encoding="utf-8") as file:
             lines = [line.strip().split() for line in file.readlines()]
         return [[float(item) for item in line] for line in lines]
 
@@ -3213,7 +3511,7 @@ class Matlab(RegistrationEngine):
         **To run compiled MATLAB code:**
 
         - To set environment from scikit-rt:
-          
+
           1. Set skrt.registration.Defaults().matlab_runtime to be the path to
              the MATLAB runtime installation directory.
 
@@ -3235,7 +3533,7 @@ class Matlab(RegistrationEngine):
         **To run uncompiled MATLAB code:**
 
         - To set environment from scikit-rt:
-          
+
           1. Set skrt.registration.Defaults().matlab_app to be the
              path to the directory that contains the MATLAB executable.
 
@@ -3275,8 +3573,12 @@ class Matlab(RegistrationEngine):
             # Otherwise, assume that the environment has been set by the user.
             if isinstance(Defaults().matlab_runtime, (Path, str)):
                 matlab_runtime = Path(fullpath(Defaults().matlab_runtime))
-                subdirs = ["runtime", "bin",
-                           Path("sys") / "os", Path("extern") / "bin"]
+                subdirs = [
+                    "runtime",
+                    "bin",
+                    Path("sys") / "os",
+                    Path("extern") / "bin",
+                ]
                 if "Linux" == platform.system():
                     env_var = "LD_LIBRARY_PATH"
                     arch = "glnxa64"
@@ -3292,27 +3594,33 @@ class Matlab(RegistrationEngine):
 
                 for subdir in subdirs:
                     env_val = matlab_runtime / subdir / arch
-                    if (env_var not in os.environ
-                        or str(env_val) not in os.environ[env_var] or force):
+                    if (
+                        env_var not in os.environ
+                        or str(env_val) not in os.environ[env_var]
+                        or force
+                    ):
                         runtime_ok *= prepend_path(env_var, env_val)
                         if not runtime_ok:
                             raise RuntimeError(
-                                    "MATLAB runtime directory not found: "
-                                    + f"'{env_val}'")
+                                "MATLAB runtime directory not found: "
+                                + f"'{env_val}'"
+                            )
 
             # Check that the runtime application can be found.
-            exe = type(self).exes[0].split(".")[-1]
+            exe = type(self).exes[0].rsplit(".", maxsplit=1)[-1]
             if force or shutil.which(exe) is None:
                 if isinstance(path, (Path, str)):
                     if not prepend_path("PATH", path):
                         raise RuntimeError(
-                                "Directory for MATLAB registration "
-                                f"application not found: '{path}'")
+                            "Directory for MATLAB registration "
+                            f"application not found: '{path}'"
+                        )
 
             if shutil.which(exe) is None:
                 raise RuntimeError(
-                        "Application for running MATLAB registration "
-                        f"not found: '{exe}'")
+                    "Application for running MATLAB registration "
+                    f"not found: '{exe}'"
+                )
 
             self.exe_cmd = [exe]
             self.call = ""
@@ -3328,8 +3636,9 @@ class Matlab(RegistrationEngine):
                     matlab_app = Path(fullpath(Defaults().matlab_app))
                     if not prepend_path("PATH", matlab_app):
                         raise RuntimeError(
-                                "MATLAB application directory not found: "
-                                + f"'{matlab_app}'")
+                            "MATLAB application directory not found: "
+                            + f"'{matlab_app}'"
+                        )
 
             # Check that the MATLAB executable can be found.
             if not shutil.which(exe):
@@ -3339,14 +3648,16 @@ class Matlab(RegistrationEngine):
             if isinstance(path, (Path, str)):
                 if not prepend_path("MATLABPATH", path):
                     raise RuntimeError(
-                            "Directory to be added to MATLABPATH not found: "
-                            + f"'{path}'")
+                        "Directory to be added to MATLABPATH not found: "
+                        + f"'{path}'"
+                    )
 
             self.exe_cmd = ["matlab", "-batch"]
             self.call = type(self).exes[0]
 
     def shift_translation_parameters(
-            self, infile, dx=0, dy=0, dz=0, outfile=None):
+        self, infile, dx=0, dy=0, dz=0, outfile=None
+    ):
         # Add offsets to the translation parameters
         # of a MATLAB transform file.
         if outfile is None:
@@ -3365,14 +3676,14 @@ class Matlab(RegistrationEngine):
 
     def write_affine(self, affine, outfile):
         """
-        Write affine matrix fo file. 
+        Write affine matrix fo file.
 
         **Parameter:**
         outfile: str/pathlib.Path
             Path to file to which to write affine matrix.
         """
         rows = [" ".join([str(val) for val in row]) for row in affine]
-        with open(outfile, "w") as file:
+        with open(outfile, "w", encoding="utf-8") as file:
             file.write("\n".join(rows))
 
     def write_parameters(self, outfile, params):
@@ -3387,18 +3698,25 @@ class Matlab(RegistrationEngine):
     def get_transform_strategies():
         return ["pull"]
 
+
 @add_engine
 class NiftyReg(RegistrationEngine):
     """
     Class interfacing to NiftyReg registration engine.
     """
+
     # Indicate signs to be applied to (x, y, z) components of deformation field.
     # If None, components are taken to be as read from file.
     def_signs = (-1, -1, 1)
 
     # Define engine executables.
-    exes = ["reg_aladin", "reg_f3d", "reg_jacobian", "reg_resample",
-            "reg_transform"]
+    exes = [
+        "reg_aladin",
+        "reg_f3d",
+        "reg_jacobian",
+        "reg_resample",
+        "reg_transform",
+    ]
 
     def __init__(self, **kwargs):
         # Initialise paths to executables.
@@ -3421,29 +3739,49 @@ class NiftyReg(RegistrationEngine):
         # application before a registration step.
         # Signs account for different conventions between NiftyReg and Elastix.
         translation = [
-                f"1 0 0 {-dxdydz[0]}",
-                f"0 1 0 {-dxdydz[1]}",
-                f"0 0 1 {dxdydz[2]}",
-                "0 0 0 1",
-                ]
+            f"1 0 0 {-dxdydz[0]}",
+            f"0 1 0 {-dxdydz[1]}",
+            f"0 0 1 {dxdydz[2]}",
+            "0 0 0 1",
+        ]
 
         return translation
 
     def get_def_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing deformation field.
-        return [self.reg_transform, "-ref", fixed_path, "-disp",
-                tfile, f"{outdir}/deformationField.nii"]
+        return [
+            getattr(self, "reg_transform"),
+            "-ref",
+            fixed_path,
+            "-disp",
+            tfile,
+            f"{outdir}/deformationField.nii",
+        ]
 
     def get_jac_cmd(self, fixed_path, outdir, tfile):
         # Return command for computing Jacobian determinant.
         if ".nii" == Path(tfile).suffix:
-            return [self.reg_jacobian, "-trans", tfile, "-ref", fixed_path,
-                    "-jac", f"{outdir}/spatialJacobian.nii"]
+            return [
+                getattr(self, "reg_jacobian"),
+                "-trans",
+                tfile,
+                "-ref",
+                fixed_path,
+                "-jac",
+                f"{outdir}/spatialJacobian.nii",
+            ]
+        return None
 
     def get_registration_cmd(
-            self, fixed_path, moving_path, fixed_mask_path, moving_mask_path,
-            pfile, outdir, tfile=None):
-
+        self,
+        fixed_path,
+        moving_path,
+        fixed_mask_path,
+        moving_mask_path,
+        pfile,
+        outdir,
+        tfile=None,
+    ):
         # Read registration parameters from file.
         params = self.read_parameters(pfile)
 
@@ -3454,27 +3792,30 @@ class NiftyReg(RegistrationEngine):
         # and path to output file (name following elastix convention).
         cmd = [
             getattr(self, params["exe"]),
-            '-ref', fixed_path,
-            '-flo', moving_path,
-            '-res', str(outdir / "result.0.nii"),
-            ]
+            "-ref",
+            fixed_path,
+            "-flo",
+            moving_path,
+            "-res",
+            str(outdir / "result.0.nii"),
+        ]
 
         # Add paths for any masks to be applied.
         if os.path.exists(fixed_mask_path):
-            cmd.extend(['-rmask', fixed_mask_path])
+            cmd.extend(["-rmask", fixed_mask_path])
         if os.path.exists(moving_mask_path):
-            cmd.extend(['-fmask', moving_mask_path])
+            cmd.extend(["-fmask", moving_mask_path])
 
         # Add path to transform from any previous (affine) step,
         # and path to output transform.
         if "reg_aladin" in cmd[0]:
-            cmd.extend(['-aff', str(outdir / "TransformParameters.0.txt")])
+            cmd.extend(["-aff", str(outdir / "TransformParameters.0.txt")])
             if tfile:
-                cmd.extend(['-inaff', tfile])
-        elif ("reg_f3d" in cmd[0]):
+                cmd.extend(["-inaff", tfile])
+        elif "reg_f3d" in cmd[0]:
             if tfile:
-                cmd.extend(['-aff', tfile])
-            cmd.extend(['-cpp', str(outdir / "TransformParameters.0.nii")])
+                cmd.extend(["-aff", tfile])
+            cmd.extend(["-cpp", str(outdir / "TransformParameters.0.nii")])
 
         # Add any other parameter-value pairs.
         for param, val in params.items():
@@ -3490,27 +3831,36 @@ class NiftyReg(RegistrationEngine):
         return {"-inter": 0}
 
     def get_transform_cmd(
-            self, fixed_path, moving_path, outdir, tfile, params=None):
+        self, fixed_path, moving_path, outdir, tfile, params=None
+    ):
         # Construct part of command relating to any input parameters.
         params = params or {}
-        if not "-pad" in params:
+        if "-pad" not in params:
             params["-pad"] = 0
         params = [str(val) for items in params.items() for val in items]
 
         # Return command for applying registration transform.
-        return [self.reg_resample, "-ref", fixed_path, "-flo", moving_path,
-                "-res", str(Path(outdir) / 'result.nii'),
-                "-trans", tfile] + params
+        return [
+            getattr(self, "reg_resample"),
+            "-ref",
+            fixed_path,
+            "-flo",
+            moving_path,
+            "-res",
+            str(Path(outdir) / "result.nii"),
+            "-trans",
+            tfile,
+        ] + params
 
     def read_affine(self, infile):
         """
-        Read affine matrix from file. 
+        Read affine matrix from file.
 
         **Parameter:**
         infile: str/pathlib.Path
             Path to file from which to read affine matrix.
         """
-        with open(infile) as file:
+        with open(infile, encoding="utf-8") as file:
             lines = [line.strip().split() for line in file.readlines()]
         return [[float(item) for item in line] for line in lines]
 
@@ -3540,7 +3890,8 @@ class NiftyReg(RegistrationEngine):
         return exe_dir
 
     def shift_translation_parameters(
-            self, infile, dx=0, dy=0, dz=0, outfile=None):
+        self, infile, dx=0, dy=0, dz=0, outfile=None
+    ):
         # Add offsets to the translation parameters
         # of a Niftyreg transform file.
         print(infile, dx, dy, dz, outfile)
@@ -3560,14 +3911,14 @@ class NiftyReg(RegistrationEngine):
 
     def write_affine(self, affine, outfile):
         """
-        Write affine matrix fo file. 
+        Write affine matrix fo file.
 
         **Parameter:**
         outfile: str/pathlib.Path
             Path to file to which to write affine matrix.
         """
         rows = [" ".join([str(val) for val in row]) for row in affine]
-        with open(outfile, "w") as file:
+        with open(outfile, "w", encoding="utf-8") as file:
             file.write("\n".join(rows))
 
     def write_parameters(self, outfile, params):
@@ -3604,9 +3955,11 @@ def adjust_parameters(infile, outfile, params, engine=None):
     """
     return get_engine_cls(engine)().adjust_parameters(infile, outfile, params)
 
+
 def get_data_dir():
     """Return path to data directory within the scikit-rt package."""
     return Path(resource_filename("skrt", "data"))
+
 
 def get_parameters(pattern=None, engine=None, idx=0, params=None):
     """
@@ -3632,7 +3985,7 @@ def get_parameters(pattern=None, engine=None, idx=0, params=None):
         read from file.  Ignored if None.
     """
     # Obtain list of parameter files.
-    if pattern: 
+    if pattern:
         pfiles = get_default_pfiles(pattern, engine)
     else:
         pfiles = []
@@ -3685,6 +4038,7 @@ def get_default_pfiles_dir(engine=None):
     """
     return get_data_dir() / f"{get_engine_name(engine)}_parameter_files"
 
+
 def get_engine_name(engine=None, engine_dir=None):
     """
     Get registration-engine name, given engine name or software directory.
@@ -3714,6 +4068,7 @@ def get_engine_name(engine=None, engine_dir=None):
     # Return default engine name.
     return Defaults().registration_engine
 
+
 def get_engine_cls(engine=None, engine_dir=None):
     """
     Get registration-engine class, given engine name or software directory.
@@ -3740,7 +4095,7 @@ def get_image_transform_parameters(im):
     to the space of a specified image.
 
     **Parameter:**
-    
+
     im : skrt.image.Image
         Image object representing a fixed image in the context of registration.
     """
@@ -3749,40 +4104,43 @@ def get_image_transform_parameters(im):
     # convention used in Elastix - may not work for arbitrary image orientation.
     affine = im.get_affine()
     affine[0:2, :] = -affine[0:2, :]
-    
+
     # Spacings need to be positive.
-    # Signs taken into account via direction cosines. 
+    # Signs taken into account via direction cosines.
     voxel_size = [abs(dxyz) for dxyz in im.get_voxel_size()]
 
     image_transform_parameters = {
-            "//": "Image specific",
-            "FixedImageDimension": 3,
-            "MovingImageDimension": 3,
-            "FixedInternalImagePixelType": "float",
-            "MovingInternalImagePixelType": "float",
-            "Size": im.get_n_voxels(),
-            "Index": (0, 0, 0),
-            "Spacing": voxel_size,
-            "Origin": [0 + affine[row, 3] for row in range(3)],
-            "Direction": [0 + affine[row, col] / voxel_size[col]
-                for col in range(3) for row in range(3)],
-            "UseDirectionCosines": True,
-            "//": "ResampleInterpolator specific",
-            "ResampleInterpolator": "FinalBSplineInterpolator",
-            "FinalBSplineInterpolationOrder": 3,
-            "//": "Resampler specific",
-            "Resampler": "DefaultResampler",
-            "DefaultPixelValue": 0,
-            "ResultImageFormat": "nii",
-            "ResultImagePixelType": "short",
-            "CompressResultImage": False,
-            }
+        # Image specific
+        "FixedImageDimension": 3,
+        "MovingImageDimension": 3,
+        "FixedInternalImagePixelType": "float",
+        "MovingInternalImagePixelType": "float",
+        "Size": im.get_n_voxels(),
+        "Index": (0, 0, 0),
+        "Spacing": voxel_size,
+        "Origin": [0 + affine[row, 3] for row in range(3)],
+        "Direction": [
+            0 + affine[row, col] / voxel_size[col]
+            for col in range(3)
+            for row in range(3)
+        ],
+        "UseDirectionCosines": True,
+        # ResampleInterpolator specific
+        "ResampleInterpolator": "FinalBSplineInterpolator",
+        "FinalBSplineInterpolationOrder": 3,
+        # Resampler specific
+        "Resampler": "DefaultResampler",
+        "DefaultPixelValue": 0,
+        "ResultImageFormat": "nii",
+        "ResultImagePixelType": "short",
+        "CompressResultImage": False,
+    }
 
     return image_transform_parameters
 
 
-def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
-    '''
+def get_jacobian_colormap(col_per_band=100, sat_values=None):
+    """
     Return custom colour map, for highlighting features of Jacobian determinant.
 
     Following image registration, the Jacobian determinant of
@@ -3815,11 +4173,11 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
     col_per_band : int, default=1000
         Number of colours (anchor points) per band in the colour map.
 
-    sat_values : dict, default={0: 1, 1: 0.5, 2: 1}
+    sat_values : dict, default=None
         Dictionary of saturation values for the colour bands.  The
         saturation value is the (unsigned) distance along the x scale
-        from the band threshold.
-    '''
+        from the band threshold.  If None, use dictionary {0: 1, 1: 0.5, 2: 1}.
+    """
     # Define row indices within colour map for each band,
     # and determine total number of rows.
     n_band = 3
@@ -3842,12 +4200,14 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
     # Local function for mapping between colour intensities
     # and values in Jacobian determinant (scale from -1 to 2).
     def get_x(u):
-        return (-1 + 3 * u)
+        return -1 + 3 * u
 
     # Define rgba values for band 0:
     # yellow increasing linearly in opacity with negative x,
     # starting with opacity 0.5.
     band = 0
+    if sat_values is None:
+        sat_values = {0: 1, 1: 0.5, 2: 1}
     x_sat = -sat_values[band]
     for i in ranges[band]:
         x = get_x(anchors[i])
@@ -3856,7 +4216,7 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
         red[i, 1:3] = 1
         green[i, 1:3] = 1
         alpha[i, 1:3] = v
-    
+
     # Define rgba values for band 1:
     # blue increasing in opacity as 1/x from 1 to 0.
     band = 1
@@ -3876,14 +4236,14 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
         else:
             blue[i, 1:3] = 1
             alpha[i, 1:3] = v
-        
+
     # Define rgba values for band 2:
     # red increasing linearly in opacity above x=1.
     band = 2
     x_sat = 1 + sat_values[band]
     for i in ranges[band]:
         x = get_x(anchors[i])
-        v = (x - 1)/ (x_sat - 1) if (x_sat - 1 and x < x_sat) else 1
+        v = (x - 1) / (x_sat - 1) if (x_sat - 1 and x < x_sat) else 1
         if i == ranges[band][0]:
             red[i, 2] = 1
             green[i, 2] = 0
@@ -3892,17 +4252,18 @@ def get_jacobian_colormap(col_per_band=100, sat_values={0: 1, 1: 0.5, 2: 1}):
         else:
             red[i, 1:3] = 1
             alpha[i, 1:3] = v
- 
+
     # Create colour map.
-    cdict = {'red' : red, 'green' : green, 'blue' : blue, 'alpha': alpha}
-    cmap = matplotlib.colors.LinearSegmentedColormap('jacobian',
-            segmentdata=cdict)
+    cdict = {"red": red, "green": green, "blue": blue, "alpha": alpha}
+    cmap = matplotlib.colors.LinearSegmentedColormap(
+        "jacobian", segmentdata=cdict
+    )
 
     return cmap
 
 
 def prepend_path(variable, path, path_must_exist=True):
-    '''
+    """
     Prepend path to environment variable.
 
     **Parameters:**
@@ -3915,7 +4276,7 @@ def prepend_path(variable, path, path_must_exist=True):
 
     path_must_exist : bool, default=True
         If True, only append path if it exists.
-    '''
+    """
     path = str(path)
     path_ok = True
     if path_must_exist:
@@ -3969,8 +4330,11 @@ def set_elastix_dir(path, force=True):
         can't be located in the existing environment.  If True, modify
         environment based on <path> in all cases.
     """
-    warnings.warn("set_elastix_dir() deprecated - "
-                  "use set_engine_dir(engine='elastix')", DeprecationWarning)
+    warnings.warn(
+        "set_elastix_dir() deprecated - "
+        "use set_engine_dir(engine='elastix')",
+        DeprecationWarning,
+    )
     set_engine_dir(path, "elastix", force)
 
 
@@ -3992,18 +4356,21 @@ def set_engine_dir(path, engine=None, force=True):
         environment based on <path> in all cases.
     """
     local_engine = get_engine_name(engine, path)
-    if not local_engine in engines:
-        raise RuntimeError("Unable to determine registration engine "
-                           f"from path: {path}, engine: {engine}; "
-                           f"known engines are: {list(engines)}")
+    if local_engine not in engines:
+        raise RuntimeError(
+            "Unable to determine registration engine "
+            f"from path: {path}, engine: {engine}; "
+            f"known engines are: {list(engines)}"
+        )
     get_engine_cls(local_engine)(path=path, force=force)
 
 
 def shift_translation_parameters(
-        infile, dx=0, dy=0, dz=0, outfile=None, engine=None):
+    infile, dx=0, dy=0, dz=0, outfile=None, engine=None
+):
     """
     Add offsets to the translation parameters in a registration transform file.
-    
+
     **Parameters:**
 
     infile: str
@@ -4021,7 +4388,8 @@ def shift_translation_parameters(
         a key of the dictionary skrt.registration.engines.
     """
     get_engine_cls(engine)().shift_translation_parameters(
-            infile, dx=dx, dy=dy, dz=dz, outfile=outfile)
+        infile, dx=dx, dy=dy, dz=dz, outfile=outfile
+    )
 
 
 def write_parameters(outfile, params, engine=None):
@@ -4042,8 +4410,14 @@ def write_parameters(outfile, params, engine=None):
     """
     get_engine_cls(engine)().write_parameters(outfile, params)
 
-def get_engines(engine_dirs=None, force=False, defaults=None, verbose=False,
-                no_exception=False):
+
+def get_engines(
+    engine_dirs=None,
+    force=False,
+    defaults=None,
+    verbose=False,
+    no_exception=False,
+):
     """
     Obtain list of names of available registration engines.
 
@@ -4076,14 +4450,17 @@ def get_engines(engine_dirs=None, force=False, defaults=None, verbose=False,
     """
     Defaults(**(defaults or {}))
     engine_dirs = engine_dirs or {}
-    ok_engines = [engine for engine, engine_cls in engines.items()
-               if engine_cls().is_available(
-                   engine_dirs.get(engine, None), force)]
+    ok_engines = [
+        engine
+        for engine, engine_cls in engines.items()
+        if engine_cls().is_available(engine_dirs.get(engine, None), force)
+    ]
 
     if not no_exception and not ok_engines:
         raise RuntimeError(
             "No registration engines available; "
-            f"setup needed for one of the known engines: {sorted(engines)}")
+            f"setup needed for one of the known engines: {sorted(engines)}"
+        )
 
     if verbose:
         s = "" if 1 == len(ok_engines) else "s"

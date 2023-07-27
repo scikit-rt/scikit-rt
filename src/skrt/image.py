@@ -215,6 +215,11 @@ class Image(skrt.core.Archive):
             return
 
         # Otherwise, load from source
+        self._affine_canonical = None
+        self._data_canonical = None
+        self._saffine = None
+        self._sdata = None
+        self._sorigin = None
         self.data = None
         self.title = title
         self.source = (skrt.core.fullpath(path)
@@ -1002,7 +1007,7 @@ class Image(skrt.core.Archive):
             even if it has previously been computed.
         """
 
-        if not hasattr(self, "_sdata") or force:
+        if self._sdata is None or force:
             self.standardise_data()
         return self._sdata
 
@@ -1017,7 +1022,7 @@ class Image(skrt.core.Archive):
             even if it has previously been computed.
         """
 
-        if not hasattr(self, "_saffine") or force:
+        if self._saffine is None or force:
             self.standardise_data()
         return self._saffine
 
@@ -1032,7 +1037,7 @@ class Image(skrt.core.Archive):
             even if it has previously been computed.
         """
 
-        if not hasattr(self, "_sorigin") or force:
+        if self._sorigin is None or force:
             self.standardise_data()
         return self._sorigin
 
@@ -1096,13 +1101,13 @@ class Image(skrt.core.Archive):
         elif "nifti" in self.source_type:
 
             # Load and cache canonical data array
-            if not hasattr(self, "_data_canonical"):
+            if self._data_canonical is None:
                 init_dtype = self.get_data().dtype
                 nii = nibabel.as_closest_canonical(
                     nibabel.Nifti1Image(self.data.astype(np.float64), self.affine)
                 )
-                setattr(self, "_data_canonical", nii.get_fdata().astype(init_dtype))
-                setattr(self, "_affine_canonical", nii.affine)
+                self._data_canonical = nii.get_fdata().astype(init_dtype)
+                self._affine_canonical = nii.affine
 
             data = self._data_canonical.copy()
             transpose = pad_transpose([1, 0, 2], data.ndim)
@@ -2174,8 +2179,7 @@ class Image(skrt.core.Archive):
         for attribute in [
                 "_affine_canonical", "_data_canonical",
                 "_saffine", "_sdata", "_sorigin"]:
-            if hasattr(self, attribute):
-                delattr(self, attribute)
+            setattr(self, attribute, None)
         self.standardise_data()
         self.n_voxels = [self._sdata.shape[1], self._sdata.shape[0],
                          self._sdata.shape[2]]
@@ -3954,10 +3958,9 @@ class Image(skrt.core.Archive):
         if image_resample and restore:
             self.resample(voxel_size=voxel_size, order=order)
 
-        # Remove prior standardised data
-        if hasattr(self, "_sdata"):
-            del self._sdata
-            del self._saffine
+        # Remove any prior standardised data
+        self._sdata = None
+        self._saffine = None
 
         return None
 

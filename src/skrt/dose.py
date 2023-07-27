@@ -22,6 +22,7 @@ class ImageOverlay(skrt.image.Image):
 
         kwargs['default_intensity'] = kwargs.get('default_intensity', None)
         skrt.image.Image.__init__(self, path, load, *args, **kwargs)
+        self.image = None
         self.set_image(image)
 
         # Default dose plotting settings
