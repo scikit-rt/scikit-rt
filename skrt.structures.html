@@ -166,7 +166,7 @@ in &lt;source&gt; but no associated &lt;image&gt; is assigned.</p>
 </dd>
 <dt>affine<span class="classifier">np.ndarray, default=None</span></dt><dd><p>Affine matrix of the image to which the ROI belongs.
 Needed to create mask if contours are provided
-in &lt;source&gt; but no associated &lt;image&gt; is assigned, and no 
+in &lt;source&gt; but no associated &lt;image&gt; is assigned, and no
 &lt;voxel_size&gt; and &lt;origin&gt; are given. If &lt;affine&gt; is given, it
 supercedes the latter two arguments.</p>
 </dd>
@@ -176,7 +176,7 @@ are not provided.</p>
 <dt>origin<span class="classifier">tuple, default=(0, 0, 0)</span></dt><dd><p>Origin position in mm in order (x, y, z); used if &lt;affine&gt; and &lt;image&gt;
 are not provided.</p>
 </dd>
-<dt>mask_threshold<span class="classifier">float, default=0.25</span></dt><dd><p>Used if the ROI is created from a non-boolean pixel array. Values 
+<dt>mask_threshold<span class="classifier">float, default=0.25</span></dt><dd><p>Used if the ROI is created from a non-boolean pixel array. Values
 in the array exceeding this level are taken to be inside the ROI
 when it is converted to a boolean array.</p>
 </dd>
@@ -184,20 +184,20 @@ when it is converted to a boolean array.</p>
 Can be any of:</p>
 <blockquote>
 <div><ol class="loweralpha simple">
-<li><p>“contour”: geometric quantities will be calculated from 
+<li><p>“contour”: geometric quantities will be calculated from
 Shapely polygons made from contour points.</p></li>
-<li><p>“mask”: geometric quantities will be calculated from 
+<li><p>“mask”: geometric quantities will be calculated from
 numpy array representing a binary mask.</p></li>
-<li><p>“auto”: the “contour” or “mask” method will be used, 
+<li><p>“auto”: the “contour” or “mask” method will be used,
 depending on whether the input that create the ROI comprised
 of contours or an array, respectively.</p></li>
 </ol>
 </div></blockquote>
 </dd>
-<dt>overlap_level<span class="classifier">float, default=None</span></dt><dd><p>Used when converting an input ROI contour to a mask; required 
-overlap of a pixel with the ROI contour in order for the 
-pixel to be added to the mask. If None, the output of 
-skimage.draw.polygon2mask will be returned with no border checks, 
+<dt>overlap_level<span class="classifier">float, default=None</span></dt><dd><p>Used when converting an input ROI contour to a mask; required
+overlap of a pixel with the ROI contour in order for the
+pixel to be added to the mask. If None, the output of
+skimage.draw.polygon2mask will be returned with no border checks,
 which is faster than performing border checks.</p>
 </dd>
 <dt>alpha_over_beta<span class="classifier">float, default=None</span></dt><dd><p>Ratio for ROI tissue of coefficients, alpha, beta,
@@ -251,7 +251,7 @@ or a list of ROI/StructureSet objects.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.clone_attrs">
 <span class="sig-name descname"><span class="pre">clone_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.clone_attrs" title="Permalink to this definition"></a></dt>
-<dd><p>Assign all attributes of &lt;self&gt; to another object, &lt;obj&gt;,  ensuring 
+<dd><p>Assign all attributes of &lt;self&gt; to another object, &lt;obj&gt;,  ensuring
 that own mask’s data gets correctly copied if &lt;copy_data&gt; is True.</p>
 </dd></dl>
 
@@ -267,27 +267,27 @@ that own mask’s data gets correctly copied if &lt;copy_data&gt; is True.</p>
 <dd><p>Create binary mask representation of this ROI. If the ROI was created
 from contours, these contours will be converted to a mask; if the ROI
 was created from a mask, this mask will be cast to a boolean array and
-its geoemtric properties will be assigned to this ROI. If a mask has 
+its geoemtric properties will be assigned to this ROI. If a mask has
 already been created, nothing will happen unless force=True.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If True, the mask will be recreated even if it already exists.</p>
 </dd>
-<dt>overlap_level<span class="classifier">float, default=0.25</span></dt><dd><p>Required overlap of a pixel with the ROI contour in order for the 
+<dt>overlap_level<span class="classifier">float, default=0.25</span></dt><dd><p>Required overlap of a pixel with the ROI contour in order for the
 pixel to be added to the mask. If None, the value of
 self.overlap_level will be used; otherwise,
-self.overlap_level will be overwritten with this value. If both are 
-None, the output of skimage.draw.polygon2mask will be returned 
+self.overlap_level will be overwritten with this value. If both are
+None, the output of skimage.draw.polygon2mask will be returned
 with no border checks, which is faster than performing border checks.</p>
 </dd>
-<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel sizes of the desired mask in the [x, y] direction. Only used if 
-the ROI was created from contours; ignored if ROI was created from 
-mask. Causes self.image to be replaced with a 
+<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel sizes of the desired mask in the [x, y] direction. Only used if
+the ROI was created from contours; ignored if ROI was created from
+mask. Causes self.image to be replaced with a
 blank dummy image with these voxel sizes.</p>
 </dd>
-<dt>shape<span class="classifier">list, default=None</span></dt><dd><p>Shape of the desired mask in the [x, y] direction. Only used if 
-&lt;voxel_size&gt; is None and the ROI was created from contours; 
-ignored if ROI was created from mask. Causes self.image to be 
+<dt>shape<span class="classifier">list, default=None</span></dt><dd><p>Shape of the desired mask in the [x, y] direction. Only used if
+&lt;voxel_size&gt; is None and the ROI was created from contours;
+ignored if ROI was created from mask. Causes self.image to be
 replaced with a blank dummy image of this shape.</p>
 </dd>
 </dl>
@@ -370,7 +370,7 @@ flattening.</p>
 </dd>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If True, the centroid will be returned for a single slice.</p>
 </dd>
-<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the 3D centroid will be obtained and then the absolute 
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the 3D centroid will be obtained and then the absolute
 value along only the 2D axes in the orientation in &lt;view&gt; will
 be returned.</p>
 </dd>
@@ -394,13 +394,13 @@ will be used.</p>
 </ul>
 </dd>
 </dl>
-<p>If units=”voxels” or “slice” is requested but either ROI only has 
-contours and no mask shape/voxel size information, an error will be 
-raised (unless ax=”z”, in which case voxel size will be inferred 
+<p>If units=”voxels” or “slice” is requested but either ROI only has
+contours and no mask shape/voxel size information, an error will be
+raised (unless ax=”z”, in which case voxel size will be inferred
 from spacing between slices).</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for centroid calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for centroid calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: get centroid of shapely contour(s).</p></li>
 <li><p>“mask”: get average position of voxels in binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -408,9 +408,9 @@ from spacing between slices).</p>
 </dd>
 </dl>
 </dd>
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the global centroid will always be recalculated; 
-otherwise, it will only be calculated if it has not yet been cached 
-in self._volume.  Note that if single_slice=True, the centroid will 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the global centroid will always be recalculated;
+otherwise, it will only be calculated if it has not yet been cached
+in self._volume.  Note that if single_slice=True, the centroid will
 always be recalculated.</p>
 </dd>
 <dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
@@ -497,7 +497,7 @@ voxel size information, an error will be raised.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>“contour”: compute area from shapely polygon on the slice.</p></li>
-<li><p>“mask”: compute area by summing pixels on the slice and 
+<li><p>“mask”: compute area by summing pixels on the slice and
 multiplying by the area of one pixel.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
@@ -548,8 +548,8 @@ skrt.structures.ROI.get_extents() documentation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_centroid">
 <span class="sig-name descname"><span class="pre">get_centroid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_centroid" title="Permalink to this definition"></a></dt>
-<dd><p>Get either 3D global centroid position or 2D centroid position on 
-a single slice. If single_slice=False, the calculated global centroid 
+<dd><p>Get either 3D global centroid position or 2D centroid position on
+a single slice. If single_slice=False, the calculated global centroid
 will be cached in self._centroid[units] and returned if called again,
 unless force=True.</p>
 <p><strong>Parameters:</strong></p>
@@ -557,7 +557,7 @@ unless force=True.</p>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D centroid of the entire ROI will be returned;
 otherwise, the 2D centroid on a single slice will be returned.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get centroid. Only used if 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get centroid. Only used if
 single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
 the slice in this orientation.</p>
 </dd>
@@ -578,13 +578,13 @@ the slice in this orientation.</p>
 </ul>
 </dd>
 </dl>
-<p>If units=”voxels” or “slice” is requested but this ROI only has 
-contours and no mask shape/voxel size information, an error will be 
-raised (unless ax=”z”, in which case voxel size will be inferred 
+<p>If units=”voxels” or “slice” is requested but this ROI only has
+contours and no mask shape/voxel size information, an error will be
+raised (unless ax=”z”, in which case voxel size will be inferred
 from spacing between slices).</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for centroid calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for centroid calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: get centroid of shapely contour(s).</p></li>
 <li><p>“mask”: get average position of voxels in binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -592,9 +592,9 @@ from spacing between slices).</p>
 </dd>
 </dl>
 </dd>
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the global centroid will always be recalculated; 
-otherwise, it will only be calculated if it has not yet been cached 
-in self._volume.  Note that if single_slice=True, the centroid will 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the global centroid will always be recalculated;
+otherwise, it will only be calculated if it has not yet been cached
+in self._volume.  Note that if single_slice=True, the centroid will
 always be recalculated.</p>
 </dd>
 </dl>
@@ -613,7 +613,7 @@ always be recalculated.</p>
 <dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation in which to get centroids if using a single slice or
 flattening.</p>
 </dd>
-<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the 3D centroid will be obtained and then the absolute 
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the 3D centroid will be obtained and then the absolute
 value along only the 2D axes in the orientation in &lt;view&gt; will
 be returned.</p>
 </dd>
@@ -637,13 +637,13 @@ will be used.</p>
 </ul>
 </dd>
 </dl>
-<p>If units=”voxels” or “slice” is requested but either ROI only has 
-contours and no mask shape/voxel size information, an error will be 
-raised (unless ax=”z”, in which case voxel size will be inferred 
+<p>If units=”voxels” or “slice” is requested but either ROI only has
+contours and no mask shape/voxel size information, an error will be
+raised (unless ax=”z”, in which case voxel size will be inferred
 from spacing between slices).</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for centroid calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for centroid calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: get centroid of shapely contour(s).</p></li>
 <li><p>“mask”: get average position of voxels in binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -651,9 +651,9 @@ from spacing between slices).</p>
 </dd>
 </dl>
 </dd>
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the global centroid will always be recalculated; 
-otherwise, it will only be calculated if it has not yet been cached 
-in self._volume.  Note that if single_slice=True, the centroid will 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the global centroid will always be recalculated;
+otherwise, it will only be calculated if it has not yet been cached
+in self._volume.  Note that if single_slice=True, the centroid will
 always be recalculated.</p>
 </dd>
 <dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
@@ -715,7 +715,7 @@ present, provides dictionary of ROI colours.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_comparison">
 <span class="sig-name descname"><span class="pre">get_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_in_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_vs_slice_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_as_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nice_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimal_places</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_lengths_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_comparison" title="Permalink to this definition"></a></dt>
-<dd><p>Return a pandas DataFrame of the comparison metrics listed in 
+<dd><p>Return a pandas DataFrame of the comparison metrics listed in
 &lt;metrics&gt; with respect to another ROI.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -743,7 +743,7 @@ projected into the plane specified in &lt;view&gt;.</p></li>
 <li><p>“centroid_slice”: 2D centroid distance vector on a single slice.</p></li>
 <li><p>“centroid_slice_stats”: statistics specified in
 &lt;slice_stats&gt; for slice-by-slice 2D centroid distance vectors.</p></li>
-<li><p>“abs_centroid_slice”: magnitude of 2D centroid distance 
+<li><p>“abs_centroid_slice”: magnitude of 2D centroid distance
 vector on a single slice.</p></li>
 <li><p>“abs_centroid_slice_stats”: statistics specified in
 &lt;slice_stats&gt; for slice-by-slice magnitudes of 2D
@@ -751,9 +751,9 @@ centroid distance vectors.</p></li>
 <li><p>“volume_diff”: volume difference (own volume - other volume).</p></li>
 <li><p>“rel_volume_diff”: volume difference divided by own volume.</p></li>
 <li><p>“volume_ratio”: volume ratio (own volume / other volume).</p></li>
-<li><p>“area_diff”: area difference (own area - other area) on a 
+<li><p>“area_diff”: area difference (own area - other area) on a
 single slice.</p></li>
-<li><p>“rel_area_diff”: area difference divided by own area on a 
+<li><p>“rel_area_diff”: area difference divided by own area on a
 single slice.</p></li>
 <li><p>“area_ratio”: area ratio (own area / other area).</p></li>
 <li><p>“area_diff_flat”: area difference of ROIs flattened in the
@@ -812,25 +812,25 @@ or “voxels”.</p>
 </dd>
 <dt>centroid_units:</dt><dd><p>Units to use for centroids. Can be “mm” or “voxels”.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation in which to compute metrics. Only relevant for 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation in which to compute metrics. Only relevant for
 single-slice metrics or flattened metrics.</p>
 </dd>
-<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number on which to compute metrics. Only relevant for 
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number on which to compute metrics. Only relevant for
 single-slice metrics (area, centroid_slice, length_slice).
 If &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are all None, the central slice of the
 ROI will be used.</p>
 </dd>
-<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Slice index array on which to compute metrics. Only relevant for 
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Slice index array on which to compute metrics. Only relevant for
 single-slice metrics (area, centroid_slice, length_slice).
 Used if &lt;sl&gt; is None.</p>
 </dd>
-<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm on which to compute metrics. Only relevant for 
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm on which to compute metrics. Only relevant for
 single-slice metrics (area, centroid_slice, length_slice).
 Used if &lt;sl&gt; and &lt;idx&gt; are both None.</p>
 </dd>
-<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for metric calculation. Can be either “contour” 
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for metric calculation. Can be either “contour”
 (use shapely polygons) or “mask” (use binary mask). If None,
-the value set in self.default_geom_method will be used. Note 
+the value set in self.default_geom_method will be used. Note
 that flattened metrics and surface distance metrics enforce use
 of the “mask” method.</p>
 </dd>
@@ -879,19 +879,19 @@ other roi.</p></li>
 <dt>global_vs_slice_header<span class="classifier">bool, default=False</span></dt><dd><p>If True, the returned DataFrame will have an extra set of headers
 splitting the table into “global” and “slice” metrics.</p>
 </dd>
-<dt>name_as_index<span class="classifier">bool, default=True</span></dt><dd><p>If True, the index column of the pandas DataFrame will 
+<dt>name_as_index<span class="classifier">bool, default=True</span></dt><dd><p>If True, the index column of the pandas DataFrame will
 contain the ROI’s names; otherwise, the name will appear in a column
 named “ROI”.</p>
 </dd>
 <dt>nice_columns<span class="classifier">bool, default=False</span></dt><dd><p>If False, column names will be the same as the input metrics names;
-if True, the names will be capitalized and underscores will be 
+if True, the names will be capitalized and underscores will be
 replaced with spaces.</p>
 </dd>
 <dt>decimal_places<span class="classifier">int, default=None</span></dt><dd><p>Number of decimal places to keep for each metric. If None, full
 precision will be used.</p>
 </dd>
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If False, global metrics for each ROI (volume, 3D centroid, 
-3D lengths) will only be calculated if they have not been 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If False, global metrics for each ROI (volume, 3D centroid,
+3D lengths) will only be calculated if they have not been
 calculated before; if True, all metrics will be recalculated.</p>
 </dd>
 <dt>voxel_size<span class="classifier">tuple, default=(1, 1, 1)</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
@@ -995,7 +995,7 @@ globally, on a single slice, slice by slice, or slice averaged.</p>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Dice score of the full ROIs will be returned;
 otherwise, the 2D Dice score on a single slice will be returned.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Dice score. Only used if 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Dice score. Only used if
 single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
 the slice in this orientation.</p>
 </dd>
@@ -1009,7 +1009,7 @@ the slice in this orientation.</p>
 &lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for Dice score calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for Dice score calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: get intersections and areas of shapely contours.</p></li>
 <li><p>“mask”: count intersecting voxels in binary masks.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -1018,7 +1018,7 @@ the slice in this orientation.</p>
 </dl>
 </dd>
 <dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
-the Dice score of the flattened slices will be returned. Only 
+the Dice score of the flattened slices will be returned. Only
 available if method=”mask”.</p>
 </dd>
 <dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
@@ -1072,18 +1072,18 @@ if loaded from dicom; otherwise, return None.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_dummy_image">
 <span class="sig-name descname"><span class="pre">get_dummy_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_dummy_image" title="Permalink to this definition"></a></dt>
-<dd><p>Make a dummy image that covers the area spanned by this ROI. 
+<dd><p>Make a dummy image that covers the area spanned by this ROI.
 Returns an Image object.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as 
+<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as
 [vx, vy]. If &lt;shape&gt; and &lt;voxel_size&gt; are both None, voxel sizes of
-[1, 1] will be used by default. The voxel size in the z direction 
+[1, 1] will be used by default. The voxel size in the z direction
 is defined by &lt;slice_thickness&gt;.</p>
 </dd>
 <dt>shape<span class="classifier">list, default=None</span></dt><dd><p>Number of voxels in the dummy image in the x-y plane, given as
-[nx, ny]. Only used if &lt;voxel_size&gt; is None. 
-The number of voxels in the z direction will be taken from the 
+[nx, ny]. Only used if &lt;voxel_size&gt; is None.
+The number of voxels in the z direction will be taken from the
 number of slices in the x-y contours dictionary.</p>
 </dd>
 <dt>fill_val<span class="classifier">int/float, default=1e4</span></dt><dd><p>Value with which the voxels in the dummy image should be filled.</p>
@@ -1103,13 +1103,13 @@ in the x-y contours dictionary.</p>
 <span class="sig-name descname"><span class="pre">get_extent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_extent" title="Permalink to this definition"></a></dt>
 <dd><p>Get minimum and maximum extent of the ROI in mm along a given axis.</p>
 <dl>
-<dt>ax<span class="classifier">str/int, default=”z”</span></dt><dd><p>Axis along which to return extent. Should be one of [“x”, “y”, “z”] 
+<dt>ax<span class="classifier">str/int, default=”z”</span></dt><dd><p>Axis along which to return extent. Should be one of [“x”, “y”, “z”]
 or [0, 1, 2]</p>
 </dd>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the 3D extent of the entire ROI will be returned;
 otherwise, the 2D extent of a single slice will be returned.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get extent. Only used if 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get extent. Only used if
 single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
 the slice in this orientation.</p>
 </dd>
@@ -1126,7 +1126,7 @@ the slice in this orientation.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>“contour”: get extent from min/max positions of contour(s).</p></li>
-<li><p>“mask”: get extent from min/max positions of voxels in the 
+<li><p>“mask”: get extent from min/max positions of voxels in the
 binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
@@ -1159,7 +1159,7 @@ applies buffer as a fraction of total length in each dimension).</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>“contour”: get extent from min/max positions of contour(s).</p></li>
-<li><p>“mask”: get extent from min/max positions of voxels in the 
+<li><p>“mask”: get extent from min/max positions of voxels in the
 binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
@@ -1175,7 +1175,7 @@ If None, then (0, 0, 0) is used.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_geometry">
 <span class="sig-name descname"><span class="pre">get_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_in_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_vs_slice_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_as_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nice_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimal_places</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">html</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_geometry" title="Permalink to this definition"></a></dt>
-<dd><p>Return a pandas DataFrame or html table of the geometric properties 
+<dd><p>Return a pandas DataFrame or html table of the geometric properties
 listed in &lt;metrics&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -1207,23 +1207,23 @@ or “voxels”.</p>
 </dd>
 <dt>centroid_units:</dt><dd><p>Units to use for centroids. Can be “mm” or “voxels”.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation in which to compute metrics. Only relevant for 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation in which to compute metrics. Only relevant for
 single-slice metrics (area, centroid_slice, length_slice).</p>
 </dd>
-<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number on which to compute metrics. Only relevant for 
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number on which to compute metrics. Only relevant for
 single-slice metrics (area, centroid_slice, length_slice).
 If &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are all None, the central slice of the
 ROI will be used.</p>
 </dd>
-<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Slice index array on which to compute metrics. Only relevant for 
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Slice index array on which to compute metrics. Only relevant for
 single-slice metrics (area, centroid_slice, length_slice).
 Used if &lt;sl&gt; is None.</p>
 </dd>
-<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm on which to compute metrics. Only relevant for 
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm on which to compute metrics. Only relevant for
 single-slice metrics (area, centroid_slice, length_slice).
 Used if &lt;sl&gt; and &lt;idx&gt; are both None.</p>
 </dd>
-<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for metric calculation. Can be either “contour” 
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for metric calculation. Can be either “contour”
 (use shapely polygons) or “mask” (use binary mask). If None,
 the value set in self.default_geom_method will be used.</p>
 </dd>
@@ -1232,12 +1232,12 @@ the value set in self.default_geom_method will be used.</p>
 <dt>global_vs_slice_header<span class="classifier">bool, default=False</span></dt><dd><p>If True, the returned DataFrame will have an extra set of headers
 splitting the table into “global” and “slice” metrics.</p>
 </dd>
-<dt>name_as_index<span class="classifier">bool, default=True</span></dt><dd><p>If True, the index column of the pandas DataFrame will 
+<dt>name_as_index<span class="classifier">bool, default=True</span></dt><dd><p>If True, the index column of the pandas DataFrame will
 contain the ROI’s name; otherwise, the name will appear in a column
 named “ROI”.</p>
 </dd>
 <dt>nice_columns<span class="classifier">bool, default=False</span></dt><dd><p>If False, column names will be the same as the input metrics names;
-if True, the names will be capitalized and underscores will be 
+if True, the names will be capitalized and underscores will be
 replaced with spaces.</p>
 </dd>
 <dt>decimal_places<span class="classifier">int, default=None</span></dt><dd><p>Number of decimal places to keep for each metric. If None, full
@@ -1277,7 +1277,7 @@ position.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_intensities">
 <span class="sig-name descname"><span class="pre">get_intensities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_intensities" title="Permalink to this definition"></a></dt>
-<dd><p>Return 1D numpy array containing all of the intensity values for the 
+<dd><p>Return 1D numpy array containing all of the intensity values for the
 voxels inside self.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1304,7 +1304,7 @@ inside self, and is set to zero elsewhere.</p>
 retained inside ROI, and NaN elsewhere, is to be obtained.
 If None, the image associated with the ROI is used.</p>
 </dd>
-<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the data array will be returned in the orientation in 
+<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the data array will be returned in the orientation in
 which it was loaded; otherwise, it will be returned in standard
 dicom-style orientation such that [column, row, slice] corresponds
 to the [x, y, z] axes.</p>
@@ -1363,7 +1363,7 @@ if method=”mask”.</p>
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_jaccard">
 <span class="sig-name descname"><span class="pre">get_jaccard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_jaccard" title="Permalink to this definition"></a></dt>
 <dd><p>Get Jaccard index with respect to another ROI.</p>
-<p>The Jaccard index may be obtained either globally or on a 
+<p>The Jaccard index may be obtained either globally or on a
 single slice.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -1373,7 +1373,7 @@ single slice.</p>
 returned; otherwise, the 2D Jaccard index on a single slice
 will be returned.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Jaccard index. Only used if 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Jaccard index. Only used if
 single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
 the slice in this orientation.</p>
 </dd>
@@ -1387,7 +1387,7 @@ the slice in this orientation.</p>
 &lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for Dice score calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for Dice score calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: get intersections and areas of shapely contours.</p></li>
 <li><p>“mask”: count intersecting voxels in binary masks.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -1396,7 +1396,7 @@ the slice in this orientation.</p>
 </dl>
 </dd>
 <dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
-the Dice score of the flattened slices will be returned. Only 
+the Dice score of the flattened slices will be returned. Only
 available if method=”mask”.</p>
 </dd>
 <dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
@@ -1443,8 +1443,8 @@ module at:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_length">
 <span class="sig-name descname"><span class="pre">get_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_length" title="Permalink to this definition"></a></dt>
-<dd><p>Get ROI length along a given axis. If single_slice=False (i.e. a 
-global length is requested), calculated length will be cached in 
+<dd><p>Get ROI length along a given axis. If single_slice=False (i.e. a
+global length is requested), calculated length will be cached in
 self._length[ax][units] and returned if called again, unless force=True.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -1454,7 +1454,7 @@ or [0, 1, 2].</p>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the length of the entire ROI will be returned;
 otherwise, the length on a single slice will be returned.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get length. Only used if 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get length. Only used if
 single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
 the slice in this orientation.</p>
 </dd>
@@ -1475,14 +1475,14 @@ the slice in this orientation.</p>
 </dd>
 </dl>
 <p>If units=”voxels” is requested but this ROI only has contours and no
-voxel size information, an error will be raised (unless ax=”z”, 
+voxel size information, an error will be raised (unless ax=”z”,
 in which case voxel size will be inferred from spacing between
 slices).</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for length calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for length calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: get length from min/max positions of contour(s).</p></li>
-<li><p>“mask”: get length from min/max positions of voxels in the 
+<li><p>“mask”: get length from min/max positions of voxels in the
 binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
@@ -1491,7 +1491,7 @@ binary mask.</p></li>
 </dd>
 <dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the length will always be recalculated; otherwise, it will
 only be calculated if it has not yet been cached in self._volume.
-Note that if single_slice=True, the length will always be 
+Note that if single_slice=True, the length will always be
 recalculated.</p>
 </dd>
 </dl>
@@ -1586,7 +1586,7 @@ other roi.</p></li>
 <dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slices on which to get metric values.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for metric calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for metric calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: calculate metric from shapely contours.</p></li>
 <li><p>“mask”: calcualte metric from binary masks.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -1639,7 +1639,7 @@ Can be “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”.</p>
 <p>The patch obtained can be used as a handle in legend creation.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
-<dt>plot_type<span class="classifier">str, default=None</span></dt><dd><p>Plotting type. If None, will be either “contour” or “mask” 
+<dt>plot_type<span class="classifier">str, default=None</span></dt><dd><p>Plotting type. If None, will be either “contour” or “mask”
 depending on the input type of the ROI. Options:</p>
 <blockquote>
 <div><ul class="simple">
@@ -1651,14 +1651,14 @@ depending on the input type of the ROI. Options:</p>
 </ul>
 </div></blockquote>
 </dd>
-<dt>color<span class="classifier">matplotlib color, default=None</span></dt><dd><p>Color with which to plot the ROI; overrides the ROI’s own color. If 
+<dt>color<span class="classifier">matplotlib color, default=None</span></dt><dd><p>Color with which to plot the ROI; overrides the ROI’s own color. If
 None, self.color will be used.</p>
 </dd>
-<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>Opacity to use if plotting mask (i.e. plot types “mask”, “filled”, 
-or “filled centroid”). If None, opacity will be 1 by default for 
+<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>Opacity to use if plotting mask (i.e. plot types “mask”, “filled”,
+or “filled centroid”). If None, opacity will be 1 by default for
 solid mask plots and 0.3 by default for filled plots.</p>
 </dd>
-<dt>linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of contour lines. If None, the matplotlib default setting 
+<dt>linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of contour lines. If None, the matplotlib default setting
 will be used.</p>
 </dd>
 <dt>name<span class="classifier">str, default=None</span></dt><dd><p>Name identifying ROI.  If None, self.name will be used.</p>
@@ -1793,7 +1793,7 @@ are omitted.</p>
 <dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slices on which to get metric values.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for metric calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for metric calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: calculate metric from shapely contours.</p></li>
 <li><p>“mask”: calcualte metric from binary masks.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -1868,7 +1868,7 @@ other roi.</p></li>
 <dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slices on which to get metric values.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for metric calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for metric calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: calculate metric from shapely contours.</p></li>
 <li><p>“mask”: calculate metric from binary masks.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
@@ -1921,7 +1921,7 @@ Only used if either &lt;single_slice&gt; or &lt;flatten&gt; is True.</p>
 <dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; is supplied but
 &lt;single_slice&gt; is True, the central slice of the ROI will be used.</p>
 </dd>
-<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; is 
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; is
 supplied but &lt;single_slice&gt; is True, the central slice of
 the ROI will be used.</p>
 </dd>
@@ -2007,7 +2007,7 @@ outside the interval [0, 1] result in a RuntimeError.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_volume">
 <span class="sig-name descname"><span class="pre">get_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_volume" title="Permalink to this definition"></a></dt>
-<dd><p>Get ROI volume. The calculated volume will be cached in 
+<dd><p>Get ROI volume. The calculated volume will be cached in
 self._volume[units] and returned if called again, unless force=True.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -2024,7 +2024,7 @@ self._volume[units] and returned if called again, unless force=True.</p>
 voxel size information, an error will be raised.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
-<dt>Method to use for volume calculation. Can be: </dt><dd><ul class="simple">
+<dt>Method to use for volume calculation. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: compute volume by summing areas of shapely
 polygons on each slice and multiplying by slice thickness.</p></li>
 <li><p>“mask”: compute volume by summing voxels inside the ROI and
@@ -2033,8 +2033,8 @@ multiplying by the volume of one voxel.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Note that if self.get_volume has already been called with one 
-method, the same cached result will be returned if calling with a 
+<p>Note that if self.get_volume has already been called with one
+method, the same cached result will be returned if calling with a
 different method unless force=True.</p>
 </dd>
 <dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the volume will always be recalculated; otherwise, it will
@@ -2129,12 +2129,12 @@ or a list of ROI/StructureSet objects.</p>
 <dt class="sig sig-object py" id="skrt.structures.ROI.load">
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.load" title="Permalink to this definition"></a></dt>
 <dd><p>Load ROI from file or source. The loading sequence is as follows:</p>
-<p>1. If self.image is not None, ensure that the image is loaded and 
+<p>1. If self.image is not None, ensure that the image is loaded and
 assign its geometric properties to this ROI.</p>
 <ol class="arabic simple" start="2">
 <li><p>Attempt to load data from self.source:</p></li>
 </ol>
-<p>(a) If this is an Image object, the ROI will be created by applying a 
+<p>(a) If this is an Image object, the ROI will be created by applying a
 threshold to the Image’s array. Set self.mask to the thresholded image
 and self.input_type = “mask”.
 (b) If self.source is a string, attempt to load from a file
@@ -2153,7 +2153,7 @@ assigned to self.input_contours in self.__init(); or
 dicom file found at self.source in step 1(b).</p>
 <p>If input contours are found, these are assigned to self.contours[“x-y”]
 and self.source_type is set to “contour”. Additionally, if self.image
-is not None, set self.mask to an array of zeros the same size as the 
+is not None, set self.mask to an array of zeros the same size as the
 image.</p>
 <p>4. Set a flag indicating whether this ROI has contours only (i.e no
 mask or image from which to draw origin/voxel sizes), and set
@@ -2224,7 +2224,7 @@ calculations.</p>
 <dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation in which to plot. Can be “x-y”, “x-z”, “y-x”, “y-z”,
 “z-x”, or “z-y”.</p>
 </dd>
-<dt>plot_type<span class="classifier">str, default=”contour”</span></dt><dd><p>Plotting type. If None, will be either “contour” or “mask” 
+<dt>plot_type<span class="classifier">str, default=”contour”</span></dt><dd><p>Plotting type. If None, will be either “contour” or “mask”
 depending on the input type of the ROI. Options:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2236,14 +2236,14 @@ depending on the input type of the ROI. Options:</p>
 </ul>
 </div></blockquote>
 </dd>
-<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number to plot. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied, 
-the central slice of the ROI will be 
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number to plot. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied,
+the central slice of the ROI will be
 used.</p>
 </dd>
-<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice to plot. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are 
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice to plot. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are
 supplied, the central slice of the ROI will be used.</p>
 </dd>
-<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Position in mm of slice to plot. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; 
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Position in mm of slice to plot. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt;
 are supplied, the central slice of the ROI will be used.</p>
 </dd>
 <dt>ax<span class="classifier">matplotlib.pyplot.Axes, default=None</span></dt><dd><p>Axes on which to plot. If None, new axes will be created.</p>
@@ -2253,11 +2253,11 @@ current matplotlib figure with this gridspec.</p>
 </dd>
 <dt>figsize<span class="classifier">float, default=skrt.image._default_figsize</span></dt><dd><p>Figure height in inches; only used if &lt;ax&gt; and &lt;gs&gt; are None.</p>
 </dd>
-<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>Opacity to use if plotting mask (i.e. plot types “mask”, “filled”, 
-or “filled centroid”). If None, opacity will be 1 by default for 
+<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>Opacity to use if plotting mask (i.e. plot types “mask”, “filled”,
+or “filled centroid”). If None, opacity will be 1 by default for
 solid mask plots and 0.3 by default for filled plots.</p>
 </dd>
-<dt>linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of contour lines. If None, the matplotlib default setting 
+<dt>linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of contour lines. If None, the matplotlib default setting
 will be used.</p>
 </dd>
 <dt>contour_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Extra keyword arguments to pass to matplotlib contour plotting.</p>
@@ -2273,19 +2273,19 @@ not be zoomed in.</p>
 <dt>zoom_centre<span class="classifier">tuple, default=None</span></dt><dd><p>Position around which zooming is applied. If None, the centre of
 the image will be used.</p>
 </dd>
-<dt>color<span class="classifier">matplotlib color, default=None</span></dt><dd><p>Color with which to plot the ROI; overrides the ROI’s own color. If 
+<dt>color<span class="classifier">matplotlib color, default=None</span></dt><dd><p>Color with which to plot the ROI; overrides the ROI’s own color. If
 None, self.color will be used.</p>
 </dd>
 <dt>show<span class="classifier">bool, default=True</span></dt><dd><p>If True, the plot will be displayed immediately.</p>
 </dd>
-<dt>save_as<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the plot will be saved to the filename in the 
+<dt>save_as<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the plot will be saved to the filename in the
 string.</p>
 </dd>
 <dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True and self.image is not None, the ROI’s image will be plotted
 in the background.</p>
 </dd>
 <dt>no_invert<span class="classifier">bool, default=False</span></dt><dd><p>If False, contour plots will be automatically inverted when plotting
-without an underlying image to account for the y axis increasing 
+without an underlying image to account for the y axis increasing
 in the opposite direction. Otherwise, the plot will be left as
 it appeared when drawn by matplotlib.</p>
 </dd>
@@ -2294,7 +2294,7 @@ by contours, this will be the voxel sizes used in the x-y direction
 when converting the ROI to a mask if a mask plot type is selected.</p>
 </dd>
 <dt>buffer<span class="classifier">int, default=5</span></dt><dd><p>If the ROI does not have an associated image and is described only
-by contours, this will be the number of buffer voxels 
+by contours, this will be the number of buffer voxels
 (i.e. whitespace) displayed around the ROI.</p>
 </dd>
 <dt><a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the relevant plot function.</p>
@@ -2306,9 +2306,9 @@ by contours, this will be the number of buffer voxels
 <dt class="sig sig-object py" id="skrt.structures.ROI.plot_comparison">
 <span class="sig-name descname"><span class="pre">plot_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_slice_for_both</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_bbox_to_anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower</span> <span class="pre">left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.plot_comparison" title="Permalink to this definition"></a></dt>
 <dd><p>Plot comparison with another ROI. If no sl/idx/pos are given,
-the central slice of this ROI will be plotted, unless 
+the central slice of this ROI will be plotted, unless
 mid_slice_for_both=True, in which case the central slice of both ROIs
-will be plotted (even though this may not correspond to the same 
+will be plotted (even though this may not correspond to the same
 point in space).</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -2330,7 +2330,7 @@ ROIs will be plotted, even if this does not correspond to the same
 point in space; otherwise, the position of the central slice of
 this ROI will be plotted for both.</p>
 </dd>
-<dt>legend<span class="classifier">bool, default=True</span></dt><dd><p>If True, a legend will be added to the plot containing the names 
+<dt>legend<span class="classifier">bool, default=True</span></dt><dd><p>If True, a legend will be added to the plot containing the names
 of the two ROIs.</p>
 </dd>
 <dt>save_as<span class="classifier">str, default=None</span></dt><dd><p>Path to a file at which the plot will be saved. If None, the plot
@@ -2346,7 +2346,7 @@ by contours, this will be the voxel sizes used in the x-y direction
 when converting the ROI to a mask if a mask plot type is selected.</p>
 </dd>
 <dt>buffer<span class="classifier">int, default=5</span></dt><dd><p>If the ROI does not have an associated image and is described only
-by contours, this will be the number of buffer voxels 
+by contours, this will be the number of buffer voxels
 (i.e. whitespace) displayed around the ROI.</p>
 </dd>
 </dl>
@@ -2378,7 +2378,7 @@ by contours, this will be the number of buffer voxels
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.reset_contours">
 <span class="sig-name descname"><span class="pre">reset_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">most_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.reset_contours" title="Permalink to this definition"></a></dt>
-<dd><p>Reset x-y contours to a given dict of slices and contour lists, 
+<dd><p>Reset x-y contours to a given dict of slices and contour lists,
 and ensure that mask and y-x/y-x/y-z/z-x/z-y contours will be recreated.
 If contours is None, contours will be reset using own x-y contours.
 If most_points is True, only the contour with most points for
@@ -2388,8 +2388,8 @@ each slice is considered.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.reset_mask">
 <span class="sig-name descname"><span class="pre">reset_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.reset_mask" title="Permalink to this definition"></a></dt>
-<dd><p>Set mask to either a numpy array or an Image object, and ensure 
-that contours will be recreated. If mask is None, contours will be 
+<dd><p>Set mask to either a numpy array or an Image object, and ensure
+that contours will be recreated. If mask is None, contours will be
 reset using own mask.</p>
 </dd></dl>
 
@@ -2458,20 +2458,20 @@ equal to the physical dose (beta &gt;&gt; alpha).</p>
 <dt class="sig sig-object py" id="skrt.structures.ROI.set_image">
 <span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.set_image" title="Permalink to this definition"></a></dt>
 <dd><p>Set self.image to a given image and adjust geometric properties
-accordingly. Note that self.mask will be removed if the current mask’s 
+accordingly. Note that self.mask will be removed if the current mask’s
 shape doesn’t match the image.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.set_image_to_dummy">
 <span class="sig-name descname"><span class="pre">set_image_to_dummy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.set_image_to_dummy" title="Permalink to this definition"></a></dt>
-<dd><p>Assign self.image property to a dummy image covering the area 
-spanned by this ROI. The ROI’s mask and x-z/y-z contours will be 
+<dd><p>Assign self.image property to a dummy image covering the area
+spanned by this ROI. The ROI’s mask and x-z/y-z contours will be
 cleared so that they will be recreated when get_mask() or get_contours()
 are next called.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>kwargs<span class="classifier"></span></dt><dd><p>Keyword arguments to pass to self.get_dummy_image() when creating
+<dt>kwargs :</dt><dd><p>Keyword arguments to pass to self.get_dummy_image() when creating
 the dummy image. See documentation of ROI.get_dummy_image().</p>
 </dd>
 </dl>
@@ -2602,7 +2602,7 @@ by contours, this will be the voxel sizes used in the x-y direction
 when converting the ROI to a mask if a mask plot type is selected.</p>
 </dd>
 <dt>buffer<span class="classifier">int, default=5</span></dt><dd><p>If the ROI does not have an associated image and is described only
-by contours, this will be the number of buffer voxels 
+by contours, this will be the number of buffer voxels
 (i.e. whitespace) displayed around the ROI.</p>
 </dd>
 </dl>
@@ -2678,7 +2678,7 @@ attribute values have been loaded.</p>
 - A list of objects that could be used to initialise an ROI object
 (e.g. a numpy array).</p>
 </dd>
-<dt>name<span class="classifier">str, default=None</span></dt><dd><p>Optional name to assign to this structure set. If None, will 
+<dt>name<span class="classifier">str, default=None</span></dt><dd><p>Optional name to assign to this structure set. If None, will
 attempt to infer from input filename.</p>
 </dd>
 <dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Image associated with this structure set. If the input source is a
@@ -2688,7 +2688,7 @@ creating ROI binary masks.</p>
 <dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, ROIs will immediately be loaded from sources. Otherwise,
 loading will not occur until StructureSet.load() is called.</p>
 </dd>
-<dt>names<span class="classifier">dict/list, default=None</span></dt><dd><p>Optional dict of ROI names to use when renaming loaded ROIs. Keys 
+<dt>names<span class="classifier">dict/list, default=None</span></dt><dd><p>Optional dict of ROI names to use when renaming loaded ROIs. Keys
 should be desired names, and values should be lists of possible
 input names or wildcards matching input names.</p>
 <p>If multi_label=True, names can also be a list of names to assign
@@ -2696,20 +2696,20 @@ to each label found in order, from smallest to largest.</p>
 </dd>
 <dt>to_keep<span class="classifier">list, default=None</span></dt><dd><p>Optional list of ROI names or wildcards matching ROI names of ROIs
 to keep in this StructureSet during loading. ROIs not matching will
-be discarded. Note that the names should reflect those after 
+be discarded. Note that the names should reflect those after
 renaming via the &lt;names&gt; dict. If None, all ROIs will be kept.</p>
 </dd>
 <dt>to_remove<span class="classifier">list, default=None</span></dt><dd><p>Optional list of ROI names or wildcards matching ROI names of ROIs
 to remove from this StructureSet during loading. ROIs matching will
-be discarded. Note that the names should reflect those after 
+be discarded. Note that the names should reflect those after
 renaming via the &lt;names&gt; dict, and removal occurs after filtering
 with the &lt;to_keep&gt; list. If None, no ROIs will be removed.</p>
 </dd>
-<dt>multi_label<span class="classifier">bool, default=False</span></dt><dd><p>If True, will look for multiple ROI masks with different labels 
+<dt>multi_label<span class="classifier">bool, default=False</span></dt><dd><p>If True, will look for multiple ROI masks with different labels
 inside the array and create a separate ROI from each.</p>
 </dd>
 <dt>colors<span class="classifier">list/dict</span></dt><dd><p>List or dict of colors. If a dict, the keys should be ROI names or
-wildcards matching ROI names, and the values should be desired 
+wildcards matching ROI names, and the values should be desired
 colors for ROIs matching that name. If a list, should contain
 colors which will be applied to loaded ROIs in order.</p>
 </dd>
@@ -2846,11 +2846,11 @@ skrt.structures.ROI.crop().</p>
 to_remove list.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>to_keep<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to keep in the copied StructureSet; all 
+<dt>to_keep<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to keep in the copied StructureSet; all
 others will be removed. These names can also contain wildcards
 with the ‘*’ symbol.</p>
 </dd>
-<dt>to_remove<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to remove from the copied StructureSet; all 
+<dt>to_remove<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to remove from the copied StructureSet; all
 others will be removed. These names can also contain wildcards
 with the ‘*’ symbol. Applied after filtering with &lt;to_keep&gt;.</p>
 </dd>
@@ -2864,20 +2864,20 @@ with the ‘*’ symbol. Applied after filtering with &lt;to_keep&gt;.</p>
 renamed or filtered. Returns a new StructureSet object.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new 
+<dt>names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new
 names and values are lists of possible names of ROIs that should
 be assigned the new name. These names can also contain wildcards
 with the ‘*’ symbol.</p>
 </dd>
 <dt>name<span class="classifier">str, default=None</span></dt><dd><p>Name for the returned StructureSet.</p>
 </dd>
-<dt>to_keep<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to keep in the copied StructureSet; all 
+<dt>to_keep<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to keep in the copied StructureSet; all
 others will be removed. These names can also contain wildcards
 with the ‘*’ symbol. Applied after renaming with &lt;names&gt;.</p>
 </dd>
-<dt>to_remove<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to remove from the copied StructureSet; all 
+<dt>to_remove<span class="classifier">list, default=None</span></dt><dd><p>List of names of ROIs to remove from the copied StructureSet; all
 others will be removed. These names can also contain wildcards
-with the ‘*’ symbol. Applied after renaming with &lt;names&gt; and 
+with the ‘*’ symbol. Applied after renaming with &lt;names&gt; and
 filtering with &lt;to_keep&gt;.</p>
 </dd>
 <dt>keep_renamed_only<span class="classifier">bool, default=False</span></dt><dd><p>If True, any ROIs that do not get renamed will be removed from
@@ -2885,7 +2885,7 @@ the StructureSet.</p>
 </dd>
 <dt>copy_roi_data<span class="classifier">bool, default=True</span></dt><dd><p>If True, the ROIs in the returned StructureSet will contain
 copies of the data from the original StructureSet. Otherwise,
-the new ROIs will contain references to the same data, e.g. the 
+the new ROIs will contain references to the same data, e.g. the
 same numpy ndarray object for the mask/same dict for the contours.</p>
 </dd>
 </dl>
@@ -2936,7 +2936,7 @@ another StructureSet.</p>
 <dl>
 <dt>other<span class="classifier">ROI/StructureSet, default=None</span></dt><dd><p>Object to compare own ROIs with. Can either be a single ROI, which
 will be compared to every ROI in this structure set, or another
-structure set. If None, a comparison will be performed between the 
+structure set. If None, a comparison will be performed between the
 ROIs of this structure set.</p>
 </dd>
 <dt>comp_type<span class="classifier">str, default=”auto”</span></dt><dd><p>Method for selecting which ROIs should be compared if other=None
@@ -2950,15 +2950,15 @@ or other is a StructureSet. Options are:</p>
 to every ROI in the other with the same name. Useful when
 comparing two structure sets containing ROIs with the same
 names.
-- “consensus” : if other=None, compare each ROI in this 
+- “consensus” : if other=None, compare each ROI in this
 structure set to the consensus of all other ROIs; otherwise,
 compare each ROI in this structure set to the consensus of
 all ROIs in the other structure set. Consensus type is set via
 the consensus_type argument.
-- “auto” : if other=None, use “all” comparison. Otherwise, 
-first look for any ROIs with matching names; if at least one 
-matching pair is found, compare via the “by_name” comparison 
-type. If no matches are found, compare via the “all” comparison 
+- “auto” : if other=None, use “all” comparison. Otherwise,
+first look for any ROIs with matching names; if at least one
+matching pair is found, compare via the “by_name” comparison
+type. If no matches are found, compare via the “all” comparison
 type.</p>
 </div></blockquote>
 </dd>
@@ -2980,7 +2980,7 @@ on ROI colors.</p>
 <dt>greyed_out<span class="classifier">bool, default=None</span></dt><dd><p>List of ROIs that should be greyed out (given a grey background
 to their text) if returning an HTML string.</p>
 </dd>
-<dt><a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs<span class="classifier"></span></dt><dd><p>Keyword args to pass to ROI.get_comparison(). See 
+<dt><a href="#id13"><span class="problematic" id="id14">`</span></a><a href="#id15"><span class="problematic" id="id16">**</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>kwargs :</dt><dd><p>Keyword args to pass to ROI.get_comparison(). See
 ROI.get_comparison() documentation for details.</p>
 </dd>
 </dl>
@@ -3065,14 +3065,14 @@ if loaded from dicom; otherwise, return None.</p>
 StructureSet. Returns an Image object.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as 
+<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as
 [vx, vy]. If &lt;shape&gt; and &lt;voxel_size&gt; are both None, voxel sizes of
-[1, 1] will be used by default. The voxel size in the z direction 
+[1, 1] will be used by default. The voxel size in the z direction
 is defined by &lt;slice_thickness&gt;.</p>
 </dd>
 <dt>shape<span class="classifier">list, default=None</span></dt><dd><p>Number of voxels in the dummy image in the x-y plane, given as
-[nx, ny]. Only used if &lt;voxel_size&gt; is None. 
-The number of voxels in the z direction will be taken from the 
+[nx, ny]. Only used if &lt;voxel_size&gt; is None.
+The number of voxels in the z direction will be taken from the
 number of slices in the x-y contours dictionary.</p>
 </dd>
 <dt>fill_val<span class="classifier">int/float, default=1e4</span></dt><dd><p>Value with which the voxels in the dummy image should be filled.</p>
@@ -3114,7 +3114,7 @@ applies buffer as a fraction of total length in each dimension).</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>“contour”: get extent from min/max positions of contour(s).</p></li>
-<li><p>“mask”: get extent from min/max positions of voxels in the 
+<li><p>“mask”: get extent from min/max positions of voxels in the
 binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
@@ -3158,17 +3158,17 @@ on ROI colors.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_majority_vote">
 <span class="sig-name descname"><span class="pre">get_majority_vote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_majority_vote" title="Permalink to this definition"></a></dt>
-<dd><p>Get ROI object representing the majority vote combination of ROIs in 
-this structure set. If &lt;exclude&gt; is set to a string, the ROI with that 
+<dd><p>Get ROI object representing the majority vote combination of ROIs in
+this structure set. If &lt;exclude&gt; is set to a string, the ROI with that
 name will be excluded from the calculation.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and majority vote ROI has already been created, the 
-previously computed ROI will be returned. If Force=True, the 
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and majority vote ROI has already been created, the
+previously computed ROI will be returned. If Force=True, the
 majority vote ROI will be recreated.</p>
 </dd>
-<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will 
-be excluded from the combination. This may be useful if comparison 
+<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will
+be excluded from the combination. This may be useful if comparison
 of a single ROI with the consensus of all others is desired.</p>
 </dd>
 <dt><a href="#id19"><span class="problematic" id="id20">`</span></a><a href="#id21"><span class="problematic" id="id22">**</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the creation of the ROI object
@@ -3205,17 +3205,17 @@ name assigned is the name of the structure set, with suffix
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_overlap">
 <span class="sig-name descname"><span class="pre">get_overlap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_overlap" title="Permalink to this definition"></a></dt>
-<dd><p>Get ROI object representing the overlap of ROIs in this 
-structure set. If &lt;exclude&gt; is set to a string, the ROI with that name 
+<dd><p>Get ROI object representing the overlap of ROIs in this
+structure set. If &lt;exclude&gt; is set to a string, the ROI with that name
 will be excluded from the calculation.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and overlap ROI has already been created, the 
-previously computed ROI will be returned. If Force=True, the 
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and overlap ROI has already been created, the
+previously computed ROI will be returned. If Force=True, the
 overlap ROI will be recreated.</p>
 </dd>
-<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will 
-be excluded from the combination. This may be useful if comparison 
+<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will
+be excluded from the combination. This may be useful if comparison
 of a single ROI with the consensus of all others is desired.</p>
 </dd>
 <dt><a href="#id25"><span class="problematic" id="id26">`</span></a><a href="#id27"><span class="problematic" id="id28">**</span></a><a href="#id29"><span class="problematic" id="id30">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the creation of the ROI object
@@ -3266,17 +3266,17 @@ those names will be returned.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_staple">
 <span class="sig-name descname"><span class="pre">get_staple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_staple" title="Permalink to this definition"></a></dt>
-<dd><p>Get ROI object representing the STAPLE combination of ROIs in this 
-structure set. If &lt;exclude&gt; is set to a string, the ROI with that name 
+<dd><p>Get ROI object representing the STAPLE combination of ROIs in this
+structure set. If &lt;exclude&gt; is set to a string, the ROI with that name
 will be excluded from the calculation.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and STAPLE ROI has already been created, the 
-previously computed ROI will be returned. If Force=True, the 
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and STAPLE ROI has already been created, the
+previously computed ROI will be returned. If Force=True, the
 STAPLE ROI will be recreated.</p>
 </dd>
-<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will 
-be excluded from the combination. This may be useful if comparison 
+<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will
+be excluded from the combination. This may be useful if comparison
 of a single ROI with the consensus of all others is desired.</p>
 </dd>
 <dt><a href="#id31"><span class="problematic" id="id32">`</span></a><a href="#id33"><span class="problematic" id="id34">**</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the creation of the ROI object
@@ -3288,17 +3288,17 @@ representing the combination.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_sum">
 <span class="sig-name descname"><span class="pre">get_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_sum" title="Permalink to this definition"></a></dt>
-<dd><p>Get ROI object representing the sum of ROIs in this structure set. 
-If &lt;exclude&gt; is set to a string, the ROI with that name will be 
+<dd><p>Get ROI object representing the sum of ROIs in this structure set.
+If &lt;exclude&gt; is set to a string, the ROI with that name will be
 excluded from the calculation.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and sum ROI has already been created, the 
-previously computed ROI will be returned. If Force=True, the 
+<dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and sum ROI has already been created, the
+previously computed ROI will be returned. If Force=True, the
 sum ROI will be recreated.</p>
 </dd>
-<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will 
-be excluded from the combination. This may be useful if comparison 
+<dt>exclude<span class="classifier">str, default=None</span></dt><dd><p>If set to a string, the first ROI in self.rois with that name will
+be excluded from the combination. This may be useful if comparison
 of a single ROI with the consensus of all others is desired.</p>
 </dd>
 <dt><a href="#id37"><span class="problematic" id="id38">`</span></a><a href="#id39"><span class="problematic" id="id40">**</span></a><a href="#id41"><span class="problematic" id="id42">`</span></a>kwargs :</dt><dd><p>Extra keyword arguments to pass to the creation of the ROI object
@@ -3472,7 +3472,7 @@ rois_in_background=True.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt>colors<span class="classifier">list/dict</span></dt><dd><p>List or dict of colors. If a dict, the keys should be ROI names or
-wildcards matching ROI names, and the values should be desired 
+wildcards matching ROI names, and the values should be desired
 colors for ROIs matching that name. If a list, should contain
 colors which will be applied to loaded ROIs in order.</p>
 </dd>
@@ -3487,12 +3487,12 @@ colors which will be applied to loaded ROIs in order.</p>
 possible matches will be renamed.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new 
+<dt>names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new
 names and values are lists of possible names of ROIs that should
 be assigned the new name. These names can also contain wildcards
 with the ‘*’ symbol.</p>
 </dd>
-<dt>first_match_only<span class="classifier">bool, default=True</span></dt><dd><p>If True, only the first ROI matching the possible names in the 
+<dt>first_match_only<span class="classifier">bool, default=True</span></dt><dd><p>If True, only the first ROI matching the possible names in the
 values of &lt;names&gt; will be renamed; this prevents name duplication
 if multiple ROIs in the StructureSet are a match.</p>
 </dd>
@@ -3570,7 +3570,7 @@ and x-z/y-z contours of each ROI will be cleared, so that they
 will be recreated when get_mask() or get_contours() are next called.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>kwargs<span class="classifier"></span></dt><dd><p>Keyword arguments to pass to self.get_dummy_image() when
+<dt>kwargs :</dt><dd><p>Keyword arguments to pass to self.get_dummy_image() when
 creating the dummy image. See documentation of
 StructureSet.get_dummy_image().</p>
 </dd>
@@ -3610,18 +3610,18 @@ is used always.</p>
 <dd><p>View the StructureSet.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>include_image<span class="classifier">bool, default=True</span></dt><dd><p>If True and this StructureSet has an associated image 
+<dt>include_image<span class="classifier">bool, default=True</span></dt><dd><p>If True and this StructureSet has an associated image
 (in self.image), the image will be displayed behind the ROIs.</p>
 </dd>
 <dt>rois<span class="classifier">StructureSet/list, default=None</span></dt><dd><p>Any other ROIs or StructureSets to include in the plot.</p>
 </dd>
-<dt>voxel_size<span class="classifier">list, default=[1, 1]</span></dt><dd><p>If the StructureSet does not have an associated image and has ROIs 
-described only by contours, this will be the voxel sizes used in 
-the x-y direction when converting ROIs to masks if a mask plot 
+<dt>voxel_size<span class="classifier">list, default=[1, 1]</span></dt><dd><p>If the StructureSet does not have an associated image and has ROIs
+described only by contours, this will be the voxel sizes used in
+the x-y direction when converting ROIs to masks if a mask plot
 type is selected.</p>
 </dd>
 <dt>buffer<span class="classifier">int, default=5</span></dt><dd><p>If the StructureSet does not have an associated image and has ROIs
-described only by contours, this will be the number of buffer voxels 
+described only by contours, this will be the number of buffer voxels
 (i.e. whitespace) displayed around the extent of the ROIs.</p>
 </dd>
 </dl>
@@ -3659,36 +3659,36 @@ described only by contours, this will be the number of buffer voxels
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.contour_to_polygon">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">contour_to_polygon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contour</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.contour_to_polygon" title="Permalink to this definition"></a></dt>
-<dd><p>Convert a list of contour points to a Shapely polygon, ensuring that 
+<dd><p>Convert a list of contour points to a Shapely polygon, ensuring that
 the polygon is valid.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.create_dummy_image">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">create_dummy_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.create_dummy_image" title="Permalink to this definition"></a></dt>
-<dd><p>Make a dummy image that covers the area spanned by &lt;extents&gt; plus a 
+<dd><p>Make a dummy image that covers the area spanned by &lt;extents&gt; plus a
 buffer.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>extents<span class="classifier">list</span></dt><dd><p>List of [min, max] extents in mm along each of the three axes in 
+<dt>extents<span class="classifier">list</span></dt><dd><p>List of [min, max] extents in mm along each of the three axes in
 order [x, y, z].</p>
 </dd>
 <dt>slice_thickness<span class="classifier">float</span></dt><dd><p>Slice thickness in mm.</p>
 </dd>
-<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as 
+<dt>voxel_size<span class="classifier">list, default=None</span></dt><dd><p>Voxel size in mm in the dummy image in the x-y plane, given as
 [vx, vy]. If &lt;shape&gt; and &lt;voxel_size&gt; are both None, voxel sizes of
-[1, 1] will be used by default. The voxel size in the z direction 
-will be taken from the minimum distance between slice positions in 
+[1, 1] will be used by default. The voxel size in the z direction
+will be taken from the minimum distance between slice positions in
 the x-y contours dictionary.</p>
 </dd>
 <dt>shape<span class="classifier">list, default=None</span></dt><dd><p>Number of voxels in the dummy image in the x-y plane, given as
-[nx, ny]. Only used if &lt;voxel_size&gt; is None. 
-The number of voxels in the z direction will be taken from the 
+[nx, ny]. Only used if &lt;voxel_size&gt; is None.
+The number of voxels in the z direction will be taken from the
 number of slices in the x-y contours dictionary.</p>
 </dd>
 <dt>fill_val<span class="classifier">int/float, default=1e4</span></dt><dd><p>Value with which the voxels in the dummy image should be filled.</p>
 </dd>
-<dt>buffer<span class="classifier">float, default=2</span></dt><dd><p>Buffer amount of whitespace in mm to add outside the ROI in each 
+<dt>buffer<span class="classifier">float, default=2</span></dt><dd><p>Buffer amount of whitespace in mm to add outside the ROI in each
 direction.</p>
 </dd>
 </dl>
@@ -3722,12 +3722,6 @@ direction.</p>
 <dt class="sig sig-object py" id="skrt.structures.df_to_html">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">df_to_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.df_to_html" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a pandas DataFrame to html.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.structures.dicom_dataset_to_structure_set">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">dicom_dataset_to_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.dicom_dataset_to_structure_set" title="Permalink to this definition"></a></dt>
-<dd><p>Convert an existing image dicom dataset to a StructureSet dataset.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -3889,7 +3883,7 @@ values for the three types of conformity index is returned.</p>
 <dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the global 3D Dice score of the full ROIs will be returned;
 otherwise, the 2D Dice score on a single slice will be returned.</p>
 </dd>
-<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Dice score. Only used if 
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get Dice score. Only used if
 single_slice=True. If using, &lt;ax&gt; must be an axis that lies along
 the slice in this orientation.</p>
 </dd>
@@ -3902,7 +3896,7 @@ the slice in this orientation.</p>
 <dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
 &lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
 </dd>
-<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for Dice score calculation. Can be: 
+<dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for Dice score calculation. Can be:
 - “contour”: get intersections and areas of shapely contours.
 - “mask”: count intersecting voxels in binary masks.
 - None: use the method set in self.default_geom_method.
@@ -3910,7 +3904,7 @@ For more than two ROIs and &lt;ci_type&gt; “common”, only the “mask”
 method is implemented.</p>
 </dd>
 <dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
-the Dice score of the flattened slices will be returned. Only 
+the Dice score of the flattened slices will be returned. Only
 available if method=”mask”.</p>
 </dd>
 </dl>
@@ -4104,11 +4098,6 @@ name or list of names of ROIs to load.</p>
 </dl>
 <p>z_polygon: z coordinate at which polygon is defined.</p>
 </dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.structures.write_structure_set_dicom">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">write_structure_set_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.write_structure_set_dicom" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 </section>
 

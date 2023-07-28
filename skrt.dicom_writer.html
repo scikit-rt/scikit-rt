@@ -128,19 +128,25 @@
 <p>Class to help with writing data in DICOM format.</p>
 <p>DICOM writing is supported for instances of:</p>
 <ul class="simple">
+<li><p>skrt.dose.Dose;</p></li>
 <li><p>skrt.image.Image;</p></li>
-<li><p>skrt.dose.Dose.</p></li>
+<li><p>skrt.structures.StructureSet.</p></li>
 </ul>
 <p><strong>Methods:</strong></p>
 <ul class="simple">
 <li><p><strong>_Init__()</strong> : Create instance of DicomWriter class.</p></li>
-<li><p><strong>add_to_image_dataset()</strong> : Add to dataset image information.</p></li>
-<li><p><strong>add_to_struct_dataset()</strong> : Add to dataset structure-set information.</p></li>
+<li><p><strong>add_image_info()</strong> : Add image information to file dataset.</p></li>
+<li><p><strong>add_structure_set_info()</strong> : Add structure-set information
+to file dataset.</p></li>
 <li><p><strong>create_file_dataset()</strong> : Create new pydicom.dataset.FileDataset object.</p></li>
 <li><p><strong>get_file_dataset()</strong> : Retrive pydicom.dataset.FileDataset from source.</p></li>
 <li><p><strong>get_media_storage_sop_class_uid()</strong> : Determine uid given modality.</p></li>
 <li><p><strong>get_path_with_timestamp()</strong> : Obtain path to file with timestamped name.</p></li>
 <li><p><strong>initialise_outdir()</strong> : Initialis directory for writing output.</p></li>
+<li><p><strong>new_rt_roi_observation()</strong> : Create new pydicom.dataset.Dataset object
+representing an RT ROI observation.</p></li>
+<li><p><strong>new_roi_contour()</strong> : Create new pydicom.dataset.Dataset object
+representing an ROI contour.</p></li>
 <li><p><strong>set_data_and_time()</strong> : Set current date and time.</p></li>
 <li><p><strong>set_geometry_and_scaling()</strong> : Add geometry and scaling to dataset.</p></li>
 <li><p><strong>set_image()</strong> : Add to dataset information for full (3d) image.</p></li>
@@ -157,8 +163,10 @@
 <dl>
 <dt>outdir<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory where data are to be written.</p>
 </dd>
-<dt>data<span class="classifier">numpy.array, default=None</span></dt><dd><p>Data to be written in DICOM format.  This should be image-type
-data, stored in a numpy array.</p>
+<dt>data<span class="classifier">numpy.array/skrt.structures.StructureSet, default=None</span></dt><dd><p>Data to be written in DICOM format.  For source type
+“Dose” or “Image”, this should be image-type data, stored
+in a numpy array.  For source type “StructureSet”, this
+should be a skrt.structures.StructureSet object.</p>
 </dd>
 <dt>affine<span class="classifier">4x4 array, default=None</span></dt><dd><p>Array containing the affine matrix associated with image-type data.</p>
 </dd>
@@ -221,25 +229,15 @@ to sequential numbering.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.add_to_image_dataset">
-<span class="sig-name descname"><span class="pre">add_to_image_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_to_image_dataset" title="Permalink to this definition"></a></dt>
-<dd><p>Add image-specfic information to pydicom.dataset.FileDataset.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>ds<span class="classifier">pydicom.dataset.FileDataset</span></dt><dd><p>FileDataset to which data are to be added.</p>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.add_image_info">
+<span class="sig-name descname"><span class="pre">add_image_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_image_info" title="Permalink to this definition"></a></dt>
+<dd><p>Add image-specfic information to own file dataset.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.add_to_struct_dataset">
-<span class="sig-name descname"><span class="pre">add_to_struct_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_to_struct_dataset" title="Permalink to this definition"></a></dt>
-<dd><p>Add structure-set-specfic information to pydicom.dataset.FileDataset.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>ds<span class="classifier">pydicom.dataset.FileDataset</span></dt><dd><p>FileDataset to which data are to be added.</p>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.add_structure_set_info">
+<span class="sig-name descname"><span class="pre">add_structure_set_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_structure_set_info" title="Permalink to this definition"></a></dt>
+<dd><p>Add structure-set-specfic information to own file dataset.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -302,6 +300,29 @@ these are deleted.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.new_roi_contour">
+<span class="sig-name descname"><span class="pre">new_roi_contour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.new_roi_contour" title="Permalink to this definition"></a></dt>
+<dd><p>Create dataset representing an ROI contour.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>number<span class="classifier">int</span></dt><dd><p>Integer identifying ROI.</p>
+</dd>
+<dt>roi<span class="classifier">skrt.structures.ROI</span></dt><dd><p>ROI object for which contour data are to be stored.</p>
+</dd>
+</dl>
+<p>image</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.new_rt_roi_observation">
+<span class="sig-name descname"><span class="pre">new_rt_roi_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.new_rt_roi_observation" title="Permalink to this definition"></a></dt>
+<dd><p>Create dataset representing an RT ROI observation.</p>
+<p><strong>Parameters:</strong></p>
+<p>number</p>
+<p>name</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_date_and_time">
 <span class="sig-name descname"><span class="pre">set_date_and_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_date_and_time" title="Permalink to this definition"></a></dt>
 <dd><p>Obtain current time and store formatted values for date and time.</p>
@@ -339,7 +360,7 @@ these are deleted.</p>
 <dt>image<span class="classifier">skrt.image.Image</span></dt><dd><p>Image from which attributes of referenced frame
 of reference are to be determined.  If no associated DICOM
 dataset can be loaded for this image, then
-self.ds.ReferencedFrameOfReferenceSequence is set as
+self.dset.ReferencedFrameOfReferenceSequence is set as
 an empty sequence.</p>
 </dd>
 </dl>
@@ -349,9 +370,9 @@ an empty sequence.</p>
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_structure_set">
 <span class="sig-name descname"><span class="pre">set_structure_set</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_structure_set" title="Permalink to this definition"></a></dt>
 <dd><p>Add to dataset information for structure set.</p>
-<p>The contour data saved is all that’s needed for Scikit-rt.
+<p>The contour data saved is all that’s needed for scikit-rt.
 Several DICOM sequences are left empty, or partially populated,
-which outside of Scikit-rt may sometimes cause problems.</p>
+which outside of scikit-rt may sometimes cause problems.</p>
 </dd></dl>
 
 <dl class="py method">

@@ -392,14 +392,16 @@
 <li class="toctree-l1"><a class="reference internal" href="skrt.dicom_writer.html">skrt.dicom_writer module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter"><code class="docutils literal notranslate"><span class="pre">DicomWriter</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.__init__"><code class="docutils literal notranslate"><span class="pre">DicomWriter.__init__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.add_to_image_dataset"><code class="docutils literal notranslate"><span class="pre">DicomWriter.add_to_image_dataset()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.add_to_struct_dataset"><code class="docutils literal notranslate"><span class="pre">DicomWriter.add_to_struct_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.add_image_info"><code class="docutils literal notranslate"><span class="pre">DicomWriter.add_image_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.add_structure_set_info"><code class="docutils literal notranslate"><span class="pre">DicomWriter.add_structure_set_info()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.create_file_dataset"><code class="docutils literal notranslate"><span class="pre">DicomWriter.create_file_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.generate_shortened_uid"><code class="docutils literal notranslate"><span class="pre">DicomWriter.generate_shortened_uid()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.get_file_dataset"><code class="docutils literal notranslate"><span class="pre">DicomWriter.get_file_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.get_media_storage_sop_class_uid"><code class="docutils literal notranslate"><span class="pre">DicomWriter.get_media_storage_sop_class_uid()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.get_path_with_timestamp"><code class="docutils literal notranslate"><span class="pre">DicomWriter.get_path_with_timestamp()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.initialise_outdir"><code class="docutils literal notranslate"><span class="pre">DicomWriter.initialise_outdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.new_roi_contour"><code class="docutils literal notranslate"><span class="pre">DicomWriter.new_roi_contour()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.new_rt_roi_observation"><code class="docutils literal notranslate"><span class="pre">DicomWriter.new_rt_roi_observation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.set_date_and_time"><code class="docutils literal notranslate"><span class="pre">DicomWriter.set_date_and_time()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.set_geometry_and_scaling"><code class="docutils literal notranslate"><span class="pre">DicomWriter.set_geometry_and_scaling()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="skrt.dicom_writer.html#skrt.dicom_writer.DicomWriter.set_image"><code class="docutils literal notranslate"><span class="pre">DicomWriter.set_image()</span></code></a></li>
@@ -1207,7 +1209,6 @@
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.create_roi_sum"><code class="docutils literal notranslate"><span class="pre">create_roi_sum()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.create_staple"><code class="docutils literal notranslate"><span class="pre">create_staple()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.df_to_html"><code class="docutils literal notranslate"><span class="pre">df_to_html()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.dicom_dataset_to_structure_set"><code class="docutils literal notranslate"><span class="pre">dicom_dataset_to_structure_set()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.expand_slice_stats"><code class="docutils literal notranslate"><span class="pre">expand_slice_stats()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_all_rois"><code class="docutils literal notranslate"><span class="pre">get_all_rois()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.get_by_slice_methods"><code class="docutils literal notranslate"><span class="pre">get_by_slice_methods()</span></code></a></li>
@@ -1225,7 +1226,6 @@
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.interpolate_points_single_contour"><code class="docutils literal notranslate"><span class="pre">interpolate_points_single_contour()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.load_rois_dicom"><code class="docutils literal notranslate"><span class="pre">load_rois_dicom()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.polygon_to_contour"><code class="docutils literal notranslate"><span class="pre">polygon_to_contour()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="skrt.structures.html#skrt.structures.write_structure_set_dicom"><code class="docutils literal notranslate"><span class="pre">write_structure_set_dicom()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1233,6 +1233,14 @@
 </section>
 <section id="module-skrt">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-skrt" title="Permalink to this heading"></a></h2>
+<p>Toolkit for analysis of radiotherapy data.</p>
+<p>Scikit-rt, imported as skrt, is a toolkit for loading, plotting, and analysing
+radiotherapy data in DICOM and NIfTI formats.  It includes image registration
+via elastix, NiftyReg, and MATLAB, single- and multi-atlas segmentation,
+and region-of-interest (ROI) comparisons.</p>
+<p>Documentation: <a class="reference external" href="https://scikit-rt.github.io/scikit-rt/">https://scikit-rt.github.io/scikit-rt/</a>
+Code repository: <a class="reference external" href="https://github.com/scikit-rt/scikit-rt/">https://github.com/scikit-rt/scikit-rt/</a>
+PyPI project page: <a class="reference external" href="https://pypi.org/project/scikit-rt/">https://pypi.org/project/scikit-rt/</a></p>
 </section>
 </section>
 
