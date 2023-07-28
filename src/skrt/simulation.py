@@ -1,16 +1,15 @@
 """Classes for creating synthetic images with simple geometries."""
 
 import os
-import numpy as np
-import nibabel
 import pathlib
 import shutil
-from scipy import ndimage
 
+import numpy as np
+
+from skrt.core import is_list, to_list
 from skrt.image import Image, _axes
 from skrt.patient import Patient
 from skrt.structures import StructureSet, ROI
-import skrt.core
 
 
 class SyntheticImage(Image):
@@ -26,11 +25,11 @@ class SyntheticImage(Image):
         noise_std=None,
         auto_timestamp=False,
     ):
-        """Create an initially blank synthetic image to which geometric 
+        """Create an initially blank synthetic image to which geometric
         ROIs can be added.
 
         **Parameters:**
-        
+
         shape : int/tuple
             Dimensions of the image array to create in order (x, y, z).
             If an int is given, the image will be created with dimensions
@@ -60,11 +59,10 @@ class SyntheticImage(Image):
         """
 
         # Assign properties
-        shape = skrt.core.to_list(shape)
+        shape = to_list(shape)
         self.shape = [shape[1], shape[0], shape[2]]
         self.n_voxels = shape
-        #self.voxel_size = [abs(v) for v in skrt.core.to_list(voxel_size)]
-        self.voxel_size = skrt.core.to_list(voxel_size)
+        self.voxel_size = to_list(voxel_size)
         self.origin = origin
         self.max_hu = 0 if noise_std is None else noise_std * 3
         self.min_hu = -self.max_hu if self.max_hu != 0 else -20
@@ -80,8 +78,11 @@ class SyntheticImage(Image):
 
         # Initialise as Image
         Image.__init__(
-            self, self.get_background(), voxel_size=self.voxel_size,
-            origin=self.origin, auto_timestamp=auto_timestamp
+            self,
+            self.get_background(),
+            voxel_size=self.voxel_size,
+            origin=self.origin,
+            auto_timestamp=auto_timestamp,
         )
 
         # Write to file if a filename is given
@@ -89,25 +90,7 @@ class SyntheticImage(Image):
             self.filename = os.path.expanduser(filename)
             self.write()
 
-    '''
-    def view(self, **kwargs):
-        """View with QuickViewer."""
-
-        from skrt.viewer import QuickViewer
-
-        qv_kwargs = {
-            "hu": [self.min_hu, self.max_hu],
-            "title": "",
-            "origin": self.origin,
-            "voxel_size": self.voxel_size,
-            "mpl_kwargs": {"interpolation": "none"},
-        }
-        qv_kwargs.update(kwargs)
-        rois = self.get_roi_data()
-        QuickViewer(self.get_data(), structs=rois, **qv_kwargs)
-    '''
-
-    def update(self, force_bkg=False):
+    def update(self):
         """Update self.data so that it contains all current shapes."""
 
         # Get background array
@@ -125,8 +108,9 @@ class SyntheticImage(Image):
         self.clear_structure_sets()
         self.update_rois()
         self._image = Image(self)
-        self._structure_set = StructureSet(list(self.rois.values()),
-                image=self._image, auto_timestamp=True)
+        self._structure_set = StructureSet(
+            list(self.rois.values()), image=self._image, auto_timestamp=True
+        )
         self.structure_sets = [self._structure_set]
 
     def get_image(self):
@@ -150,12 +134,13 @@ class SyntheticImage(Image):
         Image.plot(self, **kwargs)
 
     def view(self, images=None, **kwargs):
-        """View self with BetterViewer along with any additional images in 
+        """View self with BetterViewer along with any additional images in
         <images>. Any ``**kwargs`` will be passed to BetterViewer
         initialisation.
         """
 
         from skrt.better_viewer import BetterViewer
+
         ims = [self]
         if images is not None:
             if isinstance(images, Image):
@@ -183,7 +168,7 @@ class SyntheticImage(Image):
 
     def update_roi(self, name):
         """Update an ROI to ensure it has the correct data."""
-        
+
         self.rois[name].data = self.roi_shapes[name].get_data(self.get_coords())
 
     def update_rois(self):
@@ -197,7 +182,7 @@ class SyntheticImage(Image):
 
         if name not in self.rois:
             print("ROI", name, "not found!")
-            return
+            return None
 
         self.update_roi(name)
         return self.rois[name]
@@ -217,7 +202,7 @@ class SyntheticImage(Image):
                 outname = self.filename
             else:
                 raise RuntimeError(
-                    "Filename must be specified in __init__() " "or write()!"
+                    "Filename must be specified in __init__() or write()!"
                 )
 
         # Write image data
@@ -233,13 +218,20 @@ class SyntheticImage(Image):
             if outname.endswith(ext):
                 ext_to_use = ext
                 outdir = outname.replace(ext, "")
-        structure_set.write(outdir=outdir, ext=ext_to_use, 
-                            overwrite=overwrite_roi_dir)
+        structure_set.write(
+            outdir=outdir, ext=ext_to_use, overwrite=overwrite_roi_dir
+        )
 
     def write_dicom_dataset(
-            self, patient_id="001", outdir="synthetic_dicom", modality="CT",
-            series_number=1, structure_set_label="Geometric structures",
-            root_uid=None, verbose=False):
+        self,
+        patient_id="001",
+        outdir="synthetic_dicom",
+        modality="CT",
+        series_number=1,
+        structure_set_label="Geometric structures",
+        root_uid=None,
+        verbose=False,
+    ):
         """
         Write image and associated structure set as a patient DICOM dataset.
 
@@ -269,46 +261,56 @@ class SyntheticImage(Image):
         verbose : bool, default=False
             If True, print information about progress of dataset writing.
         """
-        # Define permanent and temporary output directories. 
+        # Define permanent and temporary output directories.
         patient_dir = pathlib.Path(outdir) / patient_id
         if patient_dir.exists():
             shutil.rmtree(patient_dir)
         tmp_dir = pathlib.Path(outdir) / "tmp" / patient_id
-            
+
         # Obtain reference to structure set, and write associated image.
         # (The original image is a simulation.SyntheticImage object,
         # but the associated # image is a skrt.patient.Image object.)
         ss = self.get_structure_set()
         ss.get_image().write(
-            tmp_dir, patient_id=patient_id, modality=modality,
-            root_uid=root_uid, header_extras={"SeriesNumber": series_number},
-            verbose=verbose)
-        
+            tmp_dir,
+            patient_id=patient_id,
+            modality=modality,
+            root_uid=root_uid,
+            header_extras={"SeriesNumber": series_number},
+            verbose=verbose,
+        )
+
         # Write structure set, if non-empty,
         # after associating to it the DICOM image,
         if ss.get_roi_names():
             im = Image(tmp_dir)
             ds = im.get_dicom_dataset()
             header_extras = {
-                "SeriesNumber" : ds.SeriesNumber,
-                "StudyInstanceUID" : ds.StudyInstanceUID,
-                "StudyDate" : ds.StudyDate,
-                "StudyTime" : ds.StudyTime,
-                "StructureSetLabel" : structure_set_label,
+                "SeriesNumber": ds.SeriesNumber,
+                "StudyInstanceUID": ds.StudyInstanceUID,
+                "StudyDate": ds.StudyDate,
+                "StudyTime": ds.StudyTime,
+                "StructureSetLabel": structure_set_label,
             }
             ss.set_image(im)
-            ss.write(outdir=tmp_dir, ext=".dcm", patient_id=patient_id,
-                     modality=modality, root_uid=root_uid,
-                     header_extras=header_extras, verbose=verbose)
-        
+            ss.write(
+                outdir=tmp_dir,
+                ext=".dcm",
+                patient_id=patient_id,
+                modality=modality,
+                root_uid=root_uid,
+                header_extras=header_extras,
+                verbose=verbose,
+            )
+
         # Load the DICOM data, then rewrite as a sorted dataset.
         p = Patient(tmp_dir, unsorted_dicom=True)
         p.copy_dicom(patient_dir.parent)
         shutil.rmtree(tmp_dir.parent)
-        
+
         return patient_dir
 
-    def get_background(self, with_noise=True, force=False):
+    def get_background(self, with_noise=True):
         """Make blank image array or noisy array."""
 
         bkg = np.ones(self.shape) * self.bg_intensity
@@ -324,9 +326,10 @@ class SyntheticImage(Image):
         return array
 
     def set_noise_std(self, std):
+        """Set noise standard deviation."""
 
         self.noise_std = std
-        self.update(force_bkg=True)
+        self.update()
 
     def reset(self):
         """Remove all shapes."""
@@ -340,7 +343,6 @@ class SyntheticImage(Image):
         self.update()
 
     def add_shape(self, shape, shape_type, is_roi, above, group):
-
         if above:
             self.shapes.append(shape)
         else:
@@ -358,11 +360,12 @@ class SyntheticImage(Image):
                 else:
                     self.groups[group].add_shape(shape)
                 self.rois[group] = ROI(
-                        self.groups[group].get_data(self.get_coords()),
-                        name=group, affine=self.get_affine(), image=self
-                        )
+                    self.groups[group].get_data(self.get_coords()),
+                    name=group,
+                    affine=self.get_affine(),
+                    image=self,
+                )
             else:
-
                 if shape_type not in self.shape_count:
                     self.shape_count[shape_type] = 1
                 else:
@@ -373,8 +376,10 @@ class SyntheticImage(Image):
 
                 self.roi_shapes[shape.name] = shape
                 self.rois[shape.name] = ROI(
-                    shape.get_data(self.get_coords()), name=shape.name, 
-                    affine=self.get_affine(), image=self
+                    shape.get_data(self.get_coords()),
+                    name=shape.name,
+                    affine=self.get_affine(),
+                    image=self,
                 )
 
         self.min_hu = min([shape.intensity, self.min_hu])
@@ -390,10 +395,9 @@ class SyntheticImage(Image):
         above=True,
         group=None,
     ):
-
         if centre is None:
             centre = self.get_centre()
-        sphere = Sphere(self.shape, radius, centre, intensity, name)
+        sphere = Sphere(radius, centre, intensity, name)
         self.add_shape(sphere, "sphere", is_roi, above, group)
 
     def add_cylinder(
@@ -408,10 +412,9 @@ class SyntheticImage(Image):
         above=True,
         group=None,
     ):
-
         if centre is None:
             centre = self.get_centre()
-        cylinder = Cylinder(self.shape, radius, length, axis, centre, intensity, name)
+        cylinder = Cylinder(radius, length, axis, centre, intensity, name)
         self.add_shape(cylinder, "cylinder", is_roi, above, group)
 
     def add_cube(
@@ -424,7 +427,6 @@ class SyntheticImage(Image):
         above=True,
         group=None,
     ):
-
         self.add_cuboid(
             side_length, centre, intensity, is_roi, name, above, group=group
         )
@@ -439,18 +441,22 @@ class SyntheticImage(Image):
         above=True,
         group=None,
     ):
-
         if centre is None:
             centre = self.get_centre()
-        side_length = skrt.core.to_list(side_length)
+        side_length = to_list(side_length)
 
-        cuboid = Cuboid(self.shape, side_length, centre, intensity, name)
+        cuboid = Cuboid(side_length, centre, intensity, name)
         self.add_shape(cuboid, "cuboid", is_roi, above, group)
 
     def add_grid(
-        self, spacing, thickness=1, intensity=0, axis=None, name=None, above=True,
+        self,
+        spacing,
+        thickness=1,
+        intensity=0,
+        axis=None,
+        name=None,
+        above=True,
     ):
-
         grid = Grid(self.shape, spacing, thickness, intensity, axis, name)
         self.add_shape(grid, "grid", False, above, group=None)
 
@@ -475,8 +481,8 @@ class SyntheticImage(Image):
 
 
 class ShapeGroup:
+    """Class for grouping multiple shapes, to be represented by a single ROI."""
     def __init__(self, shapes, name):
-
         self.name = name
         self.shapes = shapes
 
@@ -484,7 +490,6 @@ class ShapeGroup:
         self.shapes.append(shape)
 
     def get_data(self, coords):
-
         data = self.shapes[0].get_data(coords)
         for shape in self.shapes[1:]:
             data += shape.get_data(coords)
@@ -492,15 +497,14 @@ class ShapeGroup:
 
 
 class Sphere:
-    def __init__(self, shape, radius, centre, intensity, name=None):
-
+    """Class representing a sphere."""
+    def __init__(self, radius, centre, intensity, name=None):
         self.name = name
         self.radius = radius
         self.centre = centre
         self.intensity = intensity
 
     def get_data(self, coords):
-
         distance_to_centre = np.sqrt(
             (coords[1] - self.centre[1]) ** 2
             + (coords[0] - self.centre[0]) ** 2
@@ -510,30 +514,38 @@ class Sphere:
 
 
 class Cuboid:
-    def __init__(self, shape, side_length, centre, intensity, name=None):
-
+    """Class representing a cuboid."""
+    def __init__(self, side_length, centre, intensity, name=None):
         self.name = name
-        self.side_length = skrt.core.to_list(side_length)
+        self.side_length = to_list(side_length)
         self.centre = centre
         self.intensity = intensity
 
     def get_data(self, coords):
-
         try:
             data = (
-                (np.absolute(coords[1] - self.centre[1]) <= self.side_length[1] / 2)
-                & (np.absolute(coords[0] - self.centre[0]) <= self.side_length[0] / 2)
-                & (np.absolute(coords[2] - self.centre[2]) <= self.side_length[2] / 2)
+                (
+                    np.absolute(coords[1] - self.centre[1])
+                    <= self.side_length[1] / 2
+                )
+                & (
+                    np.absolute(coords[0] - self.centre[0])
+                    <= self.side_length[0] / 2
+                )
+                & (
+                    np.absolute(coords[2] - self.centre[2])
+                    <= self.side_length[2] / 2
+                )
             )
             return data
         except TypeError:
             print("centre:", self.centre)
             print("side length:", self.side_length)
-
+            return None
 
 class Cylinder:
-    def __init__(self, shape, radius, length, axis, centre, intensity, name=None):
-
+    """Class representing a cylinder."""
+    def __init__(self, radius, length, axis, centre, intensity, name=None):
         self.radius = radius
         self.length = length
         self.centre = centre
@@ -542,7 +554,6 @@ class Cylinder:
         self.name = name
 
     def get_data(self, coords):
-
         # Get coordinates in each direction
         axis_idx = _axes.index(self.axis)
         circle_idx = [i for i in range(3) if i != axis_idx]
@@ -565,17 +576,18 @@ class Cylinder:
 
 
 class Grid:
-    def __init__(self, shape, spacing, thickness, intensity, axis=None, name=None):
-
+    """Class representing a grid."""
+    def __init__(
+        self, shape, spacing, thickness, intensity, axis=None, name=None
+    ):
         self.name = name
-        self.spacing = skrt.core.to_list(spacing)
-        self.thickness = skrt.core.to_list(thickness)
+        self.spacing = to_list(spacing)
+        self.thickness = to_list(thickness)
         self.intensity = intensity
         self.axis = axis
         self.shape = shape
 
     def get_data(self, _):
-
         coords = np.meshgrid(
             np.arange(0, self.shape[1]),
             np.arange(0, self.shape[0]),
@@ -587,17 +599,22 @@ class Grid:
             return (coords[ax1] % self.spacing[ax1] < self.thickness[ax1]) | (
                 coords[ax2] % self.spacing[ax2] < self.thickness[ax2]
             )
-        else:
-            return (
-                (coords[1] % self.spacing[1] < self.thickness[1])
-                | (coords[0] % self.spacing[0] < self.thickness[0])
-                | (coords[2] % self.spacing[2] < self.thickness[2])
-            )
+        return (
+            (coords[1] % self.spacing[1] < self.thickness[1])
+            | (coords[0] % self.spacing[0] < self.thickness[0])
+            | (coords[2] % self.spacing[2] < self.thickness[2])
+        )
 
 
-def make_grid(image, spacing=(30, 30, 30), thickness=(2, 2, 2),
-        background=-1024, foreground=1024, voxel_units=False):
-    '''
+def make_grid(
+    image,
+    spacing=(30, 30, 30),
+    thickness=(2, 2, 2),
+    background=-1024,
+    foreground=1024,
+    voxel_units=False,
+):
+    """
     Create a synthetic image of a grid pattern for a specified image.
 
     **Parameters:**
@@ -628,31 +645,36 @@ def make_grid(image, spacing=(30, 30, 30), thickness=(2, 2, 2),
         in numbers of voxels.  If False, values for spacing and
         thickness are taken to be in the same units as the
         voxel dimensions of the reference image.
-    '''
+    """
     image.load()
-      
+
     if not voxel_units:
-        spacing = [max(round(spacing[i] /
-            abs(image.get_voxel_size()[i])), 1) for i in range(len(spacing))]
-        thickness = [max(round(thickness[i] /
-            abs(image.get_voxel_size()[i])), 1) for i in range(len(thickness))]
+        spacing = [
+            max(round(spacing[i] / abs(image.get_voxel_size()[i])), 1)
+            for i in range(len(spacing))
+        ]
+        thickness = [
+            max(round(thickness[i] / abs(image.get_voxel_size()[i])), 1)
+            for i in range(len(thickness))
+        ]
 
     grid_image = SyntheticImage(
-            shape=image.get_n_voxels(),
-            origin=image.get_origin(),
-            voxel_size=image.get_voxel_size(),
-            intensity=background)
+        shape=image.get_n_voxels(),
+        origin=image.get_origin(),
+        voxel_size=image.get_voxel_size(),
+        intensity=background,
+    )
     grid_image.add_grid(spacing, thickness, foreground)
 
     return grid_image
 
 
 def make_head(
-        shape=[256, 256, (50, 80)],
-        origin = None,
-        voxel_size = [1, 1, 3],
-        noise_std = 10,
-        ):
+    shape=(256, 256, (50, 80)),
+    origin=None,
+    voxel_size=(1, 1, 3),
+    noise_std=10,
+):
     """
     Create an image featuring a loose approximation of a head.
 
@@ -681,7 +703,7 @@ def make_head(
     ##################
     # Image settings #
     ##################
-    shape = [round(value) for value in get_values(shape)]
+    shape = [round(value) for value in get_values(shape) or []]
     origin = get_values(origin) or [-shape[0] / 2, -shape[1] / 2, 0]
     voxel_size = get_values(voxel_size)
     noise_std = get_value(noise_std)
@@ -718,10 +740,12 @@ def make_head(
     ##############
     # Background and head
     head_image = SyntheticImage(
-            shape, voxel_size=voxel_size, origin=origin, noise_std=noise_std)
+        shape, voxel_size=voxel_size, origin=origin, noise_std=noise_std
+    )
     centre = head_image.get_centre()
     head_image.add_cylinder(
-            radius=head_radius, length=head_height, group='head')
+        radius=head_radius, length=head_height, group="head"
+    )
 
     # Add ears
     for i in [-1, 1]:
@@ -730,22 +754,22 @@ def make_head(
             centre=[
                 centre[0] + i * (head_radius + ear_offset_x),
                 centre[1] + ear_offset_y,
-                centre[2] + ear_offset_z
+                centre[2] + ear_offset_z,
             ],
-            group='head'
+            group="head",
         )
 
     # Add eyes
-    for i, name in zip([-1, 1], ['left', 'right']):
+    for i, name in zip([-1, 1], ["left", "right"]):
         head_image.add_sphere(
             radius=eye_radius,
             centre=[
                 centre[0] - head_radius * np.sin(np.radians(eye_angle)) * i,
                 centre[1] - head_radius * np.cos(np.radians(eye_angle)),
-                centre[2] - eye_offset_z
+                centre[2] - eye_offset_z,
             ],
             intensity=40,
-            name='eye_' + name
+            name="eye_" + name,
         )
 
     # Add teeth
@@ -758,26 +782,28 @@ def make_head(
             centre=[
                 centre[0] + np.sin(angle) * radius,
                 centre[1] - np.cos(angle) * radius,
-                z
+                z,
             ],
             intensity=100,
-            group='teeth'
+            group="teeth",
         )
         head_image.add_cube(
             side_length=teeth_size,
             centre=[
                 centre[0] + np.sin(angle) * radius,
                 centre[1] - np.cos(angle) * radius,
-                z + teeth_row_spacing
+                z + teeth_row_spacing,
             ],
             intensity=100,
-            group='teeth'
+            group="teeth",
         )
 
     return head_image
 
+
 def get_value(val):
-    return np.random.uniform(*val) if skrt.core.is_list(val) else val
+    return np.random.uniform(*val) if is_list(val) else val
+
 
 def get_values(vals):
-    return [get_value(val) for val in vals] if skrt.core.is_list(vals) else None
+    return [get_value(val) for val in vals] if is_list(vals) else None

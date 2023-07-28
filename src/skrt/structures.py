@@ -1,29 +1,29 @@
 """Classes related to ROIs and structure sets."""
 
+import fnmatch
+import logging
+import math
+import os
 from pathlib import Path
+import re
+import shutil
+
+# import warnings
 
 from scipy import interpolate, ndimage
-from skimage import draw
 from shapely import affinity
 from shapely import geometry
 from shapely import ops
-import fnmatch
-import logging
+from skimage import draw
+from matplotlib import defaultParams
 import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-from matplotlib import defaultParams
 import numpy as np
-import os
 import pandas as pd
 import pydicom
-import re
-import shutil
 import skimage.measure
-import math
-import time
-import warnings
 
 import skrt.core
 import skrt.image
@@ -34,6 +34,7 @@ skrt.core.Defaults({"by_slice": "union"})
 skrt.core.Defaults({"slice_stats": ["mean"]})
 skrt.core.Defaults({"shapely_log_level": logging.ERROR})
 
+
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""
 
@@ -43,7 +44,6 @@ class ROIDefaults:
     # Create single instance in inner class
     class __ROIDefaults:
         def __init__(self):
-
             self.n_rois = 0
             self.n_structure_sets = 0
             self.n_colors_used = 0
@@ -74,7 +74,9 @@ class ROIDefaults:
     def get_default_roi_color(self):
         """Get a default roi color."""
 
-        if ROIDefaults.instance.n_colors_used >= len(ROIDefaults.instance.colors):
+        if ROIDefaults.instance.n_colors_used >= len(
+            ROIDefaults.instance.colors
+        ):
             return np.random.rand(3)
         color = ROIDefaults.instance.colors[ROIDefaults.instance.n_colors_used]
         ROIDefaults.instance.n_colors_used += 1
@@ -88,6 +90,7 @@ class ROIDefaults:
 
 
 ROIDefaults()
+
 
 class ROI(skrt.core.Archive):
     """
@@ -115,11 +118,10 @@ class ROI(skrt.core.Archive):
         alpha_over_beta=None,
         **kwargs,
     ):
-
         """Load ROI from mask or contour.
 
         **Parameters:**
-        
+
         source : str/array/nifti, default=None
             Source of image data to load. Can be either:
 
@@ -161,7 +163,7 @@ class ROI(skrt.core.Archive):
         affine : np.ndarray, default=None
             Affine matrix of the image to which the ROI belongs.
             Needed to create mask if contours are provided
-            in <source> but no associated <image> is assigned, and no 
+            in <source> but no associated <image> is assigned, and no
             <voxel_size> and <origin> are given. If <affine> is given, it
             supercedes the latter two arguments.
 
@@ -174,7 +176,7 @@ class ROI(skrt.core.Archive):
             are not provided.
 
         mask_threshold : float, default=0.25
-            Used if the ROI is created from a non-boolean pixel array. Values 
+            Used if the ROI is created from a non-boolean pixel array. Values
             in the array exceeding this level are taken to be inside the ROI
             when it is converted to a boolean array.
 
@@ -182,22 +184,22 @@ class ROI(skrt.core.Archive):
             Default method for computing geometric quantities (area, centroid, etc).
             Can be any of:
 
-                (a) "contour": geometric quantities will be calculated from 
+                (a) "contour": geometric quantities will be calculated from
                     Shapely polygons made from contour points.
-                (b) "mask": geometric quantities will be calculated from 
+                (b) "mask": geometric quantities will be calculated from
                     numpy array representing a binary mask.
-                (c) "auto": the "contour" or "mask" method will be used, 
+                (c) "auto": the "contour" or "mask" method will be used,
                     depending on whether the input that create the ROI comprised
                     of contours or an array, respectively.
 
         overlap_level : float, default=None
-            Used when converting an input ROI contour to a mask; required 
-            overlap of a pixel with the ROI contour in order for the 
-            pixel to be added to the mask. If None, the output of 
-            skimage.draw.polygon2mask will be returned with no border checks, 
+            Used when converting an input ROI contour to a mask; required
+            overlap of a pixel with the ROI contour in order for the
+            pixel to be added to the mask. If None, the output of
+            skimage.draw.polygon2mask will be returned with no border checks,
             which is faster than performing border checks.
 
-        
+
         alpha_over_beta : float, default=None
             Ratio for ROI tissue of coefficients, alpha, beta,
             of linear-quadratic equation.  This ratio is used in
@@ -229,17 +231,21 @@ class ROI(skrt.core.Archive):
                         self.input_contours[z].append(
                             np.column_stack(contour.exterior.xy)
                         )
-                    elif isinstance(contour,
-                            geometry.multipolygon.MultiPolygon):
+                    elif isinstance(
+                        contour, geometry.multipolygon.MultiPolygon
+                    ):
                         for polygon in contour.geoms:
                             self.input_contours[z].append(
                                 np.column_stack(polygon.exterior.xy)
-                        )
+                            )
                     else:
                         self.input_contours[z].append(contour)
         else:
-            self.source = (skrt.core.fullpath(source)
-                           if isinstance(source, (str, Path)) else source)
+            self.source = (
+                skrt.core.fullpath(source)
+                if isinstance(source, (str, Path))
+                else source
+            )
 
         # Assign other properties
         self.custom_color = color is not None
@@ -249,8 +255,9 @@ class ROI(skrt.core.Archive):
         if image and not isinstance(image, skrt.image.Image):
             self.image = skrt.image.Image(image)
         self.shape = shape
-        self.affine, self.voxel_size, self.origin = \
-                skrt.image.get_geometry(affine, voxel_size, origin)
+        self.affine, self.voxel_size, self.origin = skrt.image.get_geometry(
+            affine, voxel_size, origin
+        )
         self.slice_thickness_contours = None
         self.mask_threshold = mask_threshold
         self.overlap_level = overlap_level
@@ -298,7 +305,7 @@ class ROI(skrt.core.Archive):
         return other is self
 
     def __add__(self, other):
-        '''
+        """
         Define ROI addition.
 
         The result of the addition of self and other is an ROI object
@@ -307,11 +314,11 @@ class ROI(skrt.core.Archive):
         with the result ROI is the image associated with self.  The name
         of the result ROI is the names of self and other, joined by a
         plus sign.
-        '''
+        """
         return self.add_rois(other)
 
     def __iadd__(self, other):
-        '''
+        """
         Define ROI addition in place.
 
         The result of the addition of self and other is an ROI object
@@ -320,11 +327,11 @@ class ROI(skrt.core.Archive):
         with the result ROI is the image associated with self.  The name
         of the result ROI is the names of self and other, joined by a
         plus sign.
-        '''
+        """
         return self + other
 
     def __sub__(self, other):
-        '''
+        """
         Define ROI subtraction.
 
         The result of the subtraction of other from self is an ROI object
@@ -333,11 +340,11 @@ class ROI(skrt.core.Archive):
         mask representing other.  The image associated with the result ROI
         is the image associated with self.  The name of the result ROI is
         the names of self and other, joined by a minus sign.
-        '''
+        """
         return self.subtract_rois(other)
 
     def __isub__(self, other):
-        '''
+        """
         Define ROI subtraction in place.
 
         The result of the subtraction of other from self is an ROI object
@@ -346,11 +353,11 @@ class ROI(skrt.core.Archive):
         mask representing other.  The image associated with the result ROI
         is the image associated with self.  The name of the result ROI is
         the names of self and other, joined by a minus sign.
-        '''
+        """
         return self - other
 
     def __mul__(self, other):
-        '''
+        """
         Define ROI multiplication.
 
         The result of the multiplication of self and other is an ROI object
@@ -359,11 +366,11 @@ class ROI(skrt.core.Archive):
         with the result ROI is the image associated with self.  The name
         of the result ROI is the names of self and other, joined by a
         plus sign.
-        '''
+        """
         return self.intersect_rois(other)
 
     def __imul__(self, other):
-        '''
+        """
         Define ROI multiplication.
 
         The result of the multiplication of self and other is an ROI object
@@ -372,7 +379,7 @@ class ROI(skrt.core.Archive):
         with the result ROI is the image associated with self.  The name
         of the result ROI is the names of self and other, joined by a
         plus sign.
-        '''
+        """
         return self * other
 
     def add_rois(self, rois):
@@ -389,7 +396,8 @@ class ROI(skrt.core.Archive):
             or a list of ROI/StructureSet objects.
         """
         return StructureSet([self] + get_all_rois(rois)).combine_rois(
-                image=self.image, method="mask")
+            image=self.image, method="mask"
+        )
 
     def subtract_rois(self, rois):
         """
@@ -407,10 +415,14 @@ class ROI(skrt.core.Archive):
         self.create_mask()
         others = get_all_rois(rois)
         other = StructureSet(others).combine_rois(
-                image=self.mask, method="mask")
+            image=self.mask, method="mask"
+        )
         name = "-".join([self.name] + [roi.name for roi in others])
-        return ROI(source=(self.get_mask() & ~other.get_mask()),
-                   image=self.image, name=name)
+        return ROI(
+            source=(self.get_mask() & ~other.get_mask()),
+            image=self.image,
+            name=name,
+        )
 
     def intersect_rois(self, rois):
         """
@@ -426,17 +438,18 @@ class ROI(skrt.core.Archive):
             or a list of ROI/StructureSet objects.
         """
         return StructureSet([self] + get_all_rois(rois)).combine_rois(
-                image=self.image, method="mask", intersection=True)
+            image=self.image, method="mask", intersection=True
+        )
 
     def load(self, force=False):
         """Load ROI from file or source. The loading sequence is as follows:
 
-        1. If self.image is not None, ensure that the image is loaded and 
+        1. If self.image is not None, ensure that the image is loaded and
         assign its geometric properties to this ROI.
 
         2. Attempt to load data from self.source:
 
-        (a) If this is an Image object, the ROI will be created by applying a 
+        (a) If this is an Image object, the ROI will be created by applying a
         threshold to the Image's array. Set self.mask to the thresholded image
         and self.input_type = "mask".
         (b) If self.source is a string, attempt to load from a file
@@ -450,7 +463,7 @@ class ROI(skrt.core.Archive):
 
         3. Check whether self.input_contours contains data. This could arise
         in two scenarios:
-        
+
         (a) The ROI was initialised from a dict of contours, which were
         assigned to self.input_contours in self.__init(); or
         (b) A set of contours was successfully loaded from a transformix or
@@ -458,7 +471,7 @@ class ROI(skrt.core.Archive):
 
         If input contours are found, these are assigned to self.contours["x-y"]
         and self.source_type is set to "contour". Additionally, if self.image
-        is not None, set self.mask to an array of zeros the same size as the 
+        is not None, set self.mask to an array of zeros the same size as the
         image.
 
         4. Set a flag indicating whether this ROI has contours only (i.e no
@@ -486,26 +499,26 @@ class ROI(skrt.core.Archive):
             self.mask = skrt.image.Image(
                 self.source.get_data() > self.mask_threshold,
                 affine=self.source.get_affine(),
-                dtype=bool
+                dtype=bool,
             )
             self.source_type = "mask"
             self.loaded = True
             self.create_mask()
 
         elif isinstance(self.source, str):
-            if self.source.endswith('.txt'):
+            if self.source.endswith(".txt"):
                 # Try loading from transformix-compatible point cloud
                 points = self.load_transformix_points()
 
                 # Extract slice-by-slice dictionary of (x, y) points
                 contours = {}
                 for point in sorted(points):
-                    x_point, y_point, z_point = points[point]['OutputPoint']
-                    key = f'{z_point:.2f}'
-                    if not key in contours:
+                    x_point, y_point, z_point = points[point]["OutputPoint"]
+                    key = f"{z_point:.2f}"
+                    if key not in contours:
                         contours[key] = {}
-                    c_index = points[point]['ContourIndex']
-                    if not c_index in contours[key]:
+                    c_index = points[point]["ContourIndex"]
+                    if c_index not in contours[key]:
                         contours[key][c_index] = []
                     contours[key][c_index].append([x_point, y_point])
 
@@ -515,10 +528,11 @@ class ROI(skrt.core.Archive):
                     self.input_contours[float(key)] = []
                     for c_index in sorted(contours[key]):
                         self.input_contours[float(key)].append(
-                            np.array(contours[key][c_index]))
+                            np.array(contours[key][c_index])
+                        )
                 rois.append(self.name)
 
-            elif os.path.isdir(self.source) or not self.source.endswith('.nii'):
+            elif os.path.isdir(self.source) or not self.source.endswith(".nii"):
                 # Try loading from dicom structure set
                 rois, ds = load_rois_dicom(self.source, names=self.name)
                 if len(rois):
@@ -534,12 +548,12 @@ class ROI(skrt.core.Archive):
         # Load ROI mask
         if not self.loaded and not len(rois) and self.source is not None:
             self.mask = skrt.image.Image(
-                self.source, 
-                affine=self.affine, 
-                voxel_size=self.voxel_size, 
-                origin=self.origin, 
+                self.source,
+                affine=self.affine,
+                voxel_size=self.voxel_size,
+                origin=self.origin,
                 dtype=bool,
-                **self.kwargs
+                **self.kwargs,
             )
             self.loaded = True
             self.source_type = "mask"
@@ -547,32 +561,34 @@ class ROI(skrt.core.Archive):
 
         # Deal with input contours
         if self.input_contours is not None:
-
             # Create Image object
             if self.image is not None:
                 self.shape = self.image.data.shape
                 self.mask = skrt.image.Image(
-                    np.zeros(self.shape), 
-                    affine=self.image.get_affine(), 
+                    np.zeros(self.shape),
+                    affine=self.image.get_affine(),
                     dtype=bool,
-                    **self.kwargs
+                    **self.kwargs,
                 )
 
             # Set x-y contours with z positions as keys
             self.contours["x-y"] = {}
             for z, contours in self.input_contours.items():
-                self.contours["x-y"][z] = [contour[:, :2] for contour in contours]
+                self.contours["x-y"][z] = [
+                    contour[:, :2] for contour in contours
+                ]
             self.source_type = "contour"
             self.loaded = True
 
         # Store flag for cases with no associated image or geometric info
         has_image = self.image is not None
         has_geom = self.shape is not None and (
-            self.affine is not None or (
-                self.voxel_size is not None and self.origin is not None
-            ))
-        self.contours_only = self.source_type == "contour" \
-                and not has_image and not has_geom
+            self.affine is not None
+            or (self.voxel_size is not None and self.origin is not None)
+        )
+        self.contours_only = (
+            self.source_type == "contour" and not has_image and not has_geom
+        )
         if self.default_geom_method == "auto":
             self.default_geom_method = self.source_type
 
@@ -591,42 +607,49 @@ class ROI(skrt.core.Archive):
         """Attempt to load ROI from a dicom or nifti file."""
 
     def load_transformix_points(self):
-        '''
+        """
         Load point coordinates from file of the format produced by Transformix.
-        '''
-        def get_coordinates(in_data=''):
-            '''
-            Helper function, to unpack string of data into list of coordinates. 
-            '''
-            coordinates = [eval(s)
-                    for s in re.findall(r'[-\d\.]+', in_data)]
+        """
+
+        def get_coordinates(in_data=""):
+            """
+            Helper function, to unpack string of data into list of coordinates.
+            """
+            coordinates = [eval(s) for s in re.findall(r"[-\d\.]+", in_data)]
             return coordinates
 
         # Read file.
-        with open(self.source, 'r', encoding='ascii') as in_file:
+        with open(self.source, "r", encoding="ascii") as in_file:
             data_rows = in_file.readlines()
 
         # Extract point data to dictionary.
         points = {}
         for row in data_rows:
-            point, input_index, input_point, output_index_fixed, \
-                    output_point, deformation = row.split(';')
+            (
+                point,
+                input_index,
+                input_point,
+                output_index_fixed,
+                output_point,
+                deformation,
+            ) = row.split(";")
 
             point = int(point.split()[-1])
             points[point] = {}
-            points[point]['InputIndex'] = get_coordinates(input_index)
-            points[point]['InputPoint'] = get_coordinates(input_point)
-            points[point]['OutputIndexFixed'] = get_coordinates(
-                    output_index_fixed)
-            points[point]['OutputPoint'] = get_coordinates(output_point)
-            points[point]['Deformation'] = get_coordinates(deformation)
+            points[point]["InputIndex"] = get_coordinates(input_index)
+            points[point]["InputPoint"] = get_coordinates(input_point)
+            points[point]["OutputIndexFixed"] = get_coordinates(
+                output_index_fixed
+            )
+            points[point]["OutputPoint"] = get_coordinates(output_point)
+            points[point]["Deformation"] = get_coordinates(deformation)
 
             # If the Transformix input was written using ROI.write(),
             # a point z-coordinate will have six digits after the decimal
             # point, with the contour index in the last three.
             # (Input points are written to the Transformix output
             # with six digits after the decimal point for all coordinates.)
-            zd_in = re.findall(r'[-\d\.]+', input_point)[-1].rsplit(".", 1)[-1]
+            zd_in = re.findall(r"[-\d\.]+", input_point)[-1].rsplit(".", 1)[-1]
             if len(zd_in) == 6:
                 points[point]["ContourIndex"] = int(zd_in[3:])
             else:
@@ -637,7 +660,7 @@ class ROI(skrt.core.Archive):
         # For most purposes (and slice thicknesses) it's probably
         # a reasonable approximation to map all points to the mean
         # z-coordinate of all points originally in the same plane.
-        keep_original_planes = getattr(self, 'keep_original_planes', True)
+        keep_original_planes = getattr(self, "keep_original_planes", True)
         if keep_original_planes:
             # Sort points by slice z-coordinate,
             # keeping relative order within a slice.
@@ -646,7 +669,7 @@ class ROI(skrt.core.Archive):
                 i, j, k = points[point]["InputIndex"]
                 x, y, z = points[point]["OutputPoint"]
                 if k not in slices:
-                    slices[k] = {'points': [], 'z_points': []}
+                    slices[k] = {"points": [], "z_points": []}
                 slices[k]["points"].append(point)
                 slices[k]["z_points"].append(z)
 
@@ -660,7 +683,7 @@ class ROI(skrt.core.Archive):
         return points
 
     def clone_attrs(self, obj, copy_data=True):
-        """Assign all attributes of <self> to another object, <obj>,  ensuring 
+        """Assign all attributes of <self> to another object, <obj>,  ensuring
         that own mask's data gets correctly copied if <copy_data> is True."""
 
         skrt.core.Data.clone_attrs(self, obj, copy_data=copy_data)
@@ -675,7 +698,7 @@ class ROI(skrt.core.Archive):
         return self.dicom_dataset
 
     def reset_contours(self, contours=None, most_points=False):
-        """Reset x-y contours to a given dict of slices and contour lists, 
+        """Reset x-y contours to a given dict of slices and contour lists,
         and ensure that mask and y-x/y-x/y-z/z-x/z-y contours will be recreated.
         If contours is None, contours will be reset using own x-y contours.
         If most_points is True, only the contour with most points for
@@ -688,13 +711,16 @@ class ROI(skrt.core.Archive):
             raise TypeError("contours should be a dict")
         for z, c in contours.items():
             if not isinstance(c, list):
-                raise TypeError(f"contours[{z}] should be a list of contours "
-                                f"on slice {z}")
+                raise TypeError(
+                    f"contours[{z}] should be a list of contours "
+                    f"on slice {z}"
+                )
 
         # For each slice, keep only contour with most points.
         if most_points:
-            contours = {key: [max(value, key=len)]
-                    for key, value in contours.items()}
+            contours = {
+                key: [max(value, key=len)] for key, value in contours.items()
+            }
 
         self.input_contours = contours
         self.empty = not len(self.input_contours)
@@ -703,8 +729,8 @@ class ROI(skrt.core.Archive):
         self.mask = None
 
     def reset_mask(self, mask=None):
-        """Set mask to either a numpy array or an Image object, and ensure 
-        that contours will be recreated. If mask is None, contours will be 
+        """Set mask to either a numpy array or an Image object, and ensure
+        that contours will be recreated. If mask is None, contours will be
         reset using own mask."""
 
         if isinstance(mask, skrt.image.Image):
@@ -717,10 +743,10 @@ class ROI(skrt.core.Archive):
         elif isinstance(mask, np.ndarray):
             self.mask = skrt.image.Image(
                 mask,
-                affine = self.affine,
+                affine=self.affine,
                 voxel_size=self.voxel_size,
                 origin=self.origin,
-                dtype=bool
+                dtype=bool,
             )
 
         elif mask is not None:
@@ -757,18 +783,20 @@ class ROI(skrt.core.Archive):
 
         # Convert keys to indices rather than positions
         if idx_as_key:
-            contours = {self.pos_to_idx(key, skrt.image._slice_axes[view]): 
-                        value for key, value in contours.items()}
+            contours = {
+                self.pos_to_idx(key, skrt.image._slice_axes[view]): value
+                for key, value in contours.items()
+            }
 
         # For each slice, keep only contour with most points.
         if most_points:
-            contours = {key: [max(value, key=len)]
-                    for key, value in contours.items()}
+            contours = {
+                key: [max(value, key=len)] for key, value in contours.items()
+            }
 
         return contours
 
     def get_contours_on_slice(self, view="x-y", sl=None, idx=None, pos=None):
-
         self.load()
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
@@ -779,8 +807,9 @@ class ROI(skrt.core.Archive):
         except KeyError:
             return []
 
-    def get_slice_positions(self, other=None, view="x-y", position_as_idx=False,
-            method="union"):
+    def get_slice_positions(
+        self, other=None, view="x-y", position_as_idx=False, method="union"
+    ):
         """
         Get ordered list of slice positions for self and other.
 
@@ -809,23 +838,25 @@ class ROI(skrt.core.Archive):
             - "intersection": return positions of slices containing both
               self and other.
         """
-        return get_slice_positions(self, other, view, position_as_idx,
-                method)
+        return get_slice_positions(self, other, view, position_as_idx, method)
 
     def get_affine(self, force_standardise=False, **kwargs):
         """Load self and get affine matrix."""
 
         self.load()
         if self.loaded_mask:
-            return self.mask.get_affine(force_standardise=force_standardise, 
-                                        **kwargs)
+            return self.mask.get_affine(
+                force_standardise=force_standardise, **kwargs
+            )
         elif self.image is not None:
-            return self.image.get_affine(force_standardise=force_standardise,
-                                         **kwargs)
+            return self.image.get_affine(
+                force_standardise=force_standardise, **kwargs
+            )
         return self.affine
 
     def get_translation_to_align(
-            self, other, z_fraction1=None, z_fraction2=None):
+        self, other, z_fraction1=None, z_fraction2=None
+    ):
         """
         Determine translation for aligning <self> to <other>.
 
@@ -856,9 +887,8 @@ class ROI(skrt.core.Archive):
             the most-inferior point (lowest z); 1 corresponds to the
             most-superior point (highest z).  Values for z_fraction
             outside the interval [0, 1] result in a RuntimeError.
-            """
-        return get_translation_to_align(
-                self, other, z_fraction1, z_fraction2)
+        """
+        return get_translation_to_align(self, other, z_fraction1, z_fraction2)
 
     def get_voxel_size(self):
         """Load self and get voxel_size."""
@@ -880,8 +910,9 @@ class ROI(skrt.core.Archive):
             vx, vy, vz = self.voxel_size
             voxel_size = [vy, vx, vz]
         else:
-            voxel_size = [self.voxel_size[i]
-                    for i in skrt.image._plot_axes[view]]
+            voxel_size = [
+                self.voxel_size[i] for i in skrt.image._plot_axes[view]
+            ]
 
         return voxel_size
 
@@ -897,21 +928,28 @@ class ROI(skrt.core.Archive):
         """
 
         self.load()
-        return (self.original_name if original else self.name)
+        return self.original_name if original else self.name
 
-    def get_mask(self, view="x-y", flatten=False, standardise=False, 
-                 force_standardise=False):
+    def get_mask(
+        self,
+        view="x-y",
+        flatten=False,
+        standardise=False,
+        force_standardise=False,
+    ):
         """Get binary mask, optionally flattened in a given orientation."""
 
         self.load()
         self.create_mask()
         if not flatten:
-            return self.mask.get_data(standardise=standardise, 
-                                      force_standardise=force_standardise)
+            return self.mask.get_data(
+                standardise=standardise, force_standardise=force_standardise
+            )
         return np.sum(
-            self.mask.get_data(standardise=standardise, 
-                               force_standardise=force_standardise),
-            axis=skrt.image._slice_axes[view]
+            self.mask.get_data(
+                standardise=standardise, force_standardise=force_standardise
+            ),
+            axis=skrt.image._slice_axes[view],
         ).astype(bool)
 
     def get_mask_image(self):
@@ -939,8 +977,9 @@ class ROI(skrt.core.Archive):
         """Create contours in all orientations."""
 
         if not force:
-            if view == "all" and all([v in self.contours for v in 
-                                      skrt.image._plot_axes]):
+            if view == "all" and all(
+                [v in self.contours for v in skrt.image._plot_axes]
+            ):
                 return
             if view in self.contours:
                 return
@@ -955,7 +994,6 @@ class ROI(skrt.core.Archive):
         # Create contours in every orientation
         views = list(skrt.image._plot_axes.keys()) if view == "all" else [view]
         for v in views:
-
             if v in self.contours:
                 continue
 
@@ -963,7 +1001,6 @@ class ROI(skrt.core.Archive):
             z_ax = skrt.image._slice_axes[v]
             self.contours[v] = {}
             for iz in self.get_indices(v, method="mask"):
-
                 # Get slice of mask array
                 mask_slice = self.get_slice(v, idx=iz).T
                 if mask_slice.max() < 0.5:
@@ -994,41 +1031,37 @@ class ROI(skrt.core.Archive):
         return points
 
     def create_mask(
-        self, 
-        force=False, 
-        overlap_level=None, 
-        voxel_size=None, 
-        shape=None
+        self, force=False, overlap_level=None, voxel_size=None, shape=None
     ):
         """Create binary mask representation of this ROI. If the ROI was created
         from contours, these contours will be converted to a mask; if the ROI
         was created from a mask, this mask will be cast to a boolean array and
-        its geoemtric properties will be assigned to this ROI. If a mask has 
+        its geoemtric properties will be assigned to this ROI. If a mask has
         already been created, nothing will happen unless force=True.
 
         **Parameters:**
-        
+
         force : bool, default=False
             If True, the mask will be recreated even if it already exists.
 
         overlap_level : float, default=0.25
-            Required overlap of a pixel with the ROI contour in order for the 
+            Required overlap of a pixel with the ROI contour in order for the
             pixel to be added to the mask. If None, the value of
             self.overlap_level will be used; otherwise,
-            self.overlap_level will be overwritten with this value. If both are 
-            None, the output of skimage.draw.polygon2mask will be returned 
+            self.overlap_level will be overwritten with this value. If both are
+            None, the output of skimage.draw.polygon2mask will be returned
             with no border checks, which is faster than performing border checks.
 
         voxel_size : list, default=None
-            Voxel sizes of the desired mask in the [x, y] direction. Only used if 
-            the ROI was created from contours; ignored if ROI was created from 
-            mask. Causes self.image to be replaced with a 
+            Voxel sizes of the desired mask in the [x, y] direction. Only used if
+            the ROI was created from contours; ignored if ROI was created from
+            mask. Causes self.image to be replaced with a
             blank dummy image with these voxel sizes.
 
         shape : list, default=None
-            Shape of the desired mask in the [x, y] direction. Only used if 
-            <voxel_size> is None and the ROI was created from contours; 
-            ignored if ROI was created from mask. Causes self.image to be 
+            Shape of the desired mask in the [x, y] direction. Only used if
+            <voxel_size> is None and the ROI was created from contours;
+            ignored if ROI was created from mask. Causes self.image to be
             replaced with a blank dummy image of this shape.
         """
 
@@ -1041,33 +1074,33 @@ class ROI(skrt.core.Archive):
             self.overlap_level = overlap_level
 
         # Set image to dummy image if needed
-        if (force and (shape is not None or voxel_size is not None)) \
-           or (self.contours_only and self.image is None):
+        if (force and (shape is not None or voxel_size is not None)) or (
+            self.contours_only and self.image is None
+        ):
             self.set_image_to_dummy(shape=shape, voxel_size=voxel_size)
 
-        # Create mask from input x-y contours 
+        # Create mask from input x-y contours
         if self.input_contours:
-
             # Initialise self.mask as image
             self.mask = skrt.image.Image(
-                np.zeros((self.shape[1], self.shape[0], self.shape[2]),
-                    dtype=bool),
-                affine=self.affine, 
+                np.zeros(
+                    (self.shape[1], self.shape[0], self.shape[2]), dtype=bool
+                ),
+                affine=self.affine,
                 voxel_size=self.voxel_size,
-                origin=self.origin
+                origin=self.origin,
             )
 
             # Create mask on each z layer
             for z, contours in self.input_contours.items():
-
                 # Loop over each contour on the z slice
                 iz = int(self.pos_to_idx(z, "z"))
-                if iz >= self.mask.data.shape[2]:  # Ignore slices outside mask range
+                # Ignore slices outside mask range
+                if iz >= self.mask.data.shape[2]:
                     continue
 
                 pos_to_idx_vec = np.vectorize(self.pos_to_idx)
                 for points in contours:
-
                     # Require at least 3 points to define a polygon.
                     if len(points) < 3:
                         continue
@@ -1083,32 +1116,31 @@ class ROI(skrt.core.Archive):
                     polygon = contour_to_polygon(points_idx)
 
                     # Get mask of all pixels inside contour
-                    mask = draw.polygon2mask([self.mask.data.shape[1], 
-                                             self.mask.data.shape[0]],
-                                             points_idx)
+                    mask = draw.polygon2mask(
+                        [self.mask.data.shape[1], self.mask.data.shape[0]],
+                        points_idx,
+                    )
 
                     # If no pixel identified as being inside contour,
                     # label pixel containing contour centroid.
                     if not mask.sum():
-                        ix, iy = [int(round(xy[0]))
-                                for xy in polygon.centroid.xy]
-                        if ((ix >= 0 and ix < mask.shape[0])
-                                and (iy >= 0 and iy < mask.shape[1])):
+                        ix, iy = [
+                            int(round(xy[0])) for xy in polygon.centroid.xy
+                        ]
+                        if (ix >= 0 and ix < mask.shape[0]) and (
+                            iy >= 0 and iy < mask.shape[1]
+                        ):
                             mask[ix, iy] = True
 
                     # Check overlap of edge pixels
                     if self.overlap_level is not None:
-                        conn = ndimage.generate_binary_structure(
-                            2, 2)
-                        edge = mask ^ ndimage.binary_dilation(
-                            mask, conn)
+                        conn = ndimage.generate_binary_structure(2, 2)
+                        edge = mask ^ ndimage.binary_dilation(mask, conn)
                         if self.overlap_level >= 0.5:
-                            edge += mask ^ ndimage.binary_erosion(
-                                mask, conn)
+                            edge += mask ^ ndimage.binary_erosion(mask, conn)
 
                         # Check whether each edge pixel has sufficient overlap
                         for ix, iy in np.argwhere(edge):
-
                             # Make polygon of current pixel
                             pixel = geometry.Polygon(
                                 [
@@ -1155,7 +1187,6 @@ class ROI(skrt.core.Archive):
         self.mask.resample(*args, **kwargs)
 
     def match_voxel_size(self, other, *args, **kwargs):
-
         if isinstance(other, ROI):
             other.create_mask()
             mask = other.mask
@@ -1165,31 +1196,31 @@ class ROI(skrt.core.Archive):
         self.mask.match_voxel_size(mask, *args, **kwargs)
 
     def get_slice(self, *args, force_standardise=False, **kwargs):
-
         self.create_mask()
-        data = self.mask.get_slice(*args, force_standardise=force_standardise, 
-                                   **kwargs)
+        data = self.mask.get_slice(
+            *args, force_standardise=force_standardise, **kwargs
+        )
         if data.dtype != bool:
             data = data.astype(bool)
         return data
 
     def get_roi_slice(self, z_fraction=1, suffix=None):
         """
-        Get ROI object corresponding to x-y slice through this ROI.
+            Get ROI object corresponding to x-y slice through this ROI.
 
-        **Parameter:**
+            **Parameter:**
 
-        z_fraction : float, default=1
-            Position along z axis at which to take slice through ROI.
-            The position is specified as the fractional distance
-            from the ROI's most-inferior point: 0 corresponds to
-            the most-inferior point (lowest z); 1 corresponds to the
-            most-superior point (highest z).  Values for z_fraction
-            outside the interval [0, 1] result in a RuntimeError.
+            z_fraction : float, default=1
+                Position along z axis at which to take slice through ROI.
+                The position is specified as the fractional distance
+                from the ROI's most-inferior point: 0 corresponds to
+                the most-inferior point (lowest z); 1 corresponds to the
+                most-superior point (highest z).  Values for z_fraction
+                outside the interval [0, 1] result in a RuntimeError.
 
-    suffix : str, default=None
-        Suffix to append to own name, to form name of output ROI.  If
-        None, append z_fraction, with value given to two decimal places.
+        suffix : str, default=None
+            Suffix to append to own name, to form name of output ROI.  If
+            None, append z_fraction, with value given to two decimal places.
         """
         return get_roi_slice(self, z_fraction)
 
@@ -1225,7 +1256,6 @@ class ROI(skrt.core.Archive):
         self.load()
 
         if self.contours_only:
-
             # Use self.image's conversion function
             if self.image is not None:
                 return self.image.idx_to_pos(idx, ax)
@@ -1233,15 +1263,18 @@ class ROI(skrt.core.Archive):
             # Otherwise count number of z slices in contours dict
             # If index does not correspond to a slice, return None
             elif ax in ["z", 2]:
-                conversion = {i: p for i, p in 
-                              enumerate(self.get_contours("x-y").keys())}
+                conversion = {
+                    i: p for i, p in enumerate(self.get_contours("x-y").keys())
+                }
                 return conversion.get(idx, None)
 
             # Otherwise, not possible to convert x/y points to indices
             # from contours alone
             else:
-                print("Warning: cannot convert index to position in the x/y "
-                      "directions without associated image geometry!")
+                print(
+                    "Warning: cannot convert index to position in the x/y "
+                    "directions without associated image geometry!"
+                )
                 return
 
         # Otherwise, try to use mask or image's conversion
@@ -1260,7 +1293,6 @@ class ROI(skrt.core.Archive):
 
         self.load()
         if self.contours_only:
-
             # Use self.image's conversion function
             if self.image is not None:
                 return self.image.pos_to_idx(pos, ax, return_int)
@@ -1268,15 +1300,18 @@ class ROI(skrt.core.Archive):
             # Otherwise count number of z slices in contours dict
             # If position does not correspond to a slie, return None
             elif ax in ["z", 2]:
-                conversion = {p: i for i, p in 
-                              enumerate(self.get_contours("x-y").keys())}
+                conversion = {
+                    p: i for i, p in enumerate(self.get_contours("x-y").keys())
+                }
                 idx = conversion.get(pos, None)
 
             # Otherwise, not possible to convert x/y points to indices
             # from contours alone
             else:
-                print("Warning: cannot convert position to index in the x/y "
-                      "directions without associated image geometry!")
+                print(
+                    "Warning: cannot convert position to index in the x/y "
+                    "directions without associated image geometry!"
+                )
                 return
             if return_int and idx is not None:
                 return round(idx)
@@ -1303,7 +1338,6 @@ class ROI(skrt.core.Archive):
 
         self.load()
         if self.contours_only or (self.mask is None and self.image is None):
-
             # Count number of z slices in contours dict
             if ax in ["z", 2]:
                 nz = self.get_nz_contours()
@@ -1322,7 +1356,6 @@ class ROI(skrt.core.Archive):
 
         self.load()
         if self.contours_only or (self.mask is None and self.image is None):
-
             # Count number of z slices in contours dict
             if ax in ["z", 2]:
                 nz = self.get_nz_contours()
@@ -1362,9 +1395,10 @@ class ROI(skrt.core.Archive):
             return False
         return idx in self.get_indices(view)
 
-    def interpolate_points(self, n_point=None, dxy=None,
-        smoothness_per_point=0):
-        '''
+    def interpolate_points(
+        self, n_point=None, dxy=None, smoothness_per_point=0
+    ):
+        """
         Return new ROI object, with interpolated contour points.
 
         **Parameters:**
@@ -1377,7 +1411,7 @@ class ROI(skrt.core.Archive):
             Approximate distance required between contour points.  This is taken
             into account only if n_point is set to None.  For a contour of
             length contour_length, the number of contour points is then taken
-            to be max(int(contour_length / dxy), 3).  
+            to be max(int(contour_length / dxy), 3).
 
         smoothness_per_point : float, default=0
             Parameter determining the smoothness of the B-spline curve used
@@ -1385,19 +1419,20 @@ class ROI(skrt.core.Archive):
             smoothness_per_point and the number of contour points (specified
             directly via n_point, or indirectly via dxy) corresponds to the
             parameter s of scipy.interpolate.splprep - see documentation at:
-        
+
             https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
 
             A smoothness_per_point of 0 forces the B-spline to pass through
             all of the pre-interpolation contour points.
-        '''
+        """
 
         new_contours = {}
         for z, contours in self.get_contours().items():
             new_contours[z] = []
             for contour in contours:
                 new_contour = interpolate_points_single_contour(
-                        contour, n_point, dxy, smoothness_per_point)
+                    contour, n_point, dxy, smoothness_per_point
+                )
                 new_contours[z].append(new_contour)
 
         # Clone self, then clear mask and reset contours of clone
@@ -1420,19 +1455,19 @@ class ROI(skrt.core.Archive):
         method=None,
         force=True,
     ):
-        """Get either 3D global centroid position or 2D centroid position on 
-        a single slice. If single_slice=False, the calculated global centroid 
+        """Get either 3D global centroid position or 2D centroid position on
+        a single slice. If single_slice=False, the calculated global centroid
         will be cached in self._centroid[units] and returned if called again,
         unless force=True.
 
         **Parameters:**
-        
+
         single_slice : bool, default=False
             If False, the global 3D centroid of the entire ROI will be returned;
             otherwise, the 2D centroid on a single slice will be returned.
 
         view : str, default="x-y"
-            Orientation of slice on which to get centroid. Only used if 
+            Orientation of slice on which to get centroid. Only used if
             single_slice=True. If using, <ax> must be an axis that lies along
             the slice in this orientation.
 
@@ -1454,21 +1489,21 @@ class ROI(skrt.core.Archive):
                 - "voxels": return centroid position in terms of array indices.
                 - "slice": return centroid position in terms of slice numbers.
 
-            If units="voxels" or "slice" is requested but this ROI only has 
-            contours and no mask shape/voxel size information, an error will be 
-            raised (unless ax="z", in which case voxel size will be inferred 
+            If units="voxels" or "slice" is requested but this ROI only has
+            contours and no mask shape/voxel size information, an error will be
+            raised (unless ax="z", in which case voxel size will be inferred
             from spacing between slices).
 
         method : str, default=None
-            Method to use for centroid calculation. Can be: 
+            Method to use for centroid calculation. Can be:
                 - "contour": get centroid of shapely contour(s).
                 - "mask": get average position of voxels in binary mask.
                 - None: use the method set in self.default_geom_method.
 
         force : bool, default=True
-            If True, the global centroid will always be recalculated; 
-            otherwise, it will only be calculated if it has not yet been cached 
-            in self._volume.  Note that if single_slice=True, the centroid will 
+            If True, the global centroid will always be recalculated;
+            otherwise, it will only be calculated if it has not yet been cached
+            in self._volume.  Note that if single_slice=True, the centroid will
             always be recalculated.
         """
 
@@ -1491,7 +1526,6 @@ class ROI(skrt.core.Archive):
         # Calculate centroid from Shapely polygons
         centroid = {}
         if method == "contour":
-
             # Get 2D or 3D centroids and areas of each polygon on the desired
             # slice(s)
             if single_slice:
@@ -1500,9 +1534,9 @@ class ROI(skrt.core.Archive):
                 areas = []
                 for p in polygons:
                     centroid_xy = p.centroid.xy
-                    centroids.append(np.array([
-                        centroid_xy[0][0], centroid_xy[1][0]
-                    ]))
+                    centroids.append(
+                        np.array([centroid_xy[0][0], centroid_xy[1][0]])
+                    )
                     areas.append(p.area)
             else:
                 centroids = []
@@ -1511,41 +1545,48 @@ class ROI(skrt.core.Archive):
                 for z, polygons in polygon_dict.items():
                     for p in polygons:
                         centroid_xy = p.centroid.xy
-                        centroids.append(np.array([
-                            centroid_xy[0][0], centroid_xy[1][0], z
-                        ]))
+                        centroids.append(
+                            np.array([centroid_xy[0][0], centroid_xy[1][0], z])
+                        )
                         areas.append(p.area)
 
             # Get weighted average of polygon centroids
             weighted_sum = np.sum(
-                [centroids[i] * areas[i] for i in range(len(centroids))],
-                axis=0
+                [centroids[i] * areas[i] for i in range(len(centroids))], axis=0
             )
             centroid["mm"] = weighted_sum / sum(areas)
 
             # Calculate in voxels and slices if possible
             if self.voxel_size is None and self.shape is None:
-                if units in ["voxels", "slice"]  and self.shape is None:
-                    raise RuntimeError("Cannot compute centroid in voxels/slice"
-                                       " numbers from contours without knowing voxel"
-                                       " sizes and mask shape!")
+                if units in ["voxels", "slice"] and self.shape is None:
+                    raise RuntimeError(
+                        "Cannot compute centroid in voxels/slice"
+                        " numbers from contours without knowing voxel"
+                        " sizes and mask shape!"
+                    )
             else:
-                view_axes = ([0, 1, 2] if len(centroid['mm']) == 3 else
-                        skrt.image._plot_axes[view])
+                view_axes = (
+                    [0, 1, 2]
+                    if len(centroid["mm"]) == 3
+                    else skrt.image._plot_axes[view]
+                )
 
-                centroid["voxels"] = np.array([
-                    self.pos_to_idx(c, ax=i, return_int=False) 
-                    for i, c in zip(view_axes, centroid["mm"])
-                ])
+                centroid["voxels"] = np.array(
+                    [
+                        self.pos_to_idx(c, ax=i, return_int=False)
+                        for i, c in zip(view_axes, centroid["mm"])
+                    ]
+                )
 
-                centroid["slice"] = np.array([
-                    self.pos_to_slice(c, ax=i, return_int=False) 
-                    for i, c in zip(view_axes, centroid["mm"])
-                ])
+                centroid["slice"] = np.array(
+                    [
+                        self.pos_to_slice(c, ax=i, return_int=False)
+                        for i, c in zip(view_axes, centroid["mm"])
+                    ]
+                )
 
         # Otherwise, calculate centroid from binary mask
-        else: 
-
+        else:
             # Get 2D or 3D data from which to calculate centroid
             if single_slice:
                 if not self.on_slice(view, sl=sl, idx=idx, pos=pos):
@@ -1565,23 +1606,32 @@ class ROI(skrt.core.Archive):
                 else:
                     return None, None, None
             centroid_rowcol = list(non_zero.mean(0))
-            centroid_voxels = [centroid_rowcol[1], centroid_rowcol[0]] \
-                    + centroid_rowcol[2:]
+            centroid_voxels = [
+                centroid_rowcol[1],
+                centroid_rowcol[0],
+            ] + centroid_rowcol[2:]
             centroid["voxels"] = np.array(centroid_voxels)
 
             # Convert to mm and slices
-            view_axes = ([0, 1, 2] if len(centroid['voxels']) == 3 else
-                    skrt.image._plot_axes[view])
+            view_axes = (
+                [0, 1, 2]
+                if len(centroid["voxels"]) == 3
+                else skrt.image._plot_axes[view]
+            )
 
-            centroid["mm"] = np.array([
-                self.idx_to_pos(c, ax=i)
-                for i, c in zip(view_axes, centroid["voxels"])
-            ])
+            centroid["mm"] = np.array(
+                [
+                    self.idx_to_pos(c, ax=i)
+                    for i, c in zip(view_axes, centroid["voxels"])
+                ]
+            )
 
-            centroid["slice"] = np.array([
-                self.idx_to_slice(c, ax=i)
-                for i, c in zip(view_axes, centroid["voxels"])
-            ])
+            centroid["slice"] = np.array(
+                [
+                    self.idx_to_slice(c, ax=i)
+                    for i, c in zip(view_axes, centroid["voxels"])
+                ]
+            )
 
         # Cache global centroid
         if not single_slice:
@@ -1623,19 +1673,19 @@ class ROI(skrt.core.Archive):
         return int((max(z_keys) - min(z_keys)) / vz) + 1
 
     def get_centre(
-        self, 
-        view="x-y", 
+        self,
+        view="x-y",
         single_slice=False,
-        sl=None, 
-        idx=None, 
-        pos=None, 
+        sl=None,
+        idx=None,
+        pos=None,
         method=None,
     ):
         """Get centre position in 2D or 3D in mm."""
 
         # Get default slice index and method
         self.load()
-        if sl is None and idx is None and pos is None: 
+        if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
         if method is None:
             method = self.default_geom_method
@@ -1665,17 +1715,12 @@ class ROI(skrt.core.Archive):
 
         return np.array(centre)
 
-    def get_volume(
-        self, 
-        units="mm", 
-        method=None, 
-        force=True
-    ):
-        """Get ROI volume. The calculated volume will be cached in 
+    def get_volume(self, units="mm", method=None, force=True):
+        """Get ROI volume. The calculated volume will be cached in
         self._volume[units] and returned if called again, unless force=True.
 
         **Parameters:**
-        
+
         units : str, default="mm"
             Units of volume. Can be any of:
                 - "mm": return volume in millimetres cubed.
@@ -1687,15 +1732,15 @@ class ROI(skrt.core.Archive):
             voxel size information, an error will be raised.
 
         method : str, default=None
-            Method to use for volume calculation. Can be: 
+            Method to use for volume calculation. Can be:
                 - "contour": compute volume by summing areas of shapely
                   polygons on each slice and multiplying by slice thickness.
                 - "mask": compute volume by summing voxels inside the ROI and
                   multiplying by the volume of one voxel.
                 - None: use the method set in self.default_geom_method.
 
-            Note that if self.get_volume has already been called with one 
-            method, the same cached result will be returned if calling with a 
+            Note that if self.get_volume has already been called with one
+            method, the same cached result will be returned if calling with a
             different method unless force=True.
 
         force : bool, default=True
@@ -1717,11 +1762,12 @@ class ROI(skrt.core.Archive):
 
         # Calculate from polygon areas
         if method == "contour":
-
             # Check it's possible to calculate volume with the requested units
             if self.voxel_size is None and units == "voxels":
-                raise RuntimeError("Cannot compute volume in voxels from "
-                                   "contours without knowing voxel sizes!")
+                raise RuntimeError(
+                    "Cannot compute volume in voxels from "
+                    "contours without knowing voxel sizes!"
+                )
 
             # Calculate area on each slice
             slice_areas = []
@@ -1760,23 +1806,24 @@ class ROI(skrt.core.Archive):
         example, the image from which a mask is created doesn't fully cover
         the contour extents.
         """
-        return (self.get_volume(method="mask", force=True) /
-                self.get_volume(method="contour", force=True))
+        return self.get_volume(method="mask", force=True) / self.get_volume(
+            method="contour", force=True
+        )
 
     def get_area(
-        self, 
-        view="x-y", 
-        sl=None, 
-        idx=None, 
-        pos=None, 
-        units="mm", 
+        self,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        units="mm",
         method=None,
         flatten=False,
     ):
         """Get the area of the ROI on a given slice.
 
         **Parameters:**
-        
+
         view : str, default="x-y"
             Orientation of slice for which to get area.
 
@@ -1802,10 +1849,10 @@ class ROI(skrt.core.Archive):
             voxel size information, an error will be raised.
 
         method : str, default=None
-            Method to use for area calculation. Can be: 
+            Method to use for area calculation. Can be:
 
                 * "contour": compute area from shapely polygon on the slice.
-                * "mask": compute area by summing pixels on the slice and 
+                * "mask": compute area by summing pixels on the slice and
                   multiplying by the area of one pixel.
                 * None: use the method set in self.default_geom_method.
 
@@ -1817,7 +1864,7 @@ class ROI(skrt.core.Archive):
 
         # Get default slice index and method
         self.load()
-        if sl is None and idx is None and pos is None: 
+        if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
         if method is None:
             method = self.default_geom_method
@@ -1831,11 +1878,12 @@ class ROI(skrt.core.Archive):
 
         # Calculate area from shapely polygon(s)
         if method == "contour":
-
             # Check it's possible to calculate area with the requested units
             if self.voxel_size is None and units == "voxels":
-                raise RuntimeError("Cannot compute area in voxels from "
-                                   "contours without knowing voxel sizes!")
+                raise RuntimeError(
+                    "Cannot compute area in voxels from "
+                    "contours without knowing voxel sizes!"
+                )
 
             polygons = self.get_polygons_on_slice(view, sl, idx, pos)
             area = sum([p.area for p in polygons])
@@ -1846,8 +1894,9 @@ class ROI(skrt.core.Archive):
             return area
 
         # Otherwise, calculate area from binary mask
-        im_slice = self.get_slice(view, sl=sl, idx=idx, pos=pos, 
-                                  flatten=flatten)
+        im_slice = self.get_slice(
+            view, sl=sl, idx=idx, pos=pos, flatten=flatten
+        )
         area = im_slice.astype(bool).sum()
         if units == "mm":
             x_ax, y_ax = skrt.image._plot_axes[view]
@@ -1855,8 +1904,9 @@ class ROI(skrt.core.Archive):
             area *= xy_area
         return area
 
-    def get_bbox_centre_and_widths(self,
-            buffer=None, buffer_units="mm", method=None):
+    def get_bbox_centre_and_widths(
+        self, buffer=None, buffer_units="mm", method=None
+    ):
         """
         Get centre and widths in mm along all three axes of a
         bounding box enclosing the ROI and optional buffer.  Centre
@@ -1866,13 +1916,14 @@ class ROI(skrt.core.Archive):
         to obtain ROI extents.  For parameter explanations, see
         skrt.structures.ROI.get_extents() documentation.
         """
-        extents = self.get_extents(buffer, buffer_units, method) 
+        extents = self.get_extents(buffer, buffer_units, method)
         centre = [0.5 * (extent[0] + extent[1]) for extent in extents]
         widths = [(extent[1] - extent[0]) for extent in extents]
         return (centre, widths)
 
-    def get_extents(self, buffer=None, buffer_units="mm", method=None,
-            origin=None):
+    def get_extents(
+        self, buffer=None, buffer_units="mm", method=None, origin=None
+    ):
         """
         Get minimum and maximum extent of the ROI in mm along all three axes,
         returned in order [x, y, z]. Optionally apply a buffer to the extents
@@ -1888,10 +1939,10 @@ class ROI(skrt.core.Archive):
             applies buffer as a fraction of total length in each dimension).
 
         method : str, default=None
-            Method to use for extent calculation. Can be: 
+            Method to use for extent calculation. Can be:
 
                 * "contour": get extent from min/max positions of contour(s).
-                * "mask": get extent from min/max positions of voxels in the 
+                * "mask": get extent from min/max positions of voxels in the
                   binary mask.
                 * None: use the method set in self.default_geom_method.
 
@@ -1918,28 +1969,31 @@ class ROI(skrt.core.Archive):
                 elif buffer_units == "frac":
                     delta = buffer * abs(extents[ax][1] - extents[ax][0])
                 else:
-                    print(f"Unrecognised buffer units {buffer_units}. Should "
-                          'be "mm", "voxels", or "frac".')
+                    print(
+                        f"Unrecognised buffer units {buffer_units}. Should "
+                        'be "mm", "voxels", or "frac".'
+                    )
                     return
                 extents[ax][0] -= delta
                 extents[ax][1] += delta
 
         return extents
 
-    def get_extent(self, 
-                   ax="z", 
-                   single_slice=False,
-                   view="x-y",
-                   sl=None, 
-                   idx=None, 
-                   pos=None, 
-                   method=None, 
-                   origin=None,
-                  ):
+    def get_extent(
+        self,
+        ax="z",
+        single_slice=False,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        method=None,
+        origin=None,
+    ):
         """Get minimum and maximum extent of the ROI in mm along a given axis.
 
         ax : str/int, default="z"
-            Axis along which to return extent. Should be one of ["x", "y", "z"] 
+            Axis along which to return extent. Should be one of ["x", "y", "z"]
             or [0, 1, 2]
 
         single_slice : bool, default=False
@@ -1947,7 +2001,7 @@ class ROI(skrt.core.Archive):
             otherwise, the 2D extent of a single slice will be returned.
 
         view : str, default="x-y"
-            Orientation of slice on which to get extent. Only used if 
+            Orientation of slice on which to get extent. Only used if
             single_slice=True. If using, <ax> must be an axis that lies along
             the slice in this orientation.
 
@@ -1964,10 +2018,10 @@ class ROI(skrt.core.Archive):
             <single_slice> is True, the central slice of the ROI will be used.
 
         method : str, default=None
-            Method to use for extent calculation. Can be: 
+            Method to use for extent calculation. Can be:
 
                 * "contour": get extent from min/max positions of contour(s).
-                * "mask": get extent from min/max positions of voxels in the 
+                * "mask": get extent from min/max positions of voxels in the
                   binary mask.
                 * None: use the method set in self.default_geom_method.
 
@@ -1993,7 +2047,8 @@ class ROI(skrt.core.Archive):
         if single_slice:
             if i_ax not in skrt.image._plot_axes[view]:
                 raise RuntimeError(
-                    f"Cannot compute extent of axis {ax} in the {view} plane!")
+                    f"Cannot compute extent of axis {ax} in the {view} plane!"
+                )
             i_ax = skrt.image._plot_axes[view].index(i_ax)
 
         # Ensure that origin is a single numeric value.
@@ -2003,20 +2058,19 @@ class ROI(skrt.core.Archive):
 
         # Calculate extent from contours
         if method == "contour":
-
             # Calculate full z extent from contour positions
             if (ax == "z" or ax == 2) and not single_slice:
                 z_keys = list(self.get_contours("x-y").keys())
                 vz = self.get_slice_thickness_contours()
                 if z_keys:
-                    z_max = max(z_keys) +  vz / 2
+                    z_max = max(z_keys) + vz / 2
                     z_min = min(z_keys) - vz / 2
                 else:
                     z_min = None
                     z_max = None
                 return [z_min, z_max]
 
-            # Otherwise, calculate extent from min/max contour positions 
+            # Otherwise, calculate extent from min/max contour positions
             points = []
 
             # Global: use every contour
@@ -2028,7 +2082,8 @@ class ROI(skrt.core.Archive):
             # Single slice: just use the contour on the slice
             else:
                 for contour in self.get_contours_on_slice(
-                    view, sl=sl, idx=idx, pos=pos):
+                    view, sl=sl, idx=idx, pos=pos
+                ):
                     points.extend([p[i_ax] for p in contour])
 
             # Return min and max of the points in the contour(s)
@@ -2046,20 +2101,21 @@ class ROI(skrt.core.Archive):
         if not single_slice:
             nonzero = np.argwhere(self.get_mask(standardise=True))
         else:
-            nonzero = np.argwhere(self.get_slice(
-                view, sl=sl, idx=idx, pos=pos))
+            nonzero = np.argwhere(self.get_slice(view, sl=sl, idx=idx, pos=pos))
         vals = nonzero[:, i_ax]
         if not len(vals):
             return [None, None]
 
-        # Find min and max voxels; add half a voxel either side to get 
+        # Find min and max voxels; add half a voxel either side to get
         # full extent
         min_pos = min(vals) - 0.5
         max_pos = max(vals) + 0.5
 
         # Convert positions to mm
-        return [self.idx_to_pos(min_pos, ax) - origin,
-                self.idx_to_pos(max_pos, ax) - origin]
+        return [
+            self.idx_to_pos(min_pos, ax) - origin,
+            self.idx_to_pos(max_pos, ax) - origin,
+        ]
 
     def get_crop_limits(self, crop_margins=None, method=None):
         """
@@ -2101,23 +2157,23 @@ class ROI(skrt.core.Archive):
         return crop_limits
 
     def get_length(
-        self, 
-        ax="z", 
+        self,
+        ax="z",
         single_slice=False,
         view="x-y",
-        sl=None, 
-        idx=None, 
-        pos=None, 
+        sl=None,
+        idx=None,
+        pos=None,
         units="mm",
-        method=None, 
-        force=True
+        method=None,
+        force=True,
     ):
-        """Get ROI length along a given axis. If single_slice=False (i.e. a 
-        global length is requested), calculated length will be cached in 
+        """Get ROI length along a given axis. If single_slice=False (i.e. a
+        global length is requested), calculated length will be cached in
         self._length[ax][units] and returned if called again, unless force=True.
 
         **Parameters:**
-        
+
         ax : str/int, default="z"
             Axis along which to return length; should be one of ["x", "y", "z"]
             or [0, 1, 2].
@@ -2127,7 +2183,7 @@ class ROI(skrt.core.Archive):
             otherwise, the length on a single slice will be returned.
 
         view : str, default="x-y"
-            Orientation of slice on which to get length. Only used if 
+            Orientation of slice on which to get length. Only used if
             single_slice=True. If using, <ax> must be an axis that lies along
             the slice in this orientation.
 
@@ -2149,28 +2205,31 @@ class ROI(skrt.core.Archive):
                 - "voxels": return length in number of voxels.
 
             If units="voxels" is requested but this ROI only has contours and no
-            voxel size information, an error will be raised (unless ax="z", 
+            voxel size information, an error will be raised (unless ax="z",
             in which case voxel size will be inferred from spacing between
             slices).
 
         method : str, default=None
-            Method to use for length calculation. Can be: 
+            Method to use for length calculation. Can be:
                 - "contour": get length from min/max positions of contour(s).
-                - "mask": get length from min/max positions of voxels in the 
+                - "mask": get length from min/max positions of voxels in the
                   binary mask.
                 - None: use the method set in self.default_geom_method.
 
         force : bool, default=True
             If True, the length will always be recalculated; otherwise, it will
             only be calculated if it has not yet been cached in self._volume.
-            Note that if single_slice=True, the length will always be 
+            Note that if single_slice=True, the length will always be
             recalculated.
         """
 
         # If global length already cached, return cached value
         if not single_slice and not force:
-            if hasattr(self, "_length") and ax in self._length \
-               and units in self._length[ax]:
+            if (
+                hasattr(self, "_length")
+                and ax in self._length
+                and units in self._length[ax]
+            ):
                 return self._length[ax][units]
 
         # If single slice requested and not on current slice, return None
@@ -2180,17 +2239,15 @@ class ROI(skrt.core.Archive):
         # Get length in mm from min and max positions
         self.load()
         min_pos, max_pos = self.get_extent(
-            ax=ax, 
+            ax=ax,
             single_slice=single_slice,
             view=view,
             sl=sl,
             idx=idx,
             pos=pos,
-            method=method
+            method=method,
         )
-        length = {
-            "mm": abs(max_pos - min_pos)
-        }
+        length = {"mm": abs(max_pos - min_pos)}
 
         # Get length in voxels
         # Case where voxel size is known
@@ -2201,18 +2258,21 @@ class ROI(skrt.core.Archive):
         # Deal with case where self.voxel_size is None
         else:
             if i_ax == 2:
-                length["voxels"] = length["mm"] / self.get_slice_thickness_contours()
+                length["voxels"] = (
+                    length["mm"] / self.get_slice_thickness_contours()
+                )
             elif units == "voxels":
-                raise RuntimeError("Cannot compute length in voxels from "
-                                   "contours without knowing voxel sizes!")
+                raise RuntimeError(
+                    "Cannot compute length in voxels from "
+                    "contours without knowing voxel sizes!"
+                )
 
-        
         # Cache the property if global
         if not single_slice:
             if not hasattr(self, "_length"):
                 self._length = {}
             self._length[skrt.image._axes[i_ax]] = length
-        
+
         # Return desired units
         return length[units]
 
@@ -2234,13 +2294,13 @@ class ROI(skrt.core.Archive):
         nice_columns=False,
         decimal_places=None,
         force=True,
-        html=False
+        html=False,
     ):
-        """Return a pandas DataFrame or html table of the geometric properties 
+        """Return a pandas DataFrame or html table of the geometric properties
         listed in <metrics>.
 
         **Parameters:**
-        
+
         metrics : list, default=None
             List of metrics to include in the table. Options:
 
@@ -2275,27 +2335,27 @@ class ROI(skrt.core.Archive):
             Units to use for centroids. Can be "mm" or "voxels".
 
         view : str, default="x-y"
-            Orientation in which to compute metrics. Only relevant for 
+            Orientation in which to compute metrics. Only relevant for
             single-slice metrics (area, centroid_slice, length_slice).
 
         sl : int, default=None
-            Slice number on which to compute metrics. Only relevant for 
+            Slice number on which to compute metrics. Only relevant for
             single-slice metrics (area, centroid_slice, length_slice).
             If <sl>, <idx>, and <pos> are all None, the central slice of the
             ROI will be used.
 
         idx : int, default=None
-            Slice index array on which to compute metrics. Only relevant for 
+            Slice index array on which to compute metrics. Only relevant for
             single-slice metrics (area, centroid_slice, length_slice).
             Used if <sl> is None.
 
         pos : float, default=None
-            Slice position in mm on which to compute metrics. Only relevant for 
+            Slice position in mm on which to compute metrics. Only relevant for
             single-slice metrics (area, centroid_slice, length_slice).
             Used if <sl> and <idx> are both None.
 
         method : str, default=None
-            Method to use for metric calculation. Can be either "contour" 
+            Method to use for metric calculation. Can be either "contour"
             (use shapely polygons) or "mask" (use binary mask). If None,
             the value set in self.default_geom_method will be used.
 
@@ -2307,13 +2367,13 @@ class ROI(skrt.core.Archive):
             splitting the table into "global" and "slice" metrics.
 
         name_as_index : bool, default=True
-            If True, the index column of the pandas DataFrame will 
+            If True, the index column of the pandas DataFrame will
             contain the ROI's name; otherwise, the name will appear in a column
             named "ROI".
 
         nice_columns : bool, default=False
             If False, column names will be the same as the input metrics names;
-            if True, the names will be capitalized and underscores will be 
+            if True, the names will be capitalized and underscores will be
             replaced with spaces.
 
         decimal_places : int, default=None
@@ -2336,36 +2396,24 @@ class ROI(skrt.core.Archive):
 
         # Compute metrics
         geom = {}
-        slice_kwargs = {
-            "view": view,
-            "sl": sl,
-            "idx": idx,
-            "pos": pos
-        }
+        slice_kwargs = {"view": view, "sl": sl, "idx": idx, "pos": pos}
         for m in metrics:
-
             # 3D volume
             if m == "volume":
                 geom[m] = self.get_volume(
-                    units=vol_units, 
-                    method=method,
-                    force=force
+                    units=vol_units, method=method, force=force
                 )
 
             # Area on a slice
             elif m == "area":
                 geom[m] = self.get_area(
-                    units=area_units, 
-                    method=method,
-                    **slice_kwargs
+                    units=area_units, method=method, **slice_kwargs
                 )
 
             # 3D centroid
             elif m == "centroid":
                 centroid = self.get_centroid(
-                    units=centroid_units, 
-                    method=method,
-                    force=force
+                    units=centroid_units, method=method, force=force
                 )
                 for i, ax in enumerate(skrt.image._axes):
                     geom[f"centroid_{ax}"] = centroid[i]
@@ -2373,10 +2421,10 @@ class ROI(skrt.core.Archive):
             # 2D centroid
             elif m == "centroid_slice":
                 centroid = self.get_centroid(
-                    units=centroid_units, 
+                    units=centroid_units,
                     method=method,
                     single_slice=True,
-                    **slice_kwargs
+                    **slice_kwargs,
                 )
                 for i, i_ax in enumerate(skrt.image._plot_axes[view]):
                     ax = skrt.image._axes[i_ax]
@@ -2386,10 +2434,7 @@ class ROI(skrt.core.Archive):
             elif m == "length":
                 for ax in skrt.image._axes:
                     geom[f"length_{ax}"] = self.get_length(
-                        ax=ax, 
-                        units=length_units,
-                        method=method,
-                        force=force
+                        ax=ax, units=length_units, method=method, force=force
                     )
 
             # Lengths on a slice
@@ -2397,11 +2442,11 @@ class ROI(skrt.core.Archive):
                 for i_ax in skrt.image._plot_axes[view]:
                     ax = skrt.image._axes[i_ax]
                     geom[f"length_slice_{ax}"] = self.get_length(
-                        ax=ax, 
+                        ax=ax,
                         units=length_units,
                         method=method,
                         single_slice=True,
-                        **slice_kwargs
+                        **slice_kwargs,
                     )
 
             else:
@@ -2409,13 +2454,10 @@ class ROI(skrt.core.Archive):
 
                 # Axis-specific metrics
                 for i, ax in enumerate(skrt.image._axes):
-
                     # Global centroid position on a given axis
                     if m == f"centroid_{ax}":
                         geom[m] = self.get_centroid(
-                            units=centroid_units,
-                            method=method,
-                            force=force
+                            units=centroid_units, method=method, force=force
                         )[i]
                         found = True
 
@@ -2423,15 +2465,16 @@ class ROI(skrt.core.Archive):
                     elif m == f"length_{ax}":
                         geom[m] = self.get_length(
                             ax=ax,
-                            units=length_units, 
+                            units=length_units,
                             method=method,
-                            force=force
+                            force=force,
                         )
                         found = True
 
                 if not found:
-                    raise RuntimeError(f"Metric {m} not recognised by "
-                                       "ROI.get_geometry()")
+                    raise RuntimeError(
+                        f"Metric {m} not recognised by " "ROI.get_geometry()"
+                    )
 
         # Add units to metric names if requested
         geom_named = {}
@@ -2468,8 +2511,9 @@ class ROI(skrt.core.Archive):
 
         # Capitalize column names and remove underscores if requested
         if nice_columns and not global_vs_slice_header:
-            df.columns = [col.capitalize().replace("_", " ") 
-                          for col in df.columns]
+            df.columns = [
+                col.capitalize().replace("_", " ") for col in df.columns
+            ]
 
         # Turn name into a regular column if requested
         if not name_as_index:
@@ -2477,7 +2521,6 @@ class ROI(skrt.core.Archive):
 
         # Add global/slice headers
         if global_vs_slice_header:
-
             # Sort columns into global or slice
             headers = []
             slice_cols = []
@@ -2485,8 +2528,11 @@ class ROI(skrt.core.Archive):
             slice_name = "slice" if not nice_columns else "Slice"
             global_name = "global" if not nice_columns else "Global"
             for metric in geom_named:
-                name = metric if not nice_columns else \
-                        metric.capitalize().replace("_", "")
+                name = (
+                    metric
+                    if not nice_columns
+                    else metric.capitalize().replace("_", "")
+                )
                 if "area" in metric or "slice" in metric:
                     headers.append((slice_name, metric))
                     slice_cols.append(metric)
@@ -2501,8 +2547,9 @@ class ROI(skrt.core.Archive):
             df = pd.concat(dfs_ordered, axis=1)
 
             # Sort headers by global/slice
-            headers = [h for h in headers if h[0] == global_name] \
-                    + [h for h in headers if h[0] == slice_name]
+            headers = [h for h in headers if h[0] == global_name] + [
+                h for h in headers if h[0] == slice_name
+            ]
             if not name_as_index:
                 headers.insert(0, ("", "ROI"))
 
@@ -2513,14 +2560,26 @@ class ROI(skrt.core.Archive):
             return df_to_html(df)
         return df
 
-    def get_centroid_distance(self, roi, single_slice=False, view="x-y",
-            sl=None, idx=None, pos=None, units="mm", method=None, force=True,
-            by_slice=None, value_for_none=None, slice_stat=None,
-            **slice_stat_kwargs):
+    def get_centroid_distance(
+        self,
+        roi,
+        single_slice=False,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        units="mm",
+        method=None,
+        force=True,
+        by_slice=None,
+        value_for_none=None,
+        slice_stat=None,
+        **slice_stat_kwargs,
+    ):
         """Get centroid displacement vector with respect to another ROI.
 
         **Parameters:**
-        
+
         roi : ROI
             Other ROI with which to compare centroid.
 
@@ -2532,7 +2591,7 @@ class ROI(skrt.core.Archive):
             flattening.
 
         flatten : bool, default=False
-            If True, the 3D centroid will be obtained and then the absolute 
+            If True, the 3D centroid will be obtained and then the absolute
             value along only the 2D axes in the orientation in <view> will
             be returned.
 
@@ -2557,21 +2616,21 @@ class ROI(skrt.core.Archive):
                 - "voxels": return centroid position in terms of array indices.
                 - "slice": return centroid position in terms of slice numbers.
 
-            If units="voxels" or "slice" is requested but either ROI only has 
-            contours and no mask shape/voxel size information, an error will be 
-            raised (unless ax="z", in which case voxel size will be inferred 
+            If units="voxels" or "slice" is requested but either ROI only has
+            contours and no mask shape/voxel size information, an error will be
+            raised (unless ax="z", in which case voxel size will be inferred
             from spacing between slices).
 
         method : str, default=None
-            Method to use for centroid calculation. Can be: 
+            Method to use for centroid calculation. Can be:
                 - "contour": get centroid of shapely contour(s).
                 - "mask": get average position of voxels in binary mask.
                 - None: use the method set in self.default_geom_method.
 
         force : bool, default=True
-            If True, the global centroid will always be recalculated; 
-            otherwise, it will only be calculated if it has not yet been cached 
-            in self._volume.  Note that if single_slice=True, the centroid will 
+            If True, the global centroid will always be recalculated;
+            otherwise, it will only be calculated if it has not yet been cached
+            in self._volume.  Note that if single_slice=True, the centroid will
             always be recalculated.
 
         by_slice : str, default=None
@@ -2623,36 +2682,61 @@ class ROI(skrt.core.Archive):
             https://docs.python.org/3/library/statistics.html
         """
         if slice_stat:
-            return self.get_slice_stat(roi, "centroid", slice_stat,
-                    by_slice, value_for_none, view, method,
-                    **(slice_stat_kwargs or {}))
+            return self.get_slice_stat(
+                roi,
+                "centroid",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
 
         if by_slice:
-            return self.get_metric_by_slice(roi, "centroid", by_slice,
-                    view, method)
+            return self.get_metric_by_slice(
+                roi, "centroid", by_slice, view, method
+            )
 
-        this_centroid = np.array(self.get_centroid(
-            single_slice=single_slice, view=view, sl=sl, idx=idx, pos=pos,
-            units=units, method=method, force=force)
+        this_centroid = np.array(
+            self.get_centroid(
+                single_slice=single_slice,
+                view=view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                units=units,
+                method=method,
+                force=force,
+            )
         )
-        other_centroid = np.array(roi.get_centroid(
-            single_slice=single_slice, view=view, sl=sl, idx=idx, pos=pos,
-            units=units, method=method, force=force)
+        other_centroid = np.array(
+            roi.get_centroid(
+                single_slice=single_slice,
+                view=view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                units=units,
+                method=method,
+                force=force,
+            )
         )
         if None in this_centroid or None in other_centroid:
             if single_slice:
                 return np.array([value_for_none, value_for_none])
             else:
-                return np.array([value_for_none, value_for_none,
-                    value_for_none])
+                return np.array(
+                    [value_for_none, value_for_none, value_for_none]
+                )
         return other_centroid - this_centroid
 
     def get_abs_centroid_distance(
-        self, 
-        roi, 
-        view="x-y", 
+        self,
+        roi,
+        view="x-y",
         single_slice=False,
-        flatten=False, 
+        flatten=False,
         sl=None,
         idx=None,
         pos=None,
@@ -2663,11 +2747,11 @@ class ROI(skrt.core.Archive):
         value_for_none=None,
         slice_stat=None,
         slice_stat_kwargs=None,
-        ):
+    ):
         """Get absolute centroid distance with respect to another ROI.
 
         **Parameters:**
-        
+
         roi : ROI
             Other ROI with which to compare centroid.
 
@@ -2679,7 +2763,7 @@ class ROI(skrt.core.Archive):
             If True, the centroid will be returned for a single slice.
 
         flatten : bool, default=False
-            If True, the 3D centroid will be obtained and then the absolute 
+            If True, the 3D centroid will be obtained and then the absolute
             value along only the 2D axes in the orientation in <view> will
             be returned.
 
@@ -2704,21 +2788,21 @@ class ROI(skrt.core.Archive):
                 - "voxels": return centroid position in terms of array indices.
                 - "slice": return centroid position in terms of slice numbers.
 
-            If units="voxels" or "slice" is requested but either ROI only has 
-            contours and no mask shape/voxel size information, an error will be 
-            raised (unless ax="z", in which case voxel size will be inferred 
+            If units="voxels" or "slice" is requested but either ROI only has
+            contours and no mask shape/voxel size information, an error will be
+            raised (unless ax="z", in which case voxel size will be inferred
             from spacing between slices).
 
         method : str, default=None
-            Method to use for centroid calculation. Can be: 
+            Method to use for centroid calculation. Can be:
                 - "contour": get centroid of shapely contour(s).
                 - "mask": get average position of voxels in binary mask.
                 - None: use the method set in self.default_geom_method.
 
         force : bool, default=True
-            If True, the global centroid will always be recalculated; 
-            otherwise, it will only be calculated if it has not yet been cached 
-            in self._volume.  Note that if single_slice=True, the centroid will 
+            If True, the global centroid will always be recalculated;
+            otherwise, it will only be calculated if it has not yet been cached
+            in self._volume.  Note that if single_slice=True, the centroid will
             always be recalculated.
 
         by_slice : str, default=None
@@ -2770,13 +2854,21 @@ class ROI(skrt.core.Archive):
             https://docs.python.org/3/library/statistics.html
         """
         if slice_stat:
-            return self.get_slice_stat(roi, "abs_centroid", slice_stat,
-                    by_slice, value_for_none, view, method,
-                    **(slice_stat_kwargs or {}))
+            return self.get_slice_stat(
+                roi,
+                "abs_centroid",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
 
         if by_slice:
-            return self.get_metric_by_slice(roi, "abs_centroid", by_slice,
-                    view, method)
+            return self.get_metric_by_slice(
+                roi, "abs_centroid", by_slice, view, method
+            )
 
         # If flattening, need to get 3D centroid vector
         if flatten:
@@ -2784,8 +2876,8 @@ class ROI(skrt.core.Archive):
 
         # Get centroid vector
         centroid = self.get_centroid_distance(
-            roi, 
-            view=view, 
+            roi,
+            view=view,
             single_slice=single_slice,
             sl=sl,
             idx=idx,
@@ -2808,13 +2900,13 @@ class ROI(skrt.core.Archive):
         return np.linalg.norm(centroid)
 
     def get_dice(
-        self, 
-        other, 
+        self,
+        other,
         single_slice=False,
-        view="x-y", 
-        sl=None, 
-        idx=None, 
-        pos=None, 
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
         method=None,
         flatten=False,
         by_slice=None,
@@ -2827,7 +2919,7 @@ class ROI(skrt.core.Archive):
         globally, on a single slice, slice by slice, or slice averaged.
 
         **Parameters:**
-        
+
         other : ROI
             Other ROI to compare with this ROI.
 
@@ -2836,7 +2928,7 @@ class ROI(skrt.core.Archive):
             otherwise, the 2D Dice score on a single slice will be returned.
 
         view : str, default="x-y"
-            Orientation of slice on which to get Dice score. Only used if 
+            Orientation of slice on which to get Dice score. Only used if
             single_slice=True. If using, <ax> must be an axis that lies along
             the slice in this orientation.
 
@@ -2853,14 +2945,14 @@ class ROI(skrt.core.Archive):
             <single_slice> is True, the central slice of this ROI will be used.
 
         method : str, default=None
-            Method to use for Dice score calculation. Can be: 
+            Method to use for Dice score calculation. Can be:
                 - "contour": get intersections and areas of shapely contours.
                 - "mask": count intersecting voxels in binary masks.
                 - None: use the method set in self.default_geom_method.
 
         flatten : bool, default=False
             If True, all slices will be flattened in the given orientation and
-            the Dice score of the flattened slices will be returned. Only 
+            the Dice score of the flattened slices will be returned. Only
             available if method="mask".
 
         by_slice : str, default=None
@@ -2912,26 +3004,36 @@ class ROI(skrt.core.Archive):
             https://docs.python.org/3/library/statistics.html
         """
         if slice_stat:
-            return self.get_slice_stat(other, "dice", slice_stat, by_slice,
-                    value_for_none, view, method, **(slice_stat_kwargs or {}))
+            return self.get_slice_stat(
+                other,
+                "dice",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
 
         if by_slice:
-            return self.get_metric_by_slice(other, "dice", by_slice,
-                    view, method)
+            return self.get_metric_by_slice(
+                other, "dice", by_slice, view, method
+            )
 
         intersection, union, mean_size = self.get_intersection_union_size(
-                other, single_slice, view, sl, idx, pos, method, flatten)
+            other, single_slice, view, sl, idx, pos, method, flatten
+        )
 
-        return (intersection / mean_size if mean_size else value_for_none)
+        return intersection / mean_size if mean_size else value_for_none
 
     def get_jaccard(
-        self, 
-        other, 
+        self,
+        other,
         single_slice=False,
-        view="x-y", 
-        sl=None, 
-        idx=None, 
-        pos=None, 
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
         method=None,
         flatten=False,
         by_slice=None,
@@ -2942,11 +3044,11 @@ class ROI(skrt.core.Archive):
         """
         Get Jaccard index with respect to another ROI.
 
-        The Jaccard index may be obtained either globally or on a 
+        The Jaccard index may be obtained either globally or on a
         single slice.
 
         **Parameters:**
-        
+
         other : ROI
             Other ROI to compare with this ROI.
 
@@ -2956,7 +3058,7 @@ class ROI(skrt.core.Archive):
             will be returned.
 
         view : str, default="x-y"
-            Orientation of slice on which to get Jaccard index. Only used if 
+            Orientation of slice on which to get Jaccard index. Only used if
             single_slice=True. If using, <ax> must be an axis that lies along
             the slice in this orientation.
 
@@ -2973,14 +3075,14 @@ class ROI(skrt.core.Archive):
             <single_slice> is True, the central slice of this ROI will be used.
 
         method : str, default=None
-            Method to use for Dice score calculation. Can be: 
+            Method to use for Dice score calculation. Can be:
                 - "contour": get intersections and areas of shapely contours.
                 - "mask": count intersecting voxels in binary masks.
                 - None: use the method set in self.default_geom_method.
 
         flatten : bool, default=False
             If True, all slices will be flattened in the given orientation and
-            the Dice score of the flattened slices will be returned. Only 
+            the Dice score of the flattened slices will be returned. Only
             available if method="mask".
 
         by_slice : str, default=None
@@ -3032,17 +3134,27 @@ class ROI(skrt.core.Archive):
             https://docs.python.org/3/library/statistics.html
         """
         if slice_stat:
-            return self.get_slice_stat(other, "jaccard", slice_stat, by_slice,
-                    value_for_none, view, method, **(slice_stat_kwargs or {}))
+            return self.get_slice_stat(
+                other,
+                "jaccard",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
 
         if by_slice:
-            return self.get_metric_by_slice(other, "jaccard", by_slice,
-                    view, method)
+            return self.get_metric_by_slice(
+                other, "jaccard", by_slice, view, method
+            )
 
         intersection, union, mean_size = self.get_intersection_union_size(
-                other, single_slice, view, sl, idx, pos, method, flatten)
+            other, single_slice, view, sl, idx, pos, method, flatten
+        )
 
-        return (intersection / union if union else value_for_none)
+        return intersection / union if union else value_for_none
 
     def get_volume_ratio(self, other, **kwargs):
         """Get ratio of another ROI's volume with respect to own volume."""
@@ -3053,19 +3165,39 @@ class ROI(skrt.core.Archive):
             return None
         return own_volume / other_volume
 
-    def get_area_ratio(self, other, view="x-y", sl=None, idx=None, pos=None,
-            units="mm", method=None, flatten=False, by_slice=None,
-            slice_stat=None, value_for_none=None, **slice_stat_kwargs):
+    def get_area_ratio(
+        self,
+        other,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        units="mm",
+        method=None,
+        flatten=False,
+        by_slice=None,
+        slice_stat=None,
+        value_for_none=None,
+        **slice_stat_kwargs,
+    ):
         """Get ratio of another ROI's area with respect to own area."""
 
         if slice_stat:
-            return self.get_slice_stat(other, "area_ratio", slice_stat,
-                    by_slice, value_for_none, view, method,
-                    **(slice_stat_kwargs or {}))
+            return self.get_slice_stat(
+                other,
+                "area_ratio",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
 
         if by_slice:
-            return self.get_metric_by_slice(other, "area_ratio", by_slice,
-                    view, method)
+            return self.get_metric_by_slice(
+                other, "area_ratio", by_slice, view, method
+            )
 
         own_area = other.get_area(view, sl, idx, pos, units, method, flatten)
         other_area = self.get_area(view, sl, idx, pos, units, method, flatten)
@@ -3080,7 +3212,7 @@ class ROI(skrt.core.Archive):
         other_volume = other.get_volume(**kwargs)
         if not own_volume or not other_volume:
             return None
-        return (own_volume - other_volume)
+        return own_volume - other_volume
 
     def get_relative_volume_diff(self, other, **kwargs):
         """Get relative volume of another ROI with respect to own volume."""
@@ -3091,19 +3223,39 @@ class ROI(skrt.core.Archive):
             return
         return volume_diff / own_volume
 
-    def get_area_diff(self, other, view="x-y", sl=None, idx=None, pos=None,
-            units="mm", method=None, flatten=False, by_slice=None,
-            slice_stat=None, value_for_none=None, **slice_stat_kwargs):
+    def get_area_diff(
+        self,
+        other,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        units="mm",
+        method=None,
+        flatten=False,
+        by_slice=None,
+        slice_stat=None,
+        value_for_none=None,
+        **slice_stat_kwargs,
+    ):
         """Get absolute area difference between two ROIs."""
 
         if slice_stat:
-            return self.get_slice_stat(other, "area_diff", slice_stat,
-                    by_slice, value_for_none, view, method,
-                    **(slice_stat_kwargs or {}))
+            return self.get_slice_stat(
+                other,
+                "area_diff",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
 
         if by_slice:
-            return self.get_metric_by_slice(other, "area_diff", by_slice,
-                    view, method)
+            return self.get_metric_by_slice(
+                other, "area_diff", by_slice, view, method
+            )
 
         own_area = self.get_area(view, sl, idx, pos, units, method, flatten)
         other_area = other.get_area(view, sl, idx, pos, units, method, flatten)
@@ -3111,36 +3263,57 @@ class ROI(skrt.core.Archive):
             return value_for_none
         return own_area - other_area
 
-    def get_relative_area_diff(self, other, view="x-y", sl=None, idx=None,
-            pos=None, units="mm", method=None, flatten=False, by_slice=None,
-            slice_stat=None, value_for_none=None, **slice_stat_kwargs):
+    def get_relative_area_diff(
+        self,
+        other,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        units="mm",
+        method=None,
+        flatten=False,
+        by_slice=None,
+        slice_stat=None,
+        value_for_none=None,
+        **slice_stat_kwargs,
+    ):
         """Get relative area of another ROI with respect to own area."""
 
         if slice_stat:
-            return self.get_slice_stat(other, "rel_area_diff", slice_stat,
-                    by_slice, value_for_none, view, method,
-                    **(slice_stat_kwargs or {}))
+            return self.get_slice_stat(
+                other,
+                "rel_area_diff",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
 
         if by_slice:
-            return self.get_metric_by_slice(other, "rel_area_diff",
-                    by_slice, view, method)
+            return self.get_metric_by_slice(
+                other, "rel_area_diff", by_slice, view, method
+            )
 
         own_area = self.get_area(view, sl, idx, pos, units, method, flatten)
-        area_diff = self.get_area_diff(other, view, sl, idx, pos, units, method,
-                flatten)
+        area_diff = self.get_area_diff(
+            other, view, sl, idx, pos, units, method, flatten
+        )
 
         if area_diff is None:
             return value_for_none
         return area_diff / own_area
 
     def get_intersection_union_size(
-        self, 
-        other, 
+        self,
+        other,
         single_slice=False,
-        view="x-y", 
-        sl=None, 
-        idx=None, 
-        pos=None, 
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
         method=None,
         flatten=False,
     ):
@@ -3150,7 +3323,7 @@ class ROI(skrt.core.Archive):
         or as areas for a single slice.
 
         **Parameters:**
-        
+
         other : ROI
             Other ROI to compare with this ROI.
 
@@ -3180,7 +3353,7 @@ class ROI(skrt.core.Archive):
 
         method : str, default=None
             Method to use for calculating intersection, union, and mean
-            size. Can be: 
+            size. Can be:
                 - "contour": get intersections and areas of shapely contours.
                 - "mask": count intersecting voxels in binary masks.
                 - None: use the method set in self.default_geom_method.
@@ -3214,25 +3387,31 @@ class ROI(skrt.core.Archive):
 
         # Calculate intersections and areas from polygons
         if method == "contour":
-
             # Get positions of slice(s)
             # on which to compare areas and total areas.
             if not single_slice:
                 positions = set(self.get_contours("x-y").keys()).union(
-                        set(other.get_contours("x-y").keys()))
-                areas1 = [self.get_area("x-y", pos=p, method=method)
-                        for p in positions]
+                    set(other.get_contours("x-y").keys())
+                )
+                areas1 = [
+                    self.get_area("x-y", pos=p, method=method)
+                    for p in positions
+                ]
                 volumes1 = [a * slice_thickness for a in areas1 if a]
                 volume1 = sum(volumes1)
-                areas2 = [other.get_area("x-y", pos=p, method=method)
-                        for p in positions]
+                areas2 = [
+                    other.get_area("x-y", pos=p, method=method)
+                    for p in positions
+                ]
                 volumes2 = [a * slice_thickness for a in areas2 if a]
                 volume2 = sum(volumes2)
                 mean_size = 0.5 * (volume1 + volume2)
             else:
                 positions = [
-                    self.idx_to_pos(self.get_idx(view, sl, idx, pos),
-                                    ax=skrt.image._slice_axes[view])
+                    self.idx_to_pos(
+                        self.get_idx(view, sl, idx, pos),
+                        ax=skrt.image._slice_axes[view],
+                    )
                 ]
                 area1 = self.get_area(view, sl, idx, pos, method=method)
                 if area1 is None:
@@ -3241,7 +3420,7 @@ class ROI(skrt.core.Archive):
                 if area2 is None:
                     area2 = 0
                 mean_size = 0.5 * (area1 + area2)
-            
+
             # Compute areas of intersection and union on slice(s)
             intersection = 0
             union = 0
@@ -3254,7 +3433,6 @@ class ROI(skrt.core.Archive):
 
         # Calculate intersections and areas from binary mask voxel counts
         else:
-
             # Use 3D mask
             if not single_slice:
                 data1 = self.get_mask(view, flatten, standardise=True)
@@ -3272,8 +3450,9 @@ class ROI(skrt.core.Archive):
 
         return (intersection, union, mean_size)
 
-    def get_metric_by_slice(self, other, metric=None, by_slice=None,
-            view="x-y", method=None):
+    def get_metric_by_slice(
+        self, other, metric=None, by_slice=None, view="x-y", method=None
+    ):
         """
         Get dictionary of slice-by-slice values for comparison metric.
 
@@ -3303,23 +3482,37 @@ class ROI(skrt.core.Archive):
             Orientation of slices on which to get metric values.
 
         method : str, default=None
-            Method to use for metric calculation. Can be: 
+            Method to use for metric calculation. Can be:
                 - "contour": calculate metric from shapely contours.
                 - "mask": calcualte metric from binary masks.
                 - None: use the method set in self.default_geom_method.
         """
         if metric not in get_comparison_metrics():
-            raise RuntimeError(f"Metric {metric} not recognised by "
-                        "ROI.get_metric_by_slice()")
+            raise RuntimeError(
+                f"Metric {metric} not recognised by "
+                "ROI.get_metric_by_slice()"
+            )
 
         by_slice = by_slice or skrt.core.Defaults().by_slice
 
-        return {pos: getattr(self, f"get_{get_metric_method(metric)}")(
-            other, single_slice=True, view=view, pos=pos, method=method)
-            for pos in self.get_slice_positions(other, view, method=by_slice)}
+        return {
+            pos: getattr(self, f"get_{get_metric_method(metric)}")(
+                other, single_slice=True, view=view, pos=pos, method=method
+            )
+            for pos in self.get_slice_positions(other, view, method=by_slice)
+        }
 
-    def get_slice_stat(self, other, metric=None, slice_stat=None, by_slice=None,
-            value_for_none=None, view="x-y", method=None, **slice_stat_kwargs):
+    def get_slice_stat(
+        self,
+        other,
+        metric=None,
+        slice_stat=None,
+        by_slice=None,
+        value_for_none=None,
+        view="x-y",
+        method=None,
+        **slice_stat_kwargs,
+    ):
         """
         Get statistic for slice-by-slice comparison metric.
 
@@ -3362,7 +3555,7 @@ class ROI(skrt.core.Archive):
             Orientation of slices on which to get metric values.
 
         method : str, default=None
-            Method to use for metric calculation. Can be: 
+            Method to use for metric calculation. Can be:
                 - "contour": calculate metric from shapely contours.
                 - "mask": calcualte metric from binary masks.
                 - None: use the method set in self.default_geom_method.
@@ -3383,13 +3576,23 @@ class ROI(skrt.core.Archive):
         by_slice = by_slice or skrt.core.Defaults().by_slice
         slice_stat_kwargs = slice_stat_kwargs or {}
 
-        return skrt.core.get_stat(self.get_metric_by_slice(
-            other, metric, by_slice, view, method),
-            value_for_none, slice_stat, **slice_stat_kwargs)
+        return skrt.core.get_stat(
+            self.get_metric_by_slice(other, metric, by_slice, view, method),
+            value_for_none,
+            slice_stat,
+            **slice_stat_kwargs,
+        )
 
-    def get_slice_stats(self, other, metrics=None, slice_stats=None,
-            default_by_slice=None, method=None, view="x-y",
-            separate_components=False):
+    def get_slice_stats(
+        self,
+        other,
+        metrics=None,
+        slice_stats=None,
+        default_by_slice=None,
+        method=None,
+        view="x-y",
+        separate_components=False,
+    ):
         """
         Get dictionary of statistics for slice-by-slice comparison metrics.
 
@@ -3451,7 +3654,7 @@ class ROI(skrt.core.Archive):
             Orientation of slices on which to get metric values.
 
         method : str, default=None
-            Method to use for metric calculation. Can be: 
+            Method to use for metric calculation. Can be:
                 - "contour": calculate metric from shapely contours.
                 - "mask": calculate metric from binary masks.
                 - None: use the method set in self.default_geom_method.
@@ -3472,8 +3675,11 @@ class ROI(skrt.core.Archive):
             metrics = [metrics]
         elif not skrt.core.is_list(metrics):
             return {}
-        metrics = [metric for metric in metrics
-                if f"{metric}_slice_stats" in get_comparison_metrics()]
+        metrics = [
+            metric
+            for metric in metrics
+            if f"{metric}_slice_stats" in get_comparison_metrics()
+        ]
         if not metrics:
             return {}
 
@@ -3486,13 +3692,17 @@ class ROI(skrt.core.Archive):
         for metric in metrics:
             for by_slice, stats in slice_stats.items():
                 values = self.get_metric_by_slice(
-                        other, metric, by_slice, view, method)
+                    other, metric, by_slice, view, method
+                )
                 for stat in stats:
                     key = f"{metric}_slice_{by_slice}_{stat}"
-                    calculated_slice_stats[key] = (
-                            skrt.core.get_stat(values, stat=stat))
-                    if (skrt.core.is_list(calculated_slice_stats[key])
-                            and separate_components):
+                    calculated_slice_stats[key] = skrt.core.get_stat(
+                        values, stat=stat
+                    )
+                    if (
+                        skrt.core.is_list(calculated_slice_stats[key])
+                        and separate_components
+                    ):
                         vector = calculated_slice_stats.pop(key)
                         for i, i_ax in enumerate(skrt.image._plot_axes[view]):
                             ax = skrt.image._axes[i_ax]
@@ -3501,9 +3711,10 @@ class ROI(skrt.core.Archive):
 
         return calculated_slice_stats
 
-    def match_mask_voxel_size(self, other, voxel_size=None,
-            voxel_dim_tolerance=0.1):
-        '''
+    def match_mask_voxel_size(
+        self, other, voxel_size=None, voxel_dim_tolerance=0.1
+    ):
+        """
         Ensure that the mask voxel sizes of <self> and <other> match.
 
         The mask voxel_sizes for both may optionally be set to a new
@@ -3533,7 +3744,7 @@ class ROI(skrt.core.Archive):
             useful for obtaining masks that are just large enough to contain
             both ROIs, potentially reducing the time for surface-distance
             calculations.
-        '''
+        """
         # Create ROI clones, for which voxel sizes may be altered.
         roi1 = self.clone()
         roi2 = other.clone()
@@ -3544,14 +3755,20 @@ class ROI(skrt.core.Archive):
         # of current images don't match is greater than tolerance.
         voxel_size = voxel_size if voxel_size else roi2.get_voxel_size()
         if voxel_size and roi2.get_voxel_size():
-            voxel_size = [voxel_size[idx] if voxel_size[idx] is not None
-                    else roi2.get_voxel_size()[idx] for idx in range(3)]
+            voxel_size = [
+                voxel_size[idx]
+                if voxel_size[idx] is not None
+                else roi2.get_voxel_size()[idx]
+                for idx in range(3)
+            ]
         resize = not roi1.get_voxel_size() or not roi2.get_voxel_size()
         if not resize:
             for roi in [roi1, roi2]:
-                matches = [dxyz1 for dxyz1, dxyz2 in
-                        zip(voxel_size, roi.voxel_size)
-                        if abs(dxyz1 - dxyz2) < voxel_dim_tolerance]
+                matches = [
+                    dxyz1
+                    for dxyz1, dxyz2 in zip(voxel_size, roi.voxel_size)
+                    if abs(dxyz1 - dxyz2) < voxel_dim_tolerance
+                ]
                 if 3 != len(matches):
                     resize = True
         if resize:
@@ -3572,7 +3789,8 @@ class ROI(skrt.core.Archive):
                 voxel_size_2d = None
 
             StructureSet([roi1, roi2]).set_image_to_dummy(
-                    slice_thickness=slice_thickness, voxel_size=voxel_size_2d)
+                slice_thickness=slice_thickness, voxel_size=voxel_size_2d
+            )
 
         return (roi1, roi2)
 
@@ -3597,7 +3815,7 @@ class ROI(skrt.core.Archive):
         Get vector of surface distances between two ROIs.
 
         Surface distances may be signed or unsigned, and may be for a single
-        slice through the ROIs, or for the 3D volumes.  
+        slice through the ROIs, or for the 3D volumes.
 
         This function uses ideas outlined at:
         https://mlnotebook.github.io/post/surface-distance-function/
@@ -3623,7 +3841,7 @@ class ROI(skrt.core.Archive):
             <single_slice> is True, the central slice of the ROI will be used.
 
         idx : int, default=None
-            Array index of slice. If none of <sl>, <idx> or <pos> is 
+            Array index of slice. If none of <sl>, <idx> or <pos> is
             supplied but <single_slice> is True, the central slice of
             the ROI will be used.
 
@@ -3692,8 +3910,9 @@ class ROI(skrt.core.Archive):
 
         # Obtain ROI clones, with mask voxel sizes matched to voxel_size
         # if non-null, or otherwise to the mask voxel size of other.
-        roi1, roi2 = self.match_mask_voxel_size(other, voxel_size,
-                voxel_dim_tolerance)
+        roi1, roi2 = self.match_mask_voxel_size(
+            other, voxel_size, voxel_dim_tolerance
+        )
 
         # Check whether ROIs are empty
         if not np.any(roi1.get_mask()) or not np.any(roi2.get_mask()):
@@ -3746,12 +3965,12 @@ class ROI(skrt.core.Archive):
         return sds
 
     def get_mean_surface_distance(self, other, **kwargs):
-        '''
+        """
         Obtain mean distance between surface of <other> and surface of <self>.
 
         For parameters that may be passed, see documentation for:
         skrt.ROI.get_surface_distances().
-        '''
+        """
 
         sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
@@ -3759,21 +3978,19 @@ class ROI(skrt.core.Archive):
         return sds.mean()
 
     def get_rms_surface_distance(self, other, **kwargs):
-
         sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
             return
-        return np.sqrt((sds ** 2).mean())
+        return np.sqrt((sds**2).mean())
 
     def get_hausdorff_distance(self, other, **kwargs):
-
         sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
             return
         return sds.max()
 
     def get_mean_distance_to_conformity(self, other, vol_units="mm", **kwargs):
-        '''
+        """
         Obtain mean distance to conformity for <other> relative to <self>.
 
         The mean distance to conformity is as defined in:
@@ -3808,7 +4025,7 @@ class ROI(skrt.core.Archive):
             Keyword arguments are passed to
             skrt.structures.ROI.get_surface_distances().
             See documentation of this method for parameter details.
-        '''
+        """
 
         # Obtain distances to conformity.
         kwargs["conformity"] = True
@@ -3835,13 +4052,16 @@ class ROI(skrt.core.Archive):
             conformity.mean_over_contouring = None
             conformity.mean_distance_to_conformity = None
         else:
-            conformity.mean_under_contouring = (abs(sds[sds < 0].sum())
-                    / union.get_volume(vol_units))
-            conformity.mean_over_contouring = (sds[sds > 0].sum()
-                    / union.get_volume(vol_units))
+            conformity.mean_under_contouring = abs(
+                sds[sds < 0].sum()
+            ) / union.get_volume(vol_units)
+            conformity.mean_over_contouring = sds[
+                sds > 0
+            ].sum() / union.get_volume(vol_units)
             conformity.mean_distance_to_conformity = (
-                    conformity.mean_under_contouring +
-                    conformity.mean_over_contouring)
+                conformity.mean_under_contouring
+                + conformity.mean_over_contouring
+            )
 
         return conformity
 
@@ -3852,9 +4072,11 @@ class ROI(skrt.core.Archive):
         sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
             return
-        return sds.mean(), np.sqrt((sds ** 2).mean()), sds.max()
+        return sds.mean(), np.sqrt((sds**2).mean()), sds.max()
 
-    def plot_surface_distances(self, other, save_as=None, signed=False, **kwargs):
+    def plot_surface_distances(
+        self, other, save_as=None, signed=False, **kwargs
+    ):
         """Plot histogram of surface distances."""
 
         sds = self.get_surface_distances(other, signed=signed, **kwargs)
@@ -3863,7 +4085,9 @@ class ROI(skrt.core.Archive):
         fig, ax = plt.subplots()
         ax.hist(sds)
         xlabel = (
-            "Surface distance (mm)" if not signed else "Signed surface distance (mm)"
+            "Surface distance (mm)"
+            if not signed
+            else "Signed surface distance (mm)"
         )
         ax.set_xlabel(xlabel)
         ax.set_ylabel("Number of voxels")
@@ -3893,13 +4117,13 @@ class ROI(skrt.core.Archive):
         force=True,
         voxel_size=(1, 1, 1),
         match_lengths=False,
-        match_lengths_strategy=1
+        match_lengths_strategy=1,
     ):
-        """Return a pandas DataFrame of the comparison metrics listed in 
+        """Return a pandas DataFrame of the comparison metrics listed in
         <metrics> with respect to another ROI.
 
         **Parameters:**
-        
+
         roi : ROI
             Other ROI with which to compare this ROI.
 
@@ -3927,7 +4151,7 @@ class ROI(skrt.core.Archive):
                 * "centroid_slice": 2D centroid distance vector on a single slice.
                 * "centroid_slice_stats": statistics specified in
                   <slice_stats> for slice-by-slice 2D centroid distance vectors.
-                * "abs_centroid_slice": magnitude of 2D centroid distance 
+                * "abs_centroid_slice": magnitude of 2D centroid distance
                   vector on a single slice.
                 * "abs_centroid_slice_stats": statistics specified in
                   <slice_stats> for slice-by-slice magnitudes of 2D
@@ -3937,9 +4161,9 @@ class ROI(skrt.core.Archive):
                 * "rel_volume_diff": volume difference divided by own volume.
                 * "volume_ratio": volume ratio (own volume / other volume).
 
-                * "area_diff": area difference (own area - other area) on a 
+                * "area_diff": area difference (own area - other area) on a
                   single slice.
-                * "rel_area_diff": area difference divided by own area on a 
+                * "rel_area_diff": area difference divided by own area on a
                   single slice.
                 * "area_ratio": area ratio (own area / other area).
                 * "area_diff_flat": area difference of ROIs flattened in the
@@ -4002,29 +4226,29 @@ class ROI(skrt.core.Archive):
             Units to use for centroids. Can be "mm" or "voxels".
 
         view : str, default="x-y"
-            Orientation in which to compute metrics. Only relevant for 
+            Orientation in which to compute metrics. Only relevant for
             single-slice metrics or flattened metrics.
 
         sl : int, default=None
-            Slice number on which to compute metrics. Only relevant for 
+            Slice number on which to compute metrics. Only relevant for
             single-slice metrics (area, centroid_slice, length_slice).
             If <sl>, <idx>, and <pos> are all None, the central slice of the
             ROI will be used.
 
         idx : int, default=None
-            Slice index array on which to compute metrics. Only relevant for 
+            Slice index array on which to compute metrics. Only relevant for
             single-slice metrics (area, centroid_slice, length_slice).
             Used if <sl> is None.
 
         pos : float, default=None
-            Slice position in mm on which to compute metrics. Only relevant for 
+            Slice position in mm on which to compute metrics. Only relevant for
             single-slice metrics (area, centroid_slice, length_slice).
             Used if <sl> and <idx> are both None.
 
         method : str, default=None
-            Method to use for metric calculation. Can be either "contour" 
+            Method to use for metric calculation. Can be either "contour"
             (use shapely polygons) or "mask" (use binary mask). If None,
-            the value set in self.default_geom_method will be used. Note 
+            the value set in self.default_geom_method will be used. Note
             that flattened metrics and surface distance metrics enforce use
             of the "mask" method.
 
@@ -4080,13 +4304,13 @@ class ROI(skrt.core.Archive):
             splitting the table into "global" and "slice" metrics.
 
         name_as_index : bool, default=True
-            If True, the index column of the pandas DataFrame will 
+            If True, the index column of the pandas DataFrame will
             contain the ROI's names; otherwise, the name will appear in a column
             named "ROI".
 
         nice_columns : bool, default=False
             If False, column names will be the same as the input metrics names;
-            if True, the names will be capitalized and underscores will be 
+            if True, the names will be capitalized and underscores will be
             replaced with spaces.
 
         decimal_places : int, default=None
@@ -4094,8 +4318,8 @@ class ROI(skrt.core.Archive):
             precision will be used.
 
         force : bool, default=True
-            If False, global metrics for each ROI (volume, 3D centroid, 
-            3D lengths) will only be calculated if they have not been 
+            If False, global metrics for each ROI (volume, 3D centroid,
+            3D lengths) will only be calculated if they have not been
             calculated before; if True, all metrics will be recalculated.
 
         voxel_size : tuple, default=(1, 1, 1)
@@ -4129,16 +4353,22 @@ class ROI(skrt.core.Archive):
             # by ROIs being compared, with specified voxel size.
             # (The resizing is performed on clones on the ROIs,
             # without changing the originals.)
-            roi0, roi = self.match_mask_voxel_size(roi,
-                    voxel_size=voxel_size, voxel_dim_tolerance=-1)
+            roi0, roi = self.match_mask_voxel_size(
+                roi, voxel_size=voxel_size, voxel_dim_tolerance=-1
+            )
         else:
             # Don't explicitly create ROI masks.
             roi0 = self
 
         # Optionally match ROI lengths.
-        if ((match_lengths is True) or (roi.name == match_lengths)
-                or (isinstance(match_lengths, (list, tuple, set))
-                    and roi.name in match_lengths)):
+        if (
+            (match_lengths is True)
+            or (roi.name == match_lengths)
+            or (
+                isinstance(match_lengths, (list, tuple, set))
+                and roi.name in match_lengths
+            )
+        ):
             # Create ROI clones for cropping; the originals will be unchanged.
             if match_lengths_strategy in [0, 1, 2] and voxel_size is None:
                 roi0 = self.clone()
@@ -4176,70 +4406,76 @@ class ROI(skrt.core.Archive):
             "view": view,
             "sl": sl,
             "idx": idx,
-            "pos": pos
+            "pos": pos,
         }
 
         for m in metrics:
             if m not in get_comparison_metrics():
-                raise RuntimeError(f"Metric {m} not recognised by "
-                        "ROI.get_comparison()")
+                raise RuntimeError(
+                    f"Metric {m} not recognised by " "ROI.get_comparison()"
+                )
 
         for m in metrics:
-
             # Dice score
             if m == "dice":
                 comp[m] = roi0.get_dice(roi, method=method)
             elif m == "dice_flat":
                 comp[m] = roi0.get_dice(
-                    roi, 
+                    roi,
                     view=view,
                     method=method,
-                    flatten=True, 
+                    flatten=True,
                 )
             elif m == "dice_slice":
                 comp[m] = roi0.get_dice(roi, method=method, **slice_kwargs)
 
             elif m == "dice_slice_stats":
-                comp.update(roi0.get_slice_stats(roi, metrics="dice",
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="dice",
                         slice_stats=slice_stats,
                         default_by_slice=default_by_slice,
-                        method=method, view=view))
+                        method=method,
+                        view=view,
+                    )
+                )
 
             # Jaccard index
             elif m == "jaccard":
                 comp[m] = roi0.get_jaccard(roi, method=method)
             elif m == "jaccard_flat":
                 comp[m] = roi0.get_jaccard(
-                    roi, 
+                    roi,
                     view=view,
                     method=method,
-                    flatten=True, 
+                    flatten=True,
                 )
             elif m == "jaccard_slice":
                 comp[m] = roi0.get_jaccard(roi, method=method, **slice_kwargs)
 
             elif m == "jaccard_slice_stats":
-                comp.update(roi0.get_slice_stats(roi, metrics="jaccard",
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="jaccard",
                         slice_stats=slice_stats,
                         default_by_slice=default_by_slice,
-                        method=method, view=view))
+                        method=method,
+                        view=view,
+                    )
+                )
 
             # Centroid distances
             elif m == "centroid":
                 centroid = roi0.get_centroid_distance(
-                    roi, 
-                    units=centroid_units, 
-                    method=method,
-                    force=force
+                    roi, units=centroid_units, method=method, force=force
                 )
                 for i, ax in enumerate(skrt.image._axes):
                     comp[f"centroid_{ax}"] = centroid[i]
             elif m == "abs_centroid":
                 comp[m] = roi0.get_abs_centroid_distance(
-                    roi, 
-                    units=centroid_units,
-                    method=method, 
-                    force=force
+                    roi, units=centroid_units, method=method, force=force
                 )
             elif m == "abs_centroid_flat":
                 comp[m] = roi0.get_abs_centroid_distance(
@@ -4248,80 +4484,70 @@ class ROI(skrt.core.Archive):
                     units=centroid_units,
                     method=method,
                     flatten=True,
-                    force=force
+                    force=force,
                 )
             elif m == "centroid_slice":
                 centroid = roi0.get_centroid_distance(
-                    roi,
-                    units=centroid_units,
-                    method=method,
-                    **slice_kwargs
+                    roi, units=centroid_units, method=method, **slice_kwargs
                 )
                 for i, i_ax in enumerate(skrt.image._plot_axes[view]):
                     ax = skrt.image._axes[i_ax]
                     comp[f"centroid_slice_{ax}"] = centroid[i]
 
             elif m == "centroid_slice_stats":
-                comp.update(roi0.get_slice_stats(roi, metrics="centroid",
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="centroid",
                         slice_stats=slice_stats,
                         default_by_slice=default_by_slice,
-                        method=method, view=view,
-                        separate_components=True))
+                        method=method,
+                        view=view,
+                        separate_components=True,
+                    )
+                )
 
             elif m == "abs_centroid_slice":
                 comp[m] = roi0.get_abs_centroid_distance(
-                    roi,
-                    units=centroid_units,
-                    method=method,
-                    **slice_kwargs
+                    roi, units=centroid_units, method=method, **slice_kwargs
                 )
 
             elif m == "abs_centroid_slice_stats":
-                comp.update(roi0.get_slice_stats(roi, metrics="abs_centroid",
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="abs_centroid",
                         slice_stats=slice_stats,
                         default_by_slice=default_by_slice,
-                        method=method, view=view))
+                        method=method,
+                        view=view,
+                    )
+                )
 
             # Volume metrics
             elif m == "volume_diff":
                 comp[m] = roi0.get_volume_diff(
-                    roi,
-                    units=vol_units,
-                    method=method,
-                    force=force
+                    roi, units=vol_units, method=method, force=force
                 )
             elif m == "rel_volume_diff":
                 comp[m] = roi0.get_relative_volume_diff(
-                    roi,
-                    method=method,
-                    force=force
+                    roi, method=method, force=force
                 )
             elif m == "volume_ratio":
-                comp[m] = roi0.get_volume_ratio(
-                    roi,
-                    method=method,
-                    force=force
-                )
+                comp[m] = roi0.get_volume_ratio(roi, method=method, force=force)
 
             # Area metrics
             elif m == "area_diff":
                 comp[m] = roi0.get_area_diff(
-                    roi,
-                    units=area_units,
-                    method=method,
-                    **slice_kwargs
+                    roi, units=area_units, method=method, **slice_kwargs
                 )
             elif m == "rel_area_diff":
                 comp[m] = roi0.get_relative_area_diff(
-                    roi,
-                    method=method,
-                    **slice_kwargs
+                    roi, method=method, **slice_kwargs
                 )
             elif m == "area_ratio":
                 comp[m] = roi0.get_area_ratio(
-                    roi,
-                    method=method,
-                    **slice_kwargs
+                    roi, method=method, **slice_kwargs
                 )
             elif m == "area_diff_flat":
                 comp[m] = roi0.get_area_diff(
@@ -4333,10 +4559,16 @@ class ROI(skrt.core.Archive):
                 )
 
             elif m == "area_diff_slice_stats":
-                comp.update(roi0.get_slice_stats(roi, metrics="area_diff",
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="area_diff",
                         slice_stats=slice_stats,
                         default_by_slice=default_by_slice,
-                        method=method, view=view))
+                        method=method,
+                        view=view,
+                    )
+                )
 
             elif m == "rel_area_diff_flat":
                 comp[m] = roi0.get_relative_area_diff(
@@ -4347,11 +4579,16 @@ class ROI(skrt.core.Archive):
                 )
 
             elif m == "rel_area_diff_slice_stats":
-                comp.update(roi0.get_slice_stats(roi,
-                    metrics="rel_area_diff",
-                    slice_stats=slice_stats,
-                    default_by_slice=default_by_slice,
-                    method=method, view=view))
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="rel_area_diff",
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        method=method,
+                        view=view,
+                    )
+                )
 
             elif m == "area_ratio_flat":
                 comp[m] = roi0.get_area_ratio(
@@ -4362,67 +4599,98 @@ class ROI(skrt.core.Archive):
                 )
 
             elif m == "area_ratio_slice_stats":
-                comp.update(roi0.get_slice_stats(roi, metrics="area_ratio",
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="area_ratio",
                         slice_stats=slice_stats,
                         default_by_slice=default_by_slice,
-                        method=method, view=view))
+                        method=method,
+                        view=view,
+                    )
+                )
 
             # Surface distance metrics
-            elif m in ["mean_surface_distance",
-                    "rms_surface_distance", "hausdorff_distance"]:
-                distances = (distances
-                        or roi0.get_surface_distance_metrics(roi))
+            elif m in [
+                "mean_surface_distance",
+                "rms_surface_distance",
+                "hausdorff_distance",
+            ]:
+                distances = distances or roi0.get_surface_distance_metrics(roi)
                 if m == "mean_surface_distance":
                     comp[m] = distances[0]
                 elif m == "rms_surface_distance":
                     comp[m] = distances[1]
                 elif m == "hausdorff_distance":
                     comp[m] = distances[2]
-            elif m in ["mean_surface_distance_flat",
-                    "rms_surface_distance_flat", "hausdorff_distance_flat"]:
-                distances_flat = (distances_flat
-                        or roi0.get_surface_distance_metrics(roi,
-                        view=view, flatten=True))
+            elif m in [
+                "mean_surface_distance_flat",
+                "rms_surface_distance_flat",
+                "hausdorff_distance_flat",
+            ]:
+                distances_flat = (
+                    distances_flat
+                    or roi0.get_surface_distance_metrics(
+                        roi, view=view, flatten=True
+                    )
+                )
                 if m == "mean_surface_distance_flat":
                     comp[m] = distances_flat[0]
                 elif m == "rms_surface_distance_flat":
                     comp[m] = distances_flat[1]
                 elif m == "hausdorff_distance_flat":
                     comp[m] = distances_flat[2]
-            elif m in ["mean_signed_surface_distance",
-                    "rms_signed_surface_distance"]:
-                signed_distances = (signed_distances
-                        or roi0.get_surface_distance_metrics(roi, signed=True))
+            elif m in [
+                "mean_signed_surface_distance",
+                "rms_signed_surface_distance",
+            ]:
+                signed_distances = (
+                    signed_distances
+                    or roi0.get_surface_distance_metrics(roi, signed=True)
+                )
                 if m == "mean_signed_surface_distance":
                     comp[m] = signed_distances[0]
                 elif m == "rms_signed_surface_distance":
                     comp[m] = signed_distances[1]
-            elif m in ["mean_signed_surface_distance_flat",
-                    "rms_signed_surface_distance_flat"]:
-                signed_distances_flat = (signed_distances_flat
-                        or roi0.get_surface_distance_metrics(roi, signed=True,
-                            view=view, flatten=True))
+            elif m in [
+                "mean_signed_surface_distance_flat",
+                "rms_signed_surface_distance_flat",
+            ]:
+                signed_distances_flat = (
+                    signed_distances_flat
+                    or roi0.get_surface_distance_metrics(
+                        roi, signed=True, view=view, flatten=True
+                    )
+                )
                 if m == "mean_signed_surface_distance_flat":
                     comp[m] = signed_distances_flat[0]
                 elif m == "rms_signed_surface_distance_flat":
                     comp[m] = signed_distances_flat[1]
-            elif m in ["mean_under_contouring", "mean_over_contouring",
-                    "mean_distance_to_conformity"]:
-                conformity = (conformity
-                        or roi0.get_mean_distance_to_conformity(
-                            roi, vol_units))
+            elif m in [
+                "mean_under_contouring",
+                "mean_over_contouring",
+                "mean_distance_to_conformity",
+            ]:
+                conformity = conformity or roi0.get_mean_distance_to_conformity(
+                    roi, vol_units
+                )
                 if m == "mean_under_contouring":
                     comp[m] = conformity.mean_under_contouring
                 if m == "mean_over_contouring":
                     comp[m] = conformity.mean_over_contouring
                 if m == "mean_distance_to_conformity":
                     comp[m] = conformity.mean_distance_to_conformity
-            elif m in ["mean_under_contouring_flat",
-                    "mean_over_contouring_flat",
-                    "mean_distance_to_conformity_flat"]:
-                conformity_flat = (conformity_flat
-                        or roi0.get_mean_distance_to_conformity(
-                            roi, vol_units, view=view, flatten=True))
+            elif m in [
+                "mean_under_contouring_flat",
+                "mean_over_contouring_flat",
+                "mean_distance_to_conformity_flat",
+            ]:
+                conformity_flat = (
+                    conformity_flat
+                    or roi0.get_mean_distance_to_conformity(
+                        roi, vol_units, view=view, flatten=True
+                    )
+                )
                 if m == "mean_under_contouring_flat":
                     comp[m] = conformity_flat.mean_under_contouring
                 if m == "mean_over_contouring_flat":
@@ -4436,20 +4704,20 @@ class ROI(skrt.core.Archive):
 
                 # Axis-specific metrics
                 for i, ax in enumerate(skrt.image._axes):
-
                     # Global centroid position on a given axis
                     if m == f"centroid_{ax}":
                         comp[m] = roi0.get_abs_centroid_distance(
                             roi,
                             units=centroid_units,
                             method=method,
-                            force=force
+                            force=force,
                         )
                         found = True
 
                 if not found:
-                    raise RuntimeError(f"Metric {m} not recognised by "
-                                       "ROI.get_comparison()")
+                    raise RuntimeError(
+                        f"Metric {m} not recognised by " "ROI.get_comparison()"
+                    )
 
         # Add units to metric names if requested
         comp_named = {}
@@ -4484,8 +4752,10 @@ class ROI(skrt.core.Archive):
 
         # Capitalize column names and remove underscores if requested
         if nice_columns and not global_vs_slice_header:
-            df.columns = [col.capitalize().replace("_", " ").replace("rms", "RMS")
-                          for col in df.columns]
+            df.columns = [
+                col.capitalize().replace("_", " ").replace("rms", "RMS")
+                for col in df.columns
+            ]
 
         # Turn name into a regular column if requested
         if not name_as_index:
@@ -4493,7 +4763,6 @@ class ROI(skrt.core.Archive):
 
         # Add global/slice headers
         if global_vs_slice_header:
-
             # Sort columns into global or slice
             headers = []
             slice_cols = []
@@ -4501,8 +4770,9 @@ class ROI(skrt.core.Archive):
             slice_name = "slice" if not nice_columns else "Slice"
             global_name = "global" if not nice_columns else "Global"
             for metric in comp_named:
-                if "slice" in metric or \
-                   ("area" in metric and "flat" not in metric):
+                if "slice" in metric or (
+                    "area" in metric and "flat" not in metric
+                ):
                     headers.append((slice_name, metric))
                     slice_cols.append(metric)
                 else:
@@ -4516,8 +4786,9 @@ class ROI(skrt.core.Archive):
             df = pd.concat(dfs_ordered, axis=1)
 
             # Sort headers by global/slice
-            headers = [h for h in headers if h[0] == global_name] \
-                    + [h for h in headers if h[0] == slice_name]
+            headers = [h for h in headers if h[0] == global_name] + [
+                h for h in headers if h[0] == slice_name
+            ]
             if not name_as_index:
                 headers.insert(0, ("", "ROI"))
 
@@ -4526,8 +4797,9 @@ class ROI(skrt.core.Archive):
 
         return df
 
-    def get_comparison_name(self, roi, camelcase=False, colored=False,
-                            grey=False, roi_kwargs={}):
+    def get_comparison_name(
+        self, roi, camelcase=False, colored=False, grey=False, roi_kwargs={}
+    ):
         """Get name of comparison between this ROI and another."""
 
         own_name = self.name
@@ -4617,7 +4889,7 @@ class ROI(skrt.core.Archive):
             "z-x", or "z-y".
 
         plot_type : str, default="contour"
-            Plotting type. If None, will be either "contour" or "mask" 
+            Plotting type. If None, will be either "contour" or "mask"
             depending on the input type of the ROI. Options:
 
                 - "contour"
@@ -4627,16 +4899,16 @@ class ROI(skrt.core.Archive):
                 - "filled centroid" (filled with marker at centroid)
 
         sl : int, default=None
-            Slice number to plot. If none of <sl>, <idx> or <pos> are supplied, 
-            the central slice of the ROI will be 
+            Slice number to plot. If none of <sl>, <idx> or <pos> are supplied,
+            the central slice of the ROI will be
             used.
 
         idx : int, default=None
-            Array index of slice to plot. If none of <sl>, <idx> or <pos> are 
+            Array index of slice to plot. If none of <sl>, <idx> or <pos> are
             supplied, the central slice of the ROI will be used.
 
         pos : float, default=None
-            Position in mm of slice to plot. If none of <sl>, <idx> or <pos> 
+            Position in mm of slice to plot. If none of <sl>, <idx> or <pos>
             are supplied, the central slice of the ROI will be used.
 
         ax : matplotlib.pyplot.Axes, default=None
@@ -4650,12 +4922,12 @@ class ROI(skrt.core.Archive):
             Figure height in inches; only used if <ax> and <gs> are None.
 
         opacity : float, default=None
-            Opacity to use if plotting mask (i.e. plot types "mask", "filled", 
-            or "filled centroid"). If None, opacity will be 1 by default for 
+            Opacity to use if plotting mask (i.e. plot types "mask", "filled",
+            or "filled centroid"). If None, opacity will be 1 by default for
             solid mask plots and 0.3 by default for filled plots.
 
         linewidth : float, default=None
-            Width of contour lines. If None, the matplotlib default setting 
+            Width of contour lines. If None, the matplotlib default setting
             will be used.
 
         contour_kwargs : dict, default=None
@@ -4676,14 +4948,14 @@ class ROI(skrt.core.Archive):
             the image will be used.
 
         color : matplotlib color, default=None
-            Color with which to plot the ROI; overrides the ROI's own color. If 
+            Color with which to plot the ROI; overrides the ROI's own color. If
             None, self.color will be used.
 
         show : bool, default=True
             If True, the plot will be displayed immediately.
 
         save_as : str, default=None
-            If set to a string, the plot will be saved to the filename in the 
+            If set to a string, the plot will be saved to the filename in the
             string.
 
         include_image : bool, default=False
@@ -4692,7 +4964,7 @@ class ROI(skrt.core.Archive):
 
         no_invert : bool, default=False
             If False, contour plots will be automatically inverted when plotting
-            without an underlying image to account for the y axis increasing 
+            without an underlying image to account for the y axis increasing
             in the opposite direction. Otherwise, the plot will be left as
             it appeared when drawn by matplotlib.
 
@@ -4703,7 +4975,7 @@ class ROI(skrt.core.Archive):
 
         buffer : int, default=5
             If the ROI does not have an associated image and is described only
-            by contours, this will be the number of buffer voxels 
+            by contours, this will be the number of buffer voxels
             (i.e. whitespace) displayed around the ROI.
 
         `**`kwargs :
@@ -4718,10 +4990,7 @@ class ROI(skrt.core.Archive):
             roi = self
         else:
             roi = self.clone(copy_data=False)
-            im = roi.get_dummy_image(
-                voxel_size=voxel_size,
-                buffer=buffer
-            )
+            im = roi.get_dummy_image(voxel_size=voxel_size, buffer=buffer)
             im.title = roi.name
             roi.set_image(im)
             roi.reset_contours()
@@ -4745,7 +5014,8 @@ class ROI(skrt.core.Archive):
 
         if opacity is None:
             opacity = kwargs.get(
-                    "roi_opacity", 0.3 if "filled" in plot_type else 1)
+                "roi_opacity", 0.3 if "filled" in plot_type else 1
+            )
 
         # Set up axes
         roi.set_ax(plot_type, include_image, view, ax, gs, figsize)
@@ -4755,8 +5025,9 @@ class ROI(skrt.core.Archive):
             contour_kwargs = {}
         if "centroid" in plot_type or "contour" == plot_type:
             if linewidth is None:
-                linewidth = kwargs.get("roi_linewidth",
-                        defaultParams["lines.linewidth"][0])
+                linewidth = kwargs.get(
+                    "roi_linewidth", defaultParams["lines.linewidth"][0]
+                )
         if "centroid" in plot_type:
             contour_kwargs.setdefault("markersize", 7 * np.sqrt(linewidth))
             contour_kwargs.setdefault("markeredgewidth", np.sqrt(linewidth))
@@ -4797,9 +5068,17 @@ class ROI(skrt.core.Archive):
         elif "filled" in plot_type:
             if opacity is None:
                 opacity = 0.3
-            roi._plot_mask(view, idx, mask_kwargs, opacity, color=color,
-                           show=False, include_image=include_image, **kwargs)
-            #kwargs["ax"] = self.ax
+            roi._plot_mask(
+                view,
+                idx,
+                mask_kwargs,
+                opacity,
+                color=color,
+                show=False,
+                include_image=include_image,
+                **kwargs,
+            )
+            # kwargs["ax"] = self.ax
             roi._plot_contour(
                 view,
                 idx,
@@ -4816,7 +5095,7 @@ class ROI(skrt.core.Archive):
             )
 
         # Check whether y axis needs to be inverted
-        #if view == "x-y" and self.ax.get_ylim()[1] > self.ax.get_ylim()[0]:
+        # if view == "x-y" and self.ax.get_ylim()[1] > self.ax.get_ylim()[0]:
         #    self.ax.invert_yaxis()
 
         # Draw legend
@@ -4824,15 +5103,19 @@ class ROI(skrt.core.Archive):
         if legend:
             name = kwargs.get("name", self.name)
             roi_handle = roi.get_patch(
-                    plot_type, color, opacity, linewidth, name)
+                plot_type, color, opacity, linewidth, name
+            )
             if roi_handle:
                 bbox_to_anchor = kwargs.get("legend_bbox_to_anchor", None)
                 loc = kwargs.get("legend_loc", "lower left")
 
-                roi.ax.legend(handles=[roi_handle],
-                        bbox_to_anchor=bbox_to_anchor, loc=loc,
-                        facecolor="white", framealpha=1
-                        )
+                roi.ax.legend(
+                    handles=[roi_handle],
+                    bbox_to_anchor=bbox_to_anchor,
+                    loc=loc,
+                    facecolor="white",
+                    framealpha=1,
+                )
 
         # Display image
 
@@ -4846,25 +5129,25 @@ class ROI(skrt.core.Archive):
             plt.close()
 
     def get_dummy_image(self, **kwargs):
-        """Make a dummy image that covers the area spanned by this ROI. 
+        """Make a dummy image that covers the area spanned by this ROI.
         Returns an Image object.
 
         **Parameters:**
-        
+
         voxel_size : list, default=None
-            Voxel size in mm in the dummy image in the x-y plane, given as 
+            Voxel size in mm in the dummy image in the x-y plane, given as
             [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
-            [1, 1] will be used by default. The voxel size in the z direction 
+            [1, 1] will be used by default. The voxel size in the z direction
             is defined by <slice_thickness>.
 
         shape : list, default=None
             Number of voxels in the dummy image in the x-y plane, given as
-            [nx, ny]. Only used if <voxel_size> is None. 
-            The number of voxels in the z direction will be taken from the 
+            [nx, ny]. Only used if <voxel_size> is None.
+            The number of voxels in the z direction will be taken from the
             number of slices in the x-y contours dictionary.
 
         fill_val : int/float, default=1e4
-            Value with which the voxels in the dummy image should be filled. 
+            Value with which the voxels in the dummy image should be filled.
 
         buffer : int, default=1
             Number of empty buffer voxels to add outside the ROI in each
@@ -4878,19 +5161,18 @@ class ROI(skrt.core.Archive):
 
         extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
         slice_thickness = kwargs.pop("slice_thickness", None)
-        slice_thickness = (slice_thickness or
-                self.get_slice_thickness_contours())
+        slice_thickness = slice_thickness or self.get_slice_thickness_contours()
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
     def set_image_to_dummy(self, **kwargs):
-        """Assign self.image property to a dummy image covering the area 
-        spanned by this ROI. The ROI's mask and x-z/y-z contours will be 
+        """Assign self.image property to a dummy image covering the area
+        spanned by this ROI. The ROI's mask and x-z/y-z contours will be
         cleared so that they will be recreated when get_mask() or get_contours()
         are next called.
 
         **Parameters:**
-        
-        kwargs : 
+
+        kwargs :
             Keyword arguments to pass to self.get_dummy_image() when creating
             the dummy image. See documentation of ROI.get_dummy_image().
         """
@@ -4909,8 +5191,8 @@ class ROI(skrt.core.Archive):
 
     def set_image(self, im):
         """Set self.image to a given image and adjust geometric properties
-        accordingly. Note that self.mask will be removed if the current mask's 
-        shape doesn't match the image. 
+        accordingly. Note that self.mask will be removed if the current mask's
+        shape doesn't match the image.
         """
 
         self.load()
@@ -4965,7 +5247,7 @@ class ROI(skrt.core.Archive):
         """View the ROI.
 
         **Parameters:**
-        
+
         include_image : bool, default=True
             If True and this ROI has an associated image (in self.image),
             the image will be displayed behind the ROI.
@@ -4977,11 +5259,12 @@ class ROI(skrt.core.Archive):
 
         buffer : int, default=5
             If the ROI does not have an associated image and is described only
-            by contours, this will be the number of buffer voxels 
+            by contours, this will be the number of buffer voxels
             (i.e. whitespace) displayed around the ROI.
         """
 
         from skrt.better_viewer import BetterViewer
+
         self.load()
 
         view = kwargs.pop("init_view", None) or kwargs.get("view", "x-y")
@@ -5003,13 +5286,9 @@ class ROI(skrt.core.Archive):
 
         # View without image
         else:
-
             # Make dummy image for background
             roi_tmp = self.clone(copy_data=False)
-            im = self.get_dummy_image(
-                voxel_size=voxel_size,
-                buffer=buffer
-            )
+            im = self.get_dummy_image(voxel_size=voxel_size, buffer=buffer)
             im.title = self.name
             roi_tmp.set_image(im)
             roi_tmp.reset_contours()
@@ -5020,7 +5299,7 @@ class ROI(skrt.core.Archive):
             kwargs["init_idx"] = idx
 
             kwargs.setdefault("show", False)
-            if not "roi_kwargs" in kwargs:
+            if "roi_kwargs" not in kwargs:
                 kwargs["roi_kwargs"] = {}
             kwargs["roi_kwargs"]["image_ready"] = True
             """
@@ -5095,15 +5374,23 @@ class ROI(skrt.core.Archive):
             im_masked = kwargs.get("masked", True)
             im_invert_mask = kwargs.get("invert_mask", False)
             im_mask_color = kwargs.get("mask_color", "black")
-            self.image.plot(view, idx=idx, ax=self.ax, show=False,
-                    mask=im_mask, masked=im_masked, invert_mask=im_invert_mask,
-                    mask_color=im_mask_color)
+            self.image.plot(
+                view,
+                idx=idx,
+                ax=self.ax,
+                show=False,
+                mask=im_mask,
+                masked=im_masked,
+                invert_mask=im_invert_mask,
+                mask_color=im_mask_color,
+            )
         else:
             if kwargs.get("title", None) is None:
                 kwargs["title"] = self.name
 
-        self.ax.imshow(s_colors, extent=self.mask.plot_extent[view], 
-                       **mask_kwargs)
+        self.ax.imshow(
+            s_colors, extent=self.mask.plot_extent[view], **mask_kwargs
+        )
 
         # Adjust axes
         skrt.image.Image.label_ax(self, view, idx, **kwargs)
@@ -5144,9 +5431,16 @@ class ROI(skrt.core.Archive):
             im_masked = kwargs.get("masked", True)
             im_invert_mask = kwargs.get("invert_mask", False)
             im_mask_color = kwargs.get("mask_color", "black")
-            self.image.plot(view, idx=idx, ax=self.ax, show=False,
-                    mask=im_mask, masked=im_masked, invert_mask=im_invert_mask,
-                    mask_color=im_mask_color)
+            self.image.plot(
+                view,
+                idx=idx,
+                ax=self.ax,
+                show=False,
+                mask=im_mask,
+                masked=im_masked,
+                invert_mask=im_invert_mask,
+                mask_color=im_mask_color,
+            )
         else:
             if kwargs.get("title", None) is None:
                 kwargs["title"] = self.name
@@ -5168,17 +5462,19 @@ class ROI(skrt.core.Archive):
             else:
                 ylims = self.image.plot_extent[view][2:]
         """
-        #if ylims[1] > ylims[0] and self.image is not None:
-            #if dummy_image:
-            #    self.create_mask()
-            #ylims = self.mask.plot_extent[view][2:]
-            #else:
+        # if ylims[1] > ylims[0] and self.image is not None:
+        # if dummy_image:
+        #    self.create_mask()
+        # ylims = self.mask.plot_extent[view][2:]
+        # else:
         #    ylims = self.image.get_extents()[y_ax]
 
         for points in contours:
             points_x = [p[0] for p in points]
-            points_y = [(p[1] if 1 == y_ax else ylims[0] + (ylims[1] - p[1]))
-                        for p in points]
+            points_y = [
+                (p[1] if 1 == y_ax else ylims[0] + (ylims[1] - p[1]))
+                for p in points
+            ]
             points_x.append(points_x[0])
             points_y.append(points_y[0])
             self.ax.plot(points_x, points_y, **contour_kwargs)
@@ -5187,13 +5483,16 @@ class ROI(skrt.core.Archive):
         if centroid:
             if not flatten:
                 centroid_points = self.get_centroid(
-                    view, single_slice=True, idx=idx)
+                    view, single_slice=True, idx=idx
+                )
             else:
                 centroid_3d = self.get_centroid()
                 centroid_points = [centroid_3d[x_ax], centroid_y]
             centroid_points[1] = (
-                    centroid_points[1] if 1 == y_ax
-                    else ylims[0] + (ylims[1] - centroid_points[1]))
+                centroid_points[1]
+                if 1 == y_ax
+                else ylims[0] + (ylims[1] - centroid_points[1])
+            )
             self.ax.plot(
                 *centroid_points,
                 "+",
@@ -5208,37 +5507,37 @@ class ROI(skrt.core.Archive):
             plt.show()
 
     def plot_comparison(
-        self, 
-        other, 
+        self,
+        other,
         view="x-y",
         sl=None,
         idx=None,
         pos=None,
         mid_slice_for_both=False,
-        legend=True, 
-        save_as=None, 
-        names=None, 
-        show=True, 
+        legend=True,
+        save_as=None,
+        names=None,
+        show=True,
         include_image=False,
         legend_bbox_to_anchor=None,
         legend_loc="lower left",
         voxel_size=[1, 1],
         buffer=5,
-        **kwargs
+        **kwargs,
     ):
         """Plot comparison with another ROI. If no sl/idx/pos are given,
-        the central slice of this ROI will be plotted, unless 
+        the central slice of this ROI will be plotted, unless
         mid_slice_for_both=True, in which case the central slice of both ROIs
-        will be plotted (even though this may not correspond to the same 
+        will be plotted (even though this may not correspond to the same
         point in space).
 
         **Parameters:**
-        
+
         other : ROI
             Other ROI with which to plot comparison.
 
         view : str, default="x-y"
-            Orientation in which to plot ROIs. 
+            Orientation in which to plot ROIs.
 
         sl : int, default=None
             Slice number. If none of <sl>, <idx> or <pos> are supplied but
@@ -5259,7 +5558,7 @@ class ROI(skrt.core.Archive):
             this ROI will be plotted for both.
 
         legend : bool, default=True
-            If True, a legend will be added to the plot containing the names 
+            If True, a legend will be added to the plot containing the names
             of the two ROIs.
 
         save_as : str, default=None
@@ -5280,13 +5579,13 @@ class ROI(skrt.core.Archive):
 
         buffer : int, default=5
             If the ROI does not have an associated image and is described only
-            by contours, this will be the number of buffer voxels 
+            by contours, this will be the number of buffer voxels
             (i.e. whitespace) displayed around the ROI.
         """
         image_ready = kwargs.get("image_ready", False)
         if image_ready or (include_image and self.image and other.image):
             roi1 = self
-            roi2 = other 
+            roi2 = other
         else:
             roi1 = self.clone(copy_data=False)
             roi2 = other.clone(copy_data=False)
@@ -5298,8 +5597,11 @@ class ROI(skrt.core.Archive):
                     roi1.set_image(other.image)
                     roi1.reset_contours()
             else:
-                im = StructureSet([roi1, roi2]).combine_rois().get_dummy_image(
-                        voxel_size=voxel_size, buffer=buffer)
+                im = (
+                    StructureSet([roi1, roi2])
+                    .combine_rois()
+                    .get_dummy_image(voxel_size=voxel_size, buffer=buffer)
+                )
                 im.title = f"{roi1.name} vs {roi2.name}"
                 for roi in [roi1, roi2]:
                     roi.set_image(im)
@@ -5322,8 +5624,7 @@ class ROI(skrt.core.Archive):
             pos1 = roi1.idx_to_pos(roi1.get_mid_idx(view), z_ax)
         else:
             pos1 = roi2.idx_to_pos(
-                roi1.get_idx(view, sl=sl, idx=idx, pos=pos), 
-                z_ax
+                roi1.get_idx(view, sl=sl, idx=idx, pos=pos), z_ax
             )
 
         # Plot the same position for other ROI, unless mid_slice_for_both=True
@@ -5333,14 +5634,20 @@ class ROI(skrt.core.Archive):
             pos2 = roi2.idx_to_pos(other.get_mid_idx(view), z_ax)
 
         # Plot self
-        roi1.plot(show=False, view=view, pos=pos1, include_image=include_image, 
-                  **kwargs)
+        roi1.plot(
+            show=False,
+            view=view,
+            pos=pos1,
+            include_image=include_image,
+            **kwargs,
+        )
 
         # Adjust kwargs for plotting second ROI
         kwargs["ax"] = roi1.ax
         kwargs["color"] = roi2_color
-        roi2.plot(show=False, view=view, pos=pos2, include_image=False, 
-                   **kwargs)
+        roi2.plot(
+            show=False, view=view, pos=pos2, include_image=False, **kwargs
+        )
         roi1.ax.set_title(roi1.get_comparison_name(roi2))
 
         # Create legend
@@ -5358,13 +5665,18 @@ class ROI(skrt.core.Archive):
                 roi2_name = roi2.name
             handles = [
                 roi1.get_patch(
-                    plot_type, roi1.color, opacity, linewidth, roi1_name),
+                    plot_type, roi1.color, opacity, linewidth, roi1_name
+                ),
                 roi1.get_patch(
-                    plot_type, roi2_color, opacity, linewidth, roi2_name),
+                    plot_type, roi2_color, opacity, linewidth, roi2_name
+                ),
             ]
             roi1.ax.legend(
-                handles=handles, framealpha=1, facecolor="white", 
-                bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc
+                handles=handles,
+                framealpha=1,
+                facecolor="white",
+                bbox_to_anchor=legend_bbox_to_anchor,
+                loc=legend_loc,
             )
 
         # Show/save
@@ -5374,14 +5686,13 @@ class ROI(skrt.core.Archive):
             plt.tight_layout()
             roi1.fig.savefig(save_as)
 
-    def get_aspect_ratio(
-        self, view, *args, **kwargs
-    ):
+    def get_aspect_ratio(self, view, *args, **kwargs):
         """Get aspect ratio for this structure in a given orientation."""
 
         x_ax, y_ax = skrt.image._plot_axes[view]
-        return self.get_length(ax=skrt.image._axes[x_ax]) \
-                / self.get_length(ax=skrt.image._axes[y_ax])
+        return self.get_length(ax=skrt.image._axes[x_ax]) / self.get_length(
+            ax=skrt.image._axes[y_ax]
+        )
 
     def set_ax(self, plot_type, include_image, *args, **kwargs):
         """Set up axes."""
@@ -5406,10 +5717,20 @@ class ROI(skrt.core.Archive):
         zoom_centre[y_ax] = y
         return zoom_centre
 
-    def write(self, outname=None, outdir=".", ext=None, overwrite=False,
-            header_source=None, patient_id=None, root_uid=None,
-            verbose=True, header_extras={}, keep_source_rois=True, **kwargs):
-
+    def write(
+        self,
+        outname=None,
+        outdir=".",
+        ext=None,
+        overwrite=False,
+        header_source=None,
+        patient_id=None,
+        root_uid=None,
+        verbose=True,
+        header_extras={},
+        keep_source_rois=True,
+        **kwargs,
+    ):
         self.load()
 
         # Generate output name if not given
@@ -5428,7 +5749,6 @@ class ROI(skrt.core.Archive):
 
         # Otherwise, infer extension from filename
         else:
-
             # Find any of the valid file extensions
             for pos in possible_ext:
                 if outname.endswith(pos):
@@ -5475,14 +5795,28 @@ class ROI(skrt.core.Archive):
             else:
                 structure_set = StructureSet()
             structure_set.add_roi(self)
-            structure_set.write(outdir=outdir, ext=ext, overwrite=overwrite,
-                    header_source=header_source, patient_id=patient_id,
-                    root_uid=root_uid, verbose=verbose,
-                    header_extras=header_extras)
+            structure_set.write(
+                outdir=outdir,
+                ext=ext,
+                overwrite=overwrite,
+                header_source=header_source,
+                patient_id=patient_id,
+                root_uid=root_uid,
+                verbose=verbose,
+                header_extras=header_extras,
+            )
 
-    def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
-            centre=[0, 0, 0], resample="fine", restore=True, 
-            fill_value=None, force_contours=False):
+    def transform(
+        self,
+        scale=1,
+        translation=[0, 0, 0],
+        rotation=[0, 0, 0],
+        centre=[0, 0, 0],
+        resample="fine",
+        restore=True,
+        fill_value=None,
+        force_contours=False,
+    ):
         """
         Apply three-dimensional similarity transform to ROI.
 
@@ -5496,7 +5830,7 @@ class ROI(skrt.core.Archive):
         rotation.  The latter two are about the centre coordinates.
 
         **Parameters:**
-        
+
         force_contours : bool, default=False
             If True, and the transform corresponds to a translation
             and/or rotation about the z-axis, apply transform to contour
@@ -5509,16 +5843,17 @@ class ROI(skrt.core.Archive):
         """
 
         # Check whether transform is to be applied to contours
-        small_number = 1.e-6
+        small_number = 1.0e-6
         transform_contours = False
-        if self.source_type == 'contour' or force_contours:
+        if self.source_type == "contour" or force_contours:
             if abs(scale - 1) < small_number:
-                if abs(rotation[0]) < small_number \
-                        and abs(rotation[1]) < small_number:
+                if (
+                    abs(rotation[0]) < small_number
+                    and abs(rotation[1]) < small_number
+                ):
                     transform_contours = True
 
         if transform_contours:
-
             # Apply transform to roi contours
             translation_2d = (translation[0], translation[1])
             centre_2d = (centre[0], centre[1])
@@ -5533,8 +5868,9 @@ class ROI(skrt.core.Archive):
                     polygon = contour_to_polygon(contour)
                     polygon = affinity.translate(polygon, *translation_2d)
                     polygon = affinity.rotate(polygon, angle, centre_2d)
-                    polygon = affinity.scale(polygon, scale, scale, scale,
-                            centre_2d)
+                    polygon = affinity.scale(
+                        polygon, scale, scale, scale, centre_2d
+                    )
                     new_contours[new_key].append(polygon_to_contour(polygon))
                 if not new_contours[new_key]:
                     new_contours.pop(new_key)
@@ -5544,8 +5880,16 @@ class ROI(skrt.core.Archive):
         else:
             # Apply transform to roi mask
             self.create_mask()
-            self.mask.transform(scale, translation, rotation,
-                    centre, resample, restore, 0, fill_value)
+            self.mask.transform(
+                scale,
+                translation,
+                rotation,
+                centre,
+                resample,
+                restore,
+                0,
+                fill_value,
+            )
             self.reset_mask()
 
     def crop(self, xlim=None, ylim=None, zlim=None):
@@ -5581,8 +5925,11 @@ class ROI(skrt.core.Archive):
                 zlim[0] = min(contours) - 1
             if zlim[1] is None:
                 zlim[1] = max(contours) + 1
-            contours = {z: z_contours for z, z_contours in contours.items()
-                    if (z > zlim[0] and z < zlim[1])}
+            contours = {
+                z: z_contours
+                for z, z_contours in contours.items()
+                if (z > zlim[0] and z < zlim[1])
+            }
 
             # Reset contours.
             self.reset_contours(contours)
@@ -5590,7 +5937,7 @@ class ROI(skrt.core.Archive):
         # For all other cases, frop ROI mask.
         elif xlim or ylim or zlim:
             self.create_mask()
-            
+
             # Ensure that crop range along each axis is None
             # or a two-element tuple of floats.
             lims = [xlim, ylim, zlim]
@@ -5605,15 +5952,16 @@ class ROI(skrt.core.Archive):
 
             # Loop over axes.
             for i_ax, lim in enumerate(lims):
-
                 if lim is None:
                     continue
 
                 # Find array indices at which to crop.
                 i1 = self.mask.pos_to_idx(
-                        lims[i_ax][0], ax=i_ax, return_int=False)
-                i2 = self.mask.pos_to_idx(lims[i_ax][1], ax=i_ax,
-                        return_int=False)
+                    lims[i_ax][0], ax=i_ax, return_int=False
+                )
+                i2 = self.mask.pos_to_idx(
+                    lims[i_ax][1], ax=i_ax, return_int=False
+                )
                 i_big, i_small = i2, i1
                 if i1 > i2:
                     i_big, i_small = i_small, i_big
@@ -5654,7 +6002,7 @@ class ROI(skrt.core.Archive):
         **Parameters:**
         other : skrt.structures.ROI
             ROI object to which to crop.
-           
+
         ax : str/int, default="z"
             Axis along which to perform cropping. Should be one of
             ["x", "y", "z"] or [0, 1, 2].
@@ -5685,7 +6033,7 @@ class ROI(skrt.core.Archive):
             A Plan object to assign to this structure set.
         """
 
-        if not plan in self.plans:
+        if plan not in self.plans:
             self.plans.append(plan)
             self.plans.sort()
 
@@ -5699,8 +6047,8 @@ class ROI(skrt.core.Archive):
 
         return self.plans
 
-    def get_color_from_kwargs(self, kwargs={}, key='roi_colors'):
-        '''
+    def get_color_from_kwargs(self, kwargs={}, key="roi_colors"):
+        """
         Return ROI colour passed via dictionary of keyword arguments.
 
         **Parameters:**
@@ -5712,12 +6060,12 @@ class ROI(skrt.core.Archive):
         key : str, default='roi_colors'
             Key in kwargs dictionary specifying parameter that, if
             present, provides dictionary of ROI colours.
-        '''
+        """
         roi_colors = kwargs.get(key, {})
         return roi_colors.get(self.name, self.color)
 
-    def split(self, voxel_size=None, names=None, order='x+'):
-        '''
+    def split(self, voxel_size=None, names=None, order="x+"):
+        """
         Split a composite ROI into its components.
 
         A composite ROI may result because phyically separate ROIs are
@@ -5748,7 +6096,7 @@ class ROI(skrt.core.Archive):
             - 'z+' : in order of increasing z value.
             - 'z-' : in order of decreasing z value.
             If any other values is given, no ordering is performed.
-        '''
+        """
 
         # If names not specified, make it an empty list.
         if names is None:
@@ -5759,16 +6107,17 @@ class ROI(skrt.core.Archive):
             roi = ROI(self)
             voxel_size_3d = (voxel_size[0], voxel_size[1], None)
             roi.create_mask()
-            roi.mask.resize(voxel_size=voxel_size_3d, method='nearest',
-                    image_size_unit='mm')
+            roi.mask.resize(
+                voxel_size=voxel_size_3d, method="nearest", image_size_unit="mm"
+            )
             roi.set_image(skrt.image.Image(roi.mask))
         else:
             roi = self
- 
+
         # Label ROI components.
         label_mask, n_label = ndimage.label(roi.get_mask())
 
-        if voxel_size and 'contour' == self.source_type:
+        if voxel_size and "contour" == self.source_type:
             # Handle cases where composite ROI is from contour points,
             # and mask voxel size has been passed as an argument.
             # In this case component ROIs are initialised from contours
@@ -5785,7 +6134,7 @@ class ROI(skrt.core.Archive):
                 # If voxel size changed for labelling,
                 # recreate label mask with original voxel size.
                 roi.mask.data = label_mask
-                roi.mask.match_size(self.image, method='nearest')
+                roi.mask.match_size(self.image, method="nearest")
                 label_mask = roi.mask.data
 
             # Create structure set from label mask.
@@ -5800,8 +6149,13 @@ class ROI(skrt.core.Archive):
 
         return ss
 
-    def split_in_two(self, axis='x', v0=0, names=None,):
-        '''
+    def split_in_two(
+        self,
+        axis="x",
+        v0=0,
+        names=None,
+    ):
+        """
         Split a composite ROI into two component parts.
 
         Split an ROI into two components, either side of a specified
@@ -5824,24 +6178,24 @@ class ROI(skrt.core.Archive):
 
         names: list, default=None
             List of names to be applied to the component ROIs.
-        '''
+        """
 
         # If names not specified, initialise to empty list.
         if names is None:
             names = []
 
         # Based on selected axis, define view and default name suffixes.
-        if 'x' == axis.lower():
-            view = 'x-y'
-            suffixes = ('right', 'left')
-        elif 'y' == axis.lower():
-            view = 'x-y'
-            suffixes = ('anterior', 'posterior')
-        elif 'z' == axis.lower():
-            view = 'z-y'
-            suffixes = ('inferior', 'superior')
+        if "x" == axis.lower():
+            view = "x-y"
+            suffixes = ("right", "left")
+        elif "y" == axis.lower():
+            view = "x-y"
+            suffixes = ("anterior", "posterior")
+        elif "z" == axis.lower():
+            view = "z-y"
+            suffixes = ("inferior", "superior")
             # In the 'z-y' view, y and z axes map to shapely x and y axes.
-            axis = 'y'
+            axis = "y"
 
         # Define polygon representing ROI contour as low or high,
         # depending on whether the polygon centroid is lower or higher
@@ -5852,28 +6206,29 @@ class ROI(skrt.core.Archive):
             for polygon in polygons:
                 v = getattr(polygon.centroid, axis)
                 if v < v0:
-                    if not z in polygons_low:
+                    if z not in polygons_low:
                         polygons_low[z] = []
                     polygons_low[z].append(polygon)
                 else:
-                    if not z in polygons_high:
+                    if z not in polygons_high:
                         polygons_high[z] = []
                     polygons_high[z].append(polygon)
-
 
         # Create ROI from polygons below the splitting plane.
         if polygons_low:
             roi_low = ROI(source=polygons_low, image=self.image)
-            roi_low.name = (names[0] if len(names) > 0
-                    else f'{self.name}_{suffixes[0]}')
+            roi_low.name = (
+                names[0] if len(names) > 0 else f"{self.name}_{suffixes[0]}"
+            )
         else:
             roi_low = None
 
         # Create ROI from polygons above the splitting plane.
         if polygons_high:
             roi_high = ROI(source=polygons_high, image=self.image)
-            roi_high.name = (names[1] if len(names) > 1
-                    else f'{self.name}_{suffixes[1]}')
+            roi_high.name = (
+                names[1] if len(names) > 1 else f"{self.name}_{suffixes[1]}"
+            )
         else:
             roi_high = None
 
@@ -5886,8 +6241,14 @@ class ROI(skrt.core.Archive):
 
         return ss
 
-    def get_patch(self, plot_type=None, color=None, opacity=None,
-            linewidth=None, name=None):
+    def get_patch(
+        self,
+        plot_type=None,
+        color=None,
+        opacity=None,
+        linewidth=None,
+        name=None,
+    ):
         """
         Obtain patch reflecting ROI characteristics for plotting.
 
@@ -5896,7 +6257,7 @@ class ROI(skrt.core.Archive):
         **Parameters:**
 
         plot_type : str, default=None
-            Plotting type. If None, will be either "contour" or "mask" 
+            Plotting type. If None, will be either "contour" or "mask"
             depending on the input type of the ROI. Options:
 
                 - "contour"
@@ -5906,16 +6267,16 @@ class ROI(skrt.core.Archive):
                 - "filled centroid" (filled with marker at centroid)
 
         color : matplotlib color, default=None
-            Color with which to plot the ROI; overrides the ROI's own color. If 
+            Color with which to plot the ROI; overrides the ROI's own color. If
             None, self.color will be used.
 
         opacity : float, default=None
-            Opacity to use if plotting mask (i.e. plot types "mask", "filled", 
-            or "filled centroid"). If None, opacity will be 1 by default for 
+            Opacity to use if plotting mask (i.e. plot types "mask", "filled",
+            or "filled centroid"). If None, opacity will be 1 by default for
             solid mask plots and 0.3 by default for filled plots.
 
         linewidth : float, default=None
-            Width of contour lines. If None, the matplotlib default setting 
+            Width of contour lines. If None, the matplotlib default setting
             will be used.
 
         name : str, default=None
@@ -5945,11 +6306,16 @@ class ROI(skrt.core.Archive):
         # Define patch according to plot_type.
         patch = None
         if plot_type in ["contour", "centroid"]:
-            patch = mpatches.Patch(edgecolor=edgecolor,
-                    linewidth=linewidth, fill=False, label=name)
+            patch = mpatches.Patch(
+                edgecolor=edgecolor, linewidth=linewidth, fill=False, label=name
+            )
         elif plot_type in ["filled", "filled centroid"]:
-            patch = mpatches.Patch(edgecolor=edgecolor,
-                    facecolor=facecolor, linewidth=linewidth, label=name)
+            patch = mpatches.Patch(
+                edgecolor=edgecolor,
+                facecolor=facecolor,
+                linewidth=linewidth,
+                label=name,
+            )
         elif plot_type in ["mask"]:
             patch = mpatches.Patch(facecolor=facecolor, label=name)
 
@@ -5971,7 +6337,7 @@ class ROI(skrt.core.Archive):
             If None, the image associated with the ROI is used.
 
         standardise : bool, default=False
-            If False, the data array will be returned in the orientation in 
+            If False, the data array will be returned in the orientation in
             which it was loaded; otherwise, it will be returned in standard
             dicom-style orientation such that [column, row, slice] corresponds
             to the [x, y, z] axes.
@@ -5995,7 +6361,7 @@ class ROI(skrt.core.Archive):
 
     def get_intensities(self, image=None, standardise=True):
         """
-        Return 1D numpy array containing all of the intensity values for the 
+        Return 1D numpy array containing all of the intensity values for the
         voxels inside self.
 
         **Parameters:**
@@ -6031,7 +6397,8 @@ class ROI(skrt.core.Archive):
         # Obtain spherical structuring element,
         # with radius equal to the requested margin.
         element = get_structuring_element(
-                radius=abs(margin), voxel_size=self.get_voxel_size())
+            radius=abs(margin), voxel_size=self.get_voxel_size()
+        )
 
         if margin > 0:
             # Perform dilation of ROI mask.
@@ -6045,8 +6412,11 @@ class ROI(skrt.core.Archive):
             return self.clone()
 
         # Return ROI created from the resized mask.
-        return ROI(source=mask, image=self.image,
-                   name=f"{self.name}{sign}{abs(margin)}")
+        return ROI(
+            source=mask,
+            image=self.image,
+            name=f"{self.name}{sign}{abs(margin)}",
+        )
 
     def resize_contours(self, dxy=0, origin="centroid"):
         """
@@ -6063,7 +6433,9 @@ class ROI(skrt.core.Archive):
         """
         contours = {}
         all_polygons = self.get_polygons()
-        scale_factor = lambda v1, v2, dv : (v2 - v1 + 2 * dv) / (v2 - v1)
+
+        def scale_factor(v1, v2, dv):
+            return (v2 - v1 + 2 * dv) / (v2 - v1)
 
         for z, polygons in all_polygons.items():
             contours[z] = []
@@ -6071,12 +6443,12 @@ class ROI(skrt.core.Archive):
                 x1, y1, x2, y2 = polygon.bounds
                 xs = scale_factor(x1, x2, dxy)
                 ys = scale_factor(y1, y2, dxy)
-                polygon_new = affinity.scale(polygon, xs, ys, 1., origin)
+                polygon_new = affinity.scale(polygon, xs, ys, 1.0, origin)
                 contours[z].append(polygon_to_contour(polygon_new))
 
         self.reset_contours(contours)
 
-        
+
 class StructureSet(skrt.core.Archive):
     """
     Class representing a radiotherapy structure set
@@ -6102,7 +6474,7 @@ class StructureSet(skrt.core.Archive):
         ignore_dicom_colors=False,
         auto_timestamp=False,
         alpha_beta_ratios=None,
-        **kwargs
+        **kwargs,
     ):
         """Load structure set from the source(s) given in <path>.
 
@@ -6114,14 +6486,14 @@ class StructureSet(skrt.core.Archive):
             - The path to a single dicom structure set file;
             - The path to a single nifti file containing an ROI mask;
             - A list of paths to nifti files containing ROI masks;
-            - The path to a directory containing multiple nifti files 
+            - The path to a directory containing multiple nifti files
             containing ROI masks;
             - A list of ROI objects;
             - A list of objects that could be used to initialise an ROI object
             (e.g. a numpy array).
 
         name : str, default=None
-            Optional name to assign to this structure set. If None, will 
+            Optional name to assign to this structure set. If None, will
             attempt to infer from input filename.
 
         image : skrt.image.Image, default=None
@@ -6132,9 +6504,9 @@ class StructureSet(skrt.core.Archive):
         load : bool, default=True
             If True, ROIs will immediately be loaded from sources. Otherwise,
             loading will not occur until StructureSet.load() is called.
-        
+
         names : dict/list, default=None
-            Optional dict of ROI names to use when renaming loaded ROIs. Keys 
+            Optional dict of ROI names to use when renaming loaded ROIs. Keys
             should be desired names, and values should be lists of possible
             input names or wildcards matching input names.
 
@@ -6144,23 +6516,23 @@ class StructureSet(skrt.core.Archive):
         to_keep : list, default=None
             Optional list of ROI names or wildcards matching ROI names of ROIs
             to keep in this StructureSet during loading. ROIs not matching will
-            be discarded. Note that the names should reflect those after 
+            be discarded. Note that the names should reflect those after
             renaming via the <names> dict. If None, all ROIs will be kept.
 
         to_remove : list, default=None
             Optional list of ROI names or wildcards matching ROI names of ROIs
             to remove from this StructureSet during loading. ROIs matching will
-            be discarded. Note that the names should reflect those after 
+            be discarded. Note that the names should reflect those after
             renaming via the <names> dict, and removal occurs after filtering
             with the <to_keep> list. If None, no ROIs will be removed.
 
         multi_label : bool, default=False
-            If True, will look for multiple ROI masks with different labels 
+            If True, will look for multiple ROI masks with different labels
             inside the array and create a separate ROI from each.
 
         colors : list/dict
             List or dict of colors. If a dict, the keys should be ROI names or
-            wildcards matching ROI names, and the values should be desired 
+            wildcards matching ROI names, and the values should be desired
             colors for ROIs matching that name. If a list, should contain
             colors which will be applied to loaded ROIs in order.
 
@@ -6189,8 +6561,9 @@ class StructureSet(skrt.core.Archive):
             return
 
         self.name = name
-        path = (skrt.core.fullpath(path)
-                if isinstance(path, (str, Path)) else path)
+        path = (
+            skrt.core.fullpath(path) if isinstance(path, (str, Path)) else path
+        )
         self.sources = path
         if self.sources is None:
             self.sources = []
@@ -6212,7 +6585,7 @@ class StructureSet(skrt.core.Archive):
         path = path if isinstance(path, str) else ""
         skrt.core.Archive.__init__(self, path, auto_timestamp)
         if self.path and not self.name:
-            name = Path(self.path).name.split('_')[0].lower()
+            name = Path(self.path).name.split("_")[0].lower()
             if name[0].isalpha():
                 self.name = name
         self.summed_names = []
@@ -6223,7 +6596,7 @@ class StructureSet(skrt.core.Archive):
 
     def __getitem__(self, roi):
         if isinstance(roi, int):
-            return self.get_rois()[roi] 
+            return self.get_rois()[roi]
         elif isinstance(roi, str):
             return self.get_roi_dict()[roi]
 
@@ -6231,7 +6604,7 @@ class StructureSet(skrt.core.Archive):
         return StructureSetIterator(self)
 
     def __add__(self, other):
-        '''
+        """
         Define addition of StructureSet instances.
 
         The result of the addition of self and other is a StructureSet
@@ -6242,7 +6615,7 @@ class StructureSet(skrt.core.Archive):
         that ROIs or their names be unique within a StructureSet.  Adding
         a StructureSet to itself will give a result including duplicate
         ROIs with duplicate names.
-        '''
+        """
         # Ensure that StructureSet data are loaded.
         self.load()
         other.load()
@@ -6251,8 +6624,12 @@ class StructureSet(skrt.core.Archive):
         # and store names of contributors.
         result = StructureSet()
         result.summed_names = []
-        for names in [self.summed_names, other.summed_names,
-                [self.name], [other.name]]:
+        for names in [
+            self.summed_names,
+            other.summed_names,
+            [self.name],
+            [other.name],
+        ]:
             for name in names:
                 if isinstance(name, str):
                     for sub_name in name.split("_"):
@@ -6266,8 +6643,10 @@ class StructureSet(skrt.core.Archive):
                 roi_clone = roi.clone()
                 # Try to prefix ROI name with the name of the StructureSet
                 # from which it originates.
-                if (roi.name.split("_")[0] in result.summed_names
-                        or ss.name is None):
+                if (
+                    roi.name.split("_")[0] in result.summed_names
+                    or ss.name is None
+                ):
                     roi_clone.name = roi.name
                 else:
                     roi_clone.name = "_".join([ss.name, roi.name])
@@ -6287,7 +6666,7 @@ class StructureSet(skrt.core.Archive):
         return result
 
     def __iadd__(self, other):
-        '''
+        """
         Define in-place of StructureSet instances.
 
         The result of the addition of self and other is a StructureSet
@@ -6298,7 +6677,7 @@ class StructureSet(skrt.core.Archive):
         that ROIs or their names be unique within a StructureSet.  Adding
         a StructureSet to itself will give a result including duplicate
         ROIs with duplicate names.
-        '''
+        """
         return self + other
 
     def load(self, sources=None, force=False):
@@ -6313,23 +6692,28 @@ class StructureSet(skrt.core.Archive):
 
         # Laod from multi-label array
         if self.multi_label:
-
             if isinstance(sources, list) and len(sources) == 1:
                 sources = sources[0]
-            if not isinstance(sources, str) and not isinstance(sources, np.ndarray):
-                raise TypeError("Input for a multi-label image must be filepath "
-                                f"or numpy array. Type found: {type(sources)}.")
+            if not isinstance(sources, str) and not isinstance(
+                sources, np.ndarray
+            ):
+                raise TypeError(
+                    "Input for a multi-label image must be filepath "
+                    f"or numpy array. Type found: {type(sources)}."
+                )
             single_source = True
 
             # Load input array into image
-            array = skrt.image.Image(sources).get_data(standardise=True).astype(int)
+            array = (
+                skrt.image.Image(sources).get_data(standardise=True).astype(int)
+            )
             n = array.max()
 
             # Enforce Dicom convention for data array of image object,
             # so that affine matrix will be correctly defined for mask creation.
             im = skrt.image.Image(sources)
-            if 'nifti' in im.source_type:
-                im = im.astype('dcm')
+            if "nifti" in im.source_type:
+                im = im.astype("dcm")
             i_name = 0
             for i in range(0, n):
                 if self.names is not None and i_name < len(self.names):
@@ -6338,26 +6722,30 @@ class StructureSet(skrt.core.Archive):
                 else:
                     name = f"ROI {i}"
 
-                #im2.data = (im1.data == i + 1)
-                self.rois.append(ROI(
-                    array == i + 1, 
-                    affine = im.get_affine(),
-                    voxel_size = None,
-                    origin = None,
-                    image=self.image,
-                    name=name,
-                    **self.roi_kwargs
-                ))
+                # im2.data = (im1.data == i + 1)
+                self.rois.append(
+                    ROI(
+                        array == i + 1,
+                        affine=im.get_affine(),
+                        voxel_size=None,
+                        origin=None,
+                        image=self.image,
+                        name=name,
+                        **self.roi_kwargs,
+                    )
+                )
             sources = []
 
             # For NIfTI source, revert to NIfTI convention for data array
             # of mask, so that it can be written correctly to file.
-            if 'nifti' in im.source_type:
+            if "nifti" in im.source_type:
                 for idx in range(len(self.rois)):
-                    self.rois[idx].mask = self.rois[idx].mask.astype('nii')
+                    self.rois[idx].mask = self.rois[idx].mask.astype("nii")
 
         else:
-            if not skrt.core.is_list(sources) or isinstance(sources, np.ndarray):
+            if not skrt.core.is_list(sources) or isinstance(
+                sources, np.ndarray
+            ):
                 sources = [sources]
                 single_source = True
             else:
@@ -6367,7 +6755,6 @@ class StructureSet(skrt.core.Archive):
         sources_expanded = []
         for source in sources:
             if isinstance(source, str) and os.path.isdir(source):
-
                 sources_expanded.extend(
                     [os.path.join(source, file) for file in os.listdir(source)]
                 )
@@ -6380,13 +6767,14 @@ class StructureSet(skrt.core.Archive):
                 sources_expanded.append(source)
 
         for source in sorted(sources_expanded):
-
             if isinstance(source, ROI):
                 self.rois.append(source)
                 continue
 
             if isinstance(source, str):
-                if os.path.basename(source).startswith(".") or source.endswith(".txt"):
+                if os.path.basename(source).startswith(".") or source.endswith(
+                    ".txt"
+                ):
                     continue
                 if os.path.isdir(source):
                     continue
@@ -6394,11 +6782,10 @@ class StructureSet(skrt.core.Archive):
             # Attempt to load from dicom
             rois = []
             if isinstance(source, str):
-                if os.path.splitext(source)[1] != '.nii':
+                if os.path.splitext(source)[1] != ".nii":
                     rois, ds = load_rois_dicom(source)
             if len(rois):
                 for number, roi in rois.items():
-
                     # Ignore entries with no contours
                     if "contours" not in roi:
                         continue
@@ -6410,14 +6797,16 @@ class StructureSet(skrt.core.Archive):
                         if single_contour.shape[0] == 1:
                             continue
 
-                    color = roi["color"] if not self.ignore_dicom_colors else None
+                    color = (
+                        roi["color"] if not self.ignore_dicom_colors else None
+                    )
                     self.rois.append(
                         ROI(
                             roi["contours"],
                             name=roi["name"],
                             color=color,
                             image=self.image,
-                            **self.roi_kwargs
+                            **self.roi_kwargs,
                         )
                     )
                     self.rois[-1].dicom_dataset = ds
@@ -6431,11 +6820,9 @@ class StructureSet(skrt.core.Archive):
             # Load from ROI mask
             else:
                 try:
-                    self.rois.append(ROI(
-                        source, 
-                        image=self.image,
-                        **self.roi_kwargs
-                    ))
+                    self.rois.append(
+                        ROI(source, image=self.image, **self.roi_kwargs)
+                    )
                 except RuntimeError:
                     continue
 
@@ -6485,7 +6872,7 @@ class StructureSet(skrt.core.Archive):
         Reset x-y contours for ROIs of structure set.
 
         **Parameters:**
-        
+
         contours : dict, default=None
             Dictionary where keys are ROI names and values are dictionaries
             of slice and contour lists.  If None, an empty dictionary is
@@ -6510,12 +6897,12 @@ class StructureSet(skrt.core.Archive):
         will be recreated when get_mask() or get_contours() are next called.
 
         **Parameters:**
-        
-        kwargs : 
+
+        kwargs :
             Keyword arguments to pass to self.get_dummy_image() when
             creating the dummy image. See documentation of
             StructureSet.get_dummy_image().
-     """
+        """
         # Make image
         im = self.get_dummy_image(**kwargs)
 
@@ -6657,8 +7044,10 @@ class StructureSet(skrt.core.Archive):
         for roi_name in active_rois:
             roi_extents = ss[roi_name].get_extents(0.5, "voxels")
             for idx in range(3):
-                if (roi_extents[idx][0] < im_extents[idx][0]
-                    or roi_extents[idx][1] > im_extents[idx][1]):
+                if (
+                    roi_extents[idx][0] < im_extents[idx][0]
+                    or roi_extents[idx][1] > im_extents[idx][1]
+                ):
                     missing_rois.add(roi_name)
 
         return sorted(list(missing_rois))
@@ -6707,7 +7096,8 @@ class StructureSet(skrt.core.Archive):
             for name_to_match in names_to_match:
                 for roi_name in self.get_roi_names():
                     match = fnmatch.fnmatch(
-                            roi_name.lower(), name_to_match.lower())
+                        roi_name.lower(), name_to_match.lower()
+                    )
                     if match:
                         break
                 if match:
@@ -6725,15 +7115,15 @@ class StructureSet(skrt.core.Archive):
         possible matches will be renamed.
 
         **Parameters:**
-        
+
         names : dict, default=None
-            Dictionary of names for renaming ROIs, where the keys are new 
+            Dictionary of names for renaming ROIs, where the keys are new
             names and values are lists of possible names of ROIs that should
             be assigned the new name. These names can also contain wildcards
             with the '*' symbol.
 
         first_match_only : bool, default=True
-            If True, only the first ROI matching the possible names in the 
+            If True, only the first ROI matching the possible names in the
             values of <names> will be renamed; this prevents name duplication
             if multiple ROIs in the StructureSet are a match.
 
@@ -6750,17 +7140,14 @@ class StructureSet(skrt.core.Archive):
         # Loop through each new name
         already_renamed = []
         for name, matches in names.items():
-
             if not skrt.core.is_list(matches):
                 matches = [matches]
 
             # Loop through all possible original names
             name_matched = False
             for m in matches:
-
                 # Loop through ROIs and see if there's a match
                 for i, s in enumerate(self.get_rois()):
-
                     # Don't rename an ROI more than once
                     if i in already_renamed:
                         continue
@@ -6787,15 +7174,15 @@ class StructureSet(skrt.core.Archive):
         to_remove list.
 
         **Parameters:**
-        
+
 
         to_keep : list, default=None
-            List of names of ROIs to keep in the copied StructureSet; all 
+            List of names of ROIs to keep in the copied StructureSet; all
             others will be removed. These names can also contain wildcards
-            with the '*' symbol. 
+            with the '*' symbol.
 
         to_remove : list, default=None
-            List of names of ROIs to remove from the copied StructureSet; all 
+            List of names of ROIs to remove from the copied StructureSet; all
             others will be removed. These names can also contain wildcards
             with the '*' symbol. Applied after filtering with <to_keep>.
         """
@@ -6815,8 +7202,12 @@ class StructureSet(skrt.core.Archive):
         if to_keep is not None:
             keep = []
             for roi in self.rois:
-                if any([fnmatch.fnmatch(roi.name.lower(), k.lower()) 
-                        for k in to_keep]):
+                if any(
+                    [
+                        fnmatch.fnmatch(roi.name.lower(), k.lower())
+                        for k in to_keep
+                    ]
+                ):
                     keep.append(roi)
             self.rois = keep
 
@@ -6825,14 +7216,17 @@ class StructureSet(skrt.core.Archive):
             keep = []
             for roi in self.rois:
                 if not any(
-                    [fnmatch.fnmatch(roi.name.lower(), r.lower()) 
-                     for r in to_remove]
+                    [
+                        fnmatch.fnmatch(roi.name.lower(), r.lower())
+                        for r in to_remove
+                    ]
                 ):
                     keep.append(roi)
             self.rois = keep
 
     def set_alpha_beta_ratios(
-            self, alpha_beta_ratios=None, set_as_default=True):
+        self, alpha_beta_ratios=None, set_as_default=True
+    ):
         """
         Set ratios for ROI tissues of coefficients of linear-quadratic equation.
 
@@ -6868,8 +7262,10 @@ class StructureSet(skrt.core.Archive):
         """
         Get dictionary of ratio of coefficients of linear-quadratic equation.
         """
-        return {roi_name : self[roi_name].get_alpha_over_beta()
-                for roi_name in sorted(self.get_roi_names())}
+        return {
+            roi_name: self[roi_name].get_alpha_over_beta()
+            for roi_name in sorted(self.get_roi_names())
+        }
 
     def get_colors(self):
         """Get dict of ROI colors for each name."""
@@ -6883,7 +7279,7 @@ class StructureSet(skrt.core.Archive):
 
         colors : list/dict
             List or dict of colors. If a dict, the keys should be ROI names or
-            wildcards matching ROI names, and the values should be desired 
+            wildcards matching ROI names, and the values should be desired
             colors for ROIs matching that name. If a list, should contain
             colors which will be applied to loaded ROIs in order.
         """
@@ -6942,15 +7338,15 @@ class StructureSet(skrt.core.Archive):
         to_keep=None,
         to_remove=None,
         keep_renamed_only=False,
-        copy_roi_data=True
+        copy_roi_data=True,
     ):
         """Create a copy of this structure set with ROIs optionally
         renamed or filtered. Returns a new StructureSet object.
 
         **Parameters:**
-        
+
         names : dict, default=None
-            Dictionary of names for renaming ROIs, where the keys are new 
+            Dictionary of names for renaming ROIs, where the keys are new
             names and values are lists of possible names of ROIs that should
             be assigned the new name. These names can also contain wildcards
             with the '*' symbol.
@@ -6959,14 +7355,14 @@ class StructureSet(skrt.core.Archive):
             Name for the returned StructureSet.
 
         to_keep : list, default=None
-            List of names of ROIs to keep in the copied StructureSet; all 
+            List of names of ROIs to keep in the copied StructureSet; all
             others will be removed. These names can also contain wildcards
             with the '*' symbol. Applied after renaming with <names>.
 
         to_remove : list, default=None
-            List of names of ROIs to remove from the copied StructureSet; all 
+            List of names of ROIs to remove from the copied StructureSet; all
             others will be removed. These names can also contain wildcards
-            with the '*' symbol. Applied after renaming with <names> and 
+            with the '*' symbol. Applied after renaming with <names> and
             filtering with <to_keep>.
 
         keep_renamed_only : bool, default=False
@@ -6976,7 +7372,7 @@ class StructureSet(skrt.core.Archive):
         copy_roi_data : bool, default=True
             If True, the ROIs in the returned StructureSet will contain
             copies of the data from the original StructureSet. Otherwise,
-            the new ROIs will contain references to the same data, e.g. the 
+            the new ROIs will contain references to the same data, e.g. the
             same numpy ndarray object for the mask/same dict for the contours.
         """
 
@@ -7028,9 +7424,11 @@ class StructureSet(skrt.core.Archive):
         omit names of empty ROIs.
         """
 
-        return [s.get_name(original) for s in self.get_rois()
-                if not (ignore_empty and s.empty)]
-
+        return [
+            s.get_name(original)
+            for s in self.get_rois()
+            if not (ignore_empty and s.empty)
+        ]
 
     def get_roi_dict(self):
         """Get dict of ROI names and objects."""
@@ -7047,20 +7445,20 @@ class StructureSet(skrt.core.Archive):
         return rois[name]
 
     def print_rois(self):
-
         self.load()
         print("\n".join(self.get_roi_names()))
 
     def get_name(self):
-        '''
+        """
         Load self and get name.
-        '''
+        """
 
         self.load()
-        return (self.name)
+        return self.name
 
     def get_translation_to_align(
-            self, other, z_fraction1=None, z_fraction2=None):
+        self, other, z_fraction1=None, z_fraction2=None
+    ):
         """
         Determine translation for aligning <self> to <other>.
 
@@ -7091,9 +7489,8 @@ class StructureSet(skrt.core.Archive):
             the most-inferior point (lowest z); 1 corresponds to the
             most-superior point (highest z).  Values for z_fraction
             outside the interval [0, 1] result in a RuntimeError.
-            """
-        return get_translation_to_align(
-                self, other, z_fraction1, z_fraction2)
+        """
+        return get_translation_to_align(self, other, z_fraction1, z_fraction2)
 
     def get_conformity_index(self, names=None, **kwargs):
         """
@@ -7116,13 +7513,14 @@ class StructureSet(skrt.core.Archive):
         return get_conformity_index(self.get_rois(names), **kwargs)
 
     def get_geometry(
-        self, 
-        name_as_index=True, 
-        html=False, 
+        self,
+        name_as_index=True,
+        html=False,
         colored=False,
         greyed_out=None,
         roi_kwargs={},
-        **kwargs):
+        **kwargs,
+    ):
         """Get pandas DataFrame of geometric properties for all ROIs.
         If no sl/idx/pos is given, the central slice of each ROI will be used.
 
@@ -7144,14 +7542,13 @@ class StructureSet(skrt.core.Archive):
 
         rows = []
         for roi in self.get_rois(ignore_empty=True):
-
             # Get DataFrame for this ROI
             df_row = roi.get_geometry(name_as_index=name_as_index, **kwargs)
 
             # Replace all values with "--" if greying out this ROI
             if roi in greyed_out:
                 for col in df_row.columns:
-                    if col == "ROI": 
+                    if col == "ROI":
                         continue
                     df_row[col] = "--"
 
@@ -7159,7 +7556,8 @@ class StructureSet(skrt.core.Archive):
             if colored:
                 color = roi.get_color_from_kwargs(roi_kwargs)
                 col_str = get_colored_roi_string(
-                        roi, grey=(roi in greyed_out), color=color)
+                    roi, grey=(roi in greyed_out), color=color
+                )
                 if name_as_index:
                     df_row.rename({df_row.index[0]: col_str}, inplace=True)
                 else:
@@ -7179,11 +7577,7 @@ class StructureSet(skrt.core.Archive):
         return df
 
     def get_comparison(
-        self, 
-        other=None, 
-        comp_type="auto", 
-        consensus_type="majority", 
-        **kwargs
+        self, other=None, comp_type="auto", consensus_type="majority", **kwargs
     ):
         """Get pandas DataFrame of comparison metrics vs a single ROI or
         another StructureSet.
@@ -7193,7 +7587,7 @@ class StructureSet(skrt.core.Archive):
         other : ROI/StructureSet, default=None
             Object to compare own ROIs with. Can either be a single ROI, which
             will be compared to every ROI in this structure set, or another
-            structure set. If None, a comparison will be performed between the 
+            structure set. If None, a comparison will be performed between the
             ROIs of this structure set.
 
         comp_type : str, default="auto"
@@ -7206,15 +7600,15 @@ class StructureSet(skrt.core.Archive):
                 to every ROI in the other with the same name. Useful when
                 comparing two structure sets containing ROIs with the same
                 names.
-                - "consensus" : if other=None, compare each ROI in this 
+                - "consensus" : if other=None, compare each ROI in this
                 structure set to the consensus of all other ROIs; otherwise,
                 compare each ROI in this structure set to the consensus of
                 all ROIs in the other structure set. Consensus type is set via
                 the consensus_type argument.
-                - "auto" : if other=None, use "all" comparison. Otherwise, 
-                first look for any ROIs with matching names; if at least one 
-                matching pair is found, compare via the "by_name" comparison 
-                type. If no matches are found, compare via the "all" comparison 
+                - "auto" : if other=None, use "all" comparison. Otherwise,
+                first look for any ROIs with matching names; if at least one
+                matching pair is found, compare via the "by_name" comparison
+                type. If no matches are found, compare via the "all" comparison
                 type.
 
         consensus_type : str, default="majority vote"
@@ -7235,8 +7629,8 @@ class StructureSet(skrt.core.Archive):
             List of ROIs that should be greyed out (given a grey background
             to their text) if returning an HTML string.
 
-        `**`kwargs : 
-            Keyword args to pass to ROI.get_comparison(). See 
+        `**`kwargs :
+            Keyword args to pass to ROI.get_comparison(). See
             ROI.get_comparison() documentation for details.
         """
 
@@ -7251,9 +7645,13 @@ class StructureSet(skrt.core.Archive):
 
         return compare_roi_pairs(pairs, **kwargs)
 
-    def get_comparison_pairs(self, other=None, comp_type="auto", 
-                             consensus_type="majority", 
-                             consensus_color="blue"):
+    def get_comparison_pairs(
+        self,
+        other=None,
+        comp_type="auto",
+        consensus_type="majority",
+        consensus_color="blue",
+    ):
         """Get list of ROIs to compare with one another."""
 
         # Check comp_type is valid
@@ -7263,19 +7661,29 @@ class StructureSet(skrt.core.Archive):
 
         # Consensus comparison
         if comp_type == "consensus":
-            
-            # If comparing to another StructureSet, take consensus of that 
+            # If comparing to another StructureSet, take consensus of that
             # entire StructureSet
             if other is not None:
-                consensus = other.get_consensus(consensus_type, color=consensus_color)
-                return [(roi, consensus) for roi in self.get_rois(ignore_empty=True)]
+                consensus = other.get_consensus(
+                    consensus_type, color=consensus_color
+                )
+                return [
+                    (roi, consensus) for roi in self.get_rois(ignore_empty=True)
+                ]
 
             # Otherwise, compare each ROI to consensus of others
             pairs = []
             for roi in self.get_rois(ignore_empty=True):
-                pairs.append((roi, self.get_consensus(consensus_type, 
-                                                      color=consensus_color,
-                                                      exclude=roi.name)))
+                pairs.append(
+                    (
+                        roi,
+                        self.get_consensus(
+                            consensus_type,
+                            color=consensus_color,
+                            exclude=roi.name,
+                        ),
+                    )
+                )
             return pairs
 
         # Set default behaviour to "all" if other is None
@@ -7288,12 +7696,14 @@ class StructureSet(skrt.core.Archive):
         matches = []
         if comp_type in ["auto", "by_name"]:
             matches = [
-                s for s in self.get_roi_names(ignore_empty=True)
+                s
+                for s in self.get_roi_names(ignore_empty=True)
                 if s in other.get_roi_names(ignore_empty=True)
-                ]
+            ]
             if len(matches) or comp_type == "by_name":
                 return [
-                    (self.get_roi(name), other.get_roi(name)) for name in matches
+                    (self.get_roi(name), other.get_roi(name))
+                    for name in matches
                 ]
 
         # Otherwise, pair each ROI with every other (exlcuding pairs of the same
@@ -7313,14 +7723,21 @@ class StructureSet(skrt.core.Archive):
         for roi in self.get_rois(ignore_empty=True):
             indices.extend(roi.get_indices(view))
         values, counts = np.unique(indices, return_counts=True)
-        #return np.bincount(indices).argmax()
+        # return np.bincount(indices).argmax()
         return np.quantile(
-                values[counts == counts.max()], 0.5, method="nearest")
+            values[counts == counts.max()], 0.5, method="nearest"
+        )
 
     def plot_comparisons(
-        self, other=None, comp_type="auto", outdir=None, legend=True, 
-        names=None, legend_bbox_to_anchor=None, legend_loc="lower left",
-        **kwargs
+        self,
+        other=None,
+        comp_type="auto",
+        outdir=None,
+        legend=True,
+        names=None,
+        legend_bbox_to_anchor=None,
+        legend_loc="lower left",
+        **kwargs,
     ):
         """Plot comparison pairs."""
 
@@ -7328,7 +7745,6 @@ class StructureSet(skrt.core.Archive):
             os.makedirs(outdir)
 
         for roi1, roi2 in self.get_comparison_pairs(other, comp_type):
-
             outname = None
             if outdir:
                 comp_name = roi1.get_comparison_name(roi2, True)
@@ -7338,9 +7754,13 @@ class StructureSet(skrt.core.Archive):
                 names = [self.name, other.name]
 
             roi1.plot_comparison(
-                roi2, legend=legend, save_as=outname, names=names,
+                roi2,
+                legend=legend,
+                save_as=outname,
+                names=names,
                 legend_bbox_to_anchor=legend_bbox_to_anchor,
-                legend_loc=legend_loc, **kwargs
+                legend_loc=legend_loc,
+                **kwargs,
             )
 
     def plot_surface_distances(
@@ -7357,12 +7777,25 @@ class StructureSet(skrt.core.Archive):
                 outname = os.path.join(outdir, f"{comp_name}.png")
             else:
                 outname = None
-            roi1.plot_surface_distances(roi2, signed=signed, save_as=outname, **kwargs)
+            roi1.plot_surface_distances(
+                roi2, signed=signed, save_as=outname, **kwargs
+            )
 
-    def write(self, outname=None, outdir=".", ext=None, overwrite=False,
-              header_source=None, patient_id=None, patient_position=None,
-              modality=None, root_uid=None, verbose=True, header_extras={},
-              **kwargs):
+    def write(
+        self,
+        outname=None,
+        outdir=".",
+        ext=None,
+        overwrite=False,
+        header_source=None,
+        patient_id=None,
+        patient_position=None,
+        modality=None,
+        root_uid=None,
+        verbose=True,
+        header_extras={},
+        **kwargs,
+    ):
         """Write to a dicom StructureSet file or directory of nifti files."""
 
         if ext is not None and not ext.startswith("."):
@@ -7382,11 +7815,11 @@ class StructureSet(skrt.core.Archive):
                 orientation=None,
                 patient_id=patient_id,
                 patient_position=patient_position,
-                modality='RTSTRUCT',
+                modality="RTSTRUCT",
                 root_uid=root_uid,
                 header_extras=header_extras,
                 source_type=type(self).__name__,
-                outname = outname,
+                outname=outname,
             )
             self.dicom_dataset = dicom_writer.write()
 
@@ -7402,7 +7835,7 @@ class StructureSet(skrt.core.Archive):
             os.mkdir(outdir)
         for s in self.get_rois():
             s.write(outdir=outdir, ext=ext, verbose=verbose, **kwargs)
-            
+
     def plot(
         self,
         view="x-y",
@@ -7429,7 +7862,7 @@ class StructureSet(skrt.core.Archive):
         **kwargs,
     ):
         """Plot the ROIs in this structure set.
-       
+
         If consensus_type is set to any of 'majority', 'sum', 'overlap', or 'staple',
         the conensus contour will be plotted rather than individual ROIs. If
         'exclude_from_consensus' is set to the name of an ROI, that ROI will
@@ -7441,13 +7874,14 @@ class StructureSet(skrt.core.Archive):
         else:
             structure_set = self.clone(copy_rois=True, copy_roi_data=False)
             im = structure_set.get_dummy_image(
-                    voxel_size=voxel_size, buffer=buffer)
+                voxel_size=voxel_size, buffer=buffer
+            )
             structure_set.set_image(im)
             for roi in structure_set.get_rois():
                 roi.reset_contours()
 
         for roi in structure_set.get_rois():
-                roi.create_mask()
+            roi.create_mask()
 
         # If no sl/idx/pos given, use the slice with the most ROIs
         if sl is None and idx is None and pos is None:
@@ -7468,11 +7902,10 @@ class StructureSet(skrt.core.Archive):
 
         # Plot with image
         if include_image and structure_set.image is not None:
-
             roi_kwargs["image_ready"] = True
             structure_set.image.plot(
                 view,
-                sl=sl, 
+                sl=sl,
                 idx=idx,
                 pos=pos,
                 rois=structure_set,
@@ -7487,7 +7920,7 @@ class StructureSet(skrt.core.Archive):
                 consensus_type=consensus_type,
                 exclude_from_consensus=exclude_from_consensus,
                 ax=ax,
-                **kwargs
+                **kwargs,
             )
             return
 
@@ -7496,14 +7929,15 @@ class StructureSet(skrt.core.Archive):
         # Plot consensus
         roi_handles = []
         if consensus_type is not None:
-
             # Plot consensus contour
             consensus = structure_set.get_consensus(
-                    consensus_type, 
-                    color=consensus_color,
-                    exclude=exclude_from_consensus)
-            consensus_kwargs = {} if exclude_from_consensus is not None \
-                    else kwargs
+                consensus_type,
+                color=consensus_color,
+                exclude=exclude_from_consensus,
+            )
+            consensus_kwargs = (
+                {} if exclude_from_consensus is not None else kwargs
+            )
             consensus.create_mask()
             consensus.image = consensus.mask.clone()
             consensus_kwargs["image_ready"] = True
@@ -7511,17 +7945,32 @@ class StructureSet(skrt.core.Archive):
                 consensus_linewidth = defaultParams["lines.linewidth"][0] + 1
 
             consensus.plot(
-                view, sl=sl, idx=idx, pos=pos, plot_type=plot_type, 
-                color=consensus_color, linewidth=consensus_linewidth, 
-                opacity=opacity, show=False, ax=ax, **consensus_kwargs)
+                view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                plot_type=plot_type,
+                color=consensus_color,
+                linewidth=consensus_linewidth,
+                opacity=opacity,
+                show=False,
+                ax=ax,
+                **consensus_kwargs,
+            )
 
             structure_set.ax = consensus.ax
             structure_set.fig = consensus.fig
 
             if legend:
                 roi_handles.append(
-                        consensus.get_patch(plot_type, consensus_color, opacity,
-                            linewidth, consensus.name))
+                    consensus.get_patch(
+                        plot_type,
+                        consensus_color,
+                        opacity,
+                        linewidth,
+                        consensus.name,
+                    )
+                )
 
             # Plot excluded ROI on top
             if exclude_from_consensus is not None:
@@ -7529,13 +7978,27 @@ class StructureSet(skrt.core.Archive):
                 kwargs["image_ready"] = True
                 excluded = structure_set.get_roi(exclude_from_consensus)
                 excluded.plot(
-                        view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
-                        opacity=opacity, linewidth=linewidth, show=False,
-                        ax=structure_set.ax, **kwargs)
+                    view,
+                    sl=sl,
+                    idx=idx,
+                    pos=pos,
+                    plot_type=plot_type,
+                    opacity=opacity,
+                    linewidth=linewidth,
+                    show=False,
+                    ax=structure_set.ax,
+                    **kwargs,
+                )
                 if legend:
                     roi_handles.append(
-                        excluded.get_patch(plot_type, excluded.color, opacity,
-                            linewidth, excluded.name))
+                        excluded.get_patch(
+                            plot_type,
+                            excluded.color,
+                            opacity,
+                            linewidth,
+                            excluded.name,
+                        )
+                    )
 
         # Otherwise, plot first ROI and get axes
         else:
@@ -7548,40 +8011,74 @@ class StructureSet(skrt.core.Archive):
             else:
                 central = structure_set.get_rois(ignore_empty=True)[0]
 
-            central.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
-                         opacity=opacity, linewidth=linewidth, show=False,
-                         ax=ax, **kwargs)
+            central.plot(
+                view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                plot_type=plot_type,
+                opacity=opacity,
+                linewidth=linewidth,
+                show=False,
+                ax=ax,
+                **kwargs,
+            )
 
             structure_set.fig = central.fig
             structure_set.ax = central.ax
 
             if legend:
                 roi_handles.append(
-                        central.get_patch(plot_type, central.color, opacity,
-                            linewidth, central.name))
+                    central.get_patch(
+                        plot_type,
+                        central.color,
+                        opacity,
+                        linewidth,
+                        central.name,
+                    )
+                )
 
             # Plot other ROIs
             for i, roi in enumerate(structure_set.get_rois(ignore_empty=True)):
-
                 if roi is central:
                     continue
 
                 plot_kwargs = {} if i < len(structure_set.rois) - 1 else kwargs
-                roi.plot(view, sl=sl, idx=idx, pos=pos, plot_type=plot_type,
-                         opacity=opacity, linewidth=linewidth, show=False,
-                         ax=structure_set.ax, **kwargs)
+                roi.plot(
+                    view,
+                    sl=sl,
+                    idx=idx,
+                    pos=pos,
+                    plot_type=plot_type,
+                    opacity=opacity,
+                    linewidth=linewidth,
+                    show=False,
+                    ax=structure_set.ax,
+                    **kwargs,
+                )
 
                 if legend:
-                    if (idx is None and pos is None and sl is None) or \
-                       roi.on_slice(view, sl=sl, idx=idx, pos=pos):
-                        roi_handles.append(roi.get_patch(plot_type, roi.color,
-                            opacity, linewidth, roi.name))
+                    if (
+                        idx is None and pos is None and sl is None
+                    ) or roi.on_slice(view, sl=sl, idx=idx, pos=pos):
+                        roi_handles.append(
+                            roi.get_patch(
+                                plot_type,
+                                roi.color,
+                                opacity,
+                                linewidth,
+                                roi.name,
+                            )
+                        )
 
         # Draw legend
         if legend and len(roi_handles):
-            structure_set.ax.legend(handles=roi_handles,
-                    bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc,
-                    facecolor="white", framealpha=1
+            structure_set.ax.legend(
+                handles=roi_handles,
+                bbox_to_anchor=legend_bbox_to_anchor,
+                loc=legend_loc,
+                facecolor="white",
+                framealpha=1,
             )
 
         # Display image
@@ -7594,10 +8091,21 @@ class StructureSet(skrt.core.Archive):
             structure_set.fig.savefig(save_as)
             plt.close()
 
-    def plot_consensus(self, consensus_type, view="x-y", sl=None, idx=None,
-                       pos=None, rois_in_background=False, color=None, 
-                       voxel_size=[1, 1], buffer=5, include_image=False,
-                       show=True, **kwargs):
+    def plot_consensus(
+        self,
+        consensus_type,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        rois_in_background=False,
+        color=None,
+        voxel_size=[1, 1],
+        buffer=5,
+        include_image=False,
+        show=True,
+        **kwargs,
+    ):
         """Plot the consensus contour, with all ROIs in grey behind it if
         rois_in_background=True."""
 
@@ -7616,23 +8124,30 @@ class StructureSet(skrt.core.Archive):
 
         image_ready = kwargs.pop("image_ready", False)
         if not image_ready and not (include_image and self.image):
-            im = consensus.get_dummy_image(
-                    voxel_size=voxel_size,
-                    buffer=buffer
-                    )
+            im = consensus.get_dummy_image(voxel_size=voxel_size, buffer=buffer)
             im.title = consensus.name
             consensus.set_image(im)
             consensus.reset_contours()
         consensus.create_mask()
 
-        consensus.plot(color=color, pos=pos, view=view, show=False,
-                       image_ready=True, **kwargs)
+        consensus.plot(
+            color=color,
+            pos=pos,
+            view=view,
+            show=False,
+            image_ready=True,
+            **kwargs,
+        )
 
         if rois_in_background:
             kwargs["ax"] = consensus.ax
             for roi in self.get_rois(ignore_empty=True):
-                roi.plot(color="lightgrey", view=view, pos=pos, show=False, **kwargs)
-            consensus.plot(color=color, view=view, pos=pos, show=False, **kwargs)
+                roi.plot(
+                    color="lightgrey", view=view, pos=pos, show=False, **kwargs
+                )
+            consensus.plot(
+                color=color, view=view, pos=pos, show=False, **kwargs
+            )
 
         consensus.ax.set_aspect("equal")
 
@@ -7661,36 +8176,47 @@ class StructureSet(skrt.core.Archive):
         vals, counts = np.unique(indices, return_counts=True)
         return vals[np.argmax(counts)]
 
-    def view(self, include_image=True, rois=None, voxel_size=[1, 1], buffer=5, **kwargs):
+    def view(
+        self,
+        include_image=True,
+        rois=None,
+        voxel_size=[1, 1],
+        buffer=5,
+        **kwargs,
+    ):
         """View the StructureSet.
 
         **Parameters:**
-        
+
         include_image : bool, default=True
-            If True and this StructureSet has an associated image 
+            If True and this StructureSet has an associated image
             (in self.image), the image will be displayed behind the ROIs.
 
         rois : StructureSet/list, default=None
             Any other ROIs or StructureSets to include in the plot.
 
         voxel_size : list, default=[1, 1]
-            If the StructureSet does not have an associated image and has ROIs 
-            described only by contours, this will be the voxel sizes used in 
-            the x-y direction when converting ROIs to masks if a mask plot 
+            If the StructureSet does not have an associated image and has ROIs
+            described only by contours, this will be the voxel sizes used in
+            the x-y direction when converting ROIs to masks if a mask plot
             type is selected.
 
         buffer : int, default=5
             If the StructureSet does not have an associated image and has ROIs
-            described only by contours, this will be the number of buffer voxels 
+            described only by contours, this will be the number of buffer voxels
             (i.e. whitespace) displayed around the extent of the ROIs.
         """
 
         from skrt.better_viewer import BetterViewer
+
         self.load()
 
         # Set initial zoom amount and centre
         self.rois[0].load()
-        if self.image is not None and not self.get_rois(ignore_empty=True)[0].contours_only:
+        if (
+            self.image is not None
+            and not self.get_rois(ignore_empty=True)[0].contours_only
+        ):
             view = kwargs.get("init_view", "x-y")
             """
             axes = skrt.image._plot_axes[view]
@@ -7705,9 +8231,12 @@ class StructureSet(skrt.core.Archive):
 
             # Set initial slice
             kwargs.setdefault(
-                "init_slice", 
-                self.image.idx_to_slice(self.find_most_populated_slice(view),
-                                        skrt.image._slice_axes[view]))
+                "init_slice",
+                self.image.idx_to_slice(
+                    self.find_most_populated_slice(view),
+                    skrt.image._slice_axes[view],
+                ),
+            )
 
         if "plot_type" in kwargs:
             kwargs["roi_plot_type"] = kwargs.pop("plot_type")
@@ -7729,14 +8258,12 @@ class StructureSet(skrt.core.Archive):
 
         # View without image
         else:
-
             structure_set_tmp = self
 
             # Make dummy image
-            im = self.get_dummy_image(buffer=buffer, 
-                                      voxel_size=voxel_size)
+            im = self.get_dummy_image(buffer=buffer, voxel_size=voxel_size)
             structure_set_tmp = self.clone(
-                copy_rois=True, 
+                copy_rois=True,
                 copy_roi_data=False,
             )
             structure_set_tmp.set_image(im)
@@ -7744,10 +8271,10 @@ class StructureSet(skrt.core.Archive):
                 roi.reset_contours()
             """
             if self.rois[0].contours_only or True:
-                im = self.get_dummy_image(buffer=buffer, 
+                im = self.get_dummy_image(buffer=buffer,
                                           voxel_size=voxel_size)
                 structure_set_tmp = self.clone(
-                    copy_rois=True, 
+                    copy_rois=True,
                     copy_roi_data=False
                 )
                 for roi in structure_set_tmp.rois:
@@ -7768,7 +8295,7 @@ class StructureSet(skrt.core.Archive):
                 else:
                     rois = [structure_set_tmp, rois]
             kwargs["show"] = False
-            if not "roi_kwargs" in kwargs:
+            if "roi_kwargs" not in kwargs:
                 kwargs["roi_kwargs"] = {}
             kwargs["roi_kwargs"]["image_ready"] = True
             bv = BetterViewer(im, rois=rois, **kwargs)
@@ -7789,8 +8316,14 @@ class StructureSet(skrt.core.Archive):
             all_extents.extend(roi.get_extent(**kwargs))
         return min(all_extents), max(all_extents)
 
-    def get_extents(self, roi_names=None, buffer=None, buffer_units="mm",
-            method=None, origin=None):
+    def get_extents(
+        self,
+        roi_names=None,
+        buffer=None,
+        buffer_units="mm",
+        method=None,
+        origin=None,
+    ):
         """
         Get minimum and maximum extent of StructureSet ROIs,
         in mm along all three axes, returned in order [x, y, z].
@@ -7811,10 +8344,10 @@ class StructureSet(skrt.core.Archive):
             applies buffer as a fraction of total length in each dimension).
 
         method : str, default=None
-            Method to use for extent calculation. Can be: 
+            Method to use for extent calculation. Can be:
 
                 * "contour": get extent from min/max positions of contour(s).
-                * "mask": get extent from min/max positions of voxels in the 
+                * "mask": get extent from min/max positions of voxels in the
                   binary mask.
                 * None: use the method set in self.default_geom_method.
 
@@ -7824,7 +8357,8 @@ class StructureSet(skrt.core.Archive):
             If None, then (0, 0, 0) is used.
         """
         return self.combine_rois(roi_names).get_extents(
-                buffer, buffer_units, method, origin)
+            buffer, buffer_units, method, origin
+        )
 
     def get_crop_limits(self, roi_names=None, crop_margins=None, method=None):
         """
@@ -7861,10 +8395,12 @@ class StructureSet(skrt.core.Archive):
                 * None: use the method set in self.default_geom_method.
         """
         return self.combine_rois(roi_names).get_crop_limits(
-                crop_margins, method)
+            crop_margins, method
+        )
 
-    def get_bbox_centre_and_widths(self,
-            roi_names=None, buffer=None, buffer_units="mm", method=None):
+    def get_bbox_centre_and_widths(
+        self, roi_names=None, buffer=None, buffer_units="mm", method=None
+    ):
         """
         Get centre and widths in mm along all three axes of a bounding box
         enclosing StructureSet ROIs and optional buffer.  Centre
@@ -7875,7 +8411,7 @@ class StructureSet(skrt.core.Archive):
         extents.  For parameter explanations, see
         skrt.structures.StructureSet.get_extents() documentation.
         """
-        extents = self.get_extents(roi_names, buffer, buffer_units, method) 
+        extents = self.get_extents(roi_names, buffer, buffer_units, method)
         centre = [0.5 * (extent[0] + extent[1]) for extent in extents]
         widths = [(extent[1] - extent[0]) for extent in extents]
         return (centre, widths)
@@ -7885,21 +8421,21 @@ class StructureSet(skrt.core.Archive):
         StructureSet. Returns an Image object.
 
         **Parameters:**
-        
+
         voxel_size : list, default=None
-            Voxel size in mm in the dummy image in the x-y plane, given as 
+            Voxel size in mm in the dummy image in the x-y plane, given as
             [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
-            [1, 1] will be used by default. The voxel size in the z direction 
+            [1, 1] will be used by default. The voxel size in the z direction
             is defined by <slice_thickness>.
 
         shape : list, default=None
             Number of voxels in the dummy image in the x-y plane, given as
-            [nx, ny]. Only used if <voxel_size> is None. 
-            The number of voxels in the z direction will be taken from the 
+            [nx, ny]. Only used if <voxel_size> is None.
+            The number of voxels in the z direction will be taken from the
             number of slices in the x-y contours dictionary.
 
         fill_val : int/float, default=1e4
-            Value with which the voxels in the dummy image should be filled. 
+            Value with which the voxels in the dummy image should be filled.
 
         buffer : int, default=1
             Number of empty buffer voxels to add outside the ROI in each
@@ -7912,9 +8448,12 @@ class StructureSet(skrt.core.Archive):
         """
         extents = [self.get_extent(ax=ax) for ax in skrt.image._axes]
         slice_thickness = kwargs.pop("slice_thickness", None)
-        slice_thickness = (slice_thickness or
-                self.get_rois(ignore_empty=True)[0]\
-                        .get_slice_thickness_contours())
+        slice_thickness = (
+            slice_thickness
+            or self.get_rois(ignore_empty=True)[
+                0
+            ].get_slice_thickness_contours()
+        )
         return create_dummy_image(extents, slice_thickness, **kwargs)
 
     def _get_combination(self, name, force, exclude, combo_maker, **kwargs):
@@ -7934,7 +8473,6 @@ class StructureSet(skrt.core.Archive):
 
         # Get list of ROIs to include in this combination ROI
         if exclude is not None:
-
             if exclude not in self.get_roi_names():
                 print(f"ROI to exclude {exclude} not found.")
                 return
@@ -7964,7 +8502,6 @@ class StructureSet(skrt.core.Archive):
         return roi
 
     def get_consensus(self, consensus_type, color="blue", **kwargs):
-
         # Get consensus calculation function
         if consensus_type == "majority":
             consensus_func = StructureSet.get_majority_vote
@@ -7980,20 +8517,20 @@ class StructureSet(skrt.core.Archive):
         return consensus_func(self, color=color, **kwargs)
 
     def get_staple(self, force=False, exclude=None, **kwargs):
-        """Get ROI object representing the STAPLE combination of ROIs in this 
-        structure set. If <exclude> is set to a string, the ROI with that name 
+        """Get ROI object representing the STAPLE combination of ROIs in this
+        structure set. If <exclude> is set to a string, the ROI with that name
         will be excluded from the calculation.
 
         **Parameters:**
 
         force : bool, default=False
-            If False and STAPLE ROI has already been created, the 
-            previously computed ROI will be returned. If Force=True, the 
+            If False and STAPLE ROI has already been created, the
+            previously computed ROI will be returned. If Force=True, the
             STAPLE ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the first ROI in self.rois with that name will 
-            be excluded from the combination. This may be useful if comparison 
+            If set to a string, the first ROI in self.rois with that name will
+            be excluded from the combination. This may be useful if comparison
             of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
@@ -8001,24 +8538,25 @@ class StructureSet(skrt.core.Archive):
             representing the combination.
         """
 
-        return self._get_combination("staple", force, exclude, create_staple,
-                                     **kwargs)
+        return self._get_combination(
+            "staple", force, exclude, create_staple, **kwargs
+        )
 
     def get_majority_vote(self, force=False, exclude=None, **kwargs):
-        """Get ROI object representing the majority vote combination of ROIs in 
-        this structure set. If <exclude> is set to a string, the ROI with that 
+        """Get ROI object representing the majority vote combination of ROIs in
+        this structure set. If <exclude> is set to a string, the ROI with that
         name will be excluded from the calculation.
 
         **Parameters:**
 
         force : bool, default=False
-            If False and majority vote ROI has already been created, the 
-            previously computed ROI will be returned. If Force=True, the 
+            If False and majority vote ROI has already been created, the
+            previously computed ROI will be returned. If Force=True, the
             majority vote ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the first ROI in self.rois with that name will 
-            be excluded from the combination. This may be useful if comparison 
+            If set to a string, the first ROI in self.rois with that name will
+            be excluded from the combination. This may be useful if comparison
             of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
@@ -8026,24 +8564,25 @@ class StructureSet(skrt.core.Archive):
             representing the combination.
         """
 
-        return self._get_combination("majority_vote", force, exclude, 
-                                     create_majority_vote, **kwargs)
+        return self._get_combination(
+            "majority_vote", force, exclude, create_majority_vote, **kwargs
+        )
 
     def get_sum(self, force=False, exclude=None, **kwargs):
-        """Get ROI object representing the sum of ROIs in this structure set. 
-        If <exclude> is set to a string, the ROI with that name will be 
+        """Get ROI object representing the sum of ROIs in this structure set.
+        If <exclude> is set to a string, the ROI with that name will be
         excluded from the calculation.
 
         **Parameters:**
 
         force : bool, default=False
-            If False and sum ROI has already been created, the 
-            previously computed ROI will be returned. If Force=True, the 
+            If False and sum ROI has already been created, the
+            previously computed ROI will be returned. If Force=True, the
             sum ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the first ROI in self.rois with that name will 
-            be excluded from the combination. This may be useful if comparison 
+            If set to a string, the first ROI in self.rois with that name will
+            be excluded from the combination. This may be useful if comparison
             of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
@@ -8051,24 +8590,25 @@ class StructureSet(skrt.core.Archive):
             representing the combination.
         """
 
-        return self._get_combination("sum", force, exclude, 
-                                     create_roi_sum, **kwargs)
+        return self._get_combination(
+            "sum", force, exclude, create_roi_sum, **kwargs
+        )
 
     def get_overlap(self, force=False, exclude=None, **kwargs):
-        """Get ROI object representing the overlap of ROIs in this 
-        structure set. If <exclude> is set to a string, the ROI with that name 
+        """Get ROI object representing the overlap of ROIs in this
+        structure set. If <exclude> is set to a string, the ROI with that name
         will be excluded from the calculation.
 
         **Parameters:**
 
         force : bool, default=False
-            If False and overlap ROI has already been created, the 
-            previously computed ROI will be returned. If Force=True, the 
+            If False and overlap ROI has already been created, the
+            previously computed ROI will be returned. If Force=True, the
             overlap ROI will be recreated.
 
         exclude : str, default=None
-            If set to a string, the first ROI in self.rois with that name will 
-            be excluded from the combination. This may be useful if comparison 
+            If set to a string, the first ROI in self.rois with that name will
+            be excluded from the combination. This may be useful if comparison
             of a single ROI with the consensus of all others is desired.
 
         `**`kwargs :
@@ -8076,12 +8616,22 @@ class StructureSet(skrt.core.Archive):
             representing the combination.
         """
 
-        return self._get_combination("overlap", force, exclude, 
-                                     create_roi_overlap, **kwargs)
+        return self._get_combination(
+            "overlap", force, exclude, create_roi_overlap, **kwargs
+        )
 
-    def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
-            centre=[0, 0, 0], resample="fine", restore=True, 
-            fill_value=None, force_contours=False, names=None):
+    def transform(
+        self,
+        scale=1,
+        translation=[0, 0, 0],
+        rotation=[0, 0, 0],
+        centre=[0, 0, 0],
+        resample="fine",
+        restore=True,
+        fill_value=None,
+        force_contours=False,
+        names=None,
+    ):
         """
         Apply three-dimensional similarity transform to structure-set ROIs.
 
@@ -8095,7 +8645,7 @@ class StructureSet(skrt.core.Archive):
         rotation.  The latter two are about the centre coordinates.
 
         **Parameters:**
-        
+
         force_contours : bool, default=False
             If True, and the transform corresponds to a translation
             and/or rotation about the z-axis, apply transform to contour
@@ -8112,8 +8662,16 @@ class StructureSet(skrt.core.Archive):
         """
 
         for roi in self.get_rois(names):
-            roi.transform(scale, translation, rotation, centre, resample,
-                    restore, fill_value, force_contours)
+            roi.transform(
+                scale,
+                translation,
+                rotation,
+                centre,
+                resample,
+                restore,
+                fill_value,
+                force_contours,
+            )
 
         return None
 
@@ -8128,7 +8686,7 @@ class StructureSet(skrt.core.Archive):
             A Plan object to assign to this structure set.
         """
 
-        if not plan in self.plans:
+        if plan not in self.plans:
             self.plans.append(plan)
             self.plans.sort()
 
@@ -8145,9 +8703,10 @@ class StructureSet(skrt.core.Archive):
 
         return self.plans
 
-    def interpolate_points(self, n_point=None, dxy=None,
-        smoothness_per_point=0):
-        '''
+    def interpolate_points(
+        self, n_point=None, dxy=None, smoothness_per_point=0
+    ):
+        """
         Return new StructureSet object, with interpolated contour points.
 
         Points are interpolated for each contour of each ROI.
@@ -8162,7 +8721,7 @@ class StructureSet(skrt.core.Archive):
             Approximate distance required between contour points.  This is taken
             into account only if n_point is set to None.  For a contour of
             length contour_length, the number of contour points is then taken
-            to be max(int(contour_length / dxy), 3).  
+            to be max(int(contour_length / dxy), 3).
 
         smoothness_per_point : float, default=0
             Parameter determining the smoothness of the B-spline curve used
@@ -8170,18 +8729,19 @@ class StructureSet(skrt.core.Archive):
             smoothness_per_point and the number of contour points (specified
             directly via n_point, or indirectly via dxy) corresponds to the
             parameter s of scipy.interpolate.splprep - see documentation at:
-        
+
             https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
 
             A smoothness_per_point of 0 forces the B-spline to pass through
             all of the pre-interpolation contour points.
-        '''
+        """
 
         # Interpolate points for the rois
         rois = []
         for roi in self.get_rois():
-            rois.append(roi.interpolate_points(
-                n_point, dxy, smoothness_per_point))
+            rois.append(
+                roi.interpolate_points(n_point, dxy, smoothness_per_point)
+            )
 
         # Clone self, then reset source and rois
         ss = StructureSet(self)
@@ -8190,8 +8750,8 @@ class StructureSet(skrt.core.Archive):
 
         return ss
 
-    def order_rois(self, order='x+'):
-        '''
+    def order_rois(self, order="x+"):
+        """
         Order ROIs by one of their centroid coordinates.
 
         **Parameter:**
@@ -8204,14 +8764,14 @@ class StructureSet(skrt.core.Archive):
             - 'y-' : in order of decreasing y value.
             - 'z+' : in order of increasing z value.
             - 'z-' : in order of decreasing z value.
-        '''
+        """
 
-        if order not in ['x+', 'x-', 'y+', 'y-', 'z+', 'z-']:
+        if order not in ["x+", "x-", "y+", "y-", "z+", "z-"]:
             return
 
         # Determine axis for ordering, and direction.
-        axis = 'xyz'.find(order[0])
-        reverse = ('-' in order)
+        axis = "xyz".find(order[0])
+        reverse = "-" in order
 
         # Create dictionary where keys are centroid coordinates
         # and values are lists of ROI indicies at these coordinates.
@@ -8231,9 +8791,15 @@ class StructureSet(skrt.core.Archive):
         # Store the new order of ROIs.
         self.rois = rois
 
-    def combine_rois(self, name=None, roi_names=None, image=None, method=None,
-                     intersection=False):
-        '''
+    def combine_rois(
+        self,
+        name=None,
+        roi_names=None,
+        image=None,
+        method=None,
+        intersection=False,
+    ):
+        """
         Combine two or more ROIs as a single ROI.
 
         The result represents either the union (default) or the intersection
@@ -8256,7 +8822,7 @@ class StructureSet(skrt.core.Archive):
             of the ROI with the first name in <roi_names>.
 
         method : str, default=None
-            Method to use for combining ROIs.  Can be: 
+            Method to use for combining ROIs.  Can be:
 
                 - "contour": take unary union of shapely polygons.
                 - "mask": sum binary masks.
@@ -8268,15 +8834,15 @@ class StructureSet(skrt.core.Archive):
         intersection : bool, default=False
             If False, the result of combining ROIs represents their union; if
             True, the result represents their intersection.
-        '''
+        """
 
         # If None values passed, set default behaviour.
         if roi_names is None:
             roi_names = self.get_roi_names()
         if name is None:
-            name = '+'.join(roi_names)
+            name = "+".join(roi_names)
             if intersection:
-                name = f"intersection:{name}" 
+                name = f"intersection:{name}"
 
         if method in [None, "auto"]:
             method = self[roi_names[0]].default_geom_method
@@ -8288,7 +8854,7 @@ class StructureSet(skrt.core.Archive):
             all_polygons = {}
             for roi in self.get_rois(roi_names):
                 for key, polygons in roi.get_polygons().items():
-                    if not key in all_polygons:
+                    if key not in all_polygons:
                         all_polygons[key] = []
                     all_polygons[key].extend(polygons)
 
@@ -8302,8 +8868,10 @@ class StructureSet(skrt.core.Archive):
                 all_polygons = intersections
             else:
                 # Evaluate the union of polygons for each slice.
-                all_polygons = {key: [ops.unary_union(all_polygons[key])]
-                                for key in all_polygons}
+                all_polygons = {
+                    key: [ops.unary_union(all_polygons[key])]
+                    for key in all_polygons
+                }
 
             # Create the composite ROI.
             roi_new = ROI(source=all_polygons, image=image, name=name)
@@ -8312,10 +8880,14 @@ class StructureSet(skrt.core.Archive):
             # Ensure that image used as reference for mask creation
             # contains all ROIs.
             have_image = issubclass(type(image), skrt.image.Image)
-            roi_names_in_ss = [roi_name for roi_name in self.get_roi_names()
-                               if roi_name in roi_names]
+            roi_names_in_ss = [
+                roi_name
+                for roi_name in self.get_roi_names()
+                if roi_name in roi_names
+            ]
             in_image = have_image and self.contains(
-                    roi_names_in_ss, in_image=image)
+                roi_names_in_ss, in_image=image
+            )
             if in_image:
                 ss_image = image
             else:
@@ -8323,10 +8895,11 @@ class StructureSet(skrt.core.Archive):
                     voxel_size = image.get_voxel_size()
                 else:
                     voxel_size = (1, 1, 1)
-                ss_image = (StructureSet(self.get_rois(roi_names_in_ss))
-                            .get_dummy_image(
-                                voxel_size=voxel_size[0: 2],
-                                slice_thickness=voxel_size[2]))
+                ss_image = StructureSet(
+                    self.get_rois(roi_names_in_ss)
+                ).get_dummy_image(
+                    voxel_size=voxel_size[0:2], slice_thickness=voxel_size[2]
+                )
 
             # Clone first ROI as starting point.
             roi_new = self.get_roi(roi_names[0]).clone()
@@ -8378,8 +8951,8 @@ class StructureSet(skrt.core.Archive):
         for roi in self.get_rois():
             roi.crop(xlim, ylim, zlim)
 
-class StructureSetIterator:
 
+class StructureSetIterator:
     def __init__(self, structure_set):
         self.idx = -1
         self.structure_set = structure_set
@@ -8423,7 +8996,10 @@ def load_rois_dicom(path, names=None):
             i: s
             for i, s in rois.items()
             if any(
-                [fnmatch.fnmatch(s["name"].lower(), n.lower()) for n in names_to_load]
+                [
+                    fnmatch.fnmatch(s["name"].lower(), n.lower())
+                    for n in names_to_load
+                ]
             )
         }
         if not len(rois):
@@ -8433,7 +9009,6 @@ def load_rois_dicom(path, names=None):
     # Get ROI details
     roi_seq = get_dicom_sequence(ds, "ROIContour")
     for roi in roi_seq:
-
         number = roi.ReferencedROINumber
         if number not in rois:
             continue
@@ -8464,7 +9039,6 @@ def load_rois_dicom(path, names=None):
 
 
 def get_dicom_sequence(ds=None, basename=""):
-
     sequence = []
     for suffix in ["Sequence", "s"]:
         attribute = f"{basename}{suffix}"
@@ -8473,25 +9047,28 @@ def get_dicom_sequence(ds=None, basename=""):
             break
     return sequence
 
+
 def contour_to_polygon(contour):
-    """Convert a list of contour points to a Shapely polygon, ensuring that 
+    """Convert a list of contour points to a Shapely polygon, ensuring that
     the polygon is valid."""
 
     # Disable shapely INFO messages issued when a polygon isn't valid:
     # "callback - INFO - Ring Self-intersection at or near point"
-    logging.getLogger('shapely.geos').setLevel(
-            skrt.core.Defaults().shapely_log_level)
+    logging.getLogger("shapely.geos").setLevel(
+        skrt.core.Defaults().shapely_log_level
+    )
 
     polygon = geometry.Polygon(contour)
 
     delta = 0.005
     if not polygon.is_valid:
         tmp = geometry.Polygon(polygon)
-        buffer = 0.
+        buffer = 0.0
         # The idea here is to increase the buffer distance until
         # a valid polygon is obtained.  This generally seems to work...
-        while (isinstance(polygon, geometry.MultiPolygon)
-                or not polygon.is_valid):
+        while (
+            isinstance(polygon, geometry.MultiPolygon) or not polygon.is_valid
+        ):
             buffer += delta
             polygon = tmp.buffer(buffer)
         points = []
@@ -8501,8 +9078,9 @@ def contour_to_polygon(contour):
 
     return polygon
 
+
 def polygon_to_contour(polygon):
-    '''
+    """
     Convert a Shapely polygon to a list of contour points.
 
     **Parameter:**
@@ -8511,7 +9089,7 @@ def polygon_to_contour(polygon):
         Shapely polygon.
 
     z_polygon: z coordinate at which polygon is defined.
-    '''
+    """
     contour_points = []
     for x, y in list(polygon.exterior.coords):
         contour_points.append([x, y])
@@ -8519,9 +9097,11 @@ def polygon_to_contour(polygon):
 
     return contour
 
-def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
-        smoothness_per_point=0):
-    '''
+
+def interpolate_points_single_contour(
+    source=None, n_point=None, dxy=None, smoothness_per_point=0
+):
+    """
     Interpolate points for a single contour.
 
     **Parameters:**
@@ -8539,7 +9119,7 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
         Approximate distance required between contour points.  This is taken
         into account only if n_point is set to None.  For a contour of
         length contour_length, the number of contour points is then taken
-        to be max(int(contour_length / dxy), 3).  
+        to be max(int(contour_length / dxy), 3).
 
     smoothness_per_point : float, default=0
         Parameter determining the smoothness of the B-spline curve used
@@ -8547,12 +9127,12 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
         smoothness_per_point and the number of contour points (specified
         directly via n_point, or indirectly via dxy) corresponds to the
         parameter s of scipy.interpolate.splprep - see documentation at:
-        
+
         https://scipy.github.io/devdocs/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep
 
         A smoothness_per_point of 0 forces the B-spline to pass through
         all of the pre-interpolation contour points.
-    '''
+    """
 
     # Extract list of contour points from source.
     contour_length = None
@@ -8565,9 +9145,11 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
         points = None
 
     if points is None:
-        print('Unrecognised source passed to '
-                '\'interpolate_points_single_contour()\'')
-        print('Source must be shapely Polygon or contour')
+        print(
+            "Unrecognised source passed to "
+            "'interpolate_points_single_contour()'"
+        )
+        print("Source must be shapely Polygon or contour")
         return None
 
     # If number of contour points not passed directly,
@@ -8577,9 +9159,11 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
             contour_length = contour_to_polygon(source).length
         n_point = max(int(contour_length / dxy), 3)
     if n_point is None:
-        print('No interpolation performed')
-        print('Number of contour points (n_point) or distance between points'
-                'must be specified.')
+        print("No interpolation performed")
+        print(
+            "Number of contour points (n_point) or distance between points"
+            "must be specified."
+        )
         return None
 
     # Make last point the same as the first, to ensure closed curve.
@@ -8603,16 +9187,18 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
     # Interpolate contour points.
     smoothness = smoothness_per_point * len(x_values)
     try:
-#        with warnings.catch_warnings():
-#            warnings.filterwarnings("ignore", message="Setting x")
-            tck, u = interpolate.splprep(
-                    [x_values, y_values], s=smoothness, per=True)
+        #        with warnings.catch_warnings():
+        #            warnings.filterwarnings("ignore", message="Setting x")
+        tck, u = interpolate.splprep(
+            [x_values, y_values], s=smoothness, per=True
+        )
     except TypeError as problem:
         print("WARNING: Problem in interpolate_contour_points():", problem)
         return None
 
     xi_values, yi_values = interpolate.splev(
-        np.linspace(0., 1., n_point + 1), tck)
+        np.linspace(0.0, 1.0, n_point + 1), tck
+    )
 
     # Store points in a form that may be converted to a numpy array.
     points_interpolated = list(zip(xi_values, yi_values))
@@ -8628,103 +9214,45 @@ def interpolate_points_single_contour(source=None, n_point=None, dxy=None,
 
     return out_object
 
-def write_structure_set_dicom(
-    outname, 
-    rois, 
-    image=None, 
-    affine=None, 
-    shape=None,
-    orientation=None, 
-    header_source=None, 
-    patient_id=None,
-    modality=None, 
-    root_uid=None
-):
-
-    # Check we have the relevant info
-    if not image and (not affine or not shape):
-        raise RuntimeError("Must provide either an image or an affine matrix "
-                           "and shape!")
-
-    # Try getting dicom dataset from image
-    ds = None
-    if image:
-        if hasattr(image, "dicom_dataset"):
-            ds = image.dicom_dataset
-        else:
-            ds = skrt.image.create_dicom()
-            ds.set_geometry(
-                image.get_affine(), image.get_data().shape,
-                image.get_orientation_vector(image.get_affine, "dicom")
-            )
-
-    # Otherwise, create fresh dicom dataset
-    else:
-        ds = skrt.image.create_dicom(patient_id, modality, root_uid)
-        ds.set_geometry(affine, shape, orientation)
-
-    # Adjust dataset to be for StructureSet instead of image
-
-
-def dicom_dataset_to_structure_set(ds):
-    '''Convert an existing image dicom dataset to a StructureSet dataset.'''
-
-    # Adjust class UIDs
-    ds.file_meta.ImplementationClassUID = "9.9.9.100.0.0.1.0.9.6.0.0.1"
-    ds.file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.481.3"
-
-    # Assign empty sequences
-    ds.ReferencedFrameofReferenceSequence = Sequence()
-    ds.StructureSetROISequence = Sequence()
-    ds.RTROIObservationsSequence = Sequence()
-    ds.ROIContourSequence = Sequence()
-
-    # Assign structure set properties
-    ds.StructureSetLabel = ""
-    ds.StructureSetDate = ds.InstanceCreationDate
-    ds.StructureSetTime = ds.InstanceCreationTime
-
-    # Assign frame of reference
-
 
 def create_dummy_image(
-    extents, 
+    extents,
     slice_thickness,
-    shape=None, 
+    shape=None,
     voxel_size=None,
     fill_val=1e4,
-    buffer=2
+    buffer=2,
 ):
-    """Make a dummy image that covers the area spanned by <extents> plus a 
+    """Make a dummy image that covers the area spanned by <extents> plus a
     buffer.
 
     **Parameters:**
-    
+
     extents : list
-        List of [min, max] extents in mm along each of the three axes in 
+        List of [min, max] extents in mm along each of the three axes in
         order [x, y, z].
 
     slice_thickness : float
         Slice thickness in mm.
 
     voxel_size : list, default=None
-        Voxel size in mm in the dummy image in the x-y plane, given as 
+        Voxel size in mm in the dummy image in the x-y plane, given as
         [vx, vy]. If <shape> and <voxel_size> are both None, voxel sizes of
-        [1, 1] will be used by default. The voxel size in the z direction 
-        will be taken from the minimum distance between slice positions in 
+        [1, 1] will be used by default. The voxel size in the z direction
+        will be taken from the minimum distance between slice positions in
         the x-y contours dictionary.
 
     shape : list, default=None
         Number of voxels in the dummy image in the x-y plane, given as
-        [nx, ny]. Only used if <voxel_size> is None. 
-        The number of voxels in the z direction will be taken from the 
+        [nx, ny]. Only used if <voxel_size> is None.
+        The number of voxels in the z direction will be taken from the
         number of slices in the x-y contours dictionary.
 
     fill_val : int/float, default=1e4
-        Value with which the voxels in the dummy image should be filled. 
+        Value with which the voxels in the dummy image should be filled.
 
     buffer : float, default=2
-        Buffer amount of whitespace in mm to add outside the ROI in each 
+        Buffer amount of whitespace in mm to add outside the ROI in each
         direction.
     """
 
@@ -8738,21 +9266,27 @@ def create_dummy_image(
     if shape is not None:
         shape = list(shape)
         if len(shape) != 2:
-            raise TypeError("Shape should be a list of two values "
-                            "specifying dummy image shape in the [x, y] "
-                            "directions.")
+            raise TypeError(
+                "Shape should be a list of two values "
+                "specifying dummy image shape in the [x, y] "
+                "directions."
+            )
 
         # Calculate voxel size if ROI extent plus buffer is divided by shape
-        voxel_size = [(max(ex) - min(ex) + 2 * buffer) / shape[i]
-                      for i, ex in enumerate(extents[:2])]
+        voxel_size = [
+            (max(ex) - min(ex) + 2 * buffer) / shape[i]
+            for i, ex in enumerate(extents[:2])
+        ]
 
     # Otherwise, calculate shape from voxel sizes
     else:
         voxel_size = list(voxel_size)
-        
+
         # Calculate number of voxels needed to cover ROI plus buffer each side
-        shape = [(np.ceil((max(ex) - min(ex)) + 2 * buffer) / voxel_size[i]) 
-                 for i, ex in enumerate(extents[:2])]
+        shape = [
+            (np.ceil((max(ex) - min(ex)) + 2 * buffer) / voxel_size[i])
+            for i, ex in enumerate(extents[:2])
+        ]
 
     # Get z voxel size and shape
     voxel_size.append(slice_thickness)
@@ -8763,17 +9297,19 @@ def create_dummy_image(
     shape.append(shape_z + 2 * n_buff_z)
     shape = [int(s) for s in shape]
 
-    # Get origin position; ensure that origin points to centre of buffer voxel 
+    # Get origin position; ensure that origin points to centre of buffer voxel
     # outside ROI
-    origin = [min(ex) + abs(voxel_size[i]) * 0.5 - buffer
-              for i, ex in enumerate(extents[:2])]
+    origin = [
+        min(ex) + abs(voxel_size[i]) * 0.5 - buffer
+        for i, ex in enumerate(extents[:2])
+    ]
     origin.append(min(extents[2]) - abs(slice_thickness) * (n_buff_z - 0.5))
 
     # Create image
     return skrt.image.Image(
         np.ones((shape[1], shape[0], shape[2])) * fill_val,
         voxel_size=voxel_size,
-        origin=origin
+        origin=origin,
     )
 
 
@@ -8784,14 +9320,17 @@ def create_staple(rois, **kwargs):
     try:
         import SimpleITK as sitk
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("SimpleITK is required to calculate STAPLE contour. "
-                                  "Try installing via: pip install simpleitk")
+        raise ModuleNotFoundError(
+            "SimpleITK is required to calculate STAPLE contour. "
+            "Try installing via: pip install simpleitk"
+        )
 
     # Get STAPLE mask
     roi_arrays = []
     for roi in rois:
-        roi_arrays.append(sitk.GetImageFromArray(roi.get_mask(
-            standardise=True).astype(int)))
+        roi_arrays.append(
+            sitk.GetImageFromArray(roi.get_mask(standardise=True).astype(int))
+        )
     probs = sitk.GetArrayFromImage(sitk.STAPLE(roi_arrays, 1))
     mask = probs > 0.95
 
@@ -8831,7 +9370,7 @@ def df_to_html(df):
     """Convert a pandas DataFrame to html."""
 
     # Convert dataframe to HTML
-    html = df.fillna('—').to_html(index=False)
+    html = df.fillna("—").to_html(index=False)
     html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
 
     # Add header with style details
@@ -8875,7 +9414,7 @@ def get_colored_roi_string(roi, grey=False, color=None):
         text_col = 200, 200, 200
         # Avoid setting colour for greyed out ROIs.
         # This gives good readability for both dark and light themes.
-        return ('<p>&nbsp;{}&nbsp;</p>').format(roi.name)
+        return ("<p>&nbsp;{}&nbsp;</p>").format(roi.name)
     else:
         red, green, blue = [c * 255 for c in color[:3]]
         text_col = best_text_color(red, green, blue)
@@ -8884,14 +9423,15 @@ def get_colored_roi_string(roi, grey=False, color=None):
         'color: {};">&nbsp;{}&nbsp;</p>'
     ).format(red, green, blue, text_col, roi.name)
 
+
 def compare_roi_pairs(
-    pairs, 
+    pairs,
     html=False,
     name_as_index=True,
     greyed_out=None,
     colored=False,
     roi_kwargs={},
-    **kwargs
+    **kwargs,
 ):
     if html:
         name_as_index = False
@@ -8899,22 +9439,23 @@ def compare_roi_pairs(
         greyed_out = []
     dfs = []
     for roi1, roi2 in pairs:
-
         # Get DataFrame for this pair
-        df_row = roi1.get_comparison(roi2, name_as_index=name_as_index,
-                                     **kwargs)
+        df_row = roi1.get_comparison(
+            roi2, name_as_index=name_as_index, **kwargs
+        )
 
         # Replace values with "--" if either ROI is greyed out
         grey = roi1 in greyed_out or roi2 in greyed_out
         if grey:
             for col in df_row.columns:
-                if col == "ROI": 
+                if col == "ROI":
                     continue
                 df_row[col] = "--"
 
         # Adjust comparison name
-        comp_name = roi1.get_comparison_name(roi2, colored=colored, grey=grey,
-                roi_kwargs=roi_kwargs)
+        comp_name = roi1.get_comparison_name(
+            roi2, colored=colored, grey=grey, roi_kwargs=roi_kwargs
+        )
         if name_as_index:
             df_row.rename({df_row.index[0]: comp_name}, inplace=True)
         else:
@@ -8928,17 +9469,18 @@ def compare_roi_pairs(
         return df_to_html(df)
     return df
 
+
 def get_conformity_index(
     rois,
     ci_type="gen",
     single_slice=False,
-    view="x-y", 
-    sl=None, 
-    idx=None, 
-    pos=None, 
+    view="x-y",
+    sl=None,
+    idx=None,
+    pos=None,
     method=None,
     flatten=False,
-    ):
+):
     """
     Get conformity index for two or more ROIs.
 
@@ -8953,7 +9495,7 @@ def get_conformity_index(
     to the Jaccard conformity index.
 
     **Parameters:**
-        
+
     rois : list
         List of two or more skrt.structures.ROI objects for which conformity
         index is to be calculated.
@@ -8968,7 +9510,7 @@ def get_conformity_index(
         otherwise, the 2D Dice score on a single slice will be returned.
 
     view : str, default="x-y"
-        Orientation of slice on which to get Dice score. Only used if 
+        Orientation of slice on which to get Dice score. Only used if
         single_slice=True. If using, <ax> must be an axis that lies along
         the slice in this orientation.
 
@@ -8985,7 +9527,7 @@ def get_conformity_index(
         <single_slice> is True, the central slice of this ROI will be used.
 
     method : str, default=None
-        Method to use for Dice score calculation. Can be: 
+        Method to use for Dice score calculation. Can be:
         - "contour": get intersections and areas of shapely contours.
         - "mask": count intersecting voxels in binary masks.
         - None: use the method set in self.default_geom_method.
@@ -8994,7 +9536,7 @@ def get_conformity_index(
 
     flatten : bool, default=False
         If True, all slices will be flattened in the given orientation and
-        the Dice score of the flattened slices will be returned. Only 
+        the Dice score of the flattened slices will be returned. Only
         available if method="mask".
     """
 
@@ -9003,7 +9545,8 @@ def get_conformity_index(
         return
 
     # Initialise Data object for conformity indices.
-    ci = skrt.core.Data({"common": 0, "gen":0, "pairs":0})
+    ci = skrt.core.Data()
+    ci.pairs = 0
 
     # Deal with cases "gen" and "pairs".
     #
@@ -9021,9 +9564,9 @@ def get_conformity_index(
         for idx2 in range(idx1 + 1, len(rois)):
             roi1 = rois[idx1]
             roi2 = rois[idx2]
-            intersection, union, mean_size = (
-                    roi1.get_intersection_union_size(roi2, single_slice,
-                        view, sl, idx, pos, method, flatten))
+            intersection, union, mean_size = roi1.get_intersection_union_size(
+                roi2, single_slice, view, sl, idx, pos, method, flatten
+            )
             numerator += intersection
             denominator += union
             ci.pairs += intersection / union
@@ -9038,19 +9581,20 @@ def get_conformity_index(
     # (1) the common intersection of all ROIs to (2) the combined union
     # of all ROIs.
     if 2 == len(rois):
-        intersection, union, mean_size = (
-                rois[0].get_intersection_union_size(rois[1], single_slice,
-                        view, sl, idx, pos, method, flatten))
+        intersection, union, mean_size = rois[0].get_intersection_union_size(
+            rois[1], single_slice, view, sl, idx, pos, method, flatten
+        )
         ci.common = intersection / union
     else:
         if not single_slice:
-            mask_intersection = rois[0].clone().get_mask(
-                    view, flatten, standardise=True)
-            mask_union = rois[0].clone().get_mask(
-                    view, flatten, standardise=True)
+            mask_intersection = (
+                rois[0].clone().get_mask(view, flatten, standardise=True)
+            )
+            mask_union = (
+                rois[0].clone().get_mask(view, flatten, standardise=True)
+            )
         else:
-            mask_intersection = rois[0].clone().get_slice(
-                    view, sl, idx, pos)
+            mask_intersection = rois[0].clone().get_slice(view, sl, idx, pos)
             mask_union = rois[0].clone().get_slice(view, sl, idx, pos)
 
         for roi in rois[1:]:
@@ -9059,12 +9603,13 @@ def get_conformity_index(
             else:
                 mask = roi.get_slice(view, sl, idx, pos)
 
-            mask_intersection = (mask_intersection & mask)
-            mask_union = (mask_union | mask)
+            mask_intersection = mask_intersection & mask
+            mask_union = mask_union | mask
 
         ci.common = mask_intersection.sum() / mask_union.sum()
 
     return getattr(ci, ci_type, ci)
+
 
 def get_roi_slice(roi, z_fraction=1, suffix=None):
     """
@@ -9090,8 +9635,9 @@ def get_roi_slice(roi, z_fraction=1, suffix=None):
     """
     # Check that z_fraction is in allowed interval.
     if z_fraction < 0 or z_fraction > 1:
-        raise RuntimeError(f"z_fraction={z_fraction}"
-                            " outside allowed interval [0, 1]")
+        raise RuntimeError(
+            f"z_fraction={z_fraction}" " outside allowed interval [0, 1]"
+        )
 
     # Determine the index of the image slice at which to take ROI slice.
     pos1, pos2 = roi.get_extent()
@@ -9110,11 +9656,12 @@ def get_roi_slice(roi, z_fraction=1, suffix=None):
 
     return roi_slice
 
+
 def get_metric_method(metric):
     """
     Map between metric identifier as listed in get_comparison_metrics()
     and name of ROI method for calculating the metric.
-    
+
     This function is used in ROI.get_metric_by_slice() to determine
     the method to be called for each metric.
     """
@@ -9123,14 +9670,19 @@ def get_metric_method(metric):
     # Metrics are included in the dictionary only if identifier and method
     # name are different.
     mappings = {
-            "abs_centroid": "abs_centroid_distance",
-            "centroid": "centroid_distance",
-            "rel_area_diff": "relative_area_diff",
-            }
+        "abs_centroid": "abs_centroid_distance",
+        "centroid": "centroid_distance",
+        "rel_area_diff": "relative_area_diff",
+    }
     return mappings.get(metric, metric)
 
-def get_comparison_metrics(centroid_components=False, slice_stats=None,
-        default_by_slice=None, view="x-y"):
+
+def get_comparison_metrics(
+    centroid_components=False,
+    slice_stats=None,
+    default_by_slice=None,
+    view="x-y",
+):
     """
     Get list of comparison metrics.
 
@@ -9190,57 +9742,57 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
             to a slice.  Can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
     """
     metrics = [
-            "abs_centroid",
-            "abs_centroid_flat",
-            "abs_centroid_slice",
-            "abs_centroid_slice_stats",
-            "area_diff",
-            "area_diff_flat",
-            "area_diff_slice_stats",
-            "area_ratio",
-            "area_ratio_flat",
-            "area_ratio_slice_stats",
-            "centroid",
-            "centroid_slice",
-            "centroid_slice_stats",
-            "dice",
-            "dice_flat",
-            "dice_slice",
-            "dice_slice_stats",
-            "hausdorff_distance",
-            "hausdorff_distance_flat",
-            "jaccard",
-            "jaccard_flat",
-            "jaccard_slice",
-            "jaccard_slice_stats",
-            "mean_distance_to_conformity",
-            "mean_distance_to_conformity_flat",
-            "mean_signed_surface_distance",
-            "mean_signed_surface_distance_flat",
-            "mean_surface_distance",
-            "mean_surface_distance_flat",
-            "mean_over_contouring",
-            "mean_over_contouring_flat",
-            "mean_under_contouring",
-            "mean_under_contouring_flat",
-            "rel_area_diff",
-            "rel_area_diff_flat",
-            "rel_area_diff_slice_stats",
-            "rel_volume_diff",
-            "rms_signed_surface_distance",
-            "rms_signed_surface_distance_flat",
-            "rms_surface_distance",
-            "rms_surface_distance_flat",
-            "volume_diff",
-            "volume_ratio",
-            ]
+        "abs_centroid",
+        "abs_centroid_flat",
+        "abs_centroid_slice",
+        "abs_centroid_slice_stats",
+        "area_diff",
+        "area_diff_flat",
+        "area_diff_slice_stats",
+        "area_ratio",
+        "area_ratio_flat",
+        "area_ratio_slice_stats",
+        "centroid",
+        "centroid_slice",
+        "centroid_slice_stats",
+        "dice",
+        "dice_flat",
+        "dice_slice",
+        "dice_slice_stats",
+        "hausdorff_distance",
+        "hausdorff_distance_flat",
+        "jaccard",
+        "jaccard_flat",
+        "jaccard_slice",
+        "jaccard_slice_stats",
+        "mean_distance_to_conformity",
+        "mean_distance_to_conformity_flat",
+        "mean_signed_surface_distance",
+        "mean_signed_surface_distance_flat",
+        "mean_surface_distance",
+        "mean_surface_distance_flat",
+        "mean_over_contouring",
+        "mean_over_contouring_flat",
+        "mean_under_contouring",
+        "mean_under_contouring_flat",
+        "rel_area_diff",
+        "rel_area_diff_flat",
+        "rel_area_diff_slice_stats",
+        "rel_volume_diff",
+        "rms_signed_surface_distance",
+        "rms_signed_surface_distance_flat",
+        "rms_surface_distance",
+        "rms_surface_distance_flat",
+        "volume_diff",
+        "volume_ratio",
+    ]
 
     # Replace centroid vectors by components.
     if centroid_components:
         centroids = {
-                "centroid": ["centroid_x", "centroid_y", "centroid_z"],
-                "centroid_slice": []
-                }
+            "centroid": ["centroid_x", "centroid_y", "centroid_z"],
+            "centroid_slice": [],
+        }
         if slice_stats is not None:
             centroids["centroid_slice_stats"] = []
 
@@ -9250,7 +9802,8 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
 
             if slice_stats is not None:
                 centroids["centroid_slice_stats"].append(
-                        f"centroid_{ax}_slice_stats")
+                    f"centroid_{ax}_slice_stats"
+                )
 
         for vector, components in centroids.items():
             idx = metrics.index(vector)
@@ -9263,18 +9816,22 @@ def get_comparison_metrics(centroid_components=False, slice_stats=None,
         metrics2 = []
         for metric in metrics:
             if "slice_stats" in metric:
-                slice_stats_metrics.append(metric.split("_slice_stats")[0])
+                slice_stats_metrics.append(
+                    metric.split("_slice_stats", maxsplit=1)[0]
+                )
             else:
                 metrics2.append(metric)
 
-        for by_slice, stats in (
-                expand_slice_stats(slice_stats, default_by_slice).items()):
+        for by_slice, stats in expand_slice_stats(
+            slice_stats, default_by_slice
+        ).items():
             for metric in slice_stats_metrics:
                 for stat in stats:
                     metrics2.append(f"{metric}_slice_{by_slice}_{stat}")
         metrics = metrics2
 
     return sorted(metrics)
+
 
 def get_consensus_types():
     """
@@ -9285,11 +9842,12 @@ def get_consensus_types():
     by StructureSet.get_consensus should be listed here.
     """
     return [
-            "majority",
-            "overlap",
-            "staple",
-            "sum",
-            ]
+        "majority",
+        "overlap",
+        "staple",
+        "sum",
+    ]
+
 
 def get_by_slice_methods():
     """
@@ -9297,6 +9855,7 @@ def get_by_slice_methods():
     for slice-by-slice ROI comparisons.
     """
     return ["left", "right", "union", "intersection"]
+
 
 def get_all_rois(objs=None):
     """
@@ -9324,10 +9883,11 @@ def get_all_rois(objs=None):
         elif issubclass(type(item), StructureSet):
             candidate_rois = item.get_rois()
         for roi in candidate_rois:
-            if not roi in all_rois:
+            if roi not in all_rois:
                 all_rois.append(roi)
 
     return all_rois
+
 
 def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
     """
@@ -9366,7 +9926,7 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
         the most-inferior point (lowest z); 1 corresponds to the
         most-superior point (highest z).  Values for z_fraction
         outside the interval [0, 1] result in a RuntimeError.
-        """
+    """
     # Create list of two single ROIs.
     rois = []
     for roi in [roi1, roi2]:
@@ -9392,8 +9952,10 @@ def get_translation_to_align(roi1, roi2, z_fraction1=None, z_fraction2=None):
 
     return tuple(centroids[1] - centroids[0])
 
-def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
-        method=None):
+
+def get_slice_positions(
+    roi1, roi2=None, view="x-y", position_as_idx=False, method=None
+):
     """
     Get ordered list of slice positions for either or both of a pair of ROIs.
 
@@ -9428,8 +9990,10 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
     """
     method = method or skrt.core.Defaults().by_slice
     if method not in get_by_slice_methods():
-        raise RuntimeError(f"Method must be one of {get_by_slice_methods()}"
-        " - not '{method}'")
+        raise RuntimeError(
+            f"Method must be one of {get_by_slice_methods()}"
+            " - not '{method}'"
+        )
 
     indices = None
 
@@ -9441,7 +10005,7 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
         indices2 = roi2.get_indices(view=view, method="mask")
         if "right" == method:
             indices = indices2
-        
+
     if indices is None:
         if "union" == method:
             indices = list(set(indices1).union(set(indices2)))
@@ -9453,9 +10017,10 @@ def get_slice_positions(roi1, roi2=None, view="x-y", position_as_idx=False,
     if indices is not None:
         if position_as_idx:
             return sorted(indices)
-        else:
-            ax = skrt.image._slice_axes[view]
-            return sorted([roi1.idx_to_pos(idx, ax) for idx in indices])
+        ax = skrt.image._slice_axes[view]
+        return sorted([roi1.idx_to_pos(idx, ax) for idx in indices])
+
+    return None
 
 def expand_slice_stats(slice_stats=None, default_by_slice=None):
     """
@@ -9536,6 +10101,7 @@ def expand_slice_stats(slice_stats=None, default_by_slice=None):
 
     return {}
 
+
 def get_intersection(polygons):
     """
     Return intersection of a collection of polygons.
@@ -9552,12 +10118,17 @@ def get_intersection(polygons):
     # Ensure that polygons is a list of Polygon/MultiPolygon objects.
     if not skrt.core.is_list(polygons):
         polygons = [polygons]
-    polygons = [polygon for polygon in polygons
-                if isinstance(polygon, (geometry.polygon.Polygon,
-                                        geometry.multipolygon.MultiPolygon))
-                and not polygon.is_empty]
+    polygons = [
+        polygon
+        for polygon in polygons
+        if isinstance(
+            polygon,
+            (geometry.polygon.Polygon, geometry.multipolygon.MultiPolygon),
+        )
+        and not polygon.is_empty
+    ]
     if not polygons:
-        return
+        return None
 
     # Calculate intersection of all polygons.
     result = polygons[0]
@@ -9568,6 +10139,7 @@ def get_intersection(polygons):
             break
 
     return result
+
 
 def get_structuring_element(radius=1, voxel_size=(1, 1, 1)):
     """
@@ -9593,4 +10165,4 @@ def get_structuring_element(radius=1, voxel_size=(1, 1, 1)):
     # Return boolean array where values are True for voxels within
     # the specified radius from the array centre, and False otherwise.
     # Axes are transposed to map from (x, y, z) to (column, row, slice).
-    return (distances.transpose(1, 0, 2) <= radius)
+    return distances.transpose(1, 0, 2) <= radius
