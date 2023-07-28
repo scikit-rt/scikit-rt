@@ -140,6 +140,8 @@ class Data:
             and their initial values.
         """
 
+        self.print_depth = None
+
         if opts:
             for key, value in opts.items():
                 setattr(self, key, value)
@@ -185,45 +187,48 @@ class Data:
             # Handle printing of lists
             elif isinstance(item, list):
                 items = item
-                n = len(items)
-                if n:
+                n_item = len(items)
+                if n_item:
                     if depth > 0:
                         value_string = "["
                         for i, item in enumerate(items):
                             try:
-                                item_string = item.__repr__(depth=(depth - 1))
+                                item_string = item.__repr__(depth=depth - 1)
                             except TypeError:
                                 item_string = self.get_item_string(item)
-                            comma = "," if (i + 1 < n) else ""
+                            comma = "," if (i + 1 < n_item) else ""
                             value_string = (
                                 f"{value_string} {item_string}{comma}"
                             )
                         value_string = f"{value_string}]"
                     else:
-                        value_string = f"[{n} * {item[0].__class__}]"
+                        value_string = f"[{n_item} * {item[0].__class__}]"
                 else:
                     value_string = "[]"
 
             # Handle printing of dicts
             elif isinstance(item, dict):
                 items = item
-                n = len(items)
-                if n:
+                n_item = len(items)
+                if n_item:
                     if depth > 0:
                         value_string = "{"
-                        for i, (key, value) in enumerate(items.items()):
+                        for i, key in enumerate(items):
                             item_string = "{key}: "
                             try:
-                                item_string += item.__repr__(depth=(depth - 1))
+                                item_string += item.__repr__(depth=depth - 1)
                             except TypeError:
                                 item_string += self.get_item_string(item)
-                            comma = "," if (i + 1 < n) else ""
+                            comma = "," if (i + 1 < n_item) else ""
                             value_string = (
                                 f"{value_string} {item_string}{comma}"
                             )
                         value_string = f"{{{value_string}}}"
                     else:
-                        value_string = f"{{{n} * keys of type {list(item.keys())[0].__class__}}}"
+                        value_string = (
+                            f"{{{n_item} * keys of type "
+                            f"{list(item.keys())[0].__class__}}}"
+                        )
                 else:
                     value_string = "{}"
 
@@ -235,7 +240,7 @@ class Data:
             else:
                 if issubclass(item.__class__, Data):
                     if depth > 0:
-                        value_string = item.__repr__(depth=(depth - 1))
+                        value_string = item.__repr__(depth=depth - 1)
                     else:
                         value_string = f"{item.__class__}"
                 else:
@@ -262,8 +267,7 @@ class Data:
             )
         ):
             return compress_user(item)
-        else:
-            return item.__repr__()
+        return repr(item)
 
     def clone(self, **kwargs):
         """
@@ -392,7 +396,7 @@ class Data:
         setting an initial value if not previously defined.
         """
 
-        if not hasattr(self, "print_depth"):
+        if self.print_depth is None:
             self.set_print_depth()
         return self.print_depth
 
@@ -451,8 +455,19 @@ class DicomFile(Data):
         path : str/pathlib.Path
             Relative or absolute path to DICOM file.
         """
+        # Perform base-class initialisation.
+        super().__init__()
+
         # Store absolute file path as string.
         self.path = fullpath(path)
+
+        # Initialise time-related properties.
+        self.study_date = None
+        self.study_time = None
+        self.study_timestamp = None
+        self.item_date = None
+        self.item_time = None
+        self.item_timestamp = None
 
         # Attempt to read DICOM dataset.
         self.ds = None
@@ -624,12 +639,12 @@ class DicomFile(Data):
                             break
 
             # Set timestamp.
-            if self.ds is None:
-                timestamp = None
-            else:
-                date = getattr(self, f"{element}_date")
-                time = getattr(self, f"{element}_time")
-                setattr(self, f"{element}_timestamp", f"{date}_{time}")
+            if self.ds is not None:
+                date_part = getattr(self, f"{element}_date")
+                time_part = getattr(self, f"{element}_time")
+                setattr(
+                    self, f"{element}_timestamp", f"{date_part}_{time_part}"
+                )
 
     def set_referenced_sop_instance_uids(self):
         """
@@ -661,7 +676,7 @@ class DicomFile(Data):
                 0
             ].ReferencedSOPInstanceUID
         except (IndexError, AttributeError):
-            None
+            pass
 
         self.referenced_structure_set_sop_instance_uid = uid
 
@@ -692,6 +707,9 @@ class PathData(Data):
     extract a list of dated objects from within this directory."""
 
     def __init__(self, path=""):
+        # Perform base-class initialisation.
+        super().__init__()
+
         self.path = fullpath(str(path))
         self.subdir = ""
 
@@ -869,7 +887,7 @@ class Dated(PathData):
         for other in others:
             try:
                 delta_time = abs(float(other.time) - float(self.time))
-            except NoneType:
+            except TypeError:
                 delta_time = 0
             if other.date == self.date and delta_time <= delta_seconds:
                 matches.append(other)
@@ -933,7 +951,6 @@ class Dated(PathData):
                 f"{type(self)}.copy_dicom() failed - "
                 "class has no load() method"
             )
-            return
 
         # Create clone for data loading.
         # Clone is deleted once data are no longer needed.
@@ -942,16 +959,15 @@ class Dated(PathData):
 
         # Check that object has dicom file to be copied.
         path = Path(obj.path)
-        ds = getattr(obj, "dicom_dataset", None)
-        if not ds or not path.exists():
+        dset = getattr(obj, "dicom_dataset", None)
+        if not dset or not path.exists():
             raise NotImplementedError(
                 f"{type(obj)}.copy_dicom() failed - "
                 "object has no associated DICOM file"
             )
-            return
 
         # Obtain the data modality.
-        modality = getattr(ds, "Modality", "unknown")
+        modality = getattr(dset, "Modality", "unknown")
 
         # Define the output directory.
         outdir = make_dir(outdir or modality, overwrite)
@@ -961,7 +977,7 @@ class Dated(PathData):
             idx = "" if index is None else f"_{index+1:03}"
             name = f"{modality}_{obj.timestamp}{idx}.dcm"
         else:
-            name = path.name()
+            name = path.name
         outpath = outdir / name
 
         # Copy file.
@@ -1099,8 +1115,8 @@ class File(Dated):
         self_name = os.path.splitext(os.path.basename(self.path))[0]
         other_name = os.path.splitext(os.path.basename(other.path))[0]
         try:
-            result = eval(self_name) < eval(other_name)
-        except (NameError, SyntaxError):
+            result = int(self_name) < int(other_name)
+        except (NameError, TypeError, ValueError):
             result = self.path < other.path
         return result
 
@@ -1108,8 +1124,8 @@ class File(Dated):
         self_name = os.path.splitext(os.path.basename(self.path))[0]
         other_name = os.path.splitext(os.path.basename(other.path))[0]
         try:
-            result = eval(self_name) > eval(other_name)
-        except (NameError, SyntaxError):
+            result = int(self_name) > int(other_name)
+        except (NameError, TypeError, ValueError):
             result = self.path > other.path
         return result
 
@@ -1122,7 +1138,7 @@ def alphanumeric(in_str: str = "") -> List[str]:
     for substr in re.split("(-*[0-9]+)", str(in_str)):
         try:
             element = int(substr)
-        except BaseException:
+        except (TypeError, ValueError):
             element = substr
         elements.append(element)
     return elements
@@ -1170,6 +1186,7 @@ def qualified_name(cls=None):
     """
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
+    return None
 
 
 def get_logger(name="", log_level=None, identifier="name"):
@@ -1214,10 +1231,10 @@ def get_time_and_date(timestamp: str = "") -> Tuple[str, str]:
         else:
             time_date = tuple(items[0:2])
     else:
-        i1 = timestamp.find("_")
-        i2 = timestamp.rfind(".")
-        if (-1 != i1) and (-1 != i2):
-            bitstamp = timestamp[i1 + 1 : i2]
+        idx1 = timestamp.find("_")
+        idx2 = timestamp.rfind(".")
+        if (-1 != idx1) and (-1 != idx2):
+            bitstamp = timestamp[idx1 + 1 : idx2]
             if is_timestamp(bitstamp):
                 items = bitstamp.split("_")
                 if len(items) > 2:
@@ -1276,18 +1293,16 @@ def is_list(var: Any) -> bool:
     return is_a_list
 
 
-def to_list(
-    val: Any, n: int = 3, keep_none_single: bool = True
-) -> Optional[List]:
-    """Ensure that a value is a list of n items."""
+def to_list(val, n_item=3, keep_none_single=True):
+    """Ensure that a value is a list of n_item items."""
 
     if val is None and keep_none_single:
         return None
     if is_list(val):
-        if not len(val) == n:
-            print(f"Warning: {val} should be a list containing {n} items!")
+        if not len(val) == n_item:
+            print(f"Warning: {val} should be a list containing {n_item} items!")
         return list(val)
-    return [val] * n
+    return [val] * n_item
 
 
 def generate_timestamp() -> str:
@@ -1456,6 +1471,7 @@ def get_hour_in_day(timestamp):
     """
     if isinstance(timestamp, pd.Timestamp):
         return timestamp.hour + timestamp.minute / 60 + timestamp.second / 3600
+    return None
 
 
 def get_hour_in_week(timestamp):
@@ -1469,6 +1485,7 @@ def get_hour_in_week(timestamp):
     """
     if isinstance(timestamp, pd.Timestamp):
         return 24 * (timestamp.isoweekday() - 1) + get_hour_in_day(timestamp)
+    return None
 
 
 def get_day_in_week(timestamp):
@@ -1482,6 +1499,7 @@ def get_day_in_week(timestamp):
     """
     if isinstance(timestamp, pd.Timestamp):
         return get_hour_in_week(timestamp) / 24
+    return None
 
 
 def get_interval_in_days(timestamp1, timestamp2):
@@ -1552,28 +1570,15 @@ def year_fraction(timestamp):
         # Determine seconds elapsed so far in year.
         seconds_to_date = (timestamp - year_start).total_seconds()
 
-        # Add year and fractional part.
-        year_fraction = year + seconds_to_date / seconds_in_year
-    else:
-        year_fraction = None
-    return year_fraction
+        # Return year with fractional part.
+        return year + seconds_to_date / seconds_in_year
+
+    return None
 
 
 def get_uid_without_slice(uid):
     """Obtain copy of <uid>, truncated to before final dot."""
     return ".".join(uid.split(".")[:-1])
-
-
-"""
-def get_sequence_value(ds=None, sequence=None, tag=None):
-    value = None
-    sequence_data = getattr(ds, sequence, None)
-    if None not in [ds, sequence, tag]:
-        sequence_data = getattr(ds, sequence, None)
-        if sequence_data:
-            value = getattr(sequence_data[-1], tag, None)
-    return value
-"""
 
 
 def get_referenced_image(referrer=None, image_types=None):
@@ -1594,7 +1599,7 @@ def get_referenced_image(referrer=None, image_types=None):
 
     # Search for referenced image based on matching
     # referenced image SOP instance UID.
-    for modality, images in image_types.items():
+    for images in image_types.values():
         image = get_referenced_object(
             referrer, images, "referenced_image_sop_instance_uid", True
         )
@@ -1604,7 +1609,7 @@ def get_referenced_image(referrer=None, image_types=None):
     # Search for referenced image based on matching
     # frame-of-reference UID.
     if image is None:
-        for modality, images in image_types.items():
+        for images in image_types.values():
             matched_attributes = DicomFile.get_matched_attributes(
                 referrer, images, "frame_of_reference_uid"
             )
@@ -1843,6 +1848,7 @@ def get_qualified_class_name(cls):
     """
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
+    return None
 
 
 def get_subdir_paths(parent):
@@ -2035,7 +2041,7 @@ def tic():
     Set timer start time.
     """
     timer = TicToc()
-    timer.start = timeit.default_timer()
+    setattr(timer, "start", timeit.default_timer())
     timer.tics.append(timer.start)
     return timer.start
 
@@ -2134,8 +2140,8 @@ def download(url, outdir=".", outfile=None, binary=True, unzip=False):
     outdir.mkdir(parents=True, exist_ok=True)
 
     # Retreive data from URL.
-    response = urlopen(url)
-    data = response.read()
+    with urlopen(url) as resource:
+        data = resource.read()
 
     # Write data.
     outfile = outfile or Path(url).name
@@ -2196,7 +2202,7 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
 
     if not values:
         logger.warning("No input values: returning None")
-        return
+        return None
 
     if not is_list(values[0]):
         if value_for_none is None:
@@ -2209,8 +2215,8 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
         try:
             return getattr(statistics, stat)(values, **kwargs)
         except statistics.StatisticsError as error:
-            logger.warning(f"{error}: returning None")
-            return
+            logger.warning("%s: returning None", error)
+            return None
 
     if value_for_none is None:
         components = [
@@ -2237,7 +2243,8 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
             for component_values in components
         ]
     except statistics.StatisticsError as error:
-        logger.warning(f"{error}: returning None")
+        logger.warning("%s: returning None", error)
+        return None
 
 
 def get_stat_functions():
@@ -2251,7 +2258,7 @@ def get_stat_functions():
     return [
         function
         for function in dir(statistics)
-        if type(getattr(statistics, function)) == FunctionType
+        if isinstance(getattr(statistics, function), FunctionType)
         and not function.startswith("_")
     ]
 
@@ -2298,6 +2305,7 @@ def qualified__name(cls):
     """
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
+    return None
 
 
 def get_n_file_below(indir):
@@ -2316,6 +2324,7 @@ def get_n_file_below(indir):
             return len(
                 [path for path in indir.glob("**/[!.]*") if path.is_file()]
             )
+    return None
 
 
 def print_paths(data_dir, max_path=None):
