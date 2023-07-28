@@ -182,8 +182,8 @@ or the path to a single nifti file;</p></li>
 the path to a single numpy file containing a 2D or 3D array;</p></li>
 <li><p>A 2D or 3D numpy array;</p></li>
 <li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
-<li><p>An existing Image object to be cloned; in this case, all 
-other input args except &lt;title&gt; will be ignored, as these 
+<li><p>An existing Image object to be cloned; in this case, all
+other input args except &lt;title&gt; will be ignored, as these
 will be taken from the existing Image.</p></li>
 </ol>
 </div></blockquote>
@@ -319,8 +319,8 @@ dose values have already been corrected for biological effect.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.Dose.get_dose_in_roi">
 <span class="sig-name descname"><span class="pre">get_dose_in_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.Dose.get_dose_in_roi" title="Permalink to this definition"></a></dt>
-<dd><p>Return 1D numpy array containing all of the dose values for the 
-voxels inside an ROI. Fails if the ROI and dose arrays are not the 
+<dd><p>Return 1D numpy array containing all of the dose values for the
+voxels inside an ROI. Fails if the ROI and dose arrays are not the
 same size.</p>
 </dd></dl>
 
@@ -511,7 +511,7 @@ colours over which to cycle when drawing histograms.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dose.</span></span><span class="sig-name descname"><span class="pre">ImageOverlay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dose.ImageOverlay" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.image.html#skrt.image.Image" title="skrt.image.Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Image</span></code></a></p>
 <p>Image that can be associated with another Image, and whose plotting
-functionality includes the ability to plot overlaid on its associated 
+functionality includes the ability to plot overlaid on its associated
 Image.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dose.ImageOverlay.__init__">
@@ -531,8 +531,8 @@ or the path to a single nifti file;</p></li>
 the path to a single numpy file containing a 2D or 3D array;</p></li>
 <li><p>A 2D or 3D numpy array;</p></li>
 <li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
-<li><p>An existing Image object to be cloned; in this case, all 
-other input args except &lt;title&gt; will be ignored, as these 
+<li><p>An existing Image object to be cloned; in this case, all
+other input args except &lt;title&gt; will be ignored, as these
 will be taken from the existing Image.</p></li>
 </ol>
 </div></blockquote>
@@ -637,10 +637,10 @@ current matplotlib figure with this gridspec.</p>
 </dd>
 <dt>figsize<span class="classifier">float, default=None</span></dt><dd><p>Figure height in inches; only used if &lt;ax&gt; and &lt;gs&gt; are None.</p>
 </dd>
-<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True and this ImageOverlay has an associate image, it will be 
+<dt>include_image<span class="classifier">bool, default=False</span></dt><dd><p>If True and this ImageOverlay has an associate image, it will be
 plotted overlaid on the image.</p>
 </dd>
-<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>If plotting on top of an image, this sets the opacity of the 
+<dt>opacity<span class="classifier">float, default=None</span></dt><dd><p>If plotting on top of an image, this sets the opacity of the
 overlay (0 = fully transparent, 1 = fully opaque).</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>

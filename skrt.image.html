@@ -141,8 +141,8 @@ or the path to a single nifti file;</p></li>
 the path to a single numpy file containing a 2D or 3D array;</p></li>
 <li><p>A 2D or 3D numpy array;</p></li>
 <li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
-<li><p>An existing Image object to be cloned; in this case, all 
-other input args except &lt;title&gt; will be ignored, as these 
+<li><p>An existing Image object to be cloned; in this case, all
+other input args except &lt;title&gt; will be ignored, as these
 will be taken from the existing Image.</p></li>
 </ol>
 </div></blockquote>
@@ -447,7 +447,7 @@ with their names unaltered.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.crop">
 <span class="sig-name descname"><span class="pre">crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.crop" title="Permalink to this definition"></a></dt>
-<dd><p>Crop the image to a given x, y, z range in mm. If any are None, the 
+<dd><p>Crop the image to a given x, y, z range in mm. If any are None, the
 image will not be cropped in that direction.</p>
 </dd></dl>
 
@@ -526,14 +526,14 @@ or two-element tuples (elements 0 and 1 added respectively
 to lower and upper extents).</p>
 </dd>
 <dt>crop_about_centre<span class="classifier">bool, default=False</span></dt><dd><p>If True, image is cropped to the centre point of ROI or
-StructureSet plus margins.  If False, image is cropped to 
+StructureSet plus margins.  If False, image is cropped to
 the extents of ROI or StructureSet plus margins.</p>
 </dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><p>Method to use for calculating extent of &lt;roi&gt; region. Can be:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>“contour”: get extent from min/max positions of contour(s).</p></li>
-<li><p>“mask”: get extent from min/max positions of voxels in the 
+<li><p>“mask”: get extent from min/max positions of voxels in the
 binary mask.</p></li>
 <li><p>None: use the method set in self.default_geom_method.</p></li>
 </ul>
@@ -556,7 +556,7 @@ values.</p>
 <dd><p>Return affine matrix.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the affine matrix will be returned in the orientation in 
+<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the affine matrix will be returned in the orientation in
 which it was loaded; otherwise, it will be returned in standard
 dicom-style orientation such that [column, row, slice] corresponds
 to the [x, y, z] axes.</p>
@@ -680,12 +680,12 @@ of this image, resized to match the other.</p>
 constructed from the titles of the two images compared,
 as “title1_vs_title2”.</p>
 </dd>
-<dt>name_as_index<span class="classifier">bool, default=True</span></dt><dd><p>If True, the index column of the pandas DataFrame will 
+<dt>name_as_index<span class="classifier">bool, default=True</span></dt><dd><p>If True, the index column of the pandas DataFrame will
 contain the name of this comparison; otherwise, the name will
 appear in a column labelled “images”.</p>
 </dd>
 <dt>nice_columns<span class="classifier">bool, default=False</span></dt><dd><p>If False, column labels will be the same as the input metric names;
-if True, the names will be capitalized and underscores will be 
+if True, the names will be capitalized and underscores will be
 replaced with spaces.</p>
 </dd>
 <dt>decimal_places<span class="classifier">int, default=None</span></dt><dd><p>Number of decimal places to keep for each metric. If None, full
@@ -750,7 +750,7 @@ to be evaluated</p>
 <dd><p>Return 3D image array.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the data array will be returned in the orientation in 
+<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, the data array will be returned in the orientation in
 which it was loaded; otherwise, it will be returned in standard
 dicom-style orientation such that [column, row, slice] corresponds
 to the [x, y, z] axes.</p>
@@ -787,7 +787,7 @@ None.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_dicom_filepath">
 <span class="sig-name descname"><span class="pre">get_dicom_filepath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_dicom_filepath" title="Permalink to this definition"></a></dt>
-<dd><p>Return path to the dicom dataset corresponding to a specific 
+<dd><p>Return path to the dicom dataset corresponding to a specific
 slice.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -965,18 +965,18 @@ obtained.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.get_idx">
 <span class="sig-name descname"><span class="pre">get_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_idx" title="Permalink to this definition"></a></dt>
 <dd><p>Get an array index from either a slice number, index, or
-position. If &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are all None, the index of the 
-central slice of the image in the orienation specified in &lt;view&gt; will 
+position. If &lt;sl&gt;, &lt;idx&gt;, and &lt;pos&gt; are all None, the index of the
+central slice of the image in the orienation specified in &lt;view&gt; will
 be returned.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>view<span class="classifier">str</span></dt><dd><p>Orientation in which to compute the index. 
+<dt>view<span class="classifier">str</span></dt><dd><p>Orientation in which to compute the index.
 Can be “x-y”, “x-z”, “y-x”, “y-z”, “z-x”, or “z-y”.</p>
 </dd>
-<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If given, this number will be converted to an index 
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If given, this number will be converted to an index
 and returned.</p>
 </dd>
-<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Slice array index. If given and &lt;sl&gt; is None, this index will be 
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Slice array index. If given and &lt;sl&gt; is None, this index will be
 returned.</p>
 </dd>
 <dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If given and &lt;sl&gt; and &lt;idx&gt; are both None,
@@ -1067,7 +1067,7 @@ contained in &lt;mpl_kwargs&gt;.</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>“extent”: </dt><dd><p>Plot extent determined from image geometry.</p>
+<dt>“extent”:</dt><dd><p>Plot extent determined from image geometry.</p>
 </dd>
 </dl>
 </li>
@@ -1094,7 +1094,7 @@ needed to compute correct aspect ratio and plot extent.</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dict of kwargs with which to overwrite default kwargs.</p>
 </dd>
-<dt>scale_in_mm<span class="classifier">bool, default=True</span></dt><dd><p>If True, indicates that image will be plotted with axis scales in 
+<dt>scale_in_mm<span class="classifier">bool, default=True</span></dt><dd><p>If True, indicates that image will be plotted with axis scales in
 mm; needed to compute correct aspect ratio and plot extent.</p>
 </dd>
 </dl>
@@ -1159,8 +1159,8 @@ configuration.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_orientation_codes">
 <span class="sig-name descname"><span class="pre">get_orientation_codes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_orientation_codes" title="Permalink to this definition"></a></dt>
-<dd><p>Get image orientation codes in order [row, column, slice] if 
-image was loaded in dicom-style orientation, or [column, row, slice] 
+<dd><p>Get image orientation codes in order [row, column, slice] if
+image was loaded in dicom-style orientation, or [column, row, slice]
 if image was loaded in nifti-style orientation.</p>
 <dl class="simple">
 <dt>This returns a list of code strings. Possible codes:</dt><dd><p>“L” = Left (x axis)
@@ -1176,7 +1176,7 @@ if image was loaded in nifti-style orientation.</p>
 <dt>affine<span class="classifier">np.ndarray, default=None</span></dt><dd><p>Custom affine matrix to use when determining orientation codes.
 If None, self.affine will be used.</p>
 </dd>
-<dt>source_type<span class="classifier">str, default=None</span></dt><dd><p>Assumed source type to use when determining orientation codes. If 
+<dt>source_type<span class="classifier">str, default=None</span></dt><dd><p>Assumed source type to use when determining orientation codes. If
 None, self.source_type will be used.</p>
 </dd>
 </dl>
@@ -1191,7 +1191,7 @@ None, self.source_type will be used.</p>
 <dt>affine<span class="classifier">np.ndarray, default=None</span></dt><dd><p>Custom affine matrix to use when determining orientation vector.
 If None, self.affine will be used.</p>
 </dd>
-<dt>source_type<span class="classifier">str, default=None</span></dt><dd><p>Assumed source type to use when determining orientation vector. If 
+<dt>source_type<span class="classifier">str, default=None</span></dt><dd><p>Assumed source type to use when determining orientation vector. If
 None, self.source_type will be used.</p>
 </dd>
 </dl>
@@ -1214,7 +1214,7 @@ otherwise, it will be returned for the image in standard
 dicom-style orientation, such that [column, row, slice] corresponds
 to the [x, y, z] axes.</p>
 </dd>
-<dt>force_standardise<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised image will be recomputed from self.data 
+<dt>force_standardise<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised image will be recomputed from self.data
 even if it has previously been computed.</p>
 </dd>
 </dl>
@@ -1330,7 +1330,7 @@ is set to True.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_slice">
 <span class="sig-name descname"><span class="pre">get_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_slice" title="Permalink to this definition"></a></dt>
-<dd><p>Get a slice of the data in the correct orientation for plotting. 
+<dd><p>Get a slice of the data in the correct orientation for plotting.
 If &lt;sl&gt;, &lt;pos&gt;, and &lt;idx&gt; are all None, the central slice of the image
 in the orientation specified in &lt;view&gt; will be returned.</p>
 <p><strong>Parameters:</strong></p>
@@ -1344,7 +1344,7 @@ in the orientation specified in &lt;view&gt; will be returned.</p>
 <dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm; used if not None and &lt;sl&gt; and &lt;idx&gt; are both
 None.</p>
 </dd>
-<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the image will be summed across all slices in the 
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the image will be summed across all slices in the
 orientation specified in &lt;view&gt;; &lt;sl&gt;/&lt;idx&gt;/&lt;pos&gt; will be ignored.</p>
 </dd>
 <dt>shift<span class="classifier">list, default=[None, None, None]</span></dt><dd><p>Translational shift in order [dx, dy, dz] to apply before returning
@@ -1380,11 +1380,11 @@ obtained.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_standardised_affine">
 <span class="sig-name descname"><span class="pre">get_standardised_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_standardised_affine" title="Permalink to this definition"></a></dt>
-<dd><p>Return affine matrix in standard dicom orientation, where 
+<dd><p>Return affine matrix in standard dicom orientation, where
 [column, row, slice] corresponds to the [x, y, z] axes.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data
 even if it has previously been computed.</p>
 </dd>
 </dl>
@@ -1393,12 +1393,12 @@ even if it has previously been computed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_standardised_data">
 <span class="sig-name descname"><span class="pre">get_standardised_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_standardised_data" title="Permalink to this definition"></a></dt>
-<dd><p>Return array in standard dicom orientation, where 
+<dd><p>Return array in standard dicom orientation, where
 [column, row, slice] corresponds to the [x, y, z] axes.
 standardised image array.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data
 even if it has previously been computed.</p>
 </dd>
 </dl>
@@ -1407,11 +1407,11 @@ even if it has previously been computed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_standardised_origin">
 <span class="sig-name descname"><span class="pre">get_standardised_origin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_standardised_origin" title="Permalink to this definition"></a></dt>
-<dd><p>Return origin for image in standard dicom orientation, where 
+<dd><p>Return origin for image in standard dicom orientation, where
 [column, row, slice] corresponds to the [x, y, z] axes.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data
 even if it has previously been computed.</p>
 </dd>
 </dl>
@@ -1420,11 +1420,11 @@ even if it has previously been computed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_standardised_voxel_size">
 <span class="sig-name descname"><span class="pre">get_standardised_voxel_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_standardised_voxel_size" title="Permalink to this definition"></a></dt>
-<dd><p>Return voxel size for image in standard dicom orientation, where 
+<dd><p>Return voxel size for image in standard dicom orientation, where
 [column, row, slice] corresponds to the [x, y, z] axes.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised array will be recomputed from self.data
 even if it has previously been computed.</p>
 </dd>
 </dl>
@@ -1491,7 +1491,7 @@ otherwise, it will be returned for the image in standard
 dicom-style orientation, such that [column, row, slice] corresponds
 to the [x, y, z] axes.</p>
 </dd>
-<dt>force_standardise<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised image will be recomputed from self.data 
+<dt>force_standardise<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised image will be recomputed from self.data
 even if it has previously been computed.</p>
 </dd>
 </dl>
@@ -1525,7 +1525,7 @@ otherwise, geometry is compared for the images in standard
 dicom-style orientation, such that [column, row, slice] corresponds
 to the [x, y, z] axes.</p>
 </dd>
-<dt>force_standardise<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised image will be recomputed from self.data 
+<dt>force_standardise<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised image will be recomputed from self.data
 even if it has previously been computed.</p>
 </dd>
 </dl>
@@ -1551,38 +1551,38 @@ even if it has previously been computed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.load">
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.load" title="Permalink to this definition"></a></dt>
-<dd><p>Load pixel array from image source. If already loaded and &lt;force&gt; 
+<dd><p>Load pixel array from image source. If already loaded and &lt;force&gt;
 is False, nothing will happen.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
-<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the pixel array will be reloaded from source even if it 
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the pixel array will be reloaded from source even if it
 has previously been loaded.</p>
 </dd>
 </dl>
 <p>Data loading takes input from self.source and uses this to assign
-self.data (as well as geometric properties, where relevant). The 
-parameter self.source_type is set to a string indicating the type 
+self.data (as well as geometric properties, where relevant). The
+parameter self.source_type is set to a string indicating the type
 of source, which can be any of:</p>
 <blockquote>
 <div><dl class="simple">
-<dt>“array”: </dt><dd><p>Data loaded from a numpy array in dicom-style orientation.</p>
+<dt>“array”:</dt><dd><p>Data loaded from a numpy array in dicom-style orientation.</p>
 </dd>
-<dt>“nifti array”: </dt><dd><p>Data loaded from a numpy array in nifti-style orientation.</p>
+<dt>“nifti array”:</dt><dd><p>Data loaded from a numpy array in nifti-style orientation.</p>
 </dd>
-<dt>“nifti”: </dt><dd><p>Data loaded from a nifti file.</p>
+<dt>“nifti”:</dt><dd><p>Data loaded from a nifti file.</p>
 </dd>
-<dt>“dicom”: </dt><dd><p>Data loaded from one or more dicom file(s).</p>
+<dt>“dicom”:</dt><dd><p>Data loaded from one or more dicom file(s).</p>
 </dd>
 </dl>
 </div></blockquote>
 <p>The loading sequence is as follows:</p>
 <blockquote>
 <div><p>1. If self.source is a numpy array, self.data will be set to the
-contents of self.source. If &lt;nifti_array&gt; was set to True when 
+contents of self.source. If &lt;nifti_array&gt; was set to True when
 __init__() was called, self.source_type is set to “nifti array”;
 otherwise, self.source_type is set to “array”.</p>
 <p>2. If self.source is a string, this string is passed to
-glob.glob().  The result is assigned to self.source, and 
+glob.glob().  The result is assigned to self.source, and
 is treated as a list of filepaths.  If the list contains a
 single element, attempt to load a nifti file from this path
 using the function load_nifti(). If the path points to a
@@ -1599,11 +1599,11 @@ to either “nifti array” or “array”, depending on whether
 when __init__() was called.</p>
 <p>4. If no data were loaded in step 4 (i.e. self.data is still None),
 attempt to load from dicom file(s) or directory at the path(s) in
-self.source using the function load_dicom().  If successful, this 
+self.source using the function load_dicom().  If successful, this
 returns a pixel array, affine matrix, default greyscale window
-centre and width, the last loaded pydicom.dataset.FileDataset 
+centre and width, the last loaded pydicom.dataset.FileDataset
 object, and a dictionary mapping z positions to paths to the
-dicom file for that slice. These outputs are used to assign 
+dicom file for that slice. These outputs are used to assign
 self.data, self.affine, self.dicom_dataset, self._z_paths,
 and self._z_instance_numbers; self.source_type is set to “dicom”.</p>
 <p>5. If no data were loaded in step 5 (i.e. self.data is still None),
@@ -1615,8 +1615,8 @@ an extra axis.</p>
 </ol>
 <p>8. Run self.set_geometry() in order to compute geometric quantities
 for this Image.</p>
-<p>9. If a default window width and window centre were loaded from 
-dicom, use these to set self.default_window to a greyscale window 
+<p>9. If a default window width and window centre were loaded from
+dicom, use these to set self.default_window to a greyscale window
 range.</p>
 <p>10. If self.title is None and self.source is a filepath, infer
 a title from the basename of this path.</p>
@@ -1672,18 +1672,18 @@ skrt.images.match_image_voxel_sizes().</p>
 <dt>method<span class="classifier">str, default=”self”</span></dt><dd><dl class="simple">
 <dt>String specifying the matching method. Can be any of:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>“self”: </dt><dd><p>Match own z voxel size to that of &lt;image&gt;.</p>
+<dt>“self”:</dt><dd><p>Match own z voxel size to that of &lt;image&gt;.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>“coarse”: </dt><dd><p>Resample the image with the smaller z voxels to match
+<dt>“coarse”:</dt><dd><p>Resample the image with the smaller z voxels to match
 that of the image with larger z voxels.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>“fine”: </dt><dd><p>Resample the image with the larger z voxels to match
+<dt>“fine”:</dt><dd><p>Resample the image with the larger z voxels to match
 that of the image with smaller z voxels.</p>
 </dd>
 </dl>
@@ -1749,7 +1749,7 @@ or overlay;
 </dd>
 <dt>clb_label_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to colorbar.set_label().</p>
 </dd>
-<dt>intensity<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max intensity for plotting. 
+<dt>intensity<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max intensity for plotting.
 Supercedes ‘vmin’ and ‘vmax’ in &lt;mpl_kwargs&gt;.</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>
@@ -1831,21 +1831,21 @@ owns any structure sets). Can be:</p>
 will be 1 by default for solid mask plots and 0.3 by default
 for filled plots.</p>
 </dd>
-<dt>roi_linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of ROI contour lines. If None, the matplotlib default setting 
+<dt>roi_linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of ROI contour lines. If None, the matplotlib default setting
 will be used.</p>
 </dd>
 <dt>consensus_type<span class="classifier">str, default=None</span></dt><dd><p>If not None, the consensus of all ROIs will be plotting rather than
 plotting ROIs individually. Requires &lt;rois&gt; to be a single
 StructureSet. Options are “majority”, “sum”, “overlap”, “staple”.</p>
 </dd>
-<dt>exclude_from_consensus<span class="classifier">str, default=None</span></dt><dd><p>If set to the name of an ROI and consensus_type is a valid 
-consensus type, this ROI will be excluded from the consensus 
+<dt>exclude_from_consensus<span class="classifier">str, default=None</span></dt><dd><p>If set to the name of an ROI and consensus_type is a valid
+consensus type, this ROI will be excluded from the consensus
 calculation and plotted separately on top of the consensus ROI.</p>
 </dd>
 <dt>consensus_color<span class="classifier">matplotlib color, default=”white”</span></dt><dd><p>Color in which to plot consensus contour.</p>
 </dd>
 <dt>consensus_linewidth<span class="classifier">float, default=None</span></dt><dd><p>Linewidth of consensus contour. If None, the default matplotlib
-linewidth + 1 will be used (such that consensus contours are 
+linewidth + 1 will be used (such that consensus contours are
 thicker than standard contours).</p>
 </dd>
 <dt>legend<span class="classifier">bool, default=False</span></dt><dd><p>If True, a legend will be drawn containing ROI names.</p>
@@ -1870,13 +1870,13 @@ the part of the legend bounding box specified by legend_loc.</p></li>
 <dt>legend_loc<span class="classifier">str, default=’lower left’</span></dt><dd><p>Legend location for ROI legend.</p>
 </dd>
 <dt>dose<span class="classifier">skrt.dose.Dose / int, default=None</span></dt><dd><p>Dose field to overlay on the image. Can be either a skrt.dose.Dose
-object or an integer referring to the 
-dose at a given index in self.doses (e.g. to plot the last dose 
+object or an integer referring to the
+dose at a given index in self.doses (e.g. to plot the last dose
 assigned to this Image, set dose=-1).</p>
 </dd>
 <dt>dose_opacity<span class="classifier">float, default=0.5</span></dt><dd><p>Opacity of overlaid dose field, if &lt;dose&gt; is not None.</p>
 </dd>
-<dt>dose_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Extra arguments to provide to the mpl_kwargs argument in the dose 
+<dt>dose_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Extra arguments to provide to the mpl_kwargs argument in the dose
 plotting method.</p>
 </dd>
 <dt>xlim, ylim<span class="classifier">tuples, default=None</span></dt><dd><p>Custom limits on the x and y axes of the plot.</p>
@@ -2118,21 +2118,21 @@ None, the image’s minimum value is used.</p>
 data has been loaded. Sets the following properties:</p>
 <blockquote>
 <div><dl class="simple">
-<dt>Affine matrix (self.affine): </dt><dd><p>4x4 affine matrix. If initially None, this is computed 
+<dt>Affine matrix (self.affine):</dt><dd><p>4x4 affine matrix. If initially None, this is computed
 from self.voxel_size and self.origin.</p>
 </dd>
-<dt>Voxel sizes (self.voxel_size):</dt><dd><p>List of [x, y, z] voxel sizes in mm. If initially None, this 
+<dt>Voxel sizes (self.voxel_size):</dt><dd><p>List of [x, y, z] voxel sizes in mm. If initially None, this
 is computed from self.affine.</p>
 </dd>
 <dt>Origin position (self.origin):</dt><dd><p>List of [x, y, z] origin coordinates in mm. If initiall None,
 this is computed from self.affine.</p>
 </dd>
-<dt>Number of voxels (self.n_voxels):</dt><dd><p>List of number of voxels in the [x, y, z] directions. Computed 
+<dt>Number of voxels (self.n_voxels):</dt><dd><p>List of number of voxels in the [x, y, z] directions. Computed
 from self.data.shape.</p>
 </dd>
 <dt>Limits (self.lims):</dt><dd><p>List of minimum and maximum array positions in the [x, y, z]
-directions (corresponding the centres of the first and last 
-voxels). Calculated from standardised origin, voxel sizes, 
+directions (corresponding the centres of the first and last
+voxels). Calculated from standardised origin, voxel sizes,
 and image shape.</p>
 </dd>
 <dt>Image extent (self.image_extent):</dt><dd><p>List of minimum and maximum positions of the edges of the array
@@ -2140,7 +2140,7 @@ in the [x, y, z] directions. Calculated from self.lims +/-
 half a voxel size.</p>
 </dd>
 <dt>Plot extent (self.plot_extent):</dt><dd><p>Dict of plot extents for each orientation. Given in the form
-of a list [x1, x2, y1, y2], which is the format needed for 
+of a list [x1, x2, y1, y2], which is the format needed for
 the &lt;extent&gt; argument for matplotlib plotting.</p>
 </dd>
 <dt>Image sizes (self.image_size):</dt><dd><p>List of [x, y, z] image sizes in mm.</p>
@@ -2165,7 +2165,7 @@ the &lt;extent&gt; argument for matplotlib plotting.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.standardise_data">
 <span class="sig-name descname"><span class="pre">standardise_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.standardise_data" title="Permalink to this definition"></a></dt>
 <dd><p>Manipulate data array and affine matrix into standard dicom
-orientation, where [column, row, slice] corresponds to the [x, y, z] 
+orientation, where [column, row, slice] corresponds to the [x, y, z]
 axes; assign results to self._sdata and self._saffine, respectively.
 Standardised voxel sizes (self._svoxel_size) and origin position
 (self._sorigin) will also be inferred from self._affine.</p>
@@ -2227,7 +2227,7 @@ the minimum intensity value of the original image is used.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.view">
 <span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.view" title="Permalink to this definition"></a></dt>
-<dd><p>View self with BetterViewer along with any additional images in 
+<dd><p>View self with BetterViewer along with any additional images in
 &lt;images&gt;. Any <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> will be passed to BetterViewer
 initialisation.</p>
 </dd></dl>
@@ -2300,8 +2300,8 @@ or the path to a single nifti file;</p></li>
 the path to a single numpy file containing a 2D or 3D array;</p></li>
 <li><p>A 2D or 3D numpy array;</p></li>
 <li><p>A nibabel.nifti1.Nifti1Image object;</p></li>
-<li><p>An existing Image object to be cloned; in this case, all 
-other input args except &lt;title&gt; will be ignored, as these 
+<li><p>An existing Image object to be cloned; in this case, all
+other input args except &lt;title&gt; will be ignored, as these
 will be taken from the existing Image.</p></li>
 </ol>
 </div></blockquote>
@@ -2457,7 +2457,7 @@ or overlay;
 </dd>
 <dt>clb_label_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to colorbar.set_label().</p>
 </dd>
-<dt>intensity<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max intensity for plotting. 
+<dt>intensity<span class="classifier">list, default=None</span></dt><dd><p>Two-item list containing min and max intensity for plotting.
 Supercedes ‘vmin’ and ‘vmax’ in &lt;mpl_kwargs&gt;.</p>
 </dd>
 <dt>mpl_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of keyword arguments to pass to matplotlib.imshow().</p>
@@ -2539,21 +2539,21 @@ owns any structure sets). Can be:</p>
 will be 1 by default for solid mask plots and 0.3 by default
 for filled plots.</p>
 </dd>
-<dt>roi_linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of ROI contour lines. If None, the matplotlib default setting 
+<dt>roi_linewidth<span class="classifier">float, default=None</span></dt><dd><p>Width of ROI contour lines. If None, the matplotlib default setting
 will be used.</p>
 </dd>
 <dt>consensus_type<span class="classifier">str, default=None</span></dt><dd><p>If not None, the consensus of all ROIs will be plotting rather than
 plotting ROIs individually. Requires &lt;rois&gt; to be a single
 StructureSet. Options are “majority”, “sum”, “overlap”, “staple”.</p>
 </dd>
-<dt>exclude_from_consensus<span class="classifier">str, default=None</span></dt><dd><p>If set to the name of an ROI and consensus_type is a valid 
-consensus type, this ROI will be excluded from the consensus 
+<dt>exclude_from_consensus<span class="classifier">str, default=None</span></dt><dd><p>If set to the name of an ROI and consensus_type is a valid
+consensus type, this ROI will be excluded from the consensus
 calculation and plotted separately on top of the consensus ROI.</p>
 </dd>
 <dt>consensus_color<span class="classifier">matplotlib color, default=”white”</span></dt><dd><p>Color in which to plot consensus contour.</p>
 </dd>
 <dt>consensus_linewidth<span class="classifier">float, default=None</span></dt><dd><p>Linewidth of consensus contour. If None, the default matplotlib
-linewidth + 1 will be used (such that consensus contours are 
+linewidth + 1 will be used (such that consensus contours are
 thicker than standard contours).</p>
 </dd>
 <dt>legend<span class="classifier">bool, default=False</span></dt><dd><p>If True, a legend will be drawn containing ROI names.</p>
@@ -2578,13 +2578,13 @@ the part of the legend bounding box specified by legend_loc.</p></li>
 <dt>legend_loc<span class="classifier">str, default=’lower left’</span></dt><dd><p>Legend location for ROI legend.</p>
 </dd>
 <dt>dose<span class="classifier">skrt.dose.Dose / int, default=None</span></dt><dd><p>Dose field to overlay on the image. Can be either a skrt.dose.Dose
-object or an integer referring to the 
-dose at a given index in self.doses (e.g. to plot the last dose 
+object or an integer referring to the
+dose at a given index in self.doses (e.g. to plot the last dose
 assigned to this Image, set dose=-1).</p>
 </dd>
 <dt>dose_opacity<span class="classifier">float, default=0.5</span></dt><dd><p>Opacity of overlaid dose field, if &lt;dose&gt; is not None.</p>
 </dd>
-<dt>dose_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Extra arguments to provide to the mpl_kwargs argument in the dose 
+<dt>dose_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Extra arguments to provide to the mpl_kwargs argument in the dose
 plotting method.</p>
 </dd>
 <dt>xlim, ylim<span class="classifier">tuples, default=None</span></dt><dd><p>Custom limits on the x and y axes of the plot.</p>
@@ -2685,7 +2685,7 @@ that can be passed to skrt.image.Image.crop().</p>
 <dt>crop_limits<span class="classifier">float/tuple/list/None default=None</span></dt><dd><p>Specification of crop limits:</p>
 <ul class="simple">
 <li><p>If a float or a one-element tuple or list, crop limits
-along each axis are taken to be minus and plus the 
+along each axis are taken to be minus and plus the
 value given.</p></li>
 <li><p>If a three-element tuple or list, the three elements are
 taken to correspond to x, y, z limits; an element that is
@@ -2872,9 +2872,9 @@ slice-by-slice box masks are to be determined.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.get_dicom_affine">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_dicom_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_dicom_affine" title="Permalink to this definition"></a></dt>
-<dd><p>Assemble affine matrix from a dicom file. Optionally infer slice 
-thickness from the positions of different slices and origin from the 
-minimum slice; otherwise, extract slice thickness and origin directly from 
+<dd><p>Assemble affine matrix from a dicom file. Optionally infer slice
+thickness from the positions of different slices and origin from the
+minimum slice; otherwise, extract slice thickness and origin directly from
 the dicom dataset.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -2922,14 +2922,14 @@ array axis in order [row, column, slice].</p>
 dicom files.</p>
 <p>If path is a directory, a list of dicom files within that directory will
 be returned.</p>
-<p>If path is a single file, that file will be opened and its 
+<p>If path is a single file, that file will be opened and its
 ImagesInAcquisition property will be checked.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>If ImagesInAcquisition == 1, a list containing the single input</p></li>
 </ul>
-<p>path will be returned. 
-- Otherwise, a list containing all the dicom files in the same 
+<p>path will be returned.
+- Otherwise, a list containing all the dicom files in the same
 directory as the input file will be returned.</p>
 </div></blockquote>
 </dd>
@@ -2979,7 +2979,7 @@ ds : pydicom.FileDataset</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.get_geometry">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">get_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_nifti</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.get_geometry" title="Permalink to this definition"></a></dt>
-<dd><p>Get an affine matrix, voxel size list, and origin list from 
+<dd><p>Get an affine matrix, voxel size list, and origin list from
 a combination of these inputs.</p>
 </dd></dl>
 
@@ -3155,7 +3155,7 @@ StudyInstanceUID and SeriesNumber.</p>
 </dd>
 <dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dicom dataset corresponding to the last file loaded.</p>
 </dd>
-<dt>z_paths<span class="classifier">dict / None</span></dt><dd><p>Dictionary mapping z slice positions in mm to the file corresponding to 
+<dt>z_paths<span class="classifier">dict / None</span></dt><dd><p>Dictionary mapping z slice positions in mm to the file corresponding to
 that slice. If image was loaded from a single file, this will be None.</p>
 </dd>
 <dt>z_instance_numbers<span class="classifier">dict / None</span></dt><dd><p>Dictionary mapping z slice positions in mm to the instance number of
@@ -3167,7 +3167,7 @@ that slice. If image was loaded from a single file, this will be None.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.load_dicom_many_files">
 <span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">load_dicom_many_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.load_dicom_many_files" title="Permalink to this definition"></a></dt>
-<dd><p>Load an image array from multiple dicom files and use the spacing 
+<dd><p>Load an image array from multiple dicom files and use the spacing
 between slices to determine the slice thickness.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -3182,7 +3182,7 @@ between slices to determine the slice thickness.</p>
 </dd>
 <dt>ds<span class="classifier">pydicom.FileDataset</span></dt><dd><p>Dataset object corresponding to the last file loaded.</p>
 </dd>
-<dt>z_paths<span class="classifier">dict</span></dt><dd><p>Dict mapping z slice positions in mm  to the filepath 
+<dt>z_paths<span class="classifier">dict</span></dt><dd><p>Dict mapping z slice positions in mm  to the filepath
 from which that slice of the image was read.</p>
 </dd>
 <dt>z_instance_numbers<span class="classifier">dict</span></dt><dd><p>Dict mapping z slice positions in mm  to the instance

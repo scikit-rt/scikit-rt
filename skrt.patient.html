@@ -219,7 +219,7 @@ CT images and associated structure sets.</p>
 <dt>overwrite<span class="classifier">bool, default=True</span></dt><dd><p>If True, delete any existing patient directory, and its contents,
 in the output directory before copying.</p>
 </dd>
-<dt>structure_set<span class="classifier">str/int/list, default = ‘all’</span></dt><dd><p>Select structure set(s) to copy.  If ‘all’, all structure sets 
+<dt>structure_set<span class="classifier">str/int/list, default = ‘all’</span></dt><dd><p>Select structure set(s) to copy.  If ‘all’, all structure sets
 are copied.  If an integer or list of integers, a sorted list
 of structure sets for each image set is created, and only
 structure sets at the indicated positions in this list are
@@ -574,7 +574,7 @@ two patient cohorts - a discovery cohort and a consolidation
 cohort.  It’s assumed that specific groupings are included
 in data paths.  If None, an empty dictionary is used.</p>
 </dd>
-<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new 
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new
 names and values are lists of possible names of ROIs that should
 be assigned the new name. These names can also contain wildcards
 with the ‘*’ symbol.  Infomration is retrieved only relative to
@@ -972,9 +972,9 @@ there are no required associations.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.patient.Study.load_from_subdir">
 <span class="sig-name descname"><span class="pre">load_from_subdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.patient.Study.load_from_subdir" title="Permalink to this definition"></a></dt>
-<dd><p>Create objects of type &lt;dtype&gt; from each directory in &lt;subdir&gt; and 
+<dd><p>Create objects of type &lt;dtype&gt; from each directory in &lt;subdir&gt; and
 attempt to assign the corresponding image. The created objects will
-be assign to self.&lt;IMAGE_TYPE&gt;_&lt;attr_name&gt;, where &lt;image_type&gt; is 
+be assign to self.&lt;IMAGE_TYPE&gt;_&lt;attr_name&gt;, where &lt;image_type&gt; is
 inferred from the subdirectory from which the objects were created.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -1076,7 +1076,7 @@ prior to writing.  If None, original image size is kept.</p>
 <dt>voxel_size - tuple, default=None</dt><dd><p>Voxel dimensions (dx, dy, dz) in mm for image resizing
 prior to writing.  If None, original voxel size is kept.</p>
 </dd>
-<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new 
+<dt>roi_names<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of names for renaming ROIs, where the keys are new
 names and values are lists of possible names of ROIs that should
 be assigned the new name. These names can also contain wildcards
 with the ‘*’ symbol.</p>
