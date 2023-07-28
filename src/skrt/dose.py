@@ -1,12 +1,12 @@
 """Classes related to doses and plans."""
 
-import numpy as np
 import os
 import numbers
-import pydicom
 import functools
 
 import matplotlib
+import numpy as np
+import pydicom
 
 import skrt.core
 import skrt.image
@@ -15,12 +15,11 @@ import skrt.structures
 
 class ImageOverlay(skrt.image.Image):
     """Image that can be associated with another Image, and whose plotting
-    functionality includes the ability to plot overlaid on its associated 
+    functionality includes the ability to plot overlaid on its associated
     Image."""
 
     def __init__(self, path="", load=True, image=None, *args, **kwargs):
-
-        kwargs['default_intensity'] = kwargs.get('default_intensity', None)
+        kwargs["default_intensity"] = kwargs.get("default_intensity", None)
         skrt.image.Image.__init__(self, path, load, *args, **kwargs)
         self.image = None
         self.set_image(image)
@@ -42,7 +41,7 @@ class ImageOverlay(skrt.image.Image):
         return self.image
 
     def plot(
-        self, 
+        self,
         view=None,
         sl=None,
         idx=None,
@@ -58,8 +57,8 @@ class ImageOverlay(skrt.image.Image):
         no_yticks=False,
         no_xtick_labels=False,
         no_ytick_labels=False,
-        include_image=True, 
-        opacity=None, 
+        include_image=True,
+        opacity=None,
         intensity=None,
         mpl_kwargs=None,
         show=True,
@@ -68,7 +67,7 @@ class ImageOverlay(skrt.image.Image):
         masked=True,
         invert_mask=False,
         mask_color="black",
-        **kwargs
+        **kwargs,
     ):
         """Plot this overlay, optionally overlaid on its associated Image.
 
@@ -105,11 +104,11 @@ class ImageOverlay(skrt.image.Image):
 
 
         include_image : bool, default=False
-            If True and this ImageOverlay has an associate image, it will be 
+            If True and this ImageOverlay has an associate image, it will be
             plotted overlaid on the image.
-        
+
         opacity : float, default=None
-            If plotting on top of an image, this sets the opacity of the 
+            If plotting on top of an image, this sets the opacity of the
             overlay (0 = fully transparent, 1 = fully opaque).
 
         mpl_kwargs : dict, default=None
@@ -176,15 +175,27 @@ class ImageOverlay(skrt.image.Image):
 
         # Plot underlying image, always without title.
         if include_image and self.image is not None:
-            self.image.plot(view, sl=sl, idx=idx, pos=pos, ax=self.ax,
-                    show=False, title="", colorbar=max((colorbar - 1), 0),
-                    no_xlabel=no_xlabel, no_ylabel=no_ylabel,
-                    no_xticks=no_xticks, no_yticks=no_yticks,
-                    no_xtick_labels=no_xtick_labels,
-                    no_ytick_labels=no_ytick_labels,
-                    mask=mask, mask_threshold=mask_threshold,
-                    masked=masked, invert_mask=invert_mask,
-                    mask_color=mask_color)
+            self.image.plot(
+                view,
+                sl=sl,
+                idx=idx,
+                pos=pos,
+                ax=self.ax,
+                show=False,
+                title="",
+                colorbar=max((colorbar - 1), 0),
+                no_xlabel=no_xlabel,
+                no_ylabel=no_ylabel,
+                no_xticks=no_xticks,
+                no_yticks=no_yticks,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels,
+                mask=mask,
+                mask_threshold=mask_threshold,
+                masked=masked,
+                invert_mask=invert_mask,
+                mask_color=mask_color,
+            )
 
             # Use default transprency if plotting image and opacity is None
             if opacity is None:
@@ -205,7 +216,7 @@ class ImageOverlay(skrt.image.Image):
 
         # Plot self
         skrt.image.Image.plot(
-            self, 
+            self,
             view=view,
             sl=sl,
             idx=idx,
@@ -213,8 +224,8 @@ class ImageOverlay(skrt.image.Image):
             ax=self.ax,
             zoom=zoom,
             colorbar=colorbar,
-            mpl_kwargs=mpl_kwargs, 
-            show=show, 
+            mpl_kwargs=mpl_kwargs,
+            show=show,
             no_xlabel=no_xlabel,
             no_ylabel=no_ylabel,
             no_xticks=no_xticks,
@@ -226,13 +237,12 @@ class ImageOverlay(skrt.image.Image):
             masked=masked,
             invert_mask=invert_mask,
             mask_color=mask_color,
-            **kwargs
+            **kwargs,
         )
 
     @functools.cached_property
     def max(self):
         return self.get_data().max()
-
 
 
 class Dose(ImageOverlay):
@@ -247,7 +257,6 @@ class Dose(ImageOverlay):
     """
 
     def __init__(self, *args, **kwargs):
-
         ImageOverlay.__init__(self, *args, **kwargs)
 
         # Ensure linking between image and dose
@@ -259,7 +268,7 @@ class Dose(ImageOverlay):
         self._default_opacity = 0.5
 
         # Delete spurious attributes inherited from Image class
-        for attribute in ['doses', 'plans']:
+        for attribute in ["doses", "plans"]:
             if hasattr(self, attribute):
                 delattr(self, attribute)
 
@@ -278,9 +287,9 @@ class Dose(ImageOverlay):
         self._default_vmax = self.data.max()
         ds = self.dicom_dataset
         if ds:
-            self.dose_units = getattr(ds, 'DoseUnits', None)
-            self.dose_type = getattr(ds, 'DoseType', None)
-            self.dose_summation_type = getattr(ds, 'DoseSummationType', None)
+            self.dose_units = getattr(ds, "DoseUnits", None)
+            self.dose_type = getattr(ds, "DoseType", None)
+            self.dose_summation_type = getattr(ds, "DoseSummationType", None)
 
     def copy_dicom(self, *args, **kwargs):
         """
@@ -343,39 +352,51 @@ class Dose(ImageOverlay):
             roi = roi.clone()
             roi.set_image(self)
 
-        dose_in_roi = self.get_data(standardise=standardise) \
-                * roi.get_mask(standardise=standardise)
+        dose_in_roi = self.get_data(standardise=standardise) * roi.get_mask(
+            standardise=standardise
+        )
         return dose_in_roi
 
     def get_dose_in_roi(self, roi, standardise=True):
-        """Return 1D numpy array containing all of the dose values for the 
-        voxels inside an ROI. Fails if the ROI and dose arrays are not the 
+        """Return 1D numpy array containing all of the dose values for the
+        voxels inside an ROI. Fails if the ROI and dose arrays are not the
         same size."""
         dose_in_roi = self.get_dose_in_roi_3d(roi, standardise)
         return dose_in_roi[dose_in_roi > 0]
 
     def get_max_dose_in_rois(self, rois=[]):
-        '''
+        """
         Return maximum dose in a set of rois.
 
         **Parameter:**
 
         rois : list, default=[]
             List of ROI objects, for which maximum dose is to be determined.
-        '''
+        """
         # Determine the maximum dose for the input roi(s).
         dose_max = 0
         for roi in rois:
             doses = list(self.get_dose_in_roi(roi))
             doses.append(dose_max)
-            dose_max=max(doses)
+            dose_max = max(doses)
         return dose_max
 
-    def plot_dvh(self, rois=[], bins=50, dose_min=0, dose_max=None,
-            figsize=(8, 4), lw=2, n_colour=None, cmap='turbo', grid=True,
-            fname=None, legend_bbox_to_anchor=(1.01, 0.5),
-            legend_loc='center left'):
-        '''
+    def plot_dvh(
+        self,
+        rois=[],
+        bins=50,
+        dose_min=0,
+        dose_max=None,
+        figsize=(8, 4),
+        lw=2,
+        n_colour=None,
+        cmap="turbo",
+        grid=True,
+        fname=None,
+        legend_bbox_to_anchor=(1.01, 0.5),
+        legend_loc="center left",
+    ):
+        """
         Plot dose-volume histogram for specified ROI(s).
 
         **Parameters:**
@@ -421,7 +442,7 @@ class Dose(ImageOverlay):
 
         fname : str, default=None
             Name of file for saving output.
-        '''
+        """
 
         # Obtain a list containing all unique rois.
         all_rois = skrt.structures.get_all_rois(rois)
@@ -439,23 +460,33 @@ class Dose(ImageOverlay):
         ax.set_prop_cycle(color=colours)
 
         # Plot the dose-volume histograms, and extract information for legend.
-        lines= []
-        labels= []
+        lines = []
+        labels = []
         for roi in all_rois:
             doses = self.get_dose_in_roi(roi)
-            n, bins, patches = ax.hist(doses, bins=bins,
-                    range=(dose_min,dose_max), lw=lw, histtype='step',
-                    density=True, cumulative=-1)
+            n, bins, patches = ax.hist(
+                doses,
+                bins=bins,
+                range=(dose_min, dose_max),
+                lw=lw,
+                histtype="step",
+                density=True,
+                cumulative=-1,
+            )
             colour = patches[0].get_edgecolor()
             lines.append(matplotlib.lines.Line2D([0], [0], color=colour, lw=lw))
             labels.append(roi.name)
 
         # Label the axes, add grid and legend, tighten layout.
-        ax.set_xlabel('Dose (Gy)')
-        ax.set_ylabel('Volume fraction')
+        ax.set_xlabel("Dose (Gy)")
+        ax.set_ylabel("Volume fraction")
         ax.grid(grid)
-        ax.legend(handles=lines, labels=labels,
-                bbox_to_anchor=legend_bbox_to_anchor, loc=legend_loc)
+        ax.legend(
+            handles=lines,
+            labels=labels,
+            bbox_to_anchor=legend_bbox_to_anchor,
+            loc=legend_loc,
+        )
         matplotlib.pyplot.tight_layout()
 
         # Show figure or save to file.
@@ -496,8 +527,14 @@ class Dose(ImageOverlay):
         return self.get_biologically_effective_dose(*args, **kwargs)
 
     def get_biologically_effective_dose(
-            self, rois=None, alpha_beta_ratios=None,
-            n_fraction=None, fill=0, standardise=False, force=False):
+        self,
+        rois=None,
+        alpha_beta_ratios=None,
+        n_fraction=None,
+        fill=0,
+        standardise=False,
+        force=False,
+    ):
         """
         Get a Dose object where array values are biologically effective dose.
 
@@ -550,9 +587,14 @@ class Dose(ImageOverlay):
         """
         self._equivalent_dose = "get_biologically_effective_dose()"
         return self.get_equivalent_dose(
-                dose_rate=0, rois=rois, alpha_beta_ratios=alpha_beta_ratios,
-                n_fraction=n_fraction, fill=fill, standardise=standardise,
-                force=force)
+            dose_rate=0,
+            rois=rois,
+            alpha_beta_ratios=alpha_beta_ratios,
+            n_fraction=n_fraction,
+            fill=fill,
+            standardise=standardise,
+            force=force,
+        )
 
     def get_eqd(self, *args, **kwargs):
         """
@@ -564,8 +606,15 @@ class Dose(ImageOverlay):
         return self.get_equivalent_dose(*args, **kwargs)
 
     def get_equivalent_dose(
-            self, dose_rate=2, rois=None, alpha_beta_ratios=None,
-            n_fraction=None, fill=0, standardise=False, force=False):
+        self,
+        dose_rate=2,
+        rois=None,
+        alpha_beta_ratios=None,
+        n_fraction=None,
+        fill=0,
+        standardise=False,
+        force=False,
+    ):
         """
         Get a Dose object where array values are equivalent dose
         for a specified dose per fraction.
@@ -629,23 +678,29 @@ class Dose(ImageOverlay):
 
         # Check input values.
         if not isinstance(fill, numbers.Number) and fill is not None:
-            self.logger.error(f"Value of fill set to '{fill}' "
-                    "but must be a number or None.")
+            self.logger.error(
+                f"Value of fill set to '{fill}' "
+                "but must be a number or None."
+            )
             self._equivalent_dose = None
             return
 
         self.load()
         if "EFFECTIVE" == self.dose_type and not force:
-            self.logger.error(f"Method {self._equivalent_dose} called "
-                    f"for dose with type '{self.dose_type}'.  "
-                    "If this is the intention, repeat call with 'force=True'")
+            self.logger.error(
+                f"Method {self._equivalent_dose} called "
+                f"for dose with type '{self.dose_type}'.  "
+                "If this is the intention, repeat call with 'force=True'"
+            )
             self._equivalent_dose = None
             return
 
         rois = skrt.structures.get_all_rois(rois)
         if not rois:
-            self.logger.error(f"Method {self._equivalent_dose} called "
-                "without specifying any ROIs.")
+            self.logger.error(
+                f"Method {self._equivalent_dose} called "
+                "without specifying any ROIs."
+            )
             self._equivalent_dose = None
             return
 
@@ -653,36 +708,44 @@ class Dose(ImageOverlay):
             n_fraction = self.get_n_fraction()
 
         if not n_fraction:
-            self.logger.error(f"Method {self._equivalent_dose} called "
-                "without specifying number of fractions.")
+            self.logger.error(
+                f"Method {self._equivalent_dose} called "
+                "without specifying number of fractions."
+            )
             self._equivalent_dose = None
             return
 
         # Set default dose to be fill value.
         if isinstance(fill, numbers.Number):
             dose = Dose(
-                    path=(fill *
-                        np.ones(self.get_data(standardise=standardise).shape)),
-                    affine=self.get_affine(standardise=standardise))
+                path=(
+                    fill * np.ones(self.get_data(standardise=standardise).shape)
+                ),
+                affine=self.get_affine(standardise=standardise),
+            )
         # Set default dose to be initial dose.
         elif fill is None:
             dose = Dose(
-                    path=self.get_data(standardise=standardise),
-                    affine=self.get_affine(standardise=standardise))
+                path=self.get_data(standardise=standardise),
+                affine=self.get_affine(standardise=standardise),
+            )
 
         # Calculate equivalent dose inside ROIs with alpha/beta defined.
         for roi in rois:
             # For current ROI, use alpha/beta given in input,
             # or use the value assigned to the ROI.
             alpha_over_beta = alpha_beta_ratios.get(
-                    roi.name, roi.alpha_over_beta)
+                roi.name, roi.alpha_over_beta
+            )
             # If alpha/beta is defined,
             # calculate the equivalent dose.
             if alpha_over_beta is not None:
                 dose_in_roi = self.get_dose_in_roi_3d(
-                        roi, standardise=standardise)
-                dose_in_roi *= ((alpha_over_beta + dose_in_roi / n_fraction)
-                                / (dose_rate + alpha_over_beta))
+                    roi, standardise=standardise
+                )
+                dose_in_roi *= (alpha_over_beta + dose_in_roi / n_fraction) / (
+                    dose_rate + alpha_over_beta
+                )
                 dose.data[dose_in_roi > 0] = dose_in_roi[dose_in_roi > 0]
 
         # Reset the default maximum plotting intensity
@@ -696,6 +759,7 @@ class Dose(ImageOverlay):
         # Unset method name - it will be reset by the next caller.
         self._equivalent_dose = None
         return dose
+
 
 class Plan(skrt.core.Archive):
     """
@@ -761,11 +825,13 @@ class Plan(skrt.core.Archive):
 
         self.dicom_dataset = pydicom.dcmread(self.path, force=True)
 
-        self.name = getattr(self.dicom_dataset, 'RTPlanName', None)
+        self.name = getattr(self.dicom_dataset, "RTPlanName", None)
         self.description = getattr(
-                self.dicom_dataset, 'RTPlanDescription', None)
+            self.dicom_dataset, "RTPlanDescription", None
+        )
         self.prescription_description = getattr(
-                self.dicom_dataset, 'PrescriptionDescription', None)
+            self.dicom_dataset, "PrescriptionDescription", None
+        )
 
         try:
             self.approval_status = self.dicom_dataset.ApprovalStatus
@@ -774,7 +840,8 @@ class Plan(skrt.core.Archive):
 
         try:
             self.n_fraction_group = len(
-                    self.dicom_dataset.FractionGroupSequence)
+                self.dicom_dataset.FractionGroupSequence
+            )
         except AttributeError:
             self.n_fraction_group = None
 
@@ -795,13 +862,16 @@ class Plan(skrt.core.Archive):
                                 self.target_dose = 0.0
                             self.target_dose += dose.TargetPrescriptionDose
         dose_reference_sequence = getattr(
-                self.dicom_dataset, 'DoseReferenceSequence', [])
+            self.dicom_dataset, "DoseReferenceSequence", []
+        )
 
         if self.target_dose is None:
             target_dose = 0.0
             for dose_reference in dose_reference_sequence:
-                target_dose = max(target_dose,
-                        getattr(dose_reference, 'TargetPrescriptionDose', 0))
+                target_dose = max(
+                    target_dose,
+                    getattr(dose_reference, "TargetPrescriptionDose", 0),
+                )
             if target_dose:
                 self.target_dose = target_dose
 
@@ -817,7 +887,7 @@ class Plan(skrt.core.Archive):
             If True, dose constraints will be reloaded from file, even if
             loaded previously.
         """
-        if ((self.constraints_loaded and not force) or not self.structure_set):
+        if (self.constraints_loaded and not force) or not self.structure_set:
             return
 
         rois = {}
@@ -826,36 +896,44 @@ class Plan(skrt.core.Archive):
 
         self.organs_at_risk = []
         self.targets = []
-        
+
         ds = self.get_dicom_dataset()
 
-        dose_reference_sequence = getattr(ds, 'DoseReferenceSequence', [])
+        dose_reference_sequence = getattr(ds, "DoseReferenceSequence", [])
 
         for item in dose_reference_sequence:
-            roi = rois.get(getattr(item, 'ReferencedROINumber', None), None)
+            roi = rois.get(getattr(item, "ReferencedROINumber", None), None)
             if roi is None:
                 continue
             roi.roi_type = item.DoseReferenceType
             roi.constraint = Constraint()
             roi.constraint.weight = skrt.core.get_float(
-                    item, "ConstraintWeight")
-            if 'ORGAN_AT_RISK' == item.DoseReferenceType:
+                item, "ConstraintWeight"
+            )
+            if "ORGAN_AT_RISK" == item.DoseReferenceType:
                 roi.constraint.maximum_dose = skrt.core.get_float(
-                        item, "OrganAtRiskMaximumDose")
+                    item, "OrganAtRiskMaximumDose"
+                )
                 roi.constraint.full_volume_dose = skrt.core.get_float(
-                        item, "OrganAtRiskFullVolumeDose")
+                    item, "OrganAtRiskFullVolumeDose"
+                )
                 roi.constraint.overdose_volume_fraction = skrt.core.get_float(
-                        item, "OrganAtRiskOverdoseVolumeFraction")
+                    item, "OrganAtRiskOverdoseVolumeFraction"
+                )
                 self.organs_at_risk.append(roi)
-            elif 'TARGET' == item.DoseReferenceType:
+            elif "TARGET" == item.DoseReferenceType:
                 roi.constraint.minimum_dose = skrt.core.get_float(
-                        item, "TargetMinimumDose")
+                    item, "TargetMinimumDose"
+                )
                 roi.constraint.prescription_dose = skrt.core.get_float(
-                        item, "TargetPrescriptionDose")
+                    item, "TargetPrescriptionDose"
+                )
                 roi.constraint.maximum_dose = skrt.core.get_float(
-                        item, "TargetMaximumDose")
+                    item, "TargetMaximumDose"
+                )
                 roi.constraint.underdose_volume_fraction = skrt.core.get_float(
-                        item, "TargetUnderdoseVolumeFraction")
+                    item, "TargetUnderdoseVolumeFraction"
+                )
                 self.targets.append(roi)
 
         self.constraints_loaded = True
@@ -881,8 +959,9 @@ class Plan(skrt.core.Archive):
         self.load()
         return self.organs_at_risk
 
-    def get_dose_objective(self, objective='maximum_dose', idx_dose=0,
-            dose=None):
+    def get_dose_objective(
+        self, objective="maximum_dose", idx_dose=0, dose=None
+    ):
         """
         Obtain Dose object representing weight or objective of dose constraint.
 
@@ -901,8 +980,8 @@ class Plan(skrt.core.Archive):
         """
         # Check that specified objective is known.
         if objective not in Constraint.get_weight_and_objectives():
-            print(f'Unknown dose objective: \'{objective}\'')
-            print(f'Known objectives: {Constraint.get_weight_and_objectives()}')
+            print(f"Unknown dose objective: '{objective}'")
+            print(f"Known objectives: {Constraint.get_weight_and_objectives()}")
             return None
 
         # Return pre-existing result if available.
@@ -927,15 +1006,16 @@ class Plan(skrt.core.Archive):
 
         dose_objective.load()
         dose_objective.data = np.zeros(dose_objective.data.shape)
-        
+
         # Obtain objective information for each ROI.
         for roi in rois:
             if roi.constraint:
                 roi_clone = skrt.structures.ROI(roi)
                 roi_clone.set_image(dose_objective)
                 mask = roi_clone.get_mask()
-                dose_objective.data[mask > 0] = (
-                        getattr(roi_clone.constraint, objective))
+                dose_objective.data[mask > 0] = getattr(
+                    roi_clone.constraint, objective
+                )
 
         setattr(self.objectives, objective, dose_objective)
 
@@ -1004,7 +1084,8 @@ class Plan(skrt.core.Archive):
 
         # Convert to StructureSet object if needed
         if structure_set and not isinstance(
-                structure_set, skrt.structures.StructureSet):
+            structure_set, skrt.structures.StructureSet
+        ):
             structure_set = skrt.structures.StructureSet(structure_set)
 
         # Assign structure set to self
@@ -1040,19 +1121,26 @@ class Plan(skrt.core.Archive):
         """Return Dose objects associated with this plan."""
         return self.doses
 
+
 class Constraint(skrt.core.Data):
-    '''
+    """
     Container for data relating to a dose constraint.
-    '''
+    """
 
     @classmethod
     def get_weight_and_objectives(cls):
-        '''
+        """
         Return weight and objectives that may be associated with a constraint.
-        '''
-        return ['weight', 'minimum_dose', 'maximum_dose', 'full_volume_dose',
-                'prescription_dose', 'underdose_volume_fraction',
-                'overdose_volume_fraction']
+        """
+        return [
+            "weight",
+            "minimum_dose",
+            "maximum_dose",
+            "full_volume_dose",
+            "prescription_dose",
+            "underdose_volume_fraction",
+            "overdose_volume_fraction",
+        ]
 
     def __init__(self, opts={}, **kwargs):
         """
@@ -1085,8 +1173,9 @@ class Constraint(skrt.core.Data):
 
         super().__init__(opts, **kwargs)
 
+
 def remove_duplicate_doses(doses=None):
-    '''
+    """
     Remove duplicates from a list of dose objects.
 
     Dose instance dose1 is taken to be a duplicate of dose2 if
@@ -1095,11 +1184,12 @@ def remove_duplicate_doses(doses=None):
     **Parameter:**
     doses: list, default=None
         List of dose objects, from which duplicates are to be removed.
-    '''
+    """
     return skrt.image.remove_duplicate_images(doses)
 
+
 def sum_doses(doses=None):
-    '''
+    """
     Sum doses of the same geometry.
 
     If not all doses have the same same geometry (shape, origin,
@@ -1111,5 +1201,5 @@ def sum_doses(doses=None):
     **Parameter:**
     doses: list, default=None
         List of Dose objects to be summed.
-    '''
+    """
     return skrt.image.sum_images(doses)

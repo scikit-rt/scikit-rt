@@ -10,9 +10,9 @@ import pandas as pd
 
 import skrt.core
 from skrt.core import fullpath, get_data_indices, get_indexed_objs, tic, toc
+from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
 from skrt.image import _axes, Image
 from skrt.structures import StructureSet
-from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
 
 # Default mode for reading patient data.
 skrt.core.Defaults({"unsorted_dicom": False})
@@ -37,33 +37,29 @@ class Study(skrt.core.Archive):
             dtype=StructureSet,
             subdir="RTSTRUCT",
             attr_name="structure_sets",
-            load=False
+            load=False,
         )
 
         # Load dose maps
         self.load_from_subdir(
-            dtype=Dose,
-            subdir="RTDOSE",
-            attr_name="doses",
-            load=False
+            dtype=Dose, subdir="RTDOSE", attr_name="doses", load=False
         )
 
         # Load treament plans
         self.load_from_subdir(
-            dtype=Plan,
-            subdir="RTPLAN",
-            attr_name="plans",
-            load=False
+            dtype=Plan, subdir="RTPLAN", attr_name="plans", load=False
         )
 
-        if hasattr(self, 'plan_types'):
+        if hasattr(self, "plan_types"):
             for plans in self.plan_types.values():
                 for plan in plans:
                     self.link_plan_to_doses(plan)
 
-        if 'ct' in self.image_types and 'cthd' in self.image_types:
-            if (len(self.image_types['ct']) == 1
-                and len(self.image_types['cthd']) == 1):
+        if "ct" in self.image_types and "cthd" in self.image_types:
+            if (
+                len(self.image_types["ct"]) == 1
+                and len(self.image_types["cthd"]) == 1
+            ):
                 self.cthd_images[0].structure_sets = []
                 for ss in self.ct_images[0].structure_sets:
                     self.cthd_images[0].add_structure_set(ss)
@@ -79,7 +75,6 @@ class Study(skrt.core.Archive):
         special_dirs = ["RTPLAN", "RTSTRUCT", "RTDOSE"]
         self.image_types = {}
         for file in self.files:
-
             subdir = os.path.basename(file.path)
             if subdir in special_dirs:
                 continue
@@ -96,9 +91,9 @@ class Study(skrt.core.Archive):
             self.image_types[subdir.lower()] = images
 
     def load_from_subdir(self, dtype, subdir, attr_name, **kwargs):
-        """Create objects of type <dtype> from each directory in <subdir> and 
+        """Create objects of type <dtype> from each directory in <subdir> and
         attempt to assign the corresponding image. The created objects will
-        be assign to self.<IMAGE_TYPE>_<attr_name>, where <image_type> is 
+        be assign to self.<IMAGE_TYPE>_<attr_name>, where <image_type> is
         inferred from the subdirectory from which the objects were created.
 
         **Parameters**:
@@ -121,32 +116,35 @@ class Study(skrt.core.Archive):
             return
 
         # Initialise dictionary of all objects created.
-        obj_types_name = f'{attr_name[:-1]}_types'
+        obj_types_name = f"{attr_name[:-1]}_types"
         setattr(self, obj_types_name, {})
         obj_types = getattr(self, obj_types_name)
 
         # Search subdirectories (each corresponds to an image type)
         for im_type_dir in os.listdir(obj_dir):
-
             im_type = im_type_dir.lower()
-            if subdir in ['RTDOSE', 'RTPLAN'] \
-                    and im_type not in self.image_types:
-                im_type = 'ct'
+            if (
+                subdir in ["RTDOSE", "RTPLAN"]
+                and im_type not in self.image_types
+            ):
+                im_type = "ct"
             subpath = f"{subdir}/{im_type_dir}"
 
             all_objs = []
 
-            # Create archive object for each subdir (each corresponds to 
+            # Create archive object for each subdir (each corresponds to
             # an image)
-            archives = self.create_objects(dtype=skrt.core.Archive,
-                                           subdir=subpath)
+            archives = self.create_objects(
+                dtype=skrt.core.Archive, subdir=subpath
+            )
             for archive in archives:
                 if os.path.isfile(archive.path):
                     archive.path = os.path.dirname(archive.path)
 
                 # Create objects within this archive
                 objs = archive.create_objects(
-                    dtype=dtype, timestamp_only=False, **kwargs)
+                    dtype=dtype, timestamp_only=False, **kwargs
+                )
 
                 # Look for an image matching the timestamp of this archive
                 if im_type in self.image_types:
@@ -173,7 +171,7 @@ class Study(skrt.core.Archive):
                 for obj in objs:
                     if obj not in all_objs:
                         all_objs.append(obj)
-                #all_objs.extend(objs)
+                # all_objs.extend(objs)
 
             # Create attribute for objects of this type
             if len(all_objs):
@@ -182,7 +180,7 @@ class Study(skrt.core.Archive):
                 obj_types[key] = all_objs
 
     def add_image(self, im, image_type="ct"):
-        '''Add a new image of a given image type.'''
+        """Add a new image of a given image type."""
 
         # Ensure we have a list of this type of image
         im_name = f"{image_type.lower()}_images"
@@ -260,7 +258,9 @@ class Study(skrt.core.Archive):
 
         # Find images meeting the time separation requirement
         if min_delta_hours > 0:
-            mvct_images = get_time_separated_objects(self.mvct_images, min_delta_hours)
+            mvct_images = get_time_separated_objects(
+                self.mvct_images, min_delta_hours
+            )
         else:
             mvct_images = self.mvct_images
 
@@ -268,9 +268,10 @@ class Study(skrt.core.Archive):
         selected = []
         patient_id = self.get_patient_id()
         if patient_id in mvct_dict:
-
             # Get all valid directories for this patient
-            valid_dirs = [skrt.core.fullpath(path) for path in mvct_dict[patient_id]]
+            valid_dirs = [
+                skrt.core.fullpath(path) for path in mvct_dict[patient_id]
+            ]
 
             # Check for images matching that directory requirement
             for mvct in mvct_images:
@@ -297,7 +298,7 @@ class Study(skrt.core.Archive):
     def get_objs(self, dtype, subtypes=None, associations=None):
         """
         Get list of study-associated objects of specified type and subtype(s).
-        
+
         Returned objects are sorted by timestamp (earliest first).
 
         **Parameters:**
@@ -324,8 +325,9 @@ class Study(skrt.core.Archive):
         subtypes = subtypes or list(obj_types)
         if isinstance(subtypes, str):
             subtypes = [subtypes]
-        objs = sum([obj_types.get(subtype.lower(), [])
-                    for subtype in subtypes], [])
+        objs = sum(
+            [obj_types.get(subtype.lower(), []) for subtype in subtypes], []
+        )
 
         # Return object(s) with required associations.
         if associations is None:
@@ -333,8 +335,12 @@ class Study(skrt.core.Archive):
         elif isinstance(associations, str):
             associations = [associations]
         return sorted(
-                [obj for obj in objs
-                 if all([getattr(obj, dtype, None) for dtype in associations])])
+            [
+                obj
+                for obj in objs
+                if all([getattr(obj, dtype, None) for dtype in associations])
+            ]
+        )
 
     def get_images(self, subtypes=None, associations=None):
         """
@@ -421,7 +427,9 @@ class Study(skrt.core.Archive):
         """
         return self.get_objs("plan", subtypes, associations)
 
-    def get_plan_data(self, dtype="RtPlan", subdir="RTPLAN", exclude=[], images=[]):
+    def get_plan_data(
+        self, dtype="RtPlan", subdir="RTPLAN", exclude=[], images=[]
+    ):
         """Get list of RT dose or plan objects specified by dtype='RtDose' or
         'RtPlan' <dtype>, respectively) by searching within a given directory,
         <subdir> (or within the top level directory of this Study, if
@@ -443,11 +451,9 @@ class Study(skrt.core.Archive):
         # Look for subdirs up to two levels deep from initial dir
         subdirs = []
         if os.path.isdir(path1):
-
             # Search top level of dir
             path1_subdirs = os.listdir(path1)
             for item1 in path1_subdirs:
-
                 if item1 in exclude:
                     continue
                 path2 = os.path.join(path1, item1)
@@ -463,7 +469,9 @@ class Study(skrt.core.Archive):
                         if os.path.isdir(path3):
                             n_sub_subdirs += 1
                             if subdir:
-                                subdirs.append(os.path.join(subdir, item1, item2))
+                                subdirs.append(
+                                    os.path.join(subdir, item1, item2)
+                                )
                             else:
                                 subdirs.append(item1, item2)
 
@@ -482,7 +490,6 @@ class Study(skrt.core.Archive):
         if dtype == "RtDose":
             new_doses = []
             for dose in doses:
-
                 # Search for images with matching timestamp
                 timestamp = os.path.basename(os.path.dirname(dose.path))
                 if images:
@@ -498,7 +505,9 @@ class Study(skrt.core.Archive):
                     dose.timestamp = f"{dose.date}_{dose.time}"
                     dose.image = image
 
-                dose.couch_translation, dose.couch_rotation = get_couch_shift(dose.path)
+                dose.couch_translation, dose.couch_rotation = get_couch_shift(
+                    dose.path
+                )
                 # WARNING!
                 #     Couch translation third component (y) inverted with
                 #     respect to CT image
@@ -531,7 +540,6 @@ class Study(skrt.core.Archive):
             plan_dose.imageStack = plan_dose.getImageStack()
 
         else:
-
             # Get fraction group and beam sequence
             if self.plans:
                 n_frac_group = self.plans[-1].nFractionGroup
@@ -543,7 +551,6 @@ class Study(skrt.core.Archive):
             # Sum over fractions
             if "FRACTION" in dose_dict:
                 if len(dose_dict["FRACTION"]) == n_frac_group:
-
                     # Single fraction
                     if n_frac_group == 1:
                         plan_dose = dose_dict["FRACTION"][0]
@@ -555,7 +562,6 @@ class Study(skrt.core.Archive):
             # Sum over beams
             elif "BEAM" in sum_type:
                 if len(dose_dict["BEAM"]) == n_beam_seq:
-
                     # Single fraction
                     if n_frac_group == 1:
                         plan_dose = dose_dict["BEAM"][0]
@@ -608,31 +614,40 @@ class Study(skrt.core.Archive):
         return plan_dose
 
     def link_plan_to_doses(self, plan):
-        '''
+        """
         Link plan to doses derived from it.
 
         **Parameter:**
 
         plan : skrt.dose.Plan
             Plan object for which dose associations are to be determined.
-        '''
+        """
 
         plan_uid = pydicom.dcmread(plan.path, force=True).SOPInstanceUID
         doses = []
-        if hasattr(self, 'dose_types'):
+        if hasattr(self, "dose_types"):
             for value in self.dose_types.values():
                 doses.extend(value)
         for dose in doses:
             dose_ds = pydicom.dcmread(dose.path, force=True)
-            if hasattr(dose_ds, 'ReferencedRTPlanSequence'):
+            if hasattr(dose_ds, "ReferencedRTPlanSequence"):
                 for referenced_plan in dose_ds.ReferencedRTPlanSequence:
                     if plan_uid == referenced_plan.ReferencedSOPInstanceUID:
                         dose.set_plan(plan)
 
-    def save_images_as_nifti(self, outdir='.', image_types=None, times=None,
-            verbose=True, image_size=None, voxel_size=None, fill_value=None,
-            bands=None, require_structure_set=None):
-        '''
+    def save_images_as_nifti(
+        self,
+        outdir=".",
+        image_types=None,
+        times=None,
+        verbose=True,
+        image_size=None,
+        voxel_size=None,
+        fill_value=None,
+        bands=None,
+        require_structure_set=None,
+    ):
+        """
         Save study's image data as nifti files.
 
         **Parameters:**
@@ -684,7 +699,7 @@ class Study(skrt.core.Archive):
         require_structure_set - list, default=None
             List of image types for which data are to be written only
             if there is an associated structure set.
-        '''
+        """
 
         # Set defaults.
         if bands is None:
@@ -718,15 +733,17 @@ class Study(skrt.core.Archive):
 
             # Loop over images.
             for idx, image in enumerate(images):
-
                 # Skip image if associated structure set required but missing.
-                if (save_type in require_structure_set and
-                        not image.structure_sets):
+                if (
+                    save_type in require_structure_set
+                    and not image.structure_sets
+                ):
                     continue
 
                 # Identify imaging machine.
-                suffix = (f"_{image.get_machine()}" if image.get_machine()
-                        else "")
+                suffix = (
+                    f"_{image.get_machine()}" if image.get_machine() else ""
+                )
 
                 # Clone image object for writing.
                 # If data manipulation is required, this will be
@@ -735,10 +752,16 @@ class Study(skrt.core.Archive):
 
                 # Resize to required image size and voxel size.
                 if image_size is not None or voxel_size is not None:
-                    im_fill_value = (fill_value if fill_value is not None
-                            else out_image.get_min())
-                    out_image.resize(image_size=image_size,
-                            voxel_size=voxel_size, fill_value=im_fill_value)
+                    im_fill_value = (
+                        fill_value
+                        if fill_value is not None
+                        else out_image.get_min()
+                    )
+                    out_image.resize(
+                        image_size=image_size,
+                        voxel_size=voxel_size,
+                        fill_value=im_fill_value,
+                    )
 
                 # Apply banding.
                 if save_type in bands:
@@ -746,17 +769,27 @@ class Study(skrt.core.Archive):
                         out_image.apply_bandings(bands[save_type])
 
                 # Define output path and write image.
-                outname = (f'{outdir}/{save_type.upper()}'
-                           f'_{image.timestamp}_{idx+1:03}'
-                           f'{suffix}.nii.gz')
+                outname = (
+                    f"{outdir}/{save_type.upper()}"
+                    f"_{image.timestamp}_{idx+1:03}"
+                    f"{suffix}.nii.gz"
+                )
                 out_image.write(outname=outname, verbose=verbose)
 
-    def save_structure_sets_as_nifti(self, outdir='.',
-            image_types=None, times=None, files=None,
-            verbose=True, image_size=None, voxel_size=None, roi_names=None,
-            force_roi_nifti=False, bilateral_names=None):
-
-        '''
+    def save_structure_sets_as_nifti(
+        self,
+        outdir=".",
+        image_types=None,
+        times=None,
+        files=None,
+        verbose=True,
+        image_size=None,
+        voxel_size=None,
+        roi_names=None,
+        force_roi_nifti=False,
+        bilateral_names=None,
+    ):
+        """
         Save study's structure-set data as nifti files.
 
         **Parameters:**
@@ -794,7 +827,7 @@ class Study(skrt.core.Archive):
             prior to writing.  If None, original voxel size is kept.
 
         roi_names : dict, default=None
-            Dictionary of names for renaming ROIs, where the keys are new 
+            Dictionary of names for renaming ROIs, where the keys are new
             names and values are lists of possible names of ROIs that should
             be assigned the new name. These names can also contain wildcards
             with the '*' symbol.
@@ -807,7 +840,7 @@ class Study(skrt.core.Archive):
         bilateral_names : list, default=None
             List of names of ROIs that should be split into
             left and right parts.
-        '''
+        """
 
         # Obtain full path to output directory.
         outdir = skrt.core.fullpath(outdir)
@@ -847,21 +880,24 @@ class Study(skrt.core.Archive):
                 if files and structure_sets:
                     if save_type in files and files[save_type]:
                         structure_sets = get_indexed_objs(
-                                structure_sets, files[save_type])
+                            structure_sets, files[save_type]
+                        )
 
                 # Loop over structure sets
                 idx = 0
                 for structure_set in structure_sets:
                     # Filter ROIs
-                    ss = structure_set.filtered_copy(names=roi_names,
-                            keep_renamed_only=True)
+                    ss = structure_set.filtered_copy(
+                        names=roi_names, keep_renamed_only=True
+                    )
 
                     # Resize associated image if needed.
                     if ss.get_roi_names() or force_roi_nifti:
                         if image_size is not None or voxel_size is not None:
                             im = Image(ss.image)
-                            im.resize(image_size=image_size,
-                                    voxel_size=voxel_size)
+                            im.resize(
+                                image_size=image_size, voxel_size=voxel_size
+                            )
                             ss.set_image(im)
 
                     # Create list of ROIs to be saved.
@@ -873,8 +909,8 @@ class Study(skrt.core.Archive):
                     # Split ROI into left and right parts if needed.
                     for roi_name in bilateral_names:
                         save_names.remove(roi_name)
-                        save_names.append(f'{roi_name}_left')
-                        save_names.append(f'{roi_name}_right')
+                        save_names.append(f"{roi_name}_left")
+                        save_names.append(f"{roi_name}_right")
                         if roi_name in ss.get_roi_names():
                             ss_tmp = ss.get_roi(roi_name).split_in_two()
                             for roi in ss_tmp.get_rois():
@@ -884,14 +920,20 @@ class Study(skrt.core.Archive):
                     idx_add = 0
                     for roi_name in save_names:
                         # Define output path
-                        outname = (f'RTSTRUCT_{save_type.upper()}'
-                                   f'_{image.timestamp}_{idx+1:03}'
-                                   f'_{roi_name}.nii.gz')
+                        outname = (
+                            f"RTSTRUCT_{save_type.upper()}"
+                            f"_{image.timestamp}_{idx+1:03}"
+                            f"_{roi_name}.nii.gz"
+                        )
                         if roi_name in ss.get_roi_names():
                             # Save ROI mask.
                             roi = ss.get_roi(roi_name)
-                            roi.write(outname=outname, outdir=outdir,
-                                    ext='nii.gz', verbose=verbose)
+                            roi.write(
+                                outname=outname,
+                                outdir=outdir,
+                                ext="nii.gz",
+                                verbose=verbose,
+                            )
                             idx_add = 1
                         elif force_roi_nifti:
                             # Save dummy mask for ROI not found
@@ -899,15 +941,21 @@ class Study(skrt.core.Archive):
                             im = Image(ss.image)
                             shape = im.get_data().shape
                             im.data = np.zeros(shape)
-                            outname = f'{outdir}/{outname}'
+                            outname = f"{outdir}/{outname}"
                             ss.image.write(outname=outname, verbose=verbose)
                             idx_add = 1
                     idx += idx_add
 
-    def copy_dicom(self, outdir=".",
-            images_to_copy=None, structure_sets_to_copy=None,
-            doses_to_copy=None, plans_to_copy=None, overwrite=True,
-            sort=True):
+    def copy_dicom(
+        self,
+        outdir=".",
+        images_to_copy=None,
+        structure_sets_to_copy=None,
+        doses_to_copy=None,
+        plans_to_copy=None,
+        overwrite=True,
+        sort=True,
+    ):
         """
         Copy study dicom data.
 
@@ -947,23 +995,36 @@ class Study(skrt.core.Archive):
 
         # Identify non-image data.
         non_image_data = [
-                ("RTSTRUCT", "structure_sets",
-                    get_data_indices(structure_sets_to_copy,
-                    getattr(self, "structure_set_types", []))),
-                ("RTDOSE", "doses", get_data_indices(doses_to_copy,
-                    getattr(self, "dose_types", []))),
-                ("RTPLAN", "plans", get_data_indices(plans_to_copy,
-                    getattr(self, "plan_types", []))),
-                ]
+            (
+                "RTSTRUCT",
+                "structure_sets",
+                get_data_indices(
+                    structure_sets_to_copy,
+                    getattr(self, "structure_set_types", []),
+                ),
+            ),
+            (
+                "RTDOSE",
+                "doses",
+                get_data_indices(
+                    doses_to_copy, getattr(self, "dose_types", [])
+                ),
+            ),
+            (
+                "RTPLAN",
+                "plans",
+                get_data_indices(
+                    plans_to_copy, getattr(self, "plan_types", [])
+                ),
+            ),
+        ]
 
         # Loop over image types.
         # Overwriting taken into account at study level,
         # so don't overwrite at sub-study level.
         for image_type in image_indices:
-
             # Loop over images of current type.
             for idx1, im in enumerate(self.image_types[image_type]):
-
                 # Create clone for data loading.
                 # Clone is deleted once data are no longer needed.
                 im2 = im.clone()
@@ -972,7 +1033,7 @@ class Study(skrt.core.Archive):
                 # If not, give warning and skip.
                 try:
                     im2.load()
-                except:
+                except BaseException:
                     im2.data = None
 
                 if im2.data is None:
@@ -981,31 +1042,50 @@ class Study(skrt.core.Archive):
                     del im2
                     continue
                 del im2
-                
+
                 # Copy image.
-                im.copy_dicom_files(image_type, idx1, image_indices,
-                        study_dir / image_type.upper()
-                        / f"{im.timestamp}_{idx1+1:03}",
-                        overwrite=False, sort=sort)
+                im.copy_dicom_files(
+                    image_type,
+                    idx1,
+                    image_indices,
+                    study_dir
+                    / image_type.upper()
+                    / f"{im.timestamp}_{idx1+1:03}",
+                    overwrite=False,
+                    sort=sort,
+                )
 
                 # Copy non-image data that matches an image type.
                 for modality, reference, indices in non_image_data:
                     if image_type in indices:
                         for idx2, obj in enumerate(getattr(im, reference)):
-                            obj.copy_dicom_files(image_type, idx2, indices,
-                                    study_dir / modality / image_type.upper()
-                                    / f"{im.timestamp}_{idx1+1:03}",
-                                    overwrite=False, sort=sort)
+                            obj.copy_dicom_files(
+                                image_type,
+                                idx2,
+                                indices,
+                                study_dir
+                                / modality
+                                / image_type.upper()
+                                / f"{im.timestamp}_{idx1+1:03}",
+                                overwrite=False,
+                                sort=sort,
+                            )
 
         # Copy non-image data not matching an image type.
         for modality, reference, indices in non_image_data:
             for data_type in indices:
                 if data_type not in image_indices:
                     for idx3, obj in enumerate(
-                            getattr(self, f"{data_type}_{reference}")):
-                        obj.copy_dicom_files(data_type, idx3, indices,
-                                study_dir / modality / data_type.upper(),
-                                overwrite=False, sort=sort)
+                        getattr(self, f"{data_type}_{reference}")
+                    ):
+                        obj.copy_dicom_files(
+                            data_type,
+                            idx3,
+                            indices,
+                            study_dir / modality / data_type.upper(),
+                            overwrite=False,
+                            sort=sort,
+                        )
 
 
 class Patient(skrt.core.PathData):
@@ -1014,9 +1094,10 @@ class Patient(skrt.core.PathData):
     a patient ID, and whose subdirectories contain studies.
     """
 
-    def __init__(self, path=None, exclude=None, unsorted_dicom=None,
-            id_mappings=None):
-        '''
+    def __init__(
+        self, path=None, exclude=None, unsorted_dicom=None, id_mappings=None
+    ):
+        """
         Create instance of Patient class.
 
         **Parameters:**
@@ -1042,7 +1123,7 @@ class Patient(skrt.core.PathData):
             of the directory that contains the patient data.  The
             id_mappings dictionary allows mapping from the default
             name (dictionary key) to a different name (associated value).
-        '''
+        """
 
         # Initialise parameters.
         path = path or ""
@@ -1072,10 +1153,11 @@ class Patient(skrt.core.PathData):
                         for subdir in subdirs:
                             if subdir not in exclude:
                                 self.studies.extend(
-                                        self.create_objects(dtype=Study,
-                                            subdir=subdir)
-                                        )
-        
+                                    self.create_objects(
+                                        dtype=Study, subdir=subdir
+                                    )
+                                )
+
         # Add to data objects a reference to the patient object.
         self.link_study_data_to_patient()
 
@@ -1087,46 +1169,46 @@ class Patient(skrt.core.PathData):
         self._init_time = toc()
 
     def __gt__(self, other):
-        '''
+        """
         Define whether <self> is greater than <other>.
 
         The comparison is based on id.
-        '''
+        """
         return self.id > other.id
 
     def __ge__(self, other):
-        '''
+        """
         Define whether <self> is greater than, or equal to, <other>.
 
         The comparison is based on id.
-        '''
+        """
         return (self > other) or (self == other)
 
     def sort_dicom(self):
-        '''
+        """
         Create patient tree of data objects from unsorted DICOM files.
 
         This method creates the hierarchy patient -> studies -> modalities,
         sorting through all files in the directory pointed to be the
         patient object's path attribute, and in all sub-directories.
-        '''
+        """
 
         # Mapping between non-imaging DICOM modalities and
         # terms used in Patient attributes.
         data_types = {
-                "rtplan": "plan",
-                "rtstruct": "structure_set",
-                "rtdose": "dose",
-                }
+            "rtplan": "plan",
+            "rtstruct": "structure_set",
+            "rtdose": "dose",
+        }
 
         # Mapping between terms used in Patient attributes and
         # Scikit-rt classes to which they refer.
         data_classes = {
-                "dose": Dose,
-                "image": Image,
-                "plan": Plan,
-                "structure_set": StructureSet,
-                }
+            "dose": Dose,
+            "image": Image,
+            "plan": Plan,
+            "structure_set": StructureSet,
+        }
 
         # Modalities not currently handled.
         unhandled_modalities = ["pr", "rtrecord", "sr"]
@@ -1141,11 +1223,15 @@ class Patient(skrt.core.PathData):
         file_paths = sorted(patient_path.glob("**/*"))
         for file_path in file_paths:
             dcm = skrt.core.DicomFile(file_path)
-            if (dcm.ds and (dcm.study_instance_uid is not None)
-                and (dcm.modality not in unhandled_modalities)):
+            if (
+                dcm.ds
+                and (dcm.study_instance_uid is not None)
+                and (dcm.modality not in unhandled_modalities)
+            ):
                 # Add to patient's list of Study objects.
-                matched_attributes = dcm.get_matched_attributes(self.studies,
-                        "study_instance_uid")
+                matched_attributes = dcm.get_matched_attributes(
+                    self.studies, "study_instance_uid"
+                )
                 if matched_attributes:
                     study = matched_attributes[0]
                 else:
@@ -1157,16 +1243,15 @@ class Patient(skrt.core.PathData):
                 # are mapped to modality "image".
                 dstring = data_types.get(dcm.modality, "image")
                 dtypes = getattr(study, f"{dstring}_types")
-                if not dcm.modality in dtypes:
+                if dcm.modality not in dtypes:
                     dtypes[dcm.modality] = []
 
                 if "image" == dstring:
                     # For "image" modality, group DicomFile objects
                     # by series instance uid.
                     matched_attributes = dcm.get_matched_attributes(
-                            dtypes[dcm.modality],
-                            ["series_instance_uid"]
-                            )
+                        dtypes[dcm.modality], ["series_instance_uid"]
+                    )
                     if matched_attributes:
                         matched_attributes[0].dicom_paths.append(dcm.path)
                     else:
@@ -1193,8 +1278,10 @@ class Patient(skrt.core.PathData):
                         if "image" == dstring:
                             # Transfer list of source files
                             # from DicomFile object to Image object.
-                            obj.dicom_paths = sorted(list(dcm.dicom_paths),
-                                    key=skrt.core.alphanumeric)
+                            obj.dicom_paths = sorted(
+                                list(dcm.dicom_paths),
+                                key=skrt.core.alphanumeric,
+                            )
                             # Create Image object's list of File objects.
                             for dicom_path in obj.dicom_paths:
                                 obj.files.append(skrt.core.File(dicom_path))
@@ -1205,13 +1292,14 @@ class Patient(skrt.core.PathData):
 
         # Second loop over studies: link structure sets, plans, doses.
         for study in self.studies:
-
             # Link structure sets and plans.
             if study.plan_types and study.structure_set_types:
                 for plan in study.rtplan_plans:
                     ss = skrt.core.get_referenced_object(
-                            plan, study.rtstruct_structure_sets,
-                            "referenced_structure_set_sop_instance_uid")
+                        plan,
+                        study.rtstruct_structure_sets,
+                        "referenced_structure_set_sop_instance_uid",
+                    )
                     if ss:
                         plan.set_structure_set(ss)
 
@@ -1219,22 +1307,24 @@ class Patient(skrt.core.PathData):
             if study.plan_types and study.dose_types:
                 for dose in study.rtdose_doses:
                     plan = skrt.core.get_referenced_object(
-                            dose, study.rtplan_plans,
-                            "referenced_plan_sop_instance_uid")
+                        dose,
+                        study.rtplan_plans,
+                        "referenced_plan_sop_instance_uid",
+                    )
                     if plan:
                         dose.set_plan(plan)
 
         # Third loop over studies: link images and non-imaging data;
         # group non-imaging data by modality of linked image.
         for study in self.studies:
-
             # Link images and non-imaging data.
             for dcm_modality, dstring in data_types.items():
                 dtypes = getattr(study, f"{dstring}_types")
                 dcm_datastore = f"{dcm_modality}_{dstring}s"
                 for obj in getattr(study, dcm_datastore, []):
                     image = skrt.core.get_referenced_image(
-                            obj, study.image_types)
+                        obj, study.image_types
+                    )
                     obj.set_image(image)
 
             # Reinforce linking of images, plans and structure sets.
@@ -1244,8 +1334,10 @@ class Patient(skrt.core.PathData):
                         # If plan and image not directly linked,
                         # try to link via structure set.
                         ss = skrt.core.get_referenced_object(
-                                plan, study.rtstruct_structure_sets,
-                                "referenced_structure_set_sop_instance_uid")
+                            plan,
+                            study.rtstruct_structure_sets,
+                            "referenced_structure_set_sop_instance_uid",
+                        )
 
                         image = ss.image if ss is not None else None
                         plan.set_image(image)
@@ -1270,7 +1362,7 @@ class Patient(skrt.core.PathData):
                 for obj in getattr(study, dcm_datastore, []):
                     if obj.image:
                         datastore = f"{obj.image.modality}_{dstring}s"
-                        if not obj.image.modality in dtypes:
+                        if obj.image.modality not in dtypes:
                             dtypes[obj.image.modality] = []
                             setattr(study, datastore, [])
                         dtypes[obj.image.modality].append(obj)
@@ -1289,7 +1381,7 @@ class Patient(skrt.core.PathData):
                         del dtypes[dcm_modality]
 
     def link_study_data_to_patient(self):
-        '''Add to data objects a reference to the associated patient object.'''
+        """Add to data objects a reference to the associated patient object."""
 
         categories = set()
 
@@ -1303,10 +1395,11 @@ class Patient(skrt.core.PathData):
             for obj in self.combined_objs(category):
                 obj.patient = self
 
-    def add_study(self, subdir='', timestamp=None, images=None, 
-                  image_type="ct"):
-        '''Add a new study.'''
-    
+    def add_study(
+        self, subdir="", timestamp=None, images=None, image_type="ct"
+    ):
+        """Add a new study."""
+
         # Create empty Study object
         s = Study("")
         s.subdir = subdir
@@ -1356,7 +1449,7 @@ class Patient(skrt.core.PathData):
         return files
 
     def combined_objs(self, attr, subdir=None):
-        '''
+        """
         Get list of objects across all studies associated with this patient.
 
         Optionally restrict to studies within a given sub-directory.
@@ -1371,15 +1464,15 @@ class Patient(skrt.core.PathData):
         subdir : str, default=None
             Subdirectory grouping studies.  If specified, only studies in this
             subdirectory are considered.
-        '''
+        """
         all_objs = []
         studies = self.get_subdir_studies(subdir) if subdir else self.studies
-        if attr.endswith('_types'):
-            dtype = attr.replace('_types', 's')
+        if attr.endswith("_types"):
+            dtype = attr.replace("_types", "s")
             for study in studies:
                 obj_types = getattr(study, attr, [])
                 for obj_type in sorted(obj_types):
-                    all_objs.extend(getattr(study, f'{obj_type}_{dtype}'))
+                    all_objs.extend(getattr(study, f"{obj_type}_{dtype}"))
         else:
             for study in studies:
                 objs = getattr(study, attr, None)
@@ -1389,7 +1482,7 @@ class Patient(skrt.core.PathData):
         return all_objs
 
     def combined_types(self, cls, subdir=None):
-        '''
+        """
         Get list of object types across all studies, for a given class.
 
         Optionally restrict to studies within a given sub-directory.
@@ -1403,20 +1496,20 @@ class Patient(skrt.core.PathData):
         subdir : str, default=None
             Subdirectory grouping studies.  If specified, only studies in this
             subdirectory are considered.
-        '''
+        """
         all_types = []
         studies = self.get_subdir_studies(subdir) if subdir else self.studies
         for study in studies:
-            obj_types = getattr(study, f'{cls.lower()}_types', [])
+            obj_types = getattr(study, f"{cls.lower()}_types", [])
             for obj_type in sorted(obj_types):
-                if not obj_type in all_types:
+                if obj_type not in all_types:
                     all_types.append(obj_type)
 
         all_types.sort()
         return all_types
 
     def get_studies(self, subdirs=None):
-        '''
+        """
         Get list of studies for this patient.
 
         Optionally restrict to studies within specified sub-directories.
@@ -1427,19 +1520,20 @@ class Patient(skrt.core.PathData):
             Subdirectory, or list of subdirectories, grouping studies.
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
-        '''
+        """
         if subdirs:
             if isinstance(subdirs, str):
                 subdirs = [subdirs]
-            studies = [study for study in self.studies
-                       if study.subdir in subdirs]
+            studies = [
+                study for study in self.studies if study.subdir in subdirs
+            ]
         else:
             studies = self.studies
 
         return sorted(studies)
 
     def get_objs(self, dtype, subtypes=None, associations=None, subdirs=None):
-        '''
+        """
         Get list of patient-associated objects of specified type and subtype(s).
 
         Objects may be taken across all studies, or across studies within
@@ -1470,9 +1564,16 @@ class Patient(skrt.core.PathData):
             Subdirectory, or list of subdirectories, grouping studies.
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
-        '''
-        return sorted(sum([study.get_objs(dtype, subtypes, associations)
-                    for study in self.get_studies(subdirs)], []))
+        """
+        return sorted(
+            sum(
+                [
+                    study.get_objs(dtype, subtypes, associations)
+                    for study in self.get_studies(subdirs)
+                ],
+                [],
+            )
+        )
 
     def get_images(self, subtypes=None, associations=None, subdirs=None):
         """
@@ -1502,8 +1603,9 @@ class Patient(skrt.core.PathData):
         """
         return self.get_objs("image", subtypes, associations, subdirs)
 
-    def get_structure_sets(self, subtypes=None, associations=None,
-                           subdirs=None):
+    def get_structure_sets(
+        self, subtypes=None, associations=None, subdirs=None
+    ):
         """
         Get list of patient-associated structure sets of specified subtype(s).
 
@@ -1593,9 +1695,15 @@ class Patient(skrt.core.PathData):
         return self.get_objs("plan", subtypes, associations, subdirs)
 
     def get_structure_set_with_image(
-            self, roi_names=None, modality=None, study_index=None,
-            structure_set_index=None, filter_rois=False, link_image=False,
-            clone=False):
+        self,
+        roi_names=None,
+        modality=None,
+        study_index=None,
+        structure_set_index=None,
+        filter_rois=False,
+        link_image=False,
+        clone=False,
+    ):
         """
         Get structure set containing specified ROIs, and with an
         associated image of a given modality.
@@ -1664,7 +1772,8 @@ class Patient(skrt.core.PathData):
                          if ss.image is not None])
             """
             structure_sets = study.get_structure_sets(
-                    subtypes=modality, associations="image")
+                subtypes=modality, associations="image"
+            )
             if not structure_sets:
                 continue
             if structure_set_index is not None:
@@ -1709,10 +1818,10 @@ class Patient(skrt.core.PathData):
             # Preferentially choose first CT scan.
             image_types = list(self.studies[0].image_types.keys())
             if image_types:
-                image_type = 'ct' if 'ct' in image_types else image_types[0]
-                obj = getattr(
-                    self.studies[0],
-                    f"{image_type.lower()}_images")[0]
+                image_type = "ct" if "ct" in image_types else image_types[0]
+                obj = getattr(self.studies[0], f"{image_type.lower()}_images")[
+                    0
+                ]
 
         # Read demographic info from the object
         if obj and obj.files:
@@ -1737,7 +1846,7 @@ class Patient(skrt.core.PathData):
 
         # Obtain age as an integer in years.
         if info["Age"]:
-            info["Age"] = int(info["Age"].strip('0').strip('Y'))
+            info["Age"] = int(info["Age"].strip("0").strip("Y"))
 
         # Store data
         self.age = info["Age"]
@@ -1750,7 +1859,7 @@ class Patient(skrt.core.PathData):
 
         (This will be missing, or approximate, in anonymised data.)
         """
-        if not hasattr(self, 'age'):
+        if not hasattr(self, "age"):
             self.load_demographics()
         return self.age
 
@@ -1758,7 +1867,7 @@ class Patient(skrt.core.PathData):
         """
         Get patient's sex.
         """
-        if not hasattr(self, 'sex'):
+        if not hasattr(self, "sex"):
             self.load_demographics()
         return self.sex
 
@@ -1768,7 +1877,7 @@ class Patient(skrt.core.PathData):
 
         (This will be missing, or incomplete, in anonymised data.)
         """
-        if not hasattr(self, 'birth_date'):
+        if not hasattr(self, "birth_date"):
             self.load_demographics()
         return self.birth_date
 
@@ -1794,10 +1903,19 @@ class Patient(skrt.core.PathData):
 
         return info
 
-    def get_info(self, collections=None, data_labels=None, image_types=None,
-            dose_types=None, plan_image_type=None, treatment_image_type=None,
-            min_delta=4, unit='hour', df=False):
-        '''
+    def get_info(
+        self,
+        collections=None,
+        data_labels=None,
+        image_types=None,
+        dose_types=None,
+        plan_image_type=None,
+        treatment_image_type=None,
+        min_delta=4,
+        unit="hour",
+        df=False,
+    ):
+        """
         Retrieve patient summary information.
 
         **Parameters:**
@@ -1840,21 +1958,21 @@ class Patient(skrt.core.PathData):
         df : bool, default=False
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
-        '''
+        """
         # Ensure that dictionary is defined for patient groupings.
         collections = collections or {}
 
         # Ensure that list is defined for data labels.
         if data_labels is None:
-            data_labels = ['image', 'structure_set', 'dose', 'plan']
+            data_labels = ["image", "structure_set", "dose", "plan"]
 
         # Ensure that list is defined for image_types.
         if image_types is None:
-            image_types = self.combined_types('image')
+            image_types = self.combined_types("image")
 
         # Ensure that list is defined for dose_types.
         if dose_types is None:
-            dose_types = self.combined_types('dose')
+            dose_types = self.combined_types("dose")
 
         # Create set combining image_types and dose_types.
         target_types = set(image_types).union(set(dose_types))
@@ -1863,10 +1981,10 @@ class Patient(skrt.core.PathData):
         info = {}
 
         # Store basic patient information.
-        info['id'] = self.id
-        info['birth_date'] = self.get_birth_date()
-        info['age'] = self.get_age()
-        info['sex'] = self.get_sex()
+        info["id"] = self.id
+        info["birth_date"] = self.get_birth_date()
+        info["age"] = self.get_age()
+        info["sex"] = self.get_sex()
 
         # Store information on patient groupings.
         info = {**info, **self.get_groupings(collections)}
@@ -1874,35 +1992,36 @@ class Patient(skrt.core.PathData):
         # Store plan information.
         # Information is taken from the earliest plan file,
         # in the earliest study containing a plan file.
-        info['plan_name'] = None
-        info['plan_description'] = None
-        info['plan_prescription_description'] = None
-        info['plan_fraction'] = None
-        info['plan_target_dose'] = None
-        info['plan_targets'] = None
-        info['plan_organs_at_risk'] = None
+        info["plan_name"] = None
+        info["plan_description"] = None
+        info["plan_prescription_description"] = None
+        info["plan_fraction"] = None
+        info["plan_target_dose"] = None
+        info["plan_targets"] = None
+        info["plan_organs_at_risk"] = None
         for study in self.studies:
-            if hasattr(study, 'plan_types') and study.plan_types:
+            if hasattr(study, "plan_types") and study.plan_types:
                 plan_type = sorted(list(study.plan_types.keys()))[0]
                 plan = study.plan_types[plan_type][0]
                 plan.load()
-                info['plan_name'] = plan.name
-                info['plan_description'] = plan.description
-                info['plan_prescription_description'] = (
-                        plan.prescription_description)
-                info['plan_fraction'] = plan.n_fraction
-                info['plan_target_dose'] = plan.target_dose
+                info["plan_name"] = plan.name
+                info["plan_description"] = plan.description
+                info[
+                    "plan_prescription_description"
+                ] = plan.prescription_description
+                info["plan_fraction"] = plan.n_fraction
+                info["plan_target_dose"] = plan.target_dose
                 if skrt.core.is_list(plan.targets):
-                    info['plan_targets'] = len(plan.targets)
+                    info["plan_targets"] = len(plan.targets)
                 if skrt.core.is_list(plan.organs_at_risk):
-                    info['plan_organs_at_risk'] = len(plan.organs_at_risk)
+                    info["plan_organs_at_risk"] = len(plan.organs_at_risk)
                 break
 
         # Store information about all data types, across all studies.
-        info['n_study'] = len(self.studies)
+        info["n_study"] = len(self.studies)
         for study in self.studies:
             for data_label in data_labels:
-                type_label = f'{data_label}_types'
+                type_label = f"{data_label}_types"
                 data_types = getattr(study, type_label, None)
                 if data_types:
                     # For each data type, store information on:
@@ -1915,24 +2034,25 @@ class Patient(skrt.core.PathData):
                     for data_type, objs in sorted(data_types.items()):
                         if data_type not in target_types:
                             continue
-                        file_label = f'{data_label}_{data_type}_file'
-                        size_label = f'{data_label}_{data_type}_size'
-                        obj_label = f'{data_label}_{data_type}_obj'
-                        dose_label = f'{data_label}_{data_type}_max'
-                        if not file_label in info:
+                        file_label = f"{data_label}_{data_type}_file"
+                        size_label = f"{data_label}_{data_type}_size"
+                        obj_label = f"{data_label}_{data_type}_obj"
+                        dose_label = f"{data_label}_{data_type}_max"
+                        if file_label not in info:
                             info[file_label] = 0
-                        if not size_label in info:
+                        if size_label not in info:
                             info[size_label] = 0
-                        if 'image' == data_label:
+                        if "image" == data_label:
                             if obj_label not in info:
                                 info[obj_label] = 0
                             info[obj_label] += len(objs)
-                        if 'dose' == data_label:
+                        if "dose" == data_label:
                             if dose_label not in info:
                                 info[dose_label] = 0
                             for obj in objs:
-                               info[dose_label] = max(
-                                       info[dose_label], obj.get_max())
+                                info[dose_label] = max(
+                                    info[dose_label], obj.get_max()
+                                )
                         for obj in objs:
                             info[file_label] += obj.get_n_file()
                             info[size_label] += obj.get_file_size()
@@ -1940,116 +2060,141 @@ class Patient(skrt.core.PathData):
         # Create lists of Image objects for planning and for treatment,
         # and list of StructureSet objects for planning.
         if plan_image_type:
-            plan_images = self.combined_objs(f'{plan_image_type}_images')
+            plan_images = self.combined_objs(f"{plan_image_type}_images")
             plan_structure_sets = self.combined_objs(
-                    f'{plan_image_type}_structure_sets')
+                f"{plan_image_type}_structure_sets"
+            )
         else:
             plan_images = None
             plan_structure_sets = None
         if treatment_image_type:
             treatment_images = self.combined_objs(
-                    f'{treatment_image_type}_images')
+                f"{treatment_image_type}_images"
+            )
         else:
             treatment_images = None
 
         # Store number of ROIs outlined on planning scan.
         if plan_structure_sets:
-            info['plan_image_rois'] = len(plan_structure_sets[0].get_rois())
+            info["plan_image_rois"] = len(plan_structure_sets[0].get_rois())
         else:
-            info['plan_image_rois'] = None
+            info["plan_image_rois"] = None
 
         # Store time of image used for plan creation.
         if plan_images:
-            info['plan_image_time'] = plan_images[0].get_pandas_timestamp()
-            info['plan_image_day'] = info['plan_image_time'].isoweekday()
+            info["plan_image_time"] = plan_images[0].get_pandas_timestamp()
+            info["plan_image_day"] = info["plan_image_time"].isoweekday()
         else:
-            info['plan_image_time'] = None
-            info['plan_image_day'] = None
-        info['plan_image_year'] = skrt.core.year_fraction(
-                info['plan_image_time']) 
+            info["plan_image_time"] = None
+            info["plan_image_day"] = None
+        info["plan_image_year"] = skrt.core.year_fraction(
+            info["plan_image_time"]
+        )
 
         # Store time of plan creation.
-        if info['plan_fraction'] is not None:
-            info['plan_time'] = plan.get_pandas_timestamp()
-            info['plan_day'] = info['plan_time'].isoweekday()
+        if info["plan_fraction"] is not None:
+            info["plan_time"] = plan.get_pandas_timestamp()
+            info["plan_day"] = info["plan_time"].isoweekday()
         else:
-            info['plan_time'] = None
-            info['plan_day'] = None
-        info['plan_year'] = skrt.core.year_fraction(
-                info['plan_time']) 
+            info["plan_time"] = None
+            info["plan_day"] = None
+        info["plan_year"] = skrt.core.year_fraction(info["plan_time"])
 
         # Store number of days from planning image to plan creation.
-        info['days_plan_image_to_plan'] = (
-                skrt.core.get_interval_in_days(
-                info['plan_image_time'], info['plan_time']))
-        info['whole_days_plan_image_to_plan'] = (
-                skrt.core.get_interval_in_whole_days(
-                info['plan_image_time'], info['plan_time']))
+        info["days_plan_image_to_plan"] = skrt.core.get_interval_in_days(
+            info["plan_image_time"], info["plan_time"]
+        )
+        info[
+            "whole_days_plan_image_to_plan"
+        ] = skrt.core.get_interval_in_whole_days(
+            info["plan_image_time"], info["plan_time"]
+        )
 
         # Store times of first and last treatment images.
         if treatment_images:
-            info['treatment_start'] = treatment_images[0].get_pandas_timestamp()
-            info['treatment_end'] = treatment_images[-1].get_pandas_timestamp()
-            info['treatment_start_day'] = info['treatment_start'].isoweekday()
-            info['treatment_end_day'] = info['treatment_end'].isoweekday()
+            info["treatment_start"] = treatment_images[0].get_pandas_timestamp()
+            info["treatment_end"] = treatment_images[-1].get_pandas_timestamp()
+            info["treatment_start_day"] = info["treatment_start"].isoweekday()
+            info["treatment_end_day"] = info["treatment_end"].isoweekday()
         else:
-            info['treatment_start'] = None
-            info['treatment_end'] = None
-            info['treatment_start_day'] = None
-            info['treatment_end_day'] = None
-        info['treatment_start_year'] = skrt.core.year_fraction(
-                info['treatment_start']) 
-        info['treatment_end_year'] = skrt.core.year_fraction(
-                info['treatment_end']) 
+            info["treatment_start"] = None
+            info["treatment_end"] = None
+            info["treatment_start_day"] = None
+            info["treatment_end_day"] = None
+        info["treatment_start_year"] = skrt.core.year_fraction(
+            info["treatment_start"]
+        )
+        info["treatment_end_year"] = skrt.core.year_fraction(
+            info["treatment_end"]
+        )
 
         # Store treatment duration.
-        info['days_treatment'] = skrt.core.get_interval_in_days(
-                info['treatment_start'], info['treatment_end'])
-        info['whole_days_treatment'] = skrt.core.get_interval_in_whole_days(
-                info['treatment_start'], info['treatment_end'])
+        info["days_treatment"] = skrt.core.get_interval_in_days(
+            info["treatment_start"], info["treatment_end"]
+        )
+        info["whole_days_treatment"] = skrt.core.get_interval_in_whole_days(
+            info["treatment_start"], info["treatment_end"]
+        )
 
         # Store number of days from planning to treatment start.
-        info['days_plan_to_treatment'] = (
-                skrt.core.get_interval_in_days(
-                info['plan_time'], info['treatment_start']))
-        info['whole_days_plan_to_treatment'] = (
-                skrt.core.get_interval_in_whole_days(
-                info['plan_time'], info['treatment_start']))
+        info["days_plan_to_treatment"] = skrt.core.get_interval_in_days(
+            info["plan_time"], info["treatment_start"]
+        )
+        info[
+            "whole_days_plan_to_treatment"
+        ] = skrt.core.get_interval_in_whole_days(
+            info["plan_time"], info["treatment_start"]
+        )
 
         # Store number of days from planning image to treatment start.
-        info['days_plan_image_to_treatment'] = (
-                skrt.core.get_interval_in_days(
-                info['plan_image_time'], info['treatment_start']))
-        info['whole_days_plan_image_to_treatment'] = (
-                skrt.core.get_interval_in_whole_days(
-                info['plan_image_time'], info['treatment_start']))
+        info["days_plan_image_to_treatment"] = skrt.core.get_interval_in_days(
+            info["plan_image_time"], info["treatment_start"]
+        )
+        info[
+            "whole_days_plan_image_to_treatment"
+        ] = skrt.core.get_interval_in_whole_days(
+            info["plan_image_time"], info["treatment_start"]
+        )
 
         # Check that intervals are consistent.
-        if (info['whole_days_plan_image_to_plan'] and
-                info['whole_days_plan_to_treatment'] and
-                info['whole_days_plan_image_to_treatment']):
-            assert (info['whole_days_plan_image_to_treatment'] ==
-                    info['whole_days_plan_image_to_plan'] +
-                    info['whole_days_plan_to_treatment'])
+        if (
+            info["whole_days_plan_image_to_plan"]
+            and info["whole_days_plan_to_treatment"]
+            and info["whole_days_plan_image_to_treatment"]
+        ):
+            assert (
+                info["whole_days_plan_image_to_treatment"]
+                == info["whole_days_plan_image_to_plan"]
+                + info["whole_days_plan_to_treatment"]
+            )
 
         # Filter to have images separated by a minimum amount of time.
         if plan_images:
             time_separated_plan_images = skrt.core.get_time_separated_objects(
-                    plan_images, min_delta=min_delta, unit=unit)
+                plan_images, min_delta=min_delta, unit=unit
+            )
 
         if treatment_images:
             time_separated_treatment_images = (
-                    skrt.core.get_time_separated_objects(
-                        treatment_images, min_delta=min_delta, unit=unit))
+                skrt.core.get_time_separated_objects(
+                    treatment_images, min_delta=min_delta, unit=unit
+                )
+            )
 
             # Store number of time-separated images.
-            info['n_treatment'] = len(time_separated_treatment_images)
+            info["n_treatment"] = len(time_separated_treatment_images)
 
-        return (pd.DataFrame([info]) if df else info)
+        return pd.DataFrame([info]) if df else info
 
-    def get_image_info(self, collections=None, image_types=None,
-            min_delta=4, unit='hour', df=False):
-        '''
+    def get_image_info(
+        self,
+        collections=None,
+        image_types=None,
+        min_delta=4,
+        unit="hour",
+        df=False,
+    ):
+        """
         Retrieve information about images.
 
         **Parameters:**
@@ -2081,75 +2226,88 @@ class Patient(skrt.core.PathData):
         df : bool, default=False
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
-        '''
+        """
         # Ensure that dictionary is defined for patient groupings.
         collections = collections or {}
 
         # Ensure that list is defined for image_types.
         if image_types is None:
-            image_types = self.combined_types('image')
+            image_types = self.combined_types("image")
 
         all_info = []
         for image_type in sorted(image_types):
-            image_label = f'{image_type.lower()}_images'
+            image_label = f"{image_type.lower()}_images"
             images = self.combined_objs(image_label)
             time_separated_images = skrt.core.get_time_separated_objects(
-                    images, min_delta=min_delta, unit=unit)
+                images, min_delta=min_delta, unit=unit
+            )
 
             time_last = None
             time_zero = time_separated_images[0].get_pandas_timestamp()
 
             for image in time_separated_images:
                 info = {}
-                info['id'] = self.id
+                info["id"] = self.id
                 info = {**info, **self.get_groupings(collections)}
-                info['modality'] = image_type
-                info['dx'], info['dy'], info['dz'] = image.get_size()
-                info['nx'], info['ny'], info['nz'] = image.get_n_voxels()
-                info['voxel_dx'], info['voxel_dy'], info['voxel_dz'] = (
-                        image.get_voxel_size())
+                info["modality"] = image_type
+                info["dx"], info["dy"], info["dz"] = image.get_size()
+                info["nx"], info["ny"], info["nz"] = image.get_n_voxels()
+                (
+                    info["voxel_dx"],
+                    info["voxel_dy"],
+                    info["voxel_dz"],
+                ) = image.get_voxel_size()
                 ds = image.get_dicom_dataset()
-                info['machine_manufacturer'] = ds.Manufacturer
-                info['machine_model'] = ds.ManufacturerModelName
-                info['station_name'] = getattr(ds, "StationName", None)
-                info['timestamp'] = image.get_pandas_timestamp()
-                info['day'] = None
-                info['hour_in_day'] = None
-                info['hour_in_week'] = None
-                info['time_delta'] = None
-                info['days_delta'] = None
-                info['whole_days_delta'] = None
-                info['days_total'] = None
-                info['whole_days_total'] = None
-                if info['timestamp']:
-                    info['day'] = info['timestamp'].isoweekday()
-                    info['hour_in_day'] = skrt.core.get_hour_in_day(
-                            info['timestamp'])
-                    info['hour_in_week'] = skrt.core.get_hour_in_week(
-                            info['timestamp'])
-                    info['day_in_week'] = skrt.core.get_day_in_week(
-                            info['timestamp'])
+                info["machine_manufacturer"] = ds.Manufacturer
+                info["machine_model"] = ds.ManufacturerModelName
+                info["station_name"] = getattr(ds, "StationName", None)
+                info["timestamp"] = image.get_pandas_timestamp()
+                info["day"] = None
+                info["hour_in_day"] = None
+                info["hour_in_week"] = None
+                info["time_delta"] = None
+                info["days_delta"] = None
+                info["whole_days_delta"] = None
+                info["days_total"] = None
+                info["whole_days_total"] = None
+                if info["timestamp"]:
+                    info["day"] = info["timestamp"].isoweekday()
+                    info["hour_in_day"] = skrt.core.get_hour_in_day(
+                        info["timestamp"]
+                    )
+                    info["hour_in_week"] = skrt.core.get_hour_in_week(
+                        info["timestamp"]
+                    )
+                    info["day_in_week"] = skrt.core.get_day_in_week(
+                        info["timestamp"]
+                    )
                     if time_last is not None:
-                        info['time_delta'] = info['timestamp'] - time_last
+                        info["time_delta"] = info["timestamp"] - time_last
                     else:
-                        info['time_delta'] = None
-                    info['days_delta'] = skrt.core.get_interval_in_days(
-                            time_last, info['timestamp'])
-                    info['whole_days_delta'] = (
-                            skrt.core.get_interval_in_whole_days(
-                                time_last, info['timestamp']))
-                    time_last = info['timestamp']
-                    info['days_total'] = skrt.core.get_interval_in_days(
-                            time_zero, info['timestamp'])
-                    info['whole_days_total'] = (
-                            skrt.core.get_interval_in_whole_days(
-                                time_zero, info['timestamp']))
+                        info["time_delta"] = None
+                    info["days_delta"] = skrt.core.get_interval_in_days(
+                        time_last, info["timestamp"]
+                    )
+                    info[
+                        "whole_days_delta"
+                    ] = skrt.core.get_interval_in_whole_days(
+                        time_last, info["timestamp"]
+                    )
+                    time_last = info["timestamp"]
+                    info["days_total"] = skrt.core.get_interval_in_days(
+                        time_zero, info["timestamp"]
+                    )
+                    info[
+                        "whole_days_total"
+                    ] = skrt.core.get_interval_in_whole_days(
+                        time_zero, info["timestamp"]
+                    )
                 all_info.append(info)
 
-        return (pd.DataFrame(all_info) if df else all_info)
+        return pd.DataFrame(all_info) if df else all_info
 
     def get_dose_info(self, collections=None, dose_types=None, df=False):
-        '''
+        """
         Retrieve information about dose.
 
         **Parameters:**
@@ -2170,45 +2328,49 @@ class Patient(skrt.core.PathData):
         df : bool, default=False
             If False, return summary information as a dictionary.
             If True, return summary information as a pandas dataframe.
-        '''
+        """
         # Ensure that dictionary is defined for patient groupings.
         collections = collections or {}
 
         # Ensure that list is defined for dose_types.
         if dose_types is None:
-            dose_types = self.combined_types('dose')
+            dose_types = self.combined_types("dose")
 
         all_info = []
         for dose_type in sorted(dose_types):
-            dose_label = f'{dose_type.lower()}_doses'
+            dose_label = f"{dose_type.lower()}_doses"
             doses = self.combined_objs(dose_label)
             for dose in sorted(doses):
                 dose.load()
                 info = {}
-                info['id'] = self.id
+                info["id"] = self.id
                 info = {**info, **self.get_groupings(collections)}
-                info['timestamp'] = dose.get_pandas_timestamp()
-                info['day'] = (info['timestamp'].isoweekday()
-                        if info['timestamp'] else None)
-                info['dose_summation_type'] = dose.get_dose_summation_type()
-                info['dose_max'] = dose.get_max()
-                info['dose_units'] = dose.get_dose_units()
-                info['dose_type'] = dose.get_dose_type()
-                info['linked_plan'] = hasattr(dose, 'plan')
-                info['modality'] = dose_type
-                if hasattr(dose, 'plan'):
-                    info['linked_plan_status'] = dose.plan.get_approval_status()
-                    info['linked_plan_fraction'] = dose.plan.get_n_fraction()
+                info["timestamp"] = dose.get_pandas_timestamp()
+                info["day"] = (
+                    info["timestamp"].isoweekday()
+                    if info["timestamp"]
+                    else None
+                )
+                info["dose_summation_type"] = dose.get_dose_summation_type()
+                info["dose_max"] = dose.get_max()
+                info["dose_units"] = dose.get_dose_units()
+                info["dose_type"] = dose.get_dose_type()
+                info["linked_plan"] = hasattr(dose, "plan")
+                info["modality"] = dose_type
+                if hasattr(dose, "plan"):
+                    info["linked_plan_status"] = dose.plan.get_approval_status()
+                    info["linked_plan_fraction"] = dose.plan.get_n_fraction()
                 else:
-                    info['linked_plan_status'] = None
-                    info['linked_plan_fraction'] = None
+                    info["linked_plan_status"] = None
+                    info["linked_plan_fraction"] = None
                 all_info.append(info)
 
-        return (pd.DataFrame(all_info) if df else all_info)
+        return pd.DataFrame(all_info) if df else all_info
 
-    def get_plan_info(self, collections=None, plan_types=None,
-            df=False, plan_filter=None):
-        '''
+    def get_plan_info(
+        self, collections=None, plan_types=None, df=False, plan_filter=None
+    ):
+        """
         Retrieve information about treatment plans.
 
         **Parameters:**
@@ -2236,51 +2398,55 @@ class Patient(skrt.core.PathData):
             - "first_of_each_type" : retrieve information only for the
               first plan found of each type;
             - any other value : no filtering.
-        '''
+        """
         # Ensure that dictionary is defined for patient groupings.
         collections = collections or {}
 
         # Ensure that list is defined for plan_types.
         if plan_types is None:
-            plan_types = self.combined_types('plan')
+            plan_types = self.combined_types("plan")
 
         all_info = []
         for plan_type in sorted(plan_types):
-            plan_label = f'{plan_type.lower()}_plans'
+            plan_label = f"{plan_type.lower()}_plans"
             plans = self.combined_objs(plan_label)
             for plan in sorted(plans):
                 plan.load()
                 info = {}
-                info['id'] = self.id
+                info["id"] = self.id
                 info = {**info, **self.get_groupings(collections)}
-                info['timestamp'] = plan.get_pandas_timestamp()
-                info['day'] = (info['timestamp'].isoweekday()
-                        if info['timestamp'] else None)
-                info['modality'] = plan_type
-                info['plan_name'] = plan.get_name()
-                info['plan_description'] = plan.get_description()
-                info['plan_prescription_description'] = (
-                        plan.get_prescription_description())
-                info['plan_fraction'] = plan.get_n_fraction()
-                info['plan_target_dose'] = plan.get_target_dose()
-                info['plan_status'] = plan.get_approval_status()
-                info['linked_doses'] = len(plan.doses)
+                info["timestamp"] = plan.get_pandas_timestamp()
+                info["day"] = (
+                    info["timestamp"].isoweekday()
+                    if info["timestamp"]
+                    else None
+                )
+                info["modality"] = plan_type
+                info["plan_name"] = plan.get_name()
+                info["plan_description"] = plan.get_description()
+                info[
+                    "plan_prescription_description"
+                ] = plan.get_prescription_description()
+                info["plan_fraction"] = plan.get_n_fraction()
+                info["plan_target_dose"] = plan.get_target_dose()
+                info["plan_status"] = plan.get_approval_status()
+                info["linked_doses"] = len(plan.doses)
 
                 dose_summation_types = []
                 max_doses = []
                 for dose in plan.doses:
                     dose_summation_types.append(dose.get_dose_summation_type())
                     max_doses.append(dose.get_max())
-                info['linked_dose_summation_type'] = (
-                        '_'.join(dose_summation_types))
+                info["linked_dose_summation_type"] = "_".join(
+                    dose_summation_types
+                )
                 if not max_doses:
-                    info['linked_dose_max'] = None
+                    info["linked_dose_max"] = None
                 elif len(max_doses) == 1:
-                    info['linked_dose_max'] = max_doses[0]
+                    info["linked_dose_max"] = max_doses[0]
                 else:
-                    max_doses = [f'{max_dose:.4f}'
-                            for max_dose in max_doses]
-                    info['linked_dose_max'] = '_'.join(max_doses)
+                    max_doses = [f"{max_dose:.4f}" for max_dose in max_doses]
+                    info["linked_dose_max"] = "_".join(max_doses)
 
                 all_info.append(info)
 
@@ -2289,11 +2455,18 @@ class Patient(skrt.core.PathData):
             if "first_only" == plan_filter:
                 break
 
-        return (pd.DataFrame(all_info) if df else all_info)
+        return pd.DataFrame(all_info) if df else all_info
 
-    def get_structure_set_info(self, collections=None, roi_names=None,
-            ss_types=None, df=False, ss_filter=None, origin=None):
-        '''
+    def get_structure_set_info(
+        self,
+        collections=None,
+        roi_names=None,
+        ss_types=None,
+        df=False,
+        ss_filter=None,
+        origin=None,
+    ):
+        """
         Retrieve information about structure sets.
 
         **Parameters:**
@@ -2307,7 +2480,7 @@ class Patient(skrt.core.PathData):
             in data paths.  If None, an empty dictionary is used.
 
         roi_names : dict, default=None
-            Dictionary of names for renaming ROIs, where the keys are new 
+            Dictionary of names for renaming ROIs, where the keys are new
             names and values are lists of possible names of ROIs that should
             be assigned the new name. These names can also contain wildcards
             with the '*' symbol.  Infomration is retrieved only relative to
@@ -2347,32 +2520,33 @@ class Patient(skrt.core.PathData):
               for the associated image.
 
             If None, then (0, 0, 0) is used.
-        '''
+        """
         # Ensure that dictionary is defined for patient groupings.
         collections = collections or {}
 
         # Ensure that list is defined for ss_types.
         if ss_types is None:
-            ss_types = self.combined_types('structure_set')
+            ss_types = self.combined_types("structure_set")
 
         # Set sort order so that if information is to be retrieved
         # only for the first of last structure set then this
         # will be first in the list.
-        reverse = (True if ss_filter in
-                ["last_only", "last_of_each_type"] else False)
+        reverse = (
+            True if ss_filter in ["last_only", "last_of_each_type"] else False
+        )
 
         labels = {0: "min", 1: "max"}
         all_info = []
         for ss_type in sorted(ss_types):
-            ss_label = f'{ss_type.lower()}_structure_sets'
+            ss_label = f"{ss_type.lower()}_structure_sets"
             structure_sets = self.combined_objs(ss_label)
             for ss in sorted(structure_sets, reverse=reverse):
                 ss.load()
                 info = {}
-                info['id'] = self.id
+                info["id"] = self.id
                 info = {**info, **self.get_groupings(collections)}
-                info['timestamp'] = ss.get_pandas_timestamp()
-                info['modality'] = ss_type
+                info["timestamp"] = ss.get_pandas_timestamp()
+                info["modality"] = ss_type
 
                 # Optionally filter, to have only specified ROIs.
                 if roi_names:
@@ -2380,7 +2554,7 @@ class Patient(skrt.core.PathData):
                 else:
                     roi_names = sorted(ss.get_roi_names())
 
-                info['n_roi'] = len(ss.get_roi_names())
+                info["n_roi"] = len(ss.get_roi_names())
 
                 # Determine foreground centroid of associated image.
                 if "foreground_centroid" == origin and ss.image:
@@ -2389,7 +2563,8 @@ class Patient(skrt.core.PathData):
                 # Add information on structure-set extents.
                 if not isinstance(origin, str):
                     for idx, extents in enumerate(
-                            ss.get_extents(origin=origin)):
+                        ss.get_extents(origin=origin)
+                    ):
                         for jdx, label in labels.items():
                             info[f"{_axes[idx]}_{label}"] = extents[jdx]
                         info[f"d{_axes[idx]}"] = extents[1] - extents[0]
@@ -2405,10 +2580,20 @@ class Patient(skrt.core.PathData):
             if ss_filter in ["first_only", "last_only"]:
                 break
 
-        return (pd.DataFrame(all_info) if df else all_info)
+        return pd.DataFrame(all_info) if df else all_info
 
-    def get_dose_sum(self, strategies=[("FRACTION", "PLAN",), ("BEAM",)],
-            set_image=True, force=False):
+    def get_dose_sum(
+        self,
+        strategies=[
+            (
+                "FRACTION",
+                "PLAN",
+            ),
+            ("BEAM",),
+        ],
+        set_image=True,
+        force=False,
+    ):
         """
         Get dose summed over dose objects.
 
@@ -2449,8 +2634,11 @@ class Patient(skrt.core.PathData):
 
         # Try to sum doses using defined strategies.
         for strategy in strategies:
-            filtered_doses = [dose for dose in doses
-                if dose.get_dose_summation_type() in strategy]
+            filtered_doses = [
+                dose
+                for dose in doses
+                if dose.get_dose_summation_type() in strategy
+            ]
 
             if filtered_doses:
                 self.dose_sum = sum_doses(filtered_doses)
@@ -2511,10 +2699,10 @@ class Patient(skrt.core.PathData):
                 break
         return last
 
-    def copy(self, outdir='.', to_keep='all', overwrite=True,
-            structure_set='all'):
-
-        '''
+    def copy(
+        self, outdir=".", to_keep="all", overwrite=True, structure_set="all"
+    ):
+        """
         Copy patient dataset, with optional filtering.
 
         **Parameters:**
@@ -2534,17 +2722,17 @@ class Patient(skrt.core.PathData):
             in the output directory before copying.
 
         structure_set : str/int/list, default = 'all'
-            Select structure set(s) to copy.  If 'all', all structure sets 
+            Select structure set(s) to copy.  If 'all', all structure sets
             are copied.  If an integer or list of integers, a sorted list
             of structure sets for each image set is created, and only
             structure sets at the indicated positions in this list are
             copied.  For example, structure_set=[0, -1] would result
             in the first and last structure sets being copied.
-        '''
+        """
         # Ensure that structure_set is a list or 'all'.
         if isinstance(structure_set, int):
             structure_set = [structure_set]
-        if not isinstance(structure_set, list) and 'all' != structure_set:
+        if not isinstance(structure_set, list) and "all" != structure_set:
             structure_set = []
 
         # Define output patient directory, and ensure that it exists.
@@ -2555,13 +2743,12 @@ class Patient(skrt.core.PathData):
         patient_dir.mkdir(parents=True, exist_ok=True)
 
         for study in self.studies:
-
             # Define output study directory, and ensure that it exists.
             study_dir = patient_dir / study.subdir / study.timestamp
             study_dir.mkdir(parents=True, exist_ok=True)
 
             # Easy case: copy everything in the study directory.
-            if 'all' == to_keep:
+            if "all" == to_keep:
                 shutil.copytree(study.path, str(study_dir), dirs_exist_ok=True)
 
             else:
@@ -2574,18 +2761,21 @@ class Patient(skrt.core.PathData):
                     outdir.mkdir(parents=True, exist_ok=True)
                     # Copy everything if this isn't an RTSTRUCT directory
                     # to which selection is to be applied.
-                    if ((not str(subdir).startswith('RTSTRUCT'))
-                            or 'all' == structure_set):
-                        shutil.copytree(str(indir), str(outdir),
-                                dirs_exist_ok=True)
+                    if (
+                        not str(subdir).startswith("RTSTRUCT")
+                    ) or "all" == structure_set:
+                        shutil.copytree(
+                            str(indir), str(outdir), dirs_exist_ok=True
+                        )
                     else:
                         # Subdirectories from which RTSTRUCT data
                         # are to be copied may be specified as any of:
                         # 'RTSTRUCT', 'RTSTRUCT/<modality>',
                         # 'RTSTRUCT/<modality>/<timestamp>'.
                         # Code tries to allow for any of these.
-                        elements = str(subdir).strip(os.path.sep).split(
-                                os.path.sep)
+                        elements = (
+                            str(subdir).strip(os.path.sep).split(os.path.sep)
+                        )
                         rtstruct_indir = Path(study.path) / elements[0]
                         rtstruct_outdir = study_dir / elements[0]
 
@@ -2607,8 +2797,7 @@ class Patient(skrt.core.PathData):
                                 ss_indir = modality_indir / timestamp
 
                                 # Identify structure sets for copying.
-                                structure_sets = list(ss_indir.iterdir())
-                                structure_sets.sort()
+                                structure_sets = sorted(ss_indir.iterdir())
                                 ss_to_copy = []
                                 for i in structure_set:
                                     try:
@@ -2633,8 +2822,8 @@ class Patient(skrt.core.PathData):
         to_ignore=None,
         overwrite=True,
         structure_set="all",
-        dose='all',
-        root_uid=None
+        dose="all",
+        root_uid=None,
     ):
         """Write files tree."""
 
@@ -2652,17 +2841,13 @@ class Patient(skrt.core.PathData):
             to_ignore = []
 
         for study in self.studies:
-
             # Make study directory
-            study_dir = os.path.join(
-                patient_dir, study.subdir, study.timestamp
-            )
+            study_dir = os.path.join(patient_dir, study.subdir, study.timestamp)
             if not os.path.exists(study_dir):
                 os.makedirs(study_dir)
 
             # Loop through image types
             for image_type in study.image_types:
-
                 if image_type in to_ignore:
                     continue
 
@@ -2672,7 +2857,6 @@ class Patient(skrt.core.PathData):
 
                 # Write all images of this image type
                 for im in getattr(study, f"{image_type.lower()}_images"):
-
                     # Make directory for this image
                     if im.path:
                         im_timestamp = os.path.basename(im.path)
@@ -2687,27 +2871,57 @@ class Patient(skrt.core.PathData):
                         outname = f"{im_dir}{ext}"
                     if os.path.exists(outname) and not overwrite:
                         continue
-                    Image.write(im, outname, patient_id=self.id,
-                                modality=image_type.upper(), root_uid=root_uid)
+                    Image.write(
+                        im,
+                        outname,
+                        patient_id=self.id,
+                        modality=image_type.upper(),
+                        root_uid=root_uid,
+                    )
 
                     # Write associated structure sets
-                    self.write_non_image_data(im, image_type, im_timestamp,
-                            'structure_sets', 'RTSTRUCT', structure_set,
-                            study_dir, overwrite, ext)
+                    self.write_non_image_data(
+                        im,
+                        image_type,
+                        im_timestamp,
+                        "structure_sets",
+                        "RTSTRUCT",
+                        structure_set,
+                        study_dir,
+                        overwrite,
+                        ext,
+                    )
 
                     # Write associated doses
-                    self.write_non_image_data(im, image_type, im_timestamp,
-                            'doses', 'RTDOSE', dose, study_dir, overwrite, ext)
+                    self.write_non_image_data(
+                        im,
+                        image_type,
+                        im_timestamp,
+                        "doses",
+                        "RTDOSE",
+                        dose,
+                        study_dir,
+                        overwrite,
+                        ext,
+                    )
 
-    def write_non_image_data(self, im=None, image_type=None, im_timestamp=None,
-            items=None, modality=None, selection=None, outdir='.',
-            overwrite=True, ext='.dcm'):
-
+    def write_non_image_data(
+        self,
+        im=None,
+        image_type=None,
+        im_timestamp=None,
+        items=None,
+        modality=None,
+        selection=None,
+        outdir=".",
+        overwrite=True,
+        ext=".dcm",
+    ):
         if not ext.startswith("."):
             ext = f".{ext}"
 
         # Find data to write
-        im_get_items = getattr(im, f'get_{items}')
+        im_get_items = getattr(im, f"get_{items}")
         if selection == "all":
             items_to_write = im_get_items()
         elif selection is None:
@@ -2717,42 +2931,43 @@ class Patient(skrt.core.PathData):
         elif skrt.core.is_list(selection):
             items_to_write = [im_get_items()[i] for i in items]
         else:
-            raise TypeError('Unrecognised {items} selection: {selection}')
+            raise TypeError("Unrecognised {items} selection: {selection}")
 
         # Write structure sets for this image
         for item in items_to_write:
-
-        # Find path to output structure directory
+            # Find path to output structure directory
             if modality in str(item.path):
                 item_subpath = item.path.split(modality, 1)[1].strip(
-                        os.path.sep)
+                    os.path.sep
+                )
                 item_dir = os.path.join(outdir, modality, item_subpath)
             else:
                 item_dir = os.path.join(
-                        outdir, modality, image_type.upper(), im_timestamp)
-            filename = f'{modality}_{item.timestamp}'
+                    outdir, modality, image_type.upper(), im_timestamp
+                )
+            filename = f"{modality}_{item.timestamp}"
 
             # Ensure it exists
             if not os.path.exists(item_dir):
                 os.makedirs(item_dir)
 
             # Write dicom structure set
-            if ext == '.dcm':
+            if ext == ".dcm":
                 if not os.path.exists(item_dir) or overwrite:
-                    if not filename.endswith('.dcm'):
-                        filename = f'{filename}.dcm'
-                    if modality == 'RTSTRUCT':
+                    if not filename.endswith(".dcm"):
+                        filename = f"{filename}.dcm"
+                    if modality == "RTSTRUCT":
                         item.write(outname=filename, outdir=item_dir)
                     else:
                         item_path = os.path.join(item_dir, filename)
                         item.write(outname=item_path)
             # Write ROIs to individual files
-            elif 'RTSTRUCT' == modality:
+            elif "RTSTRUCT" == modality:
                 item.write(outdir=item_dir, ext=ext)
 
-
-    def copy_dicom(self, outdir=".", studies_to_copy=None, overwrite=True,
-            **kwargs):
+    def copy_dicom(
+        self, outdir=".", studies_to_copy=None, overwrite=True, **kwargs
+    ):
         """
         Copy patient dicom data.
 
@@ -2783,14 +2998,15 @@ class Patient(skrt.core.PathData):
             For details, see this method's documentation.
         """
         # Define patient output directory.
-        patient_dir = skrt.core.make_dir(Path(fullpath(outdir)) / self.id,
-                overwrite=overwrite)
+        patient_dir = skrt.core.make_dir(
+            Path(fullpath(outdir)) / self.id, overwrite=overwrite
+        )
 
         # If studies_to_copy is None, set to select all studies.
         if studies_to_copy is None:
             studies_to_copy = {}
             for idx, study in enumerate(self.studies):
-                if not study.subdir in studies_to_copy:
+                if study.subdir not in studies_to_copy:
                     studies_to_copy[study.subdir] = []
                 studies_to_copy[study.subdir].append(idx)
         elif not isinstance(studies_to_copy, dict):
@@ -2801,8 +3017,12 @@ class Patient(skrt.core.PathData):
             for study in get_indexed_objs(self.studies, indices):
                 # Overwriting taken into account at patient level,
                 # so don't overwrite at study level.
-                study.copy_dicom(outdir=patient_dir / group / study.timestamp,
-                        overwrite=False, **kwargs)
+                study.copy_dicom(
+                    outdir=patient_dir / group / study.timestamp,
+                    overwrite=False,
+                    **kwargs,
+                )
+
 
 def find_matching_object(obj, possible_matches):
     """For a given object <obj> and a list of potential matching objects
@@ -2823,32 +3043,36 @@ def find_matching_object(obj, possible_matches):
     if issubclass(type(obj), Dose):
         # ds_obj = obj.get_dicom_dataset()
         ds_obj = pydicom.dcmread(obj.path, force=True)
-        if hasattr(ds_obj, 'ReferencedImageSequence'):
+        if hasattr(ds_obj, "ReferencedImageSequence"):
             # Omit part of UID after final dot,
             # to be insenstive to slice/frame considered.
-            referenced_sop_instance_uid = '.'.join(
-                    ds_obj.ReferencedImageSequence[-1]
-                    .ReferencedSOPInstanceUID.split('.')[:-1])
+            referenced_sop_instance_uid = ".".join(
+                ds_obj.ReferencedImageSequence[
+                    -1
+                ].ReferencedSOPInstanceUID.split(".")[:-1]
+            )
             for match in possible_matches:
                 # ds_match = match.get_dicom_dataset()
                 ds_match = pydicom.dcmread(match.files[0].path, force=True)
-                if hasattr(ds_match, 'SOPInstanceUID'):
-                    sop_instance_uid = '.'.join(
-                            ds_match.SOPInstanceUID.split('.')[:-1])
+                if hasattr(ds_match, "SOPInstanceUID"):
+                    sop_instance_uid = ".".join(
+                        ds_match.SOPInstanceUID.split(".")[:-1]
+                    )
                     if sop_instance_uid == referenced_sop_instance_uid:
                         return (match, None)
 
     elif issubclass(type(obj), Plan):
         # ds_obj = obj.get_dicom_dataset()
         ds_obj = pydicom.dcmread(obj.path, force=True)
-        if hasattr(ds_obj, 'ReferencedStructureSetSequence'):
-            referenced_sop_instance_uid = ds_obj.\
-                    ReferencedStructureSetSequence[-1].ReferencedSOPInstanceUID
+        if hasattr(ds_obj, "ReferencedStructureSetSequence"):
+            referenced_sop_instance_uid = ds_obj.ReferencedStructureSetSequence[
+                -1
+            ].ReferencedSOPInstanceUID
             for match in possible_matches:
                 for structure_set in match.get_structure_sets():
                     # ds_match = structure_set.get_dicom_dataset()
                     ds_match = pydicom.dcmread(structure_set.path, force=True)
-                    if hasattr(ds_match, 'SOPInstanceUID'):
+                    if hasattr(ds_match, "SOPInstanceUID"):
                         sop_instance_uid = ds_match.SOPInstanceUID
                         if sop_instance_uid == referenced_sop_instance_uid:
                             return (match, structure_set)

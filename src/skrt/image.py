@@ -1,33 +1,33 @@
 """Classes for loading and comparing medical images."""
 
-import numbers
-import pathlib
-from inspect import signature
-
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator
-from pydicom.dataset import FileDataset, FileMetaDataset
-import scipy.ndimage
-import scipy.interpolate
 import copy
 import datetime
 import glob
 import functools
 import logging
 import math
+import numbers
+import pathlib
+from inspect import signature
+import os
+import shutil
+import tempfile
+import time
+import uuid
+
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import matplotlib as mpl
 import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from pydicom.dataset import FileDataset, FileMetaDataset
+import scipy.interpolate
+import scipy.ndimage
 import nibabel
 import numpy as np
 import pandas as pd
-import os
-import shutil
 import pydicom
-import tempfile
-import time
-import uuid
 import skimage.transform
 
 import skrt.core
@@ -35,21 +35,42 @@ from skrt.dicom_writer import DicomWriter
 
 try:
     import mahotas
+
     _has_mahotas = True
 except ModuleNotFoundError:
     _has_mahotas = False
 
 _axes = ["x", "y", "z"]
 _slice_axes = {"x-y": 2, "x-z": 1, "y-x": 2, "y-z": 0, "z-x": 1, "z-y": 0}
-_plot_axes = {"x-y": [0, 1], "x-z": [0, 2], "y-x": [1, 0], "y-z": [1, 2],
-              "z-x": [2, 0], "z-y": [2, 1]}
+_plot_axes = {
+    "x-y": [0, 1],
+    "x-z": [0, 2],
+    "y-x": [1, 0],
+    "y-z": [1, 2],
+    "z-x": [2, 0],
+    "z-y": [2, 1],
+}
 _default_figsize = 6
 _default_stations = {"0210167": "LA3", "0210292": "LA4"}
-_default_bolus_names = ["planning bolus", "virtual bolus", "bolus",
-        "fo p/bolus", "for bolus", "for p-bolus", "for virtual bolus",
-        "plan bolus", "planning  bolus", "planningl bolus", "pretend bolus",
-        "temp-for bolus", "temp- for bolus", "Temp for p/bolus",
-        "treatment bolus", "t1-for bolus", "0.5CM BOLUS"]
+_default_bolus_names = [
+    "planning bolus",
+    "virtual bolus",
+    "bolus",
+    "fo p/bolus",
+    "for bolus",
+    "for p-bolus",
+    "for virtual bolus",
+    "plan bolus",
+    "planning  bolus",
+    "planningl bolus",
+    "pretend bolus",
+    "temp-for bolus",
+    "temp- for bolus",
+    "Temp for p/bolus",
+    "treatment bolus",
+    "t1-for bolus",
+    "0.5CM BOLUS",
+]
 
 # Set Matplotlib runtime configuration.
 # For details of Matplotlib configuration, see:
@@ -86,6 +107,7 @@ plt.rc(("ytick.major"), pad=2)
 skrt.core.Defaults().foreground_name = "foreground"
 skrt.core.Defaults().foreground_threshold = -150
 
+
 class Image(skrt.core.Archive):
     """
     Class representing a medical image.
@@ -111,13 +133,13 @@ class Image(skrt.core.Archive):
         log_level=None,
         rgb_weights=(0.299, 0.587, 0.114),
         rgb_rescale_slope=100,
-        rgb_rescale_intercept=0
+        rgb_rescale_intercept=0,
     ):
         """
         Initialise from a medical image source.
 
         **Parameters:**
-        
+
         path : str/array/Nifti1Image, default = ""
             Source of image data. Can be either:
 
@@ -130,8 +152,8 @@ class Image(skrt.core.Archive):
                     the path to a single numpy file containing a 2D or 3D array;
                 (d) A 2D or 3D numpy array;
                 (e) A nibabel.nifti1.Nifti1Image object;
-                (f) An existing Image object to be cloned; in this case, all 
-                    other input args except <title> will be ignored, as these 
+                (f) An existing Image object to be cloned; in this case, all
+                    other input args except <title> will be ignored, as these
                     will be taken from the existing Image.
 
             Notes:
@@ -222,11 +244,15 @@ class Image(skrt.core.Archive):
         self._sorigin = None
         self.data = None
         self.title = title
-        self.source = (skrt.core.fullpath(path)
-                       if isinstance(path, (str, pathlib.Path)) else path)
+        self.source = (
+            skrt.core.fullpath(path)
+            if isinstance(path, (str, pathlib.Path))
+            else path
+        )
         if isinstance(self.source, str):
-            self.source = sorted(glob.glob(self.source),
-                    key=skrt.core.alphanumeric)
+            self.source = sorted(
+                glob.glob(self.source), key=skrt.core.alphanumeric
+            )
             if 1 == len(self.source):
                 self.source = self.source[0]
             elif not self.source:
@@ -255,10 +281,12 @@ class Image(skrt.core.Archive):
         self.default_intensity = default_intensity
 
         # Set up event logging.
-        self.log_level = (skrt.core.Defaults().log_level if log_level is None
-                else log_level)
+        self.log_level = (
+            skrt.core.Defaults().log_level if log_level is None else log_level
+        )
         self.logger = skrt.core.get_logger(
-                name=type(self).__name__, log_level=self.log_level)
+            name=type(self).__name__, log_level=self.log_level
+        )
 
         # Set parameters for converting from rgb to grey level.
         self.rgb_weights = rgb_weights
@@ -282,150 +310,156 @@ class Image(skrt.core.Archive):
             self.load()
 
     def __add__(self, other):
-        '''
+        """
         Define image addition.
 
         The result of the addition of self and other is an Image object
         that has the same affine matrix as self, and has a data array
         obtained by summing the data arrays of self and other.
-        '''
+        """
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
-        result = self.__class__(path=(self.get_data() + other.get_data()),
-                affine=self.get_affine())
+        result = self.__class__(
+            path=(self.get_data() + other.get_data()), affine=self.get_affine()
+        )
         return result
 
     def __iadd__(self, other):
-        '''
+        """
         Define image addition in place.
 
         The result of the addition of self and other is an Image object
         that has the same affine matrix as self, and has a data array
         obtained by summing the data arrays of self and other.
-        '''
+        """
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         return self + other
 
     def __mul__(self, other):
-        '''
+        """
         Define image multiplication by a scalar.
 
         The result of the multiplication of self and a scalar (other) is an
         Image object that has the same affine matrix as self, and has
         a data array obtained by multiplying the data array of self by
         the scalar.
-        '''
+        """
         if not isinstance(other, numbers.Number):
             raise RuntimeError(
-                    f"{type(self)} can only be multiplied by a scalar")
-        result = self.__class__(path=(other * self.get_data()),
-                affine=self.get_affine())
+                f"{type(self)} can only be multiplied by a scalar"
+            )
+        result = self.__class__(
+            path=(other * self.get_data()), affine=self.get_affine()
+        )
         return result
 
     def __rmul__(self, other):
-        '''
+        """
         Define image multiplication by a scalar.
 
         The result of the multiplication of self and a scalar (other) is an
         Image object that has the same affine matrix as self, and has
         a data array obtained by multiplying the data array of self by
         the scalar.
-        '''
-        return (self * other)
+        """
+        return self * other
 
     def __imul__(self, other):
-        '''
+        """
         Define in-place multiplication of image by a scalar.
 
         The result of the multiplication of self and a scalar (other) is an
         Image object that has the same affine matrix as self, and has
         a data array obtained by multiplying the data array of self by
         the scalar.
-        '''
+        """
         return self * other
 
     def __truediv__(self, other):
-        '''
+        """
         Define image division by a scalar.
 
         The result of the division of self by a scalar (other) is an
         Image object that has the same affine matrix as self, and has
         a data array obtained by dividing the data array of self by
         the scalar.
-        '''
+        """
         if not isinstance(other, numbers.Number):
-            raise RuntimeError(
-                    f"{type(self)} can only be divided by a scalar")
-        result = self.__class__(path=(self.get_data() / other),
-                affine=self.get_affine())
+            raise RuntimeError(f"{type(self)} can only be divided by a scalar")
+        result = self.__class__(
+            path=(self.get_data() / other), affine=self.get_affine()
+        )
         return result
 
     def __itruediv__(self, other):
-        '''
+        """
         Define in-place division of image by a scalar.
 
         The result of the division of self by a scalar (other) is an
         Image object that has the same affine matrix as self, and has
         a data array obtained by dividing the data array of self by
         the scalar.
-        '''
+        """
         return self / other
 
     def __neg__(self):
-        '''
+        """
         Define unary negative for image.
 
         The result of the unary negative is an Image object that has the
         same affine matrix as self, and has a data array obtained by
         taking the negative of each element of the data array of self.
-        '''
-        result = self.__class__(path=(-self.get_data()),
-                affine=self.get_affine())
+        """
+        result = self.__class__(
+            path=(-self.get_data()), affine=self.get_affine()
+        )
         return result
 
     def __pos__(self):
-        '''
+        """
         Define unary positive for image.
 
         The result of the unitary positive is an Image object that has the
         same affine matrix as self, and has a data array that is the
         same as the data array of self.
-        '''
-        result = self.__class__(path=(self.get_data()),
-                affine=self.get_affine())
+        """
+        result = self.__class__(
+            path=(self.get_data()), affine=self.get_affine()
+        )
         return result
 
     def __sub__(self, other):
-        '''
+        """
         Define image subtraction.
 
         The result of the subtraction of other from self is an Image object
         that has the same affine matrix as self, and has a data array
         obtained by subtracting the data array of other from the data
         array of other.
-        '''
+        """
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
-        result = self.__class__(path=(self.get_data() - other.get_data()),
-                affine=self.get_affine())
+        result = self.__class__(
+            path=(self.get_data() - other.get_data()), affine=self.get_affine()
+        )
         return result
 
     def __isub__(self, other):
-        '''
+        """
         Define image subtraction in place.
 
         The result of the subtraction of other from self is an Image object
         that has the same affine matrix as self, and has a data array
         obtained by subtracting the data array of other from the data
         array of self.
-        '''
+        """
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         return self - other
 
     def astype(self, itype):
-        '''
+        """
         Return image object with requested type of representation.
 
         Image objects loaded from a DICOM source and Image objects
@@ -449,11 +483,11 @@ class Image(skrt.core.Archive):
             values are 'dcm' and 'dicom' for a pydicom/DICOM
             representation; 'nii' and 'nifti' for a nibabel/NIfTI
             representation.  For any other value, None is returned.
-        '''
+        """
 
         # Check if the requested type is recognised.
-        nii_type = itype in ['nii', 'nifti']
-        dcm_type = itype in ['dcm', 'dicom']
+        nii_type = itype in ["nii", "nifti"]
+        dcm_type = itype in ["dcm", "dicom"]
 
         if nii_type or dcm_type:
             # Ensure that image is loaded, and create clone.
@@ -461,25 +495,30 @@ class Image(skrt.core.Archive):
             im = self.clone()
 
             # Modify image data if source_type isn't the requested type.
-            if ((nii_type and 'nifti' not in self.source_type)
-                    or (dcm_type and 'nifti' in self.source_type)):
+            if (nii_type and "nifti" not in self.source_type) or (
+                dcm_type and "nifti" in self.source_type
+            ):
                 affine = self.affine.copy()
                 # Convert to nibabel/NIfTI representation.
                 if nii_type:
                     affine[0, :] = -affine[0, :]
-                    affine[1, 3] = -(affine[1, 3] +
-                            (self.get_data().shape[0] - 1)
-                            * self.get_voxel_size()[1])
+                    affine[1, 3] = -(
+                        affine[1, 3]
+                        + (self.get_data().shape[0] - 1)
+                        * self.get_voxel_size()[1]
+                    )
                     data = self.get_data().transpose(1, 0, 2)[:, ::-1, :]
-                    im.source_type = 'nifti array'
+                    im.source_type = "nifti array"
                 # Convert to pydicom/DICOM representation.
                 else:
                     affine[0, :] = -affine[0, :]
-                    affine[1, 3] = -(affine[1, 3] +
-                            (self.get_data().shape[1] - 1)
-                            * self.get_voxel_size()[1])
+                    affine[1, 3] = -(
+                        affine[1, 3]
+                        + (self.get_data().shape[1] - 1)
+                        * self.get_voxel_size()[1]
+                    )
                     data = self.get_data().transpose(1, 0, 2)[::-1, :, :]
-                    im.source_type = 'array'
+                    im.source_type = "array"
                 # Reset parameters and geometry based on
                 # updated data and affine.
                 im.source = data
@@ -496,8 +535,13 @@ class Image(skrt.core.Archive):
 
         return im
 
-    def clone_with_structure_set(self, structure_set=None, roi_names=None,
-            image_structure_set_index=-1, structure_set_name=None):
+    def clone_with_structure_set(
+        self,
+        structure_set=None,
+        roi_names=None,
+        image_structure_set_index=-1,
+        structure_set_name=None,
+    ):
         """
         Clone current image, and associate to clone a filtered structure set.
 
@@ -540,8 +584,9 @@ class Image(skrt.core.Archive):
         # structure set to image, and associate image to structure set.
         im.clear_structure_sets()
         if ss:
-            ss = ss.filtered_copy(names=roi_names, keep_renamed_only=True,
-                    copy_roi_data=False)
+            ss = ss.filtered_copy(
+                names=roi_names, keep_renamed_only=True, copy_roi_data=False
+            )
             if ss.get_roi_names():
                 if isinstance(structure_set_name, str):
                     ss.name = structure_set_name
@@ -554,9 +599,9 @@ class Image(skrt.core.Archive):
         """Return 3D image array.
 
         **Parameters:**
-        
+
         standardise : bool, default=False
-            If False, the data array will be returned in the orientation in 
+            If False, the data array will be returned in the orientation in
             which it was loaded; otherwise, it will be returned in standard
             dicom-style orientation such that [column, row, slice] corresponds
             to the [x, y, z] axes.
@@ -569,11 +614,11 @@ class Image(skrt.core.Archive):
         return self.data
 
     def get_dicom_filepath(self, sl=None, idx=None, pos=None):
-        """Return path to the dicom dataset corresponding to a specific 
+        """Return path to the dicom dataset corresponding to a specific
         slice.
 
         **Parameters:**
-        
+
         sl : int, default=None
             Slice number; used if not None.
 
@@ -586,9 +631,11 @@ class Image(skrt.core.Archive):
         """
 
         if sl is None and idx is None and pos is None:
-            print("Must provide a slice number, array index, or position in "
-                  "mm!")
-            return 
+            print(
+                "Must provide a slice number, array index, or position in "
+                "mm!"
+            )
+            return
 
         idx = self.get_idx("x-y", sl=sl, idx=idx, pos=pos)
         paths = {
@@ -605,7 +652,7 @@ class Image(skrt.core.Archive):
         dataset will be returned.
 
         **Parameters:**
-        
+
         sl : int, default=None
             Slice number; used if not None.
 
@@ -633,12 +680,11 @@ class Image(skrt.core.Archive):
         )
 
     def get_voxel_size(self, standardise=False, force_standardise=True):
-
         """
         Return voxel sizes in mm in order [x, y, z].
 
         **Parameters:**
-        
+
         standardise : bool, default=False
             If False, the voxel size will be returned for the image as loaded;
             otherwise, it will be returned for the image in standard
@@ -646,7 +692,7 @@ class Image(skrt.core.Archive):
             to the [x, y, z] axes.
 
         force_standardise : bool, default=True
-            If True, the standardised image will be recomputed from self.data 
+            If True, the standardised image will be recomputed from self.data
             even if it has previously been computed.
         """
 
@@ -657,7 +703,6 @@ class Image(skrt.core.Archive):
             return self.get_standardised_voxel_size(force=force_standardise)
 
     def get_size(self):
-
         """Return image sizes in mm in order [x, y, z]."""
 
         self.load()
@@ -668,7 +713,7 @@ class Image(skrt.core.Archive):
         Return origin position in mm in order [x, y, z].
 
         **Parameters:**
-        
+
         standardise : bool, default=False
             If False, the origin will be returned for the image as loaded;
             otherwise, it will be returned for the image in standard
@@ -676,7 +721,7 @@ class Image(skrt.core.Archive):
             to the [x, y, z] axes.
 
         force_standardise : bool, default=True
-            If True, the standardised image will be recomputed from self.data 
+            If True, the standardised image will be recomputed from self.data
             even if it has previously been computed.
         """
 
@@ -696,7 +741,7 @@ class Image(skrt.core.Archive):
         """Get image volume in specified units.
 
         **Parameter:**
-        
+
         units : str, default="mm"
             Units of volume. Can be any of:
                 - "mm": return volume in millimetres cubed.
@@ -730,9 +775,9 @@ class Image(skrt.core.Archive):
         """Return affine matrix.
 
         **Parameters:**
-        
+
         standardise : bool, default=False
-            If False, the affine matrix will be returned in the orientation in 
+            If False, the affine matrix will be returned in the orientation in
             which it was loaded; otherwise, it will be returned in standard
             dicom-style orientation such that [column, row, slice] corresponds
             to the [x, y, z] axes.
@@ -791,8 +836,9 @@ class Image(skrt.core.Archive):
         """
         return get_alignment_translation(self, other, alignment)
 
-    def get_translation_to_align(self, other, alignments=None,
-            default_alignment=2, threshold=None):
+    def get_translation_to_align(
+        self, other, alignments=None, default_alignment=2, threshold=None
+    ):
         """
         Determine translation for aligning <self> to <other>.
 
@@ -802,11 +848,13 @@ class Image(skrt.core.Archive):
         For explanation of parameters, see documentation of
         skrt.image.get_translation_to_align().
         """
-        return get_translation_to_align(self, other, alignments,
-                default_alignment, threshold)
+        return get_translation_to_align(
+            self, other, alignments, default_alignment, threshold
+        )
 
-    def get_translation_to_align_image_rois(self, other, roi_name1, roi_name2,
-            z_fraction1=None, z_fraction2=None):
+    def get_translation_to_align_image_rois(
+        self, other, roi_name1, roi_name2, z_fraction1=None, z_fraction2=None
+    ):
         """
         Determine translation for aligning ROI of <self> to ROI of <other>.
 
@@ -815,53 +863,54 @@ class Image(skrt.core.Archive):
 
         For explanation of parameters, see documentation of
         skrt.image.get_translation_to_align_image_rois().
-    """
+        """
         return self.get_rois(roi_name1)[0].get_translation_to_align(
-                other.get_rois(roi_name2)[0], z_fraction1, z_fraction2)
+            other.get_rois(roi_name2)[0], z_fraction1, z_fraction2
+        )
 
     def load(self, force=False):
-        """Load pixel array from image source. If already loaded and <force> 
+        """Load pixel array from image source. If already loaded and <force>
         is False, nothing will happen.
 
         **Parameters:**
-        
+
         force : bool, default=True
-            If True, the pixel array will be reloaded from source even if it 
+            If True, the pixel array will be reloaded from source even if it
             has previously been loaded.
 
         Data loading takes input from self.source and uses this to assign
-        self.data (as well as geometric properties, where relevant). The 
-        parameter self.source_type is set to a string indicating the type 
+        self.data (as well as geometric properties, where relevant). The
+        parameter self.source_type is set to a string indicating the type
         of source, which can be any of:
 
-            "array": 
+            "array":
                 Data loaded from a numpy array in dicom-style orientation.
 
-            "nifti array": 
+            "nifti array":
                 Data loaded from a numpy array in nifti-style orientation.
 
-            "nifti": 
+            "nifti":
                 Data loaded from a nifti file.
 
-            "dicom": 
+            "dicom":
                 Data loaded from one or more dicom file(s).
 
-        The loading sequence is as follows: 
+        The loading sequence is as follows:
 
             1. If self.source is a numpy array, self.data will be set to the
-            contents of self.source. If <nifti_array> was set to True when 
+            contents of self.source. If <nifti_array> was set to True when
             __init__() was called, self.source_type is set to "nifti array";
             otherwise, self.source_type is set to "array".
 
             2. If self.source is a string, this string is passed to
-            glob.glob().  The result is assigned to self.source, and 
+            glob.glob().  The result is assigned to self.source, and
             is treated as a list of filepaths.  If the list contains a
             single element, attempt to load a nifti file from this path
             using the function load_nifti(). If the path points to a
             valid nifti file, this will return a pixel array and affine
             matrix, which are assigned to self.data and self.affine,
             respectively. Set self.source_type to "nifti".
-           
+
             3. If no data were loaded in step 2 (i.e. self.data is still None),
             and self.source contains a single path, attempt to load from
             a numpy binary file at this path using the function load_npy(). If
@@ -873,11 +922,11 @@ class Image(skrt.core.Archive):
 
             4. If no data were loaded in step 4 (i.e. self.data is still None),
             attempt to load from dicom file(s) or directory at the path(s) in
-            self.source using the function load_dicom().  If successful, this 
+            self.source using the function load_dicom().  If successful, this
             returns a pixel array, affine matrix, default greyscale window
-            centre and width, the last loaded pydicom.dataset.FileDataset 
+            centre and width, the last loaded pydicom.dataset.FileDataset
             object, and a dictionary mapping z positions to paths to the
-            dicom file for that slice. These outputs are used to assign 
+            dicom file for that slice. These outputs are used to assign
             self.data, self.affine, self.dicom_dataset, self._z_paths,
             and self._z_instance_numbers; self.source_type is set to "dicom".
 
@@ -892,8 +941,8 @@ class Image(skrt.core.Archive):
             8. Run self.set_geometry() in order to compute geometric quantities
             for this Image.
 
-            9. If a default window width and window centre were loaded from 
-            dicom, use these to set self.default_window to a greyscale window 
+            9. If a default window width and window centre were loaded from
+            dicom, use these to set self.default_window to a greyscale window
             range.
 
             10. If self.title is None and self.source is a filepath, infer
@@ -922,14 +971,14 @@ class Image(skrt.core.Archive):
                 if self.data is not None:
                     self.affine = affine
             elif not hasattr(self, "dicom_paths"):
-                raise RuntimeError(
-                    f"Image input {self.source} does not exist!")
+                raise RuntimeError(f"Image input {self.source} does not exist!")
 
             # Try loading from numpy file
             if self.data is None:
                 self.data = load_npy(self.source)
-                self.source_type = ("nifti array" if self.nifti_array
-                        else "array")
+                self.source_type = (
+                    "nifti array" if self.nifti_array else "array"
+                )
 
         # Try loading from dicom file
         if self.data is None and isinstance(self.source, (str, list)):
@@ -938,9 +987,15 @@ class Image(skrt.core.Archive):
             else:
                 paths = self.source
             try:
-                self.data, affine, window_centre, window_width, ds,\
-                        self._z_paths, self._z_instance_numbers = \
-                        load_dicom(paths)
+                (
+                    self.data,
+                    affine,
+                    window_centre,
+                    window_width,
+                    ds,
+                    self._z_paths,
+                    self._z_instance_numbers,
+                ) = load_dicom(paths)
                 dicom_loaded = True
             except ValueError:
                 dicom_loaded = False
@@ -954,8 +1009,11 @@ class Image(skrt.core.Archive):
         # Try reading as a format known to Python Imaging Library.
         if self.data is None and isinstance(self.source, str):
             self.data = load_rgb(
-                    self.source, self.rgb_weights,
-                    self.rgb_rescale_slope, self.rgb_rescale_intercept)
+                self.source,
+                self.rgb_weights,
+                self.rgb_rescale_slope,
+                self.rgb_rescale_intercept,
+            )
             window_centre = self.rgb_rescale_slope / 2
             window_width = self.rgb_rescale_slope
 
@@ -964,8 +1022,10 @@ class Image(skrt.core.Archive):
             raise RuntimeError(f"{self.source} not a valid image source!")
 
         # Cast to custom type
-        if (self._custom_dtype is not None
-            and self.data.dtype != self._custom_dtype):
+        if (
+            self._custom_dtype is not None
+            and self.data.dtype != self._custom_dtype
+        ):
             self.data = self.data.astype(self._custom_dtype)
 
         # Ensure array is 3D
@@ -996,14 +1056,14 @@ class Image(skrt.core.Archive):
                 self.title = os.path.basename(self.source)
 
     def get_standardised_data(self, force=True):
-        """Return array in standard dicom orientation, where 
+        """Return array in standard dicom orientation, where
         [column, row, slice] corresponds to the [x, y, z] axes.
-        standardised image array. 
+        standardised image array.
 
         **Parameters:**
-        
+
         force : bool, default=True
-            If True, the standardised array will be recomputed from self.data 
+            If True, the standardised array will be recomputed from self.data
             even if it has previously been computed.
         """
 
@@ -1012,13 +1072,13 @@ class Image(skrt.core.Archive):
         return self._sdata
 
     def get_standardised_affine(self, force=True):
-        """Return affine matrix in standard dicom orientation, where 
+        """Return affine matrix in standard dicom orientation, where
         [column, row, slice] corresponds to the [x, y, z] axes.
 
         **Parameters:**
-        
+
         force : bool, default=True
-            If True, the standardised array will be recomputed from self.data 
+            If True, the standardised array will be recomputed from self.data
             even if it has previously been computed.
         """
 
@@ -1027,13 +1087,13 @@ class Image(skrt.core.Archive):
         return self._saffine
 
     def get_standardised_origin(self, force=True):
-        """Return origin for image in standard dicom orientation, where 
+        """Return origin for image in standard dicom orientation, where
         [column, row, slice] corresponds to the [x, y, z] axes.
 
         **Parameters:**
-        
+
         force : bool, default=True
-            If True, the standardised array will be recomputed from self.data 
+            If True, the standardised array will be recomputed from self.data
             even if it has previously been computed.
         """
 
@@ -1042,13 +1102,13 @@ class Image(skrt.core.Archive):
         return self._sorigin
 
     def get_standardised_voxel_size(self, force=True):
-        """Return voxel size for image in standard dicom orientation, where 
+        """Return voxel size for image in standard dicom orientation, where
         [column, row, slice] corresponds to the [x, y, z] axes.
 
         **Parameters:**
-        
+
         force : bool, default=True
-            If True, the standardised array will be recomputed from self.data 
+            If True, the standardised array will be recomputed from self.data
             even if it has previously been computed.
         """
 
@@ -1058,7 +1118,7 @@ class Image(skrt.core.Archive):
 
     def standardise_data(self):
         """Manipulate data array and affine matrix into standard dicom
-        orientation, where [column, row, slice] corresponds to the [x, y, z] 
+        orientation, where [column, row, slice] corresponds to the [x, y, z]
         axes; assign results to self._sdata and self._saffine, respectively.
         Standardised voxel sizes (self._svoxel_size) and origin position
         (self._sorigin) will also be inferred from self._affine.
@@ -1068,7 +1128,6 @@ class Image(skrt.core.Archive):
 
         # Adjust dicom
         if self.source_type == "dicom":
-
             data = self.get_data()
             affine = self.get_affine()
 
@@ -1082,7 +1141,6 @@ class Image(skrt.core.Archive):
             # Adjust affine matrix
             affine = self.affine.copy()
             for i in range(3):
-
                 # Voxel sizes
                 if i != axes_colrow.index(i):
                     voxel_size = affine[i, axes_colrow.index(i)].copy()
@@ -1090,7 +1148,10 @@ class Image(skrt.core.Archive):
                     affine[i, axes_colrow.index(i)] = 0
 
                 # Invert axis direction if negative
-                if axes_colrow.index(i) < 2 and orient[axes_colrow.index(i), i] < 0:
+                if (
+                    axes_colrow.index(i) < 2
+                    and orient[axes_colrow.index(i), i] < 0
+                ):
                     affine[i, i] *= -1
                     to_flip = [1, 0, 2][i]
                     data = np.flip(data, axis=to_flip)
@@ -1099,12 +1160,13 @@ class Image(skrt.core.Archive):
 
         # Adjust nifti
         elif "nifti" in self.source_type:
-
             # Load and cache canonical data array
             if self._data_canonical is None:
                 init_dtype = self.get_data().dtype
                 nii = nibabel.as_closest_canonical(
-                    nibabel.Nifti1Image(self.data.astype(np.float64), self.affine)
+                    nibabel.Nifti1Image(
+                        self.data.astype(np.float64), self.affine
+                    )
                 )
                 self._data_canonical = nii.get_fdata().astype(init_dtype)
                 self._affine_canonical = nii.affine
@@ -1132,27 +1194,36 @@ class Image(skrt.core.Archive):
         self._svoxel_size = list(np.diag(self._saffine))[:-1]
         self._sorigin = list(self._saffine[:-1, -1])
 
-    def print_geometry(self, float_format='.4f'):
+    def print_geometry(self, float_format=".4f"):
         self.load()
-        print(f'Shape: {self.get_data().shape}')
-        voxel_size = tuple([f'{dxyz:{float_format}}'
-                for dxyz in self.get_voxel_size()])
-        print(f'Voxel size: {voxel_size}')
-        origin = tuple([f'{xyz:{float_format}}' for xyz in self.get_origin()])
-        print(f'Origin: {origin}')
-        image_extent = tuple([f'({v1:{float_format}}, {v2:{float_format}})'
-            for v1, v2 in list(self.image_extent)])
-        print(f'Extent: {image_extent}')
-        image_size = tuple([f'{abs(v2 - v1):{float_format}}'
-            for v1, v2 in list(self.image_extent)])
-        print(f'Image size: {image_size}')
+        print(f"Shape: {self.get_data().shape}")
+        voxel_size = tuple(
+            [f"{dxyz:{float_format}}" for dxyz in self.get_voxel_size()]
+        )
+        print(f"Voxel size: {voxel_size}")
+        origin = tuple([f"{xyz:{float_format}}" for xyz in self.get_origin()])
+        print(f"Origin: {origin}")
+        image_extent = tuple(
+            [
+                f"({v1:{float_format}}, {v2:{float_format}})"
+                for v1, v2 in list(self.image_extent)
+            ]
+        )
+        print(f"Extent: {image_extent}")
+        image_size = tuple(
+            [
+                f"{abs(v2 - v1):{float_format}}"
+                for v1, v2 in list(self.image_extent)
+            ]
+        )
+        print(f"Image size: {image_size}")
 
     def resample(self, voxel_size=(1, 1, 1), order=1):
-        '''
+        """
         Resample image to have particular voxel sizes.
 
         **Parameters:**
-        
+
         voxel_size: int/float/tuple/list, default =(1, 1, 1)
             Voxel size to which image is to be resampled.  If voxel_size is
             a tuple or list, then it's taken to specify voxel sizes
@@ -1161,7 +1232,7 @@ class Image(skrt.core.Archive):
 
         order: int, default = 1
             Order of the b-spline used in interpolating voxel intensity values.
-        '''
+        """
         if not voxel_size:
             return
 
@@ -1185,8 +1256,9 @@ class Image(skrt.core.Archive):
         # Define scale factors to obtain requested voxel size
         scale = [self.voxel_size[i] / voxel_size[i] for i in range(3)]
 
-        self.data = scipy.ndimage.zoom(self.data, scale, order=order,
-                mode='nearest')
+        self.data = scipy.ndimage.zoom(
+            self.data, scale, order=order, mode="nearest"
+        )
 
         # Reset properties
         self.origin = [
@@ -1201,13 +1273,13 @@ class Image(skrt.core.Archive):
         self.set_geometry()
 
     def get_coordinate_arrays(self, image_size, origin, voxel_size):
-        '''
+        """
         Obtain (x, y, z) arrays of coordinates of voxel centres.
 
         Arrays are useful for image resizing.
 
         **Parameters:**
-        
+
         image_size : tuple
             Image size in voxels, in order (x,y,z).
 
@@ -1216,7 +1288,7 @@ class Image(skrt.core.Archive):
 
         voxel_size : tuple
             Voxel sizes in mm in order (x, y, z).
-        '''
+        """
 
         self.load()
 
@@ -1224,7 +1296,7 @@ class Image(skrt.core.Archive):
         nx, ny, nz = image_size
         x, y, z = origin
         dx, dy, dz = voxel_size
-  
+
         # Obtain coordinate arrays.
         try:
             x_array = np.linspace(x, x + (nx - 1) * dx, nx)
@@ -1242,7 +1314,7 @@ class Image(skrt.core.Archive):
         return (x_array, y_array, z_array)
 
     def get_foreground_box_mask(self, dx=0, dy=0, threshold=None):
-        '''
+        """
         Slice by slice, create rectangular mask enclosing foreground mask.
 
         dx : int, default=0
@@ -1256,15 +1328,16 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.  If None, use value
             of Defaults().foreground_threshold.  If still None, use
             Otsu threshold.
-        '''
+        """
 
         foreground_mask = self.get_foreground_mask(threshold)
         foreground_box_mask = get_box_mask_from_mask(foreground_mask, dx, dy)
 
         return foreground_box_mask
 
-    def get_foreground_bbox(self, threshold=None, convex_hull=False,
-            fill_holes=True, dxy=0):
+    def get_foreground_bbox(
+        self, threshold=None, convex_hull=False, fill_holes=True, dxy=0
+    ):
         """
         Obtain bounding box of image foreground.
 
@@ -1275,11 +1348,13 @@ class Image(skrt.core.Archive):
         to obtain a mask defining the image foreground.  For parameter
         explanations, see skrt.image.Image.get_foreground_mask() documentation.
         """
-        return (get_mask_bbox(
-            self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy)))
+        return get_mask_bbox(
+            self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy)
+        )
 
-    def get_foreground_bbox_centre_and_widths(self,
-            threshold=None, convex_hull=False, fill_holes=True, dxy=0):
+    def get_foreground_bbox_centre_and_widths(
+        self, threshold=None, convex_hull=False, fill_holes=True, dxy=0
+    ):
         """
         Get centre and widths in mm along all three axes of a
         bounding box enclosing the image foreground.  Centre
@@ -1295,8 +1370,16 @@ class Image(skrt.core.Archive):
         return (centre, widths)
 
     def get_foreground_comparison(
-            self, other, name=None, threshold=None, convex_hull=False,
-            fill_holes=True, dxy=0, voxel_size=None, **kwargs):
+        self,
+        other,
+        name=None,
+        threshold=None,
+        convex_hull=False,
+        fill_holes=True,
+        dxy=0,
+        voxel_size=None,
+        **kwargs,
+    ):
         """
         Return a pandas DataFrame comparing the foregrounds of
         this image and another.
@@ -1320,7 +1403,7 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.  If None, use value
             of Defaults().foreground_threshold.  If still None, use
             Otsu threshold.
-    
+
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
             slice foreground masks initially obtained.
@@ -1345,20 +1428,32 @@ class Image(skrt.core.Archive):
             Keyword arguments, in addition to voxel_size, passed to
             skrt.structures.ROI.get_comparison().
         """
-        name = (name or self.title
-                or f"{skrt.core.Defaults().foreground_name}_1")
+        name = name or self.title or f"{skrt.core.Defaults().foreground_name}_1"
         roi1 = self.get_foreground_roi(
-                threshold=threshold, convex_hull=convex_hull,
-                fill_holes=fill_holes, dxy=dxy, name=name)
+            threshold=threshold,
+            convex_hull=convex_hull,
+            fill_holes=fill_holes,
+            dxy=dxy,
+            name=name,
+        )
         roi2 = other.get_foreground_roi(
-                threshold=threshold, convex_hull=convex_hull,
-                fill_holes=fill_holes, dxy=dxy)
+            threshold=threshold,
+            convex_hull=convex_hull,
+            fill_holes=fill_holes,
+            dxy=dxy,
+        )
 
         return roi1.get_comparison(roi2, voxel_size=None, **kwargs)
 
-    def get_foreground_roi(self, threshold=None, convex_hull=False,
-            fill_holes=True, dxy=0, **kwargs):
-        '''
+    def get_foreground_roi(
+        self,
+        threshold=None,
+        convex_hull=False,
+        fill_holes=True,
+        dxy=0,
+        **kwargs,
+    ):
+        """
         Create ROI represening image foreground.
 
         Slice by slice, the foreground is taken to correspond to the
@@ -1373,7 +1468,7 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.  If None, use value
             of Defaults().foreground_threshold.  If still None, use
             Otsu threshold.
-    
+
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
             slice foreground masks initially obtained.
@@ -1387,16 +1482,20 @@ class Image(skrt.core.Archive):
 
         **kwargs
             Keyword arguments passed to ROI constructor.
-        '''
+        """
         from skrt.structures import ROI
-        if not "name" in kwargs:
-            kwargs["name"] = skrt.core.Defaults().foreground_name
-        return ROI(self.get_foreground_mask(
-            threshold, convex_hull, fill_holes, dxy), **kwargs)
 
-    def get_foreground_mask(self, threshold=None, convex_hull=False,
-            fill_holes=True, dxy=0):
-        '''
+        if "name" not in kwargs:
+            kwargs["name"] = skrt.core.Defaults().foreground_name
+        return ROI(
+            self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy),
+            **kwargs,
+        )
+
+    def get_foreground_mask(
+        self, threshold=None, convex_hull=False, fill_holes=True, dxy=0
+    ):
+        """
         Create foreground mask.
 
         Slice by slice, the foreground is taken to correspond to the
@@ -1409,7 +1508,7 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.  If None, use value
             of Defaults().foreground_threshold.  If still None, use
             Otsu threshold.
-    
+
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
             slice foreground masks initially obtained.
@@ -1420,17 +1519,26 @@ class Image(skrt.core.Archive):
 
         dxy : int, default=0
             Margin, in pixel units, to be added to each slice foreground mask.
-        '''
+        """
         self.load()
 
         # Initialise mask array from foreground mask of first slice.
-        out_array = np.array(self.get_slice_foreground(
-            0, threshold, convex_hull, fill_holes, dxy))
+        out_array = np.array(
+            self.get_slice_foreground(
+                0, threshold, convex_hull, fill_holes, dxy
+            )
+        )
 
         # Stack slice foregrounds masks.
         for idx in range(1, self.get_n_voxels()[2]):
-            out_array = np.dstack((out_array, self.get_slice_foreground(
-                idx, threshold, convex_hull, fill_holes, dxy)))
+            out_array = np.dstack(
+                (
+                    out_array,
+                    self.get_slice_foreground(
+                        idx, threshold, convex_hull, fill_holes, dxy
+                    ),
+                )
+            )
 
         # Clone the current image, and replace its data with
         # the foreground mask.
@@ -1439,9 +1547,10 @@ class Image(skrt.core.Archive):
 
         return out_image
 
-    def get_slice_foreground(self, idx=0, threshold=None,
-            convex_hull=False, fill_holes=False, dxy=0):
-        '''
+    def get_slice_foreground(
+        self, idx=0, threshold=None, convex_hull=False, fill_holes=False, dxy=0
+    ):
+        """
         Create foreground mask for image slice.
 
         The foreground is taken to correspond to the largest region
@@ -1457,7 +1566,7 @@ class Image(skrt.core.Archive):
             for determination of foreground.  If None, use value
             of Defaults().foreground_threshold.  If still None, use
             Otsu threshold.
-    
+
         convex_hull : bool, default=False
             If True, return the convex hull of the foreground mask
             initially obtained.
@@ -1465,12 +1574,14 @@ class Image(skrt.core.Archive):
         fill_holes : bool, default=False
             If False, fill holes in the foreground mask initially
             obtained.
-        '''
+        """
 
         if not _has_mahotas:
-            print('WARNING: Module mahotas unavailable')
-            print('WARNING: Unable to execute function '\
-                    + 'skrt.image.Image.get_slice_foreground()')
+            print("WARNING: Module mahotas unavailable")
+            print(
+                "WARNING: Unable to execute function "
+                + "skrt.image.Image.get_slice_foreground()"
+            )
 
         # Extract slice data.
         image_slice = self.get_data()[:, :, idx]
@@ -1487,18 +1598,20 @@ class Image(skrt.core.Archive):
         # Calculate Otsu threshold, or rescale threshold value provided.
         if threshold is None:
             rescaled_threshold = mahotas.thresholding.otsu(
-                    test_slice.astype(np.uint32))
+                test_slice.astype(np.uint32)
+            )
         else:
             rescaled_threshold = threshold - image_slice.min()
 
         # Handle case where slice contains intensity values above threshold,
         # and intensities are not the same.
-        if ((test_slice.max() > rescaled_threshold) and
-                (test_slice.max() - test_slice.min() > 0)):
-
+        if (test_slice.max() > rescaled_threshold) and (
+            test_slice.max() - test_slice.min() > 0
+        ):
             # Label regions of contiguous pixels of above-threshold intensity.
             label_array1, n_object = mahotas.label(
-                    test_slice > rescaled_threshold)
+                test_slice > rescaled_threshold
+            )
             # Identify largest labelled region, and use this as foreground.
             foreground = np.argsort(np.bincount(label_array1.ravel()))[-2]
             label_array2 = np.int8(label_array1 == foreground)
@@ -1509,19 +1622,22 @@ class Image(skrt.core.Archive):
                 for i in range(5, 3, -1):
                     structure = np.ones((i, i))
                     label_array2 = scipy.ndimage.binary_fill_holes(
-                        label_array2, structure)
+                        label_array2, structure
+                    )
                 label_array2 = scipy.ndimage.binary_fill_holes(label_array2)
 
             if dxy > 0:
                 # Add a margin to the mask.
                 structure = np.ones((dxy, dxy))
                 label_array2 = scipy.ndimage.binary_dilation(
-                        label_array2, structure)
+                    label_array2, structure
+                )
 
             if convex_hull:
                 # Take the convex hull of the mask.
                 label_array2 = skimage.morphology.convex_hull_image(
-                        label_array2)
+                    label_array2
+                )
 
         # Handle the cases where all intensities are the same.
         else:
@@ -1532,9 +1648,15 @@ class Image(skrt.core.Archive):
 
         return label_array2
 
-    def select_foreground(self, threshold=None, convex_hull=False,
-            fill_holes=True, dxy=0, background=None):
-        '''
+    def select_foreground(
+        self,
+        threshold=None,
+        convex_hull=False,
+        fill_holes=True,
+        dxy=0,
+        background=None,
+    ):
+        """
         Modify image to show intensity information only for foreground.
 
         Slice by slice, the foreground is taken to correspond to the
@@ -1549,7 +1671,7 @@ class Image(skrt.core.Archive):
             regions for determination of foreground.  If None, use value
             of Defaults().foreground_threshold.  If still None, use
             Otsu threshold.
-    
+
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
             slice foreground masks initially obtained.
@@ -1561,12 +1683,16 @@ class Image(skrt.core.Archive):
         background : int/float, default=None
             Intensity value to be assigned to background voxels.  If
             None, the image's minimum value is used.
-        '''
+        """
         self.load()
 
         # Obtain foreground mask.
-        mask = self.get_foreground_mask(threshold=threshold,
-                convex_hull=convex_hull, fill_holes=fill_holes, dxy=dxy)
+        mask = self.get_foreground_mask(
+            threshold=threshold,
+            convex_hull=convex_hull,
+            fill_holes=fill_holes,
+            dxy=dxy,
+        )
 
         # Set background intensity if not specified.
         if background is None:
@@ -1575,9 +1701,10 @@ class Image(skrt.core.Archive):
         # Set voxels outside foreground to background intensity.
         self.data[mask.get_data() == False] = background
 
-    def get_intensity_mask(self, vmin=None, vmax=None, convex_hull=False,
-                           fill_holes=True, dxy=0):
-        '''
+    def get_intensity_mask(
+        self, vmin=None, vmax=None, convex_hull=False, fill_holes=True, dxy=0
+    ):
+        """
         Create intensity mask.
 
         Slice by slice, the mask corresponds to the largest region of
@@ -1596,24 +1723,32 @@ class Image(skrt.core.Archive):
         convex_hull : bool, default=False
             If True, create mask from the convex hulls of the
             slice foreground masks initially obtained.
-    
+
         fill_holes : bool, default=False
             If True, fill holes in the slice foreground masks initially
             obtained.
 
         dxy : int, default=0
             Margin, in pixel units, to be added to each slice foreground mask.
-        '''
+        """
         self.load()
 
         if vmin is None and vmax is None:
-            return Image(np.ones(self.data.shape, dtype=bool),
-                         affine = self.get_affine())
+            return Image(
+                np.ones(self.data.shape, dtype=bool), affine=self.get_affine()
+            )
 
-        masks = [self.get_foreground_mask(
-            threshold=val, convex_hull=convex_hull,
-            fill_holes=fill_holes, dxy=dxy) if val is not None
-                 else None for val in [vmin, vmax]]
+        masks = [
+            self.get_foreground_mask(
+                threshold=val,
+                convex_hull=convex_hull,
+                fill_holes=fill_holes,
+                dxy=dxy,
+            )
+            if val is not None
+            else None
+            for val in [vmin, vmax]
+        ]
 
         if masks[0] is None:
             masks[1].data = 1 - masks[1].data
@@ -1625,7 +1760,7 @@ class Image(skrt.core.Archive):
         return masks[0]
 
     def rescale(self, v_min=0.0, v_max=1.0, constant=0.5):
-        '''
+        """
         Linearly rescale image greyscale values,
         so that they span a specified range.
 
@@ -1641,26 +1776,35 @@ class Image(skrt.core.Archive):
             Greyscale value to assign after rescaling if all values
             in the original image are the same.  If None,
             original value is kept.
-        '''
+        """
         # Perform rescaling.
         u_min = self.get_min(force=True)
         u_max = self.get_max(force=True)
         du = u_max - u_min
         dv = v_max - v_min
         if du:
-            self.data = v_min + ((self.data.astype(np.float32) - u_min)
-                                 * (dv / du))
+            self.data = v_min + (
+                (self.data.astype(np.float32) - u_min) * (dv / du)
+            )
         elif constant is not None:
             self.data.fill(constant)
 
-    def resize(self, image_size=None, origin=None, voxel_size=None,
-            fill_value=None, image_size_unit=None, centre=None,
-            keep_centre=False, method='linear'):
-        '''
+    def resize(
+        self,
+        image_size=None,
+        origin=None,
+        voxel_size=None,
+        fill_value=None,
+        image_size_unit=None,
+        centre=None,
+        keep_centre=False,
+        method="linear",
+    ):
+        """
         Resize image to specified image size, voxel size and origin.
 
         **Parameters:**
-        
+
         image_size : tuple/list/None, default=None
             Image sizes in order (x,y,z) to which image is to be resized.
             If None, the image's existing size in mm is kept.  If a value
@@ -1704,7 +1848,7 @@ class Image(skrt.core.Archive):
         method: str, default='linear'
             Interpolation method to use.  Valid values are 'linear' and
             'nearest'
-        '''
+        """
         # Return if no resizing requested.
         if image_size is None and voxel_size is None and origin is None:
             return
@@ -1713,12 +1857,12 @@ class Image(skrt.core.Archive):
         self.load()
 
         # Ensure that resizing values are defined.
-        allowed_unit = ['mm', 'voxel']
+        allowed_unit = ["mm", "voxel"]
         if image_size is None:
             image_size_unit = "mm"
             image_size = self.get_size()
         elif image_size_unit is None or image_size_unit not in allowed_unit:
-            image_size_unit = 'voxel'
+            image_size_unit = "voxel"
 
         if origin is None:
             origin = self.get_origin()
@@ -1755,24 +1899,28 @@ class Image(skrt.core.Archive):
                 centre[i] = self.get_centre()[i]
 
         # Convert to voxel units
-        if 'mm' == image_size_unit:
+        if "mm" == image_size_unit:
             for i in range(3):
                 image_size[i] = max(
-                        1, math.floor(image_size[i] / voxel_size[i]))
+                    1, math.floor(image_size[i] / voxel_size[i])
+                )
 
         # Redefine origin to fix centre position.
         if keep_centre:
-            origin = [centre[i] - (0.5 * image_size[i] - 0.5)
-                    * voxel_size[i] for i in range(3)]
+            origin = [
+                centre[i] - (0.5 * image_size[i] - 0.5) * voxel_size[i]
+                for i in range(3)
+            ]
 
         # Check whether image is already the requested size
         nx, ny, nz = image_size
-        match = (self.get_data().shape == [ny, nx, nz]
-            and (self.get_origin() == origin) \
-            and (self.get_voxel_size() == voxel_size))
+        match = (
+            self.get_data().shape == [ny, nx, nz]
+            and (self.get_origin() == origin)
+            and (self.get_voxel_size() == voxel_size)
+        )
 
         if not match:
-
             # If slice thickness not known, set to the requested value
             if self.get_voxel_size()[2] is None:
                 self.voxel_size[2] = image.voxel_size[2]
@@ -1781,25 +1929,29 @@ class Image(skrt.core.Archive):
             if fill_value is None:
                 fill_value = self.get_data().min()
 
-            #print(f"interpolation start time: {time.strftime('%c')}")
+            # print(f"interpolation start time: {time.strftime('%c')}")
             x1_array, y1_array, z1_array = self.get_coordinate_arrays(
-                    self.get_n_voxels(), self.get_origin(), self.get_voxel_size())
+                self.get_n_voxels(), self.get_origin(), self.get_voxel_size()
+            )
             if not (x1_array is None or y1_array is None or z1_array is None):
                 # Define how intensity values are to be interpolated
                 # for the original image
                 interpolant = scipy.interpolate.RegularGridInterpolator(
-                        (y1_array, x1_array, z1_array),
-                        self.get_data(),
-                        method=method,
-                        bounds_error=False,
-                        fill_value=fill_value)
+                    (y1_array, x1_array, z1_array),
+                    self.get_data(),
+                    method=method,
+                    bounds_error=False,
+                    fill_value=fill_value,
+                )
 
                 # Define grid of voxel centres for the resized image
                 x2_array, y2_array, z2_array = self.get_coordinate_arrays(
-                        image_size, origin, voxel_size)
+                    image_size, origin, voxel_size
+                )
                 nx, ny, nz = image_size
                 meshgrid = np.meshgrid(
-                        y2_array, x2_array, z2_array, indexing="ij")
+                    y2_array, x2_array, z2_array, indexing="ij"
+                )
                 vstack = np.vstack(meshgrid)
                 point_array = vstack.reshape(3, -1).T.reshape(ny, nx, nz, 3)
 
@@ -1811,25 +1963,24 @@ class Image(skrt.core.Archive):
 
                 # Reset geometry
                 self.voxel_size = voxel_size
-                self.origin= origin
+                self.origin = origin
                 self.n_voxels = image_size
                 self.affine = None
                 self.set_geometry()
 
-            #print(f"interpolation end time: {time.strftime('%c')}")
+            # print(f"interpolation end time: {time.strftime('%c')}")
 
         return None
 
-    def match_size(self, image=None, fill_value=None, method='linear'):
-
-        '''
+    def match_size(self, image=None, fill_value=None, method="linear"):
+        """
         Match image size to that of a reference image.
 
         After matching, the image voxels are in one-to-one correspondence
         with those of the reference.
 
         **Parameters:**
-        
+
         image: skrt.image.Image/None, default=None
             Reference image, with which size is to be matched.
 
@@ -1841,12 +1992,17 @@ class Image(skrt.core.Archive):
         method: str, default='linear'
             Interpolation method to use.  Valid values are 'linear' and
             'nearest'
-        '''
+        """
 
         if not self.has_same_geometry(image):
             image.load()
-            self.resize(image.get_n_voxels(), image.get_origin(),
-                    image.get_voxel_size(), fill_value, method=method)
+            self.resize(
+                image.get_n_voxels(),
+                image.get_origin(),
+                image.get_voxel_size(),
+                fill_value,
+                method=method,
+            )
 
     def match_voxel_size(self, image, method="self"):
         """Resample to match z-axis voxel size with that of another Image
@@ -1857,18 +2013,18 @@ class Image(skrt.core.Archive):
               skrt.images.match_image_voxel_sizes().
 
         **Parameters:**
-        
+
         image : Image
             Other image to which z-axis voxel size should be matched.
 
         method : str, default="self"
             String specifying the matching method. Can be any of:
-                - "self": 
+                - "self":
                     Match own z voxel size to that of <image>.
-                - "coarse": 
+                - "coarse":
                     Resample the image with the smaller z voxels to match
                     that of the image with larger z voxels.
-                - "fine": 
+                - "fine":
                     Resample the image with the larger z voxels to match
                     that of the image with smaller z voxels.
         """
@@ -1941,10 +2097,17 @@ class Image(skrt.core.Archive):
         self.load()
 
         # Obtain indices of voxels with above-threshold intensity.
-        indices = np.where(self.get_standardised_data()
-                >= (self.get_standardised_data().min()
-                    + (self.get_standardised_data().max()
-                        - self.get_standardised_data().min()) * fraction))
+        indices = np.where(
+            self.get_standardised_data()
+            >= (
+                self.get_standardised_data().min()
+                + (
+                    self.get_standardised_data().max()
+                    - self.get_standardised_data().min()
+                )
+                * fraction
+            )
+        )
 
         # Calculate means of indicies of voxels with above-threshold intensity.
         iy, ix, iz = [round(indices[idx].mean()) for idx in range(3)]
@@ -1969,7 +2132,8 @@ class Image(skrt.core.Archive):
             to be considered in the centroid calculation.
         """
         return self.idx_to_pos(
-                self.get_centroid_idx(view, fraction), _slice_axes[view])
+            self.get_centroid_idx(view, fraction), _slice_axes[view]
+        )
 
     def get_centroid_slice(self, view="x-y", fraction=1):
         """
@@ -1989,11 +2153,12 @@ class Image(skrt.core.Archive):
             to be considered in the centroid calculation.
         """
         return self.idx_to_slice(
-                self.get_centroid_idx(view, fraction), _slice_axes[view])
+            self.get_centroid_idx(view, fraction), _slice_axes[view]
+        )
 
     def get_orientation_codes(self, affine=None, source_type=None):
-        """Get image orientation codes in order [row, column, slice] if 
-        image was loaded in dicom-style orientation, or [column, row, slice] 
+        """Get image orientation codes in order [row, column, slice] if
+        image was loaded in dicom-style orientation, or [column, row, slice]
         if image was loaded in nifti-style orientation.
 
         This returns a list of code strings. Possible codes:
@@ -2005,13 +2170,13 @@ class Image(skrt.core.Archive):
             "S" = Superior (z axis)
 
         **Parameters:**
-        
+
         affine : np.ndarray, default=None
             Custom affine matrix to use when determining orientation codes.
             If None, self.affine will be used.
 
         source_type : str, default=None
-            Assumed source type to use when determining orientation codes. If 
+            Assumed source type to use when determining orientation codes. If
             None, self.source_type will be used.
         """
 
@@ -2040,13 +2205,13 @@ class Image(skrt.core.Archive):
         """Get image orientation as a row and column vector.
 
         **Parameters:**
-        
+
         affine : np.ndarray, default=None
             Custom affine matrix to use when determining orientation vector.
             If None, self.affine will be used.
 
         source_type : str, default=None
-            Assumed source type to use when determining orientation vector. If 
+            Assumed source type to use when determining orientation vector. If
             None, self.source_type will be used.
         """
 
@@ -2071,16 +2236,16 @@ class Image(skrt.core.Archive):
         return vecs[codes[0]] + vecs[codes[1]]
 
     def get_orientation_view(self):
-        '''
+        """
         Determine view corresponding to the image's orientation.
-        '''
+        """
         self.load()
         orient = self.get_orientation_vector()
-        axis1 = ''.join([ax * abs(v) for ax, v in zip(_axes, orient[:3])])
-        axis2 = ''.join([ax * abs(v) for ax, v in zip(_axes, orient[3:])])
-        view = f'{axis1}-{axis2}'
+        axis1 = "".join([ax * abs(v) for ax, v in zip(_axes, orient[:3])])
+        axis2 = "".join([ax * abs(v) for ax, v in zip(_axes, orient[3:])])
+        view = f"{axis1}-{axis2}"
         if view not in _plot_axes:
-            view = f'{axis2}-{axis1}'
+            view = f"{axis2}-{axis1}"
         if view not in _plot_axes:
             view = None
 
@@ -2092,15 +2257,17 @@ class Image(skrt.core.Archive):
         numbers 0, 1, and 2 correspond to x, y, and z, respectively.
 
         **Parameters:**
-        
+
         col_first : bool, default=True
             If True, return axis numbers in order [column, row, slice] instead
             of [row, column, slice].
         """
 
         orient = np.array(self.get_orientation_vector()).reshape(2, 3)
-        axes = [sum([abs(int(orient[i, j] * j)) for j in range(3)]) for i in
-                range(2)]
+        axes = [
+            sum([abs(int(orient[i, j] * j)) for j in range(3)])
+            for i in range(2)
+        ]
         axes.append(3 - sum(axes))
         if col_first:
             return axes
@@ -2108,7 +2275,6 @@ class Image(skrt.core.Archive):
             return [axes[1], axes[0], axes[2]]
 
     def get_machine(self, stations=_default_stations):
-
         machine = None
         if self.files:
             ds = pydicom.dcmread(self.files[0].path, force=True)
@@ -2124,12 +2290,12 @@ class Image(skrt.core.Archive):
         """Set geometric properties for this image. Should be called once image
         data has been loaded. Sets the following properties:
 
-            Affine matrix (self.affine): 
-                4x4 affine matrix. If initially None, this is computed 
+            Affine matrix (self.affine):
+                4x4 affine matrix. If initially None, this is computed
                 from self.voxel_size and self.origin.
 
             Voxel sizes (self.voxel_size):
-                List of [x, y, z] voxel sizes in mm. If initially None, this 
+                List of [x, y, z] voxel sizes in mm. If initially None, this
                 is computed from self.affine.
 
             Origin position (self.origin):
@@ -2137,13 +2303,13 @@ class Image(skrt.core.Archive):
                 this is computed from self.affine.
 
             Number of voxels (self.n_voxels):
-                List of number of voxels in the [x, y, z] directions. Computed 
+                List of number of voxels in the [x, y, z] directions. Computed
                 from self.data.shape.
 
             Limits (self.lims):
                 List of minimum and maximum array positions in the [x, y, z]
-                directions (corresponding the centres of the first and last 
-                voxels). Calculated from standardised origin, voxel sizes, 
+                directions (corresponding the centres of the first and last
+                voxels). Calculated from standardised origin, voxel sizes,
                 and image shape.
 
             Image extent (self.image_extent):
@@ -2153,7 +2319,7 @@ class Image(skrt.core.Archive):
 
             Plot extent (self.plot_extent):
                 Dict of plot extents for each orientation. Given in the form
-                of a list [x1, x2, y1, y2], which is the format needed for 
+                of a list [x1, x2, y1, y2], which is the format needed for
                 the <extent> argument for matplotlib plotting.
 
             Image sizes (self.image_size):
@@ -2168,27 +2334,36 @@ class Image(skrt.core.Archive):
                 self.origin = [0, 0, 0]
 
         # Set affine matrix, voxel sizes, and origin
-        self.affine, self.voxel_size, self.origin = \
-                get_geometry(
-                    self.affine, self.voxel_size, self.origin, 
-                    is_nifti=("nifti" in self.source_type),
-                    shape=self.data.shape
-                )
+        self.affine, self.voxel_size, self.origin = get_geometry(
+            self.affine,
+            self.voxel_size,
+            self.origin,
+            is_nifti=("nifti" in self.source_type),
+            shape=self.data.shape,
+        )
 
         # Set number of voxels in [x, y, z] directions
         for attribute in [
-                "_affine_canonical", "_data_canonical",
-                "_saffine", "_sdata", "_sorigin"]:
+            "_affine_canonical",
+            "_data_canonical",
+            "_saffine",
+            "_sdata",
+            "_sorigin",
+        ]:
             setattr(self, attribute, None)
         self.standardise_data()
-        self.n_voxels = [self._sdata.shape[1], self._sdata.shape[0],
-                         self._sdata.shape[2]]
+        self.n_voxels = [
+            self._sdata.shape[1],
+            self._sdata.shape[0],
+            self._sdata.shape[2],
+        ]
 
         # Set axis limits for standardised plotting
         self.lims = [
             (
                 self._sorigin[i],
-                self._sorigin[i] + (self.n_voxels[i] - 1) * self._svoxel_size[i],
+                self._sorigin[i]
+                + (self.n_voxels[i] - 1) * self._svoxel_size[i],
             )
             for i in range(3)
         ]
@@ -2200,21 +2375,23 @@ class Image(skrt.core.Archive):
             for i in range(3)
         ]
         self.plot_extent = {
-            view: self.image_extent[x_ax] +
-            (self.image_extent[y_ax][::-1] if 1 == y_ax
-             else self.image_extent[y_ax])
+            view: self.image_extent[x_ax]
+            + (
+                self.image_extent[y_ax][::-1]
+                if 1 == y_ax
+                else self.image_extent[y_ax]
+            )
             for view, (x_ax, y_ax) in _plot_axes.items()
         }
         self.image_size = [
-                self.n_voxels[i] * self._svoxel_size[i]
-                for i in range(3)
-                ]
+            self.n_voxels[i] * self._svoxel_size[i] for i in range(3)
+        ]
 
     def get_length(self, ax):
         """Get image length along a given axis.
 
         **Parameters:**
-        
+
         ax : str/int
             Axis along which to get length. Can be either "x", "y", "z" or
             0, 1, 2.
@@ -2227,22 +2404,22 @@ class Image(skrt.core.Archive):
 
     def get_idx(self, view, sl=None, idx=None, pos=None):
         """Get an array index from either a slice number, index, or
-        position. If <sl>, <idx>, and <pos> are all None, the index of the 
-        central slice of the image in the orienation specified in <view> will 
+        position. If <sl>, <idx>, and <pos> are all None, the index of the
+        central slice of the image in the orienation specified in <view> will
         be returned.
 
         **Parameters:**
-        
+
         view : str
-            Orientation in which to compute the index. 
+            Orientation in which to compute the index.
             Can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
         sl : int, default=None
-            Slice number. If given, this number will be converted to an index 
+            Slice number. If given, this number will be converted to an index
             and returned.
 
         idx : int, default=None
-            Slice array index. If given and <sl> is None, this index will be 
+            Slice array index. If given and <sl> is None, this index will be
             returned.
 
         pos : float, default=None
@@ -2261,15 +2438,23 @@ class Image(skrt.core.Archive):
         return idx
 
     def get_slice(
-        self, view="x-y", sl=None, idx=None, pos=None, flatten=False, 
-        force=True, shift=[None, None, None], force_standardise=True, **kwargs
+        self,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        flatten=False,
+        force=True,
+        shift=[None, None, None],
+        force_standardise=True,
+        **kwargs,
     ):
-        """Get a slice of the data in the correct orientation for plotting. 
+        """Get a slice of the data in the correct orientation for plotting.
         If <sl>, <pos>, and <idx> are all None, the central slice of the image
         in the orientation specified in <view> will be returned.
 
         **Parameters:**
-        
+
         view : str
             Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
@@ -2284,7 +2469,7 @@ class Image(skrt.core.Archive):
             None.
 
         flatten : bool, default=False
-            If True, the image will be summed across all slices in the 
+            If True, the image will be summed across all slices in the
             orientation specified in <view>; <sl>/<idx>/<pos> will be ignored.
 
         shift : list, default=[None, None, None]
@@ -2312,14 +2497,18 @@ class Image(skrt.core.Archive):
 
         # Create slice
         transposes = {
-                "x-y": [0, 1, 2], "x-z": [2, 1, 0],
-                "y-x": [1, 0, 2], "y-z": [2, 0, 1],
-                "z-x": [1, 2, 0], "z-y": [0, 2, 1],
-                }
+            "x-y": [0, 1, 2],
+            "x-z": [2, 1, 0],
+            "y-x": [1, 0, 2],
+            "y-z": [2, 0, 1],
+            "z-x": [1, 2, 0],
+            "z-y": [0, 2, 1],
+        }
         transpose = pad_transpose(transposes[view], self.data.ndim)
         list(_plot_axes[view]) + [_slice_axes[view]]
-        data = np.transpose(self.get_standardised_data(force=force_standardise),
-                            transpose)
+        data = np.transpose(
+            self.get_standardised_data(force=force_standardise), transpose
+        )
         x_ax, y_ax = _plot_axes[view]
         if y_ax != 1:
             data = data[::-1, :, :]
@@ -2357,7 +2546,7 @@ class Image(skrt.core.Archive):
         Any previously assigned structure sets are cleared.
 
         **Parameters:**
-        
+
         structure_set : skrt.structures.StructureSet
             A StructureSet object to assign to this image.
         """
@@ -2369,7 +2558,7 @@ class Image(skrt.core.Archive):
         not affect the image associated with the structure set.
 
         **Parameters:**
-        
+
         structure_set : skrt.structures.StructureSet
             A StructureSet object to assign to this image.
         """
@@ -2425,7 +2614,7 @@ class Image(skrt.core.Archive):
         The default parameters are:
             - "aspect":
                 Aspect ratio determined from image geometry.
-            - "extent": 
+            - "extent":
                 Plot extent determined from image geometry.
             - "cmap":
                 Colormap, self._default_cmap by default.
@@ -2437,7 +2626,7 @@ class Image(skrt.core.Archive):
             https://matplotlib.org/stable/gallery/color/colormap_reference.html
 
         **Parameters:**
-        
+
         view : str
             Orientation; (any of "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y");
             needed to compute correct aspect ratio and plot extent.
@@ -2446,7 +2635,7 @@ class Image(skrt.core.Archive):
             Dict of kwargs with which to overwrite default kwargs.
 
         scale_in_mm : bool, default=True
-            If True, indicates that image will be plotted with axis scales in 
+            If True, indicates that image will be plotted with axis scales in
             mm; needed to compute correct aspect ratio and plot extent.
         """
 
@@ -2457,7 +2646,7 @@ class Image(skrt.core.Archive):
         for name in ["vmin", "vmax", "cmap"]:
             if name not in mpl_kwargs:
                 mpl_kwargs[name] = getattr(self, f"_default_{name}")
-        
+
         # Set image extent and aspect ratio
         extent = self.plot_extent[view]
         mpl_kwargs["aspect"] = 1
@@ -2469,19 +2658,21 @@ class Image(skrt.core.Archive):
                 self.pos_to_slice(extent[2], y_ax, False),
                 self.pos_to_slice(extent[3], y_ax, False),
             ]
-            mpl_kwargs["aspect"] = abs(self.voxel_size[y_ax]
-                                       / self.voxel_size[x_ax])
+            mpl_kwargs["aspect"] = abs(
+                self.voxel_size[y_ax] / self.voxel_size[x_ax]
+            )
         mpl_kwargs["extent"] = extent
 
         return mpl_kwargs
 
     def view(self, images=None, **kwargs):
-        """View self with BetterViewer along with any additional images in 
+        """View self with BetterViewer along with any additional images in
         <images>. Any ``**kwargs`` will be passed to BetterViewer
         initialisation.
         """
 
         from skrt.better_viewer import BetterViewer
+
         ims = [self]
         if images is not None:
             if isinstance(images, Image):
@@ -2565,7 +2756,7 @@ class Image(skrt.core.Archive):
         """Plot a 2D slice of the image.
 
         **Parameters:**
-        
+
         view : str/None, default='x-y'
             Orientation in which to plot the image. Can be any of 'x-y',
             'x-z', 'y-x', 'y-z', 'z-x', and 'z-y'.  If None, the initial
@@ -2630,7 +2821,7 @@ class Image(skrt.core.Archive):
             Dictionary of keyword arguments to pass to colorbar.set_label().
 
         intensity : list, default=None
-            Two-item list containing min and max intensity for plotting. 
+            Two-item list containing min and max intensity for plotting.
             Supercedes 'vmin' and 'vmax' in <mpl_kwargs>.
 
         mpl_kwargs : dict, default=None
@@ -2677,7 +2868,7 @@ class Image(skrt.core.Archive):
             - dict: annotation dictionary, containing keyword-value pairs
             to be passed to annotate() method of figure axes.  The
             following defaults are defined:
-                
+
                 'text': slice position or number;
                 'xy': (0.05, 0.93)
                 'xycoords': 'axes fraction'
@@ -2689,7 +2880,7 @@ class Image(skrt.core.Archive):
             For information on all parameters that can be passed to
             annotate() method, see:
             https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.annotate.html
-            
+
         major_ticks : float, default=None
             If not None, this value will be used as the interval between major
             tick marks. Otherwise, automatic matplotlib axis tick spacing will
@@ -2723,7 +2914,7 @@ class Image(skrt.core.Archive):
             for filled plots.
 
         roi_linewidth : float, default=None
-            Width of ROI contour lines. If None, the matplotlib default setting 
+            Width of ROI contour lines. If None, the matplotlib default setting
             will be used.
 
         consensus_type : str, default=None
@@ -2732,8 +2923,8 @@ class Image(skrt.core.Archive):
             StructureSet. Options are "majority", "sum", "overlap", "staple".
 
         exclude_from_consensus : str, default=None
-            If set to the name of an ROI and consensus_type is a valid 
-            consensus type, this ROI will be excluded from the consensus 
+            If set to the name of an ROI and consensus_type is a valid
+            consensus type, this ROI will be excluded from the consensus
             calculation and plotted separately on top of the consensus ROI.
 
         consensus_color : matplotlib color, default="white"
@@ -2741,7 +2932,7 @@ class Image(skrt.core.Archive):
 
         consensus_linewidth : float, default=None
             Linewidth of consensus contour. If None, the default matplotlib
-            linewidth + 1 will be used (such that consensus contours are 
+            linewidth + 1 will be used (such that consensus contours are
             thicker than standard contours).
 
         legend : bool, default=False
@@ -2768,15 +2959,15 @@ class Image(skrt.core.Archive):
 
         dose : skrt.dose.Dose / int, default=None
             Dose field to overlay on the image. Can be either a skrt.dose.Dose
-            object or an integer referring to the 
-            dose at a given index in self.doses (e.g. to plot the last dose 
+            object or an integer referring to the
+            dose at a given index in self.doses (e.g. to plot the last dose
             assigned to this Image, set dose=-1).
 
         dose_opacity : float, default=0.5
             Opacity of overlaid dose field, if <dose> is not None.
 
         dose_kwargs : dict, default=None
-            Extra arguments to provide to the mpl_kwargs argument in the dose 
+            Extra arguments to provide to the mpl_kwargs argument in the dose
             plotting method.
 
         xlim, ylim : tuples, default=None
@@ -2911,11 +3102,17 @@ class Image(skrt.core.Archive):
                         rois_to_plot.extend(self.structure_sets[roi].get_rois())
                         n_structure_sets += 1
                     except IndexError:
-                        raise IndexError(f"Index {roi} not found in Image.structure_sets!")
+                        raise IndexError(
+                            f"Index {roi} not found in Image.structure_sets!"
+                        )
         else:
-            if len(roi_input) != 1 \
-               or type(roi_input[0]).__name__ != "StructureSet":
-                raise TypeError("Consensus plots require a single StructureSet.")
+            if (
+                len(roi_input) != 1
+                or type(roi_input[0]).__name__ != "StructureSet"
+            ):
+                raise TypeError(
+                    "Consensus plots require a single StructureSet."
+                )
             rois_to_plot = roi_input[0].get_rois()
 
         # If centering on an ROI, find index of its central slice
@@ -2929,14 +3126,16 @@ class Image(skrt.core.Archive):
         # Get image slice
         idx = self.get_idx(view, sl=sl, idx=idx, pos=pos)
         pos = self.idx_to_pos(idx, ax=_slice_axes[view])
-        image_slice = self.get_slice(view, idx=idx, flatten=flatten, 
-                                     shift=shift)
+        image_slice = self.get_slice(
+            view, idx=idx, flatten=flatten, shift=shift
+        )
 
         # If required, apply mask to image slice
         if mask and masked:
             mask = get_mask(mask, mask_threshold, self)
-            mask_slice = mask.get_slice(view, idx=idx, flatten=flatten,
-                    shift=shift)
+            mask_slice = mask.get_slice(
+                view, idx=idx, flatten=flatten, shift=shift
+            )
             if invert_mask:
                 image_slice = np.ma.masked_where(mask_slice, image_slice)
             else:
@@ -2947,19 +3146,21 @@ class Image(skrt.core.Archive):
             mpl_kwargs = {}
         if roi_kwargs is None:
             roi_kwargs = {}
-        roi_kwargs['no_xlabel'] = no_xlabel
-        roi_kwargs['no_ylabel'] = no_ylabel
-        roi_kwargs['no_xticks'] = no_xticks
-        roi_kwargs['no_yticks'] = no_yticks
-        roi_kwargs['no_xtick_labels'] = no_xtick_labels
-        roi_kwargs['no_ytick_labels'] = no_ytick_labels
+        roi_kwargs["no_xlabel"] = no_xlabel
+        roi_kwargs["no_ylabel"] = no_ylabel
+        roi_kwargs["no_xticks"] = no_xticks
+        roi_kwargs["no_yticks"] = no_yticks
+        roi_kwargs["no_xtick_labels"] = no_xtick_labels
+        roi_kwargs["no_ytick_labels"] = no_ytick_labels
         if roi_linewidth is None:
-            roi_linewidth = roi_kwargs.get("linewidth",
-                    mpl.defaultParams["lines.linewidth"][0])
+            roi_linewidth = roi_kwargs.get(
+                "linewidth", mpl.defaultParams["lines.linewidth"][0]
+            )
         roi_kwargs["linewidth"] = roi_linewidth
         if roi_opacity is None:
-            roi_opacity = roi_kwargs.get("opacity",
-                    0.3 if "filled" in roi_plot_type else 1)
+            roi_opacity = roi_kwargs.get(
+                "opacity", 0.3 if "filled" in roi_plot_type else 1
+            )
         roi_kwargs["opacity"] = roi_opacity
         roi_kwargs["title"] = roi_kwargs.get("title", title) or ""
 
@@ -2975,11 +3176,11 @@ class Image(skrt.core.Archive):
         grid_kwargs = grid_kwargs or {}
 
         # Set defaults for clb_kwargs and clb_label_kwargs
-        clb_kwargs['pad'] = clb_kwargs.get('pad', 0.06)
-        clb_label_kwargs['labelpad'] = clb_label_kwargs.get('labelpad', 7)
+        clb_kwargs["pad"] = clb_kwargs.get("pad", 0.06)
+        clb_label_kwargs["labelpad"] = clb_label_kwargs.get("labelpad", 7)
 
         # Apply intensity window if given
-        if 'auto' == intensity:
+        if "auto" == intensity:
             mpl_kwargs["vmin"] = self.get_data().min()
             mpl_kwargs["vmax"] = self.get_data().max()
         elif intensity is not None:
@@ -3006,16 +3207,16 @@ class Image(skrt.core.Archive):
         clb_kwargs2 = clb_kwargs if colorbar == -1 else {}
         clb_label_kwargs2 = clb_label_kwargs if colorbar == -1 else {}
 
-        # Plot the dose 
+        # Plot the dose
         if dose is not None:
             dose_to_plot.plot(
                 view=view,
                 idx=idx,
                 ax=self.ax,
                 show=False,
-                colorbar= max((colorbar - 1), -colorbar, 0),
-                include_image=False, 
-                opacity=dose_opacity, 
+                colorbar=max((colorbar - 1), -colorbar, 0),
+                include_image=False,
+                opacity=dose_opacity,
                 title="",
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
@@ -3036,31 +3237,31 @@ class Image(skrt.core.Archive):
         # Plot the deformation field.
         if df:
             df.plot(
-                    view=view,
-                    idx=idx,
-                    ax=self.ax,
-                    show=False,
-                    colorbar= max((colorbar - 1), -colorbar, 0),
-                    include_image=False, 
-                    df_opacity=df_opacity, 
-                    title="",
-                    no_xlabel=no_xlabel,
-                    no_ylabel=no_ylabel,
-                    no_xticks=no_xticks,
-                    no_yticks=no_yticks,
-                    no_xtick_labels=no_xtick_labels,
-                    no_ytick_labels=no_ytick_labels,
-                    mask=mask,
-                    mask_threshold=mask_threshold,
-                    masked=masked,
-                    invert_mask=invert_mask,
-                    mask_color=mask_color,
-                    df_plot_type=df_plot_type,
-                    df_spacing=df_spacing,
-                    clb_kwargs=clb_kwargs2,
-                    clb_label_kwargs=clb_label_kwargs2,
-                    **df_kwargs,
-                    )
+                view=view,
+                idx=idx,
+                ax=self.ax,
+                show=False,
+                colorbar=max((colorbar - 1), -colorbar, 0),
+                include_image=False,
+                df_opacity=df_opacity,
+                title="",
+                no_xlabel=no_xlabel,
+                no_ylabel=no_ylabel,
+                no_xticks=no_xticks,
+                no_yticks=no_yticks,
+                no_xtick_labels=no_xtick_labels,
+                no_ytick_labels=no_ytick_labels,
+                mask=mask,
+                mask_threshold=mask_threshold,
+                masked=masked,
+                invert_mask=invert_mask,
+                mask_color=mask_color,
+                df_plot_type=df_plot_type,
+                df_spacing=df_spacing,
+                clb_kwargs=clb_kwargs2,
+                clb_label_kwargs=clb_label_kwargs2,
+                **df_kwargs,
+            )
 
         # Plot the Jacobian determinant.
         if jacobian and not dose_to_plot:
@@ -3068,7 +3269,9 @@ class Image(skrt.core.Archive):
                 jacobian_intensity = jacobian_range
             elif "vmin" in jacobian_kwargs and "vmax" in jacobian_kwargs:
                 jacobian_intensity = (
-                        jacobian_kwargs["vmin"], jacobian_kwargs["vmax"])
+                    jacobian_kwargs["vmin"],
+                    jacobian_kwargs["vmax"],
+                )
             else:
                 jacobian_intensity = None
             jacobian.plot(
@@ -3077,8 +3280,8 @@ class Image(skrt.core.Archive):
                 ax=self.ax,
                 show=False,
                 colorbar=(max((colorbar - 1), -colorbar, 0)),
-                include_image=False, 
-                opacity=jacobian_opacity, 
+                include_image=False,
+                opacity=jacobian_opacity,
                 intensity=jacobian_intensity,
                 title="",
                 no_xlabel=no_xlabel,
@@ -3104,8 +3307,8 @@ class Image(skrt.core.Archive):
                 idx=idx,
                 ax=self.ax,
                 show=False,
-                include_image=False, 
-                opacity=grid_opacity, 
+                include_image=False,
+                opacity=grid_opacity,
                 title="",
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
@@ -3145,7 +3348,7 @@ class Image(skrt.core.Archive):
                         include_image=False,
                         no_invert=True,
                         color=roi.get_color_from_kwargs(roi_kwargs),
-                        **roi_kwargs
+                        **roi_kwargs,
                     )
                     plotted_rois.append(roi)
 
@@ -3170,7 +3373,7 @@ class Image(skrt.core.Archive):
                 legend=legend,
                 consensus_color=consensus_color,
                 consensus_linewidth=consensus_linewidth,
-                **roi_kwargs
+                **roi_kwargs,
             )
 
         # Label axes
@@ -3189,7 +3392,7 @@ class Image(skrt.core.Archive):
             major_ticks,
             minor_ticks,
             ticks_all_sides,
-            no_axis_labels
+            no_axis_labels,
         )
         self.zoom_ax(view, zoom, zoom_centre)
 
@@ -3202,42 +3405,51 @@ class Image(skrt.core.Archive):
         # Add ROI legend
         xlim = self.ax.get_xlim()
         ylim = self.ax.get_ylim()
-        x_ax, y_ax = _plot_axes[view] 
+        x_ax, y_ax = _plot_axes[view]
         roi_handles = []
         if legend and consensus_type is None:
             for roi in plotted_rois:
-
                 # Check whether this ROI is currently visible
-                roi_xlim = roi.get_extent(view=view, ax=x_ax, 
-                                          single_slice=True, pos=pos)
+                roi_xlim = roi.get_extent(
+                    view=view, ax=x_ax, single_slice=True, pos=pos
+                )
                 if max(roi_xlim) < min(xlim) or min(roi_xlim) > max(xlim):
                     continue
-                roi_ylim = roi.get_extent(view=view, ax=y_ax, single_slice=True, pos=pos)
+                roi_ylim = roi.get_extent(
+                    view=view, ax=y_ax, single_slice=True, pos=pos
+                )
                 if max(roi_ylim) < min(ylim) or min(roi_ylim) > max(ylim):
                     continue
 
                 # Define ROI handle.
                 roi_color = roi.get_color_from_kwargs(roi_kwargs)
                 roi_handle = roi.get_patch(
-                        roi_plot_type, roi_color, roi_opacity, roi_linewidth)
+                    roi_plot_type, roi_color, roi_opacity, roi_linewidth
+                )
                 if roi_handle:
                     roi_handles.append(roi_handle)
 
             # Draw ROI legend
             if legend and len(roi_handles):
                 self.ax.legend(
-                    handles=roi_handles, bbox_to_anchor=legend_bbox_to_anchor,
-                    loc=legend_loc, facecolor="white",
-                    framealpha=1
+                    handles=roi_handles,
+                    bbox_to_anchor=legend_bbox_to_anchor,
+                    loc=legend_loc,
+                    facecolor="white",
+                    framealpha=1,
                 )
 
         # Add colorbar
-        clb_label = colorbar_label if colorbar_label is not None \
-                else self._default_colorbar_label
+        clb_label = (
+            colorbar_label
+            if colorbar_label is not None
+            else self._default_colorbar_label
+        )
         if colorbar > 0 and mpl_kwargs.get("alpha", 1) > 0:
             if "jacobian" == cmap.name:
                 scalar_mappable = matplotlib.cm.ScalarMappable(
-                        norm=matplotlib.colors.Normalize(-1, 2), cmap=cmap)
+                    norm=matplotlib.colors.Normalize(-1, 2), cmap=cmap
+                )
             else:
                 scalar_mappable = mesh
             clb = self.fig.colorbar(scalar_mappable, ax=self.ax, **clb_kwargs)
@@ -3273,7 +3485,6 @@ class Image(skrt.core.Archive):
         no_axis_labels=False,
         **kwargs,
     ):
-
         x_ax, y_ax = _plot_axes[view]
 
         # Set title
@@ -3299,7 +3510,7 @@ class Image(skrt.core.Archive):
         elif no_ytick_labels:
             self.ax.set_yticklabels([])
 
-        #else:
+        # else:
 
         # Add annotation(s).
         if annotate_slice:
@@ -3330,19 +3541,20 @@ class Image(skrt.core.Archive):
             elif isinstance(annotate_slice, dict):
                 annotations = [annotate_slice]
             else:
-                annotations = [{'text': z_str, 'color': color}]
+                annotations = [{"text": z_str, "color": color}]
 
             # Annotate slice, with defaults set for some annotate() parameters.
             for annotation in annotations:
                 annotation_now = copy.deepcopy(annotation)
-                annotation_now['text'] = annotation.get('text', z_str) or z_str
+                annotation_now["text"] = annotation.get("text", z_str) or z_str
                 # By default, multiple annotations written
                 # one on top of the other...
-                annotation_now['xy'] = annotation.get('xy', (0.04, 0.91))
-                annotation_now['xycoords'] = annotation.get(
-                    'xycoords', 'axes fraction')
-                annotation_now['color'] = annotation.get('color', color)
-                annotation_now['fontsize'] = annotation.get('fontsize','large')
+                annotation_now["xy"] = annotation.get("xy", (0.04, 0.91))
+                annotation_now["xycoords"] = annotation.get(
+                    "xycoords", "axes fraction"
+                )
+                annotation_now["color"] = annotation.get("color", color)
+                annotation_now["fontsize"] = annotation.get("fontsize", "large")
                 self.ax.annotate(**annotation_now)
 
         # Adjust tick marks
@@ -3354,10 +3566,16 @@ class Image(skrt.core.Archive):
                 self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
                 self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
             if ticks_all_sides:
-                self.ax.tick_params(bottom=True, top=True, left=True, right=True)
+                self.ax.tick_params(
+                    bottom=True, top=True, left=True, right=True
+                )
                 if minor_ticks:
                     self.ax.tick_params(
-                        which="minor", bottom=True, top=True, left=True, right=True
+                        which="minor",
+                        bottom=True,
+                        top=True,
+                        left=True,
+                        right=True,
                     )
 
         # Remove axis labels if needed
@@ -3450,8 +3668,9 @@ class Image(skrt.core.Archive):
     def pos_to_slice(self, pos, ax, return_int=True, standardise=True):
         """Convert a position in mm to a slice number along a given axis."""
 
-        sl = self.idx_to_slice(self.pos_to_idx(
-            pos, ax, return_int, standardise=standardise), ax)
+        sl = self.idx_to_slice(
+            self.pos_to_idx(pos, ax, return_int, standardise=standardise), ax
+        )
         if return_int:
             return round(sl)
         else:
@@ -3473,8 +3692,10 @@ class Image(skrt.core.Archive):
 
         i_ax = _axes.index(ax) if ax in _axes else ax
         origin = self.get_origin()[i_ax]
-        return [origin, origin + (self.n_voxels[i_ax] - 1)
-                * self.voxel_size[i_ax]]
+        return [
+            origin,
+            origin + (self.n_voxels[i_ax] - 1) * self.voxel_size[i_ax],
+        ]
 
     def get_length(self, ax="z"):
         """Get total length of image."""
@@ -3494,7 +3715,7 @@ class Image(skrt.core.Archive):
         gs=None,
         figsize=None,
         zoom=None,
-        colorbar=False
+        colorbar=False,
     ):
         """Set up axes for this Image."""
 
@@ -3502,7 +3723,7 @@ class Image(skrt.core.Archive):
             figsize = _default_figsize
 
         skrt.image.set_ax(
-            self, 
+            self,
             view=view,
             ax=ax,
             gs=gs,
@@ -3543,8 +3764,9 @@ class Image(skrt.core.Archive):
         y_pad = 2 * font
         if self.title:
             y_pad += 1.5 * font
-        max_y_digits = np.floor(np.log10(max([abs(lim) for lim in
-                                              self.lims[y_ax]])))
+        max_y_digits = np.floor(
+            np.log10(max([abs(lim) for lim in self.lims[y_ax]]))
+        )
         minus_sign = any([lim < 0 for lim in self.lims[y_ax]])
         x_pad = (0.7 * max_y_digits + 1.2 * minus_sign + 1) * font
 
@@ -3556,7 +3778,7 @@ class Image(skrt.core.Archive):
 
         # Add padding for colorbar(s).
         # Numerator of 10 here is fairly arbitrary...
-        x_len *= (1 + (n_colorbars * 10) / figsize)
+        x_len *= 1 + (n_colorbars * 10) / figsize
 
         # Return estimated width ratio
         total_y = figsize + y_pad
@@ -3580,8 +3802,7 @@ class Image(skrt.core.Archive):
         self.data = downsample(self.data, dx, dy, dz)
 
         # Adjust voxel sizes
-        self.voxel_size = [v * d for v, d in zip(self.voxel_size,
-                                                 [dx, dy, dz])]
+        self.voxel_size = [v * d for v, d in zip(self.voxel_size, [dx, dy, dz])]
         self.affine = None
 
         # Reset geometric properties of this image
@@ -3596,8 +3817,9 @@ class Image(skrt.core.Archive):
             data = self.get_data().transpose(1, 0, 2)[:, ::-1, :]
             affine = self.affine.copy()
             affine[0, :] = -affine[0, :]
-            affine[1, 3] = -(affine[1, 3] + (data.shape[1] - 1)
-                             * self.voxel_size[1])
+            affine[1, 3] = -(
+                affine[1, 3] + (data.shape[1] - 1) * self.voxel_size[1]
+            )
 
         # Use existing nifti array
         else:
@@ -3606,8 +3828,9 @@ class Image(skrt.core.Archive):
 
         # Convert to canonical if requested
         if standardise:
-            nii = nibabel.as_closest_canonical(nibabel.Nifti1Image(data,
-                                                                   affine))
+            nii = nibabel.as_closest_canonical(
+                nibabel.Nifti1Image(data, affine)
+            )
             return nii.get_fdata(), nii.affine
         else:
             return data, affine
@@ -3625,11 +3848,13 @@ class Image(skrt.core.Archive):
             data = self.get_data().transpose(1, 0, 2)[::-1, :, :]
             affine = self.affine.copy()
             affine[0, :] = -affine[0, :]
-            affine[1, 3] = -(affine[1, 3] + (data.shape[0] - 1)
-                             * self.voxel_size[1])
+            affine[1, 3] = -(
+                affine[1, 3] + (data.shape[0] - 1) * self.voxel_size[1]
+            )
             if standardise:
                 nii = nibabel.as_closest_canonical(
-                    nibabel.Nifti1Image(data, affine))
+                    nibabel.Nifti1Image(data, affine)
+                )
                 return nii.get_fdata(), nii.affine
             else:
                 return data, affine
@@ -3713,7 +3938,6 @@ class Image(skrt.core.Archive):
 
         # Write to dicom
         else:
-
             # Get name of dicom directory
             if outname.endswith(".dcm"):
                 outdir = os.path.abspath(os.path.dirname(outname))
@@ -3740,14 +3964,15 @@ class Image(skrt.core.Archive):
                 root_uid,
                 header_extras,
                 type(self).__name__,
-                filename
+                filename,
             )
             self.dicom_dataset = dicom_writer.write()
             if verbose:
                 print("Wrote dicom file(s) to directory:", outdir)
 
-    def copy_dicom(self, outdir="image_dicom", overwrite=True, sort=True,
-                   *args, **kwargs):
+    def copy_dicom(
+        self, outdir="image_dicom", overwrite=True, sort=True, *args, **kwargs
+    ):
         """
         Copy source dicom files.
 
@@ -3794,13 +4019,17 @@ class Image(skrt.core.Archive):
         if sort:
             z_instance_numbers = getattr(self, "_z_instance_numbers", {}) or {}
             instance_numbers = list(z_instance_numbers.values())
-            if (not instance_numbers or (None in instance_numbers) or
-                    (len(instance_numbers) != len(set(instance_numbers)))):
-                z_instance_numbers = {z: idx + 1
-                        for idx, z in enumerate(sorted(z_paths.keys()))}
+            if (
+                not instance_numbers
+                or (None in instance_numbers)
+                or (len(instance_numbers) != len(set(instance_numbers)))
+            ):
+                z_instance_numbers = {
+                    z: idx + 1 for idx, z in enumerate(sorted(z_paths.keys()))
+                }
 
         # Loop over image files.
-        for z, path in sorted(z_paths.items()): 
+        for z, path in sorted(z_paths.items()):
             if sort:
                 outpath = outdir / f"{z_instance_numbers[z]}.dcm"
             else:
@@ -3815,16 +4044,24 @@ class Image(skrt.core.Archive):
         coords_1d = [
             np.arange(
                 self.origin[i],
-                self.origin[i] + (self.n_voxels[i] -0.5) * self.voxel_size[i],
+                self.origin[i] + (self.n_voxels[i] - 0.5) * self.voxel_size[i],
                 self.voxel_size[i],
             )
             for i in range(3)
         ]
         return np.meshgrid(*coords_1d)
 
-    def transform(self, scale=1, translation=[0, 0, 0], rotation=[0, 0, 0],
-            centre=[0, 0, 0], resample="fine", restore=True, order=1,
-            fill_value=None):
+    def transform(
+        self,
+        scale=1,
+        translation=[0, 0, 0],
+        rotation=[0, 0, 0],
+        centre=[0, 0, 0],
+        resample="fine",
+        restore=True,
+        order=1,
+        fill_value=None,
+    ):
         """Apply three-dimensional similarity transform using scikit-image.
 
         The image is first translated, then is scaled and rotated
@@ -3832,7 +4069,7 @@ class Image(skrt.core.Archive):
 
 
         **Parameters:**
-        
+
         scale : float, default=1
             Scaling factor.
 
@@ -3890,7 +4127,7 @@ class Image(skrt.core.Archive):
             image_resample = False
         if not image_resample:
             if abs(voxel_size_max - voxel_size_min) > 0.1:
-                if (scale - 1.) > small_number:
+                if (scale - 1.0) > small_number:
                     image_resample = True
                 pitch, yaw, roll = rotation
                 dx, dy, dz = voxel_size
@@ -3900,13 +4137,13 @@ class Image(skrt.core.Archive):
                     image_resample = True
                 if abs(roll) > small_number and abs(dx - dy) > small_number:
                     image_resample = True
-            if image_resample and resample not in ['coarse', 'fine']:
-                resample = 'fine'
+            if image_resample and resample not in ["coarse", "fine"]:
+                resample = "fine"
 
         if image_resample:
-            if 'fine' == resample:
+            if "fine" == resample:
                 resample_size = voxel_size_min
-            elif 'coarse' == resample:
+            elif "coarse" == resample:
                 resample_size = voxel_size_max
             else:
                 resample_size = resample
@@ -3933,26 +4170,37 @@ class Image(skrt.core.Archive):
         # (translation before rotation), and allows definition
         # of point about which rotation and scaling are performed.
         tf_translation = skimage.transform.SimilarityTransform(
-                translation=[-idy, -idx, -idz], dimensionality=3)
+            translation=[-idy, -idx, -idz], dimensionality=3
+        )
         tf_centre_shift = skimage.transform.SimilarityTransform(
-                translation=[-iyc, -ixc, -izc], dimensionality=3)
+            translation=[-iyc, -ixc, -izc], dimensionality=3
+        )
         tf_rotation = skimage.transform.SimilarityTransform(
-                rotation=[yaw, pitch, roll], dimensionality=3)
+            rotation=[yaw, pitch, roll], dimensionality=3
+        )
         tf_scale = skimage.transform.SimilarityTransform(
-                scale=1. / scale, dimensionality=3)
+            scale=1.0 / scale, dimensionality=3
+        )
         tf_centre_shift_inv = skimage.transform.SimilarityTransform(
-                translation=[iyc, ixc, izc], dimensionality=3)
+            translation=[iyc, ixc, izc], dimensionality=3
+        )
 
-        matrix = tf_translation + tf_centre_shift + tf_rotation + tf_scale \
-                 + tf_centre_shift_inv
+        matrix = (
+            tf_translation
+            + tf_centre_shift
+            + tf_rotation
+            + tf_scale
+            + tf_centre_shift_inv
+        )
 
         # Set fill value
         if fill_value is None:
             fill_value = self.data.min()
 
         # Apply transform
-        self.data = scipy.ndimage.affine_transform(self.data, matrix,
-                order=order, cval=fill_value)
+        self.data = scipy.ndimage.affine_transform(
+            self.data, matrix, order=order, cval=fill_value
+        )
 
         # Revert to original voxel size
         if image_resample and restore:
@@ -3988,8 +4236,9 @@ class Image(skrt.core.Archive):
 
         return same
 
-    def has_same_geometry(self, im, max_diff=0.005, standardise=False,
-                          force_standardise=True):
+    def has_same_geometry(
+        self, im, max_diff=0.005, standardise=False, force_standardise=True
+    ):
         """
         Check whether this Image has the same geometric properties as
         another Image (i.e. same origins and voxel sizes within tolerance,
@@ -4010,10 +4259,10 @@ class Image(skrt.core.Archive):
             to the [x, y, z] axes.
 
         force_standardise : bool, default=True
-            If True, the standardised image will be recomputed from self.data 
+            If True, the standardised image will be recomputed from self.data
             even if it has previously been computed.
         """
-        
+
         shape = self.get_data(standardise, force_standardise).shape
         origin = self.get_origin(standardise, force_standardise)
         voxel_size = self.get_voxel_size(standardise, force_standardise)
@@ -4021,17 +4270,19 @@ class Image(skrt.core.Archive):
         im_origin = im.get_origin(standardise, force_standardise)
         im_voxel_size = im.get_voxel_size(standardise, force_standardise)
 
-        same = (shape == im_shape)
-        same *= np.all([abs(origin[i] - im_origin[i]) < max_diff
-                            for i in range(3)])
-        same *= np.all([abs(voxel_size[i] - im_voxel_size[i]) < max_diff
-                            for i in range(3)])
-    
+        same = shape == im_shape
+        same *= np.all(
+            [abs(origin[i] - im_origin[i]) < max_diff for i in range(3)]
+        )
+        same *= np.all(
+            [abs(voxel_size[i] - im_voxel_size[i]) < max_diff for i in range(3)]
+        )
+
         return same
 
     def crop(self, xlim=None, ylim=None, zlim=None):
         """
-        Crop the image to a given x, y, z range in mm. If any are None, the 
+        Crop the image to a given x, y, z range in mm. If any are None, the
         image will not be cropped in that direction.
         """
 
@@ -4047,7 +4298,6 @@ class Image(skrt.core.Archive):
             im = self
 
         for i_ax, lim in enumerate(lims):
-
             if lim is None:
                 continue
 
@@ -4068,8 +4318,9 @@ class Image(skrt.core.Archive):
 
             # Crop the data array
             ax_to_slice = im.get_axes().index(i_ax)
-            im.data = im.data.take(indices=range(i_small, i_big),
-                                       axis=ax_to_slice)
+            im.data = im.data.take(
+                indices=range(i_small, i_big), axis=ax_to_slice
+            )
 
             # Reset origin position
             if im.image_extent[i_ax][1] > im.image_extent[i_ax][0]:
@@ -4085,7 +4336,8 @@ class Image(skrt.core.Archive):
             im = im.astype("nifti")
             self.data = im.data.copy()
             self.affine, self.voxel_size, self.origin = get_geometry(
-                    im.affine, im.voxel_size, im.origin)
+                im.affine, im.voxel_size, im.origin
+            )
 
         self.set_geometry()
 
@@ -4119,8 +4371,11 @@ class Image(skrt.core.Archive):
 
         lims = []
         for idx, lim in enumerate([xlim, ylim, zlim]):
-            lims.append(None if lim is None else
-                    [lim[0] + point[idx], lim[1] + point[idx]])
+            lims.append(
+                None
+                if lim is None
+                else [lim[0] + point[idx], lim[1] + point[idx]]
+            )
 
         self.crop(*lims)
 
@@ -4141,8 +4396,9 @@ class Image(skrt.core.Archive):
         """
         crop_by_amounts(self, dx, dy, dz)
 
-    def crop_to_roi(self, roi, crop_margins=None, crop_about_centre=False,
-                    method=None):
+    def crop_to_roi(
+        self, roi, crop_margins=None, crop_about_centre=False, method=None
+    ):
         """
         Crop image to region defined by an ROI or StructureSet, plus margins.
 
@@ -4164,23 +4420,26 @@ class Image(skrt.core.Archive):
 
         crop_about_centre : bool, default=False
             If True, image is cropped to the centre point of ROI or
-            StructureSet plus margins.  If False, image is cropped to 
+            StructureSet plus margins.  If False, image is cropped to
             the extents of ROI or StructureSet plus margins.
 
         method : str, default=None
-            Method to use for calculating extent of <roi> region. Can be: 
+            Method to use for calculating extent of <roi> region. Can be:
 
                 * "contour": get extent from min/max positions of contour(s).
-                * "mask": get extent from min/max positions of voxels in the 
+                * "mask": get extent from min/max positions of voxels in the
                   binary mask.
                 * None: use the method set in self.default_geom_method.
         """
         if crop_about_centre:
-            self.crop_about_point(roi.get_centre(method=method),
-                                  *checked_crop_limits(crop_margins))
+            self.crop_about_point(
+                roi.get_centre(method=method),
+                *checked_crop_limits(crop_margins),
+            )
         else:
-            self.crop(*roi.get_crop_limits(
-                crop_margins=crop_margins, method=method))
+            self.crop(
+                *roi.get_crop_limits(crop_margins=crop_margins, method=method)
+            )
 
     def crop_to_image(self, image, alignment=None):
         """
@@ -4211,8 +4470,8 @@ class Image(skrt.core.Archive):
         if translation is not None:
             self.translate_origin(-translation)
 
-    def map_hu(self, mapping='kv_to_mv'):
-        '''
+    def map_hu(self, mapping="kv_to_mv"):
+        """
         Map radiodensities in Hounsfield units according to mapping function.
 
         **Parameter:**
@@ -4220,15 +4479,16 @@ class Image(skrt.core.Archive):
         mapping - str, default='kv_to_mv'
             Identifier of mapping function to be used.  Currently only
             the VoxTox mapping from kV CT scan to MV CT scan is implemented.
-        '''
-        if 'kv_to_mv' == mapping:
-            self.data = (np.vectorize(kv_to_mv, otypes=[np.float64])
-                    (self.get_data()))
+        """
+        if "kv_to_mv" == mapping:
+            self.data = np.vectorize(kv_to_mv, otypes=[np.float64])(
+                self.get_data()
+            )
         else:
-            print(f'Mapping function {mapping} not known.')
+            print(f"Mapping function {mapping} not known.")
 
     def get_sinogram(self, force=False, verbose=False):
-        '''
+        """
         Retrieve image where each slice corresponds to a sinogram.
 
         A slice sinogram is obtain through application of a Radon
@@ -4243,12 +4503,12 @@ class Image(skrt.core.Archive):
 
         verbose : bool, default=False
             Print information on progress in sinogram creation.
-        '''
+        """
         self.load()
 
         if (self.sinogram is None) or force:
             if verbose:
-                print('Creating sinogram for each image slice:')
+                print("Creating sinogram for each image slice:")
 
             # Value to subtract to have only positive intensities.
             vmin = min(self.get_data().min(), 0)
@@ -4258,17 +4518,16 @@ class Image(skrt.core.Archive):
             # Apply Radon transform slice by slice
             for iz in range(nz):
                 if verbose:
-                    print(f'    ...slice {iz + 1:3d} of {nz:3d}')
+                    print(f"    ...slice {iz + 1:3d} of {nz:3d}")
                 im_slice = self.get_data()[:, :, iz] - vmin
                 sinogram_slice = skimage.transform.radon(im_slice, circle=False)
                 sinogram_stack.append(sinogram_slice)
             self.sinogram = Image(np.stack(sinogram_stack, axis=-1))
 
         return self.sinogram
-            
-    def add_sinogram_noise(self, phi0=60000, eta=185000, verbose=False):
 
-        '''
+    def add_sinogram_noise(self, phi0=60000, eta=185000, verbose=False):
+        """
         Add Poisson fluctuations at level of sinogram.
 
         For a kV CT scan mapped to the radiodensity scale of an MV CT scan
@@ -4289,39 +4548,44 @@ class Image(skrt.core.Archive):
 
         verbose : bool, default=False
             Print information on progress in noise addition
-        '''
+        """
         self.load()
 
         self.get_sinogram(verbose=verbose)
 
         if verbose:
-            print('Adding sinogram-level fluctuations for each image slice:')
+            print("Adding sinogram-level fluctuations for each image slice:")
 
         # Value to subtract to have only positive intensities.
         vmin = min(self.get_data().min(), 0)
 
         nz = self.get_n_voxels()[2]
-        
+
         # Loop over slices
         for iz in range(nz):
             if verbose:
-                print(f'    ...slice {iz + 1:3d} of {nz:3d}')
+                print(f"    ...slice {iz + 1:3d} of {nz:3d}")
             sinogram_slice = self.get_sinogram().get_data()[:, :, iz].copy()
             for idx, value in np.ndenumerate(sinogram_slice):
                 if sinogram_slice[idx] > 0:
                     # Sample notional photon flux from a poisson distribution
                     flux = np.random.poisson(
-                            phi0 * np.exp(-sinogram_slice[idx] / eta))
+                        phi0 * np.exp(-sinogram_slice[idx] / eta)
+                    )
                     if flux > 0:
                         # Recalculate the sinogram value from the new flux value
                         sinogram_slice[idx] = -eta * np.log(flux / phi0)
 
             # Apply inverse Radon transform through filtered back propagation
-            self.data[:, :, iz] = skimage.transform.iradon(sinogram_slice,
-                    circle=False, filter_name='hann') + vmin
+            self.data[:, :, iz] = (
+                skimage.transform.iradon(
+                    sinogram_slice, circle=False, filter_name="hann"
+                )
+                + vmin
+            )
 
     def assign_intensity_to_rois(self, rois=None, intensity=0):
-        '''
+        """
         Assign intensity value to image regions corresponding to ROIs.
 
         **Parameters:**
@@ -4331,37 +4595,38 @@ class Image(skrt.core.Archive):
 
         intensity : int/float, default=0
             Intensity value to be assigned to ROI voxels.
-        '''
+        """
 
         self.load()
 
         for roi in rois:
             self.data[roi.get_mask()] = intensity
 
-    def remove_bolus(self, structure_set=None, bolus_names=None,
-            intensity=None):
-        '''
-        Attempt to remove bolus from image.
+    def remove_bolus(
+        self, structure_set=None, bolus_names=None, intensity=None
+    ):
+        """
+         Attempt to remove bolus from image.
 
-        In treatment planning, ROIs labelled as bolus may be defined on
-        the skin, and are assigned a radiodensity of water (zero) to help guide
-        the treatment optimiser.  The original image is approximately
-        recovered by overwriting with the radiodensity of air.
+         In treatment planning, ROIs labelled as bolus may be defined on
+         the skin, and are assigned a radiodensity of water (zero) to help guide
+         the treatment optimiser.  The original image is approximately
+         recovered by overwriting with the radiodensity of air.
 
-        **Parameters:**
-        structure_set : skrt.structures.StructureSet
-            Structure set to search for ROIs labelled as bolus.  If None,
-            the image's earliest associated structure set is used.
+         **Parameters:**
+         structure_set : skrt.structures.StructureSet
+             Structure set to search for ROIs labelled as bolus.  If None,
+             the image's earliest associated structure set is used.
 
-        bolus_names : list, default=None
-            List of names, optionally including wildcards, with which
-            bolus may be labelled.  If None, use
-            skrt.image._default_bolus_names.
+         bolus_names : list, default=None
+             List of names, optionally including wildcards, with which
+             bolus may be labelled.  If None, use
+             skrt.image._default_bolus_names.
 
-       intensity : int/float, default=None
-            Intensity value to be assigned to voxels of ROI labelled as bolus.
-            If None, use image's minimum value.
-        '''
+        intensity : int/float, default=None
+             Intensity value to be assigned to voxels of ROI labelled as bolus.
+             If None, use image's minimum value.
+        """
 
         if structure_set is None:
             if self.structure_sets:
@@ -4382,7 +4647,7 @@ class Image(skrt.core.Archive):
         self.assign_intensity_to_rois(bolus_rois, intensity)
 
     def apply_banding(self, bands=None):
-        '''
+        """
         Apply banding to image data.
 
         **Parameter:**
@@ -4395,11 +4660,11 @@ class Image(skrt.core.Archive):
             - bands{-100: -1024, 100: 0, 1e10: 1024}
 
             will result in the following banding:
- 
+
             - value <= -100 => -1024;
             - -100 < value <= 100 => 0;
             - 100 < value <= 1e10 => 1024.
-        '''
+        """
 
         if bands is None:
             return
@@ -4419,7 +4684,7 @@ class Image(skrt.core.Archive):
         self.data = banded_data
 
     def apply_selective_banding(self, bands=None):
-        '''
+        """
         Apply banding to selected intensity ranges of image data.
 
         This is one of two skrt.image.Image methods to perform banding:
@@ -4445,11 +4710,11 @@ class Image(skrt.core.Archive):
             - bands{-1024: (None, -100), 1024: (100, None}
 
             will result in the following banding:
- 
+
             - value <= -100 => -1024;
             - -100 < value <= 100 => original values retained;
             - 100 < value => 1024.
-        '''
+        """
 
         if not bands:
             return
@@ -4466,9 +4731,10 @@ class Image(skrt.core.Archive):
 
         self.data = banded_data
 
-    def get_masked_image(self, mask=None, mask_threshold=0.5,
-            invert_mask=False):
-        '''
+    def get_masked_image(
+        self, mask=None, mask_threshold=0.5, invert_mask=False
+    ):
+        """
         Return image after application of mask.
 
         mask : Image/list/ROI/str/StructureSet, default=None
@@ -4485,7 +4751,7 @@ class Image(skrt.core.Archive):
 
         invert_mask : bool, default=False
             If True, the mask is inverted before being applied.
-        '''
+        """
 
         # Try to ensure that mask is an Image object,
         # has boolean data, and matches the size of self.
@@ -4502,9 +4768,17 @@ class Image(skrt.core.Archive):
         return masked_image
 
     def get_comparison(
-            self, other, metrics=None, name=None, name_as_index=True,
-            nice_columns=False, decimal_places=None,
-            base=2, bins=100, xyrange=None):
+        self,
+        other,
+        metrics=None,
+        name=None,
+        name_as_index=True,
+        nice_columns=False,
+        decimal_places=None,
+        base=2,
+        bins=100,
+        xyrange=None,
+    ):
         """
         Return a pandas DataFrame comparing this image with another.
 
@@ -4513,13 +4787,13 @@ class Image(skrt.core.Archive):
         of this image, resized to match the other.
 
         **Parameters:**
-        
+
         other : skrt.image.Image
             Other image, with which to compare this image.
 
         metrics : list, default=None
             List of metrics to evaluate.  Available metrics:
-                
+
             Calculated in Image.get_mutual_information():
 
                 * "mutual_information";
@@ -4541,13 +4815,13 @@ class Image(skrt.core.Archive):
             as "title1_vs_title2".
 
         name_as_index : bool, default=True
-            If True, the index column of the pandas DataFrame will 
+            If True, the index column of the pandas DataFrame will
             contain the name of this comparison; otherwise, the name will
             appear in a column labelled "images".
 
         nice_columns : bool, default=False
             If False, column labels will be the same as the input metric names;
-            if True, the names will be capitalized and underscores will be 
+            if True, the names will be capitalized and underscores will be
             replaced with spaces.
 
         decimal_places : int, default=None
@@ -4594,8 +4868,10 @@ class Image(skrt.core.Archive):
         quality_metrics = []
         for metric in metrics:
             if metric not in get_image_comparison_metrics():
-                raise RuntimeError(f"Metric {metric} not recognised by "
-                                   "Image.get_comparison()")
+                raise RuntimeError(
+                    f"Metric {metric} not recognised by "
+                    "Image.get_comparison()"
+                )
             if metric in get_quality_metrics():
                 quality_metrics.append(metric)
 
@@ -4609,8 +4885,8 @@ class Image(skrt.core.Archive):
             # Store scores for mutual information and variants.
             else:
                 scores[metric] = im1.get_mutual_information(
-                        im2, base=base, bins=bins, xyrange=xyrange,
-                        variant=metric)
+                    im2, base=base, bins=bins, xyrange=xyrange, variant=metric
+                )
             if decimal_places is not None:
                 scores[metric] = round(scores[metric], decimal_places)
 
@@ -4623,13 +4899,22 @@ class Image(skrt.core.Archive):
 
         # Capitalize column names and remove underscores if requested.
         if nice_columns:
-            df.columns = [col.capitalize().replace("_", " ")
-                          if len(col) > 3 else col.upper()
-                          for col in df.columns]
+            df.columns = [
+                col.capitalize().replace("_", " ")
+                if len(col) > 3
+                else col.upper()
+                for col in df.columns
+            ]
         return df
 
-    def get_mutual_information(self, image, base=2, bins=100, xyrange=None,
-                               variant="mutual_information"):
+    def get_mutual_information(
+        self,
+        image,
+        base=2,
+        bins=100,
+        xyrange=None,
+        variant="mutual_information",
+    ):
         """
         For this and another image, calculate mutual information or a variant.
 
@@ -4679,7 +4964,7 @@ class Image(skrt.core.Archive):
             - Any other value, return None
         """
         # Check that requested variant is recognised.
-        if not variant in get_mi_metrics():
+        if variant not in get_mi_metrics():
             return
 
         # Check base for taking logarithms.
@@ -4689,8 +4974,8 @@ class Image(skrt.core.Archive):
         # Create 2d histogram of voxel-by-voxel grey-level values,
         # comparing images.
         hist2d, xedges, yedges = np.histogram2d(
-                self.get_data().ravel(), image.get_data().ravel(),
-                bins, xyrange)
+            self.get_data().ravel(), image.get_data().ravel(), bins, xyrange
+        )
 
         # Convert numbers of entries to joint probabilities.
         pxy = hist2d / float(np.sum(hist2d))
@@ -4700,7 +4985,7 @@ class Image(skrt.core.Archive):
         py = np.sum(pxy, axis=0)
 
         # Calculate entropies.
-        small_number = 1.e-6
+        small_number = 1.0e-6
         hx = entropy(px, base)
         hy = entropy(py, base)
         hxy = entropy(np.reshape(pxy, -1), base)
@@ -4751,8 +5036,11 @@ class Image(skrt.core.Archive):
             If None, all defined quality metrics are evaluated.
         """
         # Define metrics to be evaluated.
-        all_metrics = ["relative_structural_content",
-                       "fidelity", "correlation_quality"]
+        all_metrics = [
+            "relative_structural_content",
+            "fidelity",
+            "correlation_quality",
+        ]
         if metrics is None:
             metrics = all_metrics
         else:
@@ -4782,8 +5070,9 @@ class Image(skrt.core.Archive):
                 quality[metric] = (data1**2).sum() / denominator
             metric = "fidelity"
             if metric in metrics:
-                quality[metric] = (
-                        1 - (((data2 - data1)**2).sum() / denominator))
+                quality[metric] = 1 - (
+                    ((data2 - data1) ** 2).sum() / denominator
+                )
             metric = "correlation_quality"
             if metric in metrics:
                 quality[metric] = (data2 * data1).sum() / denominator
@@ -4840,7 +5129,6 @@ class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
 
     def __init__(self, im1, im2, plot_type="overlay", title=None, **kwargs):
-
         # Load images
         self.ims = []
         for im in [im1, im2]:
@@ -4863,7 +5151,7 @@ class ImageComparison(Image):
         Load associated images, and set array limits in [x, y, z] directions.
 
         **Parameter:**
-        
+
         force : bool, default=True
             If True, associated images will be reloaded from source, even if
             previously loaded.
@@ -4882,6 +5170,7 @@ class ImageComparison(Image):
         """View self with BetterViewer."""
 
         from skrt.better_viewer import BetterViewer
+
         kwargs.setdefault("comparison", True)
 
         BetterViewer(self.ims, **kwargs)
@@ -4913,9 +5202,8 @@ class ImageComparison(Image):
         dta_crit=None,
         diff_crit=None,
         use_cached_slices=False,
-        **kwargs
+        **kwargs,
     ):
-
         # Use default plot_type attribute if no type given
         if plot_type is None:
             plot_type = self.plot_type
@@ -4943,14 +5231,21 @@ class ImageComparison(Image):
         # Set up axes
         self.set_ax(view, ax=ax, gs=self.gs, figsize=figsize, zoom=zoom)
         self.mpl_kwargs = self.ims[0].get_mpl_kwargs(view, mpl_kwargs)
-        self.cmap = copy.copy(matplotlib.cm.get_cmap(self.mpl_kwargs.pop("cmap")))
+        self.cmap = copy.copy(
+            matplotlib.cm.get_cmap(self.mpl_kwargs.pop("cmap"))
+        )
 
         # Make plot
         if plot_type in ["chequerboard", "cb"]:
             mesh = self._plot_chequerboard(view, invert, cb_splits)
         elif plot_type == "overlay":
             mesh = self._plot_overlay(
-                view, invert, overlay_opacity, overlay_legend, overlay_legend_bbox_to_anchor, overlay_legend_loc
+                view,
+                invert,
+                overlay_opacity,
+                overlay_legend,
+                overlay_legend_bbox_to_anchor,
+                overlay_legend_loc,
             )
         elif plot_type in ["difference", "diff"]:
             mesh = self._plot_difference(invert)
@@ -4965,29 +5260,24 @@ class ImageComparison(Image):
             kwargs = self.ims[0].get_mpl_kwargs(view)
             kwargs["vmin"] = self.mpl_kwargs["vmin"]
             kwargs["vmax"] = self.mpl_kwargs["vmax"]
-            mesh = self.ax.imshow(
-                self.slices[0],
-                cmap=self.cmap,
-                **kwargs
-            )
+            mesh = self.ax.imshow(self.slices[0], cmap=self.cmap, **kwargs)
         elif plot_type == "image 2":
             self.title = self.ims[1].title
             kwargs = self.ims[1].get_mpl_kwargs(view)
             kwargs["vmin"] = self.mpl_kwargs["vmin"]
             kwargs["vmax"] = self.mpl_kwargs["vmax"]
-            mesh = self.ax.imshow(
-                self.slices[1],
-                cmap=self.cmap,
-                **kwargs
-            )
+            mesh = self.ax.imshow(self.slices[1], cmap=self.cmap, **kwargs)
         else:
             print("Unrecognised plotting option:", plot_type)
             return
 
         # Draw colorbar
         if colorbar:
-            clb_label = colorbar_label if colorbar_label is not None \
-                    else self.ims[0]._default_colorbar_label
+            clb_label = (
+                colorbar_label
+                if colorbar_label is not None
+                else self.ims[0]._default_colorbar_label
+            )
             if plot_type in ["difference", "absolute difference"]:
                 clb_label += " difference"
             elif plot_type == "distance to agreement":
@@ -5021,17 +5311,24 @@ class ImageComparison(Image):
         if show:
             plt.show()
 
-    def set_slices(self, view, sl=None, idx=None, pos=None, 
-                   use_cached_slices=False):
+    def set_slices(
+        self, view, sl=None, idx=None, pos=None, use_cached_slices=False
+    ):
         """Get slice of each image and set to self.slices."""
 
         sl = skrt.core.to_list(sl, 2, False)
         idx = skrt.core.to_list(idx, 2, False)
         pos = skrt.core.to_list(pos, 2, False)
         self.slices = [
-            im.get_slice(view, sl=sl[i], pos=pos[i], idx=idx[i],
-                         force=(not use_cached_slices))
-            for i, im in enumerate(self.ims)]
+            im.get_slice(
+                view,
+                sl=sl[i],
+                pos=pos[i],
+                idx=idx[i],
+                force=(not use_cached_slices),
+            )
+            for i, im in enumerate(self.ims)
+        ]
 
     def _plot_chequerboard(
         self,
@@ -5039,16 +5336,18 @@ class ImageComparison(Image):
         invert=False,
         cb_splits=8,
     ):
-
         # Get masked image
         i1 = int(invert)
         i2 = 1 - i1
         size_x = int(np.ceil(self.slices[i2].shape[0] / cb_splits))
         size_y = int(np.ceil(self.slices[i2].shape[1] / cb_splits))
         cb_mask = np.kron(
-            [[1, 0] * cb_splits, [0, 1] * cb_splits] * cb_splits, np.ones((size_x, size_y))
+            [[1, 0] * cb_splits, [0, 1] * cb_splits] * cb_splits,
+            np.ones((size_x, size_y)),
         )
-        cb_mask = cb_mask[: self.slices[i2].shape[0], : self.slices[i2].shape[1]]
+        cb_mask = cb_mask[
+            : self.slices[i2].shape[0], : self.slices[i2].shape[1]
+        ]
         to_show = {
             i1: self.slices[i1],
             i2: np.ma.masked_where(cb_mask < 0.5, self.slices[i2]),
@@ -5064,10 +5363,7 @@ class ImageComparison(Image):
             kwargs["vmin"] = self.mpl_kwargs["vmin"]
             kwargs["vmax"] = self.mpl_kwargs["vmax"]
             kwargs["cmap"] = self.cmap
-            mesh = self.ax.imshow(
-                to_show[i],
-                **kwargs
-            )
+            mesh = self.ax.imshow(to_show[i], **kwargs)
 
         return mesh
 
@@ -5078,26 +5374,21 @@ class ImageComparison(Image):
         opacity=0.5,
         legend=False,
         legend_bbox_to_anchor=None,
-        legend_loc="auto"
+        legend_loc="auto",
     ):
-
         order = [0, 1] if not invert else [1, 0]
         cmaps = ["Reds", "Blues"]
         alphas = [1, opacity]
         self.ax.set_facecolor("w")
         handles = []
         for n, i in enumerate(order):
-
             # Show image
             kwargs = self.ims[i].get_mpl_kwargs(view)
             kwargs["vmin"] = self.mpl_kwargs["vmin"]
             kwargs["vmax"] = self.mpl_kwargs["vmax"]
             kwargs["cmap"] = cmaps[n]
             kwargs["alpha"] = alphas[n]
-            mesh = self.ax.imshow(
-                self.slices[i],
-                **kwargs
-            )
+            mesh = self.ax.imshow(self.slices[i], **kwargs)
 
             # Make handle for legend
             if legend:
@@ -5108,25 +5399,35 @@ class ImageComparison(Image):
                 if title == name:
                     title = name.split(".")[0].capitalize()
                 handles.append(
-                    mpatches.Patch(
-                        color=patch_color, alpha=alpha, label=title
-                    )
+                    mpatches.Patch(color=patch_color, alpha=alpha, label=title)
                 )
 
         # Draw legend
         if handles:
             self.ax.legend(
-                    handles=handles, bbox_to_anchor=legend_bbox_to_anchor,
-                    loc=legend_loc, facecolor="white",
-                    framealpha=1
-                )
+                handles=handles,
+                bbox_to_anchor=legend_bbox_to_anchor,
+                loc=legend_loc,
+                facecolor="white",
+                framealpha=1,
+            )
 
-    def get_difference(self, view="x-y", sl=None, idx=None, pos=None, 
-                       invert=False, ab=False, reset_slices=True):
+    def get_difference(
+        self,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        invert=False,
+        ab=False,
+        reset_slices=True,
+    ):
         """Get array containing difference between two Images."""
 
         # No view/position/index/slice given: use 3D arrays
-        if reset_slices and (view is None and sl is None and pos is None and idx is None):
+        if reset_slices and (
+            view is None and sl is None and pos is None and idx is None
+        ):
             diff = self.ims[1].get_data() - self.ims[0].get_data()
         else:
             if view is None:
@@ -5161,8 +5462,9 @@ class ImageComparison(Image):
     def _plot_dta(self, view, idx, tolerance=5):
         """Produce a distance-to-agreement plot."""
 
-        dta = self.get_dta(view, idx=idx, reset_slices=False, 
-                           tolerance=tolerance)
+        dta = self.get_dta(
+            view, idx=idx, reset_slices=False, tolerance=tolerance
+        )
         return self.ax.imshow(
             dta,
             cmap="viridis",
@@ -5170,12 +5472,19 @@ class ImageComparison(Image):
             **self.mpl_kwargs,
         )
 
-    def _plot_gamma(self, view, idx, invert=False, dta_crit=None, 
-                    diff_crit=None):
+    def _plot_gamma(
+        self, view, idx, invert=False, dta_crit=None, diff_crit=None
+    ):
         """Produce a distance-to-agreement plot."""
 
-        gamma = self.get_gamma(view, idx=idx, invert=invert, dta_crit=dta_crit, 
-                               diff_crit=diff_crit, reset_slices=False)
+        gamma = self.get_gamma(
+            view,
+            idx=idx,
+            invert=invert,
+            dta_crit=dta_crit,
+            diff_crit=diff_crit,
+            reset_slices=False,
+        )
         return self.ax.imshow(
             gamma,
             cmap="viridis",
@@ -5183,8 +5492,15 @@ class ImageComparison(Image):
             **self.mpl_kwargs,
         )
 
-    def get_dta(self, view="x-y", sl=None, idx=None, pos=None, tolerance=None, 
-                reset_slices=True):
+    def get_dta(
+        self,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        tolerance=None,
+        reset_slices=True,
+    ):
         """Compute distance to agreement array on current slice."""
 
         if not hasattr(self, "dta"):
@@ -5194,7 +5510,6 @@ class ImageComparison(Image):
         idx = self.ims[0].get_idx(view, sl=sl, idx=idx, pos=pos)
 
         if sl not in self.dta[view]:
-
             x_ax, y_ax = _plot_axes[view]
             vx = abs(self.ims[0].get_voxel_size()[x_ax])
             vy = abs(self.ims[0].get_voxel_size()[y_ax])
@@ -5219,8 +5534,17 @@ class ImageComparison(Image):
 
         return self.dta[view][idx]
 
-    def get_gamma(self, view="x-y", sl=None, pos=None, idx=None, invert=False, 
-                  dta_crit=None, diff_crit=None, reset_slices=True):
+    def get_gamma(
+        self,
+        view="x-y",
+        sl=None,
+        pos=None,
+        idx=None,
+        invert=False,
+        dta_crit=None,
+        diff_crit=None,
+        reset_slices=True,
+    ):
         """Get gamma index on current slice."""
 
         if reset_slices:
@@ -5262,8 +5586,13 @@ def load_nifti(path):
     except nibabel.filebasedimages.ImageFileError:
         return None, None
 
-def load_rgb(path, rgb_weights=(0.299, 0.587, 0.114),
-             rgb_rescale_slope=100, rgb_rescale_intercept=0):
+
+def load_rgb(
+    path,
+    rgb_weights=(0.299, 0.587, 0.114),
+    rgb_rescale_slope=100,
+    rgb_rescale_intercept=0,
+):
     """
     Load an rgb image with the Python Imaging Library (PIL),
     and convert to grey levels.
@@ -5287,14 +5616,17 @@ def load_rgb(path, rgb_weights=(0.299, 0.587, 0.114),
     """
     try:
         img_rgb = plt.imread(path)
-    except:
+    except BaseException:
         return
 
-    return (np.dot(img_rgb[...,:3], rgb_weights)
-            * rgb_rescale_slope + rgb_rescale_intercept)
+    return (
+        np.dot(img_rgb[..., :3], rgb_weights) * rgb_rescale_slope
+        + rgb_rescale_intercept
+    )
+
 
 def get_dicom_paths(path):
-    """Get list of dicom files correpsonding to a single dicom image. 
+    """Get list of dicom files correpsonding to a single dicom image.
 
     **Parameters**:
 
@@ -5305,12 +5637,12 @@ def get_dicom_paths(path):
         If path is a directory, a list of dicom files within that directory will
         be returned.
 
-        If path is a single file, that file will be opened and its 
-        ImagesInAcquisition property will be checked. 
+        If path is a single file, that file will be opened and its
+        ImagesInAcquisition property will be checked.
 
-            - If ImagesInAcquisition == 1, a list containing the single input 
-            path will be returned. 
-            - Otherwise, a list containing all the dicom files in the same 
+            - If ImagesInAcquisition == 1, a list containing the single input
+            path will be returned.
+            - Otherwise, a list containing all the dicom files in the same
             directory as the input file will be returned.
 
     **Returns**:
@@ -5339,8 +5671,9 @@ def get_dicom_paths(path):
             ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
         # Check whether there are multiple files for this image
-        if (ds.get("ImagesInAcquisition", None) == 1
-                or hasattr(ds, "NumberOfFrames")):
+        if ds.get("ImagesInAcquisition", None) == 1 or hasattr(
+            ds, "NumberOfFrames"
+        ):
             paths = [path]
 
     # Case where there are multiple dicom files for this image
@@ -5395,7 +5728,7 @@ def load_dicom(paths, debug=False):
         Dicom dataset corresponding to the last file loaded.
 
     z_paths : dict / None
-        Dictionary mapping z slice positions in mm to the file corresponding to 
+        Dictionary mapping z slice positions in mm to the file corresponding to
         that slice. If image was loaded from a single file, this will be None.
 
     z_instance_numbers : dict / None
@@ -5411,7 +5744,8 @@ def load_dicom(paths, debug=False):
     # Load image array and pydicom FileDataset object from file(s)
     if len(paths) > 1:
         data, affine, ds, z_paths, z_instance_numbers = load_dicom_many_files(
-                paths)
+            paths
+        )
     else:
         data, affine, ds = load_dicom_single_file(paths[0])
         z_paths = None
@@ -5424,19 +5758,26 @@ def load_dicom(paths, debug=False):
     data = rescale_dicom_data(ds, data)
 
     # Take into account photometric interpretation.
-    if ds.PhotometricInterpretation == 'MONOCHROME1':
+    if ds.PhotometricInterpretation == "MONOCHROME1":
         vmin = data.min()
         vmax = data.max()
         data = -data + vmin + vmax
         if window_centre:
             window_centre = -window_centre + vmin + vmax
 
-    return (data, affine, window_centre, window_width, ds,
-            z_paths, z_instance_numbers)
+    return (
+        data,
+        affine,
+        window_centre,
+        window_width,
+        ds,
+        z_paths,
+        z_instance_numbers,
+    )
 
 
 def load_dicom_many_files(paths):
-    """Load an image array from multiple dicom files and use the spacing 
+    """Load an image array from multiple dicom files and use the spacing
     between slices to determine the slice thickness.
 
     **Parameters**:
@@ -5456,7 +5797,7 @@ def load_dicom_many_files(paths):
         Dataset object corresponding to the last file loaded.
 
     z_paths : dict
-        Dict mapping z slice positions in mm  to the filepath 
+        Dict mapping z slice positions in mm  to the filepath
         from which that slice of the image was read.
 
     z_instance_numbers : dict
@@ -5466,10 +5807,10 @@ def load_dicom_many_files(paths):
 
     # Set attributes to check for consistency between files
     attrs_to_check = [
-        "StudyInstanceUID", 
+        "StudyInstanceUID",
         "SeriesNumber",
         "Modality",
-        "ImageOrientationPatient"
+        "ImageOrientationPatient",
     ]
     attr_vals = {name: None for name in attrs_to_check}
 
@@ -5481,7 +5822,6 @@ def load_dicom_many_files(paths):
     z_paths = {}
     z_instance_numbers = {}
     for path in paths:
-        
         # Load dataset from this file
         try:
             ds = pydicom.dcmread(path, force=True)
@@ -5509,10 +5849,9 @@ def load_dicom_many_files(paths):
         if not attr_ok:
             continue
 
-        # Fill empty TransferSyntaxUID 
+        # Fill empty TransferSyntaxUID
         if not hasattr(ds.file_meta, "TransferSyntaxUID"):
-            ds.file_meta.TransferSyntaxUID = \
-                pydicom.uid.ImplicitVRLittleEndian
+            ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
         # Get data
         pos = getattr(ds, "ImagePositionPatient", [0, 0, 0])
@@ -5527,8 +5866,8 @@ def load_dicom_many_files(paths):
     sorted_slices = sorted(list(data_slices.keys()))
     sorted_data = [data_slices[z] for z in sorted_slices]
     data = np.stack(sorted_data, axis=-1)
-    z_paths = {z : z_paths[z] for z in sorted_slices}
-    z_instance_numbers = {z : z_instance_numbers[z] for z in sorted_slices}
+    z_paths = {z: z_paths[z] for z in sorted_slices}
+    z_instance_numbers = {z: z_instance_numbers[z] for z in sorted_slices}
     # Get affine matrix
     affine = get_dicom_affine(ds, image_positions)
 
@@ -5557,10 +5896,9 @@ def load_dicom_single_file(path):
 
     ds = pydicom.dcmread(path, force=True)
 
-    # Fill empty TransferSyntaxUID 
+    # Fill empty TransferSyntaxUID
     if not hasattr(ds, "TransferSyntaxUID"):
-        ds.file_meta.TransferSyntaxUID = \
-            pydicom.uid.ImplicitVRLittleEndian
+        ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
     # Get data and transpose such that it's a 3D array with slice in last
     data = ds.pixel_array
@@ -5572,15 +5910,18 @@ def load_dicom_single_file(path):
         # use this to determine slice positions.
         offsets = getattr(ds, "GridFrameOffsetVector", [])
         origin = getattr(ds, "ImagePositionPatient", [0, 0, 0])
-        image_positions = {origin[2] + offset:
-                (origin[0], origin[1], origin[2] + offset)
-                for offset in offsets}
+        image_positions = {
+            origin[2] + offset: (origin[0], origin[1], origin[2] + offset)
+            for offset in offsets
+        }
         data = data.transpose((1, 2, 0))
         # Invert z-axis if offsets are decreasing as slice index increases.
         if offsets and offsets[0] > offsets[-1]:
             data = data[:, :, ::-1]
     else:
-        raise RuntimeError(f"Unrecognised number of image dimensions: {data.ndim}")
+        raise RuntimeError(
+            f"Unrecognised number of image dimensions: {data.ndim}"
+        )
 
     # Try to ensure that dataset has attribute ImageOrientationPatient
     set_image_orientation_patient(ds)
@@ -5622,7 +5963,7 @@ def get_dicom_voxel_size(ds):
     """Get voxel sizes from a dicom file.
 
     **Parameters**:
-    
+
     ds : pydicom.FileDataset
         Dicom dataset from which to load voxel sizes.
 
@@ -5632,8 +5973,11 @@ def get_dicom_voxel_size(ds):
         List of voxel sizes in order [row, column, slice].
     """
     # Get voxel spacings
-    for attr in ["PixelSpacing", "ImagerPixelSpacing",
-            "ImagePlanePixelSpacing"]:
+    for attr in [
+        "PixelSpacing",
+        "ImagerPixelSpacing",
+        "ImagePlanePixelSpacing",
+    ]:
         pixel_size = getattr(ds, attr, None)
         if pixel_size:
             break
@@ -5645,23 +5989,26 @@ def get_dicom_voxel_size(ds):
 
     # Get slice thickness
     slice_thickness = getattr(ds, "SliceThickness", 1)
-    if not slice_thickness and hasattr(ds, 'GridFrameOffsetVector'):
-        if (isinstance(ds.GridFrameOffsetVector, pydicom.multival.MultiValue)
-            and len(ds.GridFrameOffsetVector) > 1):
+    if not slice_thickness and hasattr(ds, "GridFrameOffsetVector"):
+        if (
+            isinstance(ds.GridFrameOffsetVector, pydicom.multival.MultiValue)
+            and len(ds.GridFrameOffsetVector) > 1
+        ):
             slice_thickness = abs(
-                    ds.GridFrameOffsetVector[1] - ds.GridFrameOffsetVector[0])
+                ds.GridFrameOffsetVector[1] - ds.GridFrameOffsetVector[0]
+            )
 
     return pixel_size[0], pixel_size[1], slice_thickness
 
 
 def get_dicom_affine(ds, image_positions=None):
-    """Assemble affine matrix from a dicom file. Optionally infer slice 
-    thickness from the positions of different slices and origin from the 
-    minimum slice; otherwise, extract slice thickness and origin directly from 
+    """Assemble affine matrix from a dicom file. Optionally infer slice
+    thickness from the positions of different slices and origin from the
+    minimum slice; otherwise, extract slice thickness and origin directly from
     the dicom dataset.
 
     **Parameters**:
-    
+
     ds : pydicom.FileDataset
         Dicom dataset from which to load voxel sizes.
 
@@ -5670,7 +6017,7 @@ def get_dicom_affine(ds, image_positions=None):
         and values are origins.
 
     **Returns**:
-        
+
     affine : np.ndarray
         3x3 array containing the affine matrix for this image.
     """
@@ -5708,19 +6055,19 @@ def get_dicom_affine(ds, image_positions=None):
                 orientation[0, 0] * voxel_size[0],
                 orientation[1, 0] * voxel_size[1],
                 slice_elements[0],
-                origin[0]
+                origin[0],
             ],
             [
                 orientation[0, 1] * voxel_size[0],
                 orientation[1, 1] * voxel_size[1],
                 slice_elements[1],
-                origin[1]
+                origin[1],
             ],
             [
                 orientation[0, 2] * voxel_size[0],
                 orientation[1, 2] * voxel_size[1],
                 slice_elements[2],
-                origin[2]
+                origin[2],
             ],
             [0, 0, 0, 1],
         ]
@@ -5748,12 +6095,14 @@ def rescale_dicom_data(ds, data):
     # Get rescale settings
     rescale_slope = getattr(ds, "RescaleSlope", None)
     if rescale_slope is None:
-        rescale_slope = getattr(ds, "DoseGridScaling", 1.)
-    rescale_intercept = getattr(ds, "RescaleIntercept", 0.)
+        rescale_slope = getattr(ds, "DoseGridScaling", 1.0)
+    rescale_intercept = getattr(ds, "RescaleIntercept", 0.0)
 
     # Apply rescaling
-    return (data * float(rescale_slope)
-            + float(rescale_intercept)).astype(np.float32)
+    return (data * float(rescale_slope) + float(rescale_intercept)).astype(
+        np.float32
+    )
+
 
 def get_dicom_window(ds):
     """Get intensity window defaults from a dicom file.
@@ -5896,12 +6245,11 @@ def set_ax(
 
 
 def get_geometry(affine, voxel_size, origin, is_nifti=False, shape=None):
-    """Get an affine matrix, voxel size list, and origin list from 
+    """Get an affine matrix, voxel size list, and origin list from
     a combination of these inputs."""
 
     # Get affine matrix from voxel size and origin
     if affine is None:
-        
         if voxel_size is None or origin is None:
             return None, None, None
 
@@ -5918,13 +6266,13 @@ def get_geometry(affine, voxel_size, origin, is_nifti=False, shape=None):
         )
         if is_nifti:
             if shape is None:
-                raise RuntimeError("Must provide data shape if converting "
-                                   "affine matrix from nifti!")
+                raise RuntimeError(
+                    "Must provide data shape if converting "
+                    "affine matrix from nifti!"
+                )
 
             affine[0, :] = -affine[0, :]
-            affine[1, 3] = -(
-                affine[1, 3] + (shape[1] - 1) * voxel_size[1]
-            )
+            affine[1, 3] = -(affine[1, 3] + (shape[1] - 1) * voxel_size[1])
 
     # Otherwise, get origin and voxel size from affine
     else:
@@ -5943,8 +6291,9 @@ def pad_transpose(transpose, ndim):
             transpose.append(i + nt)
     return transpose
 
+
 def get_box_mask_from_mask(image=None, dx=0, dy=0):
-    '''
+    """
     Slice by slice, create box masks enclosing an arbitrarily shaped mask.
 
     **Parameters:**
@@ -5958,12 +6307,14 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
 
     dy : int, default=0
         Margin along rows to be added on each side of mask bounding box.
-    '''
+    """
 
     if not _has_mahotas:
-        print('WARNING: Module mahotas unavailable')
-        print('WARNING: Unable to execute function '\
-                + 'skrt.image.Image.get_box_mask_from_mask()')
+        print("WARNING: Module mahotas unavailable")
+        print(
+            "WARNING: Unable to execute function "
+            + "skrt.image.Image.get_box_mask_from_mask()"
+        )
 
     # Retrieve image data and numbers of voxels.
     mask_array = image.get_data()
@@ -5979,7 +6330,7 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
         jmax = max(0, min(ny - 1, jmax + dy))
         imin = min(nx - 1, max(0, imin - dx))
         imax = max(0, min(nx - 1, imax + dx))
-        out_array[jmin: jmax, imin: imax, iz] = 1
+        out_array[jmin:jmax, imin:imax, iz] = 1
 
     # Create clone of input image, then assign box mask as its data.
     out_image = Image(image)
@@ -5987,8 +6338,9 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
 
     return out_image
 
+
 def set_image_orientation_patient(ds):
-    '''
+    """
     Try to ensure that image orientation patient is set for DICOM dataset.
 
     If the dataset doesn't have the attribute ImageOrientationPatient,
@@ -5998,47 +6350,57 @@ def set_image_orientation_patient(ds):
 
     ds : pydicom.FileDataset
         DICOM dataset.
-    '''
+    """
 
     direction_cosines = {
-            'P' : [0, -1, 0],
-            'A' : [0, 1, 0],
-            'L' : [-1, 0, 0],
-            'R' : [1, 0, 0],
-            'FR' : [1, 0, 0],
-            'H' : [0, 0, 1],
-            'F' : [0, 0, -1],
-            }
-    
-    if hasattr(ds, 'ImageOrientationPatient'):
+        "P": [0, -1, 0],
+        "A": [0, 1, 0],
+        "L": [-1, 0, 0],
+        "R": [1, 0, 0],
+        "FR": [1, 0, 0],
+        "H": [0, 0, 1],
+        "F": [0, 0, -1],
+    }
+
+    if hasattr(ds, "ImageOrientationPatient"):
         # Reduce precision,
         # as stored values may differ at higher precision.
         ds.ImageOrientationPatient = [
-                round(val, 6) for val in ds.ImageOrientationPatient]
+            round(val, 6) for val in ds.ImageOrientationPatient
+        ]
     else:
-        patient_orientation =  getattr(ds, 'PatientOrientation', [])
-        unknown_orientations = (
-            {"AL", "LA", "PR", "RP"}.intersection(patient_orientation))
+        patient_orientation = getattr(ds, "PatientOrientation", [])
+        unknown_orientations = {"AL", "LA", "PR", "RP"}.intersection(
+            patient_orientation
+        )
         if patient_orientation and not unknown_orientations:
             ds.ImageOrientationPatient = (
-                    direction_cosines[patient_orientation[1]] +
-                    direction_cosines[patient_orientation[0]])
+                direction_cosines[patient_orientation[1]]
+                + direction_cosines[patient_orientation[0]]
+            )
         else:
             if unknown_orientations:
-                print('WARNING: PatientOrientation not understood: '
-                      f'{patient_orientation}')
+                print(
+                    "WARNING: PatientOrientation not understood: "
+                    f"{patient_orientation}"
+                )
             else:
-                print('WARNING: ImageOrientationPatient '
-                      'and PatientOrientation undefined')
-            patient_position = getattr(ds, 'PatientPosition', None)
+                print(
+                    "WARNING: ImageOrientationPatient "
+                    "and PatientOrientation undefined"
+                )
+            patient_position = getattr(ds, "PatientPosition", None)
             if patient_position:
-                print(f'Patient position: {patient_position}')
+                print(f"Patient position: {patient_position}")
             ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-            print('WARNING: Guessing ImageOrientationPatient = '
-                 f'\'{ds.ImageOrientationPatient}\'')
+            print(
+                "WARNING: Guessing ImageOrientationPatient = "
+                f"'{ds.ImageOrientationPatient}'"
+            )
+
 
 def kv_to_mv(hu):
-    '''
+    """
     Map radiodensity in Hounsfield units from kV CT scan to MV CT scan.
 
     Function originally written by M.Z. Wilson.  Parameterisation
@@ -6048,7 +6410,7 @@ def kv_to_mv(hu):
 
     hu - int
         Radiodensity (Hounsfield units) for kV CT scan.
-    '''
+    """
 
     # hu is the old kVCT HU
     # y is the new synthetic MVCT HU
@@ -6059,7 +6421,7 @@ def kv_to_mv(hu):
         hu = 2200
 
     if hu > 192:
-        y = 945.8 *((hu + 1754.3) / 1769.5) - 944.91
+        y = 945.8 * ((hu + 1754.3) / 1769.5) - 944.91
 
     elif 75 < hu < 193:
         # fit a spline curve using the densities
@@ -6071,7 +6433,7 @@ def kv_to_mv(hu):
         y2 = 1769.5 * x2 - 1754.3
         # lower kvct line
         y3 = 970.2 * x1 - 991.98
-        ynew = np.concatenate((y3,y2), axis=0)
+        ynew = np.concatenate((y3, y2), axis=0)
 
         # fit a spline between the two kvct calibration lines
         # for each hu value - shift the y axis such that
@@ -6080,9 +6442,10 @@ def kv_to_mv(hu):
         # simple straight line fit of the MVCT calibration
         yreduced = np.array(ynew[45:65]) - hu
         freduced = scipy.interpolate.UnivariateSpline(
-                xnew[45:65], yreduced, s=0)
+            xnew[45:65], yreduced, s=0
+        )
         density = freduced.roots()[0]
- 
+
         y = (945.8 * density) - 944.91
 
     elif hu < 76:
@@ -6092,6 +6455,7 @@ def kv_to_mv(hu):
         y = -1024
 
     return round(y)
+
 
 def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
     """
@@ -6124,8 +6488,9 @@ def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
         # from attempting to import the structures module.
         if hasattr(mask, "get_mask_image"):
             mask = mask.get_mask_image()
-        elif (isinstance(mask, list)
-                and "skrt.structures.ROI" in str(type(mask[0]))):
+        elif isinstance(mask, list) and "skrt.structures.ROI" in str(
+            type(mask[0])
+        ):
             roi_new = mask(0).clone()
             roi_new.name = "mask_from_roi_list"
             for i in range(1, len(mask)):
@@ -6147,8 +6512,9 @@ def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
             mask.data = mask.data > mask_threshold
         return mask
 
+
 def remove_duplicate_images(images=None):
-    '''
+    """
     Remove duplicates from a list of image objects.
 
     Image instance image1 is taken to be a duplicate of image2 if
@@ -6157,7 +6523,7 @@ def remove_duplicate_images(images=None):
     **Parameter:**
     images: list, default=None
         List of image objects, from which duplicates are to be removed.
-    '''
+    """
     images = images or []
     filtered_images = []
 
@@ -6175,8 +6541,9 @@ def remove_duplicate_images(images=None):
 
     return filtered_images
 
+
 def sum_images(images=None):
-    '''
+    """
     Sum images of the same geometry.
 
     If not all images have the same same geometry (shape, origin,
@@ -6188,7 +6555,7 @@ def sum_images(images=None):
     **Parameter:**
     images: list, default=None
         List of Image objects to be summed.
-    '''
+    """
 
     # Check that a list of at least two Image objects has been passed
     # as input.  If not, return something reasonable.
@@ -6204,13 +6571,14 @@ def sum_images(images=None):
 
     # Sum images.
     image_sum = images[0].clone()
-    for image in images[1: ]:
+    for image in images[1:]:
         if not image.has_same_geometry(image_sum):
             image_sum = None
             break
         image_sum += image
 
     return image_sum
+
 
 def get_mask_bbox(mask):
     """
@@ -6226,21 +6594,32 @@ def get_mask_bbox(mask):
         to be obtained.
     """
     if not _has_mahotas:
-        print('WARNING: Module mahotas unavailable')
-        print('WARNING: Unable to execute function '\
-                + 'skrt.image.get_mask_bbox()')
+        print("WARNING: Module mahotas unavailable")
+        print(
+            "WARNING: Unable to execute function "
+            + "skrt.image.get_mask_bbox()"
+        )
 
     jmin, jmax, imin, imax, kmin, kmax = mahotas.bbox(mask.get_data())
     bbox = []
     for axis, idxs in enumerate([(imin, imax), (jmin, jmax), (kmin, kmax)]):
-        bbox.append(tuple(sorted(
-            [mask.idx_to_pos(idxs[0], axis), mask.idx_to_pos(idxs[1], axis)]
-            )))
+        bbox.append(
+            tuple(
+                sorted(
+                    [
+                        mask.idx_to_pos(idxs[0], axis),
+                        mask.idx_to_pos(idxs[1], axis),
+                    ]
+                )
+            )
+        )
 
     return bbox
 
-def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
-        threshold=None):
+
+def get_translation_to_align(
+    im1, im2, alignments=None, default_alignment=2, threshold=None
+):
     """
     Determine translation for aligning <im1> to <im2>.
 
@@ -6295,20 +6674,23 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
             if isinstance(alignment, int) and alignment in [1, 2, 3]:
                 checked_alignments[axis.lower()] = alignment
             else:
-                logger.warning(f"Axis {axis}, disregarding invalid "
-                        f"alignment value: {alignment}")
+                logger.warning(
+                    f"Axis {axis}, disregarding invalid "
+                    f"alignment value: {alignment}"
+                )
                 logger.warning("Valid alignment values are: 1, 2, 3")
         else:
             logger.warning(f"Disregarding invalid axis label: {axis}")
             logger.warning(f"Valid axis labels are: {_axes}")
-    
+
     # Determine image bounding boxes.
     xyz_lims = {}
     for image in [im1, im2]:
         if threshold is not None:
             # Obtain bounding box for foreground mask.
             xyz_lims[image] = get_mask_bbox(
-                    image.get_foreground_mask(threshold))
+                image.get_foreground_mask(threshold)
+            )
         else:
             # Obtain bounding box for whole image.
             xyz_lims[image] = image.get_extents()
@@ -6332,8 +6714,10 @@ def get_translation_to_align(im1, im2, alignments=None, default_alignment=2,
 
     return tuple(translation)
 
-def get_translation_to_align_image_rois(im1, im2, roi_name1, roi_name2,
-        z_fraction1=None, z_fraction2=None):
+
+def get_translation_to_align_image_rois(
+    im1, im2, roi_name1, roi_name2, z_fraction1=None, z_fraction2=None
+):
     """
     Determine translation for aligning ROI of <im1> to ROI of <im2>.
 
@@ -6376,7 +6760,9 @@ def get_translation_to_align_image_rois(im1, im2, roi_name1, roi_name2,
         outside the interval [0, 1] result in a RuntimeError.
     """
     return im1.get_rois(roi_name1)[0].get_translation_to_align(
-            im2.get_rois(roi_name2)[0], z_fraction1, z_fraction2)
+        im2.get_rois(roi_name2)[0], z_fraction1, z_fraction2
+    )
+
 
 def get_alignment_translation(im1, im2, alignment=None):
     """
@@ -6428,7 +6814,7 @@ def get_alignment_translation(im1, im2, alignment=None):
       relative position must be in the interval [0, 1], where
       0 corresponds to the most-inferior point (lowest z) and
       1 corresponds to the most-superior point (highest z).
-          
+
       The full ROI-based alignment specification is a
       tuple of two two-element tuples:
       (("im1_roi_name", im1_roi_position),
@@ -6448,7 +6834,7 @@ def get_alignment_translation(im1, im2, alignment=None):
       - ("roi1", "roi2"):
         align "roi1" of <im1> with "roi2" of <im2>,
         aligning on volume centroids;
-             
+
       - ("roi", 1):
         align "roi" of <im1> with "roi" of <im2>,
         aligning on centroids of top slices;
@@ -6464,7 +6850,7 @@ def get_alignment_translation(im1, im2, alignment=None):
       to images may be performed automatically when loading
       DICOM data to Patient objects, or may be performed
       manually using an Image object's set_structure_set() method.
-   """
+    """
     # If alignment specified as a 3-element list-like object,
     # return this as the translation.
     if skrt.core.is_list(alignment) and len(alignment) == 3:
@@ -6477,11 +6863,16 @@ def get_alignment_translation(im1, im2, alignment=None):
     if isinstance(alignments, dict):
         # Always use standardised data.
         return get_translation_to_align(
-            Image(im1.get_standardised_data(),
-                affine=im1.get_standardised_affine()),
-            Image(im2.get_standardised_data(),
-                affine=im2.get_standardised_affine()),
-            alignments)
+            Image(
+                im1.get_standardised_data(),
+                affine=im1.get_standardised_affine(),
+            ),
+            Image(
+                im2.get_standardised_data(),
+                affine=im2.get_standardised_affine(),
+            ),
+            alignments,
+        )
 
     # Return None for null alignment.
     if not alignments:
@@ -6489,8 +6880,14 @@ def get_alignment_translation(im1, im2, alignment=None):
 
     # Define translation for roi-based alignment.
     return get_translation_to_align_image_rois(
-        im1, im2, alignments[0][0], alignments[1][0],
-        alignments[0][1], alignments[1][1])
+        im1,
+        im2,
+        alignments[0][0],
+        alignments[1][0],
+        alignments[0][1],
+        alignments[1][1],
+    )
+
 
 def get_alignment_strategy(alignment=None):
     """
@@ -6543,8 +6940,10 @@ def get_alignment_strategy(alignment=None):
                 else:
                     # Name passed for two ROIs.
                     if isinstance(alignment[1], str):
-                        roi_alignments = [(alignment[0], None),
-                                (alignment[1], None)]
+                        roi_alignments = [
+                            (alignment[0], None),
+                            (alignment[1], None),
+                        ]
                     # Name and position passed for one ROI.
                     else:
                         roi_alignments = [alignment, alignment]
@@ -6556,11 +6955,24 @@ def get_alignment_strategy(alignment=None):
 
     return roi_alignments
 
-def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
-                 ss1_name=None, ss2_name=None, roi_names=None,
-                 im2_crop_focus=None, im2_crop_margins=None,
-                 im2_crop_about_centre=False, alignment=None,
-                 voxel_size=None, bands=None):
+
+def match_images(
+    im1,
+    im2,
+    ss1=None,
+    ss2=None,
+    ss1_index=-1,
+    ss2_index=-1,
+    ss1_name=None,
+    ss2_name=None,
+    roi_names=None,
+    im2_crop_focus=None,
+    im2_crop_margins=None,
+    im2_crop_about_centre=False,
+    alignment=None,
+    voxel_size=None,
+    bands=None,
+):
     """
     Process pair of images, so that they match in one or more respects.
 
@@ -6657,18 +7069,24 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
 
     # Crop im2 to region around focus.
     if ss2 is not None and im2_crop_focus in ss2.get_roi_names():
-        im2.crop_to_roi(ss2[im2_crop_focus], crop_margins=im2_crop_margins,
-                        crop_about_centre=im2_crop_about_centre)
-    elif ((skrt.core.is_list(im2_crop_focus) or im2_crop_focus is None)
-          and skrt.core.is_list(im2_crop_margins)):
+        im2.crop_to_roi(
+            ss2[im2_crop_focus],
+            crop_margins=im2_crop_margins,
+            crop_about_centre=im2_crop_about_centre,
+        )
+    elif (
+        skrt.core.is_list(im2_crop_focus) or im2_crop_focus is None
+    ) and skrt.core.is_list(im2_crop_margins):
         im2.crop_about_point(im2_crop_focus, *im2_crop_margins)
 
     # Crop images to same size.
     if alignment is not False:
         im1.crop_to_image(im2, alignment)
         im2.crop_to_image(im1, alignment)
-        if (im1.get_voxel_size() == im2.get_voxel_size()
-            and im1.get_n_voxels() != im2.get_n_voxels()):
+        if (
+            im1.get_voxel_size() == im2.get_voxel_size()
+            and im1.get_n_voxels() != im2.get_n_voxels()
+        ):
             im1.resize(im2.get_n_voxels(), method="nearest")
 
     # Perform banding of image grey levels.
@@ -6683,10 +7101,20 @@ def match_images(im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
 
     return (im1, im2)
 
+
 def match_images_for_comparison(
-        im1, im2, ss1=None, ss2=None, ss1_index=-1, ss2_index=-1,
-        ss1_name=None, ss2_name=None, roi_names=None, alignment=None,
-        voxel_size=None):
+    im1,
+    im2,
+    ss1=None,
+    ss2=None,
+    ss1_index=-1,
+    ss2_index=-1,
+    ss1_name=None,
+    ss2_name=None,
+    roi_names=None,
+    alignment=None,
+    voxel_size=None,
+):
     """
     Process pair of images, to allow their comparison.
 
@@ -6764,6 +7192,7 @@ def match_images_for_comparison(
 
     return (im1, im2)
 
+
 def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     """
     Resample pair of images to same voxel size.
@@ -6834,6 +7263,7 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
 
     return (im1, im2)
 
+
 def crop_by_amounts(obj, dx=None, dy=None, dz=None):
     """
     Crop image or ROI by the amounts dx, dy, dz in mm.
@@ -6870,9 +7300,7 @@ def crop_by_amounts(obj, dx=None, dy=None, dz=None):
 
     # Crop along each axis in turn.
     for i_ax, reductions in enumerate(xyz_reductions):
-
-        if (skrt.core.is_list(reductions) and
-                (reductions[0] or reductions[1])):
+        if skrt.core.is_list(reductions) and (reductions[0] or reductions[1]):
             # Set new object extents, after reductions on each side.
             if reductions[0]:
                 xyz_lims[i_ax][0] += reductions[0]
@@ -6885,6 +7313,7 @@ def crop_by_amounts(obj, dx=None, dy=None, dz=None):
     # Crop object to new extents.
     obj.crop(*xyz_lims)
 
+
 def checked_crop_limits(crop_limits=None):
     """
     Check input crop limits, returning (xlim, ylim, zlim) tuple
@@ -6896,7 +7325,7 @@ def checked_crop_limits(crop_limits=None):
         Specification of crop limits:
 
         - If a float or a one-element tuple or list, crop limits
-          along each axis are taken to be minus and plus the 
+          along each axis are taken to be minus and plus the
           value given.
 
         - If a three-element tuple or list, the three elements are
@@ -6908,13 +7337,15 @@ def checked_crop_limits(crop_limits=None):
     """
     # Handle case where input is a single number.
     if isinstance(crop_limits, numbers.Number):
-        crop_limits_checked = tuple((-crop_limits, crop_limits)
-                for idx in range(3))
+        crop_limits_checked = tuple(
+            (-crop_limits, crop_limits) for idx in range(3)
+        )
 
     # Handle case where input is a single-element tuple or list.
     elif skrt.core.is_list(crop_limits) and (1 == len(crop_limits)):
-        crop_limits_checked = tuple((-crop_limits[0], crop_limits[0])
-                for idx in range(3))
+        crop_limits_checked = tuple(
+            (-crop_limits[0], crop_limits[0]) for idx in range(3)
+        )
 
     # Handle case where input is a three-element tuple or list.
     elif skrt.core.is_list(crop_limits) and (3 == len(crop_limits)):
@@ -6934,6 +7365,7 @@ def checked_crop_limits(crop_limits=None):
 
     return crop_limits_checked
 
+
 def entropy(p, base=2):
     """
     Calculate entropy for variable(s) from probability distribution.
@@ -6950,8 +7382,9 @@ def entropy(p, base=2):
     """
     if base is None:
         base = math.e
-    p_non_zero = (p > 0)
-    return -np.sum(p[p_non_zero] * np.log(p[p_non_zero])) /np.log(base)
+    p_non_zero = p > 0
+    return -np.sum(p[p_non_zero] * np.log(p[p_non_zero])) / np.log(base)
+
 
 def rescale_images(images, v_min=0.0, v_max=1.0, constant=0.5, clone=True):
     """
@@ -7001,6 +7434,7 @@ def rescale_images(images, v_min=0.0, v_max=1.0, constant=0.5, clone=True):
 
     return images
 
+
 def get_image_comparison_metrics():
     """
     Get list of image-comparison metrics.
@@ -7009,7 +7443,8 @@ def get_image_comparison_metrics():
     (returned by get_mi_metrics()) and quality metrics
     (returned by get_quality_metrics()).
     """
-    return (get_mi_metrics() + get_quality_metrics())
+    return get_mi_metrics() + get_quality_metrics()
+
 
 def get_mi_metrics():
     """
@@ -7020,15 +7455,16 @@ def get_mi_metrics():
     Image.get_mutual_information() should be listed here.
     """
     return [
-            "iqr",
-            "information_quality_ratio",
-            "mi",
-            "mutual_information",
-            "nmi",
-            "normalised_mutual_information",
-            "rajski",
-            "rajski_distance",
-            ]
+        "iqr",
+        "information_quality_ratio",
+        "mi",
+        "mutual_information",
+        "nmi",
+        "normalised_mutual_information",
+        "rajski",
+        "rajski_distance",
+    ]
+
 
 def get_quality_metrics():
     """
@@ -7038,7 +7474,7 @@ def get_quality_metrics():
     and all metrics recognised by Image.get_quality() should be listed here.
     """
     return [
-            "correlation_quality",
-            "fidelity",
-            "relative_structural_content",
-            ]
+        "correlation_quality",
+        "fidelity",
+        "relative_structural_content",
+    ]

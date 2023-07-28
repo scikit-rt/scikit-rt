@@ -1,18 +1,17 @@
 """Scikit-rt core data classes and functions."""
 
 from collections.abc import Iterable
-from pathlib import Path
-
 import copy
 import itertools
+from logging import getLogger, Formatter, StreamHandler
 import os
+from pathlib import Path
 import re
 import shutil
 import statistics
 import sys
 import time
 import timeit
-from logging import getLogger, Formatter, StreamHandler
 from typing import Any, List, Optional, Tuple
 from types import FunctionType
 from urllib.request import urlopen
@@ -21,6 +20,7 @@ from zipfile import ZipFile
 import numpy as np
 import pandas as pd
 import pydicom
+
 
 class Defaults:
     """
@@ -36,7 +36,6 @@ class Defaults:
 
     # Create single instance in inner class
     class __Defaults:
-
         def __init__(self, opts: Optional[dict] = None):
             """Define instance attributes based on opts dictionary."""
 
@@ -173,7 +172,6 @@ class Data:
         # the instance's __repr__() method with depth decreased
         # by 1, or (depth less than 1) is the class representation.
         for key in sorted(self.__dict__):
-
             # Ignore private attributes
             if key.startswith("_"):
                 continue
@@ -197,7 +195,9 @@ class Data:
                             except TypeError:
                                 item_string = self.get_item_string(item)
                             comma = "," if (i + 1 < n) else ""
-                            value_string = f"{value_string} {item_string}{comma}"
+                            value_string = (
+                                f"{value_string} {item_string}{comma}"
+                            )
                         value_string = f"{value_string}]"
                     else:
                         value_string = f"[{n} * {item[0].__class__}]"
@@ -218,7 +218,9 @@ class Data:
                             except TypeError:
                                 item_string += self.get_item_string(item)
                             comma = "," if (i + 1 < n) else ""
-                            value_string = f"{value_string} {item_string}{comma}"
+                            value_string = (
+                                f"{value_string} {item_string}{comma}"
+                            )
                         value_string = f"{{{value_string}}}"
                     else:
                         value_string = f"{{{n} * keys of type {list(item.keys())[0].__class__}}}"
@@ -252,11 +254,13 @@ class Data:
         path, where the file or its parent directory exists.
         """
         if (
-                Defaults().compress_user
-                and isinstance(item, (str, Path))
-                and (os.path.exists(str(item))
-                     or os.path.exists(os.path.dirname(str(item))))
-                ):
+            Defaults().compress_user
+            and isinstance(item, (str, Path))
+            and (
+                os.path.exists(str(item))
+                or os.path.exists(os.path.dirname(str(item)))
+            )
+        ):
             return compress_user(item)
         else:
             return item.__repr__()
@@ -319,11 +323,14 @@ class Data:
                 if issubclass(dtype, Data):
                     dtypes_valid.append(dtype)
                 else:
-                    print("Warning: data_types_to_copy must inherit from "
-                          "skrt.Data! Type", dtype, "will be ignored.")
+                    print(
+                        "Warning: data_types_to_copy must inherit from "
+                        "skrt.Data! Type",
+                        dtype,
+                        "will be ignored.",
+                    )
 
         for attr_name in dir(self):
-
             # Don't copy private variables
             if attr_name.startswith("__"):
                 continue
@@ -423,7 +430,7 @@ class Data:
 
 
 class DicomFile(Data):
-    '''
+    """
     Class representing files in DICOM format, with conversion to skrt objects.
 
     **Methods:**
@@ -433,17 +440,17 @@ class DicomFile(Data):
     - **set_dates_and_times()** : Store timing for specified elements.
     - **set_referenced_sop_instance_uids** : Store UIDs of referenced objects.
     - **set_slice_thickness** : Store slice thickness for 3D imaging data.
-    '''
+    """
 
     def __init__(self, path):
-        '''
+        """
         Create instance of DicomFile class.
 
         **Parameter:**
 
         path : str/pathlib.Path
             Relative or absolute path to DICOM file.
-        '''
+        """
         # Store absolute file path as string.
         self.path = fullpath(path)
 
@@ -456,23 +463,26 @@ class DicomFile(Data):
                 pass
 
         # Try to protect against cases where file read isn't a DICOM file.
-        if (not isinstance(self.ds, pydicom.dataset.FileDataset)
-                or len(self.ds) < 2):
+        if (
+            not isinstance(self.ds, pydicom.dataset.FileDataset)
+            or len(self.ds) < 2
+        ):
             self.ds = None
 
         # Define prefixes of dataset attributes to be used
         # to set study and item timestamps.
         elements = {
-                "study": ["Study", "Content", "InstanceCreation"],
-                "item": ["Instance", "Content", "Series", "InstanceCreation"]
-                }
+            "study": ["Study", "Content", "InstanceCreation"],
+            "item": ["Instance", "Content", "Series", "InstanceCreation"],
+        }
 
         # Set object attributes.
         self.set_dates_and_times(elements)
         self.set_slice_thickness()
         self.acquisition_number = getattr(self.ds, "AcquisitionNumber", None)
         self.frame_of_reference_uid = getattr(
-                self.ds, "FrameOfReferenceUID", None)
+            self.ds, "FrameOfReferenceUID", None
+        )
         self.modality = getattr(self.ds, "Modality", "unknown")
         if self.modality:
             self.modality = self.modality.lower()
@@ -483,7 +493,7 @@ class DicomFile(Data):
         self.set_referenced_sop_instance_uids()
 
     def get_object(self, cls, **kwargs):
-        '''
+        """
         Instantiate object of specified Scikit-rt class.
 
         **Parameters:**
@@ -501,7 +511,7 @@ class DicomFile(Data):
         **kwrgs
             Keyword arguments to be passed to contstructor of the class
             from which object is to be instantiated.
-        '''
+        """
         # Set class-specific keyword arguments.
         if cls.__name__ in ["Dose", "Plan", "StructureSet"]:
             kwargs["path"] = self.path
@@ -527,11 +537,14 @@ class DicomFile(Data):
         obj.modality = self.modality
         obj.frame_of_reference_uid = self.frame_of_reference_uid
         obj.referenced_image_sop_instance_uid = (
-                self.referenced_image_sop_instance_uid)
+            self.referenced_image_sop_instance_uid
+        )
         obj.referenced_plan_sop_instance_uid = (
-                self.referenced_plan_sop_instance_uid)
+            self.referenced_plan_sop_instance_uid
+        )
         obj.referenced_structure_set_sop_instance_uid = (
-                self.referenced_structure_set_sop_instance_uid)
+            self.referenced_structure_set_sop_instance_uid
+        )
         obj.series_instance_uid = self.series_instance_uid
         obj.series_number = self.series_number
         obj.sop_instance_uid = self.sop_instance_uid
@@ -563,14 +576,19 @@ class DicomFile(Data):
 
         # Loop over attributes, filtering list of matches at each iteration.
         for attribute in attributes:
-            matches = [match for match in matches if
-                    (getattr(match, attribute, None)
-                    == getattr(self, attribute, None))]
+            matches = [
+                match
+                for match in matches
+                if (
+                    getattr(match, attribute, None)
+                    == getattr(self, attribute, None)
+                )
+            ]
 
-        return matches 
+        return matches
 
     def set_dates_and_times(self, elements):
-        '''
+        """
         Store timing information for specified elements.
 
         **Parameter:**
@@ -579,7 +597,7 @@ class DicomFile(Data):
             Dictionary where keys are element names - for example,
             "study", "item" - and values are DICOM dataset attributes
             to be checked, in the order listed, for date and time information.
-        '''
+        """
         # Define time measurements of interest, and values to be used
         # in case of missing information.
         measurements = {"Date": "00000000", "Time": "000000"}
@@ -614,9 +632,9 @@ class DicomFile(Data):
                 setattr(self, f"{element}_timestamp", f"{date}_{time}")
 
     def set_referenced_sop_instance_uids(self):
-        '''
+        """
         Store SOP instance UIDs for referenced image, structure set, and plan.
-        '''
+        """
 
         # Store SOP instance UID for referenced image.
         try:
@@ -626,8 +644,12 @@ class DicomFile(Data):
 
         if uid is None:
             try:
-                uid = (self.ds.ROIContourSequence[0].ContourSequence[0]
-                        .ContourImageSequence[0].ReferencedSOPInstanceUID)
+                uid = (
+                    self.ds.ROIContourSequence[0]
+                    .ContourSequence[0]
+                    .ContourImageSequence[0]
+                    .ReferencedSOPInstanceUID
+                )
             except (IndexError, AttributeError):
                 pass
 
@@ -635,8 +657,9 @@ class DicomFile(Data):
 
         # Store SOP instance UID for referenced structure set.
         try:
-            uid = (self.ds.ReferencedStructureSetSequence[0]
-                    .ReferencedSOPInstanceUID)
+            uid = self.ds.ReferencedStructureSetSequence[
+                0
+            ].ReferencedSOPInstanceUID
         except (IndexError, AttributeError):
             None
 
@@ -644,17 +667,16 @@ class DicomFile(Data):
 
         # Store SOP instance UID for referenced plan.
         try:
-            uid = (self.ds.ReferencedRTPlanSequence[0]
-                    .ReferencedSOPInstanceUID)
+            uid = self.ds.ReferencedRTPlanSequence[0].ReferencedSOPInstanceUID
         except (IndexError, AttributeError):
             uid = None
 
         self.referenced_plan_sop_instance_uid = uid
 
     def set_slice_thickness(self):
-        '''
+        """
         Store slice thickness for 3D imaging data.
-        '''
+        """
         # Initialise slice thickness.
         self.slice_thickness = ""
 
@@ -674,16 +696,12 @@ class PathData(Data):
         self.subdir = ""
 
     def create_objects(
-        self, 
-        dtype: type, 
-        subdir: str = "", 
-        timestamp_only=True,
-        **kwargs
+        self, dtype: type, subdir: str = "", timestamp_only=True, **kwargs
     ) -> List[Any]:
         """
         For all the files inside own directory, or own directory + <subdir>
         if <subdir> is given, create an object of given data type <dtype> if
-        the filename corresponds to a timestamp. Return the created objects in 
+        the filename corresponds to a timestamp. Return the created objects in
         a list.
 
         **Parameters**:
@@ -694,7 +712,7 @@ class PathData(Data):
         subdir : str, default=""
             Subdirectory from which to take files. If empty, own top-level
             directory will be used.
-        
+
         timestamp_only : bool, default=True
             If True, only files whose names correspond to a timestamp will
             be used to initialise objects.
@@ -713,7 +731,6 @@ class PathData(Data):
         path = os.path.join(self.path, subdir)
         if os.path.isdir(path):
             for filename in os.listdir(path):
-
                 # Ignore files with no timestamp in name
                 if timestamp_only and not is_timestamp(filename):
                     continue
@@ -734,15 +751,15 @@ class PathData(Data):
         return objs
 
     def get_file_size(self):
-        '''
+        """
         Return size in bytes of associated file.
-        '''
+        """
         return Path(self.path).stat().st_size if Path(self.path).exists() else 0
 
     def get_n_file(self):
-        '''
+        """
         Return number of data files associated with this object.
-        '''
+        """
         # Only 1 data file associated with a non-Archive object.
         return 1
 
@@ -756,18 +773,18 @@ class PathData(Data):
         return get_n_file_below(self.path)
 
     def print_paths(self, max_path=None):
-        '''
+        """
         Print paths of data files associated with this object.
 
         File paths are listed in natural order, with one path per line.
-        
+
         **Parameters:**
         max_path: int/None, default=None
             Indication of maximum number of paths to print.  If a positive
             integer, the first <max_path> paths are printed.  If a negative
             integer, the last <max_path> paths are printed.  If None,
             all paths are printed.
-        '''
+        """
         if os.path.isdir(self.path):
             print_paths(self.path, max_path)
         else:
@@ -814,14 +831,14 @@ class Dated(PathData):
     def get_pandas_timestamp(self):
         """Obtain own timestamp as a pandas.Timestamp object."""
         try:
-            timestamp = pd.Timestamp(''.join([self.date, self.time]))
+            timestamp = pd.Timestamp("".join([self.date, self.time]))
         except ValueError:
             timestamp = None
         return timestamp
 
-    def in_date_interval(self,
-                         min_date: Optional[str] = None,
-                         max_date: Optional[str] = None) -> bool:
+    def in_date_interval(
+        self, min_date: Optional[str] = None, max_date: Optional[str] = None
+    ) -> bool:
         """Check whether own date falls within an interval."""
 
         if min_date:
@@ -860,24 +877,24 @@ class Dated(PathData):
         return matches
 
     def __gt__(self, other):
-        '''
+        """
         Define whether <self> is greater than <other>.
 
         The comparison is based first on object date, then on time,
         then on path.
-        '''
+        """
         for attribute in ["date", "time", "path"]:
             if getattr(self, attribute) != getattr(other, attribute):
                 return getattr(self, attribute) > getattr(other, attribute)
         return False
 
     def __ge__(self, other):
-        '''
+        """
         Define whether <self> is greater than, or equal to, <other>.
 
         The comparison is based first on object date, then on time,
         then on path.
-        '''
+        """
         return (self > other) or (self == other)
 
     def copy_dicom(self, outdir=None, overwrite=True, sort=True, index=None):
@@ -913,8 +930,9 @@ class Dated(PathData):
         """
         if not callable(getattr(self, "load", None)):
             raise NotImplementedError(
-                    f"{type(self)}.copy_dicom() failed - "
-                    "class has no load() method")
+                f"{type(self)}.copy_dicom() failed - "
+                "class has no load() method"
+            )
             return
 
         # Create clone for data loading.
@@ -927,8 +945,9 @@ class Dated(PathData):
         ds = getattr(obj, "dicom_dataset", None)
         if not ds or not path.exists():
             raise NotImplementedError(
-                    f"{type(obj)}.copy_dicom() failed - "
-                    "object has no associated DICOM file")
+                f"{type(obj)}.copy_dicom() failed - "
+                "object has no associated DICOM file"
+            )
             return
 
         # Obtain the data modality.
@@ -949,8 +968,15 @@ class Dated(PathData):
         if overwrite or not outpath.exists():
             shutil.copy2(path, outpath)
 
-    def copy_dicom_files(self, data_type=None, index=None, indices=None,
-            outdir="dicom", overwrite=True, sort=True):
+    def copy_dicom_files(
+        self,
+        data_type=None,
+        index=None,
+        indices=None,
+        outdir="dicom",
+        overwrite=True,
+        sort=True,
+    ):
         """
         Copy DICOM file(s) associated with this object.
 
@@ -983,16 +1009,19 @@ class Dated(PathData):
             class's copy_dicom() method.
         """
         # Check whether object index satisfies requirements.
-        if (isinstance(indices, dict)
-                and isinstance(data_type, str)
-                and isinstance(indices.get(data_type, None), list)
-                and isinstance(index, int)
-                and index not in indices[data_type]):
+        if (
+            isinstance(indices, dict)
+            and isinstance(data_type, str)
+            and isinstance(indices.get(data_type, None), list)
+            and isinstance(index, int)
+            and index not in indices[data_type]
+        ):
             return
 
         # Create output directory, and copy object files.
         outdir = make_dir(outdir, overwrite)
         self.copy_dicom(outdir, overwrite, sort, index)
+
 
 class MachineData(Dated):
     """Dated object with an associated machine name."""
@@ -1005,9 +1034,9 @@ class MachineData(Dated):
 class Archive(Dated):
     """Dated object associated with multiple files."""
 
-    def __init__(self, path: str = "", auto_timestamp=False,
-            allow_dirs: bool = False):
-
+    def __init__(
+        self, path: str = "", auto_timestamp=False, allow_dirs: bool = False
+    ):
         Dated.__init__(self, path, auto_timestamp)
 
         # Find names of files within the directory
@@ -1018,7 +1047,6 @@ class Archive(Dated):
             filenames = []
 
         for filename in filenames:
-
             # Disregard hidden files
             if not filename.startswith("."):
                 filepath = os.path.join(self.path, filename)
@@ -1030,9 +1058,9 @@ class Archive(Dated):
         self.files.sort()
 
     def get_file_size(self):
-        '''
+        """
         Return size in bytes of associated file.
-        '''
+        """
         if Path(self.path).is_file():
             size = Path(self.path).stat().st_size
         else:
@@ -1044,14 +1072,15 @@ class Archive(Dated):
         return size
 
     def get_n_file(self):
-        '''
+        """
         Return number of data files associated with this object.
-        '''
+        """
         if Path(self.path).is_file():
             n_file = 1
         else:
             n_file = len(self.files)
         return n_file
+
 
 class File(Dated):
     """File with an associated date. Files can be sorted based on their
@@ -1067,7 +1096,6 @@ class File(Dated):
         return self.path != other.path
 
     def __lt__(self, other):
-
         self_name = os.path.splitext(os.path.basename(self.path))[0]
         other_name = os.path.splitext(os.path.basename(other.path))[0]
         try:
@@ -1077,7 +1105,6 @@ class File(Dated):
         return result
 
     def __gt__(self, other):
-
         self_name = os.path.splitext(os.path.basename(self.path))[0]
         other_name = os.path.splitext(os.path.basename(other.path))[0]
         try:
@@ -1124,6 +1151,7 @@ def fullpath(path="", pathlib=False):
             expanded = Path(expanded)
     return expanded
 
+
 def compress_user(path=""):
     """If path starts with home directory, replace by '~'"""
     new_path = Path(fullpath(path))
@@ -1133,13 +1161,16 @@ def compress_user(path=""):
         pass
     return str(new_path)
 
+
 def qualified_name(cls=None):
     """
     Return qualified name of a class.
 
     Return None if non-class given as input.
     """
-    if isinstance(cls, type): return f"{cls.__module__}.{cls.__name__}"
+    if isinstance(cls, type):
+        return f"{cls.__module__}.{cls.__name__}"
+
 
 def get_logger(name="", log_level=None, identifier="name"):
     """
@@ -1170,6 +1201,7 @@ def get_logger(name="", log_level=None, identifier="name"):
     logger.setLevel(log_level)
     return logger
 
+
 def get_time_and_date(timestamp: str = "") -> Tuple[str, str]:
     """Extract time and date separately from timestamp."""
 
@@ -1185,12 +1217,15 @@ def get_time_and_date(timestamp: str = "") -> Tuple[str, str]:
         i1 = timestamp.find("_")
         i2 = timestamp.rfind(".")
         if (-1 != i1) and (-1 != i2):
-            bitstamp = timestamp[i1 + 1: i2]
+            bitstamp = timestamp[i1 + 1 : i2]
             if is_timestamp(bitstamp):
                 items = bitstamp.split("_")
                 if len(items) > 2:
-                    if (items[0].isalpha() and items[1].isdigit()
-                            and items[2].isdigit()):
+                    if (
+                        items[0].isalpha()
+                        and items[1].isdigit()
+                        and items[2].isdigit()
+                    ):
                         items = items[1:3]
                     elif items[0].isdigit() and items[1].isdigit():
                         items = items[:2]
@@ -1241,7 +1276,9 @@ def is_list(var: Any) -> bool:
     return is_a_list
 
 
-def to_list(val: Any, n : int = 3, keep_none_single : bool = True) -> Optional[List]:
+def to_list(
+    val: Any, n: int = 3, keep_none_single: bool = True
+) -> Optional[List]:
     """Ensure that a value is a list of n items."""
 
     if val is None and keep_none_single:
@@ -1254,14 +1291,15 @@ def to_list(val: Any, n : int = 3, keep_none_single : bool = True) -> Optional[L
 
 
 def generate_timestamp() -> str:
-    '''Make timestamp from the current time.'''
+    """Make timestamp from the current time."""
 
-    return time.strftime('%Y%m%d_%H%M%S')
+    return time.strftime("%Y%m%d_%H%M%S")
 
-def get_data_by_filename(data_objects=None, remove_timestamp=True,
-        remove_suffix=True):
 
-    '''
+def get_data_by_filename(
+    data_objects=None, remove_timestamp=True, remove_suffix=True
+):
+    """
     Create dictionary of data_objects from list.
 
     Dictionary keys are derived from the paths to the data sources.
@@ -1278,42 +1316,42 @@ def get_data_by_filename(data_objects=None, remove_timestamp=True,
     remove_suffix : bool, default=True
         If True, remove any suffixes from filenames to be used as
         dictionary keys.
-    '''
+    """
 
     data_by_filename = {}
     if data_objects:
-
         idx = 0
         for data_object in data_objects:
-            path = getattr(data_object, 'path', '')
+            path = getattr(data_object, "path", "")
             if path:
                 # Determine filename, removing timestamp and suffix if needed.
                 filename = Path(path).name
                 if remove_timestamp:
                     time_and_date = get_time_and_date(filename)
                     if None not in time_and_date:
-                        timestamp = '_'.join(time_and_date)
-                        filename = ''.join(filename.split(f'{timestamp}_'))
+                        timestamp = "_".join(time_and_date)
+                        filename = "".join(filename.split(f"{timestamp}_"))
                 if remove_suffix:
-                    filename = filename.split('.')[0]
+                    filename = filename.split(".")[0]
             else:
                 # Create dummy filename for object with no associated path.
                 idx += 1
-                filename = f'unknown_{idx:03}'
+                filename = f"unknown_{idx:03}"
 
             data_by_filename[filename] = data_object
 
     return data_by_filename
 
+
 def get_n_file(objs=None):
-    '''
+    """
     Return number of data files associated with listed objects.
 
     **Parameter:**
 
     objs : list, default=None
         List of objects for which numbers of files are to be summed.
-    '''
+    """
     if not isinstance(objs, Iterable):
         objs = [objs]
 
@@ -1322,15 +1360,16 @@ def get_n_file(objs=None):
         n_file += obj.get_n_file()
     return n_file
 
+
 def get_file_size(objs=None):
-    '''
+    """
     Return size in bytes of data files associated with listed objects.
 
     **Parameter:**
 
     objs : list, default=None
         List of objects for which file sizes are to be summed.
-    '''
+    """
     if not isinstance(objs, Iterable):
         objs = [objs]
 
@@ -1339,9 +1378,11 @@ def get_file_size(objs=None):
         size += obj.get_file_size()
     return size
 
-def get_time_separated_objects(objs, min_delta=4, unit='hour',
-        most_recent=True):
-    '''
+
+def get_time_separated_objects(
+    objs, min_delta=4, unit="hour", most_recent=True
+):
+    """
     Return ordered list of dated objects, filtering for minimum time separation.
 
     objs : list
@@ -1358,8 +1399,8 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
 
     most_recent : bool, default=True
         When objects aren't separated by the minimum time interval, keep
-        the most recent if True, or the least recent otherwise. 
-    '''
+        the most recent if True, or the least recent otherwise.
+    """
 
     # Deal with cases where the number of input objects is 0 or 1.
     if len(objs) <= 1:
@@ -1375,7 +1416,7 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
         for obj in objs:
             if obj.date and obj.time:
                 try:
-                    timestamp = pd.Timestamp(''.join([obj.date, obj.time]))
+                    timestamp = pd.Timestamp("".join([obj.date, obj.time]))
                 except ValueError:
                     timestamp = None
 
@@ -1403,44 +1444,48 @@ def get_time_separated_objects(objs, min_delta=4, unit='hour',
 
     return time_separated_objs
 
+
 def get_hour_in_day(timestamp):
-    '''
+    """
     Return a timestamp's hour in day, including fractional part.
 
     **Parameter:**
 
     timestamp : pandas.Timestamp
         Timestamp for which hour in day is to be returned.
-    '''
+    """
     if isinstance(timestamp, pd.Timestamp):
         return timestamp.hour + timestamp.minute / 60 + timestamp.second / 3600
 
+
 def get_hour_in_week(timestamp):
-    '''
+    """
     Return a timestamp's hour in week, including fractional part.
 
     **Parameter:**
 
     timestamp : pandas.Timestamp
         Timestamp for which hour in week is to be returned.
-    '''
+    """
     if isinstance(timestamp, pd.Timestamp):
-        return (24 * (timestamp.isoweekday() - 1) + get_hour_in_day(timestamp))
+        return 24 * (timestamp.isoweekday() - 1) + get_hour_in_day(timestamp)
+
 
 def get_day_in_week(timestamp):
-    '''
+    """
     Return a timestamp's day in week, including fractional part.
 
     **Parameter:**
 
     timestamp : pandas.Timestamp
         Timestamp for which day in week is to be returned.
-    '''
+    """
     if isinstance(timestamp, pd.Timestamp):
         return get_hour_in_week(timestamp) / 24
 
+
 def get_interval_in_days(timestamp1, timestamp2):
-    '''
+    """
     Return interval in days between two timestamps.
 
     **Parameters:**
@@ -1450,19 +1495,21 @@ def get_interval_in_days(timestamp1, timestamp2):
 
     timestamp2 : pandas.Timestamp
         Timestamp corresponding to end of interval.
-    '''
-    if (isinstance(timestamp1, pd.Timestamp) and
-            isinstance(timestamp2, pd.Timestamp)):
+    """
+    if isinstance(timestamp1, pd.Timestamp) and isinstance(
+        timestamp2, pd.Timestamp
+    ):
         interval = (timestamp2 - timestamp1).total_seconds()
-        interval /= pd.Timedelta('1d').total_seconds()
+        interval /= pd.Timedelta("1d").total_seconds()
     else:
         interval = None
     return interval
 
+
 def get_interval_in_whole_days(timestamp1, timestamp2):
-    '''
+    """
     Return interval in whole days between two timestamps.
-    
+
     **Parameters:**
 
     timestamp1 : pandas.Timestamp
@@ -1470,33 +1517,36 @@ def get_interval_in_whole_days(timestamp1, timestamp2):
 
     timestamp2 : pandas.Timestamp
         Timestamp corresponding to end of interval.
-    '''
-    if (isinstance(timestamp1, pd.Timestamp) and
-            isinstance(timestamp2, pd.Timestamp)):
-        interval = ((timestamp2.floor('1d') - timestamp1.floor('1d'))
-                .total_seconds())
-        interval /= pd.Timedelta('1d').total_seconds()
+    """
+    if isinstance(timestamp1, pd.Timestamp) and isinstance(
+        timestamp2, pd.Timestamp
+    ):
+        interval = (
+            timestamp2.floor("1d") - timestamp1.floor("1d")
+        ).total_seconds()
+        interval /= pd.Timedelta("1d").total_seconds()
         interval = round(interval)
     else:
         interval = None
     return interval
 
+
 def year_fraction(timestamp):
-    '''
+    """
     Convert from timestamp to year, including fractional part.
-    
+
     **Parameter:**
 
     timestamp : pandas.Timestamp
         Timestamp to be converted.
-    '''
+    """
     if isinstance(timestamp, pd.Timestamp):
         # Determine year.
         year = timestamp.year
 
         # Determine seconds in year (different for leap year and non-leap year).
-        year_start = pd.Timestamp(f'{year}0101')
-        next_year_start = pd.Timestamp(f'{year + 1}0101')
+        year_start = pd.Timestamp(f"{year}0101")
+        next_year_start = pd.Timestamp(f"{year + 1}0101")
         seconds_in_year = (next_year_start - year_start).total_seconds()
 
         # Determine seconds elapsed so far in year.
@@ -1508,11 +1558,13 @@ def year_fraction(timestamp):
         year_fraction = None
     return year_fraction
 
+
 def get_uid_without_slice(uid):
     """Obtain copy of <uid>, truncated to before final dot."""
     return ".".join(uid.split(".")[:-1])
 
-'''
+
+"""
 def get_sequence_value(ds=None, sequence=None, tag=None):
     value = None
     sequence_data = getattr(ds, sequence, None)
@@ -1521,10 +1573,11 @@ def get_sequence_value(ds=None, sequence=None, tag=None):
         if sequence_data:
             value = getattr(sequence_data[-1], tag, None)
     return value
-'''
+"""
+
 
 def get_referenced_image(referrer=None, image_types=None):
-    '''
+    """
     Retrieve from <image_types> image object referred to by <referrer>.
 
     **Parameters:**
@@ -1535,15 +1588,16 @@ def get_referenced_image(referrer=None, image_types=None):
     image_types : dict, default=None
         Dictionary where keys are imaging modalities and values are lists
         of image objects for this modality.
-    '''
+    """
     image_types = image_types or {}
     image = None
 
     # Search for referenced image based on matching
     # referenced image SOP instance UID.
     for modality, images in image_types.items():
-        image = get_referenced_object(referrer, images,
-                "referenced_image_sop_instance_uid", True)
+        image = get_referenced_object(
+            referrer, images, "referenced_image_sop_instance_uid", True
+        )
         if image:
             break
 
@@ -1552,14 +1606,16 @@ def get_referenced_image(referrer=None, image_types=None):
     if image is None:
         for modality, images in image_types.items():
             matched_attributes = DicomFile.get_matched_attributes(
-                    referrer, images, "frame_of_reference_uid")
+                referrer, images, "frame_of_reference_uid"
+            )
             if matched_attributes:
                 image = matched_attributes[0]
 
     return image
 
+
 def get_referenced_object(referrer, others, tag, omit_slice=False):
-    '''
+    """
     Retrieve from <others> object referred to via <tag> by <referrer>.
 
     **Parameters:**
@@ -1583,7 +1639,7 @@ def get_referenced_object(referrer, others, tag, omit_slice=False):
         If True, disregard the last part of all UIDs, meaning the part from
         the last dot onwards.  For imaging data, this part distinguishes
         between different slices.
-    '''
+    """
     referenced_object = None
 
     # Obtain SOP instance UID of referenced object.
@@ -1608,10 +1664,11 @@ def get_referenced_object(referrer, others, tag, omit_slice=False):
 
     return referenced_object
 
+
 def get_associated_image(objs, voxel_selection="most"):
     """
     Identify an image associated with at least one of a set of objects.
-    
+
     If none of the input objects has an image attribute, None is returned.
 
     **Parameters:**
@@ -1653,6 +1710,7 @@ def get_associated_image(objs, voxel_selection="most"):
 
     return associated_image
 
+
 def relative_path(path, nlevel=None):
     """
     Return relative path.
@@ -1687,6 +1745,7 @@ def relative_path(path, nlevel=None):
     idx = min(nlevel + 1, len(elements) - 1) if nlevel > 0 else nlevel
     return os.sep.join(elements[idx:])
 
+
 def get_indexed_objs(objs, indices=True):
     """
     Select subset of objects from a list.
@@ -1719,6 +1778,7 @@ def get_indexed_objs(objs, indices=True):
 
     return indexed_objs
 
+
 def make_dir(path=".", overwrite=True, require_empty=False):
     """
     Create a directory if it doesn't exist already, or if overwriting allowed.
@@ -1750,8 +1810,9 @@ def make_dir(path=".", overwrite=True, require_empty=False):
     if dirpath is not None:
         # Create directory if needed.
         dirpath.mkdir(parents=True, exist_ok=True)
-    
+
     return dirpath
+
 
 def get_float(obj, attribute, default=None):
     """
@@ -1775,12 +1836,14 @@ def get_float(obj, attribute, default=None):
             value = default
     return value
 
+
 def get_qualified_class_name(cls):
     """
     Determine qualified name of class <cls>.
     """
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
+
 
 def get_subdir_paths(parent):
     """
@@ -1791,8 +1854,10 @@ def get_subdir_paths(parent):
     parent : pathlib.Path/str
         Path to directory for which sub-directory paths are to be found.
     """
-    return sorted([subdir for subdir in Path(parent).iterdir()
-        if subdir.is_dir()])
+    return sorted(
+        [subdir for subdir in Path(parent).iterdir() if subdir.is_dir()]
+    )
+
 
 def get_data_indices(in_value, valid_data_types):
     """
@@ -1823,9 +1888,11 @@ def get_data_indices(in_value, valid_data_types):
     """
     # Filter out keys that aren't valid data types.
     if isinstance(in_value, dict):
-        data_indices = {data_type: indices
-                for data_type, indices in in_value.items()
-                if data_type in valid_data_types}
+        data_indices = {
+            data_type: indices
+            for data_type, indices in in_value.items()
+            if data_type in valid_data_types
+        }
 
     # Associate specific index with all valid data types.
     elif isinstance(in_value, int):
@@ -1836,19 +1903,22 @@ def get_data_indices(in_value, valid_data_types):
         data_indices = {in_value: True} if in_value in valid_data_types else {}
 
     else:
-
         # Accept all valid data types.
         if in_value is None:
             data_types = valid_data_types
 
         # Accept subset of valid data types.
         else:
-            data_types = [data_type for data_type in in_value
-                    if data_type in valid_data_types]
+            data_types = [
+                data_type
+                for data_type in in_value
+                if data_type in valid_data_types
+            ]
 
         data_indices = {data_type: True for data_type in data_types}
 
     return data_indices
+
 
 class TicToc:
     """
@@ -1864,7 +1934,6 @@ class TicToc:
 
     # Single instance inner class
     class __TicToc:
-
         def __init__(self, message=None, time_format=None, log_level=None):
             """
             Constructor of TicToc inner class.
@@ -1886,7 +1955,8 @@ class TicToc:
             self.log_level = Defaults().log_level
             self.set_options(message, time_format, log_level)
             self.logger = get_logger(
-                    name=type(self).__name__, log_level=self.log_level)
+                name=type(self).__name__, log_level=self.log_level
+            )
 
         def set_options(self, message=None, time_format=None, log_level=None):
             """
@@ -1959,6 +2029,7 @@ class TicToc:
         """Print instance attributes."""
         return self.instance.__repr__()
 
+
 def tic():
     """
     Set timer start time.
@@ -1967,6 +2038,7 @@ def tic():
     timer.start = timeit.default_timer()
     timer.tics.append(timer.start)
     return timer.start
+
 
 def toc(message=None, time_format=None):
     """
@@ -2031,7 +2103,8 @@ def toc(message=None, time_format=None):
             time_format = timer.time_format
         print(f"{message}{time_taken:{time_format}} seconds")
 
-    return time_taken 
+    return time_taken
+
 
 def download(url, outdir=".", outfile=None, binary=True, unzip=False):
     """
@@ -2075,6 +2148,7 @@ def download(url, outdir=".", outfile=None, binary=True, unzip=False):
     if unzip:
         with ZipFile(outpath) as zipfile:
             zipfile.extractall(outdir)
+
 
 def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
     """
@@ -2128,8 +2202,10 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
         if value_for_none is None:
             values = [value for value in values if value is not None]
         else:
-            values = [(value if value is not None else value_for_none)
-                    for value in values]
+            values = [
+                (value if value is not None else value_for_none)
+                for value in values
+            ]
         try:
             return getattr(statistics, stat)(values, **kwargs)
         except statistics.StatisticsError as error:
@@ -2137,18 +2213,32 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
             return
 
     if value_for_none is None:
-        components = [[value[idx] for value in values if value[idx] is not None]
-                for idx in range(len(values[0]))]
+        components = [
+            [value[idx] for value in values if value[idx] is not None]
+            for idx in range(len(values[0]))
+        ]
     else:
-        components = [[(value[idx] if value[idx] is not None
-            else value_for_none) for value in values]
-            for idx in range(len(values[0]))]
+        components = [
+            [
+                (value[idx] if value[idx] is not None else value_for_none)
+                for value in values
+            ]
+            for idx in range(len(values[0]))
+        ]
     try:
-        return [(get_stat(component_values, value_for_none, stat,
-            **(kwargs or {})) if component_values else value_for_none)
-            for component_values in components]
+        return [
+            (
+                get_stat(
+                    component_values, value_for_none, stat, **(kwargs or {})
+                )
+                if component_values
+                else value_for_none
+            )
+            for component_values in components
+        ]
     except statistics.StatisticsError as error:
         logger.warning(f"{error}: returning None")
+
 
 def get_stat_functions():
     """
@@ -2158,9 +2248,13 @@ def get_stat_functions():
 
     https://docs.python.org/3/library/statistics.html
     """
-    return [function for function in dir(statistics)
-            if type(getattr(statistics, function)) == FunctionType
-            and not function.startswith("_")]
+    return [
+        function
+        for function in dir(statistics)
+        if type(getattr(statistics, function)) == FunctionType
+        and not function.startswith("_")
+    ]
+
 
 def get_dict_permutations(in_dict=None):
     """
@@ -2184,11 +2278,13 @@ def get_dict_permutations(in_dict=None):
     """
     if isinstance(in_dict, dict) and in_dict:
         keys, values = zip(*in_dict.items())
-        permutations = [dict(zip(keys, value))
-                        for value in itertools.product(*values)]
+        permutations = [
+            dict(zip(keys, value)) for value in itertools.product(*values)
+        ]
     else:
         permutations = [{}]
     return permutations
+
 
 def qualified__name(cls):
     """
@@ -2203,6 +2299,7 @@ def qualified__name(cls):
     if isinstance(cls, type):
         return f"{cls.__module__}.{cls.__name__}"
 
+
 def get_n_file_below(indir):
     """
     Return number of files below a directory, ignoring hidden files.
@@ -2216,19 +2313,21 @@ def get_n_file_below(indir):
     if isinstance(indir, (str, Path)) and str(indir):
         indir = Path(indir)
         if indir.is_dir():
-            return len([path for path in indir.glob("**/[!.]*")
-                        if path.is_file()])
+            return len(
+                [path for path in indir.glob("**/[!.]*") if path.is_file()]
+            )
+
 
 def print_paths(data_dir, max_path=None):
     """
     Print paths to files below a directory, ignoring hidden files.
-    
+
     File paths are listed in natural order, with one path per line.
-    
+
     **Parameters:**
     data_dir: str, pathlib.Path
         Path to directory below which file paths are to be printed.
-        
+
     max_path: int/None, default=None
         Indication of maximum number of paths to print.  If a positive
         integer, the first <max_path> paths are printed.  If a negative
@@ -2237,14 +2336,15 @@ def print_paths(data_dir, max_path=None):
     """
     # Obtain sorted list of paths.
     local_paths = sorted(
-            list(Path(data_dir).glob("**/[!.]*")), key=alphanumeric)
+        list(Path(data_dir).glob("**/[!.]*")), key=alphanumeric
+    )
 
     # Reduce number of paths as needed.
     if max_path is None:
         selected_paths = local_paths
     else:
         if max_path >= 0:
-            selected_paths = local_paths[: max_path]
+            selected_paths = local_paths[:max_path]
         else:
             selected_paths = local_paths[max_path:]
 
