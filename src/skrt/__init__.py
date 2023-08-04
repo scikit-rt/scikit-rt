@@ -27,6 +27,8 @@ from skrt.structures import ROI, StructureSet
 # Suppress warning from pydicom.
 warnings.filterwarnings("ignore", message="Invalid value for VR UI",
         module="pydicom")
+warnings.filterwarnings("ignore", message="The value length",
+        module="pydicom")
 
 # Assign version number.
 __version__ = pkg_resources.get_distribution("scikit-rt").version
