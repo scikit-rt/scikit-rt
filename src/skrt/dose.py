@@ -1,6 +1,5 @@
 """Classes related to doses and plans."""
 
-import os
 import numbers
 import functools
 
@@ -20,7 +19,7 @@ class ImageOverlay(skrt.image.Image):
 
     def __init__(self, path="", load=True, image=None, *args, **kwargs):
         kwargs["default_intensity"] = kwargs.get("default_intensity", None)
-        skrt.image.Image.__init__(self, path, load, *args, **kwargs)
+        super().__init__(path, load, *args, **kwargs)
         self.image = None
         self.set_image(image)
 
@@ -257,7 +256,7 @@ class Dose(ImageOverlay):
     """
 
     def __init__(self, *args, **kwargs):
-        ImageOverlay.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Ensure linking between image and dose
         self.set_image(self.image)
@@ -804,7 +803,7 @@ class Plan(skrt.core.Archive):
         for constraint_attribute in Constraint.get_weight_and_objectives():
             setattr(self.objectives, constraint_attribute, None)
 
-        skrt.core.Archive.__init__(self, path)
+        super().__init__(path)
 
         self.constraints_loaded = False
         if load:

@@ -299,7 +299,7 @@ class ROI(skrt.core.Archive):
 
         # Initialise as skrt.core.Archive object
         path = self.source if isinstance(self.source, str) else ""
-        skrt.core.Archive.__init__(self, path)
+        super().__init__(path)
 
     def __eq__(self, other):
         return other is self
@@ -6583,7 +6583,7 @@ class StructureSet(skrt.core.Archive):
         self.roi_kwargs = kwargs
         self.plans = []
         path = path if isinstance(path, str) else ""
-        skrt.core.Archive.__init__(self, path, auto_timestamp)
+        super().__init__(path, auto_timestamp)
         if self.path and not self.name:
             name = Path(self.path).name.split("_")[0].lower()
             if name[0].isalpha():

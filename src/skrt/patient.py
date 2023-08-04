@@ -26,8 +26,8 @@ class Study(skrt.core.Archive):
         """Initialise a Study object from a given directory. Find any images,
         dose fields, and structure sets within this directory."""
 
-        # Intialise as an Archive object
-        skrt.core.Archive.__init__(self, path, allow_dirs=True)
+        # Perform base-class initialisation.
+        super().__init__(path, allow_dirs=True)
 
         # Load data
         self.load_images()
@@ -1095,14 +1095,14 @@ class Patient(skrt.core.PathData):
     """
 
     def __init__(
-        self, path=None, exclude=None, unsorted_dicom=None, id_mappings=None
+        self, path="", exclude=None, unsorted_dicom=None, id_mappings=None
     ):
         """
         Create instance of Patient class.
 
         **Parameters:**
 
-        path : str/pathlib.Path, default=None
+        path : str/pathlib.Path/None, default=""
             Relative or absolute path to a directory containing patient data.
             If None, the path used is the path to the current working
             directory.
@@ -1124,9 +1124,13 @@ class Patient(skrt.core.PathData):
             id_mappings dictionary allows mapping from the default
             name (dictionary key) to a different name (associated value).
         """
+        # Perform base-class initialisation.
+        if path is None:
+            path = os.getcwd()
+
+        super().__init__(path)
 
         # Initialise parameters.
-        path = path or ""
         exclude = exclude or ["logfiles"]
         unsorted_dicom = unsorted_dicom or skrt.core.Defaults().unsorted_dicom
         id_mappings = id_mappings or {}
@@ -1135,9 +1139,6 @@ class Patient(skrt.core.PathData):
         tic()
 
         # Set path and patient ID
-        if path is None:
-            path = os.getcwd()
-        self.path = skrt.core.fullpath(str(path))
         patient_id = os.path.basename(self.path)
         self.id = id_mappings.get(patient_id, patient_id)
 

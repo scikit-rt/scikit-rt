@@ -77,8 +77,7 @@ class SyntheticImage(Image):
         self.rotation = None
 
         # Initialise as Image
-        Image.__init__(
-            self,
+        super().__init__(
             self.get_background(),
             voxel_size=self.voxel_size,
             origin=self.origin,

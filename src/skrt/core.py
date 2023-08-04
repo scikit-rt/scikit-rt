@@ -820,7 +820,7 @@ class Dated(PathData):
         automatically from the current date and time if auto_timestamp is True.
         """
 
-        PathData.__init__(self, path)
+        super().__init__(path)
 
         # Assign date and time
         timestamp = os.path.basename(self.path)
@@ -1053,7 +1053,7 @@ class Archive(Dated):
     def __init__(
         self, path: str = "", auto_timestamp=False, allow_dirs: bool = False
     ):
-        Dated.__init__(self, path, auto_timestamp)
+        super().__init__(path, auto_timestamp)
 
         # Find names of files within the directory
         self.files = []
@@ -1103,7 +1103,7 @@ class File(Dated):
     filenames."""
 
     def __init__(self, path: str = "", auto_timestamp=False):
-        Dated.__init__(self, path, auto_timestamp)
+        super().__init__(path, auto_timestamp)
 
     def __eq__(self, other):
         return self.path == other.path

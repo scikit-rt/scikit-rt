@@ -1,19 +1,12 @@
 """Classes for loading and comparing medical images."""
 
 import copy
-import datetime
 import glob
-import functools
-import logging
 import math
 import numbers
 import pathlib
-from inspect import signature
 import os
 import shutil
-import tempfile
-import time
-import uuid
 
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import matplotlib as mpl
@@ -21,7 +14,6 @@ import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-from pydicom.dataset import FileDataset, FileMetaDataset
 import scipy.interpolate
 import scipy.ndimage
 import nibabel
@@ -304,7 +296,7 @@ class Image(skrt.core.Archive):
                     break
             path = str(path)
 
-        skrt.core.Archive.__init__(self, path, auto_timestamp)
+        super().__init__(path, auto_timestamp)
 
         if load and (not isinstance(self.source, str) or self.source):
             self.load()
@@ -6173,12 +6165,13 @@ def to_inches(size):
     inches_per_cm = 0.394
     if units == "in":
         return val
-    elif units == "cm":
+    if units == "cm":
         return inches_per_cm * val
-    elif units == "mm":
+    if units == "mm":
         return inches_per_cm * val / 10
-    elif units == "px":
+    if units == "px":
         return val / mpl.rcParams["figure.dpi"]
+    return None
 
 
 def write_nifti(outname, data, affine):
@@ -6491,11 +6484,11 @@ def get_mask(mask=None, mask_threshold=0.5, image_to_match=None):
         elif isinstance(mask, list) and "skrt.structures.ROI" in str(
             type(mask[0])
         ):
-            roi_new = mask(0).clone()
+            roi_new = mask[0].clone()
             roi_new.name = "mask_from_roi_list"
             for i in range(1, len(mask)):
-                roi_new.mask.data += self.get_roi(roi_names[i]).get_mask()
-            roi_new.mask.data = roi_new.mask.dat > mask_threshold
+                roi_new.mask.data += mask[i].get_mask()
+            roi_new.mask.data = roi_new.mask.data > mask_threshold
             mask = roi_new.get_mask_image()
         elif not isinstance(mask, Image):
             mask = Image(mask)
@@ -6663,9 +6656,9 @@ def get_translation_to_align(
     valid_alignments = [1, 2, 3]
     fallback_alignment = 2
     if default_alignment not in valid_alignments:
-        logger.warning(f"Invalid default_alignment: {default_alignment}")
-        logger.warning(f"Valid alignment values are: {valid_alignments}")
-        logger.warning(f"Setting default_alignment={fallback_alignment}")
+        logger.warning("Invalid default_alignment: %s", default_alignment)
+        logger.warning("Valid alignment values are: %s", valid_alignments)
+        logger.warning("Setting default_alignment=%s", fallback_alignment)
         default_alignment = fallback_alignment
 
     # Check alignment values, and store the ones that are valid.
@@ -6675,13 +6668,13 @@ def get_translation_to_align(
                 checked_alignments[axis.lower()] = alignment
             else:
                 logger.warning(
-                    f"Axis {axis}, disregarding invalid "
-                    f"alignment value: {alignment}"
+                    "Axis %s, disregarding invalid "
+                    "alignment value: %s", axis, alignment
                 )
                 logger.warning("Valid alignment values are: 1, 2, 3")
         else:
-            logger.warning(f"Disregarding invalid axis label: {axis}")
-            logger.warning(f"Valid axis labels are: {_axes}")
+            logger.warning("Disregarding invalid axis label: %s", axis)
+            logger.warning("Valid axis labels are: %s", _axes)
 
     # Determine image bounding boxes.
     xyz_lims = {}
