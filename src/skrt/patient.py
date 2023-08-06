@@ -285,6 +285,12 @@ class Study(skrt.core.Archive):
 
         return selection
 
+    def get_patient(self):
+        """
+        Get patient object with which this study is associated.
+        """
+        return getattr(self, patient, None)
+
     def get_patient_id(self):
         """
         Get patient identifier.
