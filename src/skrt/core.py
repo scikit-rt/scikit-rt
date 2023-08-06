@@ -112,6 +112,10 @@ Defaults({"len_time": 6})
 # of a Data object, for each string corresponding to a file path.
 Defaults({"compress_user": False})
 
+# Initialise default mappings between identifiers and names
+# of imaging stations.
+Defaults({"stations": {}})
+
 
 class Data:
     """
@@ -1037,14 +1041,6 @@ class Dated(PathData):
         # Create output directory, and copy object files.
         outdir = make_dir(outdir, overwrite)
         self.copy_dicom(outdir, overwrite, sort, index)
-
-
-class MachineData(Dated):
-    """Dated object with an associated machine name."""
-
-    def __init__(self, path: str = ""):
-        Dated.__init__(self, path)
-        self.machine = os.path.basename(os.path.dirname(path))
 
 
 class Archive(Dated):

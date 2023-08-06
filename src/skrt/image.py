@@ -43,7 +43,6 @@ _plot_axes = {
     "z-y": [2, 1],
 }
 _default_figsize = 6
-_default_stations = {"0210167": "LA3", "0210292": "LA4"}
 _default_bolus_names = [
     "planning bolus",
     "virtual bolus",
@@ -257,6 +256,8 @@ class Image(skrt.core.Archive):
 
         self.source_type = None
         self.dicom_dataset = None
+        self.machine = None
+        self.station_name = None
         self.voxel_size = list(voxel_size) if voxel_size is not None else None
         self.origin = list(origin) if origin is not None else None
         self.affine = affine
@@ -2266,17 +2267,36 @@ class Image(skrt.core.Archive):
         else:
             return [axes[1], axes[0], axes[2]]
 
-    def get_machine(self, stations=_default_stations):
-        machine = None
-        if self.files:
-            ds = pydicom.dcmread(self.files[0].path, force=True)
-            try:
-                station = ds.StationName
-            except BaseException:
-                station = None
-            if station in stations:
-                machine = stations[station]
-        return machine
+    def get_station_name(self, force=False):
+        """
+        Return name of image-recording station.
+
+        The station name will be defined only if the source is DICOM,
+        and the name is included in the metadata.  If the name is undefined,
+        return an empty string.
+
+        **Parameter:**
+        force: bool, default=False
+            If True, try to extract station name from source data, even if
+            already extracted.  If False, return any value obtained
+            previously.
+        """
+        if self.station_name is None or force:
+            self.station_name = getattr(
+                    self.get_dicom_dataset(), "StationName", "")
+        return self.station_name
+
+    def get_machine(self, stations=None):
+        """
+        Return machine name.
+
+        **Parameter:**
+
+        machines: dict, default=None
+            Dictionary mapping between station names and machine names.
+        """
+        return (stations or skrt.core.Defaults().stations).get(
+                self.get_station_name(), "")
 
     def set_geometry(self):
         """Set geometric properties for this image. Should be called once image

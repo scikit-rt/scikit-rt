@@ -794,6 +794,8 @@ class Plan(skrt.core.Archive):
         self.n_beam_seq = None
         self.n_fraction = None
         self.organs_at_risk = None
+        self.machine = None
+        self.station_name = None
         self.target_dose = None
         self.targets = None
         self.image = None
@@ -830,6 +832,9 @@ class Plan(skrt.core.Archive):
         )
         self.prescription_description = getattr(
             self.dicom_dataset, "PrescriptionDescription", None
+        )
+        self.station_name = getattr(
+            self.dicom_dataset, "StationName", None
         )
 
         try:
@@ -1029,6 +1034,22 @@ class Plan(skrt.core.Archive):
         """Return plan description."""
         self.load()
         return self.description
+
+    def get_station_name(self):
+        """Return station name."""
+        self.load()
+        return self.station_name
+
+    def get_machine(self, machines=None):
+        """
+        Return machine name.
+
+        **Parameter:**
+
+        machines: dict, default=None
+            Dictionary mapping between station names and machine names.
+        """
+        return skrt.image.Image.get_machine(self, machines)
 
     def get_prescription_description(self):
         """Return plan prescription description."""
