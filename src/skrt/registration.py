@@ -31,7 +31,6 @@ This module defines the following functions:
 - get_jacobian_colormap() : Return custom colour map, for highlighting
   features of Jacobian determinant.
 - get_parameters : Obtain parameter dictionary from default parameter file.
-- prepend_path() : Prepend path to environment variable.
 - read_parameters() : Get dictionary of parameters from a registration
   parameter file.
 - set_elastix_dir() :  Perform environment setup for using elastix software.
@@ -54,7 +53,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pkg_resources import resource_filename
 
-from skrt.core import fullpath, get_logger, Data, to_list, Defaults, PathData
+from skrt.core import (
+        fullpath, get_logger, prepend_path, Data, to_list, Defaults, PathData)
 from skrt.dose import ImageOverlay, Dose
 import skrt.image
 from skrt.structures import ROI, StructureSet
@@ -4260,43 +4260,6 @@ def get_jacobian_colormap(col_per_band=100, sat_values=None):
     )
 
     return cmap
-
-
-def prepend_path(variable, path, path_must_exist=True):
-    """
-    Prepend path to environment variable.
-
-    **Parameters:**
-
-    variable : str
-        Environment variable to which path is to be prepended.
-
-    path : str
-        Path to be prepended.
-
-    path_must_exist : bool, default=True
-        If True, only append path if it exists.
-    """
-    path = str(path)
-    path_ok = True
-    if path_must_exist:
-        if not os.path.exists(path):
-            path_ok = False
-
-    if path_ok:
-        if variable in os.environ:
-            if os.environ[variable]:
-                items = os.environ[variable].split(os.pathsep)
-                if path in items:
-                    items.remove(path)
-                if items:
-                    os.environ[variable] = os.pathsep.join([path] + items)
-                else:
-                    os.environ[variable] = path
-        else:
-            os.environ[variable] = path
-
-    return path_ok
 
 
 def read_parameters(infile, engine=None):

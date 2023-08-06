@@ -2357,3 +2357,40 @@ def print_paths(data_dir, max_path=None):
     for path in selected_paths:
         out_path = compress_user(path) if Defaults().compress_user else path
         print(out_path)
+
+
+def prepend_path(variable, path, path_must_exist=True):
+    """
+    Prepend path to environment variable.
+
+    **Parameters:**
+
+    variable : str
+        Environment variable to which path is to be prepended.
+
+    path : str/pathlib.Path
+        Path to be prepended.
+
+    path_must_exist : bool, default=True
+        If True, only append path if it exists.
+    """
+    path = str(path)
+    path_ok = True
+    if path_must_exist:
+        if not os.path.exists(path):
+            path_ok = False
+
+    if path_ok:
+        if variable in os.environ:
+            if os.environ[variable]:
+                items = os.environ[variable].split(os.pathsep)
+                if path in items:
+                    items.remove(path)
+                if items:
+                    os.environ[variable] = os.pathsep.join([path] + items)
+                else:
+                    os.environ[variable] = path
+        else:
+            os.environ[variable] = path
+
+    return path_ok
