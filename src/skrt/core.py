@@ -6,6 +6,7 @@ import itertools
 from logging import getLogger, Formatter, StreamHandler
 import os
 from pathlib import Path
+import platform
 import re
 import shutil
 import statistics
@@ -115,6 +116,14 @@ Defaults({"compress_user": False})
 # Initialise default mappings between identifiers and names
 # of imaging stations.
 Defaults({"stations": {}})
+
+# Initialise location of MATLAB application.
+# If True, location is taken to be as specified by environment setup.
+Defaults({"matlab_app": True})
+
+# Initialise location of MATLAB runtime installation.
+# If None, MATLAB runtime is assumed not to be installed.
+Defaults({"matlab_runtime": None})
 
 
 class Data:
@@ -1097,9 +1106,6 @@ class Archive(Dated):
 class File(Dated):
     """File with an associated date. Files can be sorted based on their
     filenames."""
-
-    def __init__(self, path: str = "", auto_timestamp=False):
-        super().__init__(path, auto_timestamp)
 
     def __eq__(self, other):
         return self.path == other.path
@@ -2394,3 +2400,69 @@ def prepend_path(variable, path, path_must_exist=True):
             os.environ[variable] = path
 
     return path_ok
+
+
+def set_matlab_runtime(matlab_runtime=None, log_level=None):
+    """
+    Set environment to allow use of MATLAB runtime installation in subprocess.
+
+    **Parameters:**
+
+    matlab_runtime: str/pathlib.Path, default=None
+        Path to root directory of MATLAB runtime installation.  It the
+        value is None, matlab_runtime is set to the value of
+        Defaults().log_level.
+
+    log_level: string/integer/None, default=None
+        Severity level for event logging.  If the value is None,
+        log_level is set to the value of Defaults().log_level.
+    """
+    logger = get_logger(identifier="funcName", log_level=log_level)
+
+    # Check that matlab_runtime is a non-null string or pathlib.Path
+    matlab_runtime = matlab_runtime or Defaults().matlab_runtime
+    if isinstance(matlab_runtime, (Path, str)) and matlab_runtime:
+        matlab_runtime = Path(fullpath(matlab_runtime))
+    else:
+        logger.warning("Root directory of MATLAB runtime not defined.")
+        return False
+
+    # Check that mathlib_runtime specifies a directory that exists.
+    if not matlab_runtime.is_dir():
+        logger.warning("Root directory of MATLAB runtime not found: %s",
+                       matlab_runtime)
+        return False
+
+    # Define platform-specific subdirectories and path variable.
+    subdirs = [
+        "runtime",
+        "bin",
+        Path("sys") / "os",
+    ]
+    if "Linux" == platform.system():
+        subdirs.append(Path("sys") / "opengl" / "lib")
+        env_var = "LD_LIBRARY_PATH"
+        arch = "glnxa64"
+    elif "Darwin" == platform.system():
+        env_var = "DYLD_LIBRARY_PATH"
+        arch = "maci64"
+    else:
+        env_var = "PATH"
+        subdirs = ["runtime"]
+        arch = "win64"
+
+    # Set path variable, and check that runtime paths exists.
+    all_ok = True
+    for subdir in subdirs:
+        env_val = matlab_runtime / subdir / arch
+        if (
+            env_var not in os.environ
+            or str(env_val) not in os.environ[env_var].split(os.pathsep)
+        ):
+            runtime_ok = prepend_path(env_var, env_val)
+            if not runtime_ok:
+                logger.warning("MATLAB runtime directory not found: '%s'",
+                               env_val)
+            all_ok *= runtime_ok
+
+    return all_ok

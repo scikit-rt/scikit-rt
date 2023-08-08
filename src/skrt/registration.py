@@ -62,8 +62,6 @@ from skrt.simulation import make_grid
 
 # Set default registration engine.
 Defaults({"registration_engine": "elastix"})
-Defaults().matlab_app = True
-Defaults().matlab_runtime = None
 
 engines = {}
 
