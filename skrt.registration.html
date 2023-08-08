@@ -145,7 +145,6 @@ parameters for transforms to the space of a specified image.</p></li>
 <li><p>get_jacobian_colormap() : Return custom colour map, for highlighting
 features of Jacobian determinant.</p></li>
 <li><p>get_parameters : Obtain parameter dictionary from default parameter file.</p></li>
-<li><p>prepend_path() : Prepend path to environment variable.</p></li>
 <li><p>read_parameters() : Get dictionary of parameters from a registration
 parameter file.</p></li>
 <li><p>set_elastix_dir() :  Perform environment setup for using elastix software.</p></li>
@@ -2447,21 +2446,6 @@ of matching files can be obtained using get_default_pfiles().</p>
 </dd>
 <dt>params: dict, default=None</dt><dd><p>Dictionary of parameter-value pairs, with which to update dictionary
 read from file.  Ignored if None.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.registration.prepend_path">
-<span class="sig-prename descclassname"><span class="pre">skrt.registration.</span></span><span class="sig-name descname"><span class="pre">prepend_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_must_exist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.registration.prepend_path" title="Permalink to this definition"></a></dt>
-<dd><p>Prepend path to environment variable.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>variable<span class="classifier">str</span></dt><dd><p>Environment variable to which path is to be prepended.</p>
-</dd>
-<dt>path<span class="classifier">str</span></dt><dd><p>Path to be prepended.</p>
-</dd>
-<dt>path_must_exist<span class="classifier">bool, default=True</span></dt><dd><p>If True, only append path if it exists.</p>
 </dd>
 </dl>
 </dd></dl>

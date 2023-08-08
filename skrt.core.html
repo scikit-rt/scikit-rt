@@ -413,7 +413,7 @@ but add to them, or modify values, from opts dictionary.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.core.Defaults.instance">
-<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">stations:</span> <span class="pre">{}</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -510,29 +510,6 @@ to be checked, in the order listed, for date and time information.</p>
 <dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dated</span></code></a></p>
 <p>File with an associated date. Files can be sorted based on their
 filenames.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.core.File.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.File.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise dated object from a path and assign its timestamp. If
-no valid timestamp is found within the path string, it will be set
-automatically from the current date and time if auto_timestamp is True.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="skrt.core.MachineData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">MachineData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.MachineData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dated</span></code></a></p>
-<p>Dated object with an associated machine name.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="skrt.core.MachineData.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.MachineData.__init__" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise dated object from a path and assign its timestamp. If
-no valid timestamp is found within the path string, it will be set
-automatically from the current date and time if auto_timestamp is True.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -1121,6 +1098,21 @@ isn’t empty, and &lt;overwrite&gt; is False.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.prepend_path">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">prepend_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_must_exist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.prepend_path" title="Permalink to this definition"></a></dt>
+<dd><p>Prepend path to environment variable.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>variable<span class="classifier">str</span></dt><dd><p>Environment variable to which path is to be prepended.</p>
+</dd>
+<dt>path<span class="classifier">str/pathlib.Path</span></dt><dd><p>Path to be prepended.</p>
+</dd>
+<dt>path_must_exist<span class="classifier">bool, default=True</span></dt><dd><p>If True, only append path if it exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.print_paths">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">print_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.print_paths" title="Permalink to this definition"></a></dt>
 <dd><p>Print paths to files below a directory, ignoring hidden files.</p>
@@ -1173,6 +1165,22 @@ If nlevel is positive, the top-most nlevels, up to the number
 of directory levels in the path, are omitted.  If nlevel is
 negative, the bottom-most abs(nlevels), up to the number of
 directory levels in the path, are retained.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.set_matlab_runtime">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">set_matlab_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matlab_runtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.set_matlab_runtime" title="Permalink to this definition"></a></dt>
+<dd><p>Set environment to allow use of MATLAB runtime installation in subprocess.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>matlab_runtime: str/pathlib.Path, default=None</dt><dd><p>Path to root directory of MATLAB runtime installation.  It the
+value is None, matlab_runtime is set to the value of
+Defaults().log_level.</p>
+</dd>
+<dt>log_level: string/integer/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of Defaults().log_level.</p>
 </dd>
 </dl>
 </dd></dl>

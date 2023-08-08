@@ -1018,8 +1018,14 @@ obtained.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_machine">
-<span class="sig-name descname"><span class="pre">get_machine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'0210167':</span> <span class="pre">'LA3',</span> <span class="pre">'0210292':</span> <span class="pre">'LA4'}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_machine" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">get_machine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_machine" title="Permalink to this definition"></a></dt>
+<dd><p>Return machine name.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>machines: dict, default=None</dt><dd><p>Dictionary mapping between station names and machine names.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_masked_image">
@@ -1428,6 +1434,22 @@ even if it has previously been computed.</p>
 even if it has previously been computed.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_station_name">
+<span class="sig-name descname"><span class="pre">get_station_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_station_name" title="Permalink to this definition"></a></dt>
+<dd><p>Return name of image-recording station.</p>
+<p>The station name will be defined only if the source is DICOM,
+and the name is included in the metadata.  If the name is undefined,
+return an empty string.</p>
+<p><strong>Parameter:</strong>
+force: bool, default=False</p>
+<blockquote>
+<div><p>If True, try to extract station name from source data, even if
+already extracted.  If False, return any value obtained
+previously.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
