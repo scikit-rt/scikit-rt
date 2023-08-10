@@ -2429,8 +2429,9 @@ def set_matlab_runtime(matlab_runtime=None, log_level=None):
 
     # Check that mathlib_runtime specifies a directory that exists.
     if not matlab_runtime.is_dir():
-        logger.warning("Root directory of MATLAB runtime not found: %s",
-                       matlab_runtime)
+        logger.warning(
+            "Root directory of MATLAB runtime not found: %s", matlab_runtime
+        )
         return False
 
     # Define platform-specific subdirectories and path variable.
@@ -2455,14 +2456,14 @@ def set_matlab_runtime(matlab_runtime=None, log_level=None):
     all_ok = True
     for subdir in subdirs:
         env_val = matlab_runtime / subdir / arch
-        if (
-            env_var not in os.environ
-            or str(env_val) not in os.environ[env_var].split(os.pathsep)
-        ):
+        if env_var not in os.environ or str(env_val) not in os.environ[
+            env_var
+        ].split(os.pathsep):
             runtime_ok = prepend_path(env_var, env_val)
             if not runtime_ok:
-                logger.warning("MATLAB runtime directory not found: '%s'",
-                               env_val)
+                logger.warning(
+                    "MATLAB runtime directory not found: '%s'", env_val
+                )
             all_ok *= runtime_ok
 
     return all_ok
