@@ -1555,7 +1555,7 @@ class Registration(Data):
             [self.fixed_image, self.get_transformed_image(step=step)],
             comparison=True,
             translation=True,
-            translation_write_style=self.engine,
+            translation_write_style=self.engine.name,
             show=False,
         )
         bv.translation_output.value = self.tfiles[step]
