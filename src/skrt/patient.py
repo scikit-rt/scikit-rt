@@ -2364,7 +2364,7 @@ class Patient(skrt.core.PathData):
                 info["dose_type"] = dose.get_dose_type()
                 info["linked_plan"] = hasattr(dose, "plan")
                 info["modality"] = dose_type
-                if hasattr(dose, "plan"):
+                if getattr(dose, "plan", None):
                     info["linked_plan_status"] = dose.plan.get_approval_status()
                     info["linked_plan_fraction"] = dose.plan.get_n_fraction()
                 else:
