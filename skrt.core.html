@@ -170,16 +170,8 @@ and their initial values.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.__repr__">
-<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#skrt.core.Data.__repr__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.__repr__" title="Permalink to this definition"></a></dt>
 <dd><p>Create string recursively listing attributes and values.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="simple">
-<dt>depth: integer/None, default=None</dt><dd><p>Depth to which recursion is performed.
-If the value is None, depth is set to the value
-of the object’s print_depth property, if defined,
-or otherwise to the value of Defaults().print_depth.</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -258,8 +250,8 @@ to a specified depth.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>depth: integer/None, default=None</dt><dd><p>Depth to which recursion is performed.
-If the value is None, depth is set in the
-__repr__() method.</p>
+If None, the value returned by self’s get_print_depth() method
+is used.</p>
 </dd>
 </dl>
 </dd></dl>
