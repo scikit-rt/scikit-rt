@@ -161,22 +161,12 @@ class Data:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __repr__(self, depth: Optional[int] = None) -> str:
+    def __repr__(self):
         """
         Create string recursively listing attributes and values.
-
-        **Parameters:**
-
-        depth: integer/None, default=None
-            Depth to which recursion is performed.
-            If the value is None, depth is set to the value
-            of the object's print_depth property, if defined,
-            or otherwise to the value of Defaults().print_depth.
         """
 
-        if depth is None:
-            depth = self.get_print_depth()
-
+        depth = self.get_print_depth()
         out = [f"\n{self.__class__.__name__}", "{"]
 
         # Loop over attributes, with different treatment
@@ -423,11 +413,18 @@ class Data:
 
         depth: integer/None, default=None
             Depth to which recursion is performed.
-            If the value is None, depth is set in the
-            __repr__() method.
+            If None, the value returned by self's get_print_depth() method
+            is used.
         """
 
-        print(self.__repr__(depth))
+        if depth:
+            default_depth = self.get_print_depth()
+            self.set_print_depth(depth)
+
+        print(repr(self))
+
+        if depth:
+            self.set_print_depth(default_depth)
 
     def set_print_depth(self, depth: Optional[int] = None):
         """
