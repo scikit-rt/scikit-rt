@@ -51,7 +51,6 @@ import matplotlib.cm
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
-from pkg_resources import resource_filename
 
 from skrt.core import (
         fullpath, get_logger, prepend_path, Data, to_list, Defaults, PathData)
@@ -3956,7 +3955,7 @@ def adjust_parameters(infile, outfile, params, engine=None):
 
 def get_data_dir():
     """Return path to data directory within the scikit-rt package."""
-    return Path(resource_filename("skrt", "data"))
+    return Path(skrt.image.__file__).parent / "data"
 
 
 def get_parameters(pattern=None, engine=None, idx=0, params=None):

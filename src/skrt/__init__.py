@@ -10,9 +10,8 @@ Documentation: https://scikit-rt.github.io/scikit-rt/
 Code repository: https://github.com/scikit-rt/scikit-rt/
 PyPI project page: https://pypi.org/project/scikit-rt/
 """
+from importlib.metadata import version
 import warnings
-
-import pkg_resources
 
 from skrt.better_viewer import BetterViewer
 from skrt.better_viewer.options import set_viewer_options
@@ -31,4 +30,4 @@ warnings.filterwarnings(
 warnings.filterwarnings("ignore", message="The value length", module="pydicom")
 
 # Assign version number.
-__version__ = pkg_resources.get_distribution("scikit-rt").version
+__version__ = version("scikit-rt")
