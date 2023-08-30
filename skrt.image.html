@@ -1028,6 +1028,22 @@ obtained.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_manufacturer">
+<span class="sig-name descname"><span class="pre">get_manufacturer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_manufacturer" title="Permalink to this definition"></a></dt>
+<dd><p>Return the manufacturer of the image-recording device.</p>
+<p>The manufacturer will be defined only if the source is DICOM,
+and the manufacturer is included in the metadata.  If the manufacturer
+is undefined, return an empty string.</p>
+<p><strong>Parameter:</strong>
+force: bool, default=False</p>
+<blockquote>
+<div><p>If True, try to extract the manufactuer from source data,
+even if already extracted.  If False, return any value
+obtained previously.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_masked_image">
 <span class="sig-name descname"><span class="pre">get_masked_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_masked_image" title="Permalink to this definition"></a></dt>
 <dd><p>Return image after application of mask.</p>
@@ -1057,6 +1073,22 @@ if the mask image has non-boolean data.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.get_min">
 <span class="sig-name descname"><span class="pre">get_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_min" title="Permalink to this definition"></a></dt>
 <dd><p>Get minimum greyscale value of data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_model">
+<span class="sig-name descname"><span class="pre">get_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_model" title="Permalink to this definition"></a></dt>
+<dd><p>Return the model of image-recording device.</p>
+<p>The device model will be defined only if the source is DICOM,
+and the model is included in the metadata.  If the model is undefined,
+return an empty string.</p>
+<p><strong>Parameter:</strong>
+force: bool, default=False</p>
+<blockquote>
+<div><p>If True, try to extract the device model from source
+data, even if already extracted.  If False, return any value
+obtained previously.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py method">
