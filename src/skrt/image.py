@@ -256,6 +256,8 @@ class Image(skrt.core.Archive):
 
         self.source_type = None
         self.dicom_dataset = None
+        self.manufacturer = None
+        self.model = None
         self.machine = None
         self.station_name = None
         self.voxel_size = list(voxel_size) if voxel_size is not None else None
@@ -2297,6 +2299,44 @@ class Image(skrt.core.Archive):
         """
         return (stations or skrt.core.Defaults().stations).get(
                 self.get_station_name(), "")
+
+    def get_manufacturer(self, force=False):
+        """
+        Return the manufacturer of the image-recording device.
+
+        The manufacturer will be defined only if the source is DICOM,
+        and the manufacturer is included in the metadata.  If the manufacturer
+        is undefined, return an empty string.
+
+        **Parameter:**
+        force: bool, default=False
+            If True, try to extract the manufactuer from source data,
+            even if already extracted.  If False, return any value
+            obtained previously.
+        """
+        if self.manufacturer is None or force:
+            self.manufacturer = getattr(
+                    self.get_dicom_dataset(), "Manufacturer", "")
+        return self.manufacturer
+
+    def get_model(self, force=False):
+        """
+        Return the model of image-recording device.
+
+        The device model will be defined only if the source is DICOM,
+        and the model is included in the metadata.  If the model is undefined,
+        return an empty string.
+
+        **Parameter:**
+        force: bool, default=False
+            If True, try to extract the device model from source
+            data, even if already extracted.  If False, return any value
+            obtained previously.
+        """
+        if self.model is None or force:
+            self.model = getattr(
+                    self.get_dicom_dataset(), "ManufacturerModelName", "")
+        return self.model
 
     def set_geometry(self):
         """Set geometric properties for this image. Should be called once image
