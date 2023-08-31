@@ -447,8 +447,8 @@ class BetterViewer:
 
         colorbar_label : str, default=None
             Label for the colorbar and range slider. If None, will default to
-            either 'intensity' if an image file is given, or 'Dose (Gy)' if a dose
-            file is given without an image.
+            either 'intensity' if an image file is given, or 'Dose (Gy)'
+            if a dose file is given without an image.
 
         clb_kwargs : dict, default=None
             Dictionary of keyword arguments to pass to pyplot.colorbar().
@@ -460,6 +460,11 @@ class BetterViewer:
             For information on available keyword arguments, see:
             https://matplotlib.org/stable/api/colorbar_api.html#matplotlib.colorbar.Colorbar.set_label
 
+        xlabel : str, default=None
+            Custom label for the x axis.  If None, the label is set to
+            be the coordinate axis and units, for example 'x (mm)'.
+            If False or '', the x axis will not be labelled.
+
         no_xlabel : bool, default=False
             If True, the x axis will not be labelled.
 
@@ -470,6 +475,11 @@ class BetterViewer:
         no_xtick_labels : bool, default=False
             If True ticks on the x axis will not be labelled.
             Disregarded if <no_xticks> is True.
+
+        ylabel : str, default=None
+            Custom label for the y axis.  If None, the label is set to
+            be the coordinate axis and units, for example 'y (mm)'.
+            If False or '', the x axis will not be labelled.
 
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
@@ -1660,6 +1670,8 @@ class BetterViewer:
                     major_ticks=self.viewers[-1].major_ticks,
                     minor_ticks=self.viewers[-1].minor_ticks,
                     ticks_all_sides=self.viewers[-1].ticks_all_sides,
+                    xlabel=self.viewers[-1].xlabel,
+                    ylabel=self.viewers[-1].ylabel,
                     no_xlabel=self.viewers[-1].no_xlabel,
                     no_ylabel=self.viewers[-1].no_ylabel,
                     no_xticks=self.viewers[-1].no_xticks,
@@ -1721,6 +1733,8 @@ class SingleViewer:
         colorbar_label=None,
         clb_kwargs=None,
         clb_label_kwargs=None,
+        xlabel=None,
+        ylabel=None,
         no_xlabel=False,
         no_ylabel=False,
         no_xticks=False,
@@ -1885,6 +1899,8 @@ class SingleViewer:
         self.colorbar_label = colorbar_label
         self.clb_kwargs = clb_kwargs
         self.clb_label_kwargs = clb_label_kwargs
+        self.xlabel = xlabel
+        self.ylabel = ylabel
         self.no_xlabel = no_xlabel
         self.no_ylabel = no_ylabel
         self.no_xticks = no_xticks
@@ -2992,6 +3008,8 @@ class SingleViewer:
             colorbar_label=self.colorbar_label,
             clb_kwargs=self.clb_kwargs,
             clb_label_kwargs=self.clb_label_kwargs,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
             no_xlabel=self.no_xlabel,
             no_ylabel=self.no_ylabel,
             no_xticks=self.no_xticks,

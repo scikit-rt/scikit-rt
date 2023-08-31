@@ -50,6 +50,8 @@ class ImageOverlay(skrt.image.Image):
         figsize=None,
         zoom=None,
         colorbar=False,
+        xlabel=None,
+        ylabel=None,
         no_xlabel=False,
         no_ylabel=False,
         no_xticks=False,
@@ -120,6 +122,16 @@ class ImageOverlay(skrt.image.Image):
             or overlay;
             - 0 or False: no colour bar.
 
+        xlabel : str, default=None
+            Custom label for the x axis.  If None, the label is set to
+            be the coordinate axis and units, for example "x (mm)".
+            If False or '', the x axis will not be labelled.
+
+        ylabel : str, default=None
+            Custom label for the y axis.  If None, the label is set to
+            be the coordinate axis and units, for example "y (mm)".
+            If False or '', the x axis will not be labelled.
+
         no_xlabel : bool, default=False
             If True, the x axis will not be labelled.
 
@@ -183,6 +195,8 @@ class ImageOverlay(skrt.image.Image):
                 show=False,
                 title="",
                 colorbar=max((colorbar - 1), 0),
+                xlabel=xlabel,
+                ylabel=ylabel,
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
                 no_xticks=no_xticks,
@@ -225,6 +239,8 @@ class ImageOverlay(skrt.image.Image):
             colorbar=colorbar,
             mpl_kwargs=mpl_kwargs,
             show=show,
+            xlabel=xlabel,
+            ylabel=ylabel,
             no_xlabel=no_xlabel,
             no_ylabel=no_ylabel,
             no_xticks=no_xticks,

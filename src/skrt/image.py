@@ -2755,6 +2755,8 @@ class Image(skrt.core.Archive):
         clb_kwargs=None,
         clb_label_kwargs=None,
         title=None,
+        xlabel=None,
+        ylabel=None,
         no_xlabel=False,
         no_ylabel=False,
         no_xticks=False,
@@ -2886,6 +2888,16 @@ class Image(skrt.core.Archive):
         title : str, default=None
             Custom title for the plot. If None, a title inferred from the image
             filename will be used. If False or '', no title will be added.
+
+        xlabel : str, default=None
+            Custom label for the x axis.  If None, the label is set to
+            be the coordinate axis and units, for example "x (mm)".
+            If False or '', the x axis will not be labelled.
+
+        ylabel : str, default=None
+            Custom label for the y axis.  If None, the label is set to
+            be the coordinate axis and units, for example "y (mm)".
+            If False or '', the x axis will not be labelled.
 
         no_xlabel : bool, default=False
             If True, the x axis will not be labelled.
@@ -3198,6 +3210,8 @@ class Image(skrt.core.Archive):
             mpl_kwargs = {}
         if roi_kwargs is None:
             roi_kwargs = {}
+        roi_kwargs["xlabel"] = xlabel
+        roi_kwargs["ylabel"] = ylabel
         roi_kwargs["no_xlabel"] = no_xlabel
         roi_kwargs["no_ylabel"] = no_ylabel
         roi_kwargs["no_xticks"] = no_xticks
@@ -3270,6 +3284,8 @@ class Image(skrt.core.Archive):
                 include_image=False,
                 opacity=dose_opacity,
                 title="",
+                xlabel=xlabel,
+                ylabel=ylabel,
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
                 no_xticks=no_xticks,
@@ -3297,6 +3313,8 @@ class Image(skrt.core.Archive):
                 include_image=False,
                 df_opacity=df_opacity,
                 title="",
+                xlabel=xlabel,
+                ylabel=ylabel,
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
                 no_xticks=no_xticks,
@@ -3336,6 +3354,8 @@ class Image(skrt.core.Archive):
                 opacity=jacobian_opacity,
                 intensity=jacobian_intensity,
                 title="",
+                xlabel=xlabel,
+                ylabel=ylabel,
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
                 no_xticks=no_xticks,
@@ -3362,6 +3382,8 @@ class Image(skrt.core.Archive):
                 include_image=False,
                 opacity=grid_opacity,
                 title="",
+                xlabel=xlabel,
+                ylabel=ylabel,
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
                 no_xticks=no_xticks,
@@ -3434,6 +3456,8 @@ class Image(skrt.core.Archive):
             idx,
             scale_in_mm,
             title,
+            xlabel,
+            ylabel,
             no_xlabel,
             no_ylabel,
             no_xticks,
@@ -3524,6 +3548,8 @@ class Image(skrt.core.Archive):
         idx,
         scale_in_mm=True,
         title=None,
+        xlabel=None,
+        ylabel=None,
         no_xlabel=False,
         no_ylabel=False,
         no_xticks=False,
@@ -3549,14 +3575,14 @@ class Image(skrt.core.Archive):
         # Set axis labels
         units = " (mm)" if scale_in_mm else ""
         # Previously passed: labelpad=0
-        if not no_xlabel:
-            self.ax.set_xlabel(f"${_axes[x_ax]}${units}")
+        if not no_xlabel and xlabel not in ["", False]:
+            self.ax.set_xlabel(xlabel or f"${_axes[x_ax]}${units}")
         if no_xticks:
             self.ax.set_xticks([], [])
         elif no_xtick_labels:
             self.ax.set_xticklabels([])
-        if not no_ylabel:
-            self.ax.set_ylabel(f"${_axes[y_ax]}${units}")
+        if not no_ylabel and ylabel not in ["", False]:
+            self.ax.set_ylabel(ylabel or f"${_axes[y_ax]}${units}")
         if no_yticks:
             self.ax.set_yticks([], [])
         elif no_ytick_labels:
@@ -3598,7 +3624,10 @@ class Image(skrt.core.Archive):
             # Annotate slice, with defaults set for some annotate() parameters.
             for annotation in annotations:
                 annotation_now = copy.deepcopy(annotation)
-                annotation_now["text"] = annotation.get("text", z_str) or z_str
+                annotation_now["text"] = (
+                        (annotation.get("text", z_str) or z_str).format(
+                            **{"im_slice": im_slice, "n_slice": n_slice,
+                               "pos": pos, "z_ax": z_ax}))
                 # By default, multiple annotations written
                 # one on top of the other...
                 annotation_now["xy"] = annotation.get("xy", (0.04, 0.91))

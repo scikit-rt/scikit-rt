@@ -2,11 +2,10 @@
 
 import os
 from pathlib import Path
-import pydicom
 import shutil
-import time
 
 import pandas as pd
+import pydicom
 
 import skrt.core
 from skrt.core import fullpath, get_data_indices, get_indexed_objs, tic, toc
@@ -2808,11 +2807,11 @@ class Patient(skrt.core.PathData):
                                 ss_to_copy = []
                                 for i in structure_set:
                                     try:
-                                        ss = structure_set[i]
+                                        ss = structure_sets[i]
                                     except IndexError:
                                         ss = None
                                     if ss and ss not in ss_to_copy:
-                                        ss_co_topy.append(ss)
+                                        ss_to_topy.append(ss)
 
                                 # Copy selected structure sets.
                                 for ss in ss_to_copy:
