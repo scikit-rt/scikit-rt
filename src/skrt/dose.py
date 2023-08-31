@@ -972,7 +972,7 @@ class Plan(skrt.core.Archive):
             roi.constraint.weight = skrt.core.get_float(
                 item, "ConstraintWeight"
             )
-            if "ORGAN_AT_RISK" == item.DoseReferenceType:
+            if item.DoseReferenceType in ["ORGAN_AT_RISK", "OAR"]:
                 roi.constraint.maximum_dose = skrt.core.get_float(
                     item, "OrganAtRiskMaximumDose"
                 )
@@ -983,7 +983,7 @@ class Plan(skrt.core.Archive):
                     item, "OrganAtRiskOverdoseVolumeFraction"
                 )
                 self.organs_at_risk.append(roi)
-            elif "TARGET" == item.DoseReferenceType:
+            elif item.DoseReferenceType in ["TARGET"]:
                 roi.constraint.minimum_dose = skrt.core.get_float(
                     item, "TargetMinimumDose"
                 )
@@ -1075,9 +1075,17 @@ class Plan(skrt.core.Archive):
                 roi_clone = skrt.structures.ROI(roi)
                 roi_clone.set_image(dose_objective)
                 mask = roi_clone.get_mask()
-                dose_objective.data[mask > 0] = getattr(
-                    roi_clone.constraint, objective
-                )
+                value = getattr(roi_clone.constraint, objective)
+                if "maximum_dose" == objective:
+                    dose_objective.data[np.where(
+                        (mask > 0) & ((dose_objective.data == 0) |
+                                      (dose_objective.data > value)))] = value
+                elif "minimum_dose" == objective:
+                    dose_objective.data[np.where(
+                        (mask > 0) & ((dose_objective.data == 0) |
+                                      (dose_objective.data < value)))] = value
+                else:
+                    dose_objective.data[mask > 0] = value
 
         setattr(self.objectives, objective, dose_objective)
 
