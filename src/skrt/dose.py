@@ -1067,7 +1067,7 @@ class Plan(skrt.core.Archive):
             dose_objective = Dose(self.doses[idx_dose])
 
         dose_objective.load()
-        dose_objective.data = np.zeros(dose_objective.data.shape)
+        dose_objective.data = (-1) * np.ones(dose_objective.data.shape)
 
         # Obtain objective information for each ROI.
         for roi in rois:
@@ -1076,17 +1076,21 @@ class Plan(skrt.core.Archive):
                 roi_clone.set_image(dose_objective)
                 mask = roi_clone.get_mask()
                 value = getattr(roi_clone.constraint, objective)
+                if value is None:
+                    continue
                 if "maximum_dose" == objective:
                     dose_objective.data[np.where(
-                        (mask > 0) & ((dose_objective.data == 0) |
+                        (mask > 0) & ((dose_objective.data < 0) |
                                       (dose_objective.data > value)))] = value
                 elif "minimum_dose" == objective:
                     dose_objective.data[np.where(
-                        (mask > 0) & ((dose_objective.data == 0) |
+                        (mask > 0) & ((dose_objective.data < 0) |
                                       (dose_objective.data < value)))] = value
                 else:
                     dose_objective.data[mask > 0] = value
 
+            dose_objective.data = np.ma.masked_where(
+                    dose_objective.data < 0, dose_objective.data)
         setattr(self.objectives, objective, dose_objective)
 
         return dose_objective
