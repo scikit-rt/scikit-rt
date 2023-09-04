@@ -3781,6 +3781,7 @@ class Image(skrt.core.Archive):
     def get_length(self, ax="z"):
         """Get total length of image."""
 
+        self.load()
         i_ax = _axes.index(ax) if ax in _axes else ax
         return abs(self.n_voxels[i_ax] * self.voxel_size[i_ax])
 
