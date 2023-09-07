@@ -1131,6 +1131,9 @@ class SingleAtlasSegmentation(Data):
                 reg_step
             ].name = f"{strategy}_{step}_{reg_step}"
 
+    def get_auto_steps(self):
+        return get_steps(self.auto_step)
+
     def get_registration(
         self, strategy=None, step=None, roi_name=None, force=False
     ):
