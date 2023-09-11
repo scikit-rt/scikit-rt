@@ -29,23 +29,23 @@ The following classes are defined:
 
 The following are utility functions used by SingleAtlasSegmentation()
 and MultiAtlasSegmentation():
-ensure_any()
-ensure_dict()
-ensure_image()
-ensure_structure_set()
+
+ensure_dict() : Try to return a dictionary based on given input.
+ensure_image() : Try to return an Image based on given input.
+ensure_structure_set() : Try to return a StructureSet based on given input.
+get_atlases()
 get_contour_propagation_strategies()
 get_fixed_and_moving()
 get_option()
 get_options()
 get_segmentation_steps()
 get_steps()
+get_strategy()
 get_structure_set_index()
-
-The following function allows for comparison of different single-atlas
-segmentations:
-get_sas_comparisons()
+select_atlases()
 """
 
+from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from inspect import signature
@@ -724,6 +724,24 @@ class SasTuner(Data):
 
 
 class SingleAtlasSegmentation(Data):
+    """
+    Class for performing single-atlas segmentation.
+
+    **Methods:**
+
+    - **_init__()** : Create instance of SingleAtlasSegmentation class.
+    - **segment()** :
+    - **segment_roi()** :
+    - **segment_structure_set()** :
+    - **get_auto_steps()** :
+    - **get_registration()** :
+    - **()** :
+    - **()** :
+    - **()** :
+    - **()** :
+
+    """
+
     def __init__(
         self,
         im1=None,
@@ -887,6 +905,204 @@ class SingleAtlasSegmentation(Data):
                     self.auto_step,
                     reg_setup_only=auto_reg_setup_only,
                 )
+
+    def adjust_reg_files(
+        self,
+        strategies=None,
+        step=None,
+        roi_names=None,
+        params_by_reg_step=None,
+    ):
+        adjustments = {}
+        if not params_by_reg_step:
+            return adjustments
+        strategies = get_options(
+            strategies, self.default_strategy, self.strategies
+        )
+        step = get_option(step, self.default_step, self.steps)
+        roi_names = roi_names or [None]
+
+        for strategy in strategies:
+            self.segment(strategy, step, True, reg_setup_only=True)
+
+        for reg_step, params in params_by_reg_step.items():
+            adjustments = {
+                **adjustments,
+                **{
+                    f"{step}_{reg_step}_{key}": value
+                    for key, value in params.items()
+                },
+            }
+            for strategy in strategies:
+                for roi_name in roi_names:
+                    self.get_registration(
+                        strategy, step, roi_name, False
+                    ).adjust_file(reg_step, params)
+
+        return adjustments
+
+    def get_auto_steps(self):
+        return get_steps(self.auto_step)
+
+    def get_comparison(
+        self,
+        id1=None,
+        id2=None,
+        to_keep=None,
+        strategies=None,
+        steps=None,
+        reg_steps=None,
+        force=False,
+        metrics=None,
+        slice_stats=None,
+        default_by_slice=None,
+        voxel_size=None,
+        name_as_index=False,
+        **kwargs,
+    ):
+        if getattr(self, "ss1_filtered", None) is None:
+            return None
+
+        strategies = get_options(
+            strategies, self.default_strategy, self.strategies
+        )
+        steps = get_options(steps, self.default_step, self.steps)
+        metrics = get_options(metrics, self.metrics, get_comparison_metrics())
+        slice_stats = slice_stats or self.default_slice_stats
+        default_by_slice = get_option(
+            default_by_slice, self.default_by_slice, get_by_slice_methods()
+        )
+
+        df = None
+        ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
+        ss1.set_image(self.im1, add_to_image=False)
+        for strategy in strategies:
+            method = kwargs.get("method", None)
+            if method is None:
+                kwargs["method"] = "mask" if "pull" == strategy else "contour"
+            for step in steps:
+                self.segment(strategy, step, force)
+                all_reg_steps = list(self.segmentations[strategy][step])
+                step_reg_steps = get_options(reg_steps, None, all_reg_steps)
+                for reg_step in step_reg_steps:
+                    ss2 = self.get_segmentation(
+                        strategy, step, reg_step
+                    ).filtered_copy(to_keep=to_keep)
+
+                    df_tmp = ss1.get_comparison(
+                        ss2,
+                        metrics=metrics,
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        voxel_size=voxel_size,
+                        name_as_index=name_as_index,
+                        **kwargs,
+                    )
+
+                    if df_tmp is None:
+                        continue
+
+                    for label, value in [
+                        ("id1", id1),
+                        ("id2", id2),
+                        ("strategy", strategy),
+                        ("step", step),
+                        ("reg_step", reg_step),
+                    ]:
+                        if value is not None:
+                            df_tmp[label] = pd.Series(df_tmp.shape[0] * [value])
+
+                    if df is None:
+                        df = df_tmp
+                    else:
+                        df = pd.concat([df, df_tmp], ignore_index=True)
+
+        return df
+
+    def get_comparison_steps(self, steps):
+        if steps is None:
+            steps = [self.default_step]
+        elif isinstance(steps, int):
+            steps = [steps]
+        else:
+            steps = [
+                step
+                if isinstance(step, str)
+                else get_segmentation_steps()[step]
+                for step in steps
+            ]
+
+        return steps
+
+    def get_registration(
+        self, strategy=None, step=None, roi_name=None, force=False
+    ):
+        strategy = get_strategy(
+            strategy, self.default_strategy, self.engine, self.engine_dir
+        )
+        step = get_option(step, self.default_step, self.steps)
+        self.segment(strategy, step, force, reg_setup_only=True)
+
+        if "local" == step:
+            roi_names = sorted(list(self.registrations[strategy][step]))
+            roi_name = get_option(roi_name, None, roi_names)
+            return self.registrations[strategy][step][roi_name]
+        return self.registrations[strategy][step]
+
+    def get_reg_steps(self, step=None):
+        step = get_option(step, None, self.steps)
+        initial_step = [self.initial_transform_name]
+        if step == self.steps[0]:
+            if not self.initial_alignment:
+                initial_step = []
+            return initial_step + list(self.pfiles1)
+        return initial_step + list(self.pfiles2)
+
+    def get_segmentation(
+        self, strategy=None, step=None, reg_step=None, force=False
+    ):
+        strategy = get_strategy(
+            strategy, self.default_strategy, self.engine, self.engine_dir
+        )
+        step = get_option(step, self.default_step, self.steps)
+        self.segment(strategy, step, force)
+        segmentations = self.segmentations[strategy][step]
+        reg_steps = list(segmentations)
+
+        if is_list(reg_step):
+            assert 1 == len(reg_step)
+            reg_step = {roi_name: reg_step[0] for roi_name in self.roi_names}
+
+        if isinstance(reg_step, dict):
+            reg_step2 = {}
+            for roi_name, roi_reg_step in reg_step.items():
+                if self.steps[1] == step:
+                    if roi_name in self.roi_pfiles:
+                        roi_reg_steps = list(self.roi_pfiles[roi_name])
+                    else:
+                        roi_reg_steps = list(self.pfiles2_non_null)
+                else:
+                    roi_reg_steps = reg_steps
+                roi_reg_step2 = get_options(roi_reg_step, False, roi_reg_steps)
+                assert 1 == len(roi_reg_step2)
+                reg_step2[roi_name] = roi_reg_step2[0]
+
+            reg_step2_values = list(set(reg_step2.values()))
+            if 1 != len(reg_step2_values):
+                ss_merge = StructureSet(name=f"{strategy}_{step}")
+                for roi_name, roi_reg_step in reg_step2.items():
+                    roi = segmentations[roi_reg_step][roi_name].clone()
+                    roi.name = f"{roi_reg_step}_{roi.name}"
+                    ss_merge.add_roi(roi)
+                ss_merge.set_image(self.im1, add_to_image=False)
+                return ss_merge
+            reg_step = reg_step2_values[0]
+
+        if isinstance(reg_step, (int, str)) or reg_step is None:
+            reg_step = get_option(reg_step, None, reg_steps)
+            return segmentations[reg_step]
+
+        return None
 
     def segment(
         self, strategy=None, step=None, force=False, reg_setup_only=False
@@ -1131,224 +1347,65 @@ class SingleAtlasSegmentation(Data):
                 reg_step
             ].name = f"{strategy}_{step}_{reg_step}"
 
-    def get_auto_steps(self):
-        return get_steps(self.auto_step)
 
-    def get_registration(
-        self, strategy=None, step=None, roi_name=None, force=False
-    ):
-        strategy = get_strategy(
-            strategy, self.default_strategy, self.engine, self.engine_dir
-        )
-        step = get_option(step, self.default_step, self.steps)
-        self.segment(strategy, step, force, reg_setup_only=True)
+def ensure_dict(in_val, ensure_type=None):
+    """
+    Try to return a dictionary based on given input.
 
-        if "local" == step:
-            roi_names = sorted(list(self.registrations[strategy][step]))
-            roi_name = get_option(roi_name, None, roi_names)
-            return self.registrations[strategy][step][roi_name]
-        return self.registrations[strategy][step]
+    **Parameters:**
 
-    def get_segmentation(
-        self, strategy=None, step=None, reg_step=None, force=False
-    ):
-        strategy = get_strategy(
-            strategy, self.default_strategy, self.engine, self.engine_dir
-        )
-        step = get_option(step, self.default_step, self.steps)
-        self.segment(strategy, step, force)
-        segmentations = self.segmentations[strategy][step]
-        reg_steps = list(segmentations)
+    in_val: dict/list
+        Data from which to construct returned dictionary.  If <in_val> is
+        a dictionary, its keys and values are used as the keys and
+        values of the returned dictionary.  If <in_val> is a list,
+        list indices are used as keys in the returned dictionary, with
+        corresponding list elements used as values.  In both cases,
+        <ensure_type> may be defined to ensure the type of values.
 
-        if is_list(reg_step):
-            assert 1 == len(reg_step)
-            reg_step = {roi_name: reg_step[0] for roi_name in self.roi_names}
+    ensure_type: function, default=None
+        Function applied to ensure the type of values in the returned
+        dictionary.  Possible functions include:
 
-        if isinstance(reg_step, dict):
-            reg_step2 = {}
-            for roi_name, roi_reg_step in reg_step.items():
-                if self.steps[1] == step:
-                    if roi_name in self.roi_pfiles:
-                        roi_reg_steps = list(self.roi_pfiles[roi_name])
-                    else:
-                        roi_reg_steps = list(self.pfiles2_non_null)
-                else:
-                    roi_reg_steps = reg_steps
-                roi_reg_step2 = get_options(roi_reg_step, False, roi_reg_steps)
-                assert 1 == len(roi_reg_step2)
-                reg_step2[roi_name] = roi_reg_step2[0]
+        - skrt.segmentation.ensure_image()
+        - skrt.segmentation.ensure_structure_set()
 
-            reg_step2_values = list(set(reg_step2.values()))
-            if 1 != len(reg_step2_values):
-                ss_merge = StructureSet(name=f"{strategy}_{step}")
-                for roi_name, roi_reg_step in reg_step2.items():
-                    roi = segmentations[roi_reg_step][roi_name].clone()
-                    roi.name = f"{roi_reg_step}_{roi.name}"
-                    ss_merge.add_roi(roi)
-                ss_merge.set_image(self.im1, add_to_image=False)
-                return ss_merge
-            reg_step = reg_step2_values[0]
+        If None, all types are accepted.
+    """
+    if ensure_type is None:
+        ensure_type = lambda val: val
 
-        if isinstance(reg_step, (int, str)) or reg_step is None:
-            reg_step = get_option(reg_step, None, reg_steps)
-            return segmentations[reg_step]
-
-        return None
-
-    def get_comparison_steps(self, steps):
-        if steps is None:
-            steps = [self.default_step]
-        elif isinstance(steps, int):
-            steps = [steps]
-        else:
-            steps = [
-                step
-                if isinstance(step, str)
-                else get_segmentation_steps()[step]
-                for step in steps
-            ]
-
-        return steps
-
-    def get_comparison(
-        self,
-        id1=None,
-        id2=None,
-        to_keep=None,
-        strategies=None,
-        steps=None,
-        reg_steps=None,
-        force=False,
-        metrics=None,
-        slice_stats=None,
-        default_by_slice=None,
-        voxel_size=None,
-        name_as_index=False,
-        **kwargs,
-    ):
-        if getattr(self, "ss1_filtered", None) is None:
-            return None
-
-        strategies = get_options(
-            strategies, self.default_strategy, self.strategies
-        )
-        steps = get_options(steps, self.default_step, self.steps)
-        metrics = get_options(metrics, self.metrics, get_comparison_metrics())
-        slice_stats = slice_stats or self.default_slice_stats
-        default_by_slice = get_option(
-            default_by_slice, self.default_by_slice, get_by_slice_methods()
-        )
-
-        df = None
-        ss1 = self.ss1_filtered.filtered_copy(to_keep=to_keep)
-        ss1.set_image(self.im1, add_to_image=False)
-        for strategy in strategies:
-            method = kwargs.get("method", None)
-            if method is None:
-                kwargs["method"] = "mask" if "pull" == strategy else "contour"
-            for step in steps:
-                self.segment(strategy, step, force)
-                all_reg_steps = list(self.segmentations[strategy][step])
-                step_reg_steps = get_options(reg_steps, None, all_reg_steps)
-                for reg_step in step_reg_steps:
-                    ss2 = self.get_segmentation(
-                        strategy, step, reg_step
-                    ).filtered_copy(to_keep=to_keep)
-
-                    df_tmp = ss1.get_comparison(
-                        ss2,
-                        metrics=metrics,
-                        slice_stats=slice_stats,
-                        default_by_slice=default_by_slice,
-                        voxel_size=voxel_size,
-                        name_as_index=name_as_index,
-                        **kwargs,
-                    )
-
-                    if df_tmp is None:
-                        continue
-
-                    for label, value in [
-                        ("id1", id1),
-                        ("id2", id2),
-                        ("strategy", strategy),
-                        ("step", step),
-                        ("reg_step", reg_step),
-                    ]:
-                        if value is not None:
-                            df_tmp[label] = pd.Series(df_tmp.shape[0] * [value])
-
-                    if df is None:
-                        df = df_tmp
-                    else:
-                        df = pd.concat([df, df_tmp], ignore_index=True)
-
-        return df
-
-    def adjust_reg_files(
-        self,
-        strategies=None,
-        step=None,
-        roi_names=None,
-        params_by_reg_step=None,
-    ):
-        adjustments = {}
-        if not params_by_reg_step:
-            return adjustments
-        strategies = get_options(
-            strategies, self.default_strategy, self.strategies
-        )
-        step = get_option(step, self.default_step, self.steps)
-        roi_names = roi_names or [None]
-
-        for strategy in strategies:
-            self.segment(strategy, step, True, reg_setup_only=True)
-
-        for reg_step, params in params_by_reg_step.items():
-            adjustments = {
-                **adjustments,
-                **{
-                    f"{step}_{reg_step}_{key}": value
-                    for key, value in params.items()
-                },
-            }
-            for strategy in strategies:
-                for roi_name in roi_names:
-                    self.get_registration(
-                        strategy, step, roi_name, False
-                    ).adjust_file(reg_step, params)
-
-        return adjustments
-
-    def get_reg_steps(self, step=None):
-        step = get_option(step, None, self.steps)
-        initial_step = [self.initial_transform_name]
-        if step == self.steps[0]:
-            if not self.initial_alignment:
-                initial_step = []
-            return initial_step + list(self.pfiles1)
-        return initial_step + list(self.pfiles2)
-
-
-def ensure_any(in_val):
-    return in_val
-
-
-def ensure_dict(in_val, ensure_type=ensure_any):
     if isinstance(in_val, dict):
         return {key: ensure_type(val) for key, val in in_val.items()}
-    if is_list(in_val):
+    if isinstance(in_val, Iterable):
         return {idx: ensure_type(val) for idx, val in enumerate(in_val)}
-    return {0: in_val}
+    return {0: ensure_type(in_val)}
 
 
 def ensure_image(im):
-    """Return Image cloned from <im>; return None if <im> is None."""
+    """
+    Try to return an Image based on given input.
+
+    **Parameter:**
+
+    im: str/array/nibabel.nifti1.Nifti1Image/skrt.image.Image, default=None
+        Source from which to create an Image instance.  If None, return None.
+        For information on Image sources, see documentation for
+        skrt.image.Image.
+    """
     return im if im is None else Image(im)
 
 
 def ensure_structure_set(ss):
-    """Return StructureSet cloned from <im>; return None if <im> is None."""
+    """
+    Try to return a StructureSet based on given input.
+
+    **Parameter:**
+
+    image: str/list/skrt.structures.StructureSet, default=None
+        Source from which to create a StructureSet instance.  If None,
+        return None.  For information on StructureSet sources, see
+        documentation for skrt.structures.StructureSet.
+    """
     return ss if ss is None else StructureSet(ss)
 
 
@@ -1471,163 +1528,6 @@ def get_atlases(
             atlases[atlas.id] = (im_atlas, ss_atlas)
 
     return atlases
-
-
-def select_atlases(
-    atlases,
-    target=None,
-    n_atlas=None,
-    exclude_ids=None,
-    selection=None,
-    high_to_low=True,
-    alignment=None,
-    **kwargs,
-):
-    """
-    Select atlases to register against target.
-
-    **Parameters:**
-    atlases: dict
-        Dictionary of atlas tuples (structure set and associated image),
-        such as returned by skrt.segmentation.get_atlases().
-
-    target: skrt.image.Image, default=None
-        Image against which to register.  When selection ordering
-        isn't based on a comparison metric, this can be None.
-
-    n_atlas: int, default=None
-        Number of atlases to select, from those given as input.  If None,
-        all input atlases are returned, ordered according to selection.
-
-    exclude_ids: list, default=None
-        List of atlas identifiers to be excluded from selection.  This may
-        be used, for example, if the target image is also an atlas,
-        and self-registration isn't wanted.  If None, no atlases are
-        excluded.
-
-    selection: str/None, default=None
-        Ordering to be performed prior to selecting the first
-        <n_atlas> atlases:
-
-        - None: the input order is retained;
-
-        - "random": atlases are ordered randomly;
-
-        - "sorted": atlases are sorted in alphabetic order of identifier;
-
-        - "reverse_sorted": atlases are sorted in reverse alphabetic order
-          of identifier;
-
-        - image-comparison metric: atlases are compared with the target,
-          and are ordered according to the specified image-comparison metric.
-          Possibilities include "mutual-information",
-          "information quality ratio", "fidelity"  For a list of available
-          metrics, see documentation for skrt.image.Image.get_comparison().
-
-        - foreground-comparison metric: atlas foregrounds are compared with
-          the target foreground and are ordered according to the specified
-          foreground-comparison metric.  Possibilities include "dice",
-          "centroid", "volume_ratio".  For a list of available metrics,
-          see documentation for skrt.structures.ROI.get_comparison().
-
-    high_to_low: bool, default=True
-        When ordering for selection is based on a comparison metric,
-        the ordering is from high to low if high_to_low is True, or
-        otherwise is from low to high.
-
-    alignment: tuple/dict/str, default=None
-        Strategy to be used for aligning atlases and target when
-        comparing them.  For strategy details, see documentation of
-        skrt.image.get_alignment_translation().  The value set is
-        passed to skrt.image.match_images_for_comparison(), to match
-        atlas and target prior to evaluation of a comparison metric.
-        Disregarded when ordering for selection isn't based on
-        a comparison metric.
-
-    kwargs: dict
-        Keyword arguments passed to comparison methods:
-        skrt.image.get_comparison() or skrt.image.get_foreground_comparison(),
-        depending on selection specified.
-    """
-    # If no constraints defined, return input atlases.
-    if n_atlas is None and exclude_ids is None and selection is None:
-        return atlases
-
-    # logger = get_logger(identifier="funcName")
-
-    # Check that specified selection is allowed.
-    metric_independent_selections = [None, "random", "sorted", "reverse_sorted"]
-    allowed_selections = (
-        metric_independent_selections
-        + get_mi_metrics()
-        + get_quality_metrics()
-        + get_comparison_metrics()
-    )
-    if selection not in allowed_selections:
-        raise RuntimeError(
-            f"Selection {selection} not allowed; "
-            f"allowed selections: {allowed_selections}"
-        )
-
-    # Create list of non-excluded identifiers.
-    if exclude_ids:
-        if not is_list(exclude_ids):
-            exclude_ids = [exclude_ids]
-        atlas_ids = [
-            atlas_id for atlas_id in atlases if atlas_id not in exclude_ids
-        ]
-    else:
-        atlas_ids = list(atlases)
-
-    # Check number of atlases against request.
-    n_atlas = n_atlas if n_atlas is not None else len(atlas_ids)
-    if n_atlas > len(atlas_ids):
-        raise RuntimeError(
-            f"Requested selection of {n_atlas} atlases, "
-            f"but only {len(atlas_ids)} atlases "
-            f"after exclusions: {atlas_ids}"
-        )
-
-    # Deal with selections not requiring metric evaluations.
-    if selection in metric_independent_selections:
-        if "random" == selection:
-            atlas_ids = random.sample(atlas_ids, n_atlas)
-        elif "sorted" == selection:
-            atlas_ids.sort()
-        elif "reverse_sorted" == selection:
-            atlas_ids.sort(reverse=True)
-        return {atlas_id: atlases[atlas_id] for atlas_id in atlas_ids}
-
-    # Determine type of comparison to be performed for selection.
-    if selection in get_image_comparison_metrics():
-        comparison_method = "get_comparison"
-    else:
-        comparison_method = "get_foreground_comparison"
-    kwargs["metrics"] = [selection]
-
-    # Obtain comparison scores.
-    scores = {}
-    for atlas_id in list(atlas_ids):
-        im1, im2 = match_images_for_comparison(
-            target, atlases[atlas_id][0], alignment=alignment
-        )
-        df = getattr(im1, comparison_method)(im2, **kwargs)
-        score = df.iloc[0][selection]
-        # Save list of atlas identifiers for each score.
-        if score not in scores:
-            scores[score] = []
-        scores[score].append(atlas_id)
-
-    # Sort scores, from high to low or from low to high,
-    # then loop through to select the requested number of atlases.
-    selected_atlases = {}
-    for score, atlas_ids in sorted(scores.items(), reverse=high_to_low):
-        for atlas_id in atlas_ids:
-            selected_atlases[atlas_id] = atlases[atlas_id]
-            if len(selected_atlases) >= n_atlas:
-                return selected_atlases
-
-    return None
 
 
 def get_contour_propagation_strategies(engine=None, engine_dir=None):
@@ -1793,16 +1693,6 @@ def get_steps(step):
     return steps
 
 
-def get_structure_set_index(ss_index, im):
-    if (
-        ss_index < 0
-        and isinstance(im, Image)
-        and len(im.structure_sets) <= abs(ss_index)
-    ):
-        return len(im.structure_sets) + ss_index
-    return ss_index
-
-
 def get_strategy(
     strategy=None, fallback_strategy=None, engine=None, engine_dir=None
 ):
@@ -1815,3 +1705,170 @@ def get_strategy(
             f"{allowed_strategies}"
         )
     return get_option(strategy, fallback_strategy, allowed_strategies)
+
+
+def get_structure_set_index(ss_index, im):
+    if (
+        ss_index < 0
+        and isinstance(im, Image)
+        and len(im.structure_sets) <= abs(ss_index)
+    ):
+        return len(im.structure_sets) + ss_index
+    return ss_index
+
+
+def select_atlases(
+    atlases,
+    target=None,
+    n_atlas=None,
+    exclude_ids=None,
+    selection=None,
+    high_to_low=True,
+    alignment=None,
+    **kwargs,
+):
+    """
+    Select atlases to register against target.
+
+    **Parameters:**
+    atlases: dict
+        Dictionary of atlas tuples (structure set and associated image),
+        such as returned by skrt.segmentation.get_atlases().
+
+    target: skrt.image.Image, default=None
+        Image against which to register.  When selection ordering
+        isn't based on a comparison metric, this can be None.
+
+    n_atlas: int, default=None
+        Number of atlases to select, from those given as input.  If None,
+        all input atlases are returned, ordered according to selection.
+
+    exclude_ids: list, default=None
+        List of atlas identifiers to be excluded from selection.  This may
+        be used, for example, if the target image is also an atlas,
+        and self-registration isn't wanted.  If None, no atlases are
+        excluded.
+
+    selection: str/None, default=None
+        Ordering to be performed prior to selecting the first
+        <n_atlas> atlases:
+
+        - None: the input order is retained;
+
+        - "random": atlases are ordered randomly;
+
+        - "sorted": atlases are sorted in alphabetic order of identifier;
+
+        - "reverse_sorted": atlases are sorted in reverse alphabetic order
+          of identifier;
+
+        - image-comparison metric: atlases are compared with the target,
+          and are ordered according to the specified image-comparison metric.
+          Possibilities include "mutual-information",
+          "information quality ratio", "fidelity"  For a list of available
+          metrics, see documentation for skrt.image.Image.get_comparison().
+
+        - foreground-comparison metric: atlas foregrounds are compared with
+          the target foreground and are ordered according to the specified
+          foreground-comparison metric.  Possibilities include "dice",
+          "centroid", "volume_ratio".  For a list of available metrics,
+          see documentation for skrt.structures.ROI.get_comparison().
+
+    high_to_low: bool, default=True
+        When ordering for selection is based on a comparison metric,
+        the ordering is from high to low if high_to_low is True, or
+        otherwise is from low to high.
+
+    alignment: tuple/dict/str, default=None
+        Strategy to be used for aligning atlases and target when
+        comparing them.  For strategy details, see documentation of
+        skrt.image.get_alignment_translation().  The value set is
+        passed to skrt.image.match_images_for_comparison(), to match
+        atlas and target prior to evaluation of a comparison metric.
+        Disregarded when ordering for selection isn't based on
+        a comparison metric.
+
+    kwargs: dict
+        Keyword arguments passed to comparison methods:
+        skrt.image.get_comparison() or skrt.image.get_foreground_comparison(),
+        depending on selection specified.
+    """
+    # If no constraints defined, return input atlases.
+    if n_atlas is None and exclude_ids is None and selection is None:
+        return atlases
+
+    # logger = get_logger(identifier="funcName")
+
+    # Check that specified selection is allowed.
+    metric_independent_selections = [None, "random", "sorted", "reverse_sorted"]
+    allowed_selections = (
+        metric_independent_selections
+        + get_mi_metrics()
+        + get_quality_metrics()
+        + get_comparison_metrics()
+    )
+    if selection not in allowed_selections:
+        raise RuntimeError(
+            f"Selection {selection} not allowed; "
+            f"allowed selections: {allowed_selections}"
+        )
+
+    # Create list of non-excluded identifiers.
+    if exclude_ids:
+        if not is_list(exclude_ids):
+            exclude_ids = [exclude_ids]
+        atlas_ids = [
+            atlas_id for atlas_id in atlases if atlas_id not in exclude_ids
+        ]
+    else:
+        atlas_ids = list(atlases)
+
+    # Check number of atlases against request.
+    n_atlas = n_atlas if n_atlas is not None else len(atlas_ids)
+    if n_atlas > len(atlas_ids):
+        raise RuntimeError(
+            f"Requested selection of {n_atlas} atlases, "
+            f"but only {len(atlas_ids)} atlases "
+            f"after exclusions: {atlas_ids}"
+        )
+
+    # Deal with selections not requiring metric evaluations.
+    if selection in metric_independent_selections:
+        if "random" == selection:
+            atlas_ids = random.sample(atlas_ids, n_atlas)
+        elif "sorted" == selection:
+            atlas_ids.sort()
+        elif "reverse_sorted" == selection:
+            atlas_ids.sort(reverse=True)
+        return {atlas_id: atlases[atlas_id] for atlas_id in atlas_ids}
+
+    # Determine type of comparison to be performed for selection.
+    if selection in get_image_comparison_metrics():
+        comparison_method = "get_comparison"
+    else:
+        comparison_method = "get_foreground_comparison"
+    kwargs["metrics"] = [selection]
+
+    # Obtain comparison scores.
+    scores = {}
+    for atlas_id in list(atlas_ids):
+        im1, im2 = match_images_for_comparison(
+            target, atlases[atlas_id][0], alignment=alignment
+        )
+        df = getattr(im1, comparison_method)(im2, **kwargs)
+        score = df.iloc[0][selection]
+        # Save list of atlas identifiers for each score.
+        if score not in scores:
+            scores[score] = []
+        scores[score].append(atlas_id)
+
+    # Sort scores, from high to low or from low to high,
+    # then loop through to select the requested number of atlases.
+    selected_atlases = {}
+    for score, atlas_ids in sorted(scores.items(), reverse=high_to_low):
+        for atlas_id in atlas_ids:
+            selected_atlases[atlas_id] = atlases[atlas_id]
+            if len(selected_atlases) >= n_atlas:
+                return selected_atlases
+
+    return None
