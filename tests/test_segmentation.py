@@ -5,6 +5,7 @@ import pytest
 from skrt import Image, StructureSet
 from skrt.core import Defaults
 from skrt.segmentation import (
+        ensure_dict,
         ensure_image,
         ensure_structure_set,
         get_contour_propagation_strategies,
@@ -72,6 +73,25 @@ def test_sas_tuner_instantiation():
     # Check that kwargs and df attributes are null.
     assert tuner.kwargs == {}
     assert tuner.df is None
+
+def test_ensure_dict():
+    """Test that ensure_dict() returns a dictionary."""
+
+    inputs = [
+            ({0: "a", 1: "b"}, None),
+            ({0: Image(), 1: Image()}, ensure_image),
+            ({0: StructureSet(), 1: StructureSet()}, ensure_structure_set),
+            ]
+
+    for in_dict, ensure_type in inputs:
+        out_dict = ensure_dict(in_dict, ensure_type)
+        if ensure_type is None:
+            assert in_dict == out_dict
+        else:
+            assert({key: val.get_dict() for key, val in in_dict.items()}
+                   == {key: val.get_dict() for key, val in out_dict.items()})
+
+    assert ensure_dict("a") == {0: "a"}
 
 def test_ensure_image():
     """Test that ensure_image() returns Image or None."""

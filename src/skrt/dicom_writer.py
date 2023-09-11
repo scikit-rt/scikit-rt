@@ -35,7 +35,7 @@ class DicomWriter:
 
     **Methods:**
 
-    - **_Init__()** : Create instance of DicomWriter class.
+    - **_init__()** : Create instance of DicomWriter class.
     - **add_image_info()** : Add image information to file dataset.
     - **add_structure_set_info()** : Add structure-set information
       to file dataset.
