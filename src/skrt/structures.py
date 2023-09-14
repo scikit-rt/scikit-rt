@@ -3223,6 +3223,182 @@ class ROI(skrt.core.Archive):
             return
         return volume_diff / own_volume
 
+    def get_added_path_length(
+        self,
+        other,
+        single_slice=False,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        method=None,
+        flatten=False,
+        grid_size=None,
+        by_slice=None,
+        value_for_none=None,
+        slice_stat=None,
+        slice_stat_kwargs=None,
+    ):
+        """
+        Get added path length with respect to another ROI.
+
+        The added path length may be obtained either globally or on a
+        single slice.
+
+        **Parameters:**
+
+        other : ROI
+            Other ROI to compare with this ROI.
+
+        single_slice : bool, default=False
+            If False, the sum of the added path lengths for all ROI slices
+            will be returned; otherwise, the added path length on a single
+            slice will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice on which to get added path length.  Only used
+            if single_slice=True. If using, <ax> must be an axis that lies
+            along the slice in this orientation.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of this ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of this ROI will
+            be used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of this ROI will be
+            used.
+
+        units : str, default="mm"
+            Units of added path length. Can be either of:
+
+                * "mm": return added path length in millimetres.
+                * "voxels": return added path length in number of voxels.
+
+            If units="voxels" is requested but this ROI only has contours and no
+            voxel size information, an error will be raised.
+
+        method : str, default=None
+            Method to use for calculation of added path length. Can be:
+                - "contour": compute unshared portions of shapely contours,
+                  with result returned in mm.
+                - "mask": compute unshared voxels at surface of binary masks,
+                  with result returned as number of voxels.
+                - None: use the method set in self.default_geom_method.
+
+        flatten : bool, default=False
+            If True, all slices will be flattened in the given orientation and
+            the added path length of the flattened slices will be returned. Only
+            available if method="mask".
+
+        by_slice : str, default=None
+            If one of "left", "right", "union", "intersection", calculate
+            added path length scores slice by slice for each slice containing
+            self and/or other:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other;
+            - "union": consider slices containing either of self and other;
+            - "intersection": consider slices containing both of self and other.
+
+            If slice_stat is None, return a dictionary where keys are
+            slice positions and values are the calculated added path
+            lengths.  Otherwise, return for the calculated added path
+            lengths the statistic specified by slice_stat.
+
+        value_for_none : float, default=None
+            For single_slice and by_slice, value to be returned for
+            slices where added path lenght is undetermined.  For slice_stat,
+            value to substitute for any None values among the inputs
+            for calculating slice-based statistic.  If None in the latter
+            case, None values among the inputs are omitted.
+
+        slice_stat : str, default=None
+            Single-variable statistic(s) to be returned for slice-by-slice
+            added path lengths.  This should be the name of the function for
+            calculation of the statistic(s) in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            Available options include: "mean", "median", "mode",
+            "stdev", "quantiles".  Disregarded if None.
+
+            If by_slice is None and slice_stat is different from None,
+            the former defaults to "union".
+
+        slice_stat_kwargs : dict, default=None
+            Keyword arguments to be passed to function of statistics
+            module for calculation relative to slice values.  For example,
+            if quantiles are required for 10 intervals, rather than for
+            the default of 4, this can be specified using:
+
+            slice_stat_kwargs{"n" : 10}
+
+            For available keyword options, see documentation of statistics
+            module at:
+
+            https://docs.python.org/3/library/statistics.html
+        """
+        if slice_stat:
+            return self.get_slice_stat(
+                other,
+                "apl",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
+
+        if by_slice:
+            return self.get_metric_by_slice(
+                other, "apl", by_slice, view, method
+            )
+
+        # Get default slice index and method
+        self.load()
+        if sl is None and idx is None and pos is None:
+            idx = self.get_mid_idx(view)
+        if method is None:
+            method = self.default_geom_method
+
+        if flatten:  # Flattening only possible with "mask"
+            method = "mask"
+
+        # Initialise added path length to null value.
+        apl = value_for_none
+
+        # Calculate added path length (mm) from polygons.
+        if method == "contour":
+            if not single_slice:
+                view = "x-y"
+                polygons = self.get_polygons()
+            else:
+                pos_slice = self.idx_to_pos(
+                        self.get_idx(view, sl, idx, pos),
+                        ax=skrt.image._slice_axes[view],
+                        )
+                polygons = {pos_slice:
+                            self.get_polygons_on_slice(view, pos=pos_slice)}
+            if polygons:
+                apl = 0
+                for pos_slice, polygons_slice in polygons.items():
+                    set1 = ops.unary_union(
+                            [polygon.exterior for polygon in polygons_slice])
+                    set2 = ops.unary_union(
+                            [polygon.exterior for polygon in
+                             other.get_polygons_on_slice(view, pos=pos_slice)])
+                    apl += (set1.length
+                            - set1.intersection(set2, grid_size).length)
+
+        return apl
+
     def get_area_diff(
         self,
         other,
