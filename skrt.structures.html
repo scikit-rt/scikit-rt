@@ -455,6 +455,101 @@ module at:</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_added_path_length">
+<span class="sig-name descname"><span class="pre">get_added_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_added_path_length" title="Permalink to this definition"></a></dt>
+<dd><p>Get added path length with respect to another ROI.</p>
+<p>The added path length may be obtained either globally or on a
+single slice.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
+</dd>
+<dt>single_slice<span class="classifier">bool, default=False</span></dt><dd><p>If False, the sum of the added path lengths for all ROI slices
+will be returned; otherwise, the added path length on a single
+slice will be returned.</p>
+</dd>
+<dt>view<span class="classifier">str, default=”x-y”</span></dt><dd><p>Orientation of slice on which to get added path length.  Only used
+if single_slice=True. If using, &lt;ax&gt; must be an axis that lies
+along the slice in this orientation.</p>
+</dd>
+<dt>sl<span class="classifier">int, default=None</span></dt><dd><p>Slice number. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied but
+&lt;single_slice&gt; is True, the central slice of this ROI will be used.</p>
+</dd>
+<dt>idx<span class="classifier">int, default=None</span></dt><dd><p>Array index of slice. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied
+but &lt;single_slice&gt; is True, the central slice of this ROI will
+be used.</p>
+</dd>
+<dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm. If none of &lt;sl&gt;, &lt;idx&gt; or &lt;pos&gt; are supplied
+but &lt;single_slice&gt; is True, the central slice of this ROI will be
+used.</p>
+</dd>
+<dt>units<span class="classifier">str, default=”mm”</span></dt><dd><p>Units of added path length. Can be either of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“mm”: return added path length in millimetres.</p></li>
+<li><p>“voxels”: return added path length in number of voxels.</p></li>
+</ul>
+</div></blockquote>
+<p>If units=”voxels” is requested but this ROI only has contours and no
+voxel size information, an error will be raised.</p>
+</dd>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
+<dt>Method to use for calculation of added path length. Can be:</dt><dd><ul class="simple">
+<li><p>“contour”: compute unshared portions of shapely contours,
+with result returned in mm.</p></li>
+<li><p>“mask”: compute unshared voxels at surface of binary masks,
+with result returned as number of voxels.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
+the added path length of the flattened slices will be returned. Only
+available if method=”mask”.</p>
+</dd>
+<dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
+added path length scores slice by slice for each slice containing
+self and/or other:</p>
+<ul class="simple">
+<li><p>“left”: consider only slices containing self;</p></li>
+<li><p>“right”: consider only slices containing other;</p></li>
+<li><p>“union”: consider slices containing either of self and other;</p></li>
+<li><p>“intersection”: consider slices containing both of self and other.</p></li>
+</ul>
+<p>If slice_stat is None, return a dictionary where keys are
+slice positions and values are the calculated added path
+lengths.  Otherwise, return for the calculated added path
+lengths the statistic specified by slice_stat.</p>
+</dd>
+<dt>value_for_none<span class="classifier">float, default=None</span></dt><dd><p>For single_slice and by_slice, value to be returned for
+slices where added path lenght is undetermined.  For slice_stat,
+value to substitute for any None values among the inputs
+for calculating slice-based statistic.  If None in the latter
+case, None values among the inputs are omitted.</p>
+</dd>
+<dt>slice_stat<span class="classifier">str, default=None</span></dt><dd><p>Single-variable statistic(s) to be returned for slice-by-slice
+added path lengths.  This should be the name of the function for
+calculation of the statistic(s) in the Python statistics module:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+<p>Available options include: “mean”, “median”, “mode”,
+“stdev”, “quantiles”.  Disregarded if None.</p>
+<p>If by_slice is None and slice_stat is different from None,
+the former defaults to “union”.</p>
+</dd>
+<dt>slice_stat_kwargs<span class="classifier">dict, default=None</span></dt><dd><p>Keyword arguments to be passed to function of statistics
+module for calculation relative to slice values.  For example,
+if quantiles are required for 10 intervals, rather than for
+the default of 4, this can be specified using:</p>
+<p>slice_stat_kwargs{“n” : 10}</p>
+<p>For available keyword options, see documentation of statistics
+module at:</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_affine">
 <span class="sig-name descname"><span class="pre">get_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force_standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_affine" title="Permalink to this definition"></a></dt>
 <dd><p>Load self and get affine matrix.</p>
