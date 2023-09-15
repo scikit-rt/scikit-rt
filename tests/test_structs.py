@@ -1846,3 +1846,63 @@ def test_roi_algebra():
                 assert np.all((cube + sphere).get_mask()
                               == cube.get_mask() | sphere.get_mask())
                 assert np.all((cube - sphere).get_mask() == cube.get_mask())
+
+def test_apl_from_contours():
+    # Test calculation of added pass length from contours.
+
+    # Create two cuboid ROIs from contours,
+    # where one ROI is notionally an edited version of the other.
+    dxy = 5
+    dy = 1
+    all_coords = [
+            ((0., 0.), (0., dxy), (dxy, dxy), (dxy, 0.), (0., 0.)),
+            ((0., 0.), (0., dxy + dy), (dxy, dxy + dy), (dxy, 0.), (0., 0.))
+            ]
+    all_polygons = [{z: [Polygon(coords)] for z in range(dxy + 1)}
+                for coords in all_coords]
+    cuboids = [ROI(polygons) for polygons in all_polygons]
+
+    # Check that the added path length of cuboid with respect to itself is zero.
+    for cuboid in cuboids:
+        assert cuboid.get_added_path_length(cuboid) == 0
+
+
+    # Check the added path length for each cuboid with respect to the other.
+    for idx, (cuboid1, cuboid2) in enumerate([cuboids, reversed(cuboids)]):
+        # Calculate expected added path length for a single slice.
+        # This is different depending on which cuboid is treated as edited.
+        apl1 = dxy + (2 * dy * idx)
+        assert cuboid1.get_added_path_length(cuboid2, single_slice=True) == apl1
+        assert (cuboid1.get_added_path_length(cuboid2)
+                == apl1 * len(cuboid1.get_polygons()))
+
+def test_apl_from_masks():
+    # Test calculation of added pass length from masks.
+
+    # Create two cuboid ROIs from contours,
+    # where one ROI is notionally an edited version of the other.
+    sim = SyntheticImage((12, 12, 12))
+    dxyz = 5
+    dy = 2
+    roi_names = ["cuboid1", "cuboid2"]
+    sim.add_cuboid(side_length=(dxyz, dxyz, dxyz),
+                   centre=(dxyz, dxyz, dxyz), name=roi_names[0])
+    sim.add_cuboid(side_length=(dxyz, dxyz + dy, dxyz),
+                   centre=(dxyz, dxyz + 0.5 * dy, dxyz), name=roi_names[1])
+
+    cuboids = [sim.get_roi(name) for name in roi_names]
+
+    # Check that the added path length of cuboid with respect to itself is zero.
+    for cuboid in cuboids:
+        assert cuboid.get_added_path_length(cuboid) == 0
+
+
+    # Check the added path length for each cuboid with respect to the other.
+    for idx, (cuboid1, cuboid2) in enumerate([cuboids, reversed(cuboids)]):
+        # Calculate expected added path length for a single slice.
+        # This is different depending on which cuboid is treated as edited.
+        # The subtraction of 2 is to avoid double counting corner voxels.
+        apl1 = dxyz + (2 * dy * idx) - 2
+        assert cuboid1.get_added_path_length(cuboid2, single_slice=True) == apl1
+        assert (cuboid1.get_added_path_length(cuboid2)
+                == apl1 * dxyz)

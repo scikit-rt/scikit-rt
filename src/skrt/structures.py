@@ -3232,8 +3232,11 @@ class ROI(skrt.core.Archive):
         idx=None,
         pos=None,
         method=None,
+        connectivity=2,
         flatten=False,
-        grid_size=None,
+        in_slice=True,
+        voxel_size=None,
+        voxel_dim_tolerance=0.1,
         by_slice=None,
         value_for_none=None,
         slice_stat=None,
@@ -3244,6 +3247,25 @@ class ROI(skrt.core.Archive):
 
         The added path length may be obtained either globally or on a
         single slice.
+
+        Added path length is defined in:
+            https://doi.org/10.1016/j.phro.2019.12.001
+
+        Two methods for estimating added path length are implemented here:
+
+        - identify unshared portions of ROI contours, returning as result
+          the combined length (mm) of these portions;
+        - identify unshared voxels at surface of ROI binary masks, returning
+          as result the number of such voxels, similar to the approach of:
+          https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics
+          
+        The computation performed is determined by the value passed to the
+        <method> parameter.
+
+        When estimating added path length from ROI binary masks, the
+        value set for <voxel_size> effectively sets a tolerance on
+        ROI agreement.  Added path lengths based on different voxel sizes
+        can't be directly compared.
 
         **Parameters:**
 
@@ -3274,15 +3296,6 @@ class ROI(skrt.core.Archive):
             but <single_slice> is True, the central slice of this ROI will be
             used.
 
-        units : str, default="mm"
-            Units of added path length. Can be either of:
-
-                * "mm": return added path length in millimetres.
-                * "voxels": return added path length in number of voxels.
-
-            If units="voxels" is requested but this ROI only has contours and no
-            voxel size information, an error will be raised.
-
         method : str, default=None
             Method to use for calculation of added path length. Can be:
                 - "contour": compute unshared portions of shapely contours,
@@ -3291,10 +3304,40 @@ class ROI(skrt.core.Archive):
                   with result returned as number of voxels.
                 - None: use the method set in self.default_geom_method.
 
+        connectivity: int, default=2
+            Integer defining which voxels to consider as neighbours
+            when performing erosion operation to identify ROI surfaces.  This
+            is passed as <connectivity> parameter to:
+            scipy.ndimage.generate_binary_structure
+            For further details, see:
+
+            - https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.generate_binary_structure.html
+
+            Disregarded when calculation of added path length is from contours.
+
         flatten : bool, default=False
-            If True, all slices will be flattened in the given orientation and
-            the added path length of the flattened slices will be returned. Only
-            available if method="mask".
+            If True, all slices for each ROI will be flattened in the given
+            orientation, and surface distances relative to the flattened
+            slice will be returned.
+
+        in_slice : bool, default=True
+            If True, only intra-slice connectivity is considered when
+            performing erosion to identify ROI surfaces.  Disregarded when
+            calculation of added path length is from contours.
+
+        voxel_size : tuple, default=None
+            Voxel size (dx, dy, dz) in mm to be used for ROI masks
+            from which to calculate surface distances.  If None,
+            the mask voxel size of <other> is used.  If an individual
+            element is None, the value of the corresponding element for
+            the mask voxel size of <other> is used.  Disregarded when
+            calculation of added path length is from contours.
+
+        voxel_dim_tolerance : float, default=0.1
+            Tolerence used when determining whether <voxel_size> is
+            different from the voxel size of the images associated with
+            each ROI.  Disregarded when calculation of added path length
+            is from contours.
 
         by_slice : str, default=None
             If one of "left", "right", "union", "intersection", calculate
@@ -3361,8 +3404,14 @@ class ROI(skrt.core.Archive):
                 other, "apl", by_slice, view, method
             )
 
+        # Initialise added path length to null value.
+        apl = value_for_none
+
+        # Check that ROIs are non-empty.
+        if self.is_empty() or other.is_empty():
+            return apl
+
         # Get default slice index and method
-        self.load()
         if sl is None and idx is None and pos is None:
             idx = self.get_mid_idx(view)
         if method is None:
@@ -3370,9 +3419,6 @@ class ROI(skrt.core.Archive):
 
         if flatten:  # Flattening only possible with "mask"
             method = "mask"
-
-        # Initialise added path length to null value.
-        apl = value_for_none
 
         # Calculate added path length (mm) from polygons.
         if method == "contour":
@@ -3394,10 +3440,49 @@ class ROI(skrt.core.Archive):
                     set2 = ops.unary_union(
                             [polygon.exterior for polygon in
                              other.get_polygons_on_slice(view, pos=pos_slice)])
-                    apl += (set1.length
-                            - set1.intersection(set2, grid_size).length)
+                    apl += set1.length - set1.intersection(set2).length
 
-        return apl
+            return apl
+
+        # Calculate added path length (number of voxels) from masks.
+        # Set view to None if considering 3D mask.
+        if not single_slice and not flatten:
+            view = None
+
+        # Obtain ROI clones, with mask voxel sizes matched to voxel_size
+        # if non-null, or otherwise to the mask voxel size of other.
+        roi1, roi2 = self.match_mask_voxel_size(
+            other, voxel_size, voxel_dim_tolerance
+        )
+
+        # Check whether ROIs are empty
+        if not np.any(roi1.get_mask()) or not np.any(roi2.get_mask()):
+            return apl
+
+        # Get binary masks
+        if single_slice:
+            mask1 = roi1.get_slice(view, sl=sl, idx=idx, pos=pos)
+            mask2 = roi2.get_slice(view, sl=sl, idx=idx, pos=pos)
+        else:
+            mask1 = roi1.get_mask(view, flatten=flatten)
+            mask2 = roi2.get_mask(view, flatten=flatten)
+
+        # Make structuring element
+        conn2 = ndimage.generate_binary_structure(2, connectivity)
+        if mask1.ndim == 2:
+            conn = conn2
+        else:
+            if in_slice:
+                conn = np.zeros((3, 3, 3), dtype=bool)
+                conn[:, :, 1] = conn2
+            else:
+                conn = ndimage.generate_binary_structure(3, connectivity)
+
+        # Get outer voxels of binary maps
+        surf1 = mask1 ^ ndimage.binary_erosion(mask1, conn)
+        surf2 = mask2 ^ ndimage.binary_erosion(mask2, conn)
+
+        return surf1.sum() - (surf1 & surf2).sum()
 
     def get_area_diff(
         self,
