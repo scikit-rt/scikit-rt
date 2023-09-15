@@ -456,10 +456,28 @@ module at:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_added_path_length">
-<span class="sig-name descname"><span class="pre">get_added_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_added_path_length" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_added_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_dim_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_stat_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_added_path_length" title="Permalink to this definition"></a></dt>
 <dd><p>Get added path length with respect to another ROI.</p>
 <p>The added path length may be obtained either globally or on a
 single slice.</p>
+<dl class="simple">
+<dt>Added path length is defined in:</dt><dd><p><a class="reference external" href="https://doi.org/10.1016/j.phro.2019.12.001">https://doi.org/10.1016/j.phro.2019.12.001</a></p>
+</dd>
+</dl>
+<p>Two methods for estimating added path length are implemented here:</p>
+<ul class="simple">
+<li><p>identify unshared portions of ROI contours, returning as result
+the combined length (mm) of these portions;</p></li>
+<li><p>identify unshared voxels at surface of ROI binary masks, returning
+as result the number of such voxels, similar to the approach of:
+<a class="reference external" href="https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics">https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics</a></p></li>
+</ul>
+<p>The computation performed is determined by the value passed to the
+&lt;method&gt; parameter.</p>
+<p>When estimating added path length from ROI binary masks, the
+value set for &lt;voxel_size&gt; effectively sets a tolerance on
+ROI agreement.  Added path lengths based on different voxel sizes
+can’t be directly compared.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
 <dt>other<span class="classifier">ROI</span></dt><dd><p>Other ROI to compare with this ROI.</p>
@@ -483,16 +501,6 @@ be used.</p>
 but &lt;single_slice&gt; is True, the central slice of this ROI will be
 used.</p>
 </dd>
-<dt>units<span class="classifier">str, default=”mm”</span></dt><dd><p>Units of added path length. Can be either of:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>“mm”: return added path length in millimetres.</p></li>
-<li><p>“voxels”: return added path length in number of voxels.</p></li>
-</ul>
-</div></blockquote>
-<p>If units=”voxels” is requested but this ROI only has contours and no
-voxel size information, an error will be raised.</p>
-</dd>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
 <dt>Method to use for calculation of added path length. Can be:</dt><dd><ul class="simple">
 <li><p>“contour”: compute unshared portions of shapely contours,
@@ -504,9 +512,35 @@ with result returned as number of voxels.</p></li>
 </dd>
 </dl>
 </dd>
-<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices will be flattened in the given orientation and
-the added path length of the flattened slices will be returned. Only
-available if method=”mask”.</p>
+<dt>connectivity: int, default=2</dt><dd><p>Integer defining which voxels to consider as neighbours
+when performing erosion operation to identify ROI surfaces.  This
+is passed as &lt;connectivity&gt; parameter to:
+scipy.ndimage.generate_binary_structure
+For further details, see:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.generate_binary_structure.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.generate_binary_structure.html</a></p></li>
+</ul>
+<p>Disregarded when calculation of added path length is from contours.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, all slices for each ROI will be flattened in the given
+orientation, and surface distances relative to the flattened
+slice will be returned.</p>
+</dd>
+<dt>in_slice<span class="classifier">bool, default=True</span></dt><dd><p>If True, only intra-slice connectivity is considered when
+performing erosion to identify ROI surfaces.  Disregarded when
+calculation of added path length is from contours.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Voxel size (dx, dy, dz) in mm to be used for ROI masks
+from which to calculate surface distances.  If None,
+the mask voxel size of &lt;other&gt; is used.  If an individual
+element is None, the value of the corresponding element for
+the mask voxel size of &lt;other&gt; is used.  Disregarded when
+calculation of added path length is from contours.</p>
+</dd>
+<dt>voxel_dim_tolerance<span class="classifier">float, default=0.1</span></dt><dd><p>Tolerence used when determining whether &lt;voxel_size&gt; is
+different from the voxel size of the images associated with
+each ROI.  Disregarded when calculation of added path length
+is from contours.</p>
 </dd>
 <dt>by_slice<span class="classifier">str, default=None</span></dt><dd><p>If one of “left”, “right”, “union”, “intersection”, calculate
 added path length scores slice by slice for each slice containing
