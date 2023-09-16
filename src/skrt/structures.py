@@ -3390,7 +3390,7 @@ class ROI(skrt.core.Archive):
         if slice_stat:
             return self.get_slice_stat(
                 other,
-                "apl",
+                "added_path_length",
                 slice_stat,
                 by_slice,
                 value_for_none,
@@ -3401,7 +3401,7 @@ class ROI(skrt.core.Archive):
 
         if by_slice:
             return self.get_metric_by_slice(
-                other, "apl", by_slice, view, method
+                other, "added_path_length", by_slice, view, method
             )
 
         # Initialise added path length to null value.
@@ -4418,6 +4418,17 @@ class ROI(skrt.core.Archive):
                   <slice_stats> for slice-by-slice magnitudes of 2D
                   centroid distance vectors.
 
+                * "added_path_length": path length added to contours
+                  (own path - other path).
+                * "added_path_length_flat": path length added to contours
+                  (own path - other path) after projection into the plane
+                  specified in <view>.
+                * "added_path_length_slice": path length added to contours
+                  (own path - other path) in a single slice.
+                * "added_path_length_slice_stats": statistics specified in
+                  <slice_stats> for slice-by-slice path length added to
+                  contours (own path - other path).
+
                 * "volume_diff": volume difference (own volume - other volume).
                 * "rel_volume_diff": volume difference divided by own volume.
                 * "volume_ratio": volume ratio (own volume / other volume).
@@ -4785,6 +4796,32 @@ class ROI(skrt.core.Archive):
                     )
                 )
 
+            # Added path length
+            elif m == "added_path_length":
+                comp[m] = roi0.get_added_path_length(roi, method=method)
+            elif m == "added_path_length_flat":
+                comp[m] = roi0.get_added_path_length(
+                    roi,
+                    view=view,
+                    method=method,
+                    flatten=True,
+                )
+            elif m == "added_path_length_slice":
+                comp[m] = roi0.get_added_path_length(
+                        roi, method=method, **slice_kwargs)
+
+            elif m == "added_path_length_slice_stats":
+                comp.update(
+                    roi0.get_slice_stats(
+                        roi,
+                        metrics="added_path_length",
+                        slice_stats=slice_stats,
+                        default_by_slice=default_by_slice,
+                        method=method,
+                        view=view,
+                    )
+                )
+
             # Volume metrics
             elif m == "volume_diff":
                 comp[m] = roi0.get_volume_diff(
@@ -4997,6 +5034,11 @@ class ROI(skrt.core.Archive):
                         name += " (mm^2)"
                     else:
                         name += " (" + area_units + ")"
+                elif "added_path_length" in metric:
+                    if "contours" == (method or roi0.default_geom_method):
+                        name += " (mm)"
+                    else:
+                        name += " (voxels)"
                 elif "centroid" in metric:
                     name += " (" + centroid_units + ")"
                 comp_named[name] = val
@@ -10007,6 +10049,10 @@ def get_comparison_metrics(
         "abs_centroid_flat",
         "abs_centroid_slice",
         "abs_centroid_slice_stats",
+        "added_path_length",
+        "added_path_length_flat",
+        "added_path_length_slice",
+        "added_path_length_slice_stats",
         "area_diff",
         "area_diff_flat",
         "area_diff_slice_stats",
