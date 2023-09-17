@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>skrt.structures module &mdash; Scikit-rt 0.5.14 documentation</title>
+  <title>skrt.structures module &mdash; Scikit-rt 0.6.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=75b6878b"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=add265a1"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
@@ -465,15 +465,23 @@ single slice.</p>
 </dd>
 </dl>
 <p>Two methods for estimating added path length are implemented here:</p>
-<ul class="simple">
-<li><p>identify unshared portions of ROI contours, returning as result
-the combined length (mm) of these portions;</p></li>
-<li><p>identify unshared voxels at surface of ROI binary masks, returning
-as result the number of such voxels, similar to the approach of:
-<a class="reference external" href="https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics">https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics</a></p></li>
+<ul>
+<li><p>From ROI contours, the added path length is estimated as the
+length of the contours of this ROI minus the lengths of the
+contour portions that coincide with the contours of the other ROI.
+The value returned is a length in mm.</p></li>
+<li><p>From ROI binary masks, the added path length is estimated as
+the number of voxels on the surface of the mask of this ROI
+minus the number of these voxels that are also on the surface of
+the other ROI, similar to the approach of:</p>
+<p><a class="reference external" href="https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics">https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics</a></p>
+<p>The value returned is a number of voxels.</p>
+</li>
 </ul>
-<p>The computation performed is determined by the value passed to the
-&lt;method&gt; parameter.</p>
+<p>By default, the method used is based on the ROI representation of
+the ROI source.  This is contours for a DICOM source and binary
+masks for a NIfTI source.  The default may be overridden using
+the &lt;method&gt; parameter.</p>
 <p>When estimating added path length from ROI binary masks, the
 value set for &lt;voxel_size&gt; effectively sets a tolerance on
 ROI agreement.  Added path lengths based on different voxel sizes
