@@ -3253,14 +3253,24 @@ class ROI(skrt.core.Archive):
 
         Two methods for estimating added path length are implemented here:
 
-        - identify unshared portions of ROI contours, returning as result
-          the combined length (mm) of these portions;
-        - identify unshared voxels at surface of ROI binary masks, returning
-          as result the number of such voxels, similar to the approach of:
+        - From ROI contours, the added path length is estimated as the
+          length of the contours of this ROI minus the lengths of the
+          contour portions that coincide with the contours of the other ROI.
+          The value returned is a length in mm.
+
+        - From ROI binary masks, the added path length is estimated as
+          the number of voxels on the surface of the mask of this ROI
+          minus the number of these voxels that are also on the surface of
+          the other ROI, similar to the approach of:
+
           https://github.com/kkiser1/Autosegmentation-Spatial-Similarity-Metrics
+
+          The value returned is a number of voxels.
           
-        The computation performed is determined by the value passed to the
-        <method> parameter.
+        By default, the method used is based on the ROI representation of
+        the ROI source.  This is contours for a DICOM source and binary
+        masks for a NIfTI source.  The default may be overridden using
+        the <method> parameter.
 
         When estimating added path length from ROI binary masks, the
         value set for <voxel_size> effectively sets a tolerance on
