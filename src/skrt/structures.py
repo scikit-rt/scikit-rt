@@ -219,6 +219,9 @@ class ROI(skrt.core.Archive):
             source.clone_attrs(self)
             return
 
+        # Initialise as skrt.core.Archive object
+        super().__init__()
+
         # Process contour dictionary
         self.input_contours = None
         if isinstance(source, dict):
@@ -296,10 +299,7 @@ class ROI(skrt.core.Archive):
         self.loaded_mask = False
         if load:
             self.load()
-
-        # Initialise as skrt.core.Archive object
-        path = self.source if isinstance(self.source, str) else ""
-        super().__init__(path)
+        self.path = self.source if isinstance(self.source, str) else ""
 
     def __eq__(self, other):
         return other is self
@@ -561,6 +561,10 @@ class ROI(skrt.core.Archive):
 
         # Deal with input contours
         if self.input_contours is not None:
+            """
+            # The following shouldn't be needed.
+            # Mask should be created when needed, rather than at load time.
+
             # Create Image object
             if self.image is not None:
                 self.shape = self.image.data.shape
@@ -570,6 +574,7 @@ class ROI(skrt.core.Archive):
                     dtype=bool,
                     **self.kwargs,
                 )
+            """
 
             # Set x-y contours with z positions as keys
             self.contours["x-y"] = {}
@@ -939,7 +944,6 @@ class ROI(skrt.core.Archive):
     ):
         """Get binary mask, optionally flattened in a given orientation."""
 
-        self.load()
         self.create_mask()
         if not flatten:
             return self.mask.get_data(
@@ -7097,6 +7101,7 @@ class StructureSet(skrt.core.Archive):
             if isinstance(source, str):
                 if os.path.splitext(source)[1] != ".nii":
                     rois, ds = load_rois_dicom(source)
+
             if len(rois):
                 for number, roi in rois.items():
                     # Ignore entries with no contours
@@ -7694,6 +7699,7 @@ class StructureSet(skrt.core.Archive):
         ss = self.clone(copy_roi_data=False)
         if name is not None:
             ss.name = name
+
         ss.rename_rois(names, keep_renamed_only=keep_renamed_only)
         ss.filter_rois(to_keep, to_remove)
 
@@ -7708,6 +7714,7 @@ class StructureSet(skrt.core.Archive):
         those names will be returned."""
 
         self.load()
+
         if names is None:
             if ignore_empty:
                 return [roi for roi in self.rois if not roi.empty]
