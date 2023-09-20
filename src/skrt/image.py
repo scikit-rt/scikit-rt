@@ -1160,7 +1160,7 @@ class Image(skrt.core.Archive):
                 init_dtype = self.get_data().dtype
                 nii = nibabel.as_closest_canonical(
                     nibabel.Nifti1Image(
-                        self.data.astype(np.float64), self.affine
+                        self.data.astype(np.float32), self.affine
                     )
                 )
                 self._data_canonical = nii.get_fdata().astype(init_dtype)
@@ -4563,7 +4563,7 @@ class Image(skrt.core.Archive):
             the VoxTox mapping from kV CT scan to MV CT scan is implemented.
         """
         if "kv_to_mv" == mapping:
-            self.data = np.vectorize(kv_to_mv, otypes=[np.float64])(
+            self.data = np.vectorize(kv_to_mv, otypes=[np.float32])(
                 self.get_data()
             )
         else:
@@ -5939,7 +5939,7 @@ def load_dicom_many_files(paths):
         pos = getattr(ds, "ImagePositionPatient", [0, 0, 0])
         z = pos[axes[2]]
         z_paths[z] = path
-        data_slices[z] = ds.pixel_array
+        data_slices[z] = ds.pixel_array.astype(np.float32)
         image_positions[z] = pos
         z_instance_numbers[z] = getattr(ds, "InstanceNumber", None)
 
