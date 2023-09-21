@@ -9351,7 +9351,7 @@ def load_rois_dicom(path, names=None):
                 z = float(c.ContourData[2])
                 if z not in data["contours"]:
                     data["contours"][z] = []
-                data["contours"][z].append(np.array(plane_data))
+                data["contours"][z].append(np.array(plane_data, np.float32))
 
         rois[number].update(data)
 
