@@ -2665,7 +2665,7 @@ class Image(skrt.core.Archive):
 
         The default parameters are:
             - "aspect":
-                Aspect ratio determined from image geometry.
+                Aspect ratio, set to 1 by default.
             - "extent":
                 Plot extent determined from image geometry.
             - "cmap":
@@ -2701,7 +2701,7 @@ class Image(skrt.core.Archive):
 
         # Set image extent and aspect ratio
         extent = self.plot_extent[view]
-        mpl_kwargs["aspect"] = 1
+        mpl_kwargs["aspect"] = mpl_kwargs.get("aspect", 1)
         x_ax, y_ax = _plot_axes[view]
         if not scale_in_mm:
             extent = [
