@@ -4569,7 +4569,7 @@ class Image(skrt.core.Archive):
         else:
             print(f"Mapping function {mapping} not known.")
 
-    def get_sinogram(self, force=False, verbose=False):
+    def get_sinogram(self, force=False, verbose=False, theta=None):
         """
         Retrieve image where each slice corresponds to a sinogram.
 
@@ -4585,8 +4585,15 @@ class Image(skrt.core.Archive):
 
         verbose : bool, default=False
             Print information on progress in sinogram creation.
+
+        theta : np.array
+            Array of projection angles, in degrees. If None, use
+            np.arange(180).
         """
         self.load()
+
+        if theta is None:
+            theta = np.arange(180)
 
         if (self.sinogram is None) or force:
             if verbose:
@@ -4596,15 +4603,26 @@ class Image(skrt.core.Archive):
             vmin = min(self.get_data().min(), 0)
 
             sinogram_stack = []
-            nz = self.get_n_voxels()[2]
             # Apply Radon transform slice by slice
-            for iz in range(nz):
+            for iz in range(self.get_n_voxels()[2]):
                 if verbose:
                     print(f"    ...slice {iz + 1:3d} of {nz:3d}")
                 im_slice = self.get_data()[:, :, iz] - vmin
-                sinogram_slice = skimage.transform.radon(im_slice, circle=False)
+                sinogram_slice = skimage.transform.radon(
+                        im_slice, theta=theta, circle=False)
                 sinogram_stack.append(sinogram_slice)
             self.sinogram = Image(np.stack(sinogram_stack, axis=-1))
+
+            # Set sinogram geometry.
+            dtheta = (theta.max() - theta.min()) / (theta.shape[0] - 1)
+            dy, dz = self.get_voxel_size()[1:]
+            self.sinogram.voxel_size = [dtheta, dy, dz]
+            y0 = (-self.sinogram.voxel_size[1]
+                  * ((self.sinogram.get_n_voxels()[1] - 1) // 2))
+            self.sinogram.origin = (
+                    self.sinogram.get_origin()[0], y0, self.get_origin()[2])
+            self.sinogram.affine = None
+            self.sinogram.set_geometry()
 
         return self.sinogram
 
