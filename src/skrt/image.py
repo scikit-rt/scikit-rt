@@ -4602,9 +4602,10 @@ class Image(skrt.core.Archive):
             # Value to subtract to have only positive intensities.
             vmin = min(self.get_data().min(), 0)
 
+            nz = self.get_n_voxels()[2]
             sinogram_stack = []
             # Apply Radon transform slice by slice
-            for iz in range(self.get_n_voxels()[2]):
+            for iz in range(nz):
                 if verbose:
                     print(f"    ...slice {iz + 1:3d} of {nz:3d}")
                 im_slice = self.get_data()[:, :, iz] - vmin
