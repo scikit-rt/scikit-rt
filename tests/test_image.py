@@ -1680,3 +1680,31 @@ def test_get_comparison():
     with pytest.raises(RuntimeError) as error_info:
         comparison = im1.get_comparison(im2, metrics=["unknown_metric"])
     assert "Metric unknown_metric not recognised" in str(error_info.value)
+
+def test_get_sinogram():
+    """Test sinogram creation."""
+    # Create test image featuring a cube.
+    nxyz = 10
+    xyz0 = 0.5 - nxyz / 2
+    origin = (xyz0, xyz0, xyz0)
+    sim = SyntheticImage(shape=(nxyz, nxyz, nxyz), origin=origin)
+    side_length=2
+    centre = (0, 0, 0)
+    intensity = 1000
+    sim.add_cube(side_length, centre, intensity, name="cube1")
+
+    # Create sinogram from test image.
+    dtheta = 180 / 10
+    theta = np.arange(dtheta / 2, 180 + dtheta / 2, dtheta)
+    sinogram = sim.get_sinogram(
+            force=True, theta=np.arange(dtheta / 2, 180 + dtheta / 2, dtheta))
+
+    # Check sinogram characteristics.
+    assert all(nxyz == sinogram.get_n_voxels()[idx] for idx in [0, 2])
+    assert 0 == sinogram.get_min()
+    assert intensity < sinogram.get_max()
+    assert sinogram.get_voxel_size() == [dtheta, 1, 1]
+    assert sinogram.get_extents()[0] == (0, 180)
+    assert sinogram.get_extents()[1][1] > nxyz / 2
+    assert sinogram.get_extents()[1][0] == -sinogram.get_extents()[1][1]
+    assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
