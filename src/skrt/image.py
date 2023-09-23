@@ -4620,8 +4620,7 @@ class Image(skrt.core.Archive):
             self.sinogram.voxel_size = [dtheta, dy, dz]
             y0 = (-self.sinogram.voxel_size[1]
                   * ((self.sinogram.get_n_voxels()[1] - 1) // 2))
-            self.sinogram.origin = (
-                    self.sinogram.get_origin()[0], y0, self.get_origin()[2])
+            self.sinogram.origin = (0.5 * dtheta, y0, self.get_origin()[2])
             self.sinogram.affine = None
             self.sinogram.set_geometry()
 
