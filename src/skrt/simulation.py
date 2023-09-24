@@ -21,7 +21,7 @@ class SyntheticImage(Image):
         filename=None,
         origin=(0, 0, 0),
         voxel_size=(1, 1, 1),
-        intensity=-1024,
+        intensity=-1000,
         noise_std=None,
         auto_timestamp=False,
     ):
@@ -609,8 +609,8 @@ def make_grid(
     image,
     spacing=(30, 30, 30),
     thickness=(2, 2, 2),
-    background=-1024,
-    foreground=1024,
+    background=-1000,
+    foreground=1000,
     voxel_units=False,
 ):
     """
@@ -633,10 +633,10 @@ def make_grid(
         of voxels.  Otherwise, values are taken to be in the
         same units as the voxel dimensions of the reference image.
 
-    background: int/float, default=-1024
+    background: int/float, default=-1000
         Intensity value to be assigned to voxels not on grid lines.
 
-    foreground: int/float, default=1024
+    foreground: int/float, default=1000
         Intensity value to be assigned to voxels on grid lines.
 
     voxel_units: bool, default=False
@@ -673,6 +673,7 @@ def make_head(
     origin=None,
     voxel_size=(1, 1, 3),
     noise_std=10,
+    intensity=-1000,
 ):
     """
     Create an image featuring a loose approximation of a head.
@@ -698,6 +699,9 @@ def make_head(
     noise_std : float, default=None
         Standard deviation of Gaussian noise to apply to the image.
         If None, no noise will be applied.
+
+        intensity : float, default=-1000
+            Intensity in HU for the background of the image.
     """
     ##################
     # Image settings #
@@ -739,8 +743,9 @@ def make_head(
     ##############
     # Background and head
     head_image = SyntheticImage(
-        shape, voxel_size=voxel_size, origin=origin, noise_std=noise_std
-    )
+        shape, origin=origin, voxel_size=voxel_size, intensity=intensity,
+        noise_std=noise_std
+        )
     centre = head_image.get_centre()
     head_image.add_cylinder(
         radius=head_radius, length=head_height, group="head"
