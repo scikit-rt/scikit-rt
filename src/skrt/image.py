@@ -4569,7 +4569,8 @@ class Image(skrt.core.Archive):
         else:
             print(f"Mapping function {mapping} not known.")
 
-    def get_sinogram(self, force=False, verbose=False, theta=None):
+    def get_sinogram(self, force=False, verbose=False, theta=None,
+                     ifactor=1, circle=False, rescale=None):
         """
         Retrieve image where each slice corresponds to a sinogram.
 
@@ -4589,6 +4590,28 @@ class Image(skrt.core.Archive):
         theta : np.array
             Array of projection angles, in degrees. If None, use
             np.arange(180).
+
+        ifactor : float, default=1
+            Factor by which to multiply image intensity values before
+            creating sinogram.  If image intensity values are in Hounsfield
+            Units, a factor of 0.001 will rescale to intensity values
+            that are close to the linear attenuation coefficient
+            relative to water:
+
+            HU = 1000 * (mu - mu_water) / (mu_water - mu_air)
+            => mu / mu_water = approximately (1 - HU / 1000)
+
+        circle : bool, default=False
+            If True, disregard regions of each image slice that are outside
+            the largest circle with centre at the slice centre.  In this
+            case, radial values in the sinogram will cover the range
+            from minus circle radius to plus circle radius.
+
+        rescale : tuple, default=None
+            Two-element tuple specifying minimum and maximum values
+            for linear rescaling of sinogram greyscale values.  If
+            all sinogram values are the same, rescaling sets all values
+            to be the mean of the specified minimum and maximum.
         """
         self.load()
 
@@ -4608,11 +4631,13 @@ class Image(skrt.core.Archive):
             for iz in range(nz):
                 if verbose:
                     print(f"    ...slice {iz + 1:3d} of {nz:3d}")
-                im_slice = self.get_data()[:, :, iz] - vmin
+                im_slice = (self.get_data()[:, :, iz] - vmin) * ifactor
                 sinogram_slice = skimage.transform.radon(
-                        im_slice, theta=theta, circle=False)
-                sinogram_stack.append(sinogram_slice)
+                        im_slice, theta=theta, circle=circle)
+                sinogram_stack.append(sinogram_slice[::-1, ::-1])
             self.sinogram = Image(np.stack(sinogram_stack, axis=-1))
+            if rescale is not None:
+                self.sinogram.rescale(*rescale, 0.5 * sum(rescale))
 
             # Set sinogram geometry.
             dtheta = (theta.max() - theta.min()) / (theta.shape[0] - 1)
@@ -4682,7 +4707,7 @@ class Image(skrt.core.Archive):
                     sinogram_slice, circle=False, filter_name="hann"
                 )
                 + vmin
-            )
+                )[::-1, ::-1]
 
     def assign_intensity_to_rois(self, rois=None, intensity=0):
         """
