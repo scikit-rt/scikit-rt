@@ -1344,12 +1344,12 @@ name : str</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_sinogram">
-<span class="sig-name descname"><span class="pre">get_sinogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_sinogram" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_sinogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifactor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_sinogram" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve image where each slice corresponds to a sinogram.</p>
 <p>A slice sinogram is obtain through application of a Radon
 transform to the original image slice.</p>
 <p><strong>Parameters:</strong></p>
-<dl class="simple">
+<dl>
 <dt>force<span class="classifier">bool, default=False</span></dt><dd><p>The first time that sinogram image is created, it is
 stored as self.sinogram.  It is recreated only if force
 is set to True.</p>
@@ -1358,6 +1358,24 @@ is set to True.</p>
 </dd>
 <dt>theta<span class="classifier">np.array</span></dt><dd><p>Array of projection angles, in degrees. If None, use
 np.arange(180).</p>
+</dd>
+<dt>ifactor<span class="classifier">float, default=1</span></dt><dd><p>Factor by which to multiply image intensity values before
+creating sinogram.  If image intensity values are in Hounsfield
+Units, a factor of 0.001 will rescale to intensity values
+that are close to the linear attenuation coefficient
+relative to water:</p>
+<p>HU = 1000 * (mu - mu_water) / (mu_water - mu_air)
+=&gt; mu / mu_water = approximately (1 - HU / 1000)</p>
+</dd>
+<dt>circle<span class="classifier">bool, default=False</span></dt><dd><p>If True, disregard regions of each image slice that are outside
+the largest circle with centre at the slice centre.  In this
+case, radial values in the sinogram will cover the range
+from minus circle radius to plus circle radius.</p>
+</dd>
+<dt>rescale<span class="classifier">tuple, default=None</span></dt><dd><p>Two-element tuple specifying minimum and maximum values
+for linear rescaling of sinogram greyscale values.  If
+all sinogram values are the same, rescaling sets all values
+to be the mean of the specified minimum and maximum.</p>
 </dd>
 </dl>
 </dd></dl>
