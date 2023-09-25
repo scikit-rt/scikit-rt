@@ -234,6 +234,8 @@ class Image(skrt.core.Archive):
         self._sdata = None
         self._sorigin = None
         self.data = None
+        self._max = None
+        self._min = None
         self.title = title
         self.source = (
             skrt.core.fullpath(path)
@@ -1777,12 +1779,24 @@ class Image(skrt.core.Archive):
         u_max = self.get_max(force=True)
         du = u_max - u_min
         dv = v_max - v_min
-        if du:
+        if (u_min != v_min or u_max != v_max) and du:
             self.data = v_min + (
                 (self.data.astype(np.float32) - u_min) * (dv / du)
             )
         elif constant is not None:
             self.data.fill(constant)
+        else:
+            return None
+
+        # Remove any prior standardised data.
+        self._sdata = None
+        self._saffine = None
+
+        # Remove any cached values for maxium and minimum.
+        self._max = None
+        self._min = None
+
+        return None
 
     def resize(
         self,
@@ -2057,7 +2071,7 @@ class Image(skrt.core.Archive):
     def get_min(self, force=False):
         """Get minimum greyscale value of data array."""
 
-        if not force and hasattr(self, "_min"):
+        if not force and self._min is not None:
             return self._min
         self.load()
         self._min = self.data.min()
@@ -2066,7 +2080,7 @@ class Image(skrt.core.Archive):
     def get_max(self, force=False):
         """Get maximum greyscale value of data array."""
 
-        if not force and hasattr(self, "_max"):
+        if not force and self._max is not None:
             return self._max
         self.load()
         self._max = self.data.max()
