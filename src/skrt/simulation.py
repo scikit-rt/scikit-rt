@@ -478,6 +478,54 @@ class SyntheticImage(Image):
 
         self.rotation = (yaw, pitch, roll)
 
+    def rescale(self, v_min=0.0, v_max=1.0, constant=0.5):
+        """
+        Linearly rescale image greyscale values,
+        so that they span a specified range.
+
+        Rescaling is applied also to greyscale values for shapes.
+
+        **Parameters:**
+
+        v_min: float, default=0.0
+            Minimum greyscale value after rescaling.
+
+        v_max: float, default=1.0
+            Maximum greyscale value after rescaling.
+
+        constant: float, default=0.5
+            Greyscale value to assign after rescaling if all values
+            in the original image are the same.  If None,
+            original value is kept.
+        """
+        # Perform rescaling.
+        u_min = self.get_min(force=True)
+        u_max = self.get_max(force=True)
+        du = u_max - u_min
+        dv = v_max - v_min
+        if du:
+            self.data = v_min + (
+                (self.data.astype(np.float32) - u_min) * (dv / du)
+            )
+            for shape in self.shapes:
+                shape.intensity = v_min + (shape.intensity - u_min) * (dv / du)
+        elif constant is not None:
+            self.data.fill(constant)
+            for shape in self.shapes:
+                shape.intensity = constant
+        else:
+            return None
+
+        # Remove any prior standardised data.
+        self._sdata = None
+        self._saffine = None
+
+        # Remove any cached values for maxium and minimum.
+        self._max = None
+        self._min = None
+
+        return None
+
 
 class ShapeGroup:
     """Class for grouping multiple shapes, to be represented by a single ROI."""
