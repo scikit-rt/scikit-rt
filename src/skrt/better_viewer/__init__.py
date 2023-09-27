@@ -468,6 +468,22 @@ class BetterViewer:
         no_xlabel : bool, default=False
             If True, the x axis will not be labelled.
 
+        xticks : tuple/dict, default=None
+            Tick locations and custom tick labels for the x axis.
+            Locations and labels are specified via a tuple of values,
+            or a dictionary of key-value pairs, that can be passed to
+            matplotlib.axes.Axes.set_x_ticks(), for example:
+
+            - xticks=((1, 5), ("label1", "label2"))
+            - xticks={"ticks": (1, 5), "labels": ("label1", "label2")}
+
+            For additional values that can be passed, see: 
+
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_xticks.html
+
+            Disregarded if None, if <no_xticks> is True,
+            or if <no_xtick_labels> is True.
+
         no_xticks : bool, default=False
             If True, ticks and tick labels on the x axis will not
             be shown.
@@ -483,6 +499,22 @@ class BetterViewer:
 
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
+
+        yticks : tuple/dict, default=None
+            Tick locations and custom tick labels for the y axis.
+            Locations and labels are specified via a tuple of values,
+            or a dictionary of key-value pairs, that can be passed to
+            matplotlib.axes.Axes.set_y_ticks(), for example:
+
+            - yticks=((1, 5), ("label1", "label2"))
+            - yticks={"ticks": (1, 5), "labels": ("label1", "label2")}
+
+            For additional values that can be passed, see: 
+
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yticks.html
+
+            Disregarded if None, if <no_yticks> is True,
+            or if <no_ytick_labels> is True.
 
         no_yticks : bool, default=False
             If True, ticks and tick labels on the y axis will not
@@ -1674,6 +1706,8 @@ class BetterViewer:
                     ylabel=self.viewers[-1].ylabel,
                     no_xlabel=self.viewers[-1].no_xlabel,
                     no_ylabel=self.viewers[-1].no_ylabel,
+                    xticks=self.viewers[-1].xticks,
+                    yticks=self.viewers[-1].yticks,
                     no_xticks=self.viewers[-1].no_xticks,
                     no_yticks=self.viewers[-1].no_yticks,
                     no_xtick_labels=self.viewers[-1].no_xtick_labels,
@@ -1737,6 +1771,8 @@ class SingleViewer:
         ylabel=None,
         no_xlabel=False,
         no_ylabel=False,
+        xticks=None,
+        yticks=None,
         no_xticks=False,
         no_yticks=False,
         no_xtick_labels=False,
@@ -1903,6 +1939,8 @@ class SingleViewer:
         self.ylabel = ylabel
         self.no_xlabel = no_xlabel
         self.no_ylabel = no_ylabel
+        self.xticks = xticks
+        self.yticks = yticks
         self.no_xticks = no_xticks
         self.no_yticks = no_yticks
         self.no_xtick_labels = no_xtick_labels
@@ -3012,6 +3050,8 @@ class SingleViewer:
             ylabel=self.ylabel,
             no_xlabel=self.no_xlabel,
             no_ylabel=self.no_ylabel,
+            xticks=self.xticks,
+            yticks=self.yticks,
             no_xticks=self.no_xticks,
             no_yticks=self.no_yticks,
             no_xtick_labels=self.no_xtick_labels,

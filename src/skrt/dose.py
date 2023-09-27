@@ -54,6 +54,8 @@ class ImageOverlay(skrt.image.Image):
         ylabel=None,
         no_xlabel=False,
         no_ylabel=False,
+        xticks=None,
+        yticks=None,
         no_xticks=False,
         no_yticks=False,
         no_xtick_labels=False,
@@ -138,6 +140,12 @@ class ImageOverlay(skrt.image.Image):
         no_ylabel : bool, default=False
             If True, the y axis will not be labelled.
 
+        xticks : tuple/dict, default=None
+            Tick locations and custom tick labels for the x axis.
+
+        yticks : tuple/dict, default=None
+            Tick locations and custom tick labels for the y axis.
+
         no_xticks : bool, default=False
             If True, ticks (and their labels) on the x axis will not be shown.
 
@@ -199,6 +207,8 @@ class ImageOverlay(skrt.image.Image):
                 ylabel=ylabel,
                 no_xlabel=no_xlabel,
                 no_ylabel=no_ylabel,
+                xticks=xticks,
+                yticks=yticks,
                 no_xticks=no_xticks,
                 no_yticks=no_yticks,
                 no_xtick_labels=no_xtick_labels,
@@ -243,6 +253,8 @@ class ImageOverlay(skrt.image.Image):
             ylabel=ylabel,
             no_xlabel=no_xlabel,
             no_ylabel=no_ylabel,
+            xticks=xticks,
+            yticks=yticks,
             no_xticks=no_xticks,
             no_yticks=no_yticks,
             no_xtick_labels=no_xtick_labels,
