@@ -1403,8 +1403,12 @@ in the orientation specified in &lt;view&gt; will be returned.</p>
 <dt>pos<span class="classifier">float, default=None</span></dt><dd><p>Slice position in mm; used if not None and &lt;sl&gt; and &lt;idx&gt; are both
 None.</p>
 </dd>
-<dt>flatten<span class="classifier">bool, default=False</span></dt><dd><p>If True, the image will be summed across all slices in the
-orientation specified in &lt;view&gt;; &lt;sl&gt;/&lt;idx&gt;/&lt;pos&gt; will be ignored.</p>
+<dt>flatten<span class="classifier">bool/str, default=False</span></dt><dd><p>If evaluating to True, the image will be flattened across all
+slices in the orientation specified in &lt;view&gt;; &lt;sl&gt;/&lt;idx&gt;/&lt;pos&gt;
+will be ignored.  If specified as a string, this should be
+the name of a numpy function with which to combine array
+values along an axis, for example “sum”, “max”, “min”, “mean”.
+Otherwise, values are combined by summing.</p>
 </dd>
 <dt>shift<span class="classifier">list, default=[None, None, None]</span></dt><dd><p>Translational shift in order [dx, dy, dz] to apply before returning
 slice.</p>
