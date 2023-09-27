@@ -2534,9 +2534,13 @@ class Image(skrt.core.Archive):
             Slice position in mm; used if not None and <sl> and <idx> are both
             None.
 
-        flatten : bool, default=False
-            If True, the image will be summed across all slices in the
-            orientation specified in <view>; <sl>/<idx>/<pos> will be ignored.
+        flatten : bool/str, default=False
+            If evaluating to True, the image will be flattened across all
+            slices in the orientation specified in <view>; <sl>/<idx>/<pos>
+            will be ignored.  If specified as a string, this should be
+            the name of a numpy function with which to combine array
+            values along an axis, for example "sum", "max", "min", "mean".
+            Otherwise, values are combined by summing.
 
         shift : list, default=[None, None, None]
             Translational shift in order [dx, dy, dz] to apply before returning
@@ -2596,7 +2600,7 @@ class Image(skrt.core.Archive):
                 data[shift_y:, :] = self.get_min()
 
         if flatten:
-            return np.sum(data, axis=2)
+            return getattr(np, str(flatten), np.sum)(data, axis=2)
         else:
             # Cache the slice
             self._current_idx = int(idx)
