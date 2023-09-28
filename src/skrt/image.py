@@ -2535,7 +2535,7 @@ class Image(skrt.core.Archive):
             None.
 
         flatten : bool/str, default=False
-            If evaluating to True, the image will be flattened across all
+            If True, the image will be flattened across all
             slices in the orientation specified in <view>; <sl>/<idx>/<pos>
             will be ignored.  If specified as a string, this should be
             the name of a numpy function with which to combine array

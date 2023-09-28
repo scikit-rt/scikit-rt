@@ -388,6 +388,16 @@ class BetterViewer:
             to the nearest slice. If <init_pos> and <init_idx> are both given,
             <init_pos> will override <init_idx> only if <scale_in_mm> is True.
 
+        flatten : bool/str, default=False
+            If True, the image will be flattened across all
+            slices in the orientation specified in <view>.  If specified as
+            a string, this should be the name of a numpy function with which
+            to combine array values along an axis, for example "sum", "max",
+            "min", "mean".  Otherwise, values are combined by summing.
+            The flattened image in a given view will be the same for all values
+            of slice number, slice index and slice position, but the
+            slices shown for (unflattened) overlays will change.
+
         intensity : float/tuple/str, default=None
             Intensity central value or range thresholds at which to display the image.
             Can later be changed interactively. If a single value is given, the
@@ -1720,7 +1730,8 @@ class BetterViewer:
                     use_cached_slices=(not self.comparison_only),
                     xlim=self.custom_ax_lims[self.viewers[0].view][0],
                     ylim=self.custom_ax_lims[self.viewers[0].view][1],
-                    scale_in_mm=self.scale_in_mm
+                    scale_in_mm=self.scale_in_mm,
+                    flatten=self.flatten,
                 )
 
         if self.suptitle is not None:
@@ -1833,6 +1844,7 @@ class SingleViewer:
         scale_in_mm=True,
         title=None,
         include_image=False,
+        flatten=False,
         **kwargs,
     ):
 
@@ -1973,6 +1985,7 @@ class SingleViewer:
         self.legend_loc = legend_loc
         self.shift = [None, None, None]
         self.include_image = include_image
+        self.flatten=flatten
 
         # Mask settings
         self.mask = mask
@@ -3094,6 +3107,7 @@ class SingleViewer:
             grid=grid,
             grid_opacity=grid_opacity,
             grid_kwargs=grid_kwargs,
+            flatten=self.flatten,
             **kwargs
         )
         self.plotting = False
