@@ -389,14 +389,15 @@ class BetterViewer:
             <init_pos> will override <init_idx> only if <scale_in_mm> is True.
 
         flatten : bool/str, default=False
-            If True, the image will be flattened across all
-            slices in the orientation specified in <view>.  If specified as
-            a string, this should be the name of a numpy function with which
+            If True, images will be flattened across all slices in
+            the orientation specified in <view>.  If specified as a string,
+            this should be the name of a numpy function with which
             to combine array values along an axis, for example "sum", "max",
             "min", "mean".  Otherwise, values are combined by summing.
-            The flattened image in a given view will be the same for all values
+            A flattened image in a given view will be the same for all values
             of slice number, slice index and slice position, but the
-            slices shown for (unflattened) overlays will change.
+            slices shown for (unflattened) overlays will change.  Flattening
+            isn't applied to comparison images.
 
         intensity : float/tuple/str, default=None
             Intensity central value or range thresholds at which to display the image.
@@ -926,6 +927,7 @@ class BetterViewer:
         # Define whether to omit user-interface elements.
         self.no_ui = Defaults().no_ui if no_ui is None else no_ui
 
+        # Define whether to include colour bar.
         self.colorbar = kwargs.pop('colorbar', False)
 
         # Set options for deformation field.
@@ -1731,7 +1733,6 @@ class BetterViewer:
                     xlim=self.custom_ax_lims[self.viewers[0].view][0],
                     ylim=self.custom_ax_lims[self.viewers[0].view][1],
                     scale_in_mm=self.scale_in_mm,
-                    flatten=self.flatten,
                 )
 
         if self.suptitle is not None:
