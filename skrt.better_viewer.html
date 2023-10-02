@@ -396,14 +396,15 @@ in the array to plot.</p>
 to the nearest slice. If &lt;init_pos&gt; and &lt;init_idx&gt; are both given,
 &lt;init_pos&gt; will override &lt;init_idx&gt; only if &lt;scale_in_mm&gt; is True.</p>
 </dd>
-<dt>flatten<span class="classifier">bool/str, default=False</span></dt><dd><p>If True, the image will be flattened across all
-slices in the orientation specified in &lt;view&gt;.  If specified as
-a string, this should be the name of a numpy function with which
+<dt>flatten<span class="classifier">bool/str, default=False</span></dt><dd><p>If True, images will be flattened across all slices in
+the orientation specified in &lt;view&gt;.  If specified as a string,
+this should be the name of a numpy function with which
 to combine array values along an axis, for example “sum”, “max”,
 “min”, “mean”.  Otherwise, values are combined by summing.
-The flattened image in a given view will be the same for all values
+A flattened image in a given view will be the same for all values
 of slice number, slice index and slice position, but the
-slices shown for (unflattened) overlays will change.</p>
+slices shown for (unflattened) overlays will change.  Flattening
+isn’t applied to comparison images.</p>
 </dd>
 <dt>intensity<span class="classifier">float/tuple/str, default=None</span></dt><dd><p>Intensity central value or range thresholds at which to display the image.
 Can later be changed interactively. If a single value is given, the
