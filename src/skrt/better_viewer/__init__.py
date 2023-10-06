@@ -1902,8 +1902,8 @@ class SingleViewer:
             ]
         elif 'auto' == intensity:
             self.intensity = [
-                self.image.get_data().min(),
-                self.image.get_data().max(),
+                float(self.image.get_data().min()),
+                float(self.image.get_data().max()),
             ]
         self.intensity_from_width = isinstance(intensity, float) \
                 or isinstance(intensity, int)
@@ -1921,8 +1921,8 @@ class SingleViewer:
                     self.intensity_limits = 'auto'
 
         if self.intensity_limits == 'auto':
-            self.intensity_limits = [self.image.data.min(),
-                    self.image.data.max()]
+            self.intensity_limits = [float(self.image.data.min()),
+                    float(self.image.data.max())]
 
         # Ensure limits extend to the initial intensity range
         if self.intensity[0] < self.intensity_limits[0]:
