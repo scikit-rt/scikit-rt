@@ -1708,3 +1708,18 @@ def test_get_sinogram():
     assert sinogram.get_extents()[1][1] > nxyz / 2
     assert sinogram.get_extents()[1][0] == -sinogram.get_extents()[1][1]
     assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
+
+def test_flattened():
+    # Create inital image and flattened version.
+    im1 = create_test_image(shape, voxel_size, origin)
+    im2 = im1.flattened()
+
+    # Check that characteristics of flattened image are as expected.
+    assert im2.get_n_voxels() == im1.get_n_voxels()[0: 2] + [1]
+    assert im2.get_data().sum() == im1.get_data().sum()
+    assert im2.get_extents() == im1.get_extents()
+    assert (im2.get_voxel_size()
+            == im1.get_voxel_size()[0: 2] + [im1.get_length(2)])
+    assert (im2.get_origin()
+            == im1.get_origin()[0: 2]
+            + [im1.get_extents()[2][0] + 0.5 * im1.get_length(2)])

@@ -2503,6 +2503,35 @@ class Image(skrt.core.Archive):
                 idx = self.pos_to_idx(centre_pos, _slice_axes[view])
         return idx
 
+    def flattened(self, view="x-y", flatten="sum"):
+        """
+        Obtain image flattened across all slices in the specified view.
+        The flattened image is nominally three dimensional.  Along the
+        projection axis, the image has a depth of one voxel, and the voxel
+        size is equal to the extent of the original image.  The image centre
+        is adjusted such that the extents of the flattened image are the
+        same as those of the original image.
+
+        **Parameters:**
+
+        view : str, default="x-y"
+            Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
+
+        flatten : str, default="sum"
+            Name of a numpy function with which to combine array
+            values along an axis, for example "sum", "max", "min", "mean".
+        """
+        ax = _slice_axes[view]
+        voxel_size = list(self.get_voxel_size())
+        voxel_size[ax] = self.get_length(ax)
+        origin = list(self.get_origin())
+        origin[ax] = self.get_extents()[ax][0] + 0.5 * voxel_size[ax]
+        return Image(
+                self.get_slice(view=view, flatten=flatten),
+                voxel_size=voxel_size,
+                origin=origin
+                )
+
     def get_slice(
         self,
         view="x-y",
@@ -2515,7 +2544,8 @@ class Image(skrt.core.Archive):
         force_standardise=True,
         **kwargs,
     ):
-        """Get a slice of the data in the correct orientation for plotting.
+        """
+        Get a slice of the data in the correct orientation for plotting.
         If <sl>, <pos>, and <idx> are all None, the central slice of the image
         in the orientation specified in <view> will be returned.
 
