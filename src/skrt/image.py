@@ -2521,16 +2521,20 @@ class Image(skrt.core.Archive):
             Name of a numpy function with which to combine array
             values along an axis, for example "sum", "max", "min", "mean".
         """
+        # Calculate voxel size and origin for flattened image.
         ax = _slice_axes[view]
         voxel_size = list(self.get_voxel_size())
         voxel_size[ax] = self.get_length(ax)
         origin = list(self.get_origin())
         origin[ax] = self.get_extents()[ax][0] + 0.5 * voxel_size[ax]
-        return Image(
-                self.get_slice(view=view, flatten=flatten),
-                voxel_size=voxel_size,
-                origin=origin
-                )
+
+        # Combine image data along numpy axis.
+        np_axis = ax if ax > 1 else 1 - ax
+        data = self.get_standardised_data(force=True)
+        data = getattr(np, str(flatten), np.sum)(data, axis=np_axis)
+        data = np.expand_dims(data, axis=np_axis)
+
+        return Image(data, voxel_size=voxel_size, origin=origin)
 
     def get_slice(
         self,

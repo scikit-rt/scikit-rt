@@ -15,7 +15,8 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import Defaults, File, fullpath
-from skrt.image import (Image, checked_crop_limits, get_alignment_translation,
+from skrt.image import (_slice_axes, Image,
+                        checked_crop_limits, get_alignment_translation,
                         get_geometry, get_image_comparison_metrics,
                         get_mask_bbox, get_translation_to_align,
                         match_images, match_image_voxel_sizes, rescale_images)
@@ -1710,16 +1711,24 @@ def test_get_sinogram():
     assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
 
 def test_flattened():
-    # Create inital image and flattened version.
+    # Create inital image.
     im1 = create_test_image(shape, voxel_size, origin)
-    im2 = im1.flattened()
 
-    # Check that characteristics of flattened image are as expected.
-    assert im2.get_n_voxels() == im1.get_n_voxels()[0: 2] + [1]
-    assert im2.get_data().sum() == im1.get_data().sum()
-    assert im2.get_extents() == im1.get_extents()
-    assert (im2.get_voxel_size()
-            == im1.get_voxel_size()[0: 2] + [im1.get_length(2)])
-    assert (im2.get_origin()
-            == im1.get_origin()[0: 2]
-            + [im1.get_extents()[2][0] + 0.5 * im1.get_length(2)])
+    # Check characteristics of flattened image for each view.
+    for view, ax in _slice_axes.items():
+        im2 = im1.flattened(view)
+
+        assert im2.get_data().sum() == im1.get_data().sum()
+        assert im2.get_extents() == im1.get_extents()
+
+        n_voxels2 = list(im1.get_n_voxels())
+        n_voxels2[ax] = 1
+        assert im2.get_n_voxels() == n_voxels2
+
+        voxel_size2 = list(im1.get_voxel_size())
+        voxel_size2[ax] = im1.get_length(ax)
+        assert im2.get_voxel_size() == voxel_size2
+
+        origin2 = list(im1.get_origin())
+        origin2[ax] = im1.get_extents()[ax][0] + 0.5 * im1.get_length(ax)
+        assert im2.get_origin() == origin2
