@@ -963,6 +963,24 @@ class ROI(skrt.core.Archive):
         self.create_mask()
         return self.mask
 
+    def flattened(self, view="x-y"):
+        """
+        Obtain ROI flattened across all slices in the specified view.  The
+        extents and centroid of the flattened ROI are the same as those of
+        the original.
+
+        **Parameter:**
+
+        view : str, default="x-y"
+            Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
+        """
+        ax = skrt.image._slice_axes[view]
+        lims = [None, None, None]
+        lims[ax] = self.get_extent(ax)
+        mask_image = self.get_mask_image().clone()
+        mask_image.crop(*lims)
+        return ROI(mask_image.flattened(view))
+
     def get_polygons(self, view="x-y", idx_as_key=False):
         """Get dict of polygons for each slice."""
 

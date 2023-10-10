@@ -1711,6 +1711,7 @@ def test_get_sinogram():
     assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
 
 def test_flattened():
+    """Test creation of flattened image."""
     # Create inital image.
     im1 = create_test_image(shape, voxel_size, origin)
 

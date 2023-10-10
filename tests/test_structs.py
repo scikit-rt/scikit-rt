@@ -17,6 +17,7 @@ from shapely.validation import explain_validity
 from skimage.morphology import ball
 
 from skrt.core import fullpath, Defaults
+from skrt.image import _slice_axes
 from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
@@ -1906,3 +1907,22 @@ def test_apl_from_masks():
         assert cuboid1.get_added_path_length(cuboid2, single_slice=True) == apl1
         assert (cuboid1.get_added_path_length(cuboid2)
                 == apl1 * dxyz)
+
+def test_flattened():
+    """Test creation of flattened ROI."""
+    # Create initial ROI
+    sim = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
+    sides = (4, 2, 6)
+    sim.add_cuboid(sides, name="cuboid")
+    roi1 = sim.get_roi("cuboid")
+
+    # Check characteristics of flattened ROI for each view.
+    for view, ax in _slice_axes.items():
+        roi2 = roi1.flattened(view)
+
+        assert roi2.get_extents() == roi1.get_extents()
+        assert np.all(roi2.get_centroid() == roi1.get_centroid())
+
+        voxel_size = list(roi1.get_voxel_size())
+        voxel_size[ax] = sides[ax]
+        assert roi2.get_voxel_size() == voxel_size
