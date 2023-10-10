@@ -4251,9 +4251,9 @@ class Image(skrt.core.Archive):
             Coordinates in mm in [x, y, z] about which to perform rotation
             and scaling of translated image.
 
-        resample: float/string, default='coarse'
+        resample: float/string, default='fine'
             Resampling to be performed before image transformation.
-            If resample is a float, then the image is resampled to that
+            If resample is a float, then the image is resampled so that
             this is the voxel size in mm along all axes.  If the
             transformation involves scaling or rotation in an image
             projection where voxels are non-square:
