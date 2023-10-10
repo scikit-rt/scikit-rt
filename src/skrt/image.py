@@ -2503,7 +2503,7 @@ class Image(skrt.core.Archive):
                 idx = self.pos_to_idx(centre_pos, _slice_axes[view])
         return idx
 
-    def flattened(self, view="x-y", flatten="sum"):
+    def flattened(self, view="x-y", combine="sum"):
         """
         Obtain image flattened across all slices in the specified view.
         The flattened image is nominally three dimensional.  Along the
@@ -2517,7 +2517,7 @@ class Image(skrt.core.Archive):
         view : str, default="x-y"
             Orientation; can be "x-y", "x-z", "y-x", "y-z", "z-x", or "z-y".
 
-        flatten : str, default="sum"
+        combine : str, default="sum"
             Name of a numpy function with which to combine array
             values along an axis, for example "sum", "max", "min", "mean".
         """
@@ -2531,7 +2531,7 @@ class Image(skrt.core.Archive):
         # Combine image data along numpy axis.
         np_axis = ax if ax > 1 else 1 - ax
         data = self.get_standardised_data(force=True)
-        data = getattr(np, str(flatten), np.sum)(data, axis=np_axis)
+        data = getattr(np, str(combine), np.sum)(data, axis=np_axis)
         data = np.expand_dims(data, axis=np_axis)
 
         return Image(data, voxel_size=voxel_size, origin=origin)
