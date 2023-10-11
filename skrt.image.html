@@ -2300,8 +2300,8 @@ yaw (rotation about y-axis), roll (rotation about z-axis).</p>
 <dt>centre<span class="classifier">list, default=[0, 0, 0]</span></dt><dd><p>Coordinates in mm in [x, y, z] about which to perform rotation
 and scaling of translated image.</p>
 </dd>
-<dt>resample: float/string, default=’coarse’</dt><dd><p>Resampling to be performed before image transformation.
-If resample is a float, then the image is resampled to that
+<dt>resample: float/string, default=’fine’</dt><dd><p>Resampling to be performed before image transformation.
+If resample is a float, then the image is resampled so that
 this is the voxel size in mm along all axes.  If the
 transformation involves scaling or rotation in an image
 projection where voxels are non-square:

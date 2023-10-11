@@ -1259,6 +1259,20 @@ in the x-y contours dictionary.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_enclosing_roi">
+<span class="sig-name descname"><span class="pre">get_enclosing_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oriented</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_enclosing_roi" title="Permalink to this definition"></a></dt>
+<dd><p>Get ROI defined, slice by slice, by the minimum rectangle
+that encloses this ROI.</p>
+<p><strong>Parameter:</strong></p>
+<ul class="simple">
+<li><p>oriented: bool, default=False
+If True, rectangles at all orientations are considered when
+selecting the rectangle of minimum area.  If False, only
+rectangles with sides parallel to the x and y axes are considered.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_extent">
 <span class="sig-name descname"><span class="pre">get_extent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_extent" title="Permalink to this definition"></a></dt>
 <dd><p>Get minimum and maximum extent of the ROI in mm along a given axis.</p>
