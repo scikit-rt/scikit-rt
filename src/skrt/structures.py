@@ -13,6 +13,7 @@ import shutil
 from scipy import interpolate, ndimage
 from shapely import affinity
 from shapely import geometry
+from shapely import envelope, oriented_envelope
 from shapely import ops
 from skimage import draw
 from matplotlib import defaultParams
@@ -955,6 +956,30 @@ class ROI(skrt.core.Archive):
             ),
             axis=skrt.image._slice_axes[view],
         ).astype(bool)
+
+    def get_enclosing_roi(self, oriented=False):
+        """
+        Get ROI defined, slice by slice, by the minimum rectangle
+        that encloses this ROI.
+
+        **Parameter:**
+
+        - oriented: bool, default=False
+          If True, rectangles at all orientations are considered when
+          selecting the rectangle of minimum area.  If False, only
+          rectangles with sides parallel to the x and y axes are considered.
+        """
+        envelope = "oriented_envelope" if oriented else "envelope"
+
+        envelopes = {}
+        for key, polygons in self.get_polygons().items():
+            envelopes[key] = [
+                    getattr(geometry.multipolygon.MultiPolygon(polygons),
+                            envelope)]
+
+        return ROI(envelopes,
+                   name=f"{self.name}_envelope" if self.name else None,
+                   image=self.image if self.image else self.get_mask_image())
 
     def get_mask_image(self):
         """Get image object representing ROI mask."""

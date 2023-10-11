@@ -11,6 +11,7 @@ import pytest
 import numpy as np
 import matplotlib.colors
 
+from shapely import minimum_bounding_circle
 from shapely.geometry import Polygon
 from shapely.validation import explain_validity
 
@@ -1926,3 +1927,38 @@ def test_flattened():
         voxel_size = list(roi1.get_voxel_size())
         voxel_size[ax] = sides[ax]
         assert roi2.get_voxel_size() == voxel_size
+
+def test_enclosing_roi():
+    """Test creation of ROI that encloses another."""
+    # Create ROIs representing cuboid and cylinder from polygons.
+    xy = 2
+    z = 5
+    square = Polygon([(-xy, -xy), (-xy, xy), (xy, xy), (xy, -xy), (-xy, -xy)])
+    circle = minimum_bounding_circle(square)
+    roi1 = ROI({key: [square] for key in range(z)}, name="cuboid")
+    roi2 = ROI({key: [circle] for key in range(z)}, name="cylinder")
+
+    # Check characteristics of enclosing ROIs,
+    # with and without rotations allowed.
+    # ROI and enclosing ROI are the same for the cuboid,
+    # but are different for the cylinder.
+    for oriented in [True, False]:
+        for roi in [roi1, roi2]:
+            roi3 = roi.get_enclosing_roi(oriented)
+
+            if roi.name == "cuboid":
+                extents = roi.get_extents()
+                volume = roi.get_volume()
+            else:
+                envelope = (circle.oriented_envelope if oriented
+                            else circle.envelope)
+                x1, y1, x2, y2 = envelope.bounds
+                z1, z2 = roi.get_extents()[2]
+                extents = [[x1, x2], [y1, y2], [z1, z2]]
+                volume = envelope.area * z
+
+            assert roi3.get_extents() == extents
+            assert roi3.get_volume() == volume
+            assert np.all(roi3.get_centroid()
+                          == pytest.approx(roi.get_centroid(), abs=1e-15))
+            assert roi3.name == f"{roi.name}_envelope"
