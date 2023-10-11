@@ -5541,7 +5541,7 @@ class ROI(skrt.core.Archive):
         im = self.get_dummy_image(**kwargs)
 
         # Clear mask and contours
-        self.input_contours = self.contours["x-y"]
+        self.input_contours = self.get_contours("x-y")
         self.contours = {"x-y": self.input_contours}
         self.loaded_mask = False
         self.mask = None
