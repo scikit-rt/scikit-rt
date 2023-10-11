@@ -1053,9 +1053,19 @@ class ROI(skrt.core.Archive):
                 if mask_slice.max() < 0.5:
                     continue
 
-                points = self.mask_to_contours(mask_slice, v)
-                if points:
-                    self.contours[v][self.idx_to_pos(iz, z_ax)] = points
+                # Deal with case where the mask slice is one-dimensional,
+                # for example as happens with flattened ROIs.
+                if 1 in mask_slice.shape:
+                    x1, x2 = self.get_extent(view[0], True, view, idx=iz)
+                    y1, y2 = self.get_extent(view[-1], True, view, idx=iz)
+                    self.contours[v][self.idx_to_pos(iz, z_ax)] = [np.array(
+                        [(x1, y1), (x1, y2), (x2, y2), (x2, y1), (x1, y1)])]
+
+                # Deal with case where the mask slice is two-dimensional,
+                else:
+                    points = self.mask_to_contours(mask_slice, v)
+                    if points:
+                        self.contours[v][self.idx_to_pos(iz, z_ax)] = points
 
     def mask_to_contours(self, mask, view, invert=False):
         """Create contours from a mask."""
@@ -5540,11 +5550,11 @@ class ROI(skrt.core.Archive):
         # Make image
         im = self.get_dummy_image(**kwargs)
 
-        # Clear mask and contours
+        # Ensure that ROI contours in "x-y" view are defined.
+        # These provide the starting point for defining contours and masks
+        # relative to the image size being set.
         self.input_contours = self.get_contours("x-y")
         self.contours = {"x-y": self.input_contours}
-        self.loaded_mask = False
-        self.mask = None
 
         # Assign image
         self.set_image(im)
@@ -5561,17 +5571,26 @@ class ROI(skrt.core.Archive):
         if im is None:
             return
 
-        # Set ROI voxel size to that of new image.
+        # Ensure that ROI voxel size is set.
         # It will be needed to define slice thickness
         # in the case of an ROI with contour(s) at a single z-position.
-        self.voxel_size = im.get_voxel_size()
+        if not self.voxel_size:
+            self.voxel_size = im.get_voxel_size()
 
         # If the z-distance between contours is greater than the voxel
         # z-dimension for the new image, first ensure that the ROI
         # mask is created with the inter-contour z-distance, then resize
         # to the image voxel size.
         if self.get_slice_thickness_contours() > self.image.get_voxel_size()[2]:
-            if not (self.mask and (self.voxel_size == self.mask.voxel_size)):
+            if not (self.mask
+                    and (self.image.voxel_size == self.mask.voxel_size)):
+                # Note that the following call to self.create_mask()
+                # triggers a call to self.set_image_to_dummy(),
+                # which calls self.set_image().
+                # This point in the code shouldn't be reached after this
+                # call is made (self.get_slice_thickness_contours() should
+                # match self.image.get_voxel_size()[2]), avoiding
+                # a recursive loop.
                 self.create_mask(voxel_size=self.voxel_size[0:2], force=True)
                 # The mask creation will have redefined the image association,
                 # so reassign the new image.
@@ -5592,7 +5611,7 @@ class ROI(skrt.core.Archive):
             self.mask = None
             self.loaded_mask = False
 
-        # Set geoemtric info
+        # Set geometric info
         data_shape = im.get_data().shape
         self.shape = [data_shape[1], data_shape[0], data_shape[2]]
         self.voxel_size = im.get_voxel_size()
