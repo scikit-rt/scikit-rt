@@ -10026,17 +10026,15 @@ def get_roi_slice(roi, z_fraction=1, suffix=None):
     pos = pos1 + z_fraction * (pos2 - pos1)
     idx = roi.pos_to_idx(pos, "z")
 
-    # Obtain contours for required slice, and convert to ROI object.
+    # Obtain contours for required slice.
     contours = roi.get_contours(idx_as_key=True)[idx]
-    roi_slice = ROI({roi.idx_to_pos(idx, "z"): contours})
 
+    # Define name suffix.
     suffix = f"{z_fraction:.2f}" if suffix is None else suffix
-    if suffix:
-        roi_slice.name = f"{roi.name}_{suffix}"
-    else:
-        roi_slice.name = str(roi.name)
 
-    return roi_slice
+    return ROI({roi.idx_to_pos(idx, "z"): contours},
+               image=roi.image if roi.image else roi.get_mask_image(),
+               name=f"{roi.name}_{suffix}" if suffix else f"{roi.name}")
 
 
 def get_metric_method(metric):
