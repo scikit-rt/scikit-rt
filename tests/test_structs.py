@@ -1927,6 +1927,7 @@ def test_flattened():
         voxel_size = list(roi1.get_voxel_size())
         voxel_size[ax] = sides[ax]
         assert roi2.get_voxel_size() == voxel_size
+        assert roi2.name == f"{roi1.name}_flattened"
 
 def test_enclosing_roi():
     """Test creation of ROI that encloses another."""

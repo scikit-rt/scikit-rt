@@ -1004,7 +1004,8 @@ class ROI(skrt.core.Archive):
         lims[ax] = self.get_extent(ax)
         mask_image = self.get_mask_image().clone()
         mask_image.crop(*lims)
-        return ROI(mask_image.flattened(view))
+        return ROI(mask_image.flattened(view),
+                   name=f"{self.name}_flattened" if self.name else None)
 
     def get_polygons(self, view="x-y", idx_as_key=False):
         """Get dict of polygons for each slice."""
