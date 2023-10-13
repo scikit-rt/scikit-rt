@@ -5216,7 +5216,7 @@ class ROI(skrt.core.Archive):
         """
         return self.alpha_over_beta
 
-    def set_color(self, color):
+    def set_color(self, color=None):
         """Set plotting color."""
 
         if color is not None and not matplotlib.colors.is_color_like(color):
