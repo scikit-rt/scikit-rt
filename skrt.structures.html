@@ -2985,6 +2985,28 @@ True, the result represents their intersection.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.containing_image">
+<span class="sig-name descname"><span class="pre">containing_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.containing_image" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain image containing specified ROIs.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi_names<span class="classifier">list, default=None</span></dt><dd><p>List of strings, specifying names of ROIs to be contained
+in image.  If None, the list returned by self.get_roi_names()
+will be used.</p>
+</dd>
+<dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Template image to be used.  If the template image contains
+the specified ROIs, this image will be returned.  Otherwise,
+a dummy image that fully contains the ROIs will be returned.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Three element tuple, specifying the (x, y, z) voxel dimensions
+(mm) when creating a dummy image that contains the specified
+ROIs.  If None: if &lt;image&gt; is not None, it’s voxel size will
+be used; otherwise, a voxel size of (1, 1, 1) will be used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.contains">
 <span class="sig-name descname"><span class="pre">contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.contains" title="Permalink to this definition"></a></dt>
 <dd><p>Return whether structure set contains named ROIs,
@@ -3803,8 +3825,88 @@ described only by contours, this will be the number of buffer voxels
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extras</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.write" title="Permalink to this definition"></a></dt>
-<dd><p>Write to a dicom StructureSet file or directory of nifti files.</p>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extras</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write structure set.</p>
+<p>The output may be a single DICOM file, a directory containing
+a NIfTI file for each ROI, or a single (multi-label) NIfTI file.</p>
+<p><strong>Parameters:</strong>
+outname : str, default=None</p>
+<blockquote>
+<div><p>Name to use for output file.  If None, and a DICOM file or
+multi-label NIfTI file is to be written, a name including modality
+and timestamp is generated.</p>
+</div></blockquote>
+<dl>
+<dt>outdir<span class="classifier">str/pathlib.Path, default=None</span></dt><dd><p>Path to directory where output is to be written.</p>
+</dd>
+<dt>ext: str, default=None</dt><dd><p>File extension specifying format for output file(s).  Valid
+values are “.dcm”, “.nii.gz”, “nii”.  If None, the extension
+is taken from &lt;outname&gt;.</p>
+</dd>
+<dt>overwrite<span class="classifier">bool, default=False</span></dt><dd><p>If True, delete any pre-existing DICOM files from output
+directory before writing.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, default=True</span></dt><dd><p>If True, print information about output writing.</p>
+</dd>
+<dt>header_source<span class="classifier">str/pydicom.dataset.FileDataset/None, default=None</span></dt><dd><p>Source from which to create DICOM header.  This can be:
+(a) a path to a dicom file, which will be used as the header;
+(b) a path to a directory containing dicom files, where</p>
+<blockquote>
+<div><p>the first file alphabetically will be used as the header;</p>
+</div></blockquote>
+<ol class="loweralpha simple" start="3">
+<li><p>a pydicom.dataset.FileDataset object;</p></li>
+<li><p>None, in which case a header will be created from scratch,
+inculding new UIDs.</p></li>
+</ol>
+<p>Ignored when not writing DICOM output.</p>
+</dd>
+<dt>patient_id<span class="classifier">str, default=None</span></dt><dd><p>Patient identifier.  Ingored when not writing DICOM output.</p>
+</dd>
+<dt>patient_position<span class="classifier">str, default=None</span></dt><dd><p>Indicator of patient position relative to imaging equipment.
+Examples include: “HFS” (head first, supine),
+“FFP” (feet first, prone), “FFS” (feet first, supine).  If None,
+use “HFS”.  Ignored when not writing DICOM output.</p>
+</dd>
+<dt>root_uid<span class="classifier">str, default=None</span></dt><dd><p>Root to be used in Globally Unique Identifiers (GUIDs).  This
+should uniquely identify the institution or group generating
+the GUID.  If None, the value of pydicom.uid.PYDICOM_ROOT_UID
+is used.  Ignored when not writing DICOM output.</p>
+</dd>
+<dt>header_extras<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of attribute-value pairs for applying arbitary
+updates to DICOM header.  Ignored when not writing DICOM
+output.</p>
+</dd>
+<dt>multi_label<span class="classifier">bool, default=False</span></dt><dd><p>If True, and writing NIfTI output, write a single file,
+with a different label for each ROI.  ROIs are labelled
+by consecutive integers, starting from 1, in the order
+specified by &lt;names&gt;.  Ignored when not writing NIfTI
+output.</p>
+</dd>
+<dt>names<span class="classifier">list, default=None</span></dt><dd><p>List of strings, specifying names of ROIs to be written
+to multi-label NIfTI file, in the order in which they are
+to be labelled.  If None, the list of names returned by
+self.get_roi_names() is used.  Ignored when not writing
+multi-label NIfTI output.</p>
+</dd>
+<dt>image<span class="classifier">skrt.image.Image, default=None</span></dt><dd><p>Template for mask creation when writing to multi-label
+NIfTI file.  If None, the image associated with this
+structure set is used.  If this is also None, or if the
+image doesn’t contain ROIs in the structure set that are
+included in &lt;names&gt;, a dummy image that fully contains
+these ROIs is used.  Ignored when not writing multi-label
+NIfTI output.</p>
+</dd>
+<dt>voxel_size<span class="classifier">tuple, default=None</span></dt><dd><p>Three element tuple, specifying the (x, y, z) voxel dimensions
+(mm) when creating a dummy image for writing to multi-label
+NIfTI file.  If None: if &lt;image&gt; is not None, it’s voxel size will
+be used; otherwise, a voxel size of (1, 1, 1) will be used.
+Ignored when not writing multi-label NIfTI output.</p>
+</dd>
+<dt><a href="#id43"><span class="problematic" id="id44">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to skrt.structures.ROI.write()
+when writing single NIfTI file per ROI.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
