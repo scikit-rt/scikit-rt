@@ -1963,3 +1963,34 @@ def test_enclosing_roi():
             assert np.all(roi3.get_centroid()
                           == pytest.approx(roi.get_centroid(), abs=1e-15))
             assert roi3.name == f"{roi.name}_envelope"
+
+def test_containing_image():
+    '''Test retrieval of image containing specified ROIs.'''
+
+    # Create synthetic image with associated structure set.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 60), intensity=1)
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 40), intensity=10)
+    sset = sim.get_structure_set()
+
+    # Define items for testing.
+    voxel_size1 = [1, 1, 1]
+    voxel_size2 = [1, 2, 3]
+    sim2 = SyntheticImage((10, 10, 10), voxel_size=voxel_size2)
+    names = sset.get_roi_names()
+    names.insert(1, "missing_roi")
+
+    # Check that original image is returned as conaining image.
+    assert sset.containing_image(names, sim) is sim
+
+    # Check that results are as expected
+    # for different arguments to sset.containing_image()
+    tests = [
+            ((names,), voxel_size1),
+            ((names, sim2), voxel_size2),
+            ((names, None, voxel_size2), voxel_size2),
+            ]
+    for args, voxel_size in tests:
+        img = sset.containing_image(*args)
+        assert img.get_voxel_size() == voxel_size
+        assert sset.contains(sset.get_roi_names(), img)

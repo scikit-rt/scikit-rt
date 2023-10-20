@@ -2020,6 +2020,8 @@ class ROI(skrt.core.Archive):
         # Apply buffer if requested
         if buffer:
             for ax in range(3):
+                if None in extents[ax]:
+                    continue
                 if buffer_units == "mm":
                     delta = buffer
                 elif buffer_units == "voxels":
@@ -7368,6 +7370,8 @@ class StructureSet(skrt.core.Archive):
         for roi_name in roi_names:
             roi_extents = ss[roi_name].get_extents(0.5, "voxels")
             for idx in range(3):
+                if None in roi_extents[idx]:
+                    return False
                 if roi_extents[idx][0] < im_extents[idx][0]:
                     return False
                 if roi_extents[idx][1] > im_extents[idx][1]:
@@ -8170,17 +8174,109 @@ class StructureSet(skrt.core.Archive):
         outdir=".",
         ext=None,
         overwrite=False,
+        verbose=True,
         header_source=None,
         patient_id=None,
         patient_position=None,
-        modality=None,
         root_uid=None,
-        verbose=True,
         header_extras={},
+        multi_label=False,
+        names=None,
+        image=None,
+        voxel_size=None,
         **kwargs,
     ):
-        """Write to a dicom StructureSet file or directory of nifti files."""
+        """
+        Write structure set.
 
+        The output may be a single DICOM file, a directory containing
+        a NIfTI file for each ROI, or a single (multi-label) NIfTI file.
+
+        **Parameters:**
+        outname : str, default=None
+            Name to use for output file.  If None, and a DICOM file or
+            multi-label NIfTI file is to be written, a name including modality
+            and timestamp is generated.
+
+        outdir : str/pathlib.Path, default=None
+            Path to directory where output is to be written.
+
+        ext: str, default=None
+            File extension specifying format for output file(s).  Valid
+            values are ".dcm", ".nii.gz", "nii".  If None, the extension
+            is taken from <outname>.
+
+        overwrite : bool, default=False
+            If True, delete any pre-existing DICOM files from output
+            directory before writing.
+
+        verbose : bool, default=True
+            If True, print information about output writing.
+
+        header_source : str/pydicom.dataset.FileDataset/None, default=None
+            Source from which to create DICOM header.  This can be:
+            (a) a path to a dicom file, which will be used as the header;
+            (b) a path to a directory containing dicom files, where
+                the first file alphabetically will be used as the header;
+            (c) a pydicom.dataset.FileDataset object;
+            (d) None, in which case a header will be created from scratch,
+                inculding new UIDs.
+            Ignored when not writing DICOM output.
+
+        patient_id : str, default=None
+            Patient identifier.  Ingored when not writing DICOM output.
+
+        patient_position : str, default=None
+            Indicator of patient position relative to imaging equipment.
+            Examples include: "HFS" (head first, supine),
+            "FFP" (feet first, prone), "FFS" (feet first, supine).  If None,
+            use "HFS".  Ignored when not writing DICOM output.
+
+        root_uid : str, default=None
+            Root to be used in Globally Unique Identifiers (GUIDs).  This
+            should uniquely identify the institution or group generating
+            the GUID.  If None, the value of pydicom.uid.PYDICOM_ROOT_UID
+            is used.  Ignored when not writing DICOM output.
+
+        header_extras : dict, default=None
+            Dictionary of attribute-value pairs for applying arbitary
+            updates to DICOM header.  Ignored when not writing DICOM
+            output.
+
+        multi_label : bool, default=False
+            If True, and writing NIfTI output, write a single file,
+            with a different label for each ROI.  ROIs are labelled
+            by consecutive integers, starting from 1, in the order
+            specified by <names>.  Ignored when not writing NIfTI
+            output.
+
+        names : list, default=None
+            List of strings, specifying names of ROIs to be written
+            to multi-label NIfTI file, in the order in which they are
+            to be labelled.  If None, the list of names returned by
+            self.get_roi_names() is used.  Ignored when not writing
+            multi-label NIfTI output.
+
+        image : skrt.image.Image, default=None
+            Template for mask creation when writing to multi-label
+            NIfTI file.  If None, the image associated with this
+            structure set is used.  If this is also None, or if the
+            image doesn't contain ROIs in the structure set that are
+            included in <names>, a dummy image that fully contains
+            these ROIs is used.  Ignored when not writing multi-label
+            NIfTI output.
+
+        voxel_size : tuple, default=None
+            Three element tuple, specifying the (x, y, z) voxel dimensions
+            (mm) when creating a dummy image for writing to multi-label
+            NIfTI file.  If None: if <image> is not None, it's voxel size will
+            be used; otherwise, a voxel size of (1, 1, 1) will be used.
+            Ignored when not writing multi-label NIfTI output.
+
+        **kwargs
+            Keyword arguments passed to skrt.structures.ROI.write()
+            when writing single NIfTI file per ROI.
+        """
         if ext is not None and not ext.startswith("."):
             ext = f".{ext}"
 
@@ -8210,14 +8306,34 @@ class StructureSet(skrt.core.Archive):
                 print("Wrote dicom file to directory:", outdir)
             return
 
-        # Otherwise, write to individual ROI files
+        # Prepare output directory for non-DICOM output.
+        outdir = skrt.core.fullpath(outdir)
         if not os.path.exists(outdir):
             os.makedirs(outdir)
         elif overwrite:
             shutil.rmtree(outdir)
             os.mkdir(outdir)
-        for s in self.get_rois():
-            s.write(outdir=outdir, ext=ext, verbose=verbose, **kwargs)
+
+        if multi_label:
+            # Write multi-label NIfTI file.
+            all_roi_names = self.get_roi_names()
+            names = names or all_roi_names
+            ext = ext or ".nii.gz"
+            outname = outname or f"RTSTRUCT_{self.date}_{self.time}{ext}"
+            image = self.containing_image(
+                    names, image or self.get_image(), voxel_size)
+            sset = self.clone()
+            sset.set_image(image)
+            array = np.zeros(image.get_data().shape, dtype=np.int32)
+            for idx, roi_name in enumerate(names):
+                if roi_name in all_roi_names:
+                    array[sset[roi_name].get_mask()] = idx + 1
+            im = skrt.image.Image(array, affine=image.get_affine()).write(
+                    os.path.join(outdir, outname), verbose=verbose, **kwargs)
+        else:
+            # Write to individual ROI files.
+            for s in self.get_rois():
+                s.write(outdir=outdir, ext=ext, verbose=verbose, **kwargs)
 
     def plot(
         self,
@@ -9174,6 +9290,57 @@ class StructureSet(skrt.core.Archive):
         # Store the new order of ROIs.
         self.rois = rois
 
+    def containing_image(self, roi_names=None, image=None, voxel_size=None):
+        """
+        Obtain image containing specified ROIs.
+
+        **Parameters:**
+
+        roi_names : list, default=None
+            List of strings, specifying names of ROIs to be contained
+            in image.  If None, the list returned by self.get_roi_names()
+            will be used.
+
+        image : skrt.image.Image, default=None
+            Template image to be used.  If the template image contains
+            the specified ROIs, this image will be returned.  Otherwise,
+            a dummy image that fully contains the ROIs will be returned.
+
+        voxel_size : tuple, default=None
+            Three element tuple, specifying the (x, y, z) voxel dimensions
+            (mm) when creating a dummy image that contains the specified
+            ROIs.  If None: if <image> is not None, it's voxel size will
+            be used; otherwise, a voxel size of (1, 1, 1) will be used.
+        """
+        # 
+        roi_names_in_ss = (set(roi_names).intersection(self.get_roi_names())
+                           if roi_names else self.get_roi_names())
+        # Ensure that image used as reference for mask creation
+        # contains all ROIs.
+        have_image = issubclass(type(image), skrt.image.Image)
+        roi_names_in_ss = [
+            roi_name
+            for roi_name in self.get_roi_names()
+            if roi_name in roi_names
+        ]
+        in_image = have_image and self.contains(
+            roi_names_in_ss, in_image=image
+        )
+        if in_image:
+            ss_image = image
+        else:
+            if not voxel_size:
+                if have_image:
+                    voxel_size = image.get_voxel_size()
+                else:
+                    voxel_size = (1, 1, 1)
+            ss_image = StructureSet(
+                self.get_rois(roi_names_in_ss)
+            ).get_dummy_image(
+                voxel_size=voxel_size[0:2], slice_thickness=voxel_size[2]
+            )
+        return ss_image
+
     def combine_rois(
         self,
         name=None,
@@ -9262,27 +9429,7 @@ class StructureSet(skrt.core.Archive):
         else:
             # Ensure that image used as reference for mask creation
             # contains all ROIs.
-            have_image = issubclass(type(image), skrt.image.Image)
-            roi_names_in_ss = [
-                roi_name
-                for roi_name in self.get_roi_names()
-                if roi_name in roi_names
-            ]
-            in_image = have_image and self.contains(
-                roi_names_in_ss, in_image=image
-            )
-            if in_image:
-                ss_image = image
-            else:
-                if have_image:
-                    voxel_size = image.get_voxel_size()
-                else:
-                    voxel_size = (1, 1, 1)
-                ss_image = StructureSet(
-                    self.get_rois(roi_names_in_ss)
-                ).get_dummy_image(
-                    voxel_size=voxel_size[0:2], slice_thickness=voxel_size[2]
-                )
+            ss_image = self.containing_image(roi_names, image)
 
             # Clone first ROI as starting point.
             roi_new = self.get_roi(roi_names[0]).clone()
@@ -9301,9 +9448,10 @@ class StructureSet(skrt.core.Archive):
 
             # Create the composite ROI.
             roi_new = ROI(source=roi_new.mask.data, image=ss_image, name=name)
-            if have_image and not in_image:
-                roi_new.set_image(image)
-                roi_new.create_mask()
+            roi_new.create_mask()
+            #if have_image and not in_image:
+            #    roi_new.set_image(image)
+            #    roi_new.create_mask()
 
         return roi_new
 
@@ -9667,26 +9815,27 @@ def create_dummy_image(
 
         # Calculate number of voxels needed to cover ROI plus buffer each side
         shape = [
-            (np.ceil((max(ex) - min(ex)) + 2 * buffer) / voxel_size[i])
+            1 + math.ceil((max(ex) - min(ex)) / voxel_size[i])
+            + math.ceil(2 * buffer / voxel_size[i])
             for i, ex in enumerate(extents[:2])
         ]
 
     # Get z voxel size and shape
     voxel_size.append(slice_thickness)
-    shape_z = (max(extents[2]) - min(extents[2])) / slice_thickness
+    shape_z = (1 + math.ceil((max(extents[2]) - min(extents[2]))
+                             / slice_thickness))
 
     # Add nearest integer number of buffer voxels
-    n_buff_z = np.ceil(buffer / slice_thickness)
+    n_buff_z = math.ceil(buffer / slice_thickness)
     shape.append(shape_z + 2 * n_buff_z)
-    shape = [int(s) for s in shape]
 
     # Get origin position; ensure that origin points to centre of buffer voxel
     # outside ROI
     origin = [
-        min(ex) + abs(voxel_size[i]) * 0.5 - buffer
+        min(ex) + abs(voxel_size[i]) * (0.5 - buffer)
         for i, ex in enumerate(extents[:2])
     ]
-    origin.append(min(extents[2]) - abs(slice_thickness) * (n_buff_z - 0.5))
+    origin.append(min(extents[2]) + abs(slice_thickness) * (0.5 - n_buff_z))
 
     # Create image
     return skrt.image.Image(

@@ -475,12 +475,12 @@ def test_intersection_union_size_split_roi():
 
     # Create synthetic image, featuring cuboid and two non-overlapping cubes,
     # contained within the cuboid.
-    sim1 = SyntheticImage((10, 10, 10), origin=(0.5, 0.5, 0.5))
+    sim1 = SyntheticImage((10, 10, 20), origin=(0.5, 0.5, 0.5))
     cuboid_sides = np.array([4, 4, 10])
     cube_side = cuboid_sides[0]
-    sim1.add_cuboid(cuboid_sides, name="cuboid", centre=(5, 5, 5))
-    sim1.add_cube(cube_side, name="cube1", centre=(5, 5, 2))
-    sim1.add_cube(cube_side, name="cube2", centre=(5, 5, 8))
+    sim1.add_cuboid(cuboid_sides, name="cuboid", centre=(5, 5, 10))
+    sim1.add_cube(cube_side, name="cube1", centre=(5, 5, 7))
+    sim1.add_cube(cube_side, name="cube2", centre=(5, 5, 13))
 
     # Extracts ROIs for cuboid, and for split_roi combining the two cubes.
     structure_set = sim1.get_structure_set()
