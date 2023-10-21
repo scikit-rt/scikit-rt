@@ -2865,8 +2865,10 @@ loading will not occur until StructureSet.load() is called.</p>
 <dt>names<span class="classifier">dict/list, default=None</span></dt><dd><p>Optional dict of ROI names to use when renaming loaded ROIs. Keys
 should be desired names, and values should be lists of possible
 input names or wildcards matching input names.</p>
-<p>If multi_label=True, names can also be a list of names to assign
-to each label found in order, from smallest to largest.</p>
+<p>If multi_label=True, names can also be: (1) a list of names
+to assign to each label found in order, from smallest to largest;
+(2) a tuple of names, with the name at index i assigned to
+label i + 1.  (Label 0 corresponds to background.)</p>
 </dd>
 <dt>to_keep<span class="classifier">list, default=None</span></dt><dd><p>Optional list of ROI names or wildcards matching ROI names of ROIs
 to keep in this StructureSet during loading. ROIs not matching will
