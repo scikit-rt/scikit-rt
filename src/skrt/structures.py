@@ -6892,8 +6892,10 @@ class StructureSet(skrt.core.Archive):
             should be desired names, and values should be lists of possible
             input names or wildcards matching input names.
 
-            If multi_label=True, names can also be a list of names to assign
-            to each label found in order, from smallest to largest.
+            If multi_label=True, names can also be: (1) a list of names
+            to assign to each label found in order, from smallest to largest;
+            (2) a tuple of names, with the name at index i assigned to
+            label i + 1.  (Label 0 corresponds to background.)
 
         to_keep : list, default=None
             Optional list of ROI names or wildcards matching ROI names of ROIs
@@ -7097,17 +7099,22 @@ class StructureSet(skrt.core.Archive):
             if "nifti" in im.source_type:
                 im = im.astype("dcm")
             i_name = 0
-            for i in range(0, n):
-                if self.names is not None and i_name < len(self.names):
+            for i in range(1, n + 1):
+                array_i = (array == i)
+                if 0 == array_i.sum():
+                    continue
+                if isinstance(self.names, list) and i_name < len(self.names):
                     name = self.names[i_name]
                     i_name += 1
+                elif isinstance(self.names, tuple) and i - 1 < len(self.names):
+                    name = self.names[i - 1]
                 else:
                     name = f"ROI {i}"
 
                 # im2.data = (im1.data == i + 1)
                 self.rois.append(
                     ROI(
-                        array == i + 1,
+                        array_i,
                         affine=im.get_affine(),
                         voxel_size=None,
                         origin=None,

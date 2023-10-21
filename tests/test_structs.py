@@ -1994,3 +1994,70 @@ def test_containing_image():
         img = sset.containing_image(*args)
         assert img.get_voxel_size() == voxel_size
         assert sset.contains(sset.get_roi_names(), img)
+
+def test_write_multilabel_nifti():
+    '''Test writing of structure set to multi-label NIfTI file.'''
+
+    # Create synthetic image with associated structure set.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 60), intensity=1)
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 40), intensity=10)
+    sset = sim.get_structure_set()
+    rois = sset.get_rois()
+    n_roi = len(rois)
+
+    # Create list of ROI names, including name for non-existant ROI.
+    names = sset.get_roi_names()
+    names.insert(1, "missing_roi")
+
+    # Define name of output file.
+    ext = ".nii.gz"
+    outname = f"RTSTRUCT_{sset.timestamp}{ext}"
+
+    # Define the path to the output director,
+    # and ensure that it doesn't initially exist.
+    nii_dir = pathlib.Path("tmp/nii_multilabel")
+    if nii_dir.exists():
+        shutil.rmtree(nii_dir)
+
+    # Define test values for names parameter of StructureSet.write().
+    names_tests = [
+            None,
+            {names[idx] : f"ROI {idx + 1}" for idx in range(len(names))},
+            sset.get_roi_names(),
+            tuple(names),
+            ]
+
+    # Perform tests without and with overwriting of output directory,
+    # which initially doesn't exist.
+    for overwrite in [False, True]:
+        # Write structure set as multi-label NIfTI file.
+        sset.write(outdir=nii_dir, ext=ext, overwrite=overwrite,
+                   multi_label=True, names=names)
+        # Check that a single file is created.
+        paths = list(nii_dir.glob("*"))
+        assert 1 == len(paths)
+        # Check that path of output file is as expected.
+        path = paths[0]
+        assert path == nii_dir / outname
+
+        # Read back the structure-set data,
+        # using different values for the names parameter.
+        for idx in range(len(names_tests)):
+            rois2 = StructureSet(path, multi_label=True,
+                                 names=names_tests[idx]).get_rois()
+            # Check that the number of ROIs read from file is as expected.
+            assert n_roi == len(rois2)
+
+            # Check ROIs of structure set read from file.
+            for jdx in range(n_roi):
+                # Check ROI names.
+                if idx > 0:
+                    assert rois[jdx].get_name() == rois2[jdx].get_name()
+                else:
+                    assert (f"ROI {1 + names.index(rois[jdx].get_name())}"
+                            == rois2[jdx].get_name())
+                # Check ROI volumes.
+                assert rois[jdx].get_volume() == rois2[jdx].get_volume()
+                # Check ROI masks.
+                assert np.all(rois[jdx].get_mask() == rois2[jdx].get_mask())
