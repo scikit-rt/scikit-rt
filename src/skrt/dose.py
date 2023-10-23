@@ -430,6 +430,8 @@ class Dose(ImageOverlay):
         voxels inside an ROI. Fails if the ROI and dose arrays are not the
         same size."""
         dose_in_roi = self.get_dose_in_roi_3d(roi, standardise)
+        if isinstance(dose_in_roi, np.ma.MaskedArray):
+            return dose_in_roi[dose_in_roi > 0].compressed()
         return dose_in_roi[dose_in_roi > 0]
 
     def get_max_dose_in_rois(self, rois=None):
