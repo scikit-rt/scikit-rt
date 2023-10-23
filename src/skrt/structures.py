@@ -9818,7 +9818,7 @@ def create_dummy_image(
 
     # Otherwise, calculate shape from voxel sizes
     else:
-        voxel_size = list(voxel_size)
+        voxel_size = [abs(val) for val in voxel_size]
 
         # Calculate number of voxels needed to cover ROI plus buffer each side
         shape = [
@@ -9839,10 +9839,10 @@ def create_dummy_image(
     # Get origin position; ensure that origin points to centre of buffer voxel
     # outside ROI
     origin = [
-        min(ex) + abs(voxel_size[i]) * (0.5 - buffer)
+        min(ex) + voxel_size[i] * (0.5 - buffer)
         for i, ex in enumerate(extents[:2])
     ]
-    origin.append(min(extents[2]) + abs(slice_thickness) * (0.5 - n_buff_z))
+    origin.append(min(extents[2]) + slice_thickness * (0.5 - n_buff_z))
 
     # Create image
     return skrt.image.Image(
