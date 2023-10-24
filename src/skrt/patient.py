@@ -930,17 +930,20 @@ class Study(skrt.core.Archive):
                             f"_{image.timestamp}_{idx+1:03}"
                             f"_{roi_name}.nii.gz"
                         )
+                        written = False
                         if roi_name in ss.get_roi_names():
                             # Save ROI mask.
                             roi = ss.get_roi(roi_name)
-                            roi.write(
-                                outname=outname,
-                                outdir=outdir,
-                                ext="nii.gz",
-                                verbose=verbose,
-                            )
-                            idx_add = 1
-                        elif force_roi_nifti:
+                            if roi.get_mask() is not None:
+                                roi.write(
+                                    outname=outname,
+                                    outdir=outdir,
+                                    ext="nii.gz",
+                                    verbose=verbose,
+                                )
+                                idx_add = 1
+                                written = True
+                        if not written and force_roi_nifti:
                             # Save dummy mask for ROI not found
                             # in structure set.
                             im = Image(ss.image)
