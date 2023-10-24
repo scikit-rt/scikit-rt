@@ -946,6 +946,10 @@ class ROI(skrt.core.Archive):
         """Get binary mask, optionally flattened in a given orientation."""
 
         self.create_mask()
+        # Mask creation may fail...
+        if self.mask is None:
+            return None
+
         if not flatten:
             return self.mask.get_data(
                 standardise=standardise, force_standardise=force_standardise
@@ -5596,6 +5600,9 @@ class ROI(skrt.core.Archive):
                 # match self.image.get_voxel_size()[2]), avoiding
                 # a recursive loop.
                 self.create_mask(voxel_size=self.voxel_size[0:2], force=True)
+                # Mask creation may fail...
+                if self.mask is None:
+                    return
                 # The mask creation will have redefined the image association,
                 # so reassign the new image.
                 self.image = im
@@ -9800,6 +9807,10 @@ def create_dummy_image(
         voxel_size = [1, 1]
     if not skrt.core.is_list(voxel_size):
         voxel_size = [voxel_size] * 2
+
+    # Avoid creating image if extents undefined along any axis.
+    if any(None in extent for extent in extents):
+        return None
 
     # Calculate voxel sizes from shape
     if shape is not None:

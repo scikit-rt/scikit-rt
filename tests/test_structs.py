@@ -599,6 +599,8 @@ def test_null_roi():
     assert(roi.source is None)
     assert(roi.title is None)
     assert(roi.voxel_size is None)
+    assert(roi.get_contours() == {})
+    assert(roi.get_mask() is None)
 
 def test_null_structure_set():
     ss = StructureSet()
