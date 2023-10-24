@@ -420,7 +420,7 @@ def catalogue_dataset(dataset_dir=".", out_csv="dataset.csv",
     out_path = dataset_dir / out_csv
     if out_path.exists() and not overwrite:
         print(f"Not overwriting existing catalogue file: ")
-        print(f"    {out_path)"
+        print(f"    {out_path}")
         return
 
     # Obtain list of patient folders.
