@@ -1219,17 +1219,18 @@ class ROI(skrt.core.Archive):
                     except IndexError:
                         pass
 
-        # Convert to boolean mask
-        if hasattr(self.mask, "data"):
+        #if hasattr(self.mask, "data"):
+        if issubclass(type(self.mask), skrt.image.Image):
+            # Convert to boolean mask
             if not self.mask.data.dtype == bool:
                 self.mask.data = self.mask.data.astype(bool)
             self.loaded_mask = True
 
-        # Set own geometric properties from mask
-        self.voxel_size = self.mask.get_voxel_size()
-        self.origin = self.mask.get_origin()
-        self.affine = self.mask.get_affine()
-        self.shape = self.mask.get_data().shape
+            # Set own geometric properties from mask
+            self.voxel_size = self.mask.get_voxel_size()
+            self.origin = self.mask.get_origin()
+            self.affine = self.mask.get_affine()
+            self.shape = self.mask.get_data().shape
 
     def is_empty(self):
         """Check whether this ROI is empty."""
