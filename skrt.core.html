@@ -676,6 +676,23 @@ and unzip.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.filter_on_paths">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">filter_on_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths_to_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.filter_on_paths" title="Permalink to this definition"></a></dt>
+<dd><p>Filter list of intances of PathData or a subclass.</p>
+<dl class="simple">
+<dt>objs: object/list</dt><dd><p>Instance, or list of instances, of PathData or a subclass.</p>
+</dd>
+<dt>paths_to_match: str/list, default=None</dt><dd><p>String, or list of strings, specifying allowed paths.
+The filtered list of objects will contain only objects with an
+allowed path.  If None, no filtering is performed.</p>
+</dd>
+<dt>log_level: string/integer/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of Defaults().log_level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.fullpath">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">fullpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.fullpath" title="Permalink to this definition"></a></dt>
 <dd><p>Evaluate full path, expanding ‘~’, environment variables, and
