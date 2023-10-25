@@ -2464,3 +2464,41 @@ def set_matlab_runtime(matlab_runtime=None, log_level=None):
             all_ok *= runtime_ok
 
     return all_ok
+
+def filter_on_paths(objs, paths_to_match=None, log_level=None):
+    """
+    Filter list of intances of PathData or a subclass.
+
+    objs: object/list
+        Instance, or list of instances, of PathData or a subclass.
+
+    paths_to_match: str/list, default=None
+        String, or list of strings, specifying allowed paths.
+        The filtered list of objects will contain only objects with an
+        allowed path.  If None, no filtering is performed.
+
+    log_level: string/integer/None, default=None
+        Severity level for event logging.  If the value is None,
+        log_level is set to the value of Defaults().log_level.
+    """
+    # Ensure that input can be treated as a list of PathData objects.
+    logger = get_logger(identifier="funcName", log_level=log_level)
+    if not is_list(objs):
+        objs = [objs]
+    if not all(issubclass(type(obj), PathData) for obj in objs):
+        logger.warning(
+                "Data types of inputs to filter_on_paths()"
+                "not all instances of PathData or a subclass:\n"
+                f"    {[type(obj).__name__ for obj in objs]}\n"
+                "Returning None")
+        return None
+
+    # Don't filter.
+    if paths_to_match is None:
+        return objs
+
+    # Filter on paths.
+    if not is_list(paths_to_match):
+        paths_to_match = [paths_to_match]
+    fullpaths_to_match = [fullpath(path) for path in paths_to_match]
+    return [obj for obj in objs if obj.path in fullpaths_to_match]

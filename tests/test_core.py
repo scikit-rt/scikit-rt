@@ -434,3 +434,27 @@ def test_compress_user():
         not_home = "/not/second/home"
     assert skrt.core.compress_user(home) == "~/."
     assert skrt.core.compress_user(not_home) == skrt.core.fullpath(not_home)
+
+def test_filter_on_paths(caplog):
+    """Test filtering on paths of instances of PathData and subclasses."""
+    # Define objects to filter, and their paths.
+    objs = [getattr(skrt.core, obj_type)(obj_type)
+            for obj_type in ["PathData", "Dated", "Archive"]]
+    all_paths = [obj.path for obj in objs]
+
+    # Check result of filtering instances of PathData and subclasses.
+    for paths_to_match in [None, [all_paths[0], all_paths[-1]]]:
+        filtered_paths = paths_to_match if paths_to_match else all_paths
+        filtered_objs = skrt.core.filter_on_paths(objs, paths_to_match)
+        assert len(filtered_objs) == len(filtered_paths)
+        assert all(filtered_obj.path in filtered_paths
+                   for filtered_obj in filtered_objs)
+        assert not caplog.text
+
+    # Check result of passing an object that isn't
+    # an instance of PathData or a subclass.
+    filtered_objs = skrt.core.filter_on_paths(
+            skrt.core.Data(), log_level="WARNING")
+    assert filtered_objs is None
+    assert 1 == len(caplog.records)
+    assert "not all instances of PathData or a subclass" in caplog.text
