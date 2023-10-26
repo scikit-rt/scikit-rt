@@ -2063,3 +2063,38 @@ def test_write_multilabel_nifti():
                 assert rois[jdx].get_volume() == rois2[jdx].get_volume()
                 # Check ROI masks.
                 assert np.all(rois[jdx].get_mask() == rois2[jdx].get_mask())
+
+def test_split_rois_in_two():
+    """Test splitting into two components of structure set's composite ROI(s)"""
+
+    # Create two structure sets:
+    # - sset1, containing two cubes with different labels
+    #   ("cube_left", "cube_right");
+    # - sset2, containing two cubes with a single label ("cube")
+    cubes = (("cube_left", (16, 6, 6)),
+             ("cube_right", (4, 6, 6)))
+    groups = (None, "cube")
+    sims = []
+    for group in groups:
+        sims.append(SyntheticImage(20, origin=(0.5, 0.5, 0.5)))
+        for idx, (name, centre) in enumerate(cubes):
+            sims[-1].add_cube(side_length=6, name=name, centre=centre,
+                 intensity=10, group=group)
+    sset1 = sims[0].get_structure_set()
+    sset2 = sims[1].get_structure_set()
+
+    # Check that initial structure sets are different.
+    assert len(cubes) == len(sset1.get_roi_names())
+    assert [cube[0] for cube in cubes] == sset1.get_roi_names()
+    assert 1 == len(sset2.get_roi_names())
+    assert [groups[-1]] == sset2.get_roi_names()
+
+    # Split ROI in sset2, and check that this structure set now
+    # now contains ROIs that are the same as those of sset1
+    # (but slightly smaller volumes, because of mask to contour conversions).
+    sset2.split_rois_in_two(groups[-1], v0=10)
+    assert sorted(sset2.get_roi_names()) == sorted(sset1.get_roi_names())
+    for roi_name in sset2.get_roi_names():
+        assert sset2[roi_name].get_extents() == sset1[roi_name].get_extents()
+        assert sset2[roi_name].get_volume() == pytest.approx(
+                sset1[roi_name].get_volume(), rel=0.02)

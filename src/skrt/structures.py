@@ -6567,7 +6567,10 @@ class ROI(skrt.core.Archive):
             ROI is to be split.
 
         names: list, default=None
-            List of names to be applied to the component ROIs.
+            List of names to be applied to the component ROIs.  If None,
+            the name of the composite ROI is used.  In all cases, a suffix
+            is added indicating the position of the component relative
+            to the splitting axis.
         """
 
         # If names not specified, initialise to empty list.
@@ -7160,7 +7163,9 @@ class StructureSet(skrt.core.Archive):
                 if single_source and self.name is None:
                     self.name = source
 
-            elif not self.loaded:
+            #elif not self.loaded:
+            #    sources_expanded.append(source)
+            else:
                 sources_expanded.append(source)
 
         for source in sorted(sources_expanded):
@@ -9469,6 +9474,52 @@ class StructureSet(skrt.core.Archive):
             #    roi_new.create_mask()
 
         return roi_new
+
+    def split_rois_in_two(
+        self,
+        roi_names=None,
+        axis="x",
+        v0=0,
+    ):
+        """
+        Replace composite ROIs in structure set by two component parts.
+
+        Each ROI considered is split into two components, either side of
+        a specified plane.  This may be useful, for example, when left and
+        right ROIs have been assigned a common label.
+
+        The component ROIs have the same name as the composite from which
+        they're derived, with a suffix added that indicates the position
+        of the component relative to the splitting axis.
+
+        **Parameters:**
+
+        roi_names : list/str, default=None
+            Single string, or list of strings, indicating name(s) of ROI(s)
+            to be considered.  if None, the original structure set is
+            left unmodified.
+
+        axis : 'str', default='x'
+            Axis ('x', 'y' or 'z') perpendicular to plane about which
+            each ROI is to be split.
+
+        v0 : float, default=0
+            Coordinate along selected axis, specifying plane about which
+            each ROI is to be split.
+        """
+        roi_names = roi_names or []
+
+        if not skrt.core.is_list(roi_names):
+            roi_names = [roi_names]
+
+        for roi_name in roi_names:
+            if roi_name not in self.get_roi_names():
+                continue
+            sset = self[roi_name].split_in_two(axis, v0)
+            if sset is None:
+                continue
+            self.add_rois(sset.get_rois())
+            self.filter_rois(to_remove=[roi_name])
 
     def get_mask_image(self, name=None):
         """
