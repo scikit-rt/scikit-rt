@@ -2719,7 +2719,10 @@ ROI is to be split.</p>
 <dt>v0<span class="classifier">float, default=0</span></dt><dd><p>Coordinate along selected axis, specifying plane about which
 ROI is to be split.</p>
 </dd>
-<dt>names: list, default=None</dt><dd><p>List of names to be applied to the component ROIs.</p>
+<dt>names: list, default=None</dt><dd><p>List of names to be applied to the component ROIs.  If None,
+the name of the composite ROI is used.  In all cases, a suffix
+is added indicating the position of the component relative
+to the splitting axis.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3771,6 +3774,31 @@ will be recreated when get_mask() or get_contours() are next called.</p>
 <dt>kwargs :</dt><dd><p>Keyword arguments to pass to self.get_dummy_image() when
 creating the dummy image. See documentation of
 StructureSet.get_dummy_image().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.split_rois_in_two">
+<span class="sig-name descname"><span class="pre">split_rois_in_two</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.split_rois_in_two" title="Permalink to this definition"></a></dt>
+<dd><p>Replace composite ROIs in structure set by two component parts.</p>
+<p>Each ROI considered is split into two components, either side of
+a specified plane.  This may be useful, for example, when left and
+right ROIs have been assigned a common label.</p>
+<p>The component ROIs have the same name as the composite from which
+they’re derived, with a suffix added that indicates the position
+of the component relative to the splitting axis.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>roi_names<span class="classifier">list/str, default=None</span></dt><dd><p>Single string, or list of strings, indicating name(s) of ROI(s)
+to be considered.  if None, the original structure set is
+left unmodified.</p>
+</dd>
+<dt>axis<span class="classifier">‘str’, default=’x’</span></dt><dd><p>Axis (‘x’, ‘y’ or ‘z’) perpendicular to plane about which
+each ROI is to be split.</p>
+</dd>
+<dt>v0<span class="classifier">float, default=0</span></dt><dd><p>Coordinate along selected axis, specifying plane about which
+each ROI is to be split.</p>
 </dd>
 </dl>
 </dd></dl>
