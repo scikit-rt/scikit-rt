@@ -8201,7 +8201,6 @@ class StructureSet(skrt.core.Archive):
         root_uid=None,
         header_extras={},
         multi_label=False,
-        names=None,
         image=None,
         voxel_size=None,
         **kwargs,
@@ -8277,21 +8276,12 @@ class StructureSet(skrt.core.Archive):
             self.get_roi_names() is used.  Ignored when not writing
             multi-label NIfTI output.
 
-        image : skrt.image.Image, default=None
-            Template for mask creation when writing to multi-label
-            NIfTI file.  If None, the image associated with this
-            structure set is used.  If this is also None, or if the
-            image doesn't contain ROIs in the structure set that are
-            included in <names>, a dummy image that fully contains
-            these ROIs is used.  Ignored when not writing multi-label
-            NIfTI output.
-
         voxel_size : tuple, default=None
             Three element tuple, specifying the (x, y, z) voxel dimensions
             (mm) when creating a dummy image for writing to multi-label
-            NIfTI file.  If None: if <image> is not None, it's voxel size will
-            be used; otherwise, a voxel size of (1, 1, 1) will be used.
-            Ignored when not writing multi-label NIfTI output.
+            NIfTI file, for case where structure set doesn't have
+            an associated image.  If None, a voxel size of (1, 1, 1)
+            will be used.  Ignored when not writing multi-label NIfTI output.
 
         **kwargs
             Keyword arguments passed to skrt.structures.ROI.write()
@@ -8340,15 +8330,15 @@ class StructureSet(skrt.core.Archive):
             names = names or all_roi_names
             ext = ext or ".nii.gz"
             outname = outname or f"RTSTRUCT_{self.date}_{self.time}{ext}"
-            image = self.containing_image(
-                    names, image or self.get_image(), voxel_size)
+            image = self.get_image() or self.containing_image(
+                    names, None, voxel_size)
             sset = self.clone()
             sset.set_image(image)
             array = np.zeros(image.get_data().shape, dtype=np.int32)
             for idx, roi_name in enumerate(names):
                 if roi_name in all_roi_names:
                     array[sset[roi_name].get_mask()] = idx + 1
-            im = skrt.image.Image(array, affine=image.get_affine()).write(
+            skrt.image.Image(array, affine=image.get_affine()).write(
                     os.path.join(outdir, outname), verbose=verbose, **kwargs)
         else:
             # Write to individual ROI files.
