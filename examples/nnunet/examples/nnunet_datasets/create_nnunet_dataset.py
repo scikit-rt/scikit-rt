@@ -287,12 +287,8 @@ class CreateNnunetDataset(Algorithm):
                 # Write structure set for training and evaluation.
                 if self.training_set:
                     sset.set_image(image)
-                    print()
-                    print("Image", image.get_origin(), image.get_n_voxels())
                     for roi in sset.get_rois():
                         roi.create_mask()
-                        print(f"{roi.name} mask", roi.mask.get_origin(), roi.mask.get_n_voxels())
-                    print()
                     sset.write(f"{case_identifier}{self.suffix}",
                                self.labels_dir, multi_label=True,
                                names=self.out_roi_names)
