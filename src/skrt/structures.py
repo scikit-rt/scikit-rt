@@ -8201,7 +8201,7 @@ class StructureSet(skrt.core.Archive):
         root_uid=None,
         header_extras={},
         multi_label=False,
-        image=None,
+        names=None,
         voxel_size=None,
         **kwargs,
     ):
