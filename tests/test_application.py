@@ -94,12 +94,15 @@ def test_application_creation_algorithm_status_not_ok():
     assert alg1.status.code == app.status.code
     assert f"{alg1.name}: {alg1.status.reason}" == app.status.reason
 
-def test_application_run_no_paths():
+def test_application_run_no_paths(caplog):
     """Test running of an application when paths are undefined."""
 
-    status = Application(algs=[Algorithm()]).run()
-    assert  1 == status.code
-    assert "List of paths to patient data is empty" == status.reason
+    status = Application(algs=[Algorithm()], log_level="INFO").run()
+    assert 1 == len(caplog.records)
+    record = caplog.records[0]
+    assert "INFO" == record.levelname
+    assert "List of paths to patient data is empty" == record.message
+    assert  status.is_ok()
 
 def test_application_run_non_default_patient():
     """Test running of an application, with non-default Patient-like class."""

@@ -248,8 +248,7 @@ class Application:
             patient_cls = patient_cls or Patient
             paths = paths or []
             if not paths:
-                self.status.code = 1
-                self.status.reason = "List of paths to patient data is empty"
+                self.logger.info("List of paths to patient data is empty")
             else:
                 for data_path in paths:
                     patient = patient_cls(path=data_path, **kwargs)
