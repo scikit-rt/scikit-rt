@@ -110,7 +110,11 @@ class CreateNnunetDataset(Algorithm):
         # Ignored if self.training_set is False.
         self.bilateral_names = []
 
-        # Top-level data directory.  Within this, there will be a dataset
+        # Top-level directory for nnU-net, within which there will be
+        # sub-directories for raw data, preprocessing, and results.
+        self.topdir = './data'
+
+        # Sub-directory for raw data.  Within this, there will be a dataset
         # sub-directory.  When creating a dataset for training, this will
         # contain sub-directories for training images (imagesTr) and training
         # segmentations (labelsTr).  If self.test_fraction is greater than
@@ -118,7 +122,7 @@ class CreateNnunetDataset(Algorithm):
         # for test images (imagesTs) and test segmentations (labelsTs).
         # When creating a dataset for inference, images will be placed
         # directly in the dataset sub-directory.
-        self.topdir = './nnUNet_raw'
+        self.raw_subdir = 'nnUNet_raw'
 
         # Identifier to be assigned to dataset.
         # This should be an integer of up to three digits.
@@ -182,25 +186,33 @@ class CreateNnunetDataset(Algorithm):
                             f"{name}_left", f"{name}_right"]
         self.out_roi_names = tuple(self.out_roi_names)
 
-        # Ensure output directory exists.
+        # Ensure top-level directory exists.
         self.topdir = Path(self.topdir).resolve()
         self.topdir.mkdir(parents=True, exist_ok=True)
 
+        # Ensure raw-data directory exists.
+        self.raw_dir = make_dir(self.topdir / self.raw_subdir)
+
         # Ensure dataset directory exists.
-        self.dataset_dir = make_dir(self.topdir / 
+        self.dataset_dir = make_dir(self.raw_dir / 
                                     f"Dataset{self.dataset_id:03}"
-                                    f"_{self.dataset_name}")
+                                    f"_{self.dataset_name}",
+                                    overwrite=False)
 
         # Ensure that self.test_fraction is in the closed interval [0, 1].
         self.test_fraction = min(max(0, self.test_fraction), 1)
 
         # Ensure that sub-directories for training dataset exist.
         if self.training_set:
-            self.images_tr_dir = make_dir(self.dataset_dir / "imagesTr")
-            self.labels_tr_dir = make_dir(self.dataset_dir / "labelsTr")
+            self.images_tr_dir = make_dir(
+                    self.dataset_dir / "imagesTr", overwrite=False)
+            self.labels_tr_dir = make_dir(
+                    self.dataset_dir / "labelsTr", overwrite=False)
             if self.test_fraction:
-                self.images_ts_dir = make_dir(self.dataset_dir / "imagesTs")
-                self.labels_ts_dir = make_dir(self.dataset_dir / "labelsTs")
+                self.images_ts_dir = make_dir(
+                        self.dataset_dir / "imagesTs", overwrite=False)
+                self.labels_ts_dir = make_dir(
+                        self.dataset_dir / "labelsTs", overwrite=False)
 
         # Initialse output directories for dataset files.
         if self.training_set:
@@ -320,10 +332,18 @@ def get_app(setup_script=''):
     opts = {}
 
     if "head_and_neck" == SITE:
-        roi_names = ["spinal_cord"]
+        roi_names = [
+                "brainstem",
+                "mandible",
+                "parotid_left",
+                "parotid_right",
+                "smg_left",
+                "smg_right",
+                "spinal_cord",
+                ]
         roi_lookup = head_and_neck_plan
-        roi_lookup = head_and_neck_mvct
-    elif "prostate" == global_site:
+        #roi_lookup = head_and_neck_mvct
+    elif "prostate" == SITE:
         roi_names = ["rectum"]
         roi_lookup = prostate_plan
 
@@ -332,6 +352,17 @@ def get_app(setup_script=''):
 
     opts["training_set"] = True
     opts["image_type"] = "MVCT"
+
+    opts["voxel_size"] = (1.5, 1.5, None)
+    opts["image_size"] = (256, 256, None)
+
+    if "Linux" == system():
+        opts["topdir"] = str(Path("~/codeshare/nnunet/data").expanduser())
+    else:
+        opts["topdir"] = "./data"
+
+    opts["dataset_id"] = 1
+    opts["dataset_name"] = "Test"
 
     if 'Ganga' in __name__:
         opts['alg_module'] = fullpath(argv[0])
@@ -357,6 +388,7 @@ def get_data_locations():
     # Define the patient data to be analysed
     if "Linux" == system():
         data_dirs = [f"/r02/voxtox/workshop/synthetic_mvct/{SITE}"]
+        #data_dirs = [f"/r02/voxtox/data/head_and_neck/vspecial/30_patients__spinal_cord__1_mv"]
         patterns = ["VT*"]
     else:
         data_dirs = [fullpath(f"~/data/voxtox_check/{SITE}")]
@@ -395,16 +427,18 @@ if 'Ganga' in __name__:
         backend = Local()
 
     # Define how job should be split into subjobs
-    splitter = PatientDatasetSplitter(patients_per_subjob=20)
+    splitter = PatientDatasetSplitter(patients_per_subjob=5)
+    splitter = None
 
     # Define merging of subjob outputs
     merger = SmartMerger()
     merger.files = ['stderr', 'stdout']
     merger.ignorefailed = True
     postprocessors = [merger]
+    postprocessors = []
 
     # Define job name
-    name = f'{SITE}_nnunet'
+    name = f'nnunet_{SITE}'
 
     # Define list of outputs to be saved
     outbox = []
