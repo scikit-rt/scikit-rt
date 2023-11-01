@@ -165,11 +165,13 @@ if '__main__' == __name__:
     app.run()
 
 if 'Ganga' in __name__:
-    # Define script for setting analysis environment
-    setup_script = fullpath('skrt_conda.sh')
+    # Define scripts for setting analysis environment
+    skrt_setup = fullpath('skrt_conda.sh')
+    nnunet_setup = fullpath('nnunet_conda.sh')
 
     # Define and configure the application to be run.
-    ganga_app = SkrtApp._impl.from_application(get_app(), setup_script)
+    ganga_app = SkrtApp._impl.from_application(get_app(), skrt_setup)
+    ganga_app.algs[0].opts["setup_script"] = nnunet_setup
 
     # Define processing system.
     if "Linux" == system():
