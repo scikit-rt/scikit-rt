@@ -191,13 +191,14 @@ class CreateNnunetDataset(Algorithm):
         self.topdir.mkdir(parents=True, exist_ok=True)
 
         # Ensure raw-data directory exists.
-        self.raw_dir = make_dir(self.topdir / self.raw_subdir)
+        self.raw_dir = make_dir(self.topdir / self.raw_subdir,
+                                overwrite=False)
 
         # Ensure dataset directory exists.
         self.dataset_dir = make_dir(self.raw_dir / 
                                     f"Dataset{self.dataset_id:03}"
                                     f"_{self.dataset_name}",
-                                    overwrite=False)
+                                    overwrite=self.overwrite)
 
         # Ensure that self.test_fraction is in the closed interval [0, 1].
         self.test_fraction = min(max(0, self.test_fraction), 1)
@@ -205,14 +206,14 @@ class CreateNnunetDataset(Algorithm):
         # Ensure that sub-directories for training dataset exist.
         if self.training_set:
             self.images_tr_dir = make_dir(
-                    self.dataset_dir / "imagesTr", overwrite=False)
+                    self.dataset_dir / "imagesTr", overwrite=self.overwrite)
             self.labels_tr_dir = make_dir(
-                    self.dataset_dir / "labelsTr", overwrite=False)
+                    self.dataset_dir / "labelsTr", overwrite=self.overwrite)
             if self.test_fraction:
                 self.images_ts_dir = make_dir(
-                        self.dataset_dir / "imagesTs", overwrite=False)
+                        self.dataset_dir / "imagesTs", overwrite=self.overwrite)
                 self.labels_ts_dir = make_dir(
-                        self.dataset_dir / "labelsTs", overwrite=False)
+                        self.dataset_dir / "labelsTs", overwrite=self.overwrite)
 
         # Initialse output directories for dataset files.
         if self.training_set:
