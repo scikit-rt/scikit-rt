@@ -129,10 +129,7 @@ def get_app(setup_script=''):
     '''
     opts = {}
 
-    if "Linux" == system():
-        opts["topdir"] = str(Path("~/codeshare/nnunet/data").expanduser())
-    else:
-        opts["topdir"] = "."
+    opts["topdir"] = str(Path("~/codeshare/nnunet/data").expanduser())
 
     opts["dataset_id"] = 1
     opts["preprocess"] = False
