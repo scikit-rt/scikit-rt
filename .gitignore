@@ -27,7 +27,7 @@ docs/source/*.md
 docs/source/_static/*
 makefile
 !docs/Makefile
-skrt_conda.sh
+*_conda.sh
 registration_results/
 segmentation_workdir/
 figures/
