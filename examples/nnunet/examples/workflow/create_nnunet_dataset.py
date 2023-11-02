@@ -333,17 +333,20 @@ def get_app(setup_script=''):
     opts = {}
 
     if "head_and_neck" == SITE:
-        roi_names = [
-                "brainstem",
-                "mandible",
-                "parotid_left",
-                "parotid_right",
-                "smg_left",
-                "smg_right",
-                "spinal_cord",
-                ]
-        roi_lookup = head_and_neck_plan
-        #roi_lookup = head_and_neck_mvct
+        if "Linux" == system():
+            roi_names = [
+                    "brainstem",
+                    "mandible",
+                    "parotid_left",
+                    "parotid_right",
+                    "smg_left",
+                    "smg_right",
+                    "spinal_cord",
+                    ]
+            roi_lookup = head_and_neck_plan
+        else:
+            roi_names = ["spinal_cord"]
+            roi_lookup = head_and_neck_mvct
     elif "prostate" == SITE:
         roi_names = ["rectum"]
         roi_lookup = prostate_plan
@@ -357,10 +360,7 @@ def get_app(setup_script=''):
     opts["voxel_size"] = (1.5, 1.5, None)
     opts["image_size"] = (256, 256, None)
 
-    if "Linux" == system():
-        opts["topdir"] = str(Path("~/codeshare/nnunet/data").expanduser())
-    else:
-        opts["topdir"] = "./data"
+    opts["topdir"] = str(Path("~/codeshare/nnunet/data").expanduser())
 
     opts["dataset_id"] = 1
     opts["dataset_name"] = "Test"
