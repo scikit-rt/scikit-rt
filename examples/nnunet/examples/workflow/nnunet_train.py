@@ -129,12 +129,12 @@ def get_app(setup_script=''):
     '''
     opts = {}
 
-    opts["topdir"] = str(Path("~/codeshare/nnunet/data").expanduser())
+    opts["topdir"] = str(Path("~/codeshare/nnUNet/data").expanduser())
 
     opts["dataset_id"] = 1
     opts["preprocess"] = False
     opts["train"] = True
-    opts["trainer"] = "nnUNetTrainer_001"
+    opts["trainer"] = "nnUNetTrainer_2x2"
     opts["folds"] = 1
 
     if 'Ganga' in __name__:

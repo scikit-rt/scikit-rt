@@ -360,7 +360,7 @@ def get_app(setup_script=''):
     opts["voxel_size"] = (1.5, 1.5, None)
     opts["image_size"] = (256, 256, None)
 
-    opts["topdir"] = str(Path("~/codeshare/nnunet/data").expanduser())
+    opts["topdir"] = str(Path("~/codeshare/nnUNet/data").expanduser())
 
     opts["dataset_id"] = 1
     opts["dataset_name"] = "Test"
