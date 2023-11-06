@@ -357,7 +357,7 @@ def get_app(setup_script=''):
     opts["training_set"] = True
     opts["image_type"] = "MVCT"
 
-    opts["voxel_size"] = (1.5, 1.5, None)
+    opts["voxel_size"] = (1.5, 1.5, 1.5)
     opts["image_size"] = (256, 256, None)
 
     opts["topdir"] = str(Path("~/nnUNet/data").expanduser())
