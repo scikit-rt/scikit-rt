@@ -129,7 +129,7 @@ def get_app(setup_script=''):
     '''
     opts = {}
 
-    opts["topdir"] = str(Path("~/codeshare/nnUNet/data").expanduser())
+    opts["topdir"] = str(Path("~/nnUNet/data").expanduser())
 
     opts["dataset_id"] = 1
     opts["preprocess"] = False
