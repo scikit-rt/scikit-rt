@@ -4791,7 +4791,7 @@ class Image(skrt.core.Archive):
                     sinogram_slice, circle=False, filter_name="hann"
                 )
                 + vmin
-                )[::-1, ::-1]
+                )[::-1, :]
 
     def assign_intensity_to_rois(self, rois=None, intensity=0):
         """
