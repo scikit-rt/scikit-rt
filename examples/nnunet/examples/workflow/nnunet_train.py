@@ -129,12 +129,12 @@ def get_app(setup_script=''):
     '''
     opts = {}
 
-    opts["topdir"] = str(Path("~/nnUNet/data").expanduser())
+    opts["topdir"] = str(Path("~/nnunet/data").expanduser())
 
     opts["dataset_id"] = 1
     opts["preprocess"] = False
     opts["train"] = True
-    opts["trainer"] = "nnUNetTrainer_2x2"
+    opts["trainer"] = "nnUNetTrainer_Test001"
     opts["folds"] = 1
 
     if 'Ganga' in __name__:
@@ -173,17 +173,24 @@ if 'Ganga' in __name__:
     # Define processing system.
     if "Linux" == system():
         backend = Condor()
+        # backend.cdf_options["requirements"]="(POOL != \"GENERAL\" && HAS_r02)"
         backend.cdf_options["request_memory"]="16G"
+        backend.cdf_options["request_cpus"]="16"
     else:
         backend = Local()
-
-    # Define job name
-    name = "nnunet_train"
 
     # Define list of outputs to be saved
     outbox = []
 
-    # Create the job, and submit to processing system
-    j = Job(application=ganga_app, backend=backend,
-            postprocessors=[], name=name)
-    j.submit()
+    folds = range(1)
+
+    for fold in folds:
+        ganga_app.algs[0].opts["folds"] = fold
+
+        # Define job name
+        name = f"nnu{fold:02}"
+
+        # Create the job, and submit to processing system
+        j = Job(application=ganga_app, backend=backend,
+                postprocessors=[], name=name)
+        j.submit()

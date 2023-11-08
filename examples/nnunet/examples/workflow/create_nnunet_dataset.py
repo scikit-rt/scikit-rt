@@ -60,7 +60,7 @@ class CreateNnunetDataset(Algorithm):
 
         # Fraction of input cases that will be randomly assigned to
         # test set when creating a dataset for training and evaluation.
-        self.test_fraction = 0.2
+        self.test_fraction = 0.1
 
         # Type of images to be written.  Multiple image types per case
         # can be handled by nnU-net, but only a single image type
@@ -259,7 +259,8 @@ class CreateNnunetDataset(Algorithm):
                 if self.training_set:
                     sset = image.get_structure_sets()[
                             self.structure_set_to_write]
-
+                    for roi in sset.get_rois():
+                        print(roi.get_name(), roi.get_volume(method="mask"))
                     # Standardise ROI names.
                     sset.rename_rois(self.roi_names, keep_renamed_only=True)
 
@@ -301,7 +302,8 @@ class CreateNnunetDataset(Algorithm):
                 if self.training_set:
                     sset.set_image(image)
                     for roi in sset.get_rois():
-                        roi.create_mask()
+                        roi.create_mask(force=True)
+                        print(roi.get_name(), roi.get_volume(method="mask"))
                     sset.write(f"{case_identifier}{self.suffix}",
                                self.labels_dir, multi_label=True,
                                names=self.out_roi_names)
@@ -333,7 +335,7 @@ def get_app(setup_script=''):
     opts = {}
 
     if "head_and_neck" == SITE:
-        if "Linux" == system():
+        if "Linux" == system() or True:
             roi_names = [
                     "brainstem",
                     "mandible",
@@ -360,7 +362,7 @@ def get_app(setup_script=''):
     opts["voxel_size"] = (1.5, 1.5, 1.5)
     opts["image_size"] = (256, 256, None)
 
-    opts["topdir"] = str(Path("~/nnUNet/data").expanduser())
+    opts["topdir"] = str(Path("~/nnunet/data").expanduser())
 
     opts["dataset_id"] = 1
     opts["dataset_name"] = "Test"
@@ -395,6 +397,7 @@ def get_data_locations():
         data_dirs = [fullpath(f"~/data/voxtox_check/{SITE}")]
         patterns = ["*/VT*"]
         data_dirs = [fullpath(f"~/data/head_and_neck/vspecial/30_patients__spinal_cord__1_mv")]
+        data_dirs = [fullpath(f"~/data/synthetic_mvct/{SITE}")]
         patterns = ["VT*"]
 
     return {data_dir: patterns for data_dir in data_dirs}
@@ -407,7 +410,7 @@ if '__main__' == __name__:
     paths = get_paths(get_data_locations())
 
     # Run application for the selected data
-    app.run(paths[0:5])
+    app.run(paths)
 
 if 'Ganga' in __name__:
     # Define script for setting analysis environment
