@@ -259,8 +259,7 @@ class CreateNnunetDataset(Algorithm):
                 if self.training_set:
                     sset = image.get_structure_sets()[
                             self.structure_set_to_write]
-                    for roi in sset.get_rois():
-                        print(roi.get_name(), roi.get_volume(method="mask"))
+
                     # Standardise ROI names.
                     sset.rename_rois(self.roi_names, keep_renamed_only=True)
 
@@ -303,7 +302,6 @@ class CreateNnunetDataset(Algorithm):
                     sset.set_image(image)
                     for roi in sset.get_rois():
                         roi.create_mask(force=True)
-                        print(roi.get_name(), roi.get_volume(method="mask"))
                     sset.write(f"{case_identifier}{self.suffix}",
                                self.labels_dir, multi_label=True,
                                names=self.out_roi_names)
