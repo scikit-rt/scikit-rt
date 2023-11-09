@@ -359,7 +359,7 @@ def get_app(setup_script=''):
     opts = {}
 
     if "head_and_neck" == SITE:
-        if "Linux" == system() or True:
+        if "Linux" == system():
             roi_names = [
                     "brainstem",
                     "mandible",
