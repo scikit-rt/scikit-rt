@@ -67,13 +67,17 @@ class CreateNnunetDataset(Algorithm):
         # is considered here.
         self.image_type = "ct"
 
-        # Image dimensions (dx, dy, dz) in voxels for image resizing
-        # prior to writing.  If None, original image size is kept.
-        self.image_size = None
-
         # Voxel dimensions (dx, dy, dz) in mm for image resizing
         # prior to writing.  If None, original voxel size is kept.
         self.voxel_size = None
+
+        # Image dimensions (dx, dy, dz) in voxels for image resizing
+        # prior to writing.  If None, original image size is kept.
+        # If an individual dimension is None, and the corresponding
+        # voxel dimension for resizing isn't None, the image dimension
+        # in voxels will be set so as to retain the original dimension
+        # in mm.
+        self.image_size = None
 
         # Value used when extrapolating image outside data area.
         # If None, use mininum value inside data area.
@@ -249,23 +253,45 @@ class CreateNnunetDataset(Algorithm):
                     self.images.get(patient.id, None))
 
             for image in images:
+                # If an individual image dimension for resizing is None,
+                # and the corresponding voxel dimension isn't None,
+                # set the image dimension in voxels so as to retain
+                # the original image dimension in mm.
+                if self.image_size is not None and self.voxel_size is not None:
+                    image_size = []
+                    for idx, dxyz in enumerate(self.image_size):
+                        if dxyz is None and self.voxel_size[idx] != None:
+                            image_size.append(
+                                    int(image.get_n_voxels()[idx]
+                                        * image.get_voxel_size()[idx]
+                                        / self.voxel_size[idx]))
+                        else:
+                            image_size.append(dxyz)
+                else:
+                    image_size = None
+
                 # Perform any image standardisation requested.
-                image.resize(image_size=self.image_size,
+                image.resize(image_size=image_size,
                              voxel_size=self.voxel_size)
                 image.apply_banding(self.bands)
-
 
                 # For training set, process image-associated structure set.
                 if self.training_set:
                     sset = image.get_structure_sets()[
                             self.structure_set_to_write]
+                    sset.set_image(image)
 
                     # Standardise ROI names.
                     sset.rename_rois(self.roi_names, keep_renamed_only=True)
 
-                    # Check that structure set is non-empty,
-                    # and contains any required ROIs.
-                    if sset is None or (self.require_all_rois and
+                    # Remove any ROIs with zero volume inside the image area.
+                    to_remove = [roi.name for roi in sset.get_rois()
+                                 if roi.get_volume(method="mask") < 0.1]
+                    if to_remove:
+                        sset.filter_rois(to_remove=to_remove)
+
+                    # Check that structure set contains any required ROIs.
+                    if (self.require_all_rois and
                         len(sset.get_roi_names()) != len(self.roi_names)):
                         continue
 
@@ -351,7 +377,7 @@ def get_app(setup_script=''):
         roi_names = ["rectum"]
         roi_lookup = prostate_plan
 
-    opts["roi_names"] = {roi_name: roi_lookup[roi_name]
+    opts["roi_names"] = {roi_name: [roi_name] + roi_lookup[roi_name]
                          for roi_name in roi_names}
 
     opts["training_set"] = True
