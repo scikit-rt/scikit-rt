@@ -3224,8 +3224,8 @@ class ROI(skrt.core.Archive):
     def get_volume_ratio(self, other, **kwargs):
         """Get ratio of another ROI's volume with respect to own volume."""
 
-        own_volume = other.get_volume(**kwargs)
-        other_volume = self.get_volume(**kwargs)
+        own_volume = self.get_volume(**kwargs)
+        other_volume = other.get_volume(**kwargs)
         if not other_volume or not own_volume:
             return None
         return own_volume / other_volume
@@ -3264,8 +3264,8 @@ class ROI(skrt.core.Archive):
                 other, "area_ratio", by_slice, view, method
             )
 
-        own_area = other.get_area(view, sl, idx, pos, units, method, flatten)
-        other_area = self.get_area(view, sl, idx, pos, units, method, flatten)
+        own_area = self.get_area(view, sl, idx, pos, units, method, flatten)
+        other_area = other.get_area(view, sl, idx, pos, units, method, flatten)
         if not other_area or not own_area:
             return value_for_none
         return own_area / other_area

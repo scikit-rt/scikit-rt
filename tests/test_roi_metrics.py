@@ -58,7 +58,7 @@ def get_tests13(metric, method):
         ssval = len(slices_1)**2 / len(slices_3)**2
         ssval0 = 0
     elif "area_ratio" == metric:
-        ssval = len(slices_3)**2 / len(slices_1)**2
+        ssval = len(slices_1)**2 / len(slices_3)**2
     elif "area_diff" == metric:
         ssval = len(slices_1)**2 - len(slices_3)**2
     elif "abs_centroid" == metric:
