@@ -1849,7 +1849,7 @@ class ROI(skrt.core.Archive):
         # Otherwise, calculate from number of voxels in mask
         else:
             self.create_mask()
-            self._volume["voxels"] = self.mask.data.astype(bool).sum()
+            self._volume["voxels"] = float(self.mask.data.astype(bool).sum())
             voxel_vol = abs(np.prod(self.get_voxel_size()))
             self._volume["mm"] = self._volume["voxels"] * voxel_vol
 
@@ -1960,7 +1960,7 @@ class ROI(skrt.core.Archive):
         im_slice = self.get_slice(
             view, sl=sl, idx=idx, pos=pos, flatten=flatten
         )
-        area = im_slice.astype(bool).sum()
+        area = float(im_slice.astype(bool).sum())
         if units == "mm":
             x_ax, y_ax = skrt.image._plot_axes[view]
             xy_area = abs(self.voxel_size[x_ax] * self.voxel_size[y_ax])
@@ -7129,7 +7129,6 @@ class StructureSet(skrt.core.Archive):
                         affine=im.get_affine(),
                         voxel_size=None,
                         origin=None,
-                        image=self.image,
                         name=name,
                         **self.roi_kwargs,
                     )
@@ -7208,7 +7207,6 @@ class StructureSet(skrt.core.Archive):
                             roi["contours"],
                             name=roi["name"],
                             color=color,
-                            image=self.image,
                             **self.roi_kwargs,
                         )
                     )
@@ -7224,7 +7222,7 @@ class StructureSet(skrt.core.Archive):
             else:
                 try:
                     self.rois.append(
-                        ROI(source, image=self.image, **self.roi_kwargs)
+                        ROI(source, **self.roi_kwargs)
                     )
                 except RuntimeError:
                     continue
@@ -7255,6 +7253,11 @@ class StructureSet(skrt.core.Archive):
             slice_thickness = min(slice_thicknesses)
             for roi in rois:
                 roi.slice_thickness_contours = slice_thickness
+
+        # Associate structure-set image with all ROIs.
+        if self.image:
+            for roi in self.rois:
+                roi.set_image(self.image)
 
     def get_dicom_dataset(self):
         """Return pydicom.dataset.FileDataset object associated with this Image,
