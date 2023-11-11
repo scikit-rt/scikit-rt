@@ -2365,7 +2365,7 @@ class Image(skrt.core.Archive):
                 is computed from self.affine.
 
             Origin position (self.origin):
-                List of [x, y, z] origin coordinates in mm. If initiall None,
+                List of [x, y, z] origin coordinates in mm. If initially None,
                 this is computed from self.affine.
 
             Number of voxels (self.n_voxels):
