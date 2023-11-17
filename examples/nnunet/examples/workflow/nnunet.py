@@ -8,32 +8,9 @@ For information about nnU-net (non-new U-net), see:
 
 from json import dump
 from pathlib import Path
-from platform import system
-from random import random
-from sys import argv
 
-from skrt.application import Algorithm, Application, get_paths
+from skrt.application import Algorithm
 from skrt.core import filter_on_paths, fullpath, get_indexed_objs, make_dir
-
-# Import ROI dictionaries for head-and-neck cohort.
-from voxtox.roi_names.head_and_neck_roi_names import (
-    head_and_neck_plan,
-    head_and_neck_voxtox,
-    head_and_neck_iov,
-    head_and_neck_mvct,
-    head_and_neck_parotid_fiducials,
-    head_and_neck_tre,
-)
-
-# Import ROI dictionaries for prostate cohort.
-from voxtox.roi_names.prostate_roi_names import (
-    prostate_plan,
-    prostate_voxtox,
-    prostate_iov,
-    prostate_mvct,
-)
-
-SITE = "prostate"
 
 
 class CreateNnunetDataset(Algorithm):
@@ -67,8 +44,9 @@ class CreateNnunetDataset(Algorithm):
         self.outdir = "./data"
 
         # Dataset identifier.  If an integer, the dataset to be written
-        # is taken to be a training set: images and associated labels
-        # are written to the sub-directories "imagesTr" and "labelsTr"
+        # is taken to be for training or testing: images and associated labels
+        # are written respectively to the sub-directories
+        # images<dataset_label> and labels<dataset_label> of
         # <outdir>/nnUNet_raw/Dataset<dataset_id>_<dataset_name>.
         # If None, the dataset is taken to be for inference: images
         # are written directly to <outdir>.
@@ -78,6 +56,12 @@ class CreateNnunetDataset(Algorithm):
         # construction of the path to the training set images and labels.
         # Ignored if self.dataset_id is None (not a training set).
         self.dataset_name = "Test"
+
+        # Suffix for names of dataset sub-directories for images and labels.
+        # With nnU-net, the suffix "Tr" must be used for training sets
+        # and the suffix "Ts" is conventionally used for test sets.
+        # Ignored if <dataset_id> is None (not a training or test set).
+        self.dataset_label = ("Tr",)
 
         # Type of images to be written.  Multiple image types per case
         # can be handled by nnU-net, but only a single image type
@@ -182,6 +166,7 @@ class CreateNnunetDataset(Algorithm):
             outdir=self.outdir,
             dataset_id=self.dataset_id,
             dataset_name=self.dataset_name,
+            dataset_label=self.dataset_label,
             image_type=self.image_type,
             images=self.images,
             bands=self.bands,
@@ -214,6 +199,19 @@ class CreateNnunetDataset(Algorithm):
         return self.status
 
 
+def get_data_paths(
+    topdir,
+    dataset_id,
+    dataset_name=None,
+    nnunet_subdir="nnUNet_raw",
+    dataset_subdirs=("imagesTr", "labelsTr"),
+):
+    dataset_dir = get_dataset_path(
+        get_nnunet_env(topdir)[nnunet_subdir], dataset_id, dataset_name
+    )
+    return (dataset_dir / subdir for subdir in dataset_subdirs)
+
+
 def get_dataset_path(indir, dataset_id, dataset_name=None):
     if dataset_name is None:
         return list(
@@ -233,13 +231,6 @@ def get_nnunet_env(topdir="./nnunet"):
         f"nnUNet_{var}": str(topdir / f"nnUNet_{var}")
         for var in ["raw", "preprocessed", "results"]
     }
-
-
-def get_training_dirs(topdir, dataset_id, dataset_name=None):
-    dataset_dir = get_dataset_path(
-        get_nnunet_env(topdir)["nnUNet_raw"], dataset_id, dataset_name
-    )
-    return (dataset_dir / "imagesTr", dataset_dir / "labelsTr")
 
 
 def write_patient(patient, studies_to_write=True, **kwargs):
@@ -279,6 +270,7 @@ def write_study(
     outdir="./nnunet_datasets",
     dataset_id=None,
     dataset_name="Test",
+    dataset_label="Tr",
     image_type="ct",
     images=None,
     image_size=None,
@@ -294,8 +286,8 @@ def write_study(
     """
     Write study data for use by nnU-net.
 
-    For a training set, images and associated structure sets are written.
-    Otherwise, only images are written.
+    For a training or testing set, images and associated structure sets
+    are written.  Otherwise, only images are written.
 
     **Parameters:**
 
@@ -307,8 +299,9 @@ def write_study(
 
     dataset_id : int/None, default=None
         Dataset identifier.  If an integer, the dataset to be written
-        is taken to be a training set: images and associated labels
-        are written to the sub-directories "imagesTr" and "labelsTr"
+        is taken to be for training or testing: images and associated labels
+        are written respectively to the sub-directories
+        images<dataset_label> and labels<dataset_label> of
         <outdir>/nnUNet_raw/Dataset<dataset_id>_<dataset_name>.
         If None, the dataset is taken to be for inference: images
         are written directly to <outdir>.
@@ -316,7 +309,13 @@ def write_study(
     dataset_name: str, default="Test"
         Name to be associated with a training set, and used in the
         construction of the path to the training set images and labels.
-        Ignored if <dataset_id> is None (not a training set).
+        Ignored if <dataset_id> is None (not a training or test set).
+
+    dataset_label: int, default="Tr"
+        Suffix for names of dataset sub-directories for images and labels.
+        With nnU-net, the suffix "Tr" must be used for training sets
+        and the suffix "Ts" is conventionally used for test sets.
+        Ignored if <dataset_id> is None (not a training or test set).
 
     image_type : str, default="ct"
         Type of images to be written.  Multiple image types per case
@@ -375,17 +374,17 @@ def write_study(
         listed in the dictionary.  Before numbering, bilateral ROIs will
         be split into left and right components.  If None, no structure
         set is written in output.  Ignored if <dataset_id> is None
-        (not a training set).
+        (not a training or test set).
 
     require_all_rois : bool, default=False
         If True, skip cases where not all of the ROIs identified by
         roi_names are present in the image-associated structure set.
-        Ignored if <dataset_id> is None (not a training set).
+        Ignored if <dataset_id> is None (not a training or test set).
 
     bilateral_names : list, default=None
         List of names of ROIs that should be split into
         left and right parts, following initial name resolution.
-        Ignored if <dataset_id> is False (not a training set).
+        Ignored if <dataset_id> is False (not a training or test set).
 
     suffix : str, default=".nii.gz"
         Suffix for names of output files.
@@ -404,11 +403,14 @@ def write_study(
         if dataset_id is None:
             images_dir = fullpath(outdir, pathlib=True)
         else:
-            dataset_dir = get_dataset_path(
-                get_nnunet_env(outdir)["nnUNet_raw"], dataset_id
-            )
-            images_dir, labels_dir = get_training_dirs(
-                outdir, dataset_id, dataset_name
+            images_dir, labels_dir = get_data_paths(
+                outdir,
+                dataset_id,
+                dataset_name,
+                dataset_subdirs=(
+                    f"images{dataset_label}",
+                    f"labels{dataset_label}",
+                ),
             )
             make_dir(labels_dir, overwrite=False)
 
@@ -497,155 +499,3 @@ def write_study(
                     )
 
     return n_image
-
-
-def get_app(setup_script=""):
-    """
-    Define and configure application to be run.
-    """
-    opts = {}
-
-    if "head_and_neck" == SITE:
-        if "Linux" == system():
-            roi_names = [
-                "brainstem",
-                "mandible",
-                "parotid_left",
-                "parotid_right",
-                "smg_left",
-                "smg_right",
-                "spinal_cord",
-            ]
-            roi_lookup = head_and_neck_plan
-        else:
-            roi_names = ["spinal_cord"]
-            roi_lookup = head_and_neck_mvct
-    elif "prostate" == SITE:
-        if "Linux" == system():
-            roi_names = [
-                "bladder",
-                "femoral_head_left",
-                "femoral_head_right",
-                "prostate",
-                "rectum",
-                "seminal_vesicles",
-            ]
-        else:
-            roi_names = ["rectum"]
-
-        roi_lookup = prostate_plan
-
-    opts["roi_names"] = {
-        roi_name: [roi_name] + roi_lookup[roi_name] for roi_name in roi_names
-    }
-
-    opts["training_set"] = True
-
-    opts["voxel_size"] = (1.5, 1.5, 3.0)
-    opts["image_size"] = (256, 256, None)
-
-    # opts["topdir"] = str(Path("~/nnunet/data").expanduser())
-    opts["topdir"] = "/work/harrison/workshop/nnunet/data"
-
-    opts["image_type"] = "MVCT"
-    opts["dataset_id"] = 21
-    opts["dataset_name"] = "pk"
-    opts["test_fraction"] = 0.20
-
-    if "Ganga" in __name__:
-        opts["alg_module"] = fullpath(argv[0])
-
-    # Set the severity level for event logging
-    log_level = "INFO"
-
-    # Create algorithm object
-    alg = CreateNnunetDataset(opts=opts, name=None, log_level=log_level)
-
-    # Create the list of algorithms to be run (here just the one)
-    algs = [alg]
-
-    # Create the application
-    app = Application(algs=algs, log_level=log_level)
-
-    return app
-
-
-def get_data_locations():
-    """
-    Specify locations of patient datasets.
-    """
-    # Define the patient data to be analysed
-    if "Linux" == system():
-        data_dirs = [f"/r02/voxtox/workshop/synthetic_mvct/k_{SITE}"]
-        # data_dirs = [f"/r02/voxtox/data/head_and_neck/vspecial/30_patients__spinal_cord__1_mv"]
-        patterns = ["VT*"]
-    else:
-        data_dirs = [fullpath(f"~/data/voxtox_check/{SITE}")]
-        patterns = ["*/VT*"]
-        data_dirs = [
-            fullpath(
-                f"~/data/head_and_neck/vspecial/30_patients__spinal_cord__1_mv"
-            )
-        ]
-        data_dirs = [fullpath(f"~/data/synthetic_mvct/{SITE}")]
-        patterns = ["VT*"]
-
-    return {data_dir: patterns for data_dir in data_dirs}
-
-
-if "__main__" == __name__:
-    # Define and configure the application to be run.
-    app = get_app()
-
-    # Define the patient data to be analysed
-    paths = get_paths(get_data_locations())
-
-    # Run application for the selected data
-    app.run(paths)
-
-if "Ganga" in __name__:
-    # Define script for setting analysis environment
-    setup_script = fullpath("skrt_conda.sh")
-
-    # Define and configure the application to be run.
-    ganga_app = SkrtApp._impl.from_application(get_app(), setup_script)
-
-    # Define the patient data to be analysed
-    paths = get_paths(get_data_locations())
-    input_data = PatientDataset(paths=paths)
-
-    # Define processing system.
-    if "Linux" == system():
-        backend = Condor()
-        backend.cdf_options["request_memory"] = "8G"
-    else:
-        backend = Local()
-
-    # Define how job should be split into subjobs
-    splitter = PatientDatasetSplitter(patients_per_subjob=5)
-    splitter = None
-
-    # Define merging of subjob outputs
-    merger = SmartMerger()
-    merger.files = ["stderr", "stdout"]
-    merger.ignorefailed = True
-    postprocessors = [merger]
-    postprocessors = []
-
-    # Define job name
-    name = f"nnunet_{SITE}"
-
-    # Define list of outputs to be saved
-    outbox = []
-
-    # Create the job, and submit to processing system
-    j = Job(
-        application=ganga_app,
-        backend=backend,
-        inputdata=input_data,
-        outputsandbox=outbox,
-        splitter=splitter,
-        postprocessors=postprocessors,
-        name=name,
-    )
-    j.submit()
