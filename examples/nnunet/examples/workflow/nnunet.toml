@@ -1,0 +1,70 @@
+site = "prostate"
+# site = "head_and_neck"
+
+[setup]
+skrt = "skrt_conda.sh"
+nnunet = "nnunet_conda.sh"
+algs_module = "nnunet.py"
+
+[nnunet]
+dataset_id = 1
+dataset_name = "Test"
+
+[image]
+image_type = "MVCT"
+voxel_size = [1.5, 1.5, 3.0]
+image_size = [256, 256, "None"]
+
+[Linux]
+outdir = "/work/harrison/workshop/nnunet/data"
+
+[Linux.head_and_neck]
+data_dirs = ["/r02/voxtox/workshop/synthetic_mvct/k_head_and_neck"]
+patterns = ["VT*"]
+roi_names = [
+    "brainstem",
+    "mandible",
+    "parotid_left",
+    "parotid_right",
+    "smg_left",
+    "smg_right",
+    "spinal_cord",
+]
+roi_lookup = "head_and_neck_plan"
+#roi_lookup = "head_and_neck_voxtox"
+#roi_lookup = "head_and_neck_iov"
+#roi_lookup = "head_and_neck_mvct"
+#roi_lookup = "head_and_neck_parotid_fiducials"
+#roi_lookup = "head_and_neck_tre"
+
+[Linux.prostate]
+data_dirs = ["/r02/voxtox/workshop/synthetic_mvct/k_prostate"]
+patterns = ["VT*"]
+roi_names = [
+    "bladder",
+    "femoral_head_left",
+    "femoral_head_right",
+    "prostate",
+    "rectum",
+    "seminal_vesicles",
+    ]
+roi_lookup = "prostate_plan"
+#roi_lookup = "prostate_voxtox"
+#roi_lookup = "prostate_iov"
+#roi_lookup = "prostate_mvct"
+
+[Darwin]
+outdir = "./nnunet_datasets"
+
+[Darwin.head_and_neck]
+data_dirs = ["~/data/head_and_neck/vspecial/30_patients__spinal_cord__1_mv"]
+roi_names = ["spinal_cord"]
+roi_lookup = "head_and_neck_mvct"
+patterns = ["VT*"]
+
+
+[Darwin.prostate]
+data_dirs = ["~/data/voxtox_check/prostate"]
+patterns = ["*/VT*"]
+roi_names = ["rectum"]
+roi_lookup = "prostate_plan"
