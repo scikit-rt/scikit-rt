@@ -222,6 +222,11 @@ and manages algorithm execution.</p>
 <li><p><strong>finalise()</strong>: Call each algorithm’s finalise method.</p></li>
 <li><p><strong>run()</strong>: Initialise analysis, process patient data, finalise analysis.</p></li>
 </ul>
+<p><strong>Class method:</strong></p>
+<ul class="simple">
+<li><p><strong>from_alg_specs()</strong> Create instance of Application class from
+specifications of the constituent algorithms.</p></li>
+</ul>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.application.Application.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.__init__" title="Permalink to this definition"></a></dt>
@@ -253,6 +258,29 @@ log_level is set to the value of skrt.core.Defaults().log_level.</p>
 <dt class="sig sig-object py" id="skrt.application.Application.finalise">
 <span class="sig-name descname"><span class="pre">finalise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.finalise" title="Permalink to this definition"></a></dt>
 <dd><p>Call each algorithm’s finalise method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.application.Application.from_alg_specs">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_alg_specs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alg_specs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.Application.from_alg_specs" title="Permalink to this definition"></a></dt>
+<dd><p>Create instance of Application class
+from specifications of the constituent algorithms.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>alg_specs: tuple, default=()</dt><dd><p>Tuple of five-element tuples.  The elements of each inner
+tuple provide information from which to create an instance
+of an Algorithm subclass:</p>
+<ul class="simple">
+<li><p>path to the module where the Algorithm subclass is defined;</p></li>
+<li><p>name of Algorithm subclass;</p></li>
+<li><p>value to pass as &lt;opts&gt;, &lt;name&gt;, &lt;log_level&gt; to
+the constructor of the Algorithm subclass.</p></li>
+</ul>
+</dd>
+<dt>log_level: str/int/None, default=None</dt><dd><p>Severity level for event logging.  If the value is None,
+log_level is set to the value of skrt.core.Defaults().log_level.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
