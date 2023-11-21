@@ -25,6 +25,7 @@ application:
 
 * **get_paths()** - get list of paths to patient datasets.
 """
+from importlib.util import module_from_spec, spec_from_file_location
 from itertools import chain
 from pathlib import Path
 
@@ -131,6 +132,11 @@ class Application:
     * **execute()**: For each patient, call each algorithm's execute method.
     * **finalise()**: Call each algorithm's finalise method.
     * **run()**: Initialise analysis, process patient data, finalise analysis.
+
+    **Class method:**
+
+    * **from_alg_specs()** Create instance of Application class from
+      specifications of the constituent algorithms.
     """
 
     def __init__(self, algs=None, log_level=None):
@@ -164,6 +170,41 @@ class Application:
                 if not alg.status.is_ok():
                     self.status.code = alg.status.code
                     self.status.reason = f"{alg.name}: {alg.status.reason}"
+
+    @classmethod
+    def from_alg_specs(cls, alg_specs=(), log_level=None):
+        """
+        Create instance of Application class
+        from specifications of the constituent algorithms.
+
+        **Parameters:**
+
+        alg_specs: tuple, default=()
+            Tuple of five-element tuples.  The elements of each inner
+            tuple provide information from which to create an instance
+            of an Algorithm subclass:
+
+            - path to the module where the Algorithm subclass is defined;
+            - name of Algorithm subclass;
+            - value to pass as <opts>, <name>, <log_level> to
+              the constructor of the Algorithm subclass.
+
+        log_level: str/int/None, default=None
+            Severity level for event logging.  If the value is None,
+            log_level is set to the value of skrt.core.Defaults().log_level.
+        """
+        algs = []
+        for mod_path, class_name, opts, name, alg_log_level in alg_specs:
+            # Import of module from path based on:
+            # https://docs.python.org/3/library/importlib.html
+            #         #importing-a-source-file-directly
+            mod_spec = spec_from_file_location(Path(mod_path).stem, mod_path)
+            mod = module_from_spec(mod_spec)
+            mod_spec.loader.exec_module(mod)
+            alg_class = getattr(mod, class_name)
+            algs.append(alg_class(opts, name, alg_log_level))
+
+        return cls(algs, log_level)
 
     def execute(self, patient=None):
         """

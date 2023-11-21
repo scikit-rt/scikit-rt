@@ -75,10 +75,30 @@ def test_application_creation():
     assert app.algs[0].name == "name1"
     assert app.algs[1].name == "name2"
 
+def test_application_creation_from_alg_specs():
+    """Create test application from algorithm specifications."""
+
+    alg1_spec = (__file__, "PyTestAlgorithm", None, "name1", None)
+    alg2_spec = (__file__, "PyTestAlgorithm", None, "name2", None)
+    app = Application.from_alg_specs([alg1_spec, alg2_spec])
+    assert app.log_level == Defaults().log_level
+    assert app.logger.name == "Application"
+    assert len(app.algs) == 2
+    assert app.algs[0].name == "name1"
+    assert app.algs[1].name == "name2"
+
+def test_application_creation_from_alg_specs_no_algorithms():
+    """Create test application from null algorithm specifications."""
+
+    app = Application()
+    assert not app.algs
+    assert 1 == app.status.code
+    assert "No algorithms to run" == app.status.reason
+
 def test_application_creation_no_algorithms():
     """Create test application with no algorithms and check properties."""
 
-    app = Application()
+    app = Application.from_alg_specs()
     assert not app.algs
     assert 1 == app.status.code
     assert "No algorithms to run" == app.status.reason
