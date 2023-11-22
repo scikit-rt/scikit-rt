@@ -693,6 +693,33 @@ log_level is set to the value of Defaults().log_level.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.filtered_dict">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">filtered_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.filtered_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Filter a nested dictionary based on first-level keys.</p>
+<p>This function is designed for simplifying dictionaries where
+first-level keys can respond to different options, as may be
+read from a configuration file.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>items: dict, default=None</dt><dd><p>Dictionary to which filters are to be applied.  If None,
+an empty dictionary is returned.</p>
+</dd>
+<dt>filters: dict, default=None</dt><dd><p>Dictionary where keys are selections, and values are lists
+of the options from which the selections are made.  Application
+of a filter promotes second-level keys of the selection to
+first-level keys, and deletes all first-level keys specified
+as options.  For example, if the dictionary for filtering is:</p>
+<p>items = {“opt1” : {“prop1”: “val1”}, “opt2” : {“prop2”: “val2”}}</p>
+<p>the filter {“opt1” : [“opt1”, “opt2”}}</p>
+<p>will reduce this to:</p>
+<p>items = {“prop1”: “val1”}</p>
+<p>If None, the original dictionary is returned.  Or if the original
+dictionary is None then an empty dictionary is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.fullpath">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">fullpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.fullpath" title="Permalink to this definition"></a></dt>
 <dd><p>Evaluate full path, expanding ‘~’, environment variables, and
@@ -1087,6 +1114,24 @@ the most recent if True, or the least recent otherwise.</p>
 <dt class="sig sig-object py" id="skrt.core.is_timestamp">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_timestamp" title="Permalink to this definition"></a></dt>
 <dd><p>Check whether a string is a valid timestamp.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.load_toml">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">load_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toml_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.load_toml" title="Permalink to this definition"></a></dt>
+<dd><p>Load TOML-formatted data from file, and return a dictionary.</p>
+<p>For information about TOMO (Tom’s Obvious Minimal Language), see:
+<a class="reference external" href="https://toml.io/">https://toml.io/</a></p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>toml_path: str/pathlib.Path</dt><dd><p>Path to file containing data formatted using TOML.</p>
+</dd>
+<dt>filters: dict, default=None</dt><dd><p>Filters to be applied to the dictionary created from the
+TOML-formatted input.  If None, no filters are applied.
+For information about filters, see documentation for
+skrt.core.filtered_dict().</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
