@@ -253,6 +253,14 @@ def test_get_paths_str():
     data_locations = paths[0]
     assert get_paths(data_locations) == [str(paths[0])]
 
+def test_get_paths_pathlib_wildcard():
+    """
+    Test get_paths() for data_locations input as pathlib.Path with wildcard.
+    """
+    paths = create_data_paths(True, 6)
+    data_locations = Path(paths[0]).parent / "*"
+    assert get_paths(data_locations, pathlib=True) == paths
+
 def test_get_paths_all():
     """Test get_paths() for data_locations input as dictionary."""
     paths = create_data_paths()

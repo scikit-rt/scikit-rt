@@ -25,6 +25,7 @@ application:
 
 * **get_paths()** - get list of paths to patient datasets.
 """
+from glob import glob
 from importlib.util import module_from_spec, spec_from_file_location
 from itertools import chain
 from pathlib import Path
@@ -367,7 +368,8 @@ class Status:
 
 
 def get_paths(
-    data_locations=None, max_path=None, to_keep=None, to_exclude=None
+    data_locations=None, max_path=None, to_keep=None, to_exclude=None,
+    pathlib=False
 ):
     """
     Get list of paths to patient datasets.
@@ -377,8 +379,11 @@ def get_paths(
     data_locations : pathlib.Path/str/list/dict, default=None
         Specification of how to identify paths to patient datasets:
 
-        - string of pathlib.Path giving path to a single patient dataset;
-        - list of strings or pathlib.Path giving full paths to patient datasets;
+        - string or pathlib.Path, optionally including wildcards, giving
+          path to a single patient dataset, or matching paths with
+          multiple multiple datasets;
+        - list of strings or pathlib.Path objects, optionally including
+          wildcards, giving or matching paths to patient datasets;
         - dictionary where keys are paths to directories containing
           patient datasets, and values are strings, or lists of strings,
           indicating patterns to be matched.
@@ -396,6 +401,10 @@ def get_paths(
         only return dataset paths excluding the specified identifier(s).
         If an identifier is specified as both <to_keep> and <to_exclude>,
         the latter takes precedence.
+
+    pathlib: bool, default=False
+        If False, return paths as strings.  If True, return paths
+        as pathlib.Path objects.
     """
     # Return empty list if data_locations is None.
     paths = []
@@ -408,9 +417,9 @@ def get_paths(
 
     # Obtain dataset paths from list of data locations.
     if isinstance(data_locations, (list, set, tuple)):
-        paths = [
-            str(fullpath(data_location)) for data_location in data_locations
-        ]
+        paths = []
+        for data_location in data_locations:
+            paths.extend([fullpath(path) for path in glob(str(data_location))])
 
     # Obtain dataset paths from dictionary associating directories and patterns.
     elif isinstance(data_locations, dict):
@@ -444,10 +453,11 @@ def get_paths(
             if not any(Path(path).match(id) for id in to_exclude)
         ]
 
-    # Sort paths, ensuring that each path is included only once,
-    paths = sorted(list(set(paths)))
-
     # Determine maximum number of paths to return.
     max_path = min(max_path if max_path is not None else len(paths), len(paths))
 
-    return paths[0:max_path]
+    # Sort paths, ensuring that each path is included only once,
+    paths = sorted(list(set(paths)))[0: max_path]
+
+    # Return paths as list of strings or as list of pathlib.Path objects.
+    return paths if not pathlib else [Path(path) for path in paths]
