@@ -458,3 +458,65 @@ def test_filter_on_paths(caplog):
     assert filtered_objs is None
     assert 1 == len(caplog.records)
     assert "not all instances of PathData or a subclass" in caplog.text
+
+def test_load_toml():
+    """Test loading from file of TOML-formatted data"""
+
+    # Write example TOML file.
+    toml_dir = Path("tmp") / "toml"
+    if toml_dir.exists():
+        shutil.rmtree(toml_dir)
+    toml_dir.mkdir()
+
+    version = "1.0.0"
+    voxel_size1 = [1, 1, 1]
+    voxel_size2 = [2, 2, 2]
+    lines = [
+            "[skrt]",
+            f"version='{version}'",
+            "[image1]",
+            f"voxel_size={voxel_size1}",
+            "[image2]",
+            f"voxel_size={voxel_size2}",
+            ]
+
+    tpath = toml_dir / "config.toml"
+    with open(tpath, "w") as file:
+        file.write("\n".join(lines))
+
+    # Test data loading.
+    toml = skrt.core.load_toml(tpath)
+    assert ["skrt", "image1", "image2"] == list(toml.keys())
+    assert version == toml["skrt"]["version"]
+    assert voxel_size1 == toml["image1"]["voxel_size"]
+    assert voxel_size2 == toml["image2"]["voxel_size"]
+
+    # Test data loading with filtering.
+    toml = skrt.core.load_toml(tpath, filters={"image2": ["image1", "image2"]})
+    assert ["skrt", "voxel_size"] == list(toml.keys())
+    assert version == toml["skrt"]["version"]
+    assert voxel_size2 == toml["voxel_size"]
+
+def test_filtered_dict():
+    """Test filtering of nested dictionary."""
+
+    # Define test dictionary.
+    items = {"opt1" : {"prop1": "val1"}, "opt2" : {"prop2": "val2"}}
+
+    # Test filtering with no arguments.
+    assert {} == skrt.core.filtered_dict()
+
+    # Test filtering with no filters.
+    assert items == skrt.core.filtered_dict(items)
+
+    # Test filtering with option selection.
+    assert ["prop1"] == list(skrt.core.filtered_dict(
+        dict(items), {"opt1" : ["opt1", "opt2"]}).keys())
+
+    # Test filtering against alternatives not in dictionary.
+    assert items == skrt.core.filtered_dict(
+            dict(items), {"opt3": ["opt3", "opt4"]})
+
+    # Test filtering against selection not in dictionary.
+    assert {} == skrt.core.filtered_dict(
+            dict(items), {"opt3": ["opt1", "opt2", "opt3"]})

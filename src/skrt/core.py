@@ -21,6 +21,7 @@ from zipfile import ZipFile
 import numpy as np
 import pandas as pd
 import pydicom
+import tomli
 
 
 class Defaults:
@@ -2502,3 +2503,69 @@ def filter_on_paths(objs, paths_to_match=None, log_level=None):
         paths_to_match = [paths_to_match]
     fullpaths_to_match = [fullpath(path) for path in paths_to_match]
     return [obj for obj in objs if obj.path in fullpaths_to_match]
+
+def load_toml(toml_path, filters=None):
+    """
+    Load TOML-formatted data from file, and return a dictionary.
+
+    For information about TOMO (Tom's Obvious Minimal Language), see:
+    https://toml.io/
+
+    **Parameters:**
+
+    toml_path: str/pathlib.Path
+        Path to file containing data formatted using TOML.
+
+    filters: dict, default=None
+        Filters to be applied to the dictionary created from the
+        TOML-formatted input.  If None, no filters are applied.
+        For information about filters, see documentation for
+        skrt.core.filtered_dict().
+    """
+    with open(toml_path, "rb") as toml_file:
+        toml = tomli.load(toml_file)
+    return filtered_dict(toml, filters)
+
+
+def filtered_dict(items=None, filters=None):
+    """
+    Filter a nested dictionary based on first-level keys.
+
+    This function is designed for simplifying dictionaries where
+    first-level keys can respond to different options, as may be
+    read from a configuration file.
+
+    **Parameters:**
+
+    items: dict, default=None
+        Dictionary to which filters are to be applied.  If None,
+        an empty dictionary is returned.
+
+    filters: dict, default=None
+        Dictionary where keys are selections, and values are lists
+        of the options from which the selections are made.  Application
+        of a filter promotes second-level keys of the selection to
+        first-level keys, and deletes all first-level keys specified
+        as options.  For example, if the dictionary for filtering is:
+
+        items = {"opt1" : {"prop1": "val1"}, "opt2" : {"prop2": "val2"}}
+
+        the filter {"opt1" : ["opt1", "opt2"}}
+
+        will reduce this to:
+
+        items = {"prop1": "val1"}
+
+        If None, the original dictionary is returned.  Or if the original
+        dictionary is None then an empty dictionary is returned.
+    """
+    if not filters or not items:
+        return items or {}
+    for selection, alternatives in filters.items():
+        for candidate in alternatives:
+            if candidate in items:
+                if selection == candidate:
+                    for key, val in items[candidate].items():
+                        items[key] = val
+                del items[candidate]
+    return items
