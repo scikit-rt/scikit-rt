@@ -369,14 +369,17 @@ algorithm methods, with attributes set to indicate exit status.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.application.get_paths">
-<span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">get_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.get_paths" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.application.</span></span><span class="sig-name descname"><span class="pre">get_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.application.get_paths" title="Permalink to this definition"></a></dt>
 <dd><p>Get list of paths to patient datasets.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>data_locations<span class="classifier">pathlib.Path/str/list/dict, default=None</span></dt><dd><p>Specification of how to identify paths to patient datasets:</p>
 <ul class="simple">
-<li><p>string of pathlib.Path giving path to a single patient dataset;</p></li>
-<li><p>list of strings or pathlib.Path giving full paths to patient datasets;</p></li>
+<li><p>string or pathlib.Path, optionally including wildcards, giving
+path to a single patient dataset, or matching paths with
+multiple multiple datasets;</p></li>
+<li><p>list of strings or pathlib.Path objects, optionally including
+wildcards, giving or matching paths to patient datasets;</p></li>
 <li><p>dictionary where keys are paths to directories containing
 patient datasets, and values are strings, or lists of strings,
 indicating patterns to be matched.</p></li>
@@ -392,6 +395,9 @@ only return dataset paths for the specified identifier(s).</p>
 only return dataset paths excluding the specified identifier(s).
 If an identifier is specified as both &lt;to_keep&gt; and &lt;to_exclude&gt;,
 the latter takes precedence.</p>
+</dd>
+<dt>pathlib: bool, default=False</dt><dd><p>If False, return paths as strings.  If True, return paths
+as pathlib.Path objects.</p>
 </dd>
 </dl>
 </dd></dl>
