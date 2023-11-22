@@ -419,14 +419,14 @@ def get_paths(
     if isinstance(data_locations, (list, set, tuple)):
         paths = []
         for data_location in data_locations:
-            paths.extend([fullpath(path) for path in glob(str(data_location))])
+            paths.extend([path for path in glob(fullpath(data_location))])
 
     # Obtain dataset paths from dictionary associating directories and patterns.
     elif isinstance(data_locations, dict):
         for data_dir, patterns in data_locations.items():
             paths.extend(
                 [
-                    str(fullpath(path))
+                    fullpath(path)
                     for path in chain.from_iterable(
                         [Path(data_dir).glob(pattern) for pattern in patterns]
                     )
