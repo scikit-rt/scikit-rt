@@ -7550,6 +7550,9 @@ class StructureSet(skrt.core.Archive):
         for name, matches in names.items():
             if not skrt.core.is_list(matches):
                 matches = [matches]
+            # Ensure that the target name is always a valid match.
+            if not name in matches:
+                matches[:0] = [name]
 
             # Loop through all possible original names
             name_matched = False
