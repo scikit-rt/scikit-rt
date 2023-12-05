@@ -6,7 +6,7 @@ environment.  This is achieved in the instructions below using
 [conda](https://docs.conda.io/).  You can perform a user installation
 with [pip](https://pip.pypa.io/), or a developer installation with
 [git](https://git-scm.com/).   Installations have been tested
-for [Python 3.8](https://www.python.org/downloads/release/python-380/).
+for Python 3.8 and Python 3.10.
 
 For functionality involving image registration, it is also necessary
 to <a href="#installation-and-setup-for-image-registration">install
@@ -20,7 +20,7 @@ a developer installation.
 
 1. User installation
 ```
-conda create --name skrt python=3.8
+conda create --name skrt python=3.10
 conda activate skrt
 pip install scikit-rt
 ```
