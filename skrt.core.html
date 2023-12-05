@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -115,16 +115,16 @@
            <div itemprop="articleBody">
              
   <section id="module-skrt.core">
-<span id="skrt-core-module"></span><h1>skrt.core module<a class="headerlink" href="#module-skrt.core" title="Permalink to this heading"></a></h1>
+<span id="skrt-core-module"></span><h1>skrt.core module<a class="headerlink" href="#module-skrt.core" title="Link to this heading"></a></h1>
 <p>Scikit-rt core data classes and functions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.Archive">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Archive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Archive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dated</span></code></a></p>
 <p>Dated object associated with multiple files.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Archive.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initialise dated object from a path and assign its timestamp. If
 no valid timestamp is found within the path string, it will be set
 automatically from the current date and time if auto_timestamp is True.</p>
@@ -132,13 +132,13 @@ automatically from the current date and time if auto_timestamp is True.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Archive.get_file_size">
-<span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.get_file_size" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.get_file_size" title="Link to this definition"></a></dt>
 <dd><p>Return size in bytes of associated file.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Archive.get_n_file">
-<span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.get_n_file" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Archive.get_n_file" title="Link to this definition"></a></dt>
 <dd><p>Return number of data files associated with this object.</p>
 </dd></dl>
 
@@ -146,7 +146,7 @@ automatically from the current date and time if auto_timestamp is True.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.Data">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Base class for objects serving as data containers.
 An object has user-defined data attributes, which may include
@@ -156,7 +156,7 @@ a chosen depth, and for obtaining nested dictionaries of
 attributes and values.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.__init__" title="Link to this definition"></a></dt>
 <dd><p>Constructor of Data class, allowing initialisation of an
 arbitrary set of attributes.</p>
 <p><strong>Parameters:</strong></p>
@@ -172,13 +172,13 @@ and their initial values.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.__repr__">
-<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.__repr__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.__repr__" title="Link to this definition"></a></dt>
 <dd><p>Create string recursively listing attributes and values.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.clone">
-<span class="sig-name descname"><span class="pre">clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.clone" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.clone" title="Link to this definition"></a></dt>
 <dd><p>Return a clone of the Data object. All attributes of the original
 object will be copied by reference to the new object, with some
 exceptions (see parameters below).</p>
@@ -200,7 +200,7 @@ copied rather than copied by reference.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.clone_attrs">
-<span class="sig-name descname"><span class="pre">clone_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_types_to_copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.clone_attrs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">clone_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_types_to_copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.clone_attrs" title="Link to this definition"></a></dt>
 <dd><p>Assign all attributes of &lt;self&gt; to another object, &lt;obj&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -222,14 +222,14 @@ copied rather than copied by reference.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.get_dict">
-<span class="sig-name descname"><span class="pre">get_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#skrt.core.Data.get_dict" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#skrt.core.Data.get_dict" title="Link to this definition"></a></dt>
 <dd><p>Return a nested dictionary of object attributes (dictionary keys)
 and their values.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.get_item_string">
-<span class="sig-name descname"><span class="pre">get_item_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.get_item_string" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_item_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.get_item_string" title="Link to this definition"></a></dt>
 <dd><p>Return string representation of an item.</p>
 <p>If Defaults().compress_user is set to True, the function
 compress_user() is called for each item corresponding to a file
@@ -238,14 +238,14 @@ path, where the file or its parent directory exists.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.get_print_depth">
-<span class="sig-name descname"><span class="pre">get_print_depth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#skrt.core.Data.get_print_depth" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_print_depth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#skrt.core.Data.get_print_depth" title="Link to this definition"></a></dt>
 <dd><p>Retrieve the value of the object’s print depth,
 setting an initial value if not previously defined.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.print">
-<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.print" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.print" title="Link to this definition"></a></dt>
 <dd><p>Convenience method for recursively printing
 object attributes and values, with recursion
 to a specified depth.</p>
@@ -260,7 +260,7 @@ is used.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Data.set_print_depth">
-<span class="sig-name descname"><span class="pre">set_print_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.set_print_depth" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_print_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Data.set_print_depth" title="Link to this definition"></a></dt>
 <dd><p>Set the object’s print depth.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -275,13 +275,13 @@ set to the value of Defaults().print_depth.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.Dated">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Dated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Dated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.core.PathData" title="skrt.core.PathData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PathData</span></code></a></p>
 <p>PathData with an associated date and time, which can be used for
 sorting multiple Dateds.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initialise dated object from a path and assign its timestamp. If
 no valid timestamp is found within the path string, it will be set
 automatically from the current date and time if auto_timestamp is True.</p>
@@ -289,7 +289,7 @@ automatically from the current date and time if auto_timestamp is True.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.copy_dicom">
-<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy_dicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom" title="Link to this definition"></a></dt>
 <dd><p>Copy (single) source dicom file.</p>
 <p>Derived classes may override this method, to provide for
 copying multiple files.  See, for example:</p>
@@ -320,7 +320,7 @@ of output filename if not None, otherwise Ignored.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.copy_dicom_files">
-<span class="sig-name descname"><span class="pre">copy_dicom_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dicom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom_files" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy_dicom_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dicom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.copy_dicom_files" title="Link to this definition"></a></dt>
 <dd><p>Copy DICOM file(s) associated with this object.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -349,7 +349,7 @@ class’s copy_dicom() method.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.get_matched_timestamps">
-<span class="sig-name descname"><span class="pre">get_matched_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_matched_timestamps" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_matched_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_matched_timestamps" title="Link to this definition"></a></dt>
 <dd><p>Identify Dated objects that have matching timestamps, within tolerance.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -363,13 +363,13 @@ the timestamps to be considered matched.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.get_pandas_timestamp">
-<span class="sig-name descname"><span class="pre">get_pandas_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_pandas_timestamp" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_pandas_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Dated.get_pandas_timestamp" title="Link to this definition"></a></dt>
 <dd><p>Obtain own timestamp as a pandas.Timestamp object.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Dated.in_date_interval">
-<span class="sig-name descname"><span class="pre">in_date_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.Dated.in_date_interval" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">in_date_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.Dated.in_date_interval" title="Link to this definition"></a></dt>
 <dd><p>Check whether own date falls within an interval.</p>
 </dd></dl>
 
@@ -377,7 +377,7 @@ the timestamps to be considered matched.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.Defaults">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Defaults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Defaults" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">Defaults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Defaults" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Singleton class for storing default values of parameters
 that may be used in object initialisation.</p>
@@ -385,7 +385,7 @@ that may be used in object initialisation.</p>
 <a class="reference external" href="https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html">https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html</a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Defaults.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Defaults.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Defaults.__init__" title="Link to this definition"></a></dt>
 <dd><p>Constructor of Defaults singleton class.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -401,20 +401,20 @@ but add to them, or modify values, from opts dictionary.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.Defaults.__repr__">
-<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Defaults.__repr__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.Defaults.__repr__" title="Link to this definition"></a></dt>
 <dd><p>Print instance attributes.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.core.Defaults.instance">
-<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">stations:</span> <span class="pre">{}</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">stations:</span> <span class="pre">{}</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.DicomFile">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">DicomFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">DicomFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
 <p>Class representing files in DICOM format, with conversion to skrt objects.</p>
 <p><strong>Methods:</strong>
@@ -426,7 +426,7 @@ but add to them, or modify values, from opts dictionary.</p>
 - <strong>set_slice_thickness</strong> : Store slice thickness for 3D imaging data.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.__init__" title="Link to this definition"></a></dt>
 <dd><p>Create instance of DicomFile class.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -437,7 +437,7 @@ but add to them, or modify values, from opts dictionary.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.get_matched_attributes">
-<span class="sig-name descname"><span class="pre">get_matched_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_matched_attributes" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_matched_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">others</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_matched_attributes" title="Link to this definition"></a></dt>
 <dd><p>Identify objects with attribute values matching own attribute values.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -452,7 +452,7 @@ to a single-element list.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.get_object">
-<span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_object" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.get_object" title="Link to this definition"></a></dt>
 <dd><p>Instantiate object of specified Scikit-rt class.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -473,7 +473,7 @@ from which object is to be instantiated.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.set_dates_and_times">
-<span class="sig-name descname"><span class="pre">set_dates_and_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_dates_and_times" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_dates_and_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_dates_and_times" title="Link to this definition"></a></dt>
 <dd><p>Store timing information for specified elements.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -486,13 +486,13 @@ to be checked, in the order listed, for date and time information.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.set_referenced_sop_instance_uids">
-<span class="sig-name descname"><span class="pre">set_referenced_sop_instance_uids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_referenced_sop_instance_uids" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_referenced_sop_instance_uids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_referenced_sop_instance_uids" title="Link to this definition"></a></dt>
 <dd><p>Store SOP instance UIDs for referenced image, structure set, and plan.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.DicomFile.set_slice_thickness">
-<span class="sig-name descname"><span class="pre">set_slice_thickness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_slice_thickness" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_slice_thickness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.DicomFile.set_slice_thickness" title="Link to this definition"></a></dt>
 <dd><p>Store slice thickness for 3D imaging data.</p>
 </dd></dl>
 
@@ -500,7 +500,7 @@ to be checked, in the order listed, for date and time information.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.File">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.File" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.File" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.core.Dated" title="skrt.core.Dated"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dated</span></code></a></p>
 <p>File with an associated date. Files can be sorted based on their
 filenames.</p>
@@ -508,13 +508,13 @@ filenames.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.PathData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">PathData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">PathData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#skrt.core.Data" title="skrt.core.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></a></p>
 <p>Data with an associated path or directory; has the ability to
 extract a list of dated objects from within this directory.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.PathData.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.__init__" title="Link to this definition"></a></dt>
 <dd><p>Constructor of Data class, allowing initialisation of an
 arbitrary set of attributes.</p>
 <p><strong>Parameters:</strong></p>
@@ -530,7 +530,7 @@ and their initial values.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.PathData.create_objects">
-<span class="sig-name descname"><span class="pre">create_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.PathData.create_objects" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.PathData.create_objects" title="Link to this definition"></a></dt>
 <dd><p>For all the files inside own directory, or own directory + &lt;subdir&gt;
 if &lt;subdir&gt; is given, create an object of given data type &lt;dtype&gt; if
 the filename corresponds to a timestamp. Return the created objects in
@@ -557,19 +557,19 @@ be used to initialise objects.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.PathData.get_file_size">
-<span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_file_size" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_file_size" title="Link to this definition"></a></dt>
 <dd><p>Return size in bytes of associated file.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.PathData.get_n_file">
-<span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_n_file" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_n_file" title="Link to this definition"></a></dt>
 <dd><p>Return number of data files associated with this object.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.PathData.get_n_file_below">
-<span class="sig-name descname"><span class="pre">get_n_file_below</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_n_file_below" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_n_file_below</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.get_n_file_below" title="Link to this definition"></a></dt>
 <dd><p>Where self.path is a directory, return number of files below this.</p>
 <p>Returns None if self.path isn’t the path to a directory.  In
 counting files, hidden files are ignored.</p>
@@ -577,7 +577,7 @@ counting files, hidden files are ignored.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.PathData.print_paths">
-<span class="sig-name descname"><span class="pre">print_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.print_paths" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">print_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.PathData.print_paths" title="Link to this definition"></a></dt>
 <dd><p>Print paths of data files associated with this object.</p>
 <p>File paths are listed in natural order, with one path per line.</p>
 <p><strong>Parameters:</strong>
@@ -594,7 +594,7 @@ all paths are printed.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.core.TicToc">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">TicToc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.6f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">TicToc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.6f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Singleton class for storing timing information,
 to allow emulation of MATLAB tic/toc functionality.</p>
@@ -602,7 +602,7 @@ to allow emulation of MATLAB tic/toc functionality.</p>
 <a class="reference external" href="https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html">https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html</a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.TicToc.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.6f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.6f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc.__init__" title="Link to this definition"></a></dt>
 <dd><p>Constructor of TicToc singleton class.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -632,33 +632,33 @@ subsequent calls, a value of None is disregarded.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.core.TicToc.__repr__">
-<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc.__repr__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.TicToc.__repr__" title="Link to this definition"></a></dt>
 <dd><p>Print instance attributes.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.core.TicToc.instance">
-<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#skrt.core.TicToc.instance" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#skrt.core.TicToc.instance" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.alphanumeric">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">alphanumeric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.alphanumeric" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">alphanumeric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.alphanumeric" title="Link to this definition"></a></dt>
 <dd><p>Function that can be passed as value for list sort() method
 to have alphanumeric (natural) sorting</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.compress_user">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">compress_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.compress_user" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">compress_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.compress_user" title="Link to this definition"></a></dt>
 <dd><p>If path starts with home directory, replace by ‘~’</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.download">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unzip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.download" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unzip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.download" title="Link to this definition"></a></dt>
 <dd><p>Download data from specified URL.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -679,7 +679,7 @@ and unzip.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.filter_on_paths">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">filter_on_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths_to_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.filter_on_paths" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">filter_on_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths_to_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.filter_on_paths" title="Link to this definition"></a></dt>
 <dd><p>Filter list of intances of PathData or a subclass.</p>
 <dl class="simple">
 <dt>objs: object/list</dt><dd><p>Instance, or list of instances, of PathData or a subclass.</p>
@@ -696,7 +696,7 @@ log_level is set to the value of Defaults().log_level.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.filtered_dict">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">filtered_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.filtered_dict" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">filtered_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.filtered_dict" title="Link to this definition"></a></dt>
 <dd><p>Filter a nested dictionary based on first-level keys.</p>
 <p>This function is designed for simplifying dictionaries where
 first-level keys can respond to different options, as may be
@@ -723,7 +723,7 @@ dictionary is None then an empty dictionary is returned.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.fullpath">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">fullpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.fullpath" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">fullpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.fullpath" title="Link to this definition"></a></dt>
 <dd><p>Evaluate full path, expanding ‘~’, environment variables, and
 symbolic links.</p>
 <dl class="simple">
@@ -737,13 +737,13 @@ as pathlib.Path object.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.generate_timestamp">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">generate_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#skrt.core.generate_timestamp" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">generate_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#skrt.core.generate_timestamp" title="Link to this definition"></a></dt>
 <dd><p>Make timestamp from the current time.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_associated_image">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_associated_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'most'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_associated_image" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_associated_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'most'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_associated_image" title="Link to this definition"></a></dt>
 <dd><p>Identify an image associated with at least one of a set of objects.</p>
 <p>If none of the input objects has an image attribute, None is returned.</p>
 <p><strong>Parameters:</strong></p>
@@ -762,7 +762,7 @@ is more than one candidate.  Possible values are:
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_data_by_filename">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_data_by_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_data_by_filename" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_data_by_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_data_by_filename" title="Link to this definition"></a></dt>
 <dd><p>Create dictionary of data_objects from list.</p>
 <p>Dictionary keys are derived from the paths to the data sources.</p>
 <p><strong>Parameters:</strong></p>
@@ -780,7 +780,7 @@ dictionary keys.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_data_indices">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_data_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_data_types</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_data_indices" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_data_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_data_types</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_data_indices" title="Link to this definition"></a></dt>
 <dd><p>Obtain dictionary associating indices with data types.</p>
 <p>This is used in patient.skrt.Study.copy_dicom() to obtain
 dictionaries from input parameters that may be dictionaries,
@@ -807,7 +807,7 @@ data types of &lt;valid_data_types&gt;.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_day_in_week">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_day_in_week</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_day_in_week" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_day_in_week</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_day_in_week" title="Link to this definition"></a></dt>
 <dd><p>Return a timestamp’s day in week, including fractional part.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -818,7 +818,7 @@ data types of &lt;valid_data_types&gt;.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_dict_permutations">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_dict_permutations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_dict_permutations" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_dict_permutations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_dict_permutations" title="Link to this definition"></a></dt>
 <dd><p>Get list of permuations of key-value pairs from dictionary of lists.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -840,7 +840,7 @@ dictionary is returned.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_file_size">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_file_size" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_file_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_file_size" title="Link to this definition"></a></dt>
 <dd><p>Return size in bytes of data files associated with listed objects.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -851,7 +851,7 @@ dictionary is returned.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_float">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_float" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_float" title="Link to this definition"></a></dt>
 <dd><p>Return object attribute as a float.</p>
 <p><strong>Parameters:</strong></p>
 <p>obj : Object to be considered.</p>
@@ -865,7 +865,7 @@ dictionary is returned.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_hour_in_day">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_hour_in_day</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_hour_in_day" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_hour_in_day</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_hour_in_day" title="Link to this definition"></a></dt>
 <dd><p>Return a timestamp’s hour in day, including fractional part.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -876,7 +876,7 @@ dictionary is returned.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_hour_in_week">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_hour_in_week</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_hour_in_week" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_hour_in_week</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_hour_in_week" title="Link to this definition"></a></dt>
 <dd><p>Return a timestamp’s hour in week, including fractional part.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -887,7 +887,7 @@ dictionary is returned.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_indexed_objs">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_indexed_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_indexed_objs" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_indexed_objs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_indexed_objs" title="Link to this definition"></a></dt>
 <dd><p>Select subset of objects from a list.</p>
 <p><strong>Parameters:</strong>
 objs : list</p>
@@ -908,7 +908,7 @@ objs : list</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_interval_in_days">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_interval_in_days</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_interval_in_days" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_interval_in_days</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_interval_in_days" title="Link to this definition"></a></dt>
 <dd><p>Return interval in days between two timestamps.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -921,7 +921,7 @@ objs : list</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_interval_in_whole_days">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_interval_in_whole_days</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_interval_in_whole_days" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_interval_in_whole_days</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_interval_in_whole_days" title="Link to this definition"></a></dt>
 <dd><p>Return interval in whole days between two timestamps.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -934,7 +934,7 @@ objs : list</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_logger">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_logger" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_logger" title="Link to this definition"></a></dt>
 <dd><p>Retrieve named event logger.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -953,7 +953,7 @@ attributes, not all of which make sense as identifiers, see:
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_n_file">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_n_file" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_n_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_n_file" title="Link to this definition"></a></dt>
 <dd><p>Return number of data files associated with listed objects.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -964,7 +964,7 @@ attributes, not all of which make sense as identifiers, see:
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_n_file_below">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_n_file_below</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_n_file_below" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_n_file_below</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_n_file_below" title="Link to this definition"></a></dt>
 <dd><p>Return number of files below a directory, ignoring hidden files.</p>
 <p>Returns None if indir isn’t the path to a directory.</p>
 <p><strong>Parameter:</strong>
@@ -976,13 +976,13 @@ indir: str, pathlib.Path</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_qualified_class_name">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_qualified_class_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_qualified_class_name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_qualified_class_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_qualified_class_name" title="Link to this definition"></a></dt>
 <dd><p>Determine qualified name of class &lt;cls&gt;.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_referenced_image">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_referenced_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">referrer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_referenced_image" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_referenced_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">referrer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_referenced_image" title="Link to this definition"></a></dt>
 <dd><p>Retrieve from &lt;image_types&gt; image object referred to by &lt;referrer&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -996,7 +996,7 @@ of image objects for this modality.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_referenced_object">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_referenced_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">referrer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">others</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omit_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_referenced_object" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_referenced_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">referrer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">others</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omit_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_referenced_object" title="Link to this definition"></a></dt>
 <dd><p>Retrieve from &lt;others&gt; object referred to via &lt;tag&gt; by &lt;referrer&gt;.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1021,7 +1021,7 @@ between different slices.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_stat">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_stat" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_stat" title="Link to this definition"></a></dt>
 <dd><p>Calculate statistic(s) for values in a list or dictionary.</p>
 <p>If input values are lists or tuples, a list is returned with
 element-by-element statistics.</p>
@@ -1057,7 +1057,7 @@ rather than for the default of 4, this can be specified using:</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_stat_functions">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_stat_functions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_stat_functions" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_stat_functions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_stat_functions" title="Link to this definition"></a></dt>
 <dd><p>Get names of statistical functions implemented in Python statistics module.</p>
 <p>For details of statistics module, see:</p>
 <p><a class="reference external" href="https://docs.python.org/3/library/statistics.html">https://docs.python.org/3/library/statistics.html</a></p>
@@ -1065,7 +1065,7 @@ rather than for the default of 4, this can be specified using:</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_subdir_paths">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_subdir_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_subdir_paths" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_subdir_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_subdir_paths" title="Link to this definition"></a></dt>
 <dd><p>Return paths to a directory’s sub-directories.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -1076,13 +1076,13 @@ rather than for the default of 4, this can be specified using:</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_time_and_date">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_time_and_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.get_time_and_date" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_time_and_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#skrt.core.get_time_and_date" title="Link to this definition"></a></dt>
 <dd><p>Extract time and date separately from timestamp.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_time_separated_objects">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_time_separated_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">most_recent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_time_separated_objects" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_time_separated_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hour'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">most_recent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_time_separated_objects" title="Link to this definition"></a></dt>
 <dd><p>Return ordered list of dated objects, filtering for minimum time separation.</p>
 <dl class="simple">
 <dt>objs<span class="classifier">list</span></dt><dd><p>List of dated objects.</p>
@@ -1102,25 +1102,25 @@ the most recent if True, or the least recent otherwise.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_uid_without_slice">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_uid_without_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_uid_without_slice" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_uid_without_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_uid_without_slice" title="Link to this definition"></a></dt>
 <dd><p>Obtain copy of &lt;uid&gt;, truncated to before final dot.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.is_list">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_list" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_list" title="Link to this definition"></a></dt>
 <dd><p>Check whether a variable is a list, tuple, or array.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.is_timestamp">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_timestamp" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_timestamp" title="Link to this definition"></a></dt>
 <dd><p>Check whether a string is a valid timestamp.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.load_toml">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">load_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toml_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.load_toml" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">load_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toml_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.load_toml" title="Link to this definition"></a></dt>
 <dd><p>Load TOML-formatted data from file, and return a dictionary.</p>
 <p>For information about TOMO (Tom’s Obvious Minimal Language), see:
 <a class="reference external" href="https://toml.io/">https://toml.io/</a></p>
@@ -1138,7 +1138,7 @@ skrt.core.filtered_dict().</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.make_dir">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">make_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_empty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.make_dir" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">make_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require_empty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.make_dir" title="Link to this definition"></a></dt>
 <dd><p>Create a directory if it doesn’t exist already, or if overwriting allowed.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1155,7 +1155,7 @@ isn’t empty, and &lt;overwrite&gt; is False.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.prepend_path">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">prepend_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_must_exist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.prepend_path" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">prepend_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_must_exist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.prepend_path" title="Link to this definition"></a></dt>
 <dd><p>Prepend path to environment variable.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1170,7 +1170,7 @@ isn’t empty, and &lt;overwrite&gt; is False.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.print_paths">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">print_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.print_paths" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">print_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.print_paths" title="Link to this definition"></a></dt>
 <dd><p>Print paths to files below a directory, ignoring hidden files.</p>
 <p>File paths are listed in natural order, with one path per line.</p>
 <p><strong>Parameters:</strong>
@@ -1189,7 +1189,7 @@ all paths are printed.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.qualified__name">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">qualified__name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.qualified__name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">qualified__name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.qualified__name" title="Link to this definition"></a></dt>
 <dd><p>Return qualified name of a class.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -1201,14 +1201,14 @@ is passed as argument, None is returned.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.qualified_name">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">qualified_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.qualified_name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">qualified_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.qualified_name" title="Link to this definition"></a></dt>
 <dd><p>Return qualified name of a class.</p>
 <p>Return None if non-class given as input.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.relative_path">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">relative_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.relative_path" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">relative_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.relative_path" title="Link to this definition"></a></dt>
 <dd><p>Return relative path.</p>
 <p>The returned path will be relative to the user’s top-level directory,
 or will include a specified number of directory levels.</p>
@@ -1227,7 +1227,7 @@ directory levels in the path, are retained.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.set_matlab_runtime">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">set_matlab_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matlab_runtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.set_matlab_runtime" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">set_matlab_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matlab_runtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.set_matlab_runtime" title="Link to this definition"></a></dt>
 <dd><p>Set environment to allow use of MATLAB runtime installation in subprocess.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1243,19 +1243,19 @@ log_level is set to the value of Defaults().log_level.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.tic">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">tic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.tic" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">tic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.tic" title="Link to this definition"></a></dt>
 <dd><p>Set timer start time.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.to_list">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_item</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_none_single</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.to_list" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_item</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_none_single</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.to_list" title="Link to this definition"></a></dt>
 <dd><p>Ensure that a value is a list of n_item items.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.toc">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">toc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.toc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">toc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.toc" title="Link to this definition"></a></dt>
 <dd><p>Record, and optionally report, time since corresponding call to tic().</p>
 <p>Each call to tic() adds a start time to the list skrt.core.TicToc().tics.
 Each call to toc() removes the last start time from the list, and records
@@ -1291,7 +1291,7 @@ use skrt.core.TicToc().time_format, which is initialised to “.6f”</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.year_fraction">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">year_fraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.year_fraction" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">year_fraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.year_fraction" title="Link to this definition"></a></dt>
 <dd><p>Convert from timestamp to year, including fractional part.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">

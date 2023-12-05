@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -109,7 +109,7 @@
            <div itemprop="articleBody">
              
   <section id="patients-and-studies">
-<h1>Patients and studies<a class="headerlink" href="#patients-and-studies" title="Permalink to this heading"></a></h1>
+<h1>Patients and studies<a class="headerlink" href="#patients-and-studies" title="Link to this heading"></a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">Patient</span></code> and <code class="docutils literal notranslate"><span class="pre">Study</span></code> classes allow multiple images, structure sets,
 doses and plans associated with a single patient to be read into one
 object.  These classes
@@ -119,9 +119,9 @@ cases of both sorted and unsorted data, all files relating to a single
 patient should be placed under a separate directory, the name of which
 is taken as the patient’s identifier.</p>
 <section id="sorted-data">
-<h2>Sorted data<a class="headerlink" href="#sorted-data" title="Permalink to this heading"></a></h2>
+<h2>Sorted data<a class="headerlink" href="#sorted-data" title="Link to this heading"></a></h2>
 <section id="patient-and-study-directories">
-<h3>Patient and study directories<a class="headerlink" href="#patient-and-study-directories" title="Permalink to this heading"></a></h3>
+<h3>Patient and study directories<a class="headerlink" href="#patient-and-study-directories" title="Link to this heading"></a></h3>
 <p>The top level directory represents the entire <strong>patient</strong>.</p>
 <p>The next one or two levels represent <strong>studies</strong>. A study is identified by a directory whose name is a timestamp, which is a string with format <code class="docutils literal notranslate"><span class="pre">YYYYMMDD_hhmmss</span></code>. These directories can either appear within the patient directory, or be nested in a further level of directories, for example if you wished to separate groups of studies.</p>
 <p>A valid file structure could look like this:</p>
@@ -143,7 +143,7 @@ is taken as the patient’s identifier.</p>
 <p>This patient would have three studies, two in the “planning” category and two in the “relapse” category.</p>
 </section>
 <section id="files-within-a-study">
-<h3>Files within a study<a class="headerlink" href="#files-within-a-study" title="Permalink to this heading"></a></h3>
+<h3>Files within a study<a class="headerlink" href="#files-within-a-study" title="Link to this heading"></a></h3>
 <p>Each study can contain images of various imaging modalities, and associated structure sets. Within a study directory, there can be three “special” directories, named <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code>, <code class="docutils literal notranslate"><span class="pre">RTDOSE</span></code>, and <code class="docutils literal notranslate"><span class="pre">RTPLAN</span></code>, containing structure sets, dose fields, and radiotherapy plans, respectively.</p>
 <p>Any other directories within the study directory are taken to represent an <strong>imaging modality</strong>. The structure sets associated with this modality should be nested inside the <code class="docutils literal notranslate"><span class="pre">RTSTRUCT</span></code> directory inside directories with the same name as the image directories. The images and structure sets themselves should be further nested inside a timestamp directory representing the time at which that image was taken.</p>
 <p>For example, if a study containined both CT and MR images, as well as two structure sets associated with the CT image, the file structure should be as follows:</p>
@@ -166,7 +166,7 @@ is taken as the patient’s identifier.</p>
 </section>
 </section>
 <section id="patient-class">
-<h2>Patient class<a class="headerlink" href="#patient-class" title="Permalink to this heading"></a></h2>
+<h2>Patient class<a class="headerlink" href="#patient-class" title="Link to this heading"></a></h2>
 <p>A <code class="docutils literal notranslate"><span class="pre">Patient</span></code> object is created by providing the path to the top-level patient directory, and indicating if the data are unsorted DICOM data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span> <span class="c1"># load sorted data</span>
@@ -182,7 +182,7 @@ is taken as the patient’s identifier.</p>
 <li><p>Patient birth date: <code class="docutils literal notranslate"><span class="pre">p.get_birth_date()</span></code></p></li>
 </ul>
 <section id="sorted-and-unsorted-dicom-files">
-<h3>Sorted and unsorted DICOM files<a class="headerlink" href="#sorted-and-unsorted-dicom-files" title="Permalink to this heading"></a></h3>
+<h3>Sorted and unsorted DICOM files<a class="headerlink" href="#sorted-and-unsorted-dicom-files" title="Link to this heading"></a></h3>
 <p>If a patient’s data consists of sorted DICOM files, the data may be read
 both with <code class="docutils literal notranslate"><span class="pre">unsorted_dicom=False</span></code> (default) and with <code class="docutils literal notranslate"><span class="pre">unsorted_dicom=True</span></code>.
 Loading of sorted data tends to be faster, with object linking (for
@@ -221,14 +221,14 @@ By default, no structure sets will be written, as conversion of structures from 
 </section>
 </section>
 <section id="study-class">
-<h2>Study class<a class="headerlink" href="#study-class" title="Permalink to this heading"></a></h2>
+<h2>Study class<a class="headerlink" href="#study-class" title="Link to this heading"></a></h2>
 <p>A <code class="docutils literal notranslate"><span class="pre">Study</span></code> object stores images and structure sets. A list of studies can be extracted from a <code class="docutils literal notranslate"><span class="pre">Patient</span></code> object via the property <code class="docutils literal notranslate"><span class="pre">Patient.studies</span></code>. You can access the study’s path via <code class="docutils literal notranslate"><span class="pre">Study.path</span></code>. If the study was nested inside a subdirectory, the name of that subdirectory is accessed via <code class="docutils literal notranslate"><span class="pre">Study.subdir</span></code>.</p>
 <section id="images">
-<h3>Images<a class="headerlink" href="#images" title="Permalink to this heading"></a></h3>
+<h3>Images<a class="headerlink" href="#images" title="Link to this heading"></a></h3>
 <p>For each imaging modalitiy subdirectory inside the study, a new class property will be created to contain a list of images of that modality, called <code class="docutils literal notranslate"><span class="pre">{modality}_images</span></code>, where the modality is taken from the subdirectory name (note, this is always converted to lower case). E.g. if there were directories called <code class="docutils literal notranslate"><span class="pre">CT</span></code> and <code class="docutils literal notranslate"><span class="pre">MR</span></code>, the <code class="docutils literal notranslate"><span class="pre">Study</span></code> object would have properties <code class="docutils literal notranslate"><span class="pre">ct_images</span></code> and <code class="docutils literal notranslate"><span class="pre">mr_images</span></code> containing lists of <code class="docutils literal notranslate"><span class="pre">Image</span></code> objects.</p>
 </section>
 <section id="structure-sets">
-<h3>Structure sets<a class="headerlink" href="#structure-sets" title="Permalink to this heading"></a></h3>
+<h3>Structure sets<a class="headerlink" href="#structure-sets" title="Link to this heading"></a></h3>
 <p>The study’s structure sets can be accessed in two ways. Firstly, the structure sets associated with an image can be extracted from the <code class="docutils literal notranslate"><span class="pre">structure_sets</span></code> property of the <code class="docutils literal notranslate"><span class="pre">Image</span></code> itself; this is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. E.g. to get the newest structure set for the oldest CT image in the oldest study, you could run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">studies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -242,7 +242,7 @@ By default, no structure sets will be written, as conversion of structures from 
 <p>The <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object also has an associated <code class="docutils literal notranslate"><span class="pre">image</span></code> property (<code class="docutils literal notranslate"><span class="pre">structure_set.image</span></code>), which can be used to find out which <code class="docutils literal notranslate"><span class="pre">Image</span></code> is associated with that structure set.</p>
 </section>
 <section id="treatment-plans">
-<h3>Treatment plans<a class="headerlink" href="#treatment-plans" title="Permalink to this heading"></a></h3>
+<h3>Treatment plans<a class="headerlink" href="#treatment-plans" title="Link to this heading"></a></h3>
 <p>Data from radiotherapy treatment plans are made available as <code class="docutils literal notranslate"><span class="pre">Plan</span></code> objects.  <code class="docutils literal notranslate"><span class="pre">Study</span></code> objects group <code class="docutils literal notranslate"><span class="pre">Plan</span></code> objects in lists with names of the form <code class="docutils literal notranslate"><span class="pre">&lt;machine&gt;_plans</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;machine&gt;</span></code> identifies the treatment machine to which the plan relates.  <code class="docutils literal notranslate"><span class="pre">Image</span></code> objects and <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects group together all plans associated with them, in a list <code class="docutils literal notranslate"><span class="pre">plans</span></code>.  A <code class="docutils literal notranslate"><span class="pre">Dose</span></code> object is only ever derived from a single plan, referenced as <code class="docutils literal notranslate"><span class="pre">plan</span></code>.  Different ways of accessing a <code class="docutils literal notranslate"><span class="pre">Plan</span></code> object are shown below.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Access plan from Study.</span>
 <span class="n">plan</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">la3_plans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -113,13 +113,13 @@
            <div itemprop="articleBody">
              
   <section id="synthetic-data">
-<h1>Synthetic data<a class="headerlink" href="#synthetic-data" title="Permalink to this heading"></a></h1>
+<h1>Synthetic data<a class="headerlink" href="#synthetic-data" title="Link to this heading"></a></h1>
 <section id="synthetic-images">
-<h2>Synthetic images<a class="headerlink" href="#synthetic-images" title="Permalink to this heading"></a></h2>
+<h2>Synthetic images<a class="headerlink" href="#synthetic-images" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class enables the creation of images containing simple geometric shapes.</p>
 <img src="_static/synthetic_example.png" alt="synthetic image with a sphere and a cube" height="500"/>
 <section id="creating-a-synthetic-image">
-<h3>Creating a synthetic image<a class="headerlink" href="#creating-a-synthetic-image" title="Permalink to this heading"></a></h3>
+<h3>Creating a synthetic image<a class="headerlink" href="#creating-a-synthetic-image" title="Link to this heading"></a></h3>
 <p>To create an empty image, load the <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class and specify the desired image shape in order (x, y, z), e.g.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.simulation</span> <span class="kn">import</span> <span class="n">SyntheticImage</span>
 
@@ -134,7 +134,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">noise_std</span></code>: standard deviation of Gaussian noise to apply to the image. This noise will also be added on top of any shapes. (Can be changed later by altering the <code class="docutils literal notranslate"><span class="pre">sim.noise_std</span></code> property).</p></li>
 </ul>
 <section id="adding-shapes">
-<h4>Adding shapes<a class="headerlink" href="#adding-shapes" title="Permalink to this heading"></a></h4>
+<h4>Adding shapes<a class="headerlink" href="#adding-shapes" title="Link to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> object has various methods for adding geometric shapes. Each shape has the following arguments:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">intensity</span></code>: intensity value with which to fill the voxels of this shape.</p></li>
@@ -181,7 +181,7 @@
 </div>
 </section>
 <section id="plotting">
-<h4>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h4>
+<h4>Plotting<a class="headerlink" href="#plotting" title="Link to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">SyntheticImage</span></code> class inherits from the <code class="docutils literal notranslate"><span class="pre">Image</span></code> class, and can thus be plotted in the same way by calling</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
@@ -189,7 +189,7 @@
 <p>along with any of the arguments available to the <code class="docutils literal notranslate"><span class="pre">Image</span></code> plotting method.</p>
 </section>
 <section id="rotations-and-translations">
-<h4>Rotations and translations<a class="headerlink" href="#rotations-and-translations" title="Permalink to this heading"></a></h4>
+<h4>Rotations and translations<a class="headerlink" href="#rotations-and-translations" title="Link to this heading"></a></h4>
 <p>Rotations and translations can be applied to the image using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
 </pre></div>
@@ -204,7 +204,7 @@
 </div>
 </section>
 <section id="getting-the-image-array">
-<h4>Getting the image array<a class="headerlink" href="#getting-the-image-array" title="Permalink to this heading"></a></h4>
+<h4>Getting the image array<a class="headerlink" href="#getting-the-image-array" title="Link to this heading"></a></h4>
 <p>To obtain a NumPy array containing the image data, run</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
 </pre></div>
@@ -212,7 +212,7 @@
 <p>This array will contain all of the added shapes, as well as having any rotations, translations, and noise applied.</p>
 </section>
 <section id="saving">
-<h4>Saving<a class="headerlink" href="#saving" title="Permalink to this heading"></a></h4>
+<h4>Saving<a class="headerlink" href="#saving" title="Link to this heading"></a></h4>
 <p>The synthetic image can be written to an image file by running</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outname</span><span class="p">)</span>
 </pre></div>
@@ -227,7 +227,7 @@
 </section>
 </section>
 <section id="adding-structures">
-<h3>Adding structures<a class="headerlink" href="#adding-structures" title="Permalink to this heading"></a></h3>
+<h3>Adding structures<a class="headerlink" href="#adding-structures" title="Link to this heading"></a></h3>
 <p>When shapes are added to the image, they can also be set as ROIs. This allows you to:</p>
 <ul class="simple">
 <li><p>Plot them as contours or masks on top of the image;</p></li>
@@ -235,7 +235,7 @@
 <li><p>Write ROIs out separately as masks or as a dicom structure set file.</p></li>
 </ul>
 <section id="single-rois">
-<h4>Single ROIs<a class="headerlink" href="#single-rois" title="Permalink to this heading"></a></h4>
+<h4>Single ROIs<a class="headerlink" href="#single-rois" title="Link to this heading"></a></h4>
 <p>To assign a shape as an ROI, you can either give it a name upon creation, e.g.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">add_sphere</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;my_sphere&#39;</span><span class="p">)</span>
 </pre></div>
@@ -252,7 +252,7 @@
 </ul>
 </section>
 <section id="grouped-shapes">
-<h4>Grouped shapes<a class="headerlink" href="#grouped-shapes" title="Permalink to this heading"></a></h4>
+<h4>Grouped shapes<a class="headerlink" href="#grouped-shapes" title="Link to this heading"></a></h4>
 <p>Multiple shapes can be combined to create a single ROI. To do this, set the <code class="docutils literal notranslate"><span class="pre">group</span></code> argument to some string when creating shapes. Any shapes created with the same <code class="docutils literal notranslate"><span class="pre">group</span></code> name will be added to this group.</p>
 <p>E.g. to create a single ROI called “two_cubes” out of two cubes centred at different positions, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span><span class="o">.</span><span class="n">add_cube</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">centre</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;two_cubes&#39;</span><span class="p">)</span>
@@ -261,7 +261,7 @@
 </div>
 </section>
 <section id="getting-rois">
-<h4>Getting ROIs<a class="headerlink" href="#getting-rois" title="Permalink to this heading"></a></h4>
+<h4>Getting ROIs<a class="headerlink" href="#getting-rois" title="Link to this heading"></a></h4>
 <p>To get a <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object containing all of the ROIs belonging to the image, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_structure_set</span><span class="p">()</span>
 </pre></div>
@@ -272,13 +272,13 @@
 </div>
 </section>
 <section id="saving-rois">
-<h4>Saving ROIs<a class="headerlink" href="#saving-rois" title="Permalink to this heading"></a></h4>
+<h4>Saving ROIs<a class="headerlink" href="#saving-rois" title="Link to this heading"></a></h4>
 <p>When the <code class="docutils literal notranslate"><span class="pre">SyntheticImage.write()</span></code> function is called, the ROIs belonging to that image will also be written. If the provided <code class="docutils literal notranslate"><span class="pre">outname</span></code> is that of a nifti or NumPy file, the ROIs will be written to nifti or Numpy files, respectively, inside a directory with the same name as <code class="docutils literal notranslate"><span class="pre">outname</span></code> but with the extension removed.</p>
 </section>
 </section>
 </section>
 <section id="synthetic-patient-objects">
-<h2>Synthetic Patient objects<a class="headerlink" href="#synthetic-patient-objects" title="Permalink to this heading"></a></h2>
+<h2>Synthetic Patient objects<a class="headerlink" href="#synthetic-patient-objects" title="Link to this heading"></a></h2>
 <p>The Patient class can be used to create a custom patient object from scratch, rather than loading a prexisting patient.</p>
 <p>To do this, first create a blank Patient object with your chosen ID:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>

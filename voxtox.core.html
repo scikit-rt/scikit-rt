@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -107,11 +107,11 @@
            <div itemprop="articleBody">
              
   <section id="module-voxtox.core">
-<span id="voxtox-core-module"></span><h1>voxtox.core module<a class="headerlink" href="#module-voxtox.core" title="Permalink to this heading"></a></h1>
+<span id="voxtox-core-module"></span><h1>voxtox.core module<a class="headerlink" href="#module-voxtox.core" title="Link to this heading"></a></h1>
 <p>Core functions specific to analysis of VoxTox data</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="voxtox.core.get_couch_rotations">
-<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">get_couch_rotations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">153</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4114</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.get_couch_rotations" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">get_couch_rotations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">153</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4114</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.get_couch_rotations" title="Link to this definition"></a></dt>
 <dd><p>Retreive couch rotations stored as DICOM private data.</p>
 <p>Couch rotations are stored and retrieved as:</p>
 <ul class="simple">
@@ -136,7 +136,7 @@ where couch rotations are stored (default corresponds to VoxTox).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="voxtox.core.get_couch_shifts">
-<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">get_couch_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.get_couch_shifts" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">get_couch_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.get_couch_shifts" title="Link to this definition"></a></dt>
 <dd><p>Retreive couch shifts for a given CT guidance scan.</p>
 <p>In VoxTox, couch shifts for an MV CT guidance scan define the adjustments
 applied by a radiographer after examining the scan, to match the position
@@ -162,7 +162,7 @@ to the planning scan.  In practice, pitch and yaw are always zero.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="voxtox.core.get_couch_translations">
-<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">get_couch_translations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">153</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4113</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.get_couch_translations" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">get_couch_translations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">153</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4113</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.get_couch_translations" title="Link to this definition"></a></dt>
 <dd><p>Retreive couch translations stored as DICOM private data.</p>
 <p>For historical reasons, couch translations are stored as:</p>
 <ul class="simple">
@@ -191,7 +191,7 @@ where couch translations are stored (default corresponds to VoxTox).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="voxtox.core.unpack_couch_shifts">
-<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">unpack_couch_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.unpack_couch_shifts" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">voxtox.core.</span></span><span class="sig-name descname"><span class="pre">unpack_couch_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#voxtox.core.unpack_couch_shifts" title="Link to this definition"></a></dt>
 <dd><p>Unpack couch shifts stored as DICOM private data.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">

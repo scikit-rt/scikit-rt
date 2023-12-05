@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -115,7 +115,7 @@
            <div itemprop="articleBody">
              
   <section id="module-skrt.dicom_writer">
-<span id="skrt-dicom-writer-module"></span><h1>skrt.dicom_writer module<a class="headerlink" href="#module-skrt.dicom_writer" title="Permalink to this heading"></a></h1>
+<span id="skrt-dicom-writer-module"></span><h1>skrt.dicom_writer module<a class="headerlink" href="#module-skrt.dicom_writer" title="Link to this heading"></a></h1>
 <p>Class DicomWriter for writing data in DICOM format.</p>
 <p>DICOM writing is supported for instances of:</p>
 <ul class="simple">
@@ -125,7 +125,7 @@
 </ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dicom_writer.</span></span><span class="sig-name descname"><span class="pre">DicomWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extras</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.dicom_writer.</span></span><span class="sig-name descname"><span class="pre">DicomWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extras</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class to help with writing data in DICOM format.</p>
 <p>DICOM writing is supported for instances of:</p>
@@ -159,7 +159,7 @@ representing an ROI contour.</p></li>
 </ul>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extras</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patient_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_extras</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.__init__" title="Link to this definition"></a></dt>
 <dd><p>Create instance of DicomWriter class.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -232,25 +232,25 @@ to sequential numbering.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.add_image_info">
-<span class="sig-name descname"><span class="pre">add_image_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_image_info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_image_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_image_info" title="Link to this definition"></a></dt>
 <dd><p>Add image-specfic information to own file dataset.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.add_structure_set_info">
-<span class="sig-name descname"><span class="pre">add_structure_set_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_structure_set_info" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_structure_set_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.add_structure_set_info" title="Link to this definition"></a></dt>
 <dd><p>Add structure-set-specfic information to own file dataset.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.create_file_dataset">
-<span class="sig-name descname"><span class="pre">create_file_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.create_file_dataset" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_file_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.create_file_dataset" title="Link to this definition"></a></dt>
 <dd><p>Create new pydicom.dataset.FileDataset object.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.generate_shortened_uid">
-<span class="sig-name descname"><span class="pre">generate_shortened_uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.generate_shortened_uid" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">generate_shortened_uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.generate_shortened_uid" title="Link to this definition"></a></dt>
 <dd><p>Return shortened UID.</p>
 <p>UIDs generated by pydicom.uid.generate_uid() are up to 64 characters.
 Some UIDs need to have additional characters appended, for example
@@ -267,13 +267,13 @@ generated is shorter than this, then it’s returned unchanged.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.get_file_dataset">
-<span class="sig-name descname"><span class="pre">get_file_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.get_file_dataset" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_file_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.get_file_dataset" title="Link to this definition"></a></dt>
 <dd><p>Attempt to retrieve pydicom.dataset.FileDataset from source.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.get_media_storage_sop_class_uid">
-<span class="sig-name descname"><span class="pre">get_media_storage_sop_class_uid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.get_media_storage_sop_class_uid" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_media_storage_sop_class_uid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.get_media_storage_sop_class_uid" title="Link to this definition"></a></dt>
 <dd><p>Map to media storage SOP class UID for selected modalities.</p>
 <p>Note that in general the mapping between modality and
 media storage SOP class UID is one to many.</p>
@@ -281,7 +281,7 @@ media storage SOP class UID is one to many.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.get_path_with_timestamp">
-<span class="sig-name descname"><span class="pre">get_path_with_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.get_path_with_timestamp" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_path_with_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.get_path_with_timestamp" title="Link to this definition"></a></dt>
 <dd><p>Obtain path to file with timestamped name.</p>
 <p>The timestamp is iteratively updated to ensure that any
 existing file isn’t overwritten.</p>
@@ -294,7 +294,7 @@ existing file isn’t overwritten.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.initialise_outdir">
-<span class="sig-name descname"><span class="pre">initialise_outdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.initialise_outdir" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">initialise_outdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.initialise_outdir" title="Link to this definition"></a></dt>
 <dd><p>Prepare directory where output data are to be written.</p>
 <p>If the output directory doesn’t exist then it is created.
 If overwrite is True and the output directory contains DICOM files,
@@ -303,7 +303,7 @@ these are deleted.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.new_roi_contour">
-<span class="sig-name descname"><span class="pre">new_roi_contour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.new_roi_contour" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">new_roi_contour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.new_roi_contour" title="Link to this definition"></a></dt>
 <dd><p>Create dataset representing an ROI contour.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -317,7 +317,7 @@ these are deleted.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.new_rt_roi_observation">
-<span class="sig-name descname"><span class="pre">new_rt_roi_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.new_rt_roi_observation" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">new_rt_roi_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.new_rt_roi_observation" title="Link to this definition"></a></dt>
 <dd><p>Create dataset representing an RT ROI observation.</p>
 <p><strong>Parameters:</strong></p>
 <p>number</p>
@@ -326,25 +326,25 @@ these are deleted.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_date_and_time">
-<span class="sig-name descname"><span class="pre">set_date_and_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_date_and_time" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_date_and_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_date_and_time" title="Link to this definition"></a></dt>
 <dd><p>Obtain current time and store formatted values for date and time.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_geometry_and_scaling">
-<span class="sig-name descname"><span class="pre">set_geometry_and_scaling</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_geometry_and_scaling" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_geometry_and_scaling</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_geometry_and_scaling" title="Link to this definition"></a></dt>
 <dd><p>Add to dataset information relating to geometry and scaling.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_image">
-<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_image" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_image" title="Link to this definition"></a></dt>
 <dd><p>Add to dataset information for full (3d) image.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_image_slice">
-<span class="sig-name descname"><span class="pre">set_image_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_image_slice" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_image_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_image_slice" title="Link to this definition"></a></dt>
 <dd><p>Add to dataset information for (2d) image slice.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -355,7 +355,7 @@ these are deleted.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_referenced_frame_of_reference_sequence">
-<span class="sig-name descname"><span class="pre">set_referenced_frame_of_reference_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_referenced_frame_of_reference_sequence" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_referenced_frame_of_reference_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_referenced_frame_of_reference_sequence" title="Link to this definition"></a></dt>
 <dd><p>Set attributes for referenced frame of reference sequence.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -370,7 +370,7 @@ an empty sequence.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.set_structure_set">
-<span class="sig-name descname"><span class="pre">set_structure_set</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_structure_set" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_structure_set</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.set_structure_set" title="Link to this definition"></a></dt>
 <dd><p>Add to dataset information for structure set.</p>
 <p>The contour data saved is all that’s needed for scikit-rt.
 Several DICOM sequences are left empty, or partially populated,
@@ -379,13 +379,13 @@ which outside of scikit-rt may sometimes cause problems.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.update_dataset">
-<span class="sig-name descname"><span class="pre">update_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.update_dataset" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">update_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.update_dataset" title="Link to this definition"></a></dt>
 <dd><p>Make arbitary updates to dataset, based on self.header_extras.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.dicom_writer.DicomWriter.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.write" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.dicom_writer.DicomWriter.write" title="Link to this definition"></a></dt>
 <dd><p>Write data in DICOM format.</p>
 </dd></dl>
 

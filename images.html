@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -103,7 +103,7 @@
            <div itemprop="articleBody">
              
   <section id="images">
-<h1>Images<a class="headerlink" href="#images" title="Permalink to this heading"></a></h1>
+<h1>Images<a class="headerlink" href="#images" title="Link to this heading"></a></h1>
 <p>The Image class can be used to read and write images in DICOM, NIfTI,
 or NumPy format. These images can be plotted and compared.</p>
 <p>To load the Image class:</p>
@@ -134,7 +134,7 @@ their values are set, they should instead by accessed via getter methods:
 <li><p>For z, by convention the slice numbers increases from 1 at the head to n_voxels at the feet, so it is in the opposite direction to the array index (convert as n_voxels[2] - idx).</p></li>
 </ul>
 <section id="loading-from-a-file">
-<h2>Loading from a file<a class="headerlink" href="#loading-from-a-file" title="Permalink to this heading"></a></h2>
+<h2>Loading from a file<a class="headerlink" href="#loading-from-a-file" title="Link to this heading"></a></h2>
 <p>An image can be loaded from a dicom, nifti, or numpy file via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 </pre></div>
@@ -142,7 +142,7 @@ their values are set, they should instead by accessed via getter methods:
 <p>If the dicom file is part of a series, any other files in that series in the same directory will also be loaded. Alternatively, you can give the path to a directory containing multiple dicom files. The first dicom file in that directory alphabetically will be loaded along with any other files in its series.</p>
 </section>
 <section id="loading-from-an-array">
-<h2>Loading from an array<a class="headerlink" href="#loading-from-an-array" title="Permalink to this heading"></a></h2>
+<h2>Loading from an array<a class="headerlink" href="#loading-from-an-array" title="Link to this heading"></a></h2>
 <p>An image can also be loaded from a numpy array. By default, it will be taken to have origin (0, 0, 0) and voxel sizes (1, 1, 1) mm; otherwise, these can be set manually, either via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">40</span><span class="p">))</span>
 </pre></div>
@@ -161,7 +161,7 @@ their values are set, they should instead by accessed via getter methods:
 <p>where the first row of the affine matrix contains the <code class="docutils literal notranslate"><span class="pre">x</span></code> voxel size and origin, second row contains <code class="docutils literal notranslate"><span class="pre">y</span></code>, third row contains <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p>
 </section>
 <section id="plotting">
-<h2>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h2>
+<h2>Plotting<a class="headerlink" href="#plotting" title="Link to this heading"></a></h2>
 <p>To plot a slice of the image, you need to specify the orientation (<code class="docutils literal notranslate"><span class="pre">x-y</span></code>, <code class="docutils literal notranslate"><span class="pre">y-z</span></code>, or <code class="docutils literal notranslate"><span class="pre">x-z</span></code>; default <code class="docutils literal notranslate"><span class="pre">x-y</span></code>) and either the slice number, array index, or position in mm (by default, the central slice in the chosen orientation will be plotted).
 e.g.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">im</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;y-z&#39;</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -169,10 +169,10 @@ e.g.</p>
 </div>
 </section>
 <section id="writing-out-image-data">
-<h2>Writing out image data<a class="headerlink" href="#writing-out-image-data" title="Permalink to this heading"></a></h2>
+<h2>Writing out image data<a class="headerlink" href="#writing-out-image-data" title="Link to this heading"></a></h2>
 <p>Images can be written out with the <code class="docutils literal notranslate"><span class="pre">Image.write(filename)</span></code> function. The output filetype will be inferred from the filename.</p>
 <section id="writing-to-dicom">
-<h3>Writing to dicom<a class="headerlink" href="#writing-to-dicom" title="Permalink to this heading"></a></h3>
+<h3>Writing to dicom<a class="headerlink" href="#writing-to-dicom" title="Link to this heading"></a></h3>
 <p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.dcm</span></code> or is a directory (i.e. has no extension), the image will be written in dicom format. Each <code class="docutils literal notranslate"><span class="pre">x-y</span></code> slice will be written to a separate file labelled by slice number, e.g. slice 1 (corresponding to <code class="docutils literal notranslate"><span class="pre">[:,</span> <span class="pre">:,</span> <span class="pre">-1]</span></code> in the image array) would be saved to <code class="docutils literal notranslate"><span class="pre">1.dcm</span></code>.</p>
 <p>The path to a dicom file from which to take the header can be specified via the <code class="docutils literal notranslate"><span class="pre">header_source</span></code> parameter. If no path is given but the input source for the Image was a dicom file, the header will be taken from the source. Otherwise (e.g. if the file was loaded from a nifti and no <code class="docutils literal notranslate"><span class="pre">header_source</span></code> is given), a brand new header with new UIDs will be created. In that case, you can set the following info for that header:</p>
 <ul class="simple">
@@ -182,11 +182,11 @@ e.g.</p>
 </ul>
 </section>
 <section id="writing-to-nifti">
-<h3>Writing to nifti<a class="headerlink" href="#writing-to-nifti" title="Permalink to this heading"></a></h3>
+<h3>Writing to nifti<a class="headerlink" href="#writing-to-nifti" title="Link to this heading"></a></h3>
 <p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.nii</span></code> or <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code>, the image will be written to nifti. The nifti will be in canonical format, i.e. in Right, Anterior, Superior configuration. (Note that this means the nifti you write out may not be the same as the one you read in).</p>
 </section>
 <section id="writing-to-a-numpy-array">
-<h3>Writing to a numpy array<a class="headerlink" href="#writing-to-a-numpy-array" title="Permalink to this heading"></a></h3>
+<h3>Writing to a numpy array<a class="headerlink" href="#writing-to-a-numpy-array" title="Link to this heading"></a></h3>
 <p>If <code class="docutils literal notranslate"><span class="pre">filename</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.npy</span></code>, the image array will be written to a numpy binary file. To write a canonical nifti-style array instead of the dicom-style array, set <code class="docutils literal notranslate"><span class="pre">nifti_array=True</span></code>. If <code class="docutils literal notranslate"><span class="pre">set_geometry</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> (which it is by default), a text file will be written to the same directory as the <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file containing the voxel sizes and origin.</p>
 </section>
 </section>

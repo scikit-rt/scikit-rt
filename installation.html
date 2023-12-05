@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -97,26 +97,26 @@
            <div itemprop="articleBody">
              
   <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
 <p>Scikit-rt has a number of dependencies.  To avoid possible version conflicts,
 it’s recommended that it be installed to a clean virtual
 environment.  This is achieved in the instructions below using
 <a class="reference external" href="https://docs.conda.io/">conda</a>.  You can perform a user installation
 with <a class="reference external" href="https://pip.pypa.io/">pip</a>, or a developer installation with
 <a class="reference external" href="https://git-scm.com/">git</a>.   Installations have been tested
-for <a class="reference external" href="https://www.python.org/downloads/release/python-380/">Python 3.8</a>.</p>
+for Python 3.8 and Python 3.10.</p>
 <p>For functionality involving image registration, it is also necessary
 to <a href="#installation-and-setup-for-image-registration">install
 image-registration software</a>.</p>
 <section id="installation-and-setup-of-scikit-rt">
-<h2>Installation and setup of scikit-rt<a class="headerlink" href="#installation-and-setup-of-scikit-rt" title="Permalink to this heading"></a></h2>
+<h2>Installation and setup of scikit-rt<a class="headerlink" href="#installation-and-setup-of-scikit-rt" title="Link to this heading"></a></h2>
 <p>To be able to use scikit-rt, you can perform either a user installation
 (recommended if you’re not planning to contribute to the code base) or
 a developer installation.</p>
 <ol class="arabic simple">
 <li><p>User installation</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">skrt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.8</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">skrt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.10</span>
 <span class="n">conda</span> <span class="n">activate</span> <span class="n">skrt</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">rt</span>
 </pre></div>
@@ -155,7 +155,7 @@ and deactivated with:</p>
 should eventually print the scikit-rt version number, and exit without errors.</p>
 </section>
 <section id="updating-scikit-rt">
-<h2>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Permalink to this heading"></a></h2>
+<h2>Updating scikit-rt<a class="headerlink" href="#updating-scikit-rt" title="Link to this heading"></a></h2>
 <p>Scikit-rt is in active development. Following an initial installation,
 it’s possible to update to the latest version.</p>
 <ol class="arabic simple">
@@ -175,7 +175,7 @@ been made to the local copy of the code, run the command:</p>
 </div>
 </section>
 <section id="installation-and-setup-for-image-registration">
-<h2>Installation and setup for image registration<a class="headerlink" href="#installation-and-setup-for-image-registration" title="Permalink to this heading"></a></h2>
+<h2>Installation and setup for image registration<a class="headerlink" href="#installation-and-setup-for-image-registration" title="Link to this heading"></a></h2>
 <p>For image registration, and for atlas-based segmentation, scikit-rt requires
 that at least one of the following image-registration packages be installed:</p>
 <ul class="simple">

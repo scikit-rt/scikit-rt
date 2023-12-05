@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -106,10 +106,10 @@
            <div itemprop="articleBody">
              
   <section id="module-import_analysis.patient">
-<span id="import-analysis-patient-module"></span><h1>import_analysis.patient module<a class="headerlink" href="#module-import_analysis.patient" title="Permalink to this heading"></a></h1>
+<span id="import-analysis-patient-module"></span><h1>import_analysis.patient module<a class="headerlink" href="#module-import_analysis.patient" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">import_analysis.patient.</span></span><span class="sig-name descname"><span class="pre">ImportPatient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">import_analysis.patient.</span></span><span class="sig-name descname"><span class="pre">ImportPatient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="skrt.patient.html#skrt.patient.Patient" title="skrt.patient.Patient"><code class="xref py py-class docutils literal notranslate"><span class="pre">Patient</span></code></a></p>
 <p>Class that adds to the methods of skrt.patient.Patient.</p>
 <p>The additional functionality provided is aimed at simplifying
@@ -118,7 +118,7 @@ analysis of data from the IMPORT study.</p>
 data as unsorted DICOM.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsorted_dicom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.__init__" title="Link to this definition"></a></dt>
 <dd><p>Create instance of ImportPatient class.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -154,7 +154,7 @@ via vall to getter method (get_mask_plan(), get_mask_relapse()).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_centroid_translation">
-<span class="sig-name descname"><span class="pre">get_centroid_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_centroid_translation" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_centroid_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_centroid_translation" title="Link to this definition"></a></dt>
 <dd><p>Get centroid translation between plan and relapse scans of named ROI.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -173,19 +173,19 @@ to the ROI in the relapse scan</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ct_plan">
-<span class="sig-name descname"><span class="pre">get_ct_plan</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ct_plan" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ct_plan</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ct_plan" title="Link to this definition"></a></dt>
 <dd><p>Get CT scan for treatment planning</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ct_relapse">
-<span class="sig-name descname"><span class="pre">get_ct_relapse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ct_relapse" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ct_relapse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ct_relapse" title="Link to this definition"></a></dt>
 <dd><p>Get CT scan for relapse</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_dose_sum">
-<span class="sig-name descname"><span class="pre">get_dose_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_dose_sum" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_dose_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_dose_sum" title="Link to this definition"></a></dt>
 <dd><p>Get planned dose, summed over contributions.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -197,7 +197,7 @@ the associated image will be the CT planning scan (self.ct_plan).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_dose_summation_types">
-<span class="sig-name descname"><span class="pre">get_dose_summation_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_duplicates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_dose_summation_types" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_dose_summation_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_duplicates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_dose_summation_types" title="Link to this definition"></a></dt>
 <dd><p>Get list of summation types for doses associated with this patient.</p>
 <p><strong>Parameter:</strong>
 remove_duplicates : bool, default=True</p>
@@ -209,7 +209,7 @@ shape and dose values).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_mask_plan">
-<span class="sig-name descname"><span class="pre">get_mask_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_mask_plan" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_mask_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_mask_plan" title="Link to this definition"></a></dt>
 <dd><p>Get foreground mask for CT planning scan.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -230,7 +230,7 @@ created previously.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_mask_relapse">
-<span class="sig-name descname"><span class="pre">get_mask_relapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_mask_relapse" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_mask_relapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex_hull</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_mask_relapse" title="Link to this definition"></a></dt>
 <dd><p>Get foreground mask for CT planning scan.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -251,7 +251,7 @@ created previously.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ss_clinical">
-<span class="sig-name descname"><span class="pre">get_ss_clinical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_clinical" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ss_clinical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_clinical" title="Link to this definition"></a></dt>
 <dd><p>Get clinical structure set for CT planning scan.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -263,7 +263,7 @@ the associated image will be the CT planning scan (self.ct_plan).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ss_plan">
-<span class="sig-name descname"><span class="pre">get_ss_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_plan" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ss_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_plan" title="Link to this definition"></a></dt>
 <dd><p>Get control-structures structure set for CT planning scan.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -275,7 +275,7 @@ the associated image will be the CT planning scan (self.ct_plan).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ss_recurrence">
-<span class="sig-name descname"><span class="pre">get_ss_recurrence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_recurrence" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ss_recurrence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_recurrence" title="Link to this definition"></a></dt>
 <dd><p>Get recurrence structure set for CT relapse scan.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -287,7 +287,7 @@ the associated image will be the CT relapse scan (self.ct_relapse).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.get_ss_relapse">
-<span class="sig-name descname"><span class="pre">get_ss_relapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_relapse" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ss_relapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.get_ss_relapse" title="Link to this definition"></a></dt>
 <dd><p>Get control-structures structure set for CT relapse scan.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
@@ -299,7 +299,7 @@ the associated image will be the CT relapse scan (self.ct_relapse).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="import_analysis.patient.ImportPatient.load_key_data">
-<span class="sig-name descname"><span class="pre">load_key_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.load_key_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_key_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">load_dose_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_masks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#import_analysis.patient.ImportPatient.load_key_data" title="Link to this definition"></a></dt>
 <dd><p>Perform loading of key data relevant to IMPORT study.</p>
 <p>This method sets the following:</p>
 <dl class="simple">

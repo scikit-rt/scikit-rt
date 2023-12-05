@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f5dbfb1f"></script>
+        <script src="_static/documentation_options.js?v=d7a12d57"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -110,10 +110,10 @@
            <div itemprop="articleBody">
              
   <section id="regions-of-interest-rois-and-structure-sets">
-<h1>Regions of interest (ROIs) and structure sets<a class="headerlink" href="#regions-of-interest-rois-and-structure-sets" title="Permalink to this heading"></a></h1>
+<h1>Regions of interest (ROIs) and structure sets<a class="headerlink" href="#regions-of-interest-rois-and-structure-sets" title="Link to this heading"></a></h1>
 <p>A structure/region of interest (ROI) can be represented by either a set of contour points or a binary mask. The <code class="docutils literal notranslate"><span class="pre">ROI</span></code> class allows an ROI to be loaded from either of these sources and converted from one to the other.</p>
 <section id="the-roi-class">
-<h2>The ROI class<a class="headerlink" href="#the-roi-class" title="Permalink to this heading"></a></h2>
+<h2>The ROI class<a class="headerlink" href="#the-roi-class" title="Link to this heading"></a></h2>
 <p>An <code class="docutils literal notranslate"><span class="pre">ROI</span></code> object, which contains a single ROI, can be created via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">ROI</span>
 <span class="n">roi</span> <span class="o">=</span> <span class="n">ROI</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
@@ -144,7 +144,7 @@
 </div>
 <p>This image can optionally be plotted in the background when the ROI is plotted.</p>
 <section id="plotting-an-roi">
-<h3>Plotting an ROI<a class="headerlink" href="#plotting-an-roi" title="Permalink to this heading"></a></h3>
+<h3>Plotting an ROI<a class="headerlink" href="#plotting-an-roi" title="Link to this heading"></a></h3>
 <p>ROIs can be plotted as contours or a mask or both, and with or without an associated image behind them. The simplest plot command is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
@@ -172,7 +172,7 @@
 <img src="_static/struct_mask.png" alt="ROI binary mask plot" height="500"/>
 </section>
 <section id="writing-out-an-roi">
-<h3>Writing out an ROI<a class="headerlink" href="#writing-out-an-roi" title="Permalink to this heading"></a></h3>
+<h3>Writing out an ROI<a class="headerlink" href="#writing-out-an-roi" title="Link to this heading"></a></h3>
 <p>An ROI can be written to a nifti or numpy file as a binary mask. This can be done either by specifying a filename with an appropriate extension, e.g.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;my_roi.nii&#39;</span><span class="p">)</span>
 </pre></div>
@@ -189,7 +189,7 @@
 <p>would produce a binary numpy file at <code class="docutils literal notranslate"><span class="pre">my_rois/heart.npy</span></code>.</p>
 </section>
 <section id="getting-geometric-properties">
-<h3>Getting geometric properties<a class="headerlink" href="#getting-geometric-properties" title="Permalink to this heading"></a></h3>
+<h3>Getting geometric properties<a class="headerlink" href="#getting-geometric-properties" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">ROI</span></code> class has various methods for obtaining geometric properties of the ROI:</p>
 <ul class="simple">
 <li><p><strong>Centroid</strong>: get the 3D centroid coordinates (i.e. the centre-of-mass of the ROI) in mm via <code class="docutils literal notranslate"><span class="pre">roi.get_centroid()</span></code>, or get the 2D coordinates for a single slice via <code class="docutils literal notranslate"><span class="pre">roi.get_centroid(view='x-y',</span> <span class="pre">sl=10)</span></code>, for example (the slice position in mm <code class="docutils literal notranslate"><span class="pre">pos</span></code> or slice index <code class="docutils literal notranslate"><span class="pre">idx</span></code> can be given instead of slice number <code class="docutils literal notranslate"><span class="pre">sl</span></code>)</p></li>
@@ -201,10 +201,10 @@
 </section>
 </section>
 <section id="structure-sets-the-structureset-class">
-<h2>Structure Sets: the StructureSet class<a class="headerlink" href="#structure-sets-the-structureset-class" title="Permalink to this heading"></a></h2>
+<h2>Structure Sets: the StructureSet class<a class="headerlink" href="#structure-sets-the-structureset-class" title="Link to this heading"></a></h2>
 <p>A structure set is an object that contains multiple ROIs. This is implemented via the <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> class.</p>
 <section id="loading-a-structure-set">
-<h3>Loading a structure set<a class="headerlink" href="#loading-a-structure-set" title="Permalink to this heading"></a></h3>
+<h3>Loading a structure set<a class="headerlink" href="#loading-a-structure-set" title="Link to this heading"></a></h3>
 <p>A structure set is created via</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">StructureSet</span>
 <span class="n">structure_set</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
@@ -230,7 +230,7 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> can also be associated with an <code class="docutils literal notranslate"><span class="pre">Image</span></code> object by specifying the <code class="docutils literal notranslate"><span class="pre">image</span></code> argument upon creation, or running <code class="docutils literal notranslate"><span class="pre">structure_set.set_image(image)</span></code>. This image will be assigned to all ROIs in the structure set.</p>
 </section>
 <section id="creating-a-filtered-copy-of-a-structure-set">
-<h3>Creating a filtered copy of a structure set<a class="headerlink" href="#creating-a-filtered-copy-of-a-structure-set" title="Permalink to this heading"></a></h3>
+<h3>Creating a filtered copy of a structure set<a class="headerlink" href="#creating-a-filtered-copy-of-a-structure-set" title="Link to this heading"></a></h3>
 <p>Sometimes you may wish to load many ROIs (e.g. from a dicom structure set file) and then filter them by name. This is done via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">filter_rois</span><span class="p">(</span><span class="n">to_keep</span><span class="p">,</span> <span class="n">to_remove</span><span class="p">)</span>
 </pre></div>
@@ -239,7 +239,7 @@
 <p>To restore a structure set to its original state (i.e. reload it from its source), run <code class="docutils literal notranslate"><span class="pre">structure_set.reset()</span></code>.</p>
 </section>
 <section id="renaming-rois">
-<h3>Renaming ROIs<a class="headerlink" href="#renaming-rois" title="Permalink to this heading"></a></h3>
+<h3>Renaming ROIs<a class="headerlink" href="#renaming-rois" title="Link to this heading"></a></h3>
 <p>ROIs can be renamed by mapping from one or more possible original names to a single final name. In this way, multiple structure sets where the same ROI might have different names can be standardised to have the same ROI names.</p>
 <p>For example, let’s say you wish to rename the right parotid gland to <code class="docutils literal notranslate"><span class="pre">right_parotid</span></code>, but you know that it has a variety of names across different structure sets. You could do this with the following (assuming <code class="docutils literal notranslate"><span class="pre">my_structure_sets</span></code> is a list of <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">names_map</span> <span class="o">=</span> <span class="p">{</span>
@@ -253,7 +253,7 @@
 <p>You can also choose to discard any ROIs that aren’t in your renaming map by setting <code class="docutils literal notranslate"><span class="pre">keep_renamed_only=True</span></code>.</p>
 </section>
 <section id="getting-rois">
-<h3>Getting ROIs<a class="headerlink" href="#getting-rois" title="Permalink to this heading"></a></h3>
+<h3>Getting ROIs<a class="headerlink" href="#getting-rois" title="Link to this heading"></a></h3>
 <p>Get a list of the <code class="docutils literal notranslate"><span class="pre">ROI</span></code> objects belonging to the structure set:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">get_rois</span><span class="p">()</span>
 </pre></div>
@@ -276,14 +276,14 @@
 </div>
 </section>
 <section id="filtering-a-structure-set">
-<h3>Filtering a structure set<a class="headerlink" href="#filtering-a-structure-set" title="Permalink to this heading"></a></h3>
+<h3>Filtering a structure set<a class="headerlink" href="#filtering-a-structure-set" title="Link to this heading"></a></h3>
 <p>A <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> object can be copied to a new <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code>, optionally with some ROIs filtered/renamed (you might want to do this if you want to preserve the original structure set, while making a filtered version too), via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">filtered</span> <span class="o">=</span> <span class="n">structure_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">to_keep</span><span class="p">,</span> <span class="n">to_remove</span><span class="p">,</span> <span class="n">keep_renamed_only</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="writing-a-structure-set">
-<h3>Writing a structure set<a class="headerlink" href="#writing-a-structure-set" title="Permalink to this heading"></a></h3>
+<h3>Writing a structure set<a class="headerlink" href="#writing-a-structure-set" title="Link to this heading"></a></h3>
 <p>The ROIs in a structure set can be written to a directory of nifti or numpy files, via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">structure_set</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
 </pre></div>
@@ -291,7 +291,7 @@
 <p>where <code class="docutils literal notranslate"><span class="pre">outdir</span></code> is the output directory and <code class="docutils literal notranslate"><span class="pre">ext</span></code> is either <code class="docutils literal notranslate"><span class="pre">.nii</span></code>, <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code> or <code class="docutils literal notranslate"><span class="pre">.npy</span></code>. Dicom writing will be supported in future.</p>
 </section>
 <section id="assigning-structuresets-to-an-image">
-<h3>Assigning StructureSets to an Image<a class="headerlink" href="#assigning-structuresets-to-an-image" title="Permalink to this heading"></a></h3>
+<h3>Assigning StructureSets to an Image<a class="headerlink" href="#assigning-structuresets-to-an-image" title="Link to this heading"></a></h3>
 <p>Just as ROIs and structure sets can be associated with an image, the <code class="docutils literal notranslate"><span class="pre">Image</span></code> object can be associated with one or more <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. This is done via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">StructureSet</span>
 
