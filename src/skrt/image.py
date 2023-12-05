@@ -20,17 +20,17 @@ import nibabel
 import numpy as np
 import pandas as pd
 import pydicom
-import skimage.transform
+import skimage
 
 import skrt.core
 from skrt.dicom_writer import DicomWriter
 
-try:
-    import mahotas
+#try:
+#    import mahotas
 
-    _has_mahotas = True
-except ModuleNotFoundError:
-    _has_mahotas = False
+#    _has_mahotas = True
+#except ModuleNotFoundError:
+#    _has_mahotas = False
 
 _axes = ["x", "y", "z"]
 _slice_axes = {"x-y": 2, "x-z": 1, "y-x": 2, "y-z": 0, "z-x": 1, "z-y": 0}
@@ -1573,12 +1573,12 @@ class Image(skrt.core.Archive):
             obtained.
         """
 
-        if not _has_mahotas:
-            print("WARNING: Module mahotas unavailable")
-            print(
-                "WARNING: Unable to execute function "
-                + "skrt.image.Image.get_slice_foreground()"
-            )
+#        if not _has_mahotas:
+#            print("WARNING: Module mahotas unavailable")
+#            print(
+#                "WARNING: Unable to execute function "
+#                + "skrt.image.Image.get_slice_foreground()"
+#            )
 
         # Extract slice data.
         image_slice = self.get_data()[:, :, idx]
@@ -1594,9 +1594,11 @@ class Image(skrt.core.Archive):
 
         # Calculate Otsu threshold, or rescale threshold value provided.
         if threshold is None:
-            rescaled_threshold = mahotas.thresholding.otsu(
-                test_slice.astype(np.uint32)
-            )
+            #rescaled_threshold = mahotas.thresholding.otsu(
+            #    test_slice.astype(np.uint32)
+            #)
+            rescaled_thrshold = skimage.filters.threshold_otsu(
+                    test_slice.astype(np.uint32))
         else:
             rescaled_threshold = threshold - image_slice.min()
 
@@ -1606,8 +1608,11 @@ class Image(skrt.core.Archive):
             test_slice.max() - test_slice.min() > 0
         ):
             # Label regions of contiguous pixels of above-threshold intensity.
-            label_array1, n_object = mahotas.label(
-                test_slice > rescaled_threshold
+            #label_array1, n_object = mahotas.label(
+            #    test_slice > rescaled_threshold
+            label_array1, n_object = skimage.measure.label(
+                test_slice > rescaled_threshold,
+                return_num=True
             )
             # Identify largest labelled region, and use this as foreground.
             foreground = np.argsort(np.bincount(label_array1.ravel()))[-2]
@@ -6519,12 +6524,12 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
         Margin along rows to be added on each side of mask bounding box.
     """
 
-    if not _has_mahotas:
-        print("WARNING: Module mahotas unavailable")
-        print(
-            "WARNING: Unable to execute function "
-            + "skrt.image.Image.get_box_mask_from_mask()"
-        )
+#    if not _has_mahotas:
+#        print("WARNING: Module mahotas unavailable")
+#        print(
+#            "WARNING: Unable to execute function "
+#            + "skrt.image.Image.get_box_mask_from_mask()"
+#        )
 
     # Retrieve image data and numbers of voxels.
     mask_array = image.get_data()
@@ -6535,7 +6540,9 @@ def get_box_mask_from_mask(image=None, dx=0, dy=0):
 
     # Slice by slice, determine bounding box of mask, and fill with ones.
     for iz in range(nz):
-        jmin, jmax, imin, imax = mahotas.bbox(mask_array[:, :, iz])
+        #jmin, jmax, imin, imax = mahotas.bbox(mask_array[:, :, iz])
+        jmin, imin, jmax, imax = skimage.measure.regionprops(
+                mask_array[:, :, iz].astype(np.unit8))[0].bbox
         jmin = min(ny - 1, max(0, jmin - dy))
         jmax = max(0, min(ny - 1, jmax + dy))
         imin = min(nx - 1, max(0, imin - dx))
@@ -6803,14 +6810,16 @@ def get_mask_bbox(mask):
         Image object representing label mask for which bounding box is
         to be obtained.
     """
-    if not _has_mahotas:
-        print("WARNING: Module mahotas unavailable")
-        print(
-            "WARNING: Unable to execute function "
-            + "skrt.image.get_mask_bbox()"
-        )
+#    if not _has_mahotas:
+#        print("WARNING: Module mahotas unavailable")
+#        print(
+#            "WARNING: Unable to execute function "
+#            + "skrt.image.get_mask_bbox()"
+#        )
 
-    jmin, jmax, imin, imax, kmin, kmax = mahotas.bbox(mask.get_data())
+    #jmin, jmax, imin, imax, kmin, kmax = mahotas.bbox(mask.get_data())
+    jmin, imin, kmin, jmax, imax, kmax = skimage.measure.regionprops(
+            mask.get_data().astype(np.uint8))[0].bbox
     bbox = []
     for axis, idxs in enumerate([(imin, imax), (jmin, jmax), (kmin, kmax)]):
         bbox.append(

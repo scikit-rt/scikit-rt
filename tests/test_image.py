@@ -23,21 +23,6 @@ from skrt.image import (_slice_axes, Image,
 from skrt.simulation import SyntheticImage
 from skrt.structures import ROI
 
-try:
-    import mahotas
-    has_mahotas = True
-except ModuleNotFoundError:
-    has_mahotas = False
-
-# Decorator for tests requiring mahotas
-def needs_mahotas(func):
-    def wrapper():
-        if not has_mahotas:
-            return
-        else:
-            func()
-    return wrapper
-
 # Create fake data
 def create_test_image(shape, voxel_size, origin, data_type='rand', factor=1000):
     if 'rand' == data_type:
@@ -879,7 +864,6 @@ def test_dicom_dicom_slice():
     im_dcm = Image(f'{dcm_file}/1.dcm')
     assert im_dcm.get_data().shape == shape_single
 
-@needs_mahotas
 def test_create_foreground_mask():
     sim = SyntheticImage((100, 100, 40))
     sim.add_cube(side_length=5, name="cube", centre=(25, 60, 12), intensity=60)
@@ -903,7 +887,6 @@ def test_create_foreground_mask():
         assert mask1.sum() == mask2.sum()
     assert np.all(mask1 == mask2)
 
-@needs_mahotas
 def test_get_foreground_roi():
     """Test creation of ROI representing image foreground."""
     # Create synthetic image, featuring cube and sphere.
@@ -938,7 +921,6 @@ def test_get_foreground_roi():
     roi = sim.get_foreground_roi(threshold=threshold)
     assert roi.name == Defaults().foreground_name
 
-@needs_mahotas
 def test_mask_bbox():
     """Test calculation of mask bounding box."""
 
@@ -958,7 +940,6 @@ def test_mask_bbox():
         for idx2 in range(2):
             assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
 
-@needs_mahotas
 def test_foreground_bbox():
     """Test calculation of foreground bounding box."""
 
@@ -977,7 +958,6 @@ def test_foreground_bbox():
         for idx2 in range(2):
             assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
 
-@needs_mahotas
 def test_foreground_bbox_centre_and_widths():
     """Test calculation of centre and widths for foreground bounding box."""
 
@@ -997,7 +977,6 @@ def test_foreground_bbox_centre_and_widths():
         assert abs(bb_centre[idx] - centre[idx]) <= 1
         assert abs(bb_widths[idx] - 2 * radius) <= 1
 
-@needs_mahotas
 def test_create_intensity_mask():
     """
     Test creation of intensity masks.
@@ -1044,7 +1023,6 @@ def test_create_intensity_mask():
         # to the created mask.
         assert np.all(mask1 == mask2)
 
-@needs_mahotas
 def test_translation_to_align():
     """Test calculation of translation to align pair of images."""
 

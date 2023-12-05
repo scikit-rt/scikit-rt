@@ -25,21 +25,6 @@ sim = SyntheticImage((100, 100, nz), auto_timestamp=True)
 sim.add_cube(50, name='cube')
 sim.add_sphere(25, name='sphere')
 
-try:
-    import mahotas
-    has_mahotas = True
-except ModuleNotFoundError:
-    has_mahotas = False
-
-# Decorator for tests requiring mahotas
-def needs_mahotas(func):
-    def wrapper():
-        if not has_mahotas:
-            return
-        else:
-            func()
-    return wrapper
-
 def test_write_blank():
     assert p.id == pid
     assert len(p.studies) == 0

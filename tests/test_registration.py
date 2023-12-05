@@ -49,15 +49,8 @@ im1 = sim1.get_image()
 sim2 = SyntheticImage((11, 11, 11))
 sim2.add_cube(2, centre=(6, 6, 6))
 im2 = sim2.get_image()
-try:
-    import mahotas
-    has_mahotas = True
-except ModuleNotFoundError:
-    has_mahotas = False
-
-if has_mahotas:
-    mask1 = im1.get_foreground_mask(threshold=-10)
-    mask2 = im2.get_foreground_mask(threshold=-10)
+mask1 = im1.get_foreground_mask(threshold=-10)
+mask2 = im2.get_foreground_mask(threshold=-10)
 
 # Check for elastix executable
 try:
@@ -75,15 +68,6 @@ def needs_elastix(func):
             func()
     return wrapper
 
-# Decorator for tests requiring mahotas
-def needs_mahotas(func):
-    def wrapper():
-        if not has_mahotas:
-            return
-        else:
-            func()
-    return wrapper
-
 def test_setup_with_images():
     """Test creation of a new Registration object with images."""
 
@@ -93,7 +77,6 @@ def test_setup_with_images():
     assert np.all(reg.fixed_image.get_standardised_data() == im1.get_standardised_data())
     assert np.all(reg.moving_image.get_standardised_data() == im2.get_standardised_data())
 
-@needs_mahotas
 def test_setup_with_masks():
     """Test creation of a new Registration object with images and masks."""
 
