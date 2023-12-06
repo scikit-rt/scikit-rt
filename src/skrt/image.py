@@ -638,7 +638,7 @@ class Image(skrt.core.Archive):
         paths = {
             self.pos_to_idx(z, "z"): path for z, path in self._z_paths.items()
         }
-        return skrt.core.fullpath(paths[idx])
+        return skrt.core.fullpath(paths[idx]) if idx in paths else None
 
     def get_dicom_dataset(self, sl=None, idx=None, pos=None):
         """Return pydicom.dataset.FileDataset object associated with this Image
@@ -669,12 +669,14 @@ class Image(skrt.core.Archive):
             return self.dicom_dataset
 
         if not getattr(self, "_z_paths", None):
-            return
+            return None
 
-        # Otherwise, load the dataset for that slice
-        return pydicom.dcmread(
-            self.get_dicom_filepath(sl=sl, idx=idx, pos=pos), force=True
-        )
+        # Otherwise, try to load the dataset for that slice
+        dicom_filepath = self.get_dicom_filepath(sl=sl, idx=idx, pos=pos)
+        if not dicom_filepath:
+            return None
+
+        return pydicom.dcmread(dicom_filepath, force=True)
 
     def get_voxel_size(self, standardise=False, force_standardise=True):
         """
