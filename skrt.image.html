@@ -1681,9 +1681,9 @@ of source, which can be any of:</p>
 contents of self.source. If &lt;nifti_array&gt; was set to True when
 __init__() was called, self.source_type is set to “nifti array”;
 otherwise, self.source_type is set to “array”.</p>
-<p>2. If self.source is a string, this string is passed to
-glob.glob().  The result is assigned to self.source, and
-is treated as a list of filepaths.  If the list contains a
+<p>2. If self.source is a string, then self.source or, if
+self.source is the path to a directory, self.source/*
+is passed to glob.glob().  If the resulting list contains a
 single element, attempt to load a nifti file from this path
 using the function load_nifti(). If the path points to a
 valid nifti file, this will return a pixel array and affine
