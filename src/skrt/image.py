@@ -901,9 +901,9 @@ class Image(skrt.core.Archive):
             __init__() was called, self.source_type is set to "nifti array";
             otherwise, self.source_type is set to "array".
 
-            2. If self.source is a string, this string is passed to
-            glob.glob().  The result is assigned to self.source, and
-            is treated as a list of filepaths.  If the list contains a
+            2. If self.source is a string, then self.source or, if
+            self.source is the path to a directory, self.source/*
+            is passed to glob.glob().  If the resulting list contains a
             single element, attempt to load a nifti file from this path
             using the function load_nifti(). If the path points to a
             valid nifti file, this will return a pixel array and affine
@@ -964,11 +964,14 @@ class Image(skrt.core.Archive):
         # Try loading from nifti file
         elif isinstance(self.source, str):
             if os.path.exists(self.source):
-                if os.path.isfile(self.source):
-                    self.data, affine = load_nifti(self.source)
+                search_path = (f"{self.source}/*" if os.path.isdir(self.source)
+                               else self.source)
+                paths = glob.glob(search_path)
+                if 1 == len(paths):
+                    self.data, affine = load_nifti(paths[0])
                     self.source_type = "nifti"
-                if self.data is not None:
-                    self.affine = affine
+                    if self.data is not None:
+                        self.affine = affine
             elif not hasattr(self, "dicom_paths"):
                 raise RuntimeError(f"Image input {self.source} does not exist!")
 
