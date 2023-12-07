@@ -83,6 +83,9 @@ class Study(skrt.core.Archive):
             attr = f"{subdir.lower()}_images"
             images = self.create_objects(dtype=Image, subdir=subdir, load=False)
             for im in images:
+                # Convert NIfTI images to DICOM representation.
+                if "nifti" == im.source_type:
+                    im = im.astype("dcm")
                 im.image_type = subdir.lower()
 
             # Store the images
