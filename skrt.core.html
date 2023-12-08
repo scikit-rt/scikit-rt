@@ -1020,6 +1020,32 @@ between different slices.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_single_file_path">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_single_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_single_file_path" title="Link to this definition"></a></dt>
+<dd><p>Get full path to a single file, filtering on file suffixes.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path, str/pathlib</dt><dd><p>Path to check for identifying a single file.  If path is for a file,
+the full path to this file is returned.  If path is for a directory
+that contains a single file, after filtering on suffixes, the
+full path to this file is returned.  In all other cases, None is
+returned.</p>
+</dd>
+<dt>allowed_suffixes: list, default=None</dt><dd><p>List of allowed suffixes, when filtering directory contents.
+If None, all suffixes are allowed.</p>
+</dd>
+<dt>excluded_suffixes: list, default=None</dt><dd><p>List of excluded suffixes, when filtering directory contents.
+If None, no suffixes are excluded.  Filtering on excluded suffixes
+is performed after filtering on allowed suffixes, so if a suffix
+is listed as both allowed and excluded it will be excluded.</p>
+</dd>
+<dt>pathlib: bool, default=True</dt><dd><p>If True, return file path as a pathlib.Path object.  If False,
+return as a string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_stat">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_for_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_stat" title="Link to this definition"></a></dt>
 <dd><p>Calculate statistic(s) for values in a list or dictionary.</p>
@@ -1107,6 +1133,26 @@ the most recent if True, or the least recent otherwise.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_value_from_json">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_value_from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_type=&lt;class</span> <span class="pre">'tuple'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_value_from_json" title="Link to this definition"></a></dt>
+<dd><p>Get value from a JSON file.</p>
+<p><strong>Parameters:</strong>
+path: str/pathlib.Path</p>
+<blockquote>
+<div><p>Path to JSON file from which value is to be read.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>key: str</dt><dd><p>Key in dictionary read from JSON file for which value is to be returned.</p>
+</dd>
+<dt>default: any, default=None</dt><dd><p>Value to be returned if &lt;key&gt; not found in dictionary read from
+JSON file.</p>
+</dd>
+<dt>array_type: sequence, default=tuple</dt><dd><p>Type to which to convert a JSON array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.is_list">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_list" title="Link to this definition"></a></dt>
 <dd><p>Check whether a variable is a list, tuple, or array.</p>
@@ -1116,6 +1162,18 @@ the most recent if True, or the least recent otherwise.</p>
 <dt class="sig sig-object py" id="skrt.core.is_timestamp">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_timestamp" title="Link to this definition"></a></dt>
 <dd><p>Check whether a string is a valid timestamp.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.load_json">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">load_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.load_json" title="Link to this definition"></a></dt>
+<dd><p>Load to dictionary data from a JSON file.</p>
+<p><strong>Parameter:</strong>
+path: str/pathlib.Path</p>
+<blockquote>
+<div><p>Path to JSON file from which data are to be loaded.  If the
+specified file isn’t found, an empty dictionary is returned.</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py function">
