@@ -3,6 +3,7 @@
 from pathlib import Path
 from pytest import approx
 
+import json
 import os
 import time
 import timeit
@@ -520,3 +521,77 @@ def test_filtered_dict():
     # Test filtering against selection not in dictionary.
     assert {} == skrt.core.filtered_dict(
             dict(items), {"opt3": ["opt1", "opt2", "opt3"]})
+
+
+def test_json_load():
+    """Test loading to dictionary of data from JSON file."""
+    # Create test JSON file.
+    json_dir = skrt.core.make_dir("tmp/json")
+    json_path = json_dir / "test.json"
+    test_data = {"key1": "val1", "key2": ("val2.1", "val2.2")}
+    with open(json_path, "w") as out_json:
+        json.dump(test_data, out_json)
+
+    # Check that empty dictionary is returned for non-existent file.
+    assert {} == skrt.core.load_json(json_dir / "no_file")
+
+    # Check that JSON data correctly loaded.
+    info = skrt.core.load_json(json_path)
+    assert list(info.keys()) == list(test_data.keys())
+    for key, val1 in test_data.items():
+        val2 = tuple(info[key]) if isinstance(val1, tuple) else info[key]
+        assert val1 == val2
+
+
+def test_get_value_from_json():
+    """Test reading of value from JSON file."""
+    # Create test JSON file.
+    json_dir = skrt.core.make_dir("tmp/json")
+    json_path = json_dir / "test.json"
+    test_data = {"key1": "val1", "key2": ("val2.1", "val2.2")}
+    test_default = "unknown"
+    with open(json_path, "w") as out_json:
+        json.dump(test_data, out_json)
+
+    # Check that results are as expected.
+    assert skrt.core.get_value_from_json(json_dir / "no_file", "key1") is None
+    assert skrt.core.get_value_from_json(json_path, "missing_key") is None
+    assert skrt.core.get_value_from_json(
+            json_path, "missing_key", test_default) == test_default
+    assert skrt.core.get_value_from_json(json_path, "key1") == test_data["key1"]
+    assert skrt.core.get_value_from_json(
+            json_path, "key2") == test_data["key2"]
+    for array_type in [list, tuple]:
+        assert skrt.core.get_value_from_json(
+                json_path, "key2", array_type=array_type) == array_type(
+                        test_data["key2"])
+
+
+def test_get_single_file_path():
+    """Test retrieval of a single file path, filtering on suffixes."""
+    # Define file paths.
+    test_dir = skrt.core.make_dir("tmp/single_file_test")
+    suffixes = set([".suffix1", ".suffix2", ".suffix3"])
+    paths = {suffix: Path(test_dir / f"file{suffix}") for suffix in suffixes}
+
+    # Test that retrieved file pathas are as expected.
+    for suffix, path in paths.items():
+        path.touch()
+        for pathlib in [True, False]:
+            expected_path = path if pathlib else str(path)
+            assert expected_path == skrt.core.get_single_file_path(
+                    path, pathlib=pathlib)
+            assert expected_path == skrt.core.get_single_file_path(
+                    path.parent, allowed_suffixes=[suffix], pathlib=pathlib)
+            assert expected_path == skrt.core.get_single_file_path(
+                    path.parent, excluded_suffixes=(suffixes - set([suffix])),
+                    pathlib=pathlib)
+
+    # Test arguments for which no file path should be found.
+    test_args = [
+            (test_dir / "no_file", None, None),
+            (test_dir, None, None),
+            (test_dir, None, suffixes),
+            ]
+    for args in test_args:
+        assert skrt.core.get_single_file_path(*args) is None

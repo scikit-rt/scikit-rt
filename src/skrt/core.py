@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 import copy
 import itertools
+import json
 from logging import getLogger, Formatter, StreamHandler
 import os
 from pathlib import Path
@@ -2569,3 +2570,92 @@ def filtered_dict(items=None, filters=None):
                         items[key] = val
                 del items[candidate]
     return items
+
+def get_single_file_path(
+        path, allowed_suffixes=None, excluded_suffixes=None, pathlib=True):
+    """
+    Get full path to a single file, filtering on file suffixes.
+
+    **Parameters:**
+
+    path, str/pathlib
+        Path to check for identifying a single file.  If path is for a file,
+        the full path to this file is returned.  If path is for a directory
+        that contains a single file, after filtering on suffixes, the
+        full path to this file is returned.  In all other cases, None is
+        returned.
+
+    allowed_suffixes: list, default=None
+        List of allowed suffixes, when filtering directory contents.
+        If None, all suffixes are allowed.
+
+    excluded_suffixes: list, default=None
+        List of excluded suffixes, when filtering directory contents.
+        If None, no suffixes are excluded.  Filtering on excluded suffixes
+        is performed after filtering on allowed suffixes, so if a suffix
+        is listed as both allowed and excluded it will be excluded.
+
+    pathlib: bool, default=True
+        If True, return file path as a pathlib.Path object.  If False,
+        return as a string.
+    """
+    single_file_path = None
+    if isinstance(path, (str, Path)):
+        path = fullpath(path, pathlib=True)
+        if path.exists():
+            if not path.is_dir():
+                single_file_path = path
+            else:
+                child_paths = []
+                for child_path in path.glob("*"):
+                    if ((not allowed_suffixes
+                         or child_path.suffix in allowed_suffixes)
+                        and (not excluded_suffixes
+                             or child_path.suffix not in excluded_suffixes)):
+                            child_paths.append(child_path)
+                if 1 == len(child_paths):
+                    single_file_path = child_paths[0]
+
+            if isinstance(single_file_path, Path) and not pathlib:
+                single_file_path = str(single_file_path)
+
+    return single_file_path
+
+def load_json(path):
+    """
+    Load to dictionary data from a JSON file.
+
+    **Parameter:**
+    path: str/pathlib.Path
+       Path to JSON file from which data are to be loaded.  If the
+       specified file isn't found, an empty dictionary is returned.
+    """
+    json_path = Path(path)
+    if not json_path.is_file():
+        return {}
+
+    with open(json_path) as in_json:
+        return json.load(in_json)
+
+def get_value_from_json(path, key, default=None, array_type=tuple):
+    """
+    Get value from a JSON file.
+
+    **Parameters:**
+    path: str/pathlib.Path
+        Path to JSON file from which value is to be read.
+
+    key: str
+        Key in dictionary read from JSON file for which value is to be returned.
+
+    default: any, default=None
+        Value to be returned if <key> not found in dictionary read from
+        JSON file.
+
+    array_type: sequence, default=tuple
+        Type to which to convert a JSON array.
+    """
+    value = load_json(path).get(key, default)
+    if isinstance(value, list):
+        return array_type(value)
+    return value
