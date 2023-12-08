@@ -1090,6 +1090,15 @@ class ROI(skrt.core.Archive):
                 contour_points.append([px, py])
             points.append(np.array(contour_points))
 
+        if len(points) > 1:
+            # Remove contours inside contours,
+            # sometimes created by skimage.measure.find_contours.
+            union = ops.unary_union([contour_to_polygon(contour_points)
+                                     for contour_points in points])
+            polygons = ([union] if isinstance(union, geometry.Polygon)
+                        else union.geoms)
+            points = [np.array(polygon.exterior.coords) for polygon in polygons]
+
         return points
 
     def create_mask(
