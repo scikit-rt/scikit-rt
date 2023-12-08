@@ -147,6 +147,9 @@ class Study(skrt.core.Archive):
                 objs = archive.create_objects(
                     dtype=dtype, timestamp_only=False, **kwargs
                 )
+                if ("RTSTRUCT" == subdir and objs
+                    and objs[0].dicom_dataset is None):
+                    objs = [StructureSet(archive.path)]
 
                 # Look for an image matching the timestamp of this archive
                 if im_type in self.image_types:
