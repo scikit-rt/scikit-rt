@@ -1,6 +1,7 @@
 """Tests for the ROI and StructureSet classes."""
 
 import fnmatch
+import json
 import math
 import os
 import random
@@ -2035,7 +2036,7 @@ def test_write_multilabel_nifti():
     for overwrite in [False, True]:
         # Write structure set as multi-label NIfTI file.
         sset.write(outdir=nii_dir, ext=ext, overwrite=overwrite,
-                   multi_label=True, names=names)
+                   multi_label=True, names_to_json=False, names=names)
         # Check that a single file is created.
         paths = list(nii_dir.glob("*"))
         assert 1 == len(paths)
@@ -2063,6 +2064,61 @@ def test_write_multilabel_nifti():
                 assert rois[jdx].get_volume() == rois2[jdx].get_volume()
                 # Check ROI masks.
                 assert np.all(rois[jdx].get_mask() == rois2[jdx].get_mask())
+
+def test_write_multilabel_nifti_json():
+    '''
+    Test writing of structure set and ROI names
+    to multi-label NIfTI file and JSON file.
+    '''
+    # Create synthetic image with associated structure set.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 60), intensity=1)
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 40), intensity=10)
+    sset1 = sim.get_structure_set()
+
+    # Define the path to the output director,
+    # and ensure that it doesn't initially exist.
+    nii_dir = pathlib.Path("tmp/nii_multilabel_json")
+    if nii_dir.exists():
+        shutil.rmtree(nii_dir)
+
+    # Define path to output structure_set file.
+    ext = ".nii.gz"
+    outname = f"RTSTRUCT_{sset1.timestamp}{ext}"
+    outpath = nii_dir / outname
+
+
+    # Define test arguments for calls for writing and creating structure set. 
+    test_path = nii_dir / "test.json"
+    tests = [(nii_dir / f"{outname.split(ext)[0]}.json", True, "roi_names"),
+             (test_path, test_path, "labels")]
+
+    for json_path, json_names, json_names_key in tests:
+        # Test writing of structure set and ROI names.
+        assert not outpath.exists()
+        assert not json_path.exists()
+        sset1.write(outdir=nii_dir, ext=ext, overwrite=True,
+                    multi_label=True, names_to_json=json_names,
+                    json_names_key=json_names_key, names=sset1.get_roi_names())
+        assert outpath.exists()
+        assert json_path.exists()
+        with open(json_path) as in_json:
+            info = json.load(in_json)
+        assert isinstance(info, dict)
+        assert json_names_key in info
+        assert info[json_names_key] == sset1.get_roi_names()
+
+        # Test that structure-set and ROI names written to file match originals.
+        sset2 = StructureSet(nii_dir / outname, multi_label=True,
+                             names_from_json=json_names,
+                             json_names_key=json_names_key)
+        assert sset1.get_roi_names() == sset2.get_roi_names()
+        for roi_name in sset1.get_roi_names():
+            roi1 = sset1[roi_name]
+            roi2 = sset2[roi_name]
+            assert np.all(roi1.mask.data == roi2.mask.data)
+
+        outpath.unlink()
 
 def test_split_rois_in_two():
     """Test splitting into two components of structure set's composite ROI(s)"""

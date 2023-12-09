@@ -567,7 +567,7 @@ def test_get_value_from_json():
                         test_data["key2"])
 
 
-def test_get_single_file_path():
+def test_get_single_path():
     """Test retrieval of a single file path, filtering on suffixes."""
     # Define file paths.
     test_dir = skrt.core.make_dir("tmp/single_file_test")
@@ -579,11 +579,11 @@ def test_get_single_file_path():
         path.touch()
         for pathlib in [True, False]:
             expected_path = path if pathlib else str(path)
-            assert expected_path == skrt.core.get_single_file_path(
+            assert expected_path == skrt.core.get_single_path(
                     path, pathlib=pathlib)
-            assert expected_path == skrt.core.get_single_file_path(
+            assert expected_path == skrt.core.get_single_path(
                     path.parent, allowed_suffixes=[suffix], pathlib=pathlib)
-            assert expected_path == skrt.core.get_single_file_path(
+            assert expected_path == skrt.core.get_single_path(
                     path.parent, excluded_suffixes=(suffixes - set([suffix])),
                     pathlib=pathlib)
 
@@ -594,4 +594,4 @@ def test_get_single_file_path():
             (test_dir, None, suffixes),
             ]
     for args in test_args:
-        assert skrt.core.get_single_file_path(*args) is None
+        assert skrt.core.get_single_path(*args) is None

@@ -2571,8 +2571,9 @@ def filtered_dict(items=None, filters=None):
                 del items[candidate]
     return items
 
-def get_single_file_path(
-        path, allowed_suffixes=None, excluded_suffixes=None, pathlib=True):
+def get_single_path(
+        path, allowed_suffixes=None, excluded_suffixes=None, pathlib=True,
+        include_hidden=False):
     """
     Get full path to a single file, filtering on file suffixes.
 
@@ -2598,6 +2599,10 @@ def get_single_file_path(
     pathlib: bool, default=True
         If True, return file path as a pathlib.Path object.  If False,
         return as a string.
+
+    include_hidden: bool, default=False
+        If True, include files having names that begin with a dot when
+        filtering directory contents.  If False, disregard these files.
     """
     single_file_path = None
     if isinstance(path, (str, Path)):
@@ -2606,8 +2611,13 @@ def get_single_file_path(
             if not path.is_dir():
                 single_file_path = path
             else:
+                pattern = "*" if include_hidden else "[!.]*"
+                if isinstance(allowed_suffixes, str):
+                    allowed_suffixes = [allowed_suffixes]
+                if isinstance(excluded_suffixes, str):
+                    excluded_suffixes = [excluded_suffixes]
                 child_paths = []
-                for child_path in path.glob("*"):
+                for child_path in path.glob(pattern):
                     if ((not allowed_suffixes
                          or child_path.suffix in allowed_suffixes)
                         and (not excluded_suffixes

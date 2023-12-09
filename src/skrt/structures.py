@@ -1,6 +1,7 @@
 """Classes related to ROIs and structure sets."""
 
 import fnmatch
+import json
 import logging
 import math
 import os
@@ -6872,6 +6873,8 @@ class StructureSet(skrt.core.Archive):
         to_keep=None,
         to_remove=None,
         multi_label=False,
+        names_from_json=True,
+        json_names_key="roi_names",
         colors=None,
         ignore_dicom_colors=False,
         auto_timestamp=False,
@@ -6934,6 +6937,22 @@ class StructureSet(skrt.core.Archive):
             If True, will look for multiple ROI masks with different labels
             inside the array and create a separate ROI from each.
 
+        names_from_json : bool/str/pathlib.Path, default=True
+            Indicate whether to read ROI names from a JSON file.  If True,
+            names will be looked for in a file that has the same path
+            as the structure-set file, but with the suffix ".json".  If
+            a path to a file that exists, look for names in this file.
+            The value associated with the key <json_names_key> of the
+            dictionary read from the JSON file is used to define ROI names.
+            Names in the JSON file may be specified as either an object
+            or an array.  These will be read as a dictionary and tuple
+            respectively, interpreted as for <names>.  Only considered if
+            <multi_label> is True and <names> is None.
+
+        json_names_key : str, default="roi_names"
+            Key to associate with ROI names in dictionary read from
+            JSON file.
+
         colors : list/dict
             List or dict of colors. If a dict, the keys should be ROI names or
             wildcards matching ROI names, and the values should be desired
@@ -6965,14 +6984,30 @@ class StructureSet(skrt.core.Archive):
             return
 
         self.name = name
-        path = (
-            skrt.core.fullpath(path) if isinstance(path, (str, Path)) else path
-        )
+        if isinstance(path, (str, Path)):
+            path = skrt.core.fullpath(path)
         self.sources = path
+
+        if multi_label:
+            source = skrt.core.get_single_path(
+                    path, excluded_suffixes=".json", pathlib=True)
+            if source:
+                self.sources = str(source)
+                if names_from_json and not names:
+                    if isinstance(names_from_json, bool):
+                        json_path = (source.parent
+                                     / f"{source.name.split('.')[0]}.json")
+                    else:
+                        json_path = skrt.core.fullpath(
+                                names_from_json, pathlib=True)
+                    names = skrt.core.get_value_from_json(
+                            path=json_path, key=json_names_key, default=None,
+                            array_type=tuple)
+
         if self.sources is None:
             self.sources = []
-        elif not skrt.core.is_list(path):
-            self.sources = [path]
+        elif not skrt.core.is_list(self.sources):
+            self.sources = [self.sources]
         self.rois = []
         self.set_image(image)
         self.to_keep = to_keep
@@ -8216,6 +8251,8 @@ class StructureSet(skrt.core.Archive):
         root_uid=None,
         header_extras={},
         multi_label=False,
+        names_to_json=True,
+        json_names_key="labels",
         names=None,
         voxel_size=None,
         **kwargs,
@@ -8283,6 +8320,20 @@ class StructureSet(skrt.core.Archive):
             by consecutive integers, starting from 1, in the order
             specified by <names>.  Ignored when not writing NIfTI
             output.
+
+        names_to_json : bool/str/pathlib.Path, default=True
+            Indicate whether to write ROI names to a JSON file
+            when writing multi-label NIfTI output.  If True,
+            names will be written to a file that has the same path
+            as the structure-set output file, but with the suffix ".json".
+            If a path, names will be written to a file at this path.
+            ROI names are written as a tuple, associated with the
+            dictionary key <json_names_key>.  Ignored if <multi_label>
+            is False.
+
+        json_names_key : str, default="roi_names"
+            Key to associate with ROI names in dictionary written to
+            JSON file.
 
         names : list, default=None
             List of strings, specifying names of ROIs to be written
@@ -8355,6 +8406,16 @@ class StructureSet(skrt.core.Archive):
                     array[sset[roi_name].get_mask()] = idx + 1
             skrt.image.Image(array, affine=image.get_affine()).write(
                     os.path.join(outdir, outname), verbose=verbose, **kwargs)
+            if names_to_json:
+                if isinstance(names_to_json, bool):
+                    json_path = Path(outdir) / f"{outname.split('.')[0]}.json"
+                else:
+                    json_path = skrt.core.fullpath(names_to_json, pathlib=True)
+
+                with open(json_path, "w") as out_json:
+                    json.dump({json_names_key: tuple(names)},
+                              out_json, indent=4, separators=None)
+
         else:
             # Write to individual ROI files.
             for s in self.get_rois():
