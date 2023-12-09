@@ -1020,8 +1020,8 @@ between different slices.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="skrt.core.get_single_file_path">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_single_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_single_file_path" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="skrt.core.get_single_path">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_single_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathlib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_hidden</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_single_path" title="Link to this definition"></a></dt>
 <dd><p>Get full path to a single file, filtering on file suffixes.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
@@ -1041,6 +1041,9 @@ is listed as both allowed and excluded it will be excluded.</p>
 </dd>
 <dt>pathlib: bool, default=True</dt><dd><p>If True, return file path as a pathlib.Path object.  If False,
 return as a string.</p>
+</dd>
+<dt>include_hidden: bool, default=False</dt><dd><p>If True, include files having names that begin with a dot when
+filtering directory contents.  If False, disregard these files.</p>
 </dd>
 </dl>
 </dd></dl>
