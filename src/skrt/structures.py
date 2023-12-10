@@ -7003,6 +7003,8 @@ class StructureSet(skrt.core.Archive):
                     names = skrt.core.get_value_from_json(
                             path=json_path, key=json_names_key, default=None,
                             array_type=tuple)
+                    if isinstance(names, dict):
+                        names = tuple(names)
 
         if self.sources is None:
             self.sources = []
