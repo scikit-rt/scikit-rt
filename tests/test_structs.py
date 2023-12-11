@@ -2093,6 +2093,15 @@ def test_write_multilabel_nifti_json():
     tests = [(nii_dir / f"{outname.split(ext)[0]}.json", True, "roi_names"),
              (test_path, test_path, "labels")]
 
+    # Define names to exclude, and resulting expected names.
+    excluded_names = [""] + sset1.get_roi_names()
+    expected_names = [list(sset1.get_roi_names())
+                      for idx in range(len(excluded_names))]
+    for idx, excluded_name in enumerate(excluded_names):
+        if excluded_name in expected_names[idx]:
+            idx2 = expected_names[idx].index(excluded_name)
+            expected_names[idx][idx2] = "ROI 2"
+
     for json_path, json_names, json_names_key in tests:
         # Test writing of structure set and ROI names.
         assert not outpath.exists()
@@ -2108,15 +2117,22 @@ def test_write_multilabel_nifti_json():
         assert json_names_key in info
         assert info[json_names_key] == sset1.get_roi_names()
 
-        # Test that structure-set and ROI names written to file match originals.
-        sset2 = StructureSet(nii_dir / outname, multi_label=True,
-                             names_from_json=json_names,
-                             json_names_key=json_names_key)
-        assert sset1.get_roi_names() == sset2.get_roi_names()
-        for roi_name in sset1.get_roi_names():
-            roi1 = sset1[roi_name]
-            roi2 = sset2[roi_name]
-            assert np.all(roi1.mask.data == roi2.mask.data)
+        # Test that structure-set ROI written to file match originals,
+        # except for default names being used in place of excluded names.
+        for idx, json_names_to_exclude in enumerate(excluded_names):
+            sset2 = StructureSet(nii_dir / outname, multi_label=True,
+                                 names_from_json=json_names,
+                                 json_names_to_exclude=json_names_to_exclude,
+                                 json_names_key=json_names_key)
+
+            assert sorted(expected_names[idx]) == sorted(sset2.get_roi_names())
+            for idx2, roi_name in enumerate(sset1.get_roi_names()):
+                roi1 = sset1[roi_name]
+                if sset1.get_roi_names() == sset2.get_roi_names():
+                    roi2 = sset2[roi_name]
+                else:
+                    roi2 = sset2.get_rois()[idx2]
+                assert np.all(roi1.mask.data == roi2.mask.data)
 
         outpath.unlink()
 

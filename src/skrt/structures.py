@@ -35,7 +35,8 @@ from skrt.dicom_writer import DicomWriter
 skrt.core.Defaults({"by_slice": "union"})
 skrt.core.Defaults({"slice_stats": ["mean"]})
 skrt.core.Defaults({"shapely_log_level": logging.ERROR})
-
+skrt.core.Defaults({"json_names_key": "roi_names"})
+skrt.core.Defaults({"json_names_to_exclude": "background"})
 
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""
@@ -6875,6 +6876,7 @@ class StructureSet(skrt.core.Archive):
         multi_label=False,
         names_from_json=True,
         json_names_key="roi_names",
+        json_names_to_exclude="background",
         colors=None,
         ignore_dicom_colors=False,
         auto_timestamp=False,
@@ -6949,9 +6951,18 @@ class StructureSet(skrt.core.Archive):
             respectively, interpreted as for <names>.  Only considered if
             <multi_label> is True and <names> is None.
 
-        json_names_key : str, default="roi_names"
+        json_names_key : str, default=None
             Key to associate with ROI names in dictionary read from
-            JSON file.
+            JSON file.  If None, set to value of
+            skrt.core.Defaults().json_names_key.  Used only for
+            structure sets loaded from multi-label NIfTI file.
+
+        json_names_to_exclude : str/list, default=None
+            String, or list of strings, indicating name(s) to be disregarded
+            among ROI names read from JSON file.  If None, set to value
+            of skrt.core.Defaults().json_names_to_exclude.  Matching with
+            names from from file is case insensitive.  Used only for
+            structure sets loaded from multi-label NIfTI file.
 
         colors : list/dict
             List or dict of colors. If a dict, the keys should be ROI names or
@@ -6988,11 +6999,16 @@ class StructureSet(skrt.core.Archive):
             path = skrt.core.fullpath(path)
         self.sources = path
 
+        # Handle structure sets defined by a (single) multi-label NIfTI file,
+        # possibly with ROI names specified in a JSON file.
         if multi_label:
+            # Ensure that input path specifies a file,
+            # or a directory containing a single non-JSON file.
             source = skrt.core.get_single_path(
                     path, excluded_suffixes=".json", pathlib=True)
             if source:
                 self.sources = str(source)
+                # Look for an accompanying JSON file specifiying ROI names.
                 if names_from_json and not names:
                     if isinstance(names_from_json, bool):
                         json_path = (source.parent
@@ -7000,10 +7016,22 @@ class StructureSet(skrt.core.Archive):
                     else:
                         json_path = skrt.core.fullpath(
                                 names_from_json, pathlib=True)
+                    if json_names_key is None:
+                        json_names_key = Defaults().json_names_key
+
+                    # Load ROI names.
                     names = skrt.core.get_value_from_json(
-                            path=json_path, key=json_names_key, default=None,
-                            array_type=tuple)
-                    if isinstance(names, dict):
+                            path=json_path, key=json_names_key, default=None)
+                    if names:
+                        if json_names_to_exclude is None:
+                            json_names_to_exclude = (
+                                    Defaults().json_names_to_exclude)
+                        if json_names_to_exclude:
+                            if isinstance(json_names_to_exclude, str):
+                                json_names_to_exclude = [json_names_to_exclude]
+                            names = (name for name in names
+                                     if name.lower() not in
+                                     json_names_to_exclude)
                         names = tuple(names)
 
         if self.sources is None:
