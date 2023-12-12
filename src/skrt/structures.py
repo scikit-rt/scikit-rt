@@ -6875,8 +6875,8 @@ class StructureSet(skrt.core.Archive):
         to_remove=None,
         multi_label=False,
         names_from_json=True,
-        json_names_key="roi_names",
-        json_names_to_exclude="background",
+        json_names_key=None,
+        json_names_to_exclude=None,
         colors=None,
         ignore_dicom_colors=False,
         auto_timestamp=False,
@@ -7017,7 +7017,7 @@ class StructureSet(skrt.core.Archive):
                         json_path = skrt.core.fullpath(
                                 names_from_json, pathlib=True)
                     if json_names_key is None:
-                        json_names_key = Defaults().json_names_key
+                        json_names_key = skrt.core.Defaults().json_names_key
 
                     # Load ROI names.
                     names = skrt.core.get_value_from_json(
@@ -7025,7 +7025,7 @@ class StructureSet(skrt.core.Archive):
                     if names:
                         if json_names_to_exclude is None:
                             json_names_to_exclude = (
-                                    Defaults().json_names_to_exclude)
+                                    skrt.core.Defaults().json_names_to_exclude)
                         if json_names_to_exclude:
                             if isinstance(json_names_to_exclude, str):
                                 json_names_to_exclude = [json_names_to_exclude]
@@ -8363,7 +8363,8 @@ class StructureSet(skrt.core.Archive):
 
         json_names_key : str, default="roi_names"
             Key to associate with ROI names in dictionary written to
-            JSON file.
+            JSON file.  If None, set to value of
+            skrt.core.Defaults().json_names_key.
 
         names : list, default=None
             List of strings, specifying names of ROIs to be written
@@ -8442,6 +8443,8 @@ class StructureSet(skrt.core.Archive):
                 else:
                     json_path = skrt.core.fullpath(names_to_json, pathlib=True)
 
+                if json_names_key is None:
+                    json_names_key = skrt.core.Defaults().json_names_key
                 with open(json_path, "w") as out_json:
                     json.dump({json_names_key: tuple(names)},
                               out_json, indent=4, separators=None)
@@ -10866,3 +10869,70 @@ def get_structuring_element(radius=1, voxel_size=(1, 1, 1)):
     # the specified radius from the array centre, and False otherwise.
     # Axes are transposed to map from (x, y, z) to (column, row, slice).
     return distances.transpose(1, 0, 2) <= radius
+
+
+def create_structure_sets_from_nifti(
+        path, json_names_key=None, json_names_to_exclude=None):
+    structure_sets = []
+    path = skrt.core.fullpath(path, pathlib=True)
+    if path.is_dir():
+        dir_path = path
+        paths = sorted(list(path.glob("*[!.json]")))
+    else:
+        dir_path = path.parent
+        paths = [path]
+    if not dir_path.is_dir():
+        return structure_sets
+
+    json_paths = {json_path.name.split(".")[0]: json_path
+                  for json_path in sorted(list(dir_path.glob("*.json")))}
+    other_paths = []
+    for test_path in paths:
+        add_to_other_paths = True
+        for case, json_path in json_paths.items():
+            if test_path.name.startswith(case):
+                sset = StructureSet(
+                        test_path, multi_label=True,
+                        names_from_json=json_path,
+                        json_names_key=json_names_key,
+                        json_names_to_exclude=json_names_to_exclude,
+                        name=test_path.name.split(".")[0])
+                if len(sset.get_rois()):
+                    structure_sets.append(sset)
+                add_to_other_paths = False
+                break
+
+        if add_to_other_paths:
+            other_paths.append(test_path)
+
+    if 1 == len(other_paths):
+        json_path = (None if 1 != len(json_paths)
+                     else list(json_paths.values())[0])
+        sset = StructureSet(
+                other_paths[0], multi_label=True,
+                names_from_json=json_path,
+                json_names_key=json_names_key,
+                json_names_to_exclude=json_names_to_exclude,
+                name=dir_path.name.split("."[0]))
+        if json_path or 1 != len(sset.get_rois()):
+            other_paths = []
+            if len(sset.get_rois()):
+                structure_sets.append(sset)
+
+    roi_paths = []
+    for test_path in other_paths:
+        sset = StructureSet(
+                test_path, multi_label=True,
+                names_from_json=False,
+                name=test_path.name.split(".")[0])
+        if len(sset.get_roi_names()) > 1:
+            structure_sets.append(sset)
+        elif len(sset.get_roi_names()) == 1:
+            roi_paths.append(test_path)
+
+    if roi_paths:
+        sset = StructureSet(roi_paths, name=dir_path.name.split(".")[0])
+        if len(sset.get_rois()):
+            structure_sets.append(sset)
+
+    return structure_sets

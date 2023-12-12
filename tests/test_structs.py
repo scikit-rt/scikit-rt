@@ -24,7 +24,8 @@ from skrt.simulation import SyntheticImage
 from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
         get_comparison_metrics, get_slice_positions, expand_slice_stats, \
-        get_metric_method, get_structuring_element
+        get_metric_method, get_structuring_element, \
+        create_structure_sets_from_nifti
 
 
 # Make temporary test dir
@@ -2170,3 +2171,118 @@ def test_split_rois_in_two():
         assert sset2[roi_name].get_extents() == sset1[roi_name].get_extents()
         assert sset2[roi_name].get_volume() == pytest.approx(
                 sset1[roi_name].get_volume(), rel=0.02)
+
+
+def test_create_structure_sets_from_nifti_rois():
+    '''
+    Test creation of structure sets from NIfTI-format ROI files,
+    without and with JSON files giving ROI names.
+    '''
+    # Create synthetic image with associated structure set.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 60), intensity=1)
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 40), intensity=10)
+    sim.add_cylinder(radius=10, length=60, name="cylinder",
+                     centre=(50, 10, 10), intensity=20)
+    sset1 = sim.get_structure_set()
+    roi_names = sorted(sset1.get_roi_names())
+    n_name = len(roi_names)
+
+    # Define the path to the output directory,
+    # and ensure that it doesn't initially exist.
+    nii_dir = pathlib.Path("tmp/nii_structure_sets")
+    if nii_dir.exists():
+        shutil.rmtree(nii_dir)
+
+    # Define file extension for NIfTI files.
+    ext = ".nii.gz"
+
+    # Define data for JSON files giving ROI names.
+    json_names_key = "labels"
+    new_names = [f"{roi_name}_2" for roi_name in roi_names]
+
+    # Test creation of single structure set from one or more ROI files.
+    for idx, roi_name in enumerate(roi_names):
+        sset1[roi_name].write(outdir=nii_dir, ext=ext)
+        ssets = create_structure_sets_from_nifti(nii_dir)
+        assert 1 == len(ssets)
+        assert idx + 1 == len(ssets[0].get_roi_names())
+        assert sorted(roi_names[: idx + 1]) == sorted(ssets[0].get_roi_names())
+
+    # Test creation of multiple structure sets from ROI files,
+    # one or more of which has associated JSON file giving ROI names.
+    for idx, roi_name in enumerate(roi_names):
+        with open(nii_dir / f"{roi_name}.json", "w") as out_json:
+           json.dump({json_names_key: [new_names[idx]]}, out_json)
+
+        ssets = create_structure_sets_from_nifti(nii_dir, json_names_key)
+        n_sset = min(idx + 2, n_name)
+
+        # Check number of structure sets.
+        assert n_sset == len(ssets)
+
+        # Check number of ROIs for each structure set.
+        n_rois1 = [1 if jdx <= idx else n_name - idx - 1
+                   for jdx in range(n_sset)]
+        n_rois2 = [len(sset.get_roi_names()) for sset in ssets]
+        assert n_rois1 == n_rois2
+
+        # Check ROI names for each structure set.
+        assert all(ssets[jdx].get_roi_names()
+                   == [new_names[jdx]] for jdx in range(idx + 1))
+        if idx + 1 < n_name:
+            assert ssets[idx + 1].get_roi_names() == roi_names[idx + 1:]
+
+
+def test_create_structure_sets_from_nifti_multilabel():
+    '''
+    Test creation of structure sets from multi-label NIfTI files,
+    without and with JSON files giving ROI names.
+    '''
+    # Create synthetic image with associated structure set.
+    sim = SyntheticImage((100, 100, 100))
+    sim.add_cube(side_length=40, name="cube", centre=(30, 30, 60), intensity=1)
+    sim.add_sphere(radius=20, name="sphere", centre=(70, 70, 40), intensity=10)
+    sim.add_cylinder(radius=10, length=60, name="cylinder",
+                     centre=(50, 10, 10), intensity=20)
+    sset1 = sim.get_structure_set()
+    roi_names = sorted(sset1.get_roi_names())
+    n_name = len(roi_names)
+    default_names = [f"ROI {idx}" for idx in range(1, n_name + 1)]
+
+    # Define the path to the output directory,
+    # and ensure that it doesn't initially exist.
+    nii_dir = pathlib.Path("tmp/nii_structure_sets")
+    if nii_dir.exists():
+        shutil.rmtree(nii_dir)
+
+    # Define file extension for NIfTI files.
+    ext = ".nii.gz"
+
+    # Test creation of structure sets from multi-label NIfTI files,
+    # without JSON file giving ROI names.
+    n_sset = 3
+    for idx in range(n_sset):
+        outname = f"{idx}{ext}"
+        sset1.write(outname=outname, outdir=nii_dir,
+                    multi_label=True, names_to_json=False)
+        ssets = create_structure_sets_from_nifti(nii_dir / outname)
+        assert 1 == len(ssets)
+        assert default_names == sorted(ssets[0].get_roi_names())
+
+        ssets = create_structure_sets_from_nifti(nii_dir)
+        assert idx + 1 == len(ssets)
+        assert all(default_names == sset.get_roi_names() for sset in ssets)
+
+    # Test creation of structure sets from multi-label NIfTI files,
+    # one or more of which has associated JSON file giving ROI names.
+    new_names = {}
+    for idx in range(n_sset):
+        new_names[idx] = [f"{roi_name}_{idx}" for roi_name in roi_names]
+        with open(nii_dir / f"{idx}.json", "w") as out_json:
+           json.dump({Defaults().json_names_key: new_names[idx]}, out_json)
+        ssets = create_structure_sets_from_nifti(nii_dir)
+        assert n_sset == len(ssets)
+        assert all(((new_names[jdx] if jdx <= idx else default_names)
+                    ==  ssets[jdx].get_roi_names())
+                   for jdx in range(n_sset))
