@@ -144,6 +144,8 @@ def test_read_nifti_patient():
     assert "sphere" in roi_names
     assert isinstance(p_test._init_time, float)
     assert p_test._init_time > 0
+    del p_test
+    shutil.rmtree(pdir)
 
 def test_write_rois_dicom():
     p.studies = []
