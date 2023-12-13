@@ -595,3 +595,17 @@ def test_get_single_path():
             ]
     for args in test_args:
         assert skrt.core.get_single_path(*args) is None
+
+
+def test_matches_suffix():
+    """Test matching of path endings."""
+    test_path = "test.txt.gz"
+    tests = [
+            (None, ""),
+            (".txt", ""),
+            ("txt.gz", "txt.gz"),
+            ([".txt", ".pdf"], ""),
+            (["gz", ".gz", ".txt.gz", "txt.gz"], ".txt.gz"),
+            ]
+    for suffixes, match in tests:
+        assert skrt.core.matches_suffix(test_path, suffixes) == match

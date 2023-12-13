@@ -2669,3 +2669,31 @@ def get_value_from_json(path, key, default=None, array_type=tuple):
     if isinstance(value, list):
         return array_type(value)
     return value
+
+def matches_suffix(path, suffixes=None):
+    """
+    Determine whether a file path ends with an allowed value.
+
+    If a match with a single allowed value is found, this value is returned.
+    If multiple matches are found, the longest match is returned.
+    If no match is found, an empty string is returned.
+
+    **Parameters:**
+
+    path: str/pathlib.Path
+        Path to be checked.
+
+    suffixes: str/list, default=None
+        String, or list of strings, specifying allowed path endings.
+        Different from a suffix in the contest of pathlib, a path ending
+        may contain no dots, or may contain multiple dots.
+    """
+    suffixes = suffixes or []
+    if isinstance(suffixes, str):
+        suffixes = [suffixes]
+    path = Path(path)
+    match = ""
+    for suffix in suffixes:
+        if path.name.endswith(suffix) and len(suffix) > len(match):
+            match = suffix 
+    return match

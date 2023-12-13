@@ -122,13 +122,28 @@ def test_write_rois_nifti():
     p.write("tmp", ext=".nii", structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert 'CT' in os.listdir(f"{sdir}")
+    assert os.path.exists(f"{sdir}/CT/{sim.timestamp}")
+    items = os.listdir(f"{sdir}/CT/{sim.timestamp}")
+    assert len(items) == 1
+    assert items[0] == f"{sim.timestamp}.nii"
     assert 'CT' in os.listdir(f"{sdir}/RTSTRUCT")
     nifti_rois = os.listdir(f"{sdir}/RTSTRUCT/CT/{sim.timestamp}")
     assert "cube.nii" in nifti_rois
     assert "sphere.nii" in nifti_rois
 
 def test_read_nifti_patient():
-    pass
+    p_test = Patient(pdir)
+    assert len(p_test.studies) == 1
+    study = p_test.studies[-1]
+    assert len(study.ct_images) == 1
+    assert len(study.ct_images[0].files) == 1
+    assert len(study.ct_structure_sets) == 1
+    roi_names = study.ct_structure_sets[0].get_roi_names()
+    assert len(roi_names) == 2
+    assert "cube" in roi_names
+    assert "sphere" in roi_names
+    assert isinstance(p_test._init_time, float)
+    assert p_test._init_time > 0
 
 def test_write_rois_dicom():
     p.studies = []

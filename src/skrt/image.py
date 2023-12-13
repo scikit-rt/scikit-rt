@@ -6404,6 +6404,8 @@ def to_inches(size):
 def write_nifti(outname, data, affine):
     """Create a nifti file at <outname> containing <data> and <affine>."""
 
+    outpath = skrt.core.fullpath(outname, pathlib=True)
+    skrt.core.make_dir(outpath.parent, overwrite=False)
     nii = nibabel.Nifti1Image(data, affine)
     nii.to_filename(outname)
 

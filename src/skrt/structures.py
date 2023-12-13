@@ -37,6 +37,8 @@ skrt.core.Defaults({"slice_stats": ["mean"]})
 skrt.core.Defaults({"shapely_log_level": logging.ERROR})
 skrt.core.Defaults({"json_names_key": "roi_names"})
 skrt.core.Defaults({"json_names_to_exclude": "background"})
+skrt.core.Defaults({"nifti_exts": [".nii", ".nii.gz"]})
+skrt.core.Defaults({"json_exts": [".json"]})
 
 class ROIDefaults:
     """Singleton class for assigning default ROI names and colours."""
@@ -10872,20 +10874,27 @@ def get_structuring_element(radius=1, voxel_size=(1, 1, 1)):
 
 
 def create_structure_sets_from_nifti(
-        path, json_names_key=None, json_names_to_exclude=None):
+        path, json_names_key=None, json_names_to_exclude=None,
+        nifti_exts=None, json_exts=None):
     structure_sets = []
     path = skrt.core.fullpath(path, pathlib=True)
+    nifti_exts = nifti_exts or skrt.core.Defaults().nifti_exts
     if path.is_dir():
         dir_path = path
-        paths = sorted(list(path.glob("*[!.json]")))
+        paths = sorted([test_path for test_path in path.glob("*")
+                        if skrt.core.matches_suffix(test_path, nifti_exts)])
     else:
         dir_path = path.parent
-        paths = [path]
-    if not dir_path.is_dir():
+        paths = [path] if skrt.core.matches_suffix(path, nifti_exts) else []
+
+    if not paths:
         return structure_sets
 
+    json_exts = json_exts or skrt.core.Defaults().json_exts
     json_paths = {json_path.name.split(".")[0]: json_path
-                  for json_path in sorted(list(dir_path.glob("*.json")))}
+                  for json_path in sorted(
+                      [test_path for test_path in dir_path.glob("*")
+                       if skrt.core.matches_suffix(test_path, json_exts)])}
     other_paths = []
     for test_path in paths:
         add_to_other_paths = True

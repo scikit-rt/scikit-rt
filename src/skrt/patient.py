@@ -11,7 +11,7 @@ import skrt.core
 from skrt.core import fullpath, get_data_indices, get_indexed_objs, tic, toc
 from skrt.dose import Dose, Plan, remove_duplicate_doses, sum_doses
 from skrt.image import _axes, Image
-from skrt.structures import StructureSet
+from skrt.structures import StructureSet, create_structure_sets_from_nifti
 
 # Default mode for reading patient data.
 skrt.core.Defaults({"unsorted_dicom": False})
@@ -147,9 +147,15 @@ class Study(skrt.core.Archive):
                 objs = archive.create_objects(
                     dtype=dtype, timestamp_only=False, **kwargs
                 )
-                if ("RTSTRUCT" == subdir and objs
-                    and objs[0].dicom_dataset is None):
-                    objs = [StructureSet(archive.path)]
+                if "RTSTRUCT" == subdir and objs:
+                    all_ssets = []
+                    for obj in objs:
+                        if (Path(getattr(obj, "path", "")).suffix
+                            not in skrt.core.Defaults().nifti_exts):
+                            all_ssets.append(obj)
+                    all_ssets.extend(
+                            create_structure_sets_from_nifti(archive.path))
+                    objs = all_ssets
 
                 # Look for an image matching the timestamp of this archive
                 if im_type in self.image_types:
@@ -2883,7 +2889,7 @@ class Patient(skrt.core.PathData):
                     if ext == ".dcm":
                         outname = im_dir
                     else:
-                        outname = f"{im_dir}{ext}"
+                        outname = os.path.join(im_dir, f"{im.timestamp}{ext}")
                     if os.path.exists(outname) and not overwrite:
                         continue
                     Image.write(
