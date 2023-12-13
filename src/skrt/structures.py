@@ -22,6 +22,7 @@ import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+import nibabel
 import numpy as np
 import pandas as pd
 import pydicom
@@ -10906,8 +10907,7 @@ def create_structure_sets_from_nifti(
                         json_names_key=json_names_key,
                         json_names_to_exclude=json_names_to_exclude,
                         name=test_path.name.split(".")[0])
-                if len(sset.get_rois()):
-                    structure_sets.append(sset)
+                structure_sets.append(sset)
                 add_to_other_paths = False
                 break
 
@@ -10930,19 +10930,20 @@ def create_structure_sets_from_nifti(
 
     roi_paths = []
     for test_path in other_paths:
-        sset = StructureSet(
-                path=test_path, load=load, multi_label=True,
-                names_from_json=False,
-                name=test_path.name.split(".")[0])
-        if len(sset.get_roi_names()) > 1:
-            structure_sets.append(sset)
-        elif len(sset.get_roi_names()) == 1:
-            roi_paths.append(test_path)
+        array = nibabel.load(test_path).get_fdata().astype(int)
+        if 0 == array.min():
+            if array.max() > 1:
+                sset = StructureSet(
+                        path=test_path, load=load, multi_label=True,
+                        names_from_json=False,
+                        name=test_path.name.split(".")[0])
+                structure_sets.append(sset)
+            elif array.max() == 1:
+                roi_paths.append(test_path)
 
     if roi_paths:
         sset = StructureSet(
                 path=roi_paths, load=load, name=dir_path.name.split(".")[0])
-        if len(sset.get_rois()):
-            structure_sets.append(sset)
+        structure_sets.append(sset)
 
     return structure_sets
