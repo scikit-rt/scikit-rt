@@ -19,6 +19,10 @@ pid = "test_patient"
 pdir = f"tmp/{pid}"
 p = Patient(pid)
 
+# Define id and directory for second test patient.
+pid2 = "test_patient2"
+pdir2 = f"tmp/{pid2}"
+
 # Create synthetic image
 nz = 40
 sim = SyntheticImage((100, 100, nz), auto_timestamp=True)
@@ -115,12 +119,13 @@ def test_unsorted_dicom_defaults():
         '''
 
 def test_write_rois_nifti():
-    p.studies = []
-    p.add_study(images=[sim.get_image()])
-    if os.path.exists(pdir):
-        shutil.rmtree(pdir)
-    p.write("tmp", ext=".nii", structure_set="all")
-    sdir = f"{pdir}/{p.studies[0].timestamp}"
+    p_test = Patient(pid2)
+    p_test.studies = []
+    p_test.add_study(images=[sim.get_image()])
+    if os.path.exists(pdir2):
+        shutil.rmtree(pdir2)
+    p_test.write("tmp", ext=".nii", structure_set="all")
+    sdir = f"{pdir2}/{p_test.studies[0].timestamp}"
     assert 'CT' in os.listdir(f"{sdir}")
     assert os.path.exists(f"{sdir}/CT/{sim.timestamp}")
     items = os.listdir(f"{sdir}/CT/{sim.timestamp}")
@@ -132,7 +137,7 @@ def test_write_rois_nifti():
     assert "sphere.nii" in nifti_rois
 
 def test_read_nifti_patient():
-    p_test = Patient(pdir)
+    p_test = Patient(pdir2)
     assert len(p_test.studies) == 1
     study = p_test.studies[-1]
     assert len(study.ct_images) == 1
@@ -146,24 +151,12 @@ def test_read_nifti_patient():
     assert p_test._init_time > 0
     del p_test
 
+
 def test_write_rois_dicom():
     p.studies = []
     p.add_study(images=[sim.get_image()])
-
-    # Try to avoid Windows error:
-    # PermissionError: [WinError 32] The process cannot access the file
-    # because it is being used by another process
-    max_try = 10
-    n_try = 0
-    while os.path.exists(pdir):
-        n_try += 1
-        try:
-            shutil.rmtree(pdir)
-        except PermissionError as error:
-            if n_try >= max_try:
-                raise
-            time.sleep(2)
-
+    if os.path.exists(pdir):
+        shutil.rmtree(pdir)
     p.write("tmp", ext='.dcm', structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert 'CT' in os.listdir(f"{sdir}")
