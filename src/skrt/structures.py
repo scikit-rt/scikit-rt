@@ -10874,7 +10874,7 @@ def get_structuring_element(radius=1, voxel_size=(1, 1, 1)):
 
 
 def create_structure_sets_from_nifti(
-        path, json_names_key=None, json_names_to_exclude=None,
+        path, load=True, json_names_key=None, json_names_to_exclude=None,
         nifti_exts=None, json_exts=None):
     structure_sets = []
     path = skrt.core.fullpath(path, pathlib=True)
@@ -10901,7 +10901,7 @@ def create_structure_sets_from_nifti(
         for case, json_path in json_paths.items():
             if test_path.name.startswith(case):
                 sset = StructureSet(
-                        test_path, multi_label=True,
+                        path=test_path, load=load, multi_label=True,
                         names_from_json=json_path,
                         json_names_key=json_names_key,
                         json_names_to_exclude=json_names_to_exclude,
@@ -10918,7 +10918,7 @@ def create_structure_sets_from_nifti(
         json_path = (None if 1 != len(json_paths)
                      else list(json_paths.values())[0])
         sset = StructureSet(
-                other_paths[0], multi_label=True,
+                path=other_paths[0], load=load, multi_label=True,
                 names_from_json=json_path,
                 json_names_key=json_names_key,
                 json_names_to_exclude=json_names_to_exclude,
@@ -10931,7 +10931,7 @@ def create_structure_sets_from_nifti(
     roi_paths = []
     for test_path in other_paths:
         sset = StructureSet(
-                test_path, multi_label=True,
+                path=test_path, load=load, multi_label=True,
                 names_from_json=False,
                 name=test_path.name.split(".")[0])
         if len(sset.get_roi_names()) > 1:
@@ -10940,7 +10940,8 @@ def create_structure_sets_from_nifti(
             roi_paths.append(test_path)
 
     if roi_paths:
-        sset = StructureSet(roi_paths, name=dir_path.name.split(".")[0])
+        sset = StructureSet(
+                path=roi_paths, load=load, name=dir_path.name.split(".")[0])
         if len(sset.get_rois()):
             structure_sets.append(sset)
 

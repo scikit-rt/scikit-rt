@@ -2215,7 +2215,8 @@ def test_create_structure_sets_from_nifti_rois():
         with open(nii_dir / f"{roi_name}.json", "w") as out_json:
            json.dump({json_names_key: [new_names[idx]]}, out_json)
 
-        ssets = create_structure_sets_from_nifti(nii_dir, json_names_key)
+        ssets = create_structure_sets_from_nifti(
+                nii_dir, json_names_key=json_names_key)
         n_sset = min(idx + 2, n_name)
 
         # Check number of structure sets.

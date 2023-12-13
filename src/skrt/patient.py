@@ -150,11 +150,14 @@ class Study(skrt.core.Archive):
                 if "RTSTRUCT" == subdir and objs:
                     all_ssets = []
                     for obj in objs:
-                        if (Path(getattr(obj, "path", "")).suffix
-                            not in skrt.core.Defaults().nifti_exts):
+                        if not skrt.core.matches_suffix(
+                                getattr(obj, "path", ""),
+                                skrt.core.Defaults().nifti_exts
+                                + skrt.core.Defaults().json_exts):
                             all_ssets.append(obj)
                     all_ssets.extend(
-                            create_structure_sets_from_nifti(archive.path))
+                            create_structure_sets_from_nifti(
+                                path=archive.path, load=False))
                     objs = all_ssets
 
                 # Look for an image matching the timestamp of this archive
