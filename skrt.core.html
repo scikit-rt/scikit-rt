@@ -407,7 +407,7 @@ but add to them, or modify values, from opts dictionary.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.core.Defaults.instance">
-<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">json_names_key:</span> <span class="pre">roi_names</span> <span class="pre">json_names_to_exclude:</span> <span class="pre">background</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">stations:</span> <span class="pre">{}</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">json_exts:</span> <span class="pre">['.json']</span> <span class="pre">json_names_key:</span> <span class="pre">roi_names</span> <span class="pre">json_names_to_exclude:</span> <span class="pre">background</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">nifti_exts:</span> <span class="pre">['.nii',</span> <span class="pre">'.nii.gz']</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">stations:</span> <span class="pre">{}</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1210,6 +1210,24 @@ If False, leave unaltered any pre-existing directory and its contents.</p>
 </dd>
 <dt>require_empty<span class="classifier">bool, default=False</span></dt><dd><p>If True, return None if the directory already exists, the directory
 isn’t empty, and &lt;overwrite&gt; is False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.matches_suffix">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">matches_suffix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.matches_suffix" title="Link to this definition"></a></dt>
+<dd><p>Determine whether a file path ends with an allowed value.</p>
+<p>If a match with a single allowed value is found, this value is returned.
+If multiple matches are found, the longest match is returned.
+If no match is found, an empty string is returned.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path: str/pathlib.Path</dt><dd><p>Path to be checked.</p>
+</dd>
+<dt>suffixes: str/list, default=None</dt><dd><p>String, or list of strings, specifying allowed path endings.
+Different from a suffix in the contest of pathlib, a path ending
+may contain no dots, or may contain multiple dots.</p>
 </dd>
 </dl>
 </dd></dl>
