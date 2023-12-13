@@ -145,13 +145,25 @@ def test_read_nifti_patient():
     assert isinstance(p_test._init_time, float)
     assert p_test._init_time > 0
     del p_test
-    shutil.rmtree(pdir)
 
 def test_write_rois_dicom():
     p.studies = []
     p.add_study(images=[sim.get_image()])
-    if os.path.exists(pdir):
-        shutil.rmtree(pdir)
+
+    # Try to avoid Windows error:
+    # PermissionError: [WinError 32] The process cannot access the file
+    # because it is being used by another process
+    max_try = 10
+    n_try = 0
+    while os.path.exists(pdir):
+        n_try += 1
+        try:
+            shutil.rmtree(pdir)
+        except PermissionError as error:
+            if n_try >= max_try:
+                raise
+            time.sleep(2)
+
     p.write("tmp", ext='.dcm', structure_set="all")
     sdir = f"{pdir}/{p.studies[0].timestamp}"
     assert 'CT' in os.listdir(f"{sdir}")
