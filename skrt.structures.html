@@ -4056,7 +4056,42 @@ direction.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.create_structure_sets_from_nifti">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">create_structure_sets_from_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_names_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_names_to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_exts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_exts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.create_structure_sets_from_nifti" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Create StructureSet objects from NIfTI files.</p>
+<p>If the path to a NIfTI file is passed, an attempt will be made to
+instantiate a StructureSet object from this file.  If a path
+to a directory is passed, an attempt will be made to instantiate
+StructureSet objects from all NIfTI files in this directory.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>path: str/pathlib.Path</dt><dd><p>Path to a NIfTI file representing a structure set, or to
+a directory containing one or more NIfTI files representing
+structure sets.</p>
+</dd>
+<dt>load<span class="classifier">bool, default=True</span></dt><dd><p>If True, structure-set ROIs will immediately be loaded from sources.
+Otherwise, loading will not occur until an operation is performed
+until StructureSet.load() is called.</p>
+</dd>
+<dt>json_names_key: str, default=None</dt><dd><p>Key to associate with ROI names in dictionaries read from
+JSON files.  If None, set to value of
+skrt.core.Defaults().json_names_key.  Used only when
+structure sets are created from multi-label NIfTI files.</p>
+</dd>
+<dt>json_names_to_exclude: str/list, default=None</dt><dd><p>String, or list of strings, indicating name(s) to be disregarded
+among ROI names read from JSON files.  If None, set to value
+of skrt.core.Defaults().json_names_to_exclude.  Matching with
+names from from file is case insensitive.  Used only when
+structure sets are created from multi-label NIfTI files.</p>
+</dd>
+<dt>nifti_exts: str/list, default=None</dt><dd><p>String, or list of strings, indicating filename suffix(es) of
+files to be identified as NIfTI files.  If None, set to value
+of skrt.core.Defaults().nifti_exts.</p>
+</dd>
+<dt>json_exts: str/list, default=None</dt><dd><p>String, or list of strings, indicating filename suffix(es) of
+files to be identified as JSON files.  If None, set to value
+of skrt.core.Defaults().json_exts.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.df_to_html">
