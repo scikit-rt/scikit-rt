@@ -10877,9 +10877,56 @@ def get_structuring_element(radius=1, voxel_size=(1, 1, 1)):
 def create_structure_sets_from_nifti(
         path, load=True, json_names_key=None, json_names_to_exclude=None,
         nifti_exts=None, json_exts=None):
+    """
+    Create StructureSet objects from NIfTI files.
+
+    If the path to a NIfTI file is passed, an attempt will be made to
+    instantiate a StructureSet object from this file.  If a path
+    to a directory is passed, an attempt will be made to instantiate
+    StructureSet objects from all NIfTI files in this directory.
+
+    **Parameters:**
+
+    path: str/pathlib.Path
+        Path to a NIfTI file representing a structure set, or to
+        a directory containing one or more NIfTI files representing
+        structure sets.
+
+    load : bool, default=True
+        If True, structure-set ROIs will immediately be loaded from sources.
+        Otherwise, loading will not occur until an operation is performed
+        until StructureSet.load() is called.
+
+    json_names_key: str, default=None
+        Key to associate with ROI names in dictionaries read from
+        JSON files.  If None, set to value of
+        skrt.core.Defaults().json_names_key.  Used only when
+        structure sets are created from multi-label NIfTI files.
+
+    json_names_to_exclude: str/list, default=None
+        String, or list of strings, indicating name(s) to be disregarded
+        among ROI names read from JSON files.  If None, set to value
+        of skrt.core.Defaults().json_names_to_exclude.  Matching with
+        names from from file is case insensitive.  Used only when
+        structure sets are created from multi-label NIfTI files.
+
+    nifti_exts: str/list, default=None
+        String, or list of strings, indicating filename suffix(es) of
+        files to be identified as NIfTI files.  If None, set to value
+        of skrt.core.Defaults().nifti_exts.
+
+    json_exts: str/list, default=None
+        String, or list of strings, indicating filename suffix(es) of
+        files to be identified as JSON files.  If None, set to value
+        of skrt.core.Defaults().json_exts.
+    """
     structure_sets = []
     path = skrt.core.fullpath(path, pathlib=True)
     nifti_exts = nifti_exts or skrt.core.Defaults().nifti_exts
+    if isinstance(nifti_exts, str):
+        nifti_exts = [nifti_exts]
+
+    # Determine path(s) and directory of file(s) to be considered.
     if path.is_dir():
         dir_path = path
         paths = sorted([test_path for test_path in path.glob("*")
@@ -10891,11 +10938,16 @@ def create_structure_sets_from_nifti(
     if not paths:
         return structure_sets
 
+    # Check for JSON files.
     json_exts = json_exts or skrt.core.Defaults().json_exts
+    if isinstance(json_exts, str):
+        json_exts = [json_exts]
     json_paths = {json_path.name.split(".")[0]: json_path
                   for json_path in sorted(
                       [test_path for test_path in dir_path.glob("*")
                        if skrt.core.matches_suffix(test_path, json_exts)])}
+
+    # Create StructureSet for each NIfTI file that has an associated JSON file.
     other_paths = []
     for test_path in paths:
         add_to_other_paths = True
@@ -10914,20 +10966,24 @@ def create_structure_sets_from_nifti(
         if add_to_other_paths:
             other_paths.append(test_path)
 
-    if 1 == len(other_paths):
-        json_path = (None if 1 != len(json_paths)
-                     else list(json_paths.values())[0])
-        sset = StructureSet(
-                path=other_paths[0], load=load, multi_label=True,
-                names_from_json=json_path,
-                json_names_key=json_names_key,
-                json_names_to_exclude=json_names_to_exclude,
-                name=dir_path.name.split("."[0]))
-        if json_path or 1 != len(sset.get_rois()):
+    # If only one NIfTI file hasn't been used to create a StructureSet,
+    # and it's in a directory that contains a single JSON file,
+    # try treating the NIfTI file as being multi-label, with ROI names
+    # given by the JSON file, independently of the latter's filename.
+    if 1 == len(other_paths) and 1 == len(json_paths):
+        json_path = list(json_paths.values())[0]
+        if skrt.core.get_value_from_json(json_path, json_names_key):
+            sset = StructureSet(
+                    path=other_paths[0], load=load, multi_label=True,
+                    names_from_json=json_path,
+                    json_names_key=json_names_key,
+                    json_names_to_exclude=json_names_to_exclude,
+                    name=dir_path.name.split("."[0]))
+            structure_sets.append(sset)
             other_paths = []
-            if len(sset.get_rois()):
-                structure_sets.append(sset)
 
+    # Check for any remaining multi-label NIfTI files,
+    # and create structure sets from these, with default names for ROIs.
     roi_paths = []
     for test_path in other_paths:
         array = nibabel.load(test_path).get_fdata().astype(int)
@@ -10941,6 +10997,8 @@ def create_structure_sets_from_nifti(
             elif array.max() == 1:
                 roi_paths.append(test_path)
 
+    # Create single structure set for any remaining NIfTI files,
+    # with filenames used for ROIs.
     if roi_paths:
         sset = StructureSet(
                 path=roi_paths, load=load, name=dir_path.name.split(".")[0])
