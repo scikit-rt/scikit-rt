@@ -7061,6 +7061,8 @@ class StructureSet(skrt.core.Archive):
             if name[0].isalpha():
                 self.name = name
         self.summed_names = []
+        self.series_description = None
+        self.structure_set_label = None
 
         self.loaded = False
         if load:
@@ -7290,6 +7292,9 @@ class StructureSet(skrt.core.Archive):
                     self.rois[-1].dicom_dataset = ds
                     self.rois[-1].number = number
                 self.dicom_dataset = ds
+                self.series_description = getattr(ds, "SeriesDescription", None)
+                self.structure_set_label = getattr(
+                        ds, "StructureSetLabel", None)
 
                 # Auto-assign name from dicom filename
                 if single_source and self.name is None:
@@ -7337,11 +7342,31 @@ class StructureSet(skrt.core.Archive):
                 roi.set_image(self.image)
 
     def get_dicom_dataset(self):
-        """Return pydicom.dataset.FileDataset object associated with this Image,
-        if loaded from dicom; otherwise, return None."""
+        """
+        Return pydicom.dataset.FileDataset object associated with this
+        StructureSet if loaded from dicom; otherwise, return None.
+        """
 
         self.load()
         return self.dicom_dataset
+
+    def get_series_description(self):
+        """
+        Return series description for this StructureSet if loaded from dicom;
+        otherwise, return None.
+        """
+
+        self.load()
+        return self.series_description
+
+    def get_structure_set_label(self):
+        """
+        Return label for this StructureSet if loaded from dicom;
+        otherwise, return None.
+        """
+
+        self.load()
+        return self.structure_set_label
 
     def reset(self):
         """Reload structure set from original source(s)."""
