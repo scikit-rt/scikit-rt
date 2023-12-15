@@ -3279,8 +3279,8 @@ binary mask.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_dicom_dataset">
 <span class="sig-name descname"><span class="pre">get_dicom_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_dicom_dataset" title="Link to this definition"></a></dt>
-<dd><p>Return pydicom.dataset.FileDataset object associated with this Image,
-if loaded from dicom; otherwise, return None.</p>
+<dd><p>Return pydicom.dataset.FileDataset object associated with this
+StructureSet if loaded from dicom; otherwise, return None.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3372,6 +3372,13 @@ on ROI colors.</p>
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_image">
 <span class="sig-name descname"><span class="pre">get_image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_image" title="Link to this definition"></a></dt>
 <dd><p>Return Image object associated with this StructureSet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_label">
+<span class="sig-name descname"><span class="pre">get_label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_label" title="Link to this definition"></a></dt>
+<dd><p>Return label for this StructureSet if loaded from dicom;
+otherwise, return None.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3486,6 +3493,13 @@ those names will be returned.</p>
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.get_rois_wildcard">
 <span class="sig-name descname"><span class="pre">get_rois_wildcard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wildcard</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_rois_wildcard" title="Link to this definition"></a></dt>
 <dd><p>Return list of ROIs matching a wildcard expression.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.get_series_description">
+<span class="sig-name descname"><span class="pre">get_series_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.get_series_description" title="Link to this definition"></a></dt>
+<dd><p>Return series description for this StructureSet if loaded from dicom;
+otherwise, return None.</p>
 </dd></dl>
 
 <dl class="py method">
