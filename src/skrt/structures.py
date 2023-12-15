@@ -7359,7 +7359,7 @@ class StructureSet(skrt.core.Archive):
         self.load()
         return self.series_description
 
-    def get_structure_set_label(self):
+    def get_label(self):
         """
         Return label for this StructureSet if loaded from dicom;
         otherwise, return None.
