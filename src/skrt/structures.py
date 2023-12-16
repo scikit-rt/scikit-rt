@@ -10910,6 +10910,27 @@ def create_structure_sets_from_nifti(
     to a directory is passed, an attempt will be made to instantiate
     StructureSet objects from all NIfTI files in this directory.
 
+    The logic for creating StructureSet objects is follows:
+
+    1. A StructureSet is created for each NIfTI file considered
+       for which there is an accompanying JSON file of the same name
+       (excluding suffixes), with the ROI names taken from the JSON
+       file.
+
+    2. If only a single NIfTI file is considered, and its directory
+       contains a single JSON file from which ROI names can be read
+       (i.e. the JSON file include <json_names_key> as a dictionary
+       key), a StructureSet is created for the NIfTI file, with names
+       taken from the JSON file.
+
+    3. A StructureSet is created for each remaining NIfTI file that
+       contains multiple labels, where if the labels are 1, 2, 4
+       the corresponding ROI names will be "ROI 1", "ROI 2", "ROI 4".
+
+    4. A StructureSet is created from all remaining NIfTI files,
+       where the name of each ROI will be the same as the filename
+       (without suffixes) of its source file.
+
     **Parameters:**
 
     path: str/pathlib.Path
