@@ -4075,6 +4075,24 @@ direction.</p>
 instantiate a StructureSet object from this file.  If a path
 to a directory is passed, an attempt will be made to instantiate
 StructureSet objects from all NIfTI files in this directory.</p>
+<p>The logic for creating StructureSet objects is follows:</p>
+<ol class="arabic simple">
+<li><p>A StructureSet is created for each NIfTI file considered
+for which there is an accompanying JSON file of the same name
+(excluding suffixes), with the ROI names taken from the JSON
+file.</p></li>
+<li><p>If only a single NIfTI file is considered, and its directory
+contains a single JSON file from which ROI names can be read
+(i.e. the JSON file include &lt;json_names_key&gt; as a dictionary
+key), a StructureSet is created for the NIfTI file, with names
+taken from the JSON file.</p></li>
+<li><p>A StructureSet is created for each remaining NIfTI file that
+contains multiple labels, where if the labels are 1, 2, 4
+the corresponding ROI names will be “ROI 1”, “ROI 2”, “ROI 4”.</p></li>
+<li><p>A StructureSet is created from all remaining NIfTI files,
+where the name of each ROI will be the same as the filename
+(without suffixes) of its source file.</p></li>
+</ol>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>path: str/pathlib.Path</dt><dd><p>Path to a NIfTI file representing a structure set, or to
