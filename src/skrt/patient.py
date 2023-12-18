@@ -2266,8 +2266,10 @@ class Patient(skrt.core.PathData):
                 images, min_delta=min_delta, unit=unit
             )
 
-            time_last = None
+            if not time_separated_images:
+                continue
             time_zero = time_separated_images[0].get_pandas_timestamp()
+            time_last = None
 
             for image in time_separated_images:
                 info = {}
