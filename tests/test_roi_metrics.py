@@ -520,3 +520,8 @@ def test_intersection_union_size_split_roi():
         assert intersection == split_roi_volume
         assert union == cuboid_volume
         assert size == 0.5 * (cuboid_volume + split_roi_volume)
+
+def test_extent_diff():
+    for ax in range(3):
+        assert (cube1.get_extent_diff(cube2, ax=ax)
+                == 2 * [centre1[ax] - centre2[ax]])

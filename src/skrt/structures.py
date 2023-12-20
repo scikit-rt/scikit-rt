@@ -2196,6 +2196,139 @@ class ROI(skrt.core.Archive):
             self.idx_to_pos(max_pos, ax) - origin,
         ]
 
+    def get_extent_diff(
+        self,
+        other,
+        ax="z",
+        single_slice=False,
+        view="x-y",
+        sl=None,
+        idx=None,
+        pos=None,
+        method=None,
+        by_slice=None,
+        value_for_none=None,
+        slice_stat=None,
+        slice_stat_kwargs=None,
+    ):
+        """
+        Get differences between minimum and maximum extent in mm,
+        along a given axis, of this ROI and other ROI.
+
+        ax : str/int, default="z"
+            Axis along which to return differences in extent. Should be one of
+            ["x", "y", "z"] or [0, 1, 2]
+
+        single_slice : bool, default=False
+            If False, the 3D differences in extent of the entire ROI will
+            be returned; otherwise, the 2D differences in extent of a single
+            slice will be returned.
+
+        view : str, default="x-y"
+            Orientation of slice on which to get differences in extent. Only
+            used if single_slice=True. If using, <ax> must be an axis that
+            lies along the slice in this orientation.
+
+        sl : int, default=None
+            Slice number. If none of <sl>, <idx> or <pos> are supplied but
+            <single_slice> is True, the central slice of the ROI will be used.
+
+        idx : int, default=None
+            Array index of slice. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of the ROI will be
+            used.
+
+        pos : float, default=None
+            Slice position in mm. If none of <sl>, <idx> or <pos> are supplied
+            but <single_slice> is True, the central slice of the ROI will be
+            used.
+
+        method : str, default=None
+            Method to use for extent calculations. Can be:
+
+                * "contour": get extent from min/max positions of contour(s).
+                * "mask": get extent from min/max positions of voxels in the
+                   binary mask.
+                * None: use the method set in self.default_geom_method.
+
+        by_slice : str, default=None
+            If one of "left", "right", "union", "intersection", calculate
+            Dice scores slice by slice for each slice containing
+            self and/or other:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other;
+            - "union": consider slices containing either of self and other;
+            - "intersection": consider slices containing both of self and other.
+
+            If slice_stat is None, return a dictionary where keys are
+            slice positions and values are the calculated Dice scores.
+            Otherwise, return for the calculated Dice scores the statistic
+            specified by slice_stat.
+
+        value_for_none : float, default=None
+            For single_slice and by_slice, value to be returned for
+            slices where Dice score is undetermined (None).  For slice_stat,
+            value to substitute for any None values among the inputs
+            for calculating slice-based statistic.  If None in the latter
+            case, None values among the inputs are omitted.
+
+        slice_stat : str, default=None
+            Single-variable statistic(s) to be returned for slice-by-slice
+            Dice scores.  This should be the name of the function for
+            calculation of the statistic(s) in the Python statistics module:
+
+            https://docs.python.org/3/library/statistics.html
+
+            Available options include: "mean", "median", "mode",
+            "stdev", "quantiles".  Disregarded if None.
+
+            If by_slice is None and slice_stat is different from None,
+            skrt.core.Defaults().by_slice is used for the former.
+
+        slice_stat_kwargs : dict, default=None
+            Keyword arguments to be passed to function of statistics
+            module for calculation relative to slice values.  For example,
+            if quantiles are required for 10 intervals, rather than for
+            the default of 4, this can be specified using:
+
+            slice_stat_kwargs{"n" : 10}
+
+            For available keyword options, see documentation of statistics
+            module at:
+
+            https://docs.python.org/3/library/statistics.html
+        """
+
+        if slice_stat:
+            return self.get_slice_stat(
+                other,
+                "get_extent_diff",
+                slice_stat,
+                by_slice,
+                value_for_none,
+                view,
+                method,
+                **(slice_stat_kwargs or {}),
+            )
+
+        if by_slice:
+            return self.get_metric_by_slice(
+                other, "get_extent_diff", by_slice, view, method
+            )
+
+        self_extent = self.get_extent(
+                ax=ax, single_slice=single_slice, view=view, sl=sl,
+                idx=idx, pos=pos, method=method)
+        other_extent = other.get_extent(
+                ax=ax, single_slice=single_slice, view=view, sl=sl,
+                idx=idx, pos=pos, method=method)
+        extent_diff = [None, None]
+        for idx in [0, 1]:
+            if self_extent[idx] is not None and other_extent[idx] is not None:
+                extent_diff[idx] = self_extent[idx] - other_extent[idx]
+        return extent_diff
+
     def get_crop_limits(self, crop_margins=None, method=None):
         """
         Get crop limits corresponding to ROI extents plus margins.
