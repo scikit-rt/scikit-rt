@@ -66,6 +66,18 @@ def get_tests13(metric, method):
     elif "centroid" == metric:
         ssval = (0, delta_y3)
         ssval0 = (None, None)
+    elif "extent_xdiff" == metric:
+        ssval = ((centre1[0] - side_length / 2)
+                 - (centre3[0] - side_length3 / 2),
+                 (centre1[0] + side_length / 2)
+                 - (centre3[0] + side_length3 / 2))
+        ssval0 = (None, None)
+    elif "extent_ydiff" == metric:
+        ssval = ((centre1[1] - side_length / 2)
+                 - (centre3[1] - side_length3 / 2),
+                 (centre1[1] + side_length / 2)
+                 - (centre3[1] + side_length3 / 2))
+        ssval0 = (None, None)
 
     if "by_slice" == method:
         return {
@@ -524,4 +536,18 @@ def test_intersection_union_size_split_roi():
 def test_extent_diff():
     for ax in range(3):
         assert (cube1.get_extent_diff(cube2, ax=ax)
-                == 2 * [centre1[ax] - centre2[ax]])
+                == 2 * (centre1[ax] - centre2[ax],))
+
+def test_extent_diff_by_slice():
+    """Check slice-by-slice extent differences."""
+    for ax, extent_diff in enumerate(["extent_xdiff", "extent_ydiff"]):
+        for method, result in get_tests13(extent_diff, "by_slice").items():
+            assert cube1.get_extent_diff(cube3, ax, by_slice=method) == result
+
+def test_extent_diff_slice_stat():
+    """Check mean value of slice-by-slice extent differences."""
+    for ax, extent_diff in enumerate(["extent_xdiff", "extent_ydiff"]):
+        for method, result in get_tests13(extent_diff, "slice_mean").items():
+            assert (cube1.get_extent_diff(
+                cube3, ax, by_slice=method, slice_stat="mean", value_for_none=0)
+                    == result)

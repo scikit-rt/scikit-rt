@@ -2299,23 +2299,31 @@ class ROI(skrt.core.Archive):
 
             https://docs.python.org/3/library/statistics.html
         """
-
         if slice_stat:
-            return self.get_slice_stat(
-                other,
-                "get_extent_diff",
-                slice_stat,
-                by_slice,
+            # Results not calculated using self.get_slice_stat(),
+            # as axis needs to be specified.
+            by_slice = by_slice or skrt.core.Defaults().by_slice
+            slice_stat_kwargs = slice_stat_kwargs or {}
+            return skrt.core.get_stat(
+                    self.get_extent_diff(
+                        other, ax=ax, view=view, method=method,
+                        by_slice=by_slice),
                 value_for_none,
-                view,
-                method,
-                **(slice_stat_kwargs or {}),
+                slice_stat,
+                **slice_stat_kwargs,
             )
 
         if by_slice:
-            return self.get_metric_by_slice(
-                other, "get_extent_diff", by_slice, view, method
-            )
+            # Results not calculated using self.get_metric_by_slice(),
+            # as axis needs to be specified.
+            return {
+                    pos: self.get_extent_diff(
+                        other, ax=ax, single_slice=True, view=view,
+                        pos=pos, method=method
+                        )
+                    for pos in self.get_slice_positions(
+                        other, view, method=by_slice)
+                    }
 
         self_extent = self.get_extent(
                 ax=ax, single_slice=single_slice, view=view, sl=sl,
@@ -2327,7 +2335,7 @@ class ROI(skrt.core.Archive):
         for idx in [0, 1]:
             if self_extent[idx] is not None and other_extent[idx] is not None:
                 extent_diff[idx] = self_extent[idx] - other_extent[idx]
-        return extent_diff
+        return tuple(extent_diff)
 
     def get_crop_limits(self, crop_margins=None, method=None):
         """
