@@ -10864,7 +10864,7 @@ def get_slice_positions(
     if method not in get_by_slice_methods():
         raise RuntimeError(
             f"Method must be one of {get_by_slice_methods()}"
-            " - not '{method}'"
+            f" - not '{method}'"
         )
 
     indices = None
