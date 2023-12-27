@@ -4301,6 +4301,7 @@ class ROI(skrt.core.Archive):
         in_slice=True,
         voxel_size=None,
         voxel_dim_tolerance=0.1,
+        by_slice=None,
     ):
         """
         Get vector of surface distances between two ROIs.
@@ -4383,7 +4384,33 @@ class ROI(skrt.core.Archive):
             Tolerence used when determining whether <voxel_size> is
             different from the voxel size of the images associated with
             each ROI.
+
+        by_slice : str, default=None
+            If one of "left", "right", "union", "intersection", calculate
+            surface distances scores slice by slice for each slice containing
+            self and/or other:
+
+            - "left": consider only slices containing self;
+            - "right": consider only slices containing other;
+            - "union": consider slices containing either of self and other;
+            - "intersection": consider slices containing both of self and other.
+
+            Return a dictionary where keys are slice positions and values are
+            lists of calculated surface distances.
         """
+        # Calculate surface distances slice by slice.
+        if by_slice:
+            return {
+                    pos: self.get_surface_distances(
+                        other, single_slice=True, signed=signed, view=view,
+                        pos=pos, connectivity=connectivity,
+                        symmetric=symmetric, conformity=conformity,
+                        voxel_size=voxel_size,
+                        voxel_dim_tolerance=voxel_dim_tolerance
+                        )
+                    for pos in self.get_slice_positions(
+                        other, view, method=by_slice)
+                    }
 
         # Set view to None if considering 3D mask.
         if not single_slice and not flatten:
@@ -4559,6 +4586,18 @@ class ROI(skrt.core.Archive):
     def get_surface_distance_metrics(self, other, **kwargs):
         """Get the mean surface distance, RMS surface distance, and Hausdorff
         distance."""
+        
+        by_slice = kwargs.pop("by_slice", None)
+        if by_slice:
+            for key in ["sl", "idx", "pos", "single_slice"]:
+                kwargs.pop(key, None)
+            view = kwargs.pop("view", "x-y")
+            return {
+                    pos: self.get_surface_distance_metrics(
+                        other, single_slice=True, view=view, pos=pos, **kwargs)
+                    for pos in self.get_slice_positions(
+                        other, view, method=by_slice)
+                    }
 
         sds = self.get_surface_distances(other, **kwargs)
         if sds is None:
