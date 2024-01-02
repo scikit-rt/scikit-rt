@@ -5793,17 +5793,27 @@ class ROI(skrt.core.Archive):
                 # call is made (self.get_slice_thickness_contours() should
                 # match self.image.get_voxel_size()[2]), avoiding
                 # a recursive loop.
-                self.create_mask(voxel_size=self.voxel_size[0:2], force=True)
+                self.create_mask(voxel_size=self.image.voxel_size[0:2],
+                                 force=True)
                 # Mask creation may fail...
                 if self.mask is None:
                     return
                 # The mask creation will have redefined the image association,
                 # so reassign the new image.
                 self.image = im
+
+            # Ensure that the mask has the same size as the assigned image.
             self.mask.match_size(self.image, method="nearest")
             if hasattr(self.mask, "data"):
                 if not self.mask.data.dtype == bool:
                     self.mask.data = self.mask.data.astype(bool)
+
+            # Delete contours if the z-distance between them is greater than
+            # the voxel z-dimension.  New contours will be created at
+            # the next call to access contour data.
+            if (self.mask.voxel_size[2] < self.get_slice_thickness_contours()):
+                self.contours = {}
+
 
         # If a mask has been loaded, but doesn't match the image geometry,
         # delete the mask data.  (This should mean that the z-distance
