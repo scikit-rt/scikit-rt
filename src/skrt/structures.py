@@ -6435,39 +6435,46 @@ class ROI(skrt.core.Archive):
         parameter isn't available for roi transforms - a value of 0
         is used always.
         """
-
-        # Check whether transform is to be applied to contours
+        # Check whether transform will have any effect.
         small_number = 1.0e-6
+        apply_scaling = (abs(scale - 1) > small_number)
+        apply_translation = [abs(translation[idx]) > small_number
+                             for idx in range(3)]
+        apply_rotation = [abs(rotation[idx]) > small_number
+                          for idx in range(3)]
+        if not (apply_scaling or any(apply_translation) or any(apply_rotation)):
+            return None
+
+        # Check whether transform is to be applied to contours.
         transform_contours = False
         if self.source_type == "contour" or force_contours:
-            if abs(scale - 1) < small_number:
-                if (
-                    abs(rotation[0]) < small_number
-                    and abs(rotation[1]) < small_number
-                ):
+            if not apply_scaling:
+                if not any(apply_rotation[0: 2]):
                     transform_contours = True
 
         if transform_contours:
             # Apply transform to roi contours
-            translation_2d = (translation[0], translation[1])
             centre_2d = (centre[0], centre[1])
-            angle = rotation[2]
             new_contours = {}
             for key, contours in self.get_contours().items():
                 new_key = key + translation[2]
-                new_contours[new_key] = []
                 for contour in contours:
                     if len(contour) < 3:
                         continue
                     polygon = contour_to_polygon(contour)
-                    polygon = affinity.translate(polygon, *translation_2d)
-                    polygon = affinity.rotate(polygon, angle, centre_2d)
-                    polygon = affinity.scale(
-                        polygon, scale, scale, scale, centre_2d
-                    )
+                    if apply_translation:
+                        polygon = affinity.translate(
+                                polygon, *translation[0: 2])
+                    if apply_rotation:
+                        polygon = affinity.rotate(
+                                polygon, rotation[2], centre_2d)
+                    #if apply_scaling:
+                    #    polygon = affinity.scale(
+                    #        polygon, scale, scale, scale, centre_2d
+                    #    )
+                    if not new_key in new_contours:
+                        new_contours[new_key] = []
                     new_contours[new_key].append(polygon_to_contour(polygon))
-                if not new_contours[new_key]:
-                    new_contours.pop(new_key)
 
             self.reset_contours(new_contours)
 
