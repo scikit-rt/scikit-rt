@@ -6437,13 +6437,19 @@ class ROI(skrt.core.Archive):
         """
         # Check whether transform will have any effect.
         small_number = 1.0e-6
-        apply_scaling = (abs(scale - 1) > small_number)
-        apply_translation = [abs(translation[idx]) > small_number
+        apply_scaling = (scale is not None and abs(scale - 1) > small_number)
+        apply_translation = [(translation[idx] is not None
+                              and abs(translation[idx]) > small_number)
                              for idx in range(3)]
-        apply_rotation = [abs(rotation[idx]) > small_number
+        apply_rotation = [(rotation[idx] is not None
+                           and abs(rotation[idx]) > small_number)
                           for idx in range(3)]
         if not (apply_scaling or any(apply_translation) or any(apply_rotation)):
             return None
+
+        translation = [val or 0 for val in translation]
+        rotation = [val or 0 for val in rotation]
+        centre = [val or 0 for val in centre]
 
         # Check whether transform is to be applied to contours.
         transform_contours = False
@@ -6462,10 +6468,10 @@ class ROI(skrt.core.Archive):
                     if len(contour) < 3:
                         continue
                     polygon = contour_to_polygon(contour)
-                    if apply_translation:
+                    if any(apply_translation):
                         polygon = affinity.translate(
                                 polygon, *translation[0: 2])
-                    if apply_rotation:
+                    if apply_rotation[2]:
                         polygon = affinity.rotate(
                                 polygon, rotation[2], centre_2d)
                     #if apply_scaling:
