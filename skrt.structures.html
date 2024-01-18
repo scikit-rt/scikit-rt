@@ -4589,6 +4589,41 @@ name or list of names of ROIs to load.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.structures.match_rois">
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">match_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.match_rois" title="Link to this definition"></a></dt>
+<dd><p>Process pair of ROIs, to match extents along one or more axes.</p>
+<p>One or both ROIs may be cropped to match the other.  Cropping may
+be performed on the input ROIs, or on clones of these.  In the latter
+case, the originals are left unchanged.</p>
+<p><strong>Parameters:</strong>
+roi1, roi2 : skrt.structures.ROI</p>
+<blockquote>
+<div><p>ROIs to be matched with one another.</p>
+</div></blockquote>
+<dl>
+<dt>ax<span class="classifier">str/int/list, default=”z”</span></dt><dd><p>Specification of a single axis, or of a list of axes, along
+which ROI extents are to be matched.  Each axis is specified as
+one of [“x”, “y”, “z”] or [0, 1, 2].</p>
+</dd>
+<dt>strategy<span class="classifier">int, default=1</span></dt><dd><p>Strategy to use for matching ROI extents along each specified axis:</p>
+<ul class="simple">
+<li><p>0 : Crop roi1 to the extents of roi2.</p></li>
+<li><p>1 : Crop roi2 to the extents of roi1.</p></li>
+<li><dl class="simple">
+<dt>2<span class="classifier">Crop roi1 to the extents of roi2,</span></dt><dd><p>then crop roi2 to the extents of roi1.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>For a value other than 0, 1, 2, no extent matching is performed.</p>
+</dd>
+<dt>inplace<span class="classifier">bool, default=False</span></dt><dd><p>If True, crop the input ROIs.  If False, clone the input ROIs,
+and crop these.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.polygon_to_contour">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">polygon_to_contour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polygon</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.polygon_to_contour" title="Link to this definition"></a></dt>
 <dd><p>Convert a Shapely polygon to a list of contour points.</p>
