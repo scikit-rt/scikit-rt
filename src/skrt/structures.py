@@ -11254,3 +11254,60 @@ def create_structure_sets_from_nifti(
         structure_sets.append(sset)
 
     return structure_sets
+
+def match_rois(roi1, roi2, ax="z", strategy=2, inplace=False):
+    """
+    Process pair of ROIs, to match extents along one or more axes.
+
+    One or both ROIs may be cropped to match the other.  Cropping may
+    be performed on the input ROIs, or on clones of these.  In the latter
+    case, the originals are left unchanged.
+
+    **Parameters:**
+    roi1, roi2 : skrt.structures.ROI
+        ROIs to be matched with one another.
+
+    ax : str/int/list, default="z"
+        Specification of a single axis, or of a list of axes, along
+        which ROI extents are to be matched.  Each axis is specified as
+        one of ["x", "y", "z"] or [0, 1, 2].
+
+    strategy : int, default=1
+        Strategy to use for matching ROI extents along each specified axis:
+
+        - 0 : Crop roi1 to the extents of roi2.
+        - 1 : Crop roi2 to the extents of roi1.
+        - 2 : Crop roi1 to the extents of roi2,
+              then crop roi2 to the extents of roi1.
+              
+        For a value other than 0, 1, 2, no extent matching is performed.
+
+    inplace : bool, default=False
+        If True, crop the input ROIs.  If False, clone the input ROIs,
+        and crop these.
+    """
+    # If strategy not recognised, return input ROIs.
+    if strategy not in [0, 1, 2]:
+        return (roi1, roi2)
+
+    # Optionally create ROI clones for cropping.
+    if not inplace:
+        roi1 = roi1.clone()
+        roi2 = roi2.clone()
+
+    # Aim to have a list of axes for extent matching.
+    if isinstance(ax, (str, int)):
+        ax = [ax]
+
+    # Crop roi1 to roi2.
+    if strategy in [0, 2]:
+        for ax_now in ax:
+            roi1.crop_to_roi_length(roi2, ax_now)
+            iax = ax_now if isinstance(ax_now, int) else "xyz".find(ax_now)
+
+    # Crop roi2 to roi1.
+    if strategy in [1, 2]:
+        for ax_now in ax:
+            roi2.crop_to_roi_length(roi1, ax_now)
+
+    return (roi1, roi2)

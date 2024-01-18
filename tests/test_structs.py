@@ -25,7 +25,7 @@ from skrt.structures import contour_to_polygon, polygon_to_contour, \
         StructureSet, ROI, interpolate_points_single_contour, \
         get_comparison_metrics, get_slice_positions, expand_slice_stats, \
         get_metric_method, get_structuring_element, \
-        create_structure_sets_from_nifti
+        create_structure_sets_from_nifti, match_rois
 
 
 # Make temporary test dir
@@ -2287,3 +2287,68 @@ def test_create_structure_sets_from_nifti_multilabel():
         assert all(((new_names[jdx] if jdx <= idx else default_names)
                     ==  ssets[jdx].get_roi_names())
                    for jdx in range(n_sset))
+
+def test_match_rois():
+    """Test matching of ROI extents."""
+    # Create synthetic image featuring cuboids.
+    shape = 3 * [100]
+    origin = 3 * [-49.5] 
+    sim = SyntheticImage(shape=shape, origin=origin)
+    all_side_lengths = [[4, 8, 20], [6, 14, 10]]
+    cuboids = []
+    for idx, side_lengths in enumerate(all_side_lengths):
+        cuboid_name = f"cuboid{idx}"
+        sim.add_cuboid(side_lengths, name=cuboid_name)
+        cuboids.append(sim.get_roi(cuboid_name))
+
+    # Check that cuboid extents are initially different.
+    extents1 = cuboids[0].get_extents()
+    extents2 = cuboids[1].get_extents()
+    for idx in range(3):
+        for idx2 in range(2):
+            assert extents1[idx][idx2] != extents2[idx][idx2]
+
+    # Check different types of matching.
+    for inplace in [True, False]:
+        for ax in ["x", "y", "z", ["x", "y"], ["y", "z"], ["x", "y", "z"]]:
+            for strategy in [None, 0, 1, 2]:
+                # Cropping performed inplace or not inplace.
+                if inplace:
+                    cuboid1 = cuboids[0].clone()
+                    cuboid2 = cuboids[1].clone()
+                    match_rois(cuboid1, cuboid2, ax, strategy, inplace)
+                else:
+                    cuboid1, cuboid2 = match_rois(
+                            *cuboids, ax=ax, strategy=strategy, inplace=inplace)
+
+                # Check cuboid extents after matching.
+                matched_extents1 = cuboid1.get_extents()
+                matched_extents2 = cuboid2.get_extents()
+                for iax, ax_now in enumerate(["x", "y", "z"]):
+                    if ax_now in ax and strategy in [0, 1, 2]:
+                        # First cropped to second.
+                        if 0 == strategy:
+                            if extents1[iax][1] >= extents2[iax][1]:
+                                assert matched_extents1[iax] == extents2[iax]
+                            else:
+                                assert matched_extents1[iax] == extents1[iax]
+                            assert matched_extents2[iax] == extents2[iax]
+                        # Second cropped to first.
+                        elif 1 == strategy:
+                            if extents2[iax][1] >= extents1[iax][1]:
+                                assert matched_extents2[iax] == extents1[iax]
+                            else:
+                                assert matched_extents2[iax] == extents2[iax]
+                            assert matched_extents1[iax] == extents1[iax]
+                        # First cropped to second, then second cropped to first.
+                        elif 2 == strategy:
+                            if extents1[iax][1] >= extents2[iax][1]:
+                                assert matched_extents1[iax] == extents2[iax]
+                                assert matched_extents2[iax] == extents2[iax]
+                            else:
+                                assert matched_extents1[iax] == extents1[iax]
+                                assert matched_extents2[iax] == extents1[iax]
+                    else:
+                        # No cropping.
+                        assert matched_extents1[iax] == extents1[iax]
+                        assert matched_extents2[iax] == extents2[iax]
