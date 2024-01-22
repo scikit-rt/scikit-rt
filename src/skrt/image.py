@@ -1875,29 +1875,35 @@ class Image(skrt.core.Archive):
         # Ensure that data are loaded.
         self.load()
 
+        # Ensure DICOM representation for interpolation.
+        if "nifti" in self.source_type:
+            im = self.astype("dicom")
+        else:
+            im = self
+
         # Ensure that resizing values are defined.
         allowed_unit = ["mm", "voxel"]
         if image_size is None:
             image_size_unit = "mm"
-            image_size = self.get_size()
+            image_size = im.get_size()
         elif image_size_unit is None or image_size_unit not in allowed_unit:
             image_size_unit = "voxel"
 
         if origin is None:
-            origin = self.get_origin()
+            origin = im.get_origin()
 
         if voxel_size is None:
-            voxel_size = self.get_voxel_size()
+            voxel_size = im.get_voxel_size()
 
         if centre is None:
-            centre = self.get_centre()
+            centre = im.get_centre()
         else:
             keep_centre = True
 
         # Allow for two-dimensional images
-        if 2 == len(self.get_data().shape):
-            ny, nx = self.get_data().shape
-            self.data = self.get_data().reshape(ny, nx, 1)
+        if 2 == len(im.get_data().shape):
+            ny, nx = im.get_data().shape
+            im.data = im.get_data().reshape(ny, nx, 1)
 
         # Ensure that values are in lists, rather than tuples,
         # to simplify value replacement.
@@ -1909,13 +1915,13 @@ class Image(skrt.core.Archive):
         # Replace any None values among resizing parameters
         for i in range(3):
             if image_size[i] is None:
-                image_size[i] = self.get_n_voxels()[i]
+                image_size[i] = im.get_n_voxels()[i]
             if origin[i] is None:
-                origin[i] = self.get_origin()[i]
+                origin[i] = im.get_origin()[i]
             if voxel_size[i] is None:
-                voxel_size[i] = self.get_voxel_size()[i]
+                voxel_size[i] = im.get_voxel_size()[i]
             if centre[i] is None:
-                centre[i] = self.get_centre()[i]
+                centre[i] = im.get_centre()[i]
 
         # Convert to voxel units
         if "mm" == image_size_unit:
@@ -1934,37 +1940,37 @@ class Image(skrt.core.Archive):
         # Check whether image is already the requested size
         nx, ny, nz = image_size
         match = (
-            self.get_data().shape == [ny, nx, nz]
-            and (self.get_origin() == origin)
-            and (self.get_voxel_size() == voxel_size)
+            im.get_data().shape == [ny, nx, nz]
+            and (im.get_origin() == origin)
+            and (im.get_voxel_size() == voxel_size)
         )
 
         if not match:
             # If slice thickness not known, set to the requested value
-            if self.get_voxel_size()[2] is None:
-                self.voxel_size[2] = image.voxel_size[2]
+            if im.get_voxel_size()[2] is None:
+                im.voxel_size[2] = voxel_size[2]
 
             # Set fill value
             if fill_value is None:
                 fill_value = self.get_data().min()
 
             # print(f"interpolation start time: {time.strftime('%c')}")
-            x1_array, y1_array, z1_array = self.get_coordinate_arrays(
-                self.get_n_voxels(), self.get_origin(), self.get_voxel_size()
+            x1_array, y1_array, z1_array = im.get_coordinate_arrays(
+                im.get_n_voxels(), im.get_origin(), im.get_voxel_size()
             )
             if not (x1_array is None or y1_array is None or z1_array is None):
                 # Define how intensity values are to be interpolated
                 # for the original image
                 interpolant = scipy.interpolate.RegularGridInterpolator(
                     (y1_array, x1_array, z1_array),
-                    self.get_data(),
+                    im.get_data(),
                     method=method,
                     bounds_error=False,
                     fill_value=fill_value,
                 )
 
                 # Define grid of voxel centres for the resized image
-                x2_array, y2_array, z2_array = self.get_coordinate_arrays(
+                x2_array, y2_array, z2_array = im.get_coordinate_arrays(
                     image_size, origin, voxel_size
                 )
                 nx, ny, nz = image_size
@@ -1975,17 +1981,21 @@ class Image(skrt.core.Archive):
                 point_array = vstack.reshape(3, -1).T.reshape(ny, nx, nz, 3)
 
                 # Perform resizing, ensuring that original data type is kept.
-                dtype = self.data.dtype
-                self.data = interpolant(point_array)
-                if dtype != self.data.dtype:
-                    self.data = self.data.astype(dtype)
+                dtype = im.data.dtype
+                im.data = interpolant(point_array)
+                if dtype != im.data.dtype:
+                    im.data = im.data.astype(dtype)
 
                 # Reset geometry
-                self.voxel_size = voxel_size
-                self.origin = origin
-                self.n_voxels = image_size
-                self.affine = None
-                self.set_geometry()
+                im.voxel_size = voxel_size
+                im.origin = origin
+                im.n_voxels = image_size
+                im.affine = None
+                im.set_geometry()
+
+                # Revert to original representation.
+                if "nifti" in self.source_type:
+                    self = im.astype("nifti")
 
             # print(f"interpolation end time: {time.strftime('%c')}")
 
