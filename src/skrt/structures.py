@@ -11251,6 +11251,11 @@ def create_structure_sets_from_nifti(
     if roi_paths:
         sset = StructureSet(
                 path=roi_paths, load=load, name=dir_path.name.split(".")[0])
+        # Assign timestamp based on path.
+        record = skrt.core.Dated(str(path))
+        sset.date = record.date
+        sset.time = record.time
+        sset.timestamp = record.timestamp
         structure_sets.append(sset)
 
     return structure_sets
