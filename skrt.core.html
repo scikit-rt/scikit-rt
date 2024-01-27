@@ -850,6 +850,21 @@ dictionary is returned.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_filenames">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_filenames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_filenames" title="Link to this definition"></a></dt>
+<dd><p>Return list of filenames for specified path(s).</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>paths: list/str/pathlib.Path, default=None</dt><dd><p>Single path, or list of paths, for which filenames are to
+be returned.  Paths may optionally include wildcards.  If a
+path matches one or more file-system paths, the filenames for
+all of the matched paths are returned.  Otherwise, the filename
+part of the path is returned, with any wildcards left.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_float">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_float" title="Link to this definition"></a></dt>
 <dd><p>Return object attribute as a float.</p>
