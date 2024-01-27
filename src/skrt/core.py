@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 import copy
 import itertools
+from glob import glob
 import json
 from logging import getLogger, Formatter, StreamHandler
 import os
@@ -2697,3 +2698,30 @@ def matches_suffix(path, suffixes=None):
         if path.name.endswith(suffix) and len(suffix) > len(match):
             match = suffix 
     return match
+
+def get_filenames(paths=None):
+    """
+    Return list of filenames for specified path(s).
+
+    **Parameter:**
+
+    paths: list/str/pathlib.Path, default=None
+        Single path, or list of paths, for which filenames are to
+        be returned.  Paths may optionally include wildcards.  If a
+        path matches one or more file-system paths, the filenames for
+        all of the matched paths are returned.  Otherwise, the filename
+        part of the path is returned, with any wildcards left.
+    """
+    filenames = []
+    if not paths:
+        return filenames
+
+    if not is_list(paths):
+        paths = [paths]
+
+    for path in paths:
+        filenames.extend([
+            Path(tmp_path).name for tmp_path in glob(fullpath(path))
+            or [path]])
+
+    return sorted(filenames)

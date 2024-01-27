@@ -609,3 +609,26 @@ def test_matches_suffix():
             ]
     for suffixes, match in tests:
         assert skrt.core.matches_suffix(test_path, suffixes) == match
+
+
+def test_get_filenames():
+    """Test determination of file names for specified paths."""
+    # Define tests.
+    test_dir = skrt.core.make_dir("tmp/filenames_test")
+    filenames = ["file1.txt", "file2.txt", "file3.txt"]
+    tests = []
+
+    for filename in filenames:
+        (Path(test_dir) / filename).touch()
+        tests.append((test_dir / filename, [filename]))
+        tests.append((filename, [filename]))
+
+    tests.extend([
+        (test_dir / "f*", filenames),
+        ("unknown/f*", ["f*"]),
+        ("", [])
+        ])
+
+    # Check that returned file names are as expected.
+    for paths, expected_filenames in tests:
+        assert expected_filenames == skrt.core.get_filenames(paths)
