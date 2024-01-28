@@ -2699,29 +2699,29 @@ def matches_suffix(path, suffixes=None):
             match = suffix 
     return match
 
-def get_filenames(paths=None):
+def get_basenames(paths=None):
     """
-    Return list of filenames for specified path(s).
+    Return list of basenames for specified path(s), optionally with wildcards.
 
     **Parameter:**
 
     paths: list/str/pathlib.Path, default=None
-        Single path, or list of paths, for which filenames are to
+        Single path, or list of paths, for which basenames are to
         be returned.  Paths may optionally include wildcards.  If a
-        path matches one or more file-system paths, the filenames for
-        all of the matched paths are returned.  Otherwise, the filename
-        part of the path is returned, with any wildcards left.
+        path matches one or more file-system paths, the basenames for
+        all of the matched paths are returned.  Otherwise, the basename
+        is returned with any wildcards left.
     """
-    filenames = []
+    basenames = []
     if not paths:
-        return filenames
+        return basenames
 
     if not is_list(paths):
         paths = [paths]
 
     for path in paths:
-        filenames.extend([
+        basenames.extend([
             Path(tmp_path).name for tmp_path in glob(fullpath(path))
             or [path]])
 
-    return sorted(filenames)
+    return sorted(basenames)
