@@ -761,6 +761,21 @@ is more than one candidate.  Possible values are:
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.get_basenames">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_basenames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_basenames" title="Link to this definition"></a></dt>
+<dd><p>Return list of basenames for specified path(s), optionally with wildcards.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>paths: list/str/pathlib.Path, default=None</dt><dd><p>Single path, or list of paths, for which basenames are to
+be returned.  Paths may optionally include wildcards.  If a
+path matches one or more file-system paths, the basenames for
+all of the matched paths are returned.  Otherwise, the basename
+is returned with any wildcards left.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.get_data_by_filename">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_data_by_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_data_by_filename" title="Link to this definition"></a></dt>
 <dd><p>Create dictionary of data_objects from list.</p>
@@ -845,21 +860,6 @@ dictionary is returned.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
 <dt>objs<span class="classifier">list, default=None</span></dt><dd><p>List of objects for which file sizes are to be summed.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="skrt.core.get_filenames">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">get_filenames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.get_filenames" title="Link to this definition"></a></dt>
-<dd><p>Return list of filenames for specified path(s).</p>
-<p><strong>Parameter:</strong></p>
-<dl class="simple">
-<dt>paths: list/str/pathlib.Path, default=None</dt><dd><p>Single path, or list of paths, for which filenames are to
-be returned.  Paths may optionally include wildcards.  If a
-path matches one or more file-system paths, the filenames for
-all of the matched paths are returned.  Otherwise, the filename
-part of the path is returned, with any wildcards left.</p>
 </dd>
 </dl>
 </dd></dl>
