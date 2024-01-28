@@ -611,8 +611,8 @@ def test_matches_suffix():
         assert skrt.core.matches_suffix(test_path, suffixes) == match
 
 
-def test_get_filenames():
-    """Test determination of file names for specified paths."""
+def test_get_basenames():
+    """Test determination of basenames for specified paths."""
     # Define tests.
     test_dir = skrt.core.make_dir("tmp/filenames_test")
     filenames = ["file1.txt", "file2.txt", "file3.txt"]
@@ -630,5 +630,5 @@ def test_get_filenames():
         ])
 
     # Check that returned file names are as expected.
-    for paths, expected_filenames in tests:
-        assert expected_filenames == skrt.core.get_filenames(paths)
+    for paths, expected_basenames in tests:
+        assert expected_basenames == skrt.core.get_basenames(paths)
