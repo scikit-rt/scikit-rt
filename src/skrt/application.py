@@ -30,7 +30,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from itertools import chain
 from pathlib import Path
 
-from skrt.core import Defaults, fullpath, get_logger, is_list
+from skrt.core import Defaults, fullpath, get_basenames, get_logger, is_list
 from skrt.patient import Patient
 
 
@@ -393,14 +393,18 @@ def get_paths(
         directories in data directory (currently hardcoded in this function).
 
     to_keep : str/list, default=None
-        Patient identifier, or list of patient identifiers.  If non-null,
-        only return dataset paths for the specified identifier(s).
+        Patient identifier(s), specified directly or via paths where basenames
+        are taken identifiers.  If non-null, <to_keep> is interpreted
+        using skrt.core.get_basenames().  Dataset paths are then returned
+        only for the resulting list of identifiers.
 
     to_exclude : str/list, default=None
-        Patient identifier, or list of patient identifiers.  If non-null,
-        only return dataset paths excluding the specified identifier(s).
-        If an identifier is specified as both <to_keep> and <to_exclude>,
-        the latter takes precedence.
+        Patient identifier(s), specified directly or via paths where basenames
+        are taken identifiers.  If non-null, <to_exclude> is interpreted
+        using skrt.core.get_basenames().  Dataset paths are then returned
+        excluding the resulting list of identifiers.  If an identifier is
+        specified as both <to_keep> and <to_exclude>, the latter takes
+        precedence.
 
     pathlib: bool, default=False
         If False, return paths as strings.  If True, return paths
@@ -436,21 +440,17 @@ def get_paths(
 
     # Filter list of dataset paths.
     if to_keep:
-        if not is_list(to_keep):
-            to_keep = [to_keep]
         paths = [
             path
             for path in paths
-            if any(Path(path).match(id) for id in to_keep)
+            if any(Path(path).match(id) for id in get_basenames(to_keep))
         ]
 
     if to_exclude:
-        if not is_list(to_exclude):
-            to_exclude = [to_exclude]
         paths = [
             path
             for path in paths
-            if not any(Path(path).match(id) for id in to_exclude)
+            if not any(Path(path).match(id) for id in get_basenames(to_exclude))
         ]
 
     # Determine maximum number of paths to return.
