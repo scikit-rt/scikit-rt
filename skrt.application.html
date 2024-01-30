@@ -390,13 +390,17 @@ indicating patterns to be matched.</p></li>
 <dt>max_path<span class="classifier">int, default=None</span></dt><dd><p>Maximum number of paths to return.  If None, return paths to all
 directories in data directory (currently hardcoded in this function).</p>
 </dd>
-<dt>to_keep<span class="classifier">str/list, default=None</span></dt><dd><p>Patient identifier, or list of patient identifiers.  If non-null,
-only return dataset paths for the specified identifier(s).</p>
+<dt>to_keep<span class="classifier">str/list, default=None</span></dt><dd><p>Patient identifier(s), specified directly or via paths where basenames
+are taken identifiers.  If non-null, &lt;to_keep&gt; is interpreted
+using skrt.core.get_basenames().  Dataset paths are then returned
+only for the resulting list of identifiers.</p>
 </dd>
-<dt>to_exclude<span class="classifier">str/list, default=None</span></dt><dd><p>Patient identifier, or list of patient identifiers.  If non-null,
-only return dataset paths excluding the specified identifier(s).
-If an identifier is specified as both &lt;to_keep&gt; and &lt;to_exclude&gt;,
-the latter takes precedence.</p>
+<dt>to_exclude<span class="classifier">str/list, default=None</span></dt><dd><p>Patient identifier(s), specified directly or via paths where basenames
+are taken identifiers.  If non-null, &lt;to_exclude&gt; is interpreted
+using skrt.core.get_basenames().  Dataset paths are then returned
+excluding the resulting list of identifiers.  If an identifier is
+specified as both &lt;to_keep&gt; and &lt;to_exclude&gt;, the latter takes
+precedence.</p>
 </dd>
 <dt>pathlib: bool, default=False</dt><dd><p>If False, return paths as strings.  If True, return paths
 as pathlib.Path objects.</p>
