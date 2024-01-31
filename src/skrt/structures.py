@@ -1863,9 +1863,14 @@ class ROI(skrt.core.Archive):
         # Otherwise, calculate from number of voxels in mask
         else:
             self.create_mask()
-            self._volume["voxels"] = float(self.mask.data.astype(bool).sum())
-            voxel_vol = abs(np.prod(self.get_voxel_size()))
-            self._volume["mm"] = self._volume["voxels"] * voxel_vol
+            if self.mask is None:
+                self._volume["voxels"] = 0.
+                self._volume["mm"] = 0.
+            else:
+                self._volume["voxels"] = float(
+                        self.mask.data.astype(bool).sum())
+                voxel_vol = abs(np.prod(self.get_voxel_size()))
+                self._volume["mm"] = self._volume["voxels"] * voxel_vol
 
         # Get volume in ml or equivalently cc
         self._volume["ml"] = self._volume["mm"] / 1000
