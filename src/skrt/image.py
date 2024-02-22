@@ -4219,7 +4219,7 @@ class Image(skrt.core.Archive):
             if sort:
                 outpath = outdir / f"{z_instance_numbers[z]}.dcm"
             else:
-                outpath = outdir / Path(path).name
+                outpath = outdir / pathlib.Path(path).name
             if overwrite or not outpath.exists():
                 shutil.copy2(path, outpath)
 
