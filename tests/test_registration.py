@@ -776,7 +776,7 @@ def test_elastix_get_transform_cmd():
     print("transform_cmd", transform_cmd)
 
     # Check that expected arguments included in transform command.
-    for arg in [args[1], args[2], f"{args[2]}/{args[3]}"]:
+    for arg in [args[1], args[2], f"{args[2]}{os.sep}{args[3]}"]:
         assert arg in transform_cmd
 
 def test_elastix_set_exe_paths():
