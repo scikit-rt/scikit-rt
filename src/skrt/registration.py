@@ -751,17 +751,18 @@ class Registration(Data):
                 )
             else:
                 tfile = self.tfiles[prev_step]
+        wrong_sep = "\\" if "/" == os.sep else "/"
         if isinstance(tfile, str):
-            tfile = tfile.replace("\\", "/")
+            tfile = tfile.replace(wrong_sep, os.sep)
 
         # Construct command
         return self.engine.get_registration_cmd(
-            fixed_path=self.fixed_path.replace("\\", "/"),
-            moving_path=self.moving_path.replace("\\", "/"),
-            fixed_mask_path=self.fixed_mask_path.replace("\\", "/"),
-            moving_mask_path=self.moving_mask_path.replace("\\", "/"),
-            pfile=self.pfiles[step].replace("\\", "/"),
-            outdir=self.outdirs[step].replace("\\", "/"),
+            fixed_path=self.fixed_path.replace(wrong_sep, os.sep),
+            moving_path=self.moving_path.replace(wrong_sep, os.sep),
+            fixed_mask_path=self.fixed_mask_path.replace(wrong_sep, os.sep),
+            moving_mask_path=self.moving_mask_path.replace(wrong_sep, os.sep),
+            pfile=self.pfiles[step].replace(wrong_sep, os.sep),
+            outdir=self.outdirs[step].replace(wrong_sep, os.sep),
             tfile=tfile,
         )
 
@@ -1070,8 +1071,9 @@ class Registration(Data):
             outfile = "result.nii"
 
         # Perform transformation
+        wrong_sep = "\\" if "/" == os.sep else "/"
         cmd = self.engine.get_transform_cmd(
-            fixed_path=self.fixed_path.replace("\\", "/"),
+            fixed_path=self.fixed_path.replace(wrong_sep, os.sep),
             moving_path=path,
             outdir=self._tmp_dir,
             tfile=tfile,
@@ -1816,12 +1818,13 @@ class Registration(Data):
         """
 
         # Settings
+        wrong_sep = "\\" if "/" == os.sep else "/"
         if is_jac:
             dtype = Jacobian
             expected_outname = "spatialJacobian.nii"
             title = "Jacobian determinant"
             cmd = self.engine.get_jac_cmd(
-                fixed_path=self.fixed_path.replace("\\", "/"),
+                fixed_path=self.fixed_path.replace(wrong_sep, os.sep),
                 outdir=outdir,
                 tfile=tfile,
             )
@@ -1830,7 +1833,7 @@ class Registration(Data):
             expected_outname = "deformationField.nii"
             title = "Deformation field"
             cmd = self.engine.get_def_cmd(
-                fixed_path=self.fixed_path.replace("\\", "/"),
+                fixed_path=self.fixed_path.replace(wrong_sep, os.sep),
                 outdir=outdir,
                 tfile=tfile,
             )
@@ -3261,7 +3264,7 @@ class Elastix(RegistrationEngine):
         if params:
             out_tfile = str(Path(outdir) / Path(tfile).name)
             self.adjust_parameters(tfile, out_tfile, params)
-            tfile = out_tfile.replace("\\", "/")
+            tfile = out_tfile
 
         # Return command for applying registration transform.
         return [
