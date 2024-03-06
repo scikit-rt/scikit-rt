@@ -1316,7 +1316,8 @@ def test_get_mask_to_contour_volume_ratio():
     roi.set_image(sim2)
     assert roi.get_mask_to_contour_volume_ratio() == pytest.approx(0.5, rel=0.1)
 
-# Define synthetic structure set for tests relating to ROI volumes.
+# Define synthetic structure set for tests relating to
+# ROI volumes and surface areas.
 cubes={"cube": 40}
 spheres={"sphere": 20}
 sim = get_synthetic_image_with_structure_set(cubes=cubes, spheres=spheres)
@@ -1325,12 +1326,18 @@ structure_set = sim.get_structure_set()
 # Extract ROIs from structure set, and calculate volumes.
 shapes = []
 volumes = []
+surface_areas = []
+surface_area_rels = []
 for name, side_length in cubes.items():
     shapes.append(structure_set.get_roi(name))
     volumes.append(side_length**3)
+    surface_areas.append(6. * side_length * side_length)
+    surface_area_rels.append(0.02)
 for name, radius in spheres.items():
     shapes.append(structure_set.get_roi(name))
     volumes.append((4. / 3.) * math.pi * radius**3)
+    surface_areas.append(4. * math.pi * radius * radius)
+    surface_area_rels.append(0.1)
 
 # Define factors for converting to volumes in different units.
 factors = [1, 0.001, 0.001, 1]
@@ -1346,6 +1353,14 @@ def test_get_volume():
             for method in methods:
                 assert shape.get_volume(unit, method) == pytest.approx(
                     volume * factor, rel=0.01)
+
+def test_get_surface_area():
+    # Test calculation of ROI surface area.
+    for shape, surface_area, rel in zip(
+            shapes, surface_areas, surface_area_rels):
+        for method in methods:
+            assert shape.get_surface_area(method, force=True) == pytest.approx(
+                surface_area, rel=rel)
 
 def test_get_volume_diff():
     # Test calculation of volume difference for pair of ROIs.

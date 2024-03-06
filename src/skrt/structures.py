@@ -1892,6 +1892,89 @@ class ROI(skrt.core.Archive):
             method="contour", force=True
         )
 
+    def get_surface_area(self, method=None, force=True):
+        """
+        Get ROI surface area (mm^2). The calculated surface area will be
+        cached in self._surface_area and returned if called again,
+        unless force=True.
+
+        Voxelisation affects the accuracy of the calculations.
+        In tests using synthetic data for cubes of side length 40 mm and
+        spheres of diameter 40 mm, initialised from an ROI mask voxel size of
+        1 mm x 1 mm x 1mm, the calculated surface area was underestimated
+        by 2% for the cubes, and was overestimated by 10% for the spheres,
+        with little difference between "contour" and "mask" methods.
+
+        **Parameters:**
+
+        method : str, default=None
+            Method to use for calculation of surface area. Can be:
+                - "contour": compute surface area by considering the ROI
+                  as being made of polygonal wedges, summing the areas of
+                  the wedge sides and the non-overlapping parts of
+                  adjacent wedges.
+                - "mask": compute area of the surface formed by meshing
+                  the ROI mask using the marching-cubes algorithm.
+                - None: use the method set in self.default_geom_method.
+
+            Note that if self.get_surface_area has already been called with one
+            method, the same cached result will be returned if calling with a
+            different method unless force=True.
+
+        force : bool, default=True
+            If True, the surface area will always be recalculated; otherwise,
+            it will only be calculated if it has not yet been cached in
+            self._surface_area.
+        """
+
+        # If already cached and not forcing, return
+        if hasattr(self, "_surface_area") and not force:
+            return self._surface_area
+
+        self._surface_area = 0
+
+        self.load()
+        if method is None:
+            method = self.default_geom_method
+
+        # Calculate from polygons.
+        if method == "contour":
+            dz = self.get_slice_thickness_contours()
+            polygons = self.get_polygons(idx_as_key=True)
+            idxs = sorted(polygons)
+            for idx in idxs:
+                for polygon in polygons[idx]:
+                    # Add area of side for current ROI slice.
+                    self._surface_area += dz * polygon.length
+                    # Add areas of ROI slice top and bottom
+                    # not fully overlapping with neighbouring ROI slices.
+                    for jdx in [idx - 1, idx + 1]:
+                        if jdx in idxs:
+                            overlap = polygon.intersection(
+                                    ops.unary_union(polygons[jdx])).area
+                        else:
+                            overlap = 0
+
+                        if overlap:
+                            # For full or patial overlap,
+                            # add half the non-overlapping area,
+                            # approximating a linear change in ROI area
+                            # between slices.
+                            self._surface_area += 0.5 * (polygon.area - overlap)
+                        else:
+                            # For zero overlap, add the full area.
+                            self._surface_area += polygon.area
+
+        # Otherwise, calculate the area of the surface formed
+        # by meshing the ROI mask with the marching-cubes algorithm.
+        else:
+            verts, faces, normals, values = skimage.measure.marching_cubes(
+                    self.get_mask(), level=0.5, spacing=self.get_voxel_size())
+            self._surface_area = skimage.measure.mesh_surface_area(verts, faces)
+
+        # Return surface area.
+        return self._surface_area
+
     def get_area(
         self,
         view="x-y",
