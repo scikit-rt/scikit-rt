@@ -1900,10 +1900,11 @@ class ROI(skrt.core.Archive):
 
         Voxelisation affects the accuracy of the calculations.
         In tests using synthetic data for cubes of side length 40 mm and
-        spheres of diameter 40 mm, initialised from an ROI mask voxel size of
-        1 mm x 1 mm x 1mm, the calculated surface area was underestimated
-        by 2% for the cubes, and was overestimated by 10% for the spheres,
-        with little difference between "contour" and "mask" methods.
+        spheres of diameter 40 mm, initialised from masks with a
+        voxel size of 1 mm x 1 mm x 1mm, the calculated surface area
+        was underestimated by 2% for the cubes, and was overestimated
+        by 10% for the spheres, with little difference between "contour"
+        and "mask" methods.
 
         **Parameters:**
 
