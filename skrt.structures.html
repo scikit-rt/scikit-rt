@@ -2149,6 +2149,43 @@ from &lt;view&gt;.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.get_surface_area">
+<span class="sig-name descname"><span class="pre">get_surface_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_area" title="Link to this definition"></a></dt>
+<dd><p>Get ROI surface area (mm^2). The calculated surface area will be
+cached in self._surface_area and returned if called again,
+unless force=True.</p>
+<p>Voxelisation affects the accuracy of the calculations.
+In tests using synthetic data for cubes of side length 40 mm and
+spheres of diameter 40 mm, initialised from an ROI mask voxel size of
+1 mm x 1 mm x 1mm, the calculated surface area was underestimated
+by 2% for the cubes, and was overestimated by 10% for the spheres,
+with little difference between “contour” and “mask” methods.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
+<dt>Method to use for calculation of surface area. Can be:</dt><dd><ul class="simple">
+<li><p>“contour”: compute surface area by considering the ROI
+as being made of polygonal wedges, summing the areas of
+the wedge sides and the non-overlapping parts of
+adjacent wedges.</p></li>
+<li><p>“mask”: compute area of the surface formed by meshing
+the ROI mask using the marching-cubes algorithm.</p></li>
+<li><p>None: use the method set in self.default_geom_method.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Note that if self.get_surface_area has already been called with one
+method, the same cached result will be returned if calling with a
+different method unless force=True.</p>
+</dd>
+<dt>force<span class="classifier">bool, default=True</span></dt><dd><p>If True, the surface area will always be recalculated; otherwise,
+it will only be calculated if it has not yet been cached in
+self._surface_area.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.get_surface_distance_metrics">
 <span class="sig-name descname"><span class="pre">get_surface_distance_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.get_surface_distance_metrics" title="Link to this definition"></a></dt>
 <dd><p>Get the mean surface distance, RMS surface distance, and Hausdorff
