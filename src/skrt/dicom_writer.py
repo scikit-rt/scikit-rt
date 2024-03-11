@@ -72,6 +72,7 @@ class DicomWriter:
         header_extras=None,
         source_type=None,
         outname=None,
+        use_image_header=True,
     ):
         """
         Create instance of DicomWriter class.
@@ -250,6 +251,11 @@ class DicomWriter:
         file_meta.ImplementationClassUID = f"{self.root_uid}{version}"
         file_meta.ImplementationVersionName = f"pydicom-{version}"
 
+        # Where possible, use associated image as source of header data.
+        dset_image = {}
+        if hasattr(self.data, "get_image"):
+            dset_image = self.data.get_image().get_dicom_dataset() or {}
+
         # Create FileDataset instance
         filename = None
         preamble = b"\x00" * 128
@@ -269,11 +275,14 @@ class DicomWriter:
         dset.Modality = self.modality
         dset.PatientID = self.patient_id
         dset.PatientPosition = self.patient_position
-        dset.PatientAge = None
-        dset.PatientBirthDate = None
+        for key in [
+                "PatientAge",
+                "PatientBirthDate",
+                "PatientSex",
+                "ReferringPhysicianName",
+                ]:
+            setattr(dset, key, getattr(dset_image, key, None))
         dset.PatientName = self.patient_id
-        dset.PatientSex = None
-        dset.ReferringPhysicianName = None
         dset.SeriesDate = self.date
         dset.SeriesDescription = None
         dset.SeriesInstanceUID = self.generate_shortened_uid()
@@ -283,11 +292,14 @@ class DicomWriter:
         dset.SOPClassUID = file_meta.MediaStorageSOPClassUID
         dset.SOPInstanceUID = file_meta.MediaStorageSOPInstanceUID
         dset.StationName = None
-        dset.StudyDate = self.date
-        dset.StudyDescription = None
-        dset.StudyInstanceUID = self.generate_shortened_uid()
-        dset.StudyTime = self.time
-        dset.StudyID = None
+        for key, default in {
+                "StudyDate": self.date,
+                "StudyDescription": None,
+                "StudyInstanceUID": self.generate_shortened_uid(),
+                "StudyTime": self.time,
+                "StudyID": None,
+                }.items():
+            setattr(dset, key, getattr(dset_image, key, default))
 
         return dset
 

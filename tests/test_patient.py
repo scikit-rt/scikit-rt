@@ -304,3 +304,40 @@ def test_id_mappings():
     id_mappings = {p_test.id: mapped_id}
     p_mapped = Patient(pdir, id_mappings=id_mappings)
     assert p_mapped.id == mapped_id
+
+def test_dicom_structure_set_with_image():
+    """Test writing in DICOM format of structure set with associated image."""
+    # Create empty output directory.
+    dcm_dir = "tmp/dcm_sset_with_image"
+    if os.path.exists(dcm_dir):
+        shutil.rmtree(dcm_dir)
+
+    # Create test image and structure set.
+    nz = 40
+    sim = SyntheticImage((100, 100, nz), auto_timestamp=True)
+    sim.add_cube(50, name='cube')
+    sim.add_sphere(25, name='sphere')
+    sset = sim.get_structure_set()
+
+    # Write the image (creating its UIDs).
+    sset.image.write(outname=dcm_dir)
+
+    # Create image from DICOM file.
+    im = skrt.image.Image(dcm_dir)
+    # Associate image to structure set.
+    sset.set_image(im)
+    # Write structure set.
+    sset.write(outdir=dcm_dir, ext=".dcm")
+
+    # Read data, and check that numbers of objects are as expected.
+    p = Patient(dcm_dir, unsorted_dicom=True)
+    assert 1 == len(p.get_studies())
+    assert 1 == len(p.get_images())
+    assert 1 == len(p.get_structure_sets())
+
+    # Check that image has been associated to structure set.
+    ct = p.get_images()[0]
+    sset = p.get_structure_sets()[0]
+    assert sset.get_image().has_same_geometry(ct)
+    assert sset.get_image().has_same_data(ct)
+    assert sset.get_image() is ct
