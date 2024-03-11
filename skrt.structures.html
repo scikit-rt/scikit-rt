@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>skrt.structures module &mdash; Scikit-rt 0.7.2 documentation</title>
+  <title>skrt.structures module &mdash; Scikit-rt 0.7.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=6dfdf7c3"></script>
+        <script src="_static/documentation_options.js?v=c98573da"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -2156,10 +2156,11 @@ cached in self._surface_area and returned if called again,
 unless force=True.</p>
 <p>Voxelisation affects the accuracy of the calculations.
 In tests using synthetic data for cubes of side length 40 mm and
-spheres of diameter 40 mm, initialised from an ROI mask voxel size of
-1 mm x 1 mm x 1mm, the calculated surface area was underestimated
-by 2% for the cubes, and was overestimated by 10% for the spheres,
-with little difference between “contour” and “mask” methods.</p>
+spheres of diameter 40 mm, initialised from masks with a
+voxel size of 1 mm x 1 mm x 1mm, the calculated surface area
+was underestimated by 2% for the cubes, and was overestimated
+by 10% for the spheres, with little difference between “contour”
+and “mask” methods.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
 <dt>method<span class="classifier">str, default=None</span></dt><dd><dl class="simple">
@@ -2678,6 +2679,12 @@ by contours, this will be the number of buffer voxels
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.renamed">
+<span class="sig-name descname"><span class="pre">renamed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.renamed" title="Link to this definition"></a></dt>
+<dd><p>Set ROI name and return self.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.ROI.resample">
 <span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.resample" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -2782,6 +2789,12 @@ are next called.</p>
 the dummy image. See documentation of ROI.get_dummy_image().</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.ROI.set_name">
+<span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.ROI.set_name" title="Link to this definition"></a></dt>
+<dd><p>Set ROI name.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3873,6 +3886,12 @@ the StructureSet.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.renamed">
+<span class="sig-name descname"><span class="pre">renamed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.renamed" title="Link to this definition"></a></dt>
+<dd><p>Set StructureSet name and return self.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.reset">
 <span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.reset" title="Link to this definition"></a></dt>
 <dd><p>Reload structure set from original source(s).</p>
@@ -3945,6 +3964,12 @@ creating the dummy image. See documentation of
 StructureSet.get_dummy_image().</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.structures.StructureSet.set_name">
+<span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.set_name" title="Link to this definition"></a></dt>
+<dd><p>Set StructureSet name.</p>
 </dd></dl>
 
 <dl class="py method">
