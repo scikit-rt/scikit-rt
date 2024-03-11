@@ -2367,3 +2367,18 @@ def test_match_rois():
                         # No cropping.
                         assert matched_extents1[iax] == extents1[iax]
                         assert matched_extents2[iax] == extents2[iax]
+
+def test_roi_set_name():
+    """Test setting of ROI name."""
+    roi = ROI(name="name")
+    assert "name" == roi.name
+
+    # Set name then check result.
+    roi.set_name()
+    assert "" == roi.name
+    roi.set_name("new_name")
+    assert "new_name" == roi.name
+
+    # Set name then check result for returned ROI.
+    assert "" == roi.renamed().name
+    assert "new_name" == roi.renamed("new_name").name

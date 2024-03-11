@@ -5516,6 +5516,15 @@ class ROI(skrt.core.Archive):
             color = ROIDefaults().get_default_roi_color()
         self.color = matplotlib.colors.to_rgba(color)
 
+    def set_name(self, name=""):
+        """Set ROI name."""
+        self.name = name
+
+    def renamed(self, name=""):
+        """Set ROI name and return self."""
+        self.name = name
+        return self
+
     def plot(
         self,
         view="x-y",
