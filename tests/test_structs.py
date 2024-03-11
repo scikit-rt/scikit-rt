@@ -2382,3 +2382,18 @@ def test_roi_set_name():
     # Set name then check result for returned ROI.
     assert "" == roi.renamed().name
     assert "new_name" == roi.renamed("new_name").name
+
+def test_sset_set_name():
+    """Test setting of StructureSet name."""
+    sset = StructureSet(name="name")
+    assert "name" == sset.name
+
+    # Set name then check result.
+    sset.set_name()
+    assert "" == sset.name
+    sset.set_name("new_name")
+    assert "new_name" == sset.name
+
+    # Set name then check result for returned StructureSet.
+    assert "" == sset.renamed().name
+    assert "new_name" == sset.renamed("new_name").name

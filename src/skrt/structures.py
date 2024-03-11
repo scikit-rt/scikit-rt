@@ -8783,6 +8783,15 @@ class StructureSet(skrt.core.Archive):
             for s in self.get_rois():
                 s.write(outdir=outdir, ext=ext, verbose=verbose, **kwargs)
 
+    def set_name(self, name=""):
+        """Set StructureSet name."""
+        self.name = name
+
+    def renamed(self, name=""):
+        """Set StructureSet name and return self."""
+        self.name = name
+        return self
+
     def plot(
         self,
         view="x-y",
