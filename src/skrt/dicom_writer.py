@@ -254,7 +254,9 @@ class DicomWriter:
         # Where possible, use associated image as source of header data.
         dset_image = {}
         if hasattr(self.data, "get_image"):
-            dset_image = self.data.get_image().get_dicom_dataset() or {}
+            image = self.data.get_image()
+            if hasattr(image, "get_dicom_dataset"):
+                dset_image = image.get_dicom_dataset() or {}
 
         # Create FileDataset instance
         filename = None
