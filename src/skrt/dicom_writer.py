@@ -288,7 +288,7 @@ class DicomWriter:
         dset.SeriesDate = self.date
         dset.SeriesDescription = None
         dset.SeriesInstanceUID = self.generate_shortened_uid()
-        dset.SeriesNumber = None
+        dset.SeriesNumber = 1
         dset.SeriesTime = self.time
         dset.SoftwareVersions = f"pydicom-{version}"
         dset.SOPClassUID = file_meta.MediaStorageSOPClassUID
