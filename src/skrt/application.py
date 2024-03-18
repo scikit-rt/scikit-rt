@@ -400,7 +400,7 @@ def get_paths(
 
     to_exclude : str/list, default=None
         Patient identifier(s), specified directly or via paths where basenames
-        are taken identifiers.  If non-null, <to_exclude> is interpreted
+        are taken as identifiers.  If non-null, <to_exclude> is interpreted
         using skrt.core.get_basenames().  Dataset paths are then returned
         excluding the resulting list of identifiers.  If an identifier is
         specified as both <to_keep> and <to_exclude>, the latter takes
