@@ -706,17 +706,26 @@ read from a configuration file.</p>
 <dt>items: dict, default=None</dt><dd><p>Dictionary to which filters are to be applied.  If None,
 an empty dictionary is returned.</p>
 </dd>
-<dt>filters: dict, default=None</dt><dd><p>Dictionary where keys are selections, and values are lists
+<dt>filters: dict/list, default=None</dt><dd><p>Filters to be applied.</p>
+<p>If a dictionary, keys are selections, and values are lists
 of the options from which the selections are made.  Application
-of a filter promotes second-level keys of the selection to
+of the filter promotes second-level keys of the selection to
 first-level keys, and deletes all first-level keys specified
 as options.  For example, if the dictionary for filtering is:</p>
 <p>items = {“opt1” : {“prop1”: “val1”}, “opt2” : {“prop2”: “val2”}}</p>
-<p>the filter {“opt1” : [“opt1”, “opt2”}}</p>
-<p>will reduce this to:</p>
+<p>the filter {“opt1” : [“opt1”, “opt2”}} will reduce this to:</p>
 <p>items = {“prop1”: “val1”}</p>
+<p>If a list, elements are selections.  Application of the filter
+promotes second-level keys of the selection to first-level keys,
+and deletes the selection first-level key.  For example, if the
+dictionary for filtering is:</p>
+<p>items = {“opt1” : {“prop1”: “val1”}, “opt2” : {“prop2”: “val2”}}</p>
+<p>the filter [“opt1”] will reduce this to:</p>
+<p>items = {“prop1”: “val1”, “opt2” : {“prop2”: “val2”}}</p>
 <p>If None, the original dictionary is returned.  Or if the original
 dictionary is None then an empty dictionary is returned.</p>
+<p>Selections are applied in the order in which they are stored in
+the filter dictionary of list.</p>
 </dd>
 </dl>
 </dd></dl>
