@@ -2543,33 +2543,56 @@ def filtered_dict(items=None, filters=None):
         Dictionary to which filters are to be applied.  If None,
         an empty dictionary is returned.
 
-    filters: dict, default=None
-        Dictionary where keys are selections, and values are lists
+    filters: dict/list, default=None
+        Filters to be applied.
+
+        If a dictionary, keys are selections, and values are lists
         of the options from which the selections are made.  Application
-        of a filter promotes second-level keys of the selection to
+        of the filter promotes second-level keys of the selection to
         first-level keys, and deletes all first-level keys specified
         as options.  For example, if the dictionary for filtering is:
 
         items = {"opt1" : {"prop1": "val1"}, "opt2" : {"prop2": "val2"}}
 
-        the filter {"opt1" : ["opt1", "opt2"}}
-
-        will reduce this to:
+        the filter {"opt1" : ["opt1", "opt2"}} will reduce this to:
 
         items = {"prop1": "val1"}
 
+        If a list, elements are selections.  Application of the filter
+        promotes second-level keys of the selection to first-level keys,
+        and deletes the selection first-level key.  For example, if the
+        dictionary for filtering is:
+
+        items = {"opt1" : {"prop1": "val1"}, "opt2" : {"prop2": "val2"}}
+
+        the filter ["opt1"] will reduce this to:
+
+        items = {"prop1": "val1", "opt2" : {"prop2": "val2"}}
+
         If None, the original dictionary is returned.  Or if the original
         dictionary is None then an empty dictionary is returned.
+
+        Selections are applied in the order in which they are stored in
+        the filter dictionary of list.
     """
     if not filters or not items:
         return items or {}
-    for selection, alternatives in filters.items():
-        for candidate in alternatives:
-            if candidate in items:
-                if selection == candidate:
-                    for key, val in items[candidate].items():
-                        items[key] = val
-                del items[candidate]
+
+    if isinstance(filters, dict):
+        for selection, alternatives in filters.items():
+            for candidate in alternatives:
+                if candidate in items and isinstance(items[candidate], dict):
+                    if selection == candidate:
+                        for key, val in items[candidate].items():
+                            items[key] = val
+                    del items[candidate]
+    else:
+        for selection in filters:
+            if selection in items and isinstance(items[selection], dict):
+                for key, val in items[selection].items():
+                    items[key] = val
+                del items[selection]
+
     return items
 
 def get_single_path(

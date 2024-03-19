@@ -513,6 +513,10 @@ def test_filtered_dict():
     # Test filtering with option selection.
     assert ["prop1"] == list(skrt.core.filtered_dict(
         dict(items), {"opt1" : ["opt1", "opt2"]}).keys())
+    assert ["opt2", "prop1"] == list(skrt.core.filtered_dict(
+        dict(items), ["opt1"]).keys())
+    assert ["prop1", "prop2"] == list(skrt.core.filtered_dict(
+        dict(items), ["opt1", "opt2"]).keys())
 
     # Test filtering against alternatives not in dictionary.
     assert items == skrt.core.filtered_dict(
@@ -521,7 +525,8 @@ def test_filtered_dict():
     # Test filtering against selection not in dictionary.
     assert {} == skrt.core.filtered_dict(
             dict(items), {"opt3": ["opt1", "opt2", "opt3"]})
-
+    assert items == skrt.core.filtered_dict(
+            dict(items), ["opt3", "opt4"])
 
 def test_json_load():
     """Test loading to dictionary of data from JSON file."""
