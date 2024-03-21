@@ -960,6 +960,7 @@ class BetterViewer:
 
         # Make individual viewers
         self.scale_in_mm = scale_in_mm
+        self.intensity = kwargs.get("intensity", None)
         self.viewers = []
         viewer_type = SingleViewer if not orthog_view else OrthogViewer
         kwargs = {key.replace('colour', 'color'): val for key, val in kwargs.items()}
@@ -1733,6 +1734,7 @@ class BetterViewer:
                     xlim=self.custom_ax_lims[self.viewers[0].view][0],
                     ylim=self.custom_ax_lims[self.viewers[0].view][1],
                     scale_in_mm=self.scale_in_mm,
+                    intensity=self.intensity,
                 )
 
         if self.suptitle is not None:
@@ -3091,6 +3093,7 @@ class SingleViewer:
             centre_on_roi=self.init_roi,
             shift=self.shift,
             scale_in_mm=self.scale_in_mm,
+            intensity=self.intensity,
             consensus_type=consensus_type,
             exclude_from_consensus=exclude_from_consensus,
             mask=self.mask,
