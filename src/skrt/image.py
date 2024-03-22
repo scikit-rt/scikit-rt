@@ -2838,7 +2838,11 @@ class Image(skrt.core.Archive):
         no_xtick_labels=False,
         no_ytick_labels=False,
         annotate_slice=False,
+        major_xticks=None,
+        major_yticks=None,
         major_ticks=None,
+        minor_xticks=None,
+        minor_yticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
         no_axis_labels=False,
@@ -3025,14 +3029,37 @@ class Image(skrt.core.Archive):
             annotate() method, see:
             https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.annotate.html
 
+        major_xticks : float, default=None
+            If not None, this value will be used as the interval between major
+            tick marks on the x-axis. Otherwise, automatic matplotlib
+            axis tick spacing will be used.
+
+        major_yticks : float, default=None
+            If not None, this value will be used as the interval between major
+            tick marks on the y-axis. Otherwise, automatic matplotlib
+            axis tick spacing will be used.
+
         major_ticks : float, default=None
             If not None, this value will be used as the interval between major
             tick marks. Otherwise, automatic matplotlib axis tick spacing will
-            be used.
+            be used.  This parameter applies to both x-axis and y-axis, but
+            is overridden by a non-None value for major_xticks or major_yticks.
+
+        minor_xticks : int, default=None
+            If None, no minor ticks will be plotted for the x-axis. Otherwise,
+            this value will be the number of minor tick divisions
+            per major tick interval.
+
+        minor_yticks : int, default=None
+            If None, no minor ticks will be plotted for the y-axis. Otherwise,
+            this value will be the number of minor tick divisions
+            per major tick interval.
 
         minor_ticks : int, default=None
             If None, no minor ticks will be plotted. Otherwise, this value will
-            be the number of minor tick divisions per major tick interval.
+            be the number of minor tick divisions per major tick interval.  This
+            parameter applies to both x-axis and y-axis, but is overridden
+            by a non-None value for minor_xticks or minor_yticks.
 
         ticks_all_sides : bool, default=False
             If True, major (and minor if using) tick marks will be shown above
@@ -3557,7 +3584,11 @@ class Image(skrt.core.Archive):
             no_xtick_labels,
             no_ytick_labels,
             annotate_slice,
+            major_xticks,
+            major_yticks,
             major_ticks,
+            minor_xticks,
+            minor_yticks,
             minor_ticks,
             ticks_all_sides,
             no_axis_labels,
@@ -3651,7 +3682,11 @@ class Image(skrt.core.Archive):
         no_xtick_labels=False,
         no_ytick_labels=False,
         annotate_slice=False,
+        major_xticks=None,
+        major_yticks=None,
         major_ticks=None,
+        minor_xticks=None,
+        minor_yticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
         no_axis_labels=False,
@@ -3744,23 +3779,29 @@ class Image(skrt.core.Archive):
 
         # Adjust tick marks
         if not no_axis_labels:
-            if major_ticks:
-                self.ax.xaxis.set_major_locator(MultipleLocator(major_ticks))
-                self.ax.yaxis.set_major_locator(MultipleLocator(major_ticks))
-            if minor_ticks:
-                self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
-                self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+            major_xticks = major_xticks or major_ticks
+            if major_xticks:
+                self.ax.xaxis.set_major_locator(MultipleLocator(major_xticks))
+            major_yticks = major_yticks or major_ticks
+            if major_yticks:
+                self.ax.yaxis.set_major_locator(MultipleLocator(major_yticks))
+            minor_xticks = minor_xticks or minor_ticks
+            if minor_xticks:
+                self.ax.xaxis.set_minor_locator(AutoMinorLocator(minor_xticks))
+            minor_yticks = minor_yticks or minor_ticks
+            if minor_yticks:
+                self.ax.yaxis.set_minor_locator(AutoMinorLocator(minor_yticks))
             if ticks_all_sides:
                 self.ax.tick_params(
                     bottom=True, top=True, left=True, right=True
                 )
-                if minor_ticks:
+                if minor_xticks or minor_yticks:
                     self.ax.tick_params(
                         which="minor",
-                        bottom=True,
-                        top=True,
-                        left=True,
-                        right=True,
+                        bottom=bool(minor_xticks),
+                        top=bool(minor_xticks),
+                        left=bool(minor_yticks),
+                        right=bool(minor_yticks),
                     )
 
         # Remove axis labels if needed

@@ -880,14 +880,37 @@ class BetterViewer:
             Origin position in mm, given in the order (y, x, z). Only used if
             image source is a numpy array and <affine> is None.
 
+        major_xticks : float, default=None
+            If not None, this value will be used as the interval between major
+            tick marks on the x-axis. Otherwise, automatic matplotlib
+            axis tick spacing will be used.
+
+        major_yticks : float, default=None
+            If not None, this value will be used as the interval between major
+            tick marks on the y-axis. Otherwise, automatic matplotlib
+            axis tick spacing will be used.
+
         major_ticks : float, default=None
             If not None, this value will be used as the interval between major
             tick marks. Otherwise, automatic matplotlib axis tick spacing will
-            be used.
+            be used.  This parameter applies to both x-axis and y-axis, but
+            is overridden by a non-None value for major_xticks or major_yticks.
+
+        minor_xticks : int, default=None
+            If None, no minor ticks will be plotted for the x-axis. Otherwise,
+            this value will be the number of minor tick divisions
+            per major tick interval.
+
+        minor_yticks : int, default=None
+            If None, no minor ticks will be plotted for the y-axis. Otherwise,
+            this value will be the number of minor tick divisions
+            per major tick interval.
 
         minor_ticks : int, default=None
             If None, no minor ticks will be plotted. Otherwise, this value will
-            be the number of minor tick divisions per major tick interval.
+            be the number of minor tick divisions per major tick interval.  This
+            parameter applies to both x-axis and y-axis, but is overridden
+            by a non-None value for minor_xticks or minor_yticks.
 
         ticks_all_sides : bool, default=False
             If True, major (and minor if using) tick marks will be shown above
@@ -1712,7 +1735,11 @@ class BetterViewer:
                     colorbar_label=self.viewers[0].colorbar_label,
                     clb_kwargs=self.viewers[-1].clb_kwargs,
                     clb_label_kwargs=self.viewers[-1].clb_label_kwargs,
+                    major_xticks=self.viewers[-1].major_xticks,
+                    major_yticks=self.viewers[-1].major_yticks,
                     major_ticks=self.viewers[-1].major_ticks,
+                    minor_xticks=self.viewers[-1].minor_xticks,
+                    minor_yticks=self.viewers[-1].minor_yticks,
                     minor_ticks=self.viewers[-1].minor_ticks,
                     ticks_all_sides=self.viewers[-1].ticks_all_sides,
                     xlabel=self.viewers[-1].xlabel,
@@ -1840,7 +1867,11 @@ class SingleViewer:
         annotate_slice=None,
         save_as=None,
         show=True,
+        major_xticks=None,
+        major_yticks=None,
         major_ticks=None,
+        minor_xticks=None,
+        minor_yticks=None,
         minor_ticks=None,
         ticks_all_sides=False,
         no_axis_labels=False,
@@ -1980,7 +2011,11 @@ class SingleViewer:
         self.zoom_ui = zoom_ui
         if zoom_ui is None:
             self.zoom_ui = bool(self.has_rois or zoom is not None)
+        self.major_xticks = major_xticks
+        self.major_yticks = major_yticks
         self.major_ticks = major_ticks
+        self.minor_xticks = minor_xticks
+        self.minor_yticks = minor_yticks
         self.minor_ticks = minor_ticks
         self.ticks_all_sides = ticks_all_sides
         self.no_axis_labels = no_axis_labels
@@ -3075,7 +3110,11 @@ class SingleViewer:
             legend_bbox_to_anchor=self.legend_bbox_to_anchor,
             legend_loc=self.legend_loc,
             annotate_slice=self.annotate_slice,
+            major_xticks=self.major_xticks,
+            major_yticks=self.major_yticks,
             major_ticks=self.major_ticks,
+            minor_xticks=self.minor_xticks,
+            minor_yticks=self.minor_yticks,
             minor_ticks=self.minor_ticks,
             ticks_all_sides=self.ticks_all_sides,
             no_axis_labels=self.no_axis_labels,
