@@ -4744,7 +4744,7 @@ class Image(skrt.core.Archive):
             relative to water:
 
             HU = 1000 * (mu - mu_water) / (mu_water - mu_air)
-            => mu / mu_water = approximately (1 - HU / 1000)
+            => mu / mu_water = approximately (1 + HU / 1000)
 
         circle : bool, default=False
             If True, disregard regions of each image slice that are outside
