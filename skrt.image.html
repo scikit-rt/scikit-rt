@@ -1386,7 +1386,7 @@ Units, a factor of 0.001 will rescale to intensity values
 that are close to the linear attenuation coefficient
 relative to water:</p>
 <p>HU = 1000 * (mu - mu_water) / (mu_water - mu_air)
-=&gt; mu / mu_water = approximately (1 - HU / 1000)</p>
+=&gt; mu / mu_water = approximately (1 + HU / 1000)</p>
 </dd>
 <dt>circle<span class="classifier">bool, default=False</span></dt><dd><p>If True, disregard regions of each image slice that are outside
 the largest circle with centre at the slice centre.  In this
