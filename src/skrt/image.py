@@ -4767,16 +4767,23 @@ class Image(skrt.core.Archive):
             if verbose:
                 print("Creating sinogram for each image slice:")
 
-            # Value to subtract to have only positive intensities.
-            vmin = min(self.get_data().min(), 0)
+            img_shape = np.array(self.get_data().shape)
 
-            nz = self.get_n_voxels()[2]
+            if circle:
+                radius = img_shape[:2].min() // 2
+                coords = np.array(np.ogrid[:img_shape[0], :img_shape[1]],
+                                  dtype=object)
+                dist = ((coords - img_shape[:2] // 2)**2).sum(0)
+                outside_circle = dist > radius**2
+
             sinogram_stack = []
             # Apply Radon transform slice by slice
-            for iz in range(nz):
+            for iz in range(img_shape[2]):
                 if verbose:
-                    print(f"    ...slice {iz + 1:3d} of {nz:3d}")
-                im_slice = (self.get_data()[:, :, iz] - vmin) * ifactor
+                    print(f"    ...slice {iz + 1:3d} of {img_shape[2]:3d}")
+                im_slice = (self.get_data()[:, :, iz]) * ifactor
+                if circle:
+                    im_slice[outside_circle] = 0
                 sinogram_slice = skimage.transform.radon(
                         im_slice, theta=theta, circle=circle)
                 sinogram_stack.append(sinogram_slice[::-1, ::-1])
@@ -4835,7 +4842,7 @@ class Image(skrt.core.Archive):
         for iz in range(nz):
             if verbose:
                 print(f"    ...slice {iz + 1:3d} of {nz:3d}")
-            sinogram_slice = self.get_sinogram().get_data()[:, :, iz].copy()
+            sinogram_slice = self.get_sinogram().get_data()[:, :, iz] - vmin
             for idx, value in np.ndenumerate(sinogram_slice):
                 if sinogram_slice[idx] > 0:
                     # Sample notional photon flux from a poisson distribution

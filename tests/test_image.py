@@ -1666,7 +1666,7 @@ def test_get_sinogram():
     nxyz = 10
     xyz0 = 0.5 - nxyz / 2
     origin = (xyz0, xyz0, xyz0)
-    sim = SyntheticImage(shape=(nxyz, nxyz, nxyz), origin=origin)
+    sim = SyntheticImage(shape=(nxyz, nxyz, nxyz), intensity=0, origin=origin)
     side_length=2
     centre = (0, 0, 0)
     intensity = 1000
