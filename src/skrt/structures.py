@@ -1066,8 +1066,8 @@ class ROI(skrt.core.Archive):
                 # Deal with case where the mask slice is one-dimensional,
                 # for example as happens with flattened ROIs.
                 if 1 in mask_slice.shape:
-                    x1, x2 = self.get_extent(view[0], True, view, idx=iz)
-                    y1, y2 = self.get_extent(view[-1], True, view, idx=iz)
+                    x1, x2 = self.get_extent(v[0], True, v, idx=iz)
+                    y1, y2 = self.get_extent(v[-1], True, v, idx=iz)
                     self.contours[v][self.idx_to_pos(iz, z_ax)] = [np.array(
                         [(x1, y1), (x1, y2), (x2, y2), (x2, y1), (x1, y1)])]
 
