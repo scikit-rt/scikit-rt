@@ -1366,8 +1366,8 @@ name : str</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_sinogram">
 <span class="sig-name descname"><span class="pre">get_sinogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ifactor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_sinogram" title="Link to this definition"></a></dt>
-<dd><p>Retrieve image where each slice corresponds to a sinogram.</p>
-<p>A slice sinogram is obtain through application of a Radon
+<dd><p>Retrieve Sinogram object corresponding to image.</p>
+<p>A sinogram slice is obtained through application of a Radon
 transform to the original image slice.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
@@ -1375,7 +1375,7 @@ transform to the original image slice.</p>
 stored as self.sinogram.  It is recreated only if force
 is set to True.</p>
 </dd>
-<dt>verbose<span class="classifier">bool, default=False</span></dt><dd><p>Print information on progress in sinogram creation.</p>
+<dt>verbose<span class="classifier">bool, default=False</span></dt><dd><p>If True, print information on progress in sinogram creation.</p>
 </dd>
 <dt>theta<span class="classifier">np.array</span></dt><dd><p>Array of projection angles, in degrees. If None, use
 np.arange(180).</p>
@@ -2833,6 +2833,119 @@ for options.</p>
 <dt class="sig sig-object py" id="skrt.image.ImageComparison.view">
 <span class="sig-name descname"><span class="pre">view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.ImageComparison.view" title="Link to this definition"></a></dt>
 <dd><p>View self with BetterViewer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="skrt.image.Sinogram">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">Sinogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-200,</span> <span class="pre">300)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgb_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.299,</span> <span class="pre">0.587,</span> <span class="pre">0.114)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgb_rescale_slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgb_rescale_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Sinogram" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skrt.image.Image" title="skrt.image.Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Image</span></code></a></p>
+<p>Class representing a sinogram.</p>
+<p>This class inherits the constructor and all functionality of the Image
+class, and implements additional methods specific to working with sinograms.</p>
+<p><strong>Methods:</strong></p>
+<ul class="simple">
+<li><p><strong>apply_filter()</strong> : Apply a named filter to sinogram.</p></li>
+<li><p><strong>filtered()</strong> : Return the result of applying a named filter to sinogram.</p></li>
+<li><p><strong>backprojected()</strong> : Return image reconstructed from sinogram
+through backprojection.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Sinogram.apply_filter">
+<span class="sig-name descname"><span class="pre">apply_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Sinogram.apply_filter" title="Link to this definition"></a></dt>
+<dd><p>Apply a named filter to sinogram.</p>
+<p>A Fourier transform maps the initial sinogram to the frequency
+domain, the named filter is applied, and an inverse Fourier transform
+maps the result back to the spatial domain.  The initial and
+final sinogram have the same geometry.</p>
+<p>Filtering is performed in-place.  To obtain a copy of the original
+with filter applied, use: Sinogram.filtered().</p>
+<p>This method is based on the scikit-image function
+skimage.transform.iradon():
+<a class="reference external" href="https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon">https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon</a>
+Only the filtering part is implemented here; backgrojection is
+implemented in Sinogram.backproject(), Sinogram.backprojected().</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>filter_name<span class="classifier">str, default=None</span></dt><dd><p>Name of a filter to be applied.  The recognised values are:
+“ramp”, “shepp-logan”, “cosine”, “hamming”, “hann”.  If None,
+no filter is applied.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Sinogram.backprojected">
+<span class="sig-name descname"><span class="pre">backprojected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vfill</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Sinogram.backprojected" title="Link to this definition"></a></dt>
+<dd><p>Return image reconstructed from sinogram through backprojection.</p>
+<p>This method is based on the scikit-image function
+skimage.transform.iradon():
+<a class="reference external" href="https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon">https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon</a>
+Only the backprojection part is implemented here; filtering is
+implemented in Sinogram.apply_filter(), Sinogram.filtered().</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt>interpolation<span class="classifier">str, default=”linear”</span></dt><dd><p>Method used to interpolate intensity values at image-slice
+pixels in backprojection.  Recognised methods are:
+“linear”, “nearest”, “cubic”.</p>
+</dd>
+<dt>circle<span class="classifier">bool, default=True</span></dt><dd><p>If True, intensity values for pixels outside the inscribed
+circle in reconstructed image slices are set to the value
+given by &lt;vfill&gt;.</p>
+</dd>
+<dt>delta_r<span class="classifier">float, default=2</span></dt><dd><p>Tolerance, in voxel units, to be used when whether a voxel
+is inside the inscribed circle.  The nominal circle radius, r,
+is calculated, and a voxel is considered to be inside the
+circle if at a radial distance from the centre no greater
+than r - delta_r.</p>
+</dd>
+<dt>vmin<span class="classifier">float, default=None</span></dt><dd><p>Minimum intensity value allowed in the reconstructed image.
+Any lower intensity values will be set to this value.
+Setting the minimum can be useful if this is known independently
+of the sinogram.  Applied after assigning &lt;vfill&gt; to
+voxels outside the inscribed circle of an image slice.
+Ignored if None.</p>
+</dd>
+<dt>vmax<span class="classifier">float, default=None</span></dt><dd><p>Maximum intensity value allowed in the reconstructed image.
+Any higher intensity values will be set to this value.
+Setting the maximum can be useful if this is known independently
+of the sinogram.  Applied after assigning &lt;vfill&gt; to
+voxels outside the inscribed circle of an image slice.
+Ignored if None.</p>
+</dd>
+<dt>vfill<span class="classifier">float, default=None</span></dt><dd><p>Intensity value to be assigned to voxels outside the inscribed
+circle of an image slice if &lt;circle&gt; is True.  If None, set
+to the image’s minimum intensity value.  May be overridden
+by &lt;vmin&gt; or &lt;vmax&gt;.</p>
+</dd>
+<dt>verbose<span class="classifier">bool, default=False</span></dt><dd><p>If True, print information on progress in image reconstruction.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Sinogram.filtered">
+<span class="sig-name descname"><span class="pre">filtered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Sinogram.filtered" title="Link to this definition"></a></dt>
+<dd><p>Return the result of applying a named filter to sinogram.</p>
+<p>A Fourier transform maps a copy of the initial sinogram to the frequency
+domain, the named filter is applied, and an inverse Fourier transform
+maps the result back to the spatial domain.  The sinogram returned
+has the same geometry as the original.</p>
+<p>The original sinogram is left unaltered.  To perform filtering
+in-place, use: Sinogram.apply_filter().</p>
+<p>This method is based on the scikit-image function
+skimage.transform.iradon():
+<a class="reference external" href="https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon">https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon</a>
+Only the filtering part is implemented here; backgrojection is
+implemented in Sinogram.backproject(), Sinogram.backprojected().</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>filter_name<span class="classifier">str, default=None</span></dt><dd><p>Name of a filter to be applied.  The recognised values are:
+“ramp”, “shepp-logan”, “cosine”, “hamming”, “hann”.  If None,
+no filter is applied.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
