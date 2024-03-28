@@ -15,7 +15,7 @@ from pydicom._storage_sopclass_uids import\
         PositronEmissionTomographyImageStorage
 
 from skrt.core import Defaults, File, fullpath
-from skrt.image import (_slice_axes, Image,
+from skrt.image import (_slice_axes, Image, Sinogram,
                         checked_crop_limits, get_alignment_translation,
                         get_geometry, get_image_comparison_metrics,
                         get_mask_bbox, get_translation_to_align,
@@ -63,6 +63,24 @@ dcm_file = "tmp/tmp_dcm"
 im.write(dcm_file, header_extras={'RescaleSlope': 1})
 im_dcm = Image(dcm_file)
 
+def null_image_checks(im_null):
+    """Check properties of instances of Image class or subclass."""
+    assert issubclass(type(im_null), Image)
+    assert(im_null.affine is None)
+    assert(im_null.data is None)
+    assert(im_null.date == "")
+    assert(im_null.downsampling is None)
+    assert(im_null.files == [])
+    assert(not im_null.nifti_array)
+    assert(im_null.origin == [0, 0, 0])
+    assert(im_null.path == "")
+    assert(im_null.source == "")
+    assert(im_null.source_type is None)
+    assert(im_null.subdir == "")
+    assert(im_null.time == "")
+    assert(im_null.timestamp == "")
+    assert(im_null.title is None)
+    assert(im_null.voxel_size == [1, 1, 1])
 
 ############################
 # Test reading and writing #
@@ -513,22 +531,8 @@ def test_dicom_dataset_slice():
 
 def test_null_image():
     im_null = Image()
-    assert(type(im).__name__ == "Image")
-    assert(im_null.affine is None)
-    assert(im_null.data is None)
-    assert(im_null.date == "")
-    assert(im_null.downsampling is None)
-    assert(im_null.files == [])
-    assert(not im_null.nifti_array)
-    assert(im_null.origin == [0, 0, 0])
-    assert(im_null.path == "")
-    assert(im_null.source == "")
-    assert(im_null.source_type is None)
-    assert(im_null.subdir == "")
-    assert(im_null.time == "")
-    assert(im_null.timestamp == "")
-    assert(im_null.title is None)
-    assert(im_null.voxel_size == [1, 1, 1])
+    assert(type(im_null).__name__ == "Image")
+    null_image_checks(im_null)
 
 def test_plot():
     plot_out = "tmp/plot.pdf"
@@ -1660,6 +1664,11 @@ def test_get_comparison():
         comparison = im1.get_comparison(im2, metrics=["unknown_metric"])
     assert "Metric unknown_metric not recognised" in str(error_info.value)
 
+def test_null_sinogram():
+    sinogram_null = Sinogram()
+    assert(type(sinogram_null).__name__ == "Sinogram")
+    null_image_checks(sinogram_null)
+
 def test_get_sinogram():
     """Test sinogram creation."""
     # Create test image featuring a cube.
@@ -1673,12 +1682,14 @@ def test_get_sinogram():
     sim.add_cube(side_length, centre, intensity, name="cube1")
 
     # Create sinogram from test image.
-    dtheta = 180 / 10
-    theta = np.arange(dtheta / 2, 180 + dtheta / 2, dtheta)
-    sinogram = sim.get_sinogram(
-            force=True, theta=np.arange(dtheta / 2, 180 + dtheta / 2, dtheta))
+    ntheta = max(sim.get_data().shape)
+    dtheta = 180 / ntheta
+    theta = np.linspace(0., 180., ntheta, endpoint=False)
+    #theta = np.arange(dtheta / 2, 180 + dtheta / 2, dtheta)
+    sinogram = sim.get_sinogram(force=True, theta=theta)
 
     # Check sinogram characteristics.
+    assert isinstance(sinogram, Sinogram)
     assert all(nxyz == sinogram.get_n_voxels()[idx] for idx in [0, 2])
     assert 0 == sinogram.get_min()
     assert intensity < sinogram.get_max()
@@ -1687,6 +1698,83 @@ def test_get_sinogram():
     assert sinogram.get_extents()[1][1] > nxyz / 2
     assert sinogram.get_extents()[1][0] == -sinogram.get_extents()[1][1]
     assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
+
+def test_sinogram_filtering():
+    """Test sinogram filtering."""
+    # Create test image featuring a cube.
+    nxyz = 10
+    xyz0 = 0.5 - nxyz / 2
+    origin = (xyz0, xyz0, xyz0)
+    sim = SyntheticImage(shape=(nxyz, nxyz, nxyz), intensity=0, origin=origin)
+    side_length=2
+    centre = (0, 0, 0)
+    intensity = 1000
+    sim.add_cube(side_length, centre, intensity, name="cube1")
+
+    # Create sinogram from test image.
+    ntheta = max(sim.get_data().shape)
+    dtheta = 180 / ntheta
+    theta = np.linspace(0., 180., ntheta, endpoint=False)
+    #theta = np.arange(dtheta / 2, 180 + dtheta / 2, dtheta)
+    sinogram = sim.get_sinogram(force=True, theta=theta)
+
+    # Check that exception is raised for unknown filter.
+    with pytest.raises(ValueError) as error_info:
+        filter_name = "unknown_filter"
+        sinogram.filtered(filter_name)
+    assert f"Unknown filter: {filter_name}" == str(error_info.value)
+
+    # Check filtering results.
+    for filter_name in [None, "ramp"]:
+        filtered_sinograms = [sinogram.filtered(filter_name),
+                              sinogram.clone().filtered(filter_name)]
+        for filtered_sinogram in filtered_sinograms:
+            assert filtered_sinogram.has_same_geometry(sinogram)
+            if filter_name is None:
+                assert filtered_sinogram.has_same_data(sinogram)
+            else:
+                assert not filtered_sinogram.has_same_data(sinogram)
+
+        assert filtered_sinograms[0].has_same_data(filtered_sinograms[1])
+
+def test_sinogram_backprojection():
+    """Test sinogram backprojection."""
+    # Create test image featuring a sphere.
+    nx, ny, nz = (64, 64, 10)
+    x0, y0, z0 = tuple(0.5 - 0.5 * nxyz for nxyz in [nx, ny, nz])
+    sim = SyntheticImage(shape=(nx, ny, nz), origin=(x0, y0, z0),
+                         intensity=-1000)
+    sim.add_sphere(radius=10, centre=(0, -(ny // 6), z0),
+                   intensity=1000, name="sphere1")
+
+    # Create sinogram from test image.
+    ntheta = 180
+    theta = np.linspace(0., 180., ntheta, endpoint=False)
+
+    # Check backprojection results.
+    vmin = sim.get_min()
+    vmax = sim.get_max()
+    for circle in [True, False]:
+        sinogram = sim.get_sinogram(force=True, circle=circle, theta=theta)
+        image = sinogram.filtered("ramp").backprojected(
+                circle=circle, vmin=vmin, vmax=vmax)
+        # Check that image have same geometry.
+        assert image.has_same_geometry(sim)
+        # Check that minimum and maximum intensities are the same.
+        assert vmin == image.get_min()
+        assert vmax == image.get_max()
+        # Check that numbers of foregrond voxels are similar.
+        assert (sim.get_data() > 0).sum() == pytest.approx(
+                (image.get_data() > 0).sum(), rel=0.04)
+
+        # Check that centroids of maximum-intensity regions are
+        # the same or similar.
+        # (For test image, backprojection gives more smearing along y-axis,
+        # but difference in centroid position along this axis not understood.)
+        for view in ["x-y", "y-z", "z-x"]:
+            diff = 3 if "z-x" == view else 0
+            assert sim.get_centroid_pos(view) == pytest.approx(
+                    image.get_centroid_pos(view), abs=diff)
 
 def test_flattened():
     """Test creation of flattened image."""

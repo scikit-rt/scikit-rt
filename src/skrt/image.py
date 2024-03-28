@@ -1,6 +1,7 @@
 """Classes for loading and comparing medical images."""
 
 import copy
+import functools
 import glob
 import math
 import numbers
@@ -14,6 +15,7 @@ import matplotlib.cm
 import matplotlib.colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+import scipy.fft
 import scipy.interpolate
 import scipy.ndimage
 import nibabel
@@ -21,6 +23,8 @@ import numpy as np
 import pandas as pd
 import pydicom
 import skimage
+from skimage.transform.radon_transform import (
+    _get_fourier_filter, _sinogram_circle_to_square)
 
 import skrt.core
 from skrt.dicom_writer import DicomWriter
@@ -4717,9 +4721,9 @@ class Image(skrt.core.Archive):
     def get_sinogram(self, force=False, verbose=False, theta=None,
                      ifactor=1, circle=False, rescale=None):
         """
-        Retrieve image where each slice corresponds to a sinogram.
+        Retrieve Sinogram object corresponding to image.
 
-        A slice sinogram is obtain through application of a Radon
+        A sinogram slice is obtained through application of a Radon
         transform to the original image slice.
 
         **Parameters:**
@@ -4730,7 +4734,7 @@ class Image(skrt.core.Archive):
             is set to True.
 
         verbose : bool, default=False
-            Print information on progress in sinogram creation.
+            If True, print information on progress in sinogram creation.
 
         theta : np.array
             Array of projection angles, in degrees. If None, use
@@ -4787,7 +4791,7 @@ class Image(skrt.core.Archive):
                 sinogram_slice = skimage.transform.radon(
                         im_slice, theta=theta, circle=circle)
                 sinogram_stack.append(sinogram_slice[::-1, ::-1])
-            self.sinogram = Image(np.stack(sinogram_stack, axis=-1))
+            self.sinogram = Sinogram(np.stack(sinogram_stack, axis=-1))
             if rescale is not None:
                 self.sinogram.rescale(*rescale, 0.5 * sum(rescale))
 
@@ -5843,6 +5847,230 @@ class ImageComparison(Image):
         """Get relative width of first image."""
 
         return self.ims[0].get_plot_aspect_ratio(*args, **kwargs)
+
+class Sinogram(Image):
+    """
+    Class representing a sinogram.
+
+    This class inherits the constructor and all functionality of the Image
+    class, and implements additional methods specific to working with sinograms.
+
+    **Methods:**
+
+    - **apply_filter()** : Apply a named filter to sinogram.
+    - **filtered()** : Return the result of applying a named filter to sinogram.
+    - **backprojected()** : Return image reconstructed from sinogram
+      through backprojection.
+    """
+
+    def apply_filter(self, filter_name=None):
+        """
+        Apply a named filter to sinogram.
+
+        A Fourier transform maps the initial sinogram to the frequency
+        domain, the named filter is applied, and an inverse Fourier transform
+        maps the result back to the spatial domain.  The initial and
+        final sinogram have the same geometry.
+
+        Filtering is performed in-place.  To obtain a copy of the original
+        with filter applied, use: Sinogram.filtered().
+
+        This method is based on the scikit-image function
+        skimage.transform.iradon():
+        https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon
+        Only the filtering part is implemented here; backgrojection is
+        implemented in Sinogram.backproject(), Sinogram.backprojected().
+
+        **Parameter:**
+
+        filter_name : str, default=None
+            Name of a filter to be applied.  The recognised values are:
+            "ramp", "shepp-logan", "cosine", "hamming", "hann".  If None,
+            no filter is applied.
+        """
+        self = self.filtered(filter_name)
+
+    def backprojected(self, interpolation="linear", circle=True, delta_r=2,
+                      vmin=None, vmax=None, vfill=None, verbose=False):
+        """
+        Return image reconstructed from sinogram through backprojection.
+
+        This method is based on the scikit-image function
+        skimage.transform.iradon():
+        https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon
+        Only the backprojection part is implemented here; filtering is
+        implemented in Sinogram.apply_filter(), Sinogram.filtered().
+
+        **Parameters:**
+
+        interpolation : str, default="linear"
+            Method used to interpolate intensity values at image-slice
+            pixels in backprojection.  Recognised methods are:
+            "linear", "nearest", "cubic".
+
+        circle : bool, default=True
+            If True, intensity values for pixels outside the inscribed
+            circle in reconstructed image slices are set to the value
+            given by <vfill>.
+
+        delta_r : float, default=2
+            Tolerance, in voxel units, to be used when whether a voxel
+            is inside the inscribed circle.  The nominal circle radius, r,
+            is calculated, and a voxel is considered to be inside the
+            circle if at a radial distance from the centre no greater
+            than r - delta_r.
+
+        vmin : float, default=None
+            Minimum intensity value allowed in the reconstructed image.
+            Any lower intensity values will be set to this value.
+            Setting the minimum can be useful if this is known independently
+            of the sinogram.  Applied after assigning <vfill> to
+            voxels outside the inscribed circle of an image slice.
+            Ignored if None.
+
+        vmax : float, default=None
+            Maximum intensity value allowed in the reconstructed image.
+            Any higher intensity values will be set to this value.
+            Setting the maximum can be useful if this is known independently
+            of the sinogram.  Applied after assigning <vfill> to
+            voxels outside the inscribed circle of an image slice.
+            Ignored if None.
+
+        vfill : float, default=None
+            Intensity value to be assigned to voxels outside the inscribed
+            circle of an image slice if <circle> is True.  If None, set
+            to the image's minimum intensity value.  May be overridden
+            by <vmin> or <vmax>.
+
+        verbose : bool, default=False
+            If True, print information on progress in image reconstruction.
+        """
+        # Obtain sinogram dimensions.
+        nx, ny, nz = self.get_n_voxels()
+
+        # Obtain angular range of sinogram.
+        theta_min, theta_max = self.get_extents()[0]
+        theta = np.linspace(theta_min, theta_max, nx, endpoint=False)
+
+        # Define number of rows and columns for reconstructed image.
+        if circle:
+            nxy = ny
+        else:
+            nxy = int(np.floor(np.sqrt((ny)**2 / 2.0)))
+
+        # Determine radius of inscribed circle.
+        radius = nxy // 2
+
+        # Define data to be used for image reconstruction,
+        # padding sinogram slices as needed if reconstruction
+        # is to be based on the inscribed circle.
+        if circle and nx != ny:
+            data1 = np.stack(
+                [_sinogram_circle_to_square(
+                    self.get_data()[:, :, iz].squeeze()) for iz in range(nz)],
+                axis=2)
+            ny = data1.shape[0]
+        else:
+            data1 = self.get_data()
+
+        # Define grid points for image reconstruction.
+        xpr, ypr = np.mgrid[:nxy, :nxy] - radius
+        x = np.arange(ny) - ny // 2
+
+        # Slice by slice, reconstruct image from sinogram.
+        data2 = np.zeros((nxy, nxy, nz), dtype=data1.dtype)
+        for iz in range(nz):
+            if verbose:
+                print(f"    ...slice {iz + 1:3d} of {nz:3d}")
+            # Backproject sinogram values, interpolating as needed.
+            for col, angle in zip(
+                    data1[:, :, iz].squeeze().T, np.deg2rad(theta)):
+                t = ypr * np.cos(angle) - xpr * np.sin(angle)
+                if interpolation == 'linear':
+                    interpolant = functools.partial(
+                        np.interp, xp=x, fp=col, left=0, right=0)
+                else:
+                    interpolant = scipy.interpolation.interp1d(
+                        x, col, kind=interpolation,
+                        bounds_error=False, fill_value=0)
+                data2[:, :, iz] += interpolant(t)
+
+        # Rescale image intensity values.
+        data2 = data2 * np.pi / (2 * len(theta))
+
+        # Set to zero values outside inscribed circule.
+        if circle:
+            outside_circle = (xpr**2 + ypr**2) > (radius - delta_r)**2
+            if vfill is None:
+                vfill = data2.min()
+            data2[outside_circle] = vfill
+
+        # Clip image intensity values.
+        if vmin is not None:
+            data2[data2 < vmin] = vmin
+        if vmax is not None:
+            data2[data2 > vmax] = vmax
+
+        # Return image object representing 
+        dx, dy, dz = self.get_voxel_size()
+        y0 = 0.5 * dy * (1 - nxy)
+        z0 = self.get_origin()[2]
+        return Image(data2[::-1, :, :], voxel_size=(dy, dy, dz),
+                     origin=(y0, y0, z0))
+
+    def filtered(self, filter_name=None):
+        """
+        Return the result of applying a named filter to sinogram.
+
+        A Fourier transform maps a copy of the initial sinogram to the frequency
+        domain, the named filter is applied, and an inverse Fourier transform
+        maps the result back to the spatial domain.  The sinogram returned
+        has the same geometry as the original.
+
+        The original sinogram is left unaltered.  To perform filtering
+        in-place, use: Sinogram.apply_filter().
+
+        This method is based on the scikit-image function
+        skimage.transform.iradon():
+        https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon
+        Only the filtering part is implemented here; backgrojection is
+        implemented in Sinogram.backproject(), Sinogram.backprojected().
+
+        **Parameter:**
+
+        filter_name : str, default=None
+            Name of a filter to be applied.  The recognised values are:
+            "ramp", "shepp-logan", "cosine", "hamming", "hann".  If None,
+            no filter is applied.
+        """
+        # If no filter specified, return clone of original sinogram.
+        if filter_name is None:
+            return self.clone()
+
+        # Rais error if filter name not recognised.
+        filter_types = ('ramp', 'shepp-logan', 'cosine', 'hamming', 'hann')
+        if filter_name not in filter_types:
+            raise ValueError("Unknown filter: %s" % filter_name)
+
+        # Following approach used in scikit-image, resize the
+        # sinogram rows to the next power of two, and at least 64.
+        # This should speed up the Fourier analysis, and lessens artifacts.
+        nx, ny, nz = self.get_n_voxels()
+        ny_resize = max(64, int(2 ** np.ceil(np.log2(2 * ny))))
+        pad_widths = ((0, ny_resize - ny), (0, 0), (0, 0))
+        data1 = np.pad(np.copy(self.data), pad_widths, mode='constant',
+                       constant_values=0)
+
+        # Retrieve filter.
+        fourier_filter = _get_fourier_filter(ny_resize, filter_name)
+
+        # Slice by slice, perform Fourier transform, apply filter,
+        # then perform inverse Fourier transform.
+        data2 = np.zeros((ny, nx, nz), dtype=data1.dtype)
+        for iz in range(nz):
+            data_fft = scipy.fft.fft(data1[:,:,iz], axis=0) * fourier_filter
+            data2[:,:,iz] = np.real(scipy.fft.ifft(data_fft, axis=0)[:ny, :])
+        return Sinogram(data2, affine=self.get_affine())
 
 
 def load_nifti(path):
