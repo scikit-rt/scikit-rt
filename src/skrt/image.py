@@ -5541,13 +5541,13 @@ class ImageComparison(Image):
             kwargs = self.ims[0].get_mpl_kwargs(view)
             kwargs["vmin"] = self.mpl_kwargs["vmin"]
             kwargs["vmax"] = self.mpl_kwargs["vmax"]
-            mesh = self.ax.imshow(self.slices[0], cmap=self.cmap, **kwargs)
+            mesh = self.ax.imshow(self.slices[0], **kwargs)
         elif plot_type == "image 2":
             self.title = self.ims[1].title
             kwargs = self.ims[1].get_mpl_kwargs(view)
             kwargs["vmin"] = self.mpl_kwargs["vmin"]
             kwargs["vmax"] = self.mpl_kwargs["vmax"]
-            mesh = self.ax.imshow(self.slices[1], cmap=self.cmap, **kwargs)
+            mesh = self.ax.imshow(self.slices[1], **kwargs)
         else:
             print("Unrecognised plotting option:", plot_type)
             return
