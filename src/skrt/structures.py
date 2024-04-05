@@ -7484,9 +7484,23 @@ class StructureSet(skrt.core.Archive):
             )
             n = array.max()
 
+            # Try to set affine matrix for case where input is a numpy array.
+            if isinstance(sources, np.ndarray):
+                origin = self.roi_kwargs.get("origin", None)
+                voxel_size = self.roi_kwargs.get("voxel_size", None)
+                affine = self.roi_kwargs.get("affine", None)
+                if (not (origin and voxel_size) and not affine
+                    and self.image is not None):
+                    affine = self.image.get_affine()
+            else:
+                origin = None
+                voxel_size = None
+                affine = None
+
             # Enforce Dicom convention for data array of image object,
             # so that affine matrix will be correctly defined for mask creation.
-            im = skrt.image.Image(sources)
+            im = skrt.image.Image(sources, affine=affine,
+                                  voxel_size=voxel_size, origin=origin)
             if "nifti" in im.source_type:
                 im = im.astype("dcm")
             i_name = 0
