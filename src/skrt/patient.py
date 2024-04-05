@@ -1657,7 +1657,7 @@ class Patient(skrt.core.PathData):
             If specified, only studies in this subdirectory, or
             in these subdirectories, are considered.
         """
-        return self.get_objs("structure_set", subtypes, subdirs)
+        return self.get_objs("structure_set", subtypes, associations, subdirs)
 
     def get_doses(self, subtypes=None, associations=None, subdirs=None):
         """
