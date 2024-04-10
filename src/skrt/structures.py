@@ -7462,6 +7462,9 @@ class StructureSet(skrt.core.Archive):
         if self.loaded and not force and sources is None:
             return
 
+        if force:
+            self.rois = []
+
         if sources is None:
             sources = self.sources
 
@@ -8133,13 +8136,13 @@ class StructureSet(skrt.core.Archive):
 
         if not skrt.core.is_list(sources):
             sources = [sources]
-        self.sources.extend(sources)
+        #self.sources.extend(sources)
         self.load(sources)
 
     def add_roi(self, source, **kwargs):
         """Add a single ROI with  optional kwargs."""
 
-        self.sources.append(source)
+        #self.sources.append(source)
         if isinstance(source, ROI):
             roi = source
         else:
