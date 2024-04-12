@@ -913,6 +913,15 @@ def test_multi_label():
     assert len(ss_multi.get_rois()) == len(structure_set.get_rois())
     assert ss_multi.get_roi_names() == structure_set.get_roi_names()
 
+    # Check that ROI can be added to structure set.
+    ss_multi.add_roi(cube.clone())
+    assert len(ss_multi.get_rois()) == 1 + len(structure_set.get_rois())
+
+    # Check that forced reloading omits the added ROI.
+    ss_multi.load(force=True)
+    assert len(ss_multi.get_rois()) == len(structure_set.get_rois())
+    assert ss_multi.get_roi_names() == structure_set.get_roi_names()
+
 #  def test_recolor():
     #  """Test recoloring ROIs with a list as they are loaded in."""
 
