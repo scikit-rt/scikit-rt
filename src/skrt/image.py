@@ -4791,17 +4791,22 @@ class Image(skrt.core.Archive):
                 sinogram_slice = skimage.transform.radon(
                         im_slice, theta=theta, circle=circle)
                 sinogram_stack.append(sinogram_slice[::-1, ::-1])
-            self.sinogram = Sinogram(np.stack(sinogram_stack, axis=-1))
+                #sinogram_stack.append(sinogram_slice)
+
+            # Create sinogram.
+            dx, dy, dz = self.get_voxel_size()
+            self.sinogram = Sinogram(np.stack(sinogram_stack, axis=-1) * dx)
             if rescale is not None:
                 self.sinogram.rescale(*rescale, 0.5 * sum(rescale))
 
             # Set sinogram geometry.
             dtheta = (theta.max() - theta.min()) / (theta.shape[0] - 1)
-            dy, dz = self.get_voxel_size()[1:]
+            ny = self.sinogram.get_n_voxels()[1]
+            #y0 = -dy * (ny // 2)
+            y0 = dy * (1 - (ny // 2))
+            z0 = self.get_origin()[2]
             self.sinogram.voxel_size = [dtheta, dy, dz]
-            y0 = (-self.sinogram.voxel_size[1]
-                  * ((self.sinogram.get_n_voxels()[1] - 1) // 2))
-            self.sinogram.origin = (0.5 * dtheta, y0, self.get_origin()[2])
+            self.sinogram.origin = [0.5 * dtheta, y0, z0]
             self.sinogram.affine = None
             self.sinogram.set_geometry()
 
@@ -5945,8 +5950,9 @@ class Sinogram(Image):
         verbose : bool, default=False
             If True, print information on progress in image reconstruction.
         """
-        # Obtain sinogram dimensions.
+        # Obtain sinogram dimensions and voxel size.
         nx, ny, nz = self.get_n_voxels()
+        dx, dy, dz = self.get_voxel_size()
 
         # Obtain angular range of sinogram.
         theta_min, theta_max = self.get_extents()[0]
@@ -5964,14 +5970,12 @@ class Sinogram(Image):
         # Define data to be used for image reconstruction,
         # padding sinogram slices as needed if reconstruction
         # is to be based on the inscribed circle.
+        data1 = self.get_data()[::-1, ::-1, :] / dy
         if circle and nx != ny:
-            data1 = np.stack(
-                [_sinogram_circle_to_square(
-                    self.get_data()[:, :, iz].squeeze()) for iz in range(nz)],
-                axis=2)
+            data1 = np.stack([
+                _sinogram_circle_to_square(data1[:, :, iz].squeeze())
+                for iz in range(nz)], axis=2)
             ny = data1.shape[0]
-        else:
-            data1 = self.get_data()
 
         # Define grid points for image reconstruction.
         xpr, ypr = np.mgrid[:nxy, :nxy] - radius
@@ -6011,11 +6015,10 @@ class Sinogram(Image):
         if vmax is not None:
             data2[data2 > vmax] = vmax
 
-        # Return image object representing 
-        dx, dy, dz = self.get_voxel_size()
+        # Return image object representing backprojection.
         y0 = 0.5 * dy * (1 - nxy)
         z0 = self.get_origin()[2]
-        return Image(data2[::-1, :, :], voxel_size=(dy, dy, dz),
+        return Image(data2, voxel_size=(dy, dy, dz),
                      origin=(y0, y0, z0))
 
     def filtered(self, filter_name=None):
@@ -6055,10 +6058,11 @@ class Sinogram(Image):
         # Following approach used in scikit-image, resize the
         # sinogram rows to the next power of two, and at least 64.
         # This should speed up the Fourier analysis, and lessens artifacts.
+        dx, dy, dz = self.get_voxel_size()
         nx, ny, nz = self.get_n_voxels()
         ny_resize = max(64, int(2 ** np.ceil(np.log2(2 * ny))))
         pad_widths = ((0, ny_resize - ny), (0, 0), (0, 0))
-        data1 = np.pad(np.copy(self.data), pad_widths, mode='constant',
+        data1 = np.pad(np.copy(self.data) / dy, pad_widths, mode='constant',
                        constant_values=0)
 
         # Retrieve filter.
@@ -6067,10 +6071,18 @@ class Sinogram(Image):
         # Slice by slice, perform Fourier transform, apply filter,
         # then perform inverse Fourier transform.
         data2 = np.zeros((ny, nx, nz), dtype=data1.dtype)
+
+        ##n = np.concatenate((np.arange(1, ny_resize / 2 + 1, 2, dtype=int),
+        ##                    np.arange(ny_resize / 2 - 1, 0, -2, dtype=int)))
+        ##f = np.zeros(ny_resize)
+        ##f[0] = 0.25
+        ##f[1::2] = -1 / (np.pi * n) ** 2
         for iz in range(nz):
             data_fft = scipy.fft.fft(data1[:,:,iz], axis=0) * fourier_filter
             data2[:,:,iz] = np.real(scipy.fft.ifft(data_fft, axis=0)[:ny, :])
-        return Sinogram(data2, affine=self.get_affine())
+            ##for ix in range(nx):
+            ##    data2[:, ix, iz] = np.convolve(data1[:, ix, iz], f)[:ny]
+        return Sinogram(data2 * dy, affine=self.get_affine())
 
 
 def load_nifti(path):

@@ -1696,7 +1696,7 @@ def test_get_sinogram():
     assert sinogram.get_voxel_size() == [dtheta, 1, 1]
     assert sinogram.get_extents()[0] == (0, 180)
     assert sinogram.get_extents()[1][1] > nxyz / 2
-    assert sinogram.get_extents()[1][0] == -sinogram.get_extents()[1][1]
+    assert sinogram.get_length(1) >= sim.get_length(1)
     assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
 
 def test_sinogram_filtering():
@@ -1763,16 +1763,15 @@ def test_sinogram_backprojection():
         # Check that minimum and maximum intensities are the same.
         assert vmin == image.get_min()
         assert vmax == image.get_max()
-        # Check that numbers of foregrond voxels are similar.
-        assert (sim.get_data() > 0).sum() == pytest.approx(
-                (image.get_data() > 0).sum(), rel=0.04)
+        # Check that numbers of foregrond voxels are the same.
+        assert ((sim.get_data() > 0).sum()
+                == (image.get_data() > 0).sum())
 
         # Check that centroids of maximum-intensity regions are
         # the same or similar.
-        # (For test image, backprojection gives more smearing along y-axis,
-        # but difference in centroid position along this axis not understood.)
+        # (For test image, backprojection gives more smearing along y-axis.)
         for view in ["x-y", "y-z", "z-x"]:
-            diff = 3 if "z-x" == view else 0
+            diff = 1 if "z-x" == view else 0
             assert sim.get_centroid_pos(view) == pytest.approx(
                     image.get_centroid_pos(view), abs=diff)
 
