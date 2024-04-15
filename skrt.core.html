@@ -1180,6 +1180,44 @@ JSON file.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.hu_to_mu">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">hu_to_mu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1541</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.00127</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.hu_to_mu" title="Link to this definition"></a></dt>
+<dd><p>Convert value(s) in Hounsfield units to linear attenuation coefficient(s)
+or mass attenuation coefficient(s).</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>hu<span class="classifier">float/numpy.ndarray</span></dt><dd><p>Radiodensity, or array of radiodensities, in Hounsfield Units,
+to be converted to linear attenuation coefficient(s) or
+mass attenuation coefficient(s).</p>
+</dd>
+<dt>rho<span class="classifier">float, default=None</span></dt><dd><p>Value to be used for density of material for which &lt;hu&gt; is given.
+If None, the linear attenuation coefficient(s) corresponding to &lt;hu&gt;
+will be returned.  Otherwise, the mass attenuation coefficient(s)
+corresponding to &lt;hu&gt; will be returned.</p>
+</dd>
+<dt>mu_water<span class="classifier">float, default=1.707e-1</span></dt><dd><p>If &lt;rho_water&gt; is None, value to be used for the linear attenuation
+coefficient of water.  Otherwise, value to be used for the mass
+attenuation coefficient of water.  The default is the mass attenuation
+coefficient (cm^2 / g) for X-rays of 100 keV, as given at:</p>
+<p><a class="reference external" href="https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/">https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/</a></p>
+</dd>
+<dt>rho_water<span class="classifier">float, default=997e-3</span></dt><dd><p>Value to be used for the density of water.  If None, &lt;mu_water&gt;
+is taken to represent a linear atteunuation coefficient.  Otherwise,
+&lt;mu_water&gt; is taken to represent a mass attenuation coefficient.
+The default is the density (g / cm^3) as given at:</p>
+<p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
+</dd>
+<dt>mass_attenuation<span class="classifier">bool, default=True</span></dt><dd><p>If True, &lt;mu&gt;, &lt;mu_water&gt;, &lt;mu_air&gt; should all be mass attenuation
+coefficients (mass per unit area).  If False, &lt;mu&gt;, &lt;mu_water&gt;, &lt;mu_air&gt;
+should all be attenuation coefficients (per unit length).</p>
+</dd>
+</dl>
+<p>Note: The attenuations &lt;mu&gt;, &lt;mu_water&gt;, &lt;mu_air&gt; and, if they are
+not set to None, the values of &lt;rho&gt;, &lt;rho_water&gt;, &lt;rho_air&gt;
+should be in coherent units.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.is_list">
 <span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">is_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#skrt.core.is_list" title="Link to this definition"></a></dt>
 <dd><p>Check whether a variable is a list, tuple, or array.</p>
@@ -1254,6 +1292,47 @@ Different from a suffix in the contest of pathlib, a path ending
 may contain no dots, or may contain multiple dots.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.core.mu_to_hu">
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">mu_to_hu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1541</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.00127</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.mu_to_hu" title="Link to this definition"></a></dt>
+<dd><p>Convert linear attenuation coefficient(s) or mass attenuation coefficient(s)
+to Hounsfield units.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>mu<span class="classifier">float/numpy.ndarray</span></dt><dd><p>Attenuation value(s) to be converted to Hounsfield units.  If &lt;rho&gt;
+is None, this should be a linear attenuation coefficient, or an array
+of linear attenuation coefficients.  Otherwise, this should be
+a mass attenuation coefficient or an array of mass attenuation
+coefficients.</p>
+</dd>
+<dt>rho<span class="classifier">float, default=None</span></dt><dd><p>Value to be used for density of material for which &lt;mu&gt; is given.
+If None, &lt;mu&gt; is taken to represent a linear attenuation coefficient,
+or an array of linear attenuation coefficients.  Otherwise,
+&lt;mu&gt; is taken to represent a mass attenuation coefficient, or
+an array of mass attenuation coefficients.</p>
+</dd>
+<dt>mu_water<span class="classifier">float, default=1.707e-1</span></dt><dd><p>If &lt;rho_water&gt; is None, value to be used for the linear attenuation
+coefficient of water.  Otherwise, value to be used for the mass
+attenuation coefficient of water.  The default is the mass attenuation
+coefficient (cm^2 / g) for X-rays of 100 keV, as given at:</p>
+<p><a class="reference external" href="https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/">https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/</a></p>
+</dd>
+<dt>rho_water<span class="classifier">float, default=997e-3</span></dt><dd><p>Value to be used for the density of water.  If None, &lt;mu_water&gt;
+is taken to represent a linear atteunuation coefficient.  Otherwise,
+&lt;mu_water&gt; is taken to represent a mass attenuation coefficient.
+The default is the density (g / cm^3) as given at:</p>
+<p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
+</dd>
+<dt>mass_attenuation<span class="classifier">bool, default=True</span></dt><dd><p>If True, &lt;mu&gt;, &lt;mu_water&gt;, &lt;mu_air&gt; should all be mass attenuation
+coefficients (mass per unit area).  If False, &lt;mu&gt;, &lt;mu_water&gt;, &lt;mu_air&gt;
+should all be attenuation coefficients (per unit length).</p>
+</dd>
+</dl>
+<p>Note: The attenuations &lt;mu&gt;, &lt;mu_water&gt;, &lt;mu_air&gt; and, if they are
+not set to None, the values of &lt;rho&gt;, &lt;rho_water&gt;, &lt;rho_air&gt;
+should be in coherent units.</p>
 </dd></dl>
 
 <dl class="py function">
