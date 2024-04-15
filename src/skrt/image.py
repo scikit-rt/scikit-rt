@@ -5410,6 +5410,120 @@ class Image(skrt.core.Archive):
         metric = "correlation_quality"
         return self.get_quality(image, metrics=[metric])[metric]
 
+    def mu_to_hu(self, mu_water=1.707e-1, rho_water=997e-3,
+                 mu_air=1.541e-1, rho_air=1.27e-3):
+        """
+        Assume that image greyscale values are linear attenuation
+        coefficients, and convert to Hounsfield units.
+
+        **Parameters:**
+
+        mu_water : float, default=1.707e-1
+            If <rho_water> is None, value to be used for the linear attenuation
+            coefficient of water.  Otherwise, value to be used for the mass
+            attenuation coefficient of water.  The default is the mass
+            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
+            as given at:
+
+            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
+
+        rho_water : float, default=997e-3
+            Value to be used for the density of water.  If None, <mu_water>
+            is taken to represent a linear atteunuation coefficient.  Otherwise,
+            <mu_water> is taken to represent a mass attenuation coefficient.
+            The default is the density (g / cm^3) as given at:
+
+            https://material-properties.org/density-of-materials/
+
+        mu_air : float, default=1.541e-1
+            If <rho_air> is None, value to be used for the linear attenuation
+            coefficient of air.  Otherwise, value to be used for the mass
+            attenuation coefficient of air.  The default is the mass
+            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
+            as given at:
+
+            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
+
+        rho_air : float, default=1.27e-3
+            Value to be used for the density of air.  If None, <mu_air>
+            is taken to represent a linear atteunuation coefficient.  Otherwise,
+            <mu_air> is taken to represent a mass attenuation coefficient.
+            The default is the density (g / cm^3) as given at:
+
+            https://material-properties.org/density-of-materials/
+
+        Note: The attenuation coefficients <mu_water>, <mu_air> and, if they are
+        not set to None, the densities <rho_water>, <rho_air>
+        should be in coherent units.
+        """
+        self.load()
+        self.data = skrt.core.mu_to_hu(
+                self.data, None, mu_water, rho_water, mu_air, rho_air)
+
+        # Remove any prior standardised data.
+        self._sdata = None
+
+        # Remove any cached values for maxium and minimum.
+        self._max = None
+        self._min = None
+
+    def hu_to_mu(self, mu_water=1.707e-1, rho_water=997e-3,
+                 mu_air=1.541e-1, rho_air=1.27e-3):
+        """
+        Assume that image greyscale values are Hounsfield units,
+        and convert to linear attenuation coefficients.
+
+        **Parameters:**
+
+        mu_water : float, default=1.707e-1
+            If <rho_water> is None, value to be used for the linear attenuation
+            coefficient of water.  Otherwise, value to be used for the mass
+            attenuation coefficient of water.  The default is the mass
+            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
+            as given at:
+
+            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
+
+        rho_water : float, default=997e-3
+            Value to be used for the density of water.  If None, <mu_water>
+            is taken to represent a linear atteunuation coefficient.  Otherwise,
+            <mu_water> is taken to represent a mass attenuation coefficient.
+            The default is the density (g / cm^3) as given at:
+
+            https://material-properties.org/density-of-materials/
+
+        mu_air : float, default=1.541e-1
+            If <rho_air> is None, value to be used for the linear attenuation
+            coefficient of air.  Otherwise, value to be used for the mass
+            attenuation coefficient of air.  The default is the mass
+            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
+            as given at:
+
+            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
+
+        rho_air : float, default=1.27e-3
+            Value to be used for the density of air.  If None, <mu_air>
+            is taken to represent a linear atteunuation coefficient.  Otherwise,
+            <mu_air> is taken to represent a mass attenuation coefficient.
+            The default is the density (g / cm^3) as given at:
+
+            https://material-properties.org/density-of-materials/
+
+        Note: The attenuation coefficients <mu_water>, <mu_air> and, if they are
+        not set to None, the densities <rho_water>, <rho_air>
+        should be in coherent units.
+        """
+        self.load()
+        self.data = skrt.core.hu_to_mu(
+                self.data, None, mu_water, rho_water, mu_air, rho_air)
+
+        # Remove any prior standardised data.
+        self._sdata = None
+
+        # Remove any cached values for maxium and minimum.
+        self._max = None
+        self._min = None
+
 
 class ImageComparison(Image):
     """Plot comparisons of two images and calculate comparison metrics."""
