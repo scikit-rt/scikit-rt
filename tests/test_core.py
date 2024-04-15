@@ -9,6 +9,7 @@ import time
 import timeit
 import shutil
 
+import numpy as np
 import pandas as pd
 
 import skrt.core
@@ -637,3 +638,43 @@ def test_get_basenames():
     # Check that returned file names are as expected.
     for paths, expected_basenames in tests:
         assert expected_basenames == skrt.core.get_basenames(paths)
+
+def test_mu_to_hu_and_hu_to_mu():
+    """Test conversion between attenuation values and Hounsfield units."""
+
+    # Define values for mass attenuation coefficients (cm^2 / g),
+    # densities (g / cm^3), and linear attenuation coefficients (cm^-1).
+    mu_over_rho_water = 1.707e-1
+    mu_over_rho_air = 1.541e-1
+    rho_water = 997e-3
+    rho_air = 1.27e-3
+    mu_water = mu_over_rho_water * rho_water
+    mu_air = mu_over_rho_air * rho_air
+
+    # Set precision for tests.
+    small_number = 1e-9
+
+    # Define hu values expected for given mu values.
+    tests = [
+            (0, mu_water),
+            (-1000, mu_air),
+            (np.array([0, -1000]), np.array([mu_water, mu_air])),
+            ]
+
+    # Perform conversions, and check results.
+    for hu, mu in tests:
+        for rho in [1, None]:
+            # Convert from mu to hu.
+            assert hu == approx(
+                    skrt.core.mu_to_hu(
+                        mu=mu, rho=rho,
+                        mu_water=mu_over_rho_water, rho_water=rho_water,
+                        mu_air=mu_over_rho_air, rho_air=rho_air),
+                    abs=small_number)
+            # Convert from hu to mu.
+            assert mu == approx(
+                    skrt.core.hu_to_mu(
+                        hu=hu, rho=rho,
+                        mu_water=mu_over_rho_water, rho_water=rho_water,
+                        mu_air=mu_over_rho_air, rho_air=rho_air),
+                    abs=small_number)
