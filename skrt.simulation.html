@@ -16,7 +16,7 @@
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="_static/documentation_options.js?v=c98573da"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -322,7 +322,7 @@ timestamp generated from current date and time.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.simulation.SyntheticImage.hu_to_mu">
-<span class="sig-name descname"><span class="pre">hu_to_mu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1541</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.00127</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.SyntheticImage.hu_to_mu" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">hu_to_mu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.SyntheticImage.hu_to_mu" title="Link to this definition"></a></dt>
 <dd><p>Assume that image greyscale values are Hounsfield units,
 and convert to linear attenuation coefficients.</p>
 <p><strong>Parameters:</strong></p>
@@ -340,28 +340,14 @@ is taken to represent a linear atteunuation coefficient.  Otherwise,
 The default is the density (g / cm^3) as given at:</p>
 <p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
 </dd>
-<dt>mu_air<span class="classifier">float, default=1.541e-1</span></dt><dd><p>If &lt;rho_air&gt; is None, value to be used for the linear attenuation
-coefficient of air.  Otherwise, value to be used for the mass
-attenuation coefficient of air.  The default is the mass
-attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-as given at:</p>
-<p><a class="reference external" href="https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/">https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/</a></p>
-</dd>
-<dt>rho_air<span class="classifier">float, default=1.27e-3</span></dt><dd><p>Value to be used for the density of air.  If None, &lt;mu_air&gt;
-is taken to represent a linear atteunuation coefficient.  Otherwise,
-&lt;mu_air&gt; is taken to represent a mass attenuation coefficient.
-The default is the density (g / cm^3) as given at:</p>
-<p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
-</dd>
 </dl>
-<p>Note: The attenuation coefficients &lt;mu_water&gt;, &lt;mu_air&gt; and, if they are
-not set to None, the densities &lt;rho_water&gt;, &lt;rho_air&gt;
-should be in coherent units.</p>
+<p>Note: The attenuation coefficients &lt;mu_water&gt; and, if they are
+not set to None, the densities &lt;rho_water&gt; should be in coherent units.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.simulation.SyntheticImage.mu_to_hu">
-<span class="sig-name descname"><span class="pre">mu_to_hu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1541</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.00127</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.SyntheticImage.mu_to_hu" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">mu_to_hu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.simulation.SyntheticImage.mu_to_hu" title="Link to this definition"></a></dt>
 <dd><p>Assume that image greyscale values are linear attenuation
 coefficients, and convert to Hounsfield units.</p>
 <p><strong>Parameters:</strong></p>
@@ -379,23 +365,9 @@ is taken to represent a linear atteunuation coefficient.  Otherwise,
 The default is the density (g / cm^3) as given at:</p>
 <p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
 </dd>
-<dt>mu_air<span class="classifier">float, default=1.541e-1</span></dt><dd><p>If &lt;rho_air&gt; is None, value to be used for the linear attenuation
-coefficient of air.  Otherwise, value to be used for the mass
-attenuation coefficient of air.  The default is the mass
-attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-as given at:</p>
-<p><a class="reference external" href="https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/">https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/</a></p>
-</dd>
-<dt>rho_air<span class="classifier">float, default=1.27e-3</span></dt><dd><p>Value to be used for the density of air.  If None, &lt;mu_air&gt;
-is taken to represent a linear atteunuation coefficient.  Otherwise,
-&lt;mu_air&gt; is taken to represent a mass attenuation coefficient.
-The default is the density (g / cm^3) as given at:</p>
-<p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
-</dd>
 </dl>
-<p>Note: The attenuation coefficients &lt;mu_water&gt;, &lt;mu_air&gt; and, if they are
-not set to None, the densities &lt;rho_water&gt;, &lt;rho_air&gt;
-should be in coherent units.</p>
+<p>Note: The attenuation coefficients &lt;mu_water&gt; and, if they are
+not set to None, the densities &lt;rho_water&gt; should be in coherent units.</p>
 </dd></dl>
 
 <dl class="py method">
