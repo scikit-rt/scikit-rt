@@ -2749,8 +2749,7 @@ def get_basenames(paths=None):
 
     return sorted(basenames)
 
-def mu_to_hu(mu, rho=None, mu_water=1.707e-1, rho_water=997e-3,
-             mu_air=1.541e-1, rho_air=1.27e-3):
+def mu_to_hu(mu, rho=None, mu_water=1.707e-1, rho_water=997e-3):
     """
     Convert linear attenuation coefficient(s) or mass attenuation coefficient(s)
     to Hounsfield units.
@@ -2787,38 +2786,19 @@ def mu_to_hu(mu, rho=None, mu_water=1.707e-1, rho_water=997e-3,
 
         https://material-properties.org/density-of-materials/
 
-    mu_air : float, default=1.541e-1
-        If <rho_air> is None, value to be used for the linear attenuation
-        coefficient of air.  Otherwise, value to be used for the mass
-        attenuation coefficient of air.  The default is the mass attenuation
-        coefficient (cm^2 / g) for X-rays of 100 keV, as given at:
-
-        https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-    rho_air : float, default=1.27e-3
-        Value to be used for the density of air.  If None, <mu_air>
-        is taken to represent a linear atteunuation coefficient.  Otherwise,
-        <mu_air> is taken to represent a mass attenuation coefficient.
-        The default is the density (g / cm^3) as given at:
-
-        https://material-properties.org/density-of-materials/
-
-    Note: The attenuation coefficients <mu>, <mu_water>, <mu_air> and,
-    if they are not set to None, the densities <rho>, <rho_water>, <rho_air>
+    Note: The attenuation coefficients <mu>, <mu_water> and,
+    if they are not set to None, the densities <rho>, <rho_water>
     should be in coherent units.
     """
     if rho is not None:
         mu *= rho
     if rho_water is not None:
         mu_water *= rho_water
-    if rho_air is not None:
-        mu_air *= rho_air
 
-    return (mu - mu_water) * (1000 / (mu_water - mu_air))
+    return (mu - mu_water) * (1000 / mu_water)
 
 
-def hu_to_mu(hu, rho=None, mu_water=1.707e-1, rho_water=997e-3,
-             mu_air=1.541e-1, rho_air=1.27e-3):
+def hu_to_mu(hu, rho=None, mu_water=1.707e-1, rho_water=997e-3):
     """
     Convert value(s) in Hounsfield units to linear attenuation coefficient(s)
     or mass attenuation coefficient(s).
@@ -2852,32 +2832,14 @@ def hu_to_mu(hu, rho=None, mu_water=1.707e-1, rho_water=997e-3,
 
         https://material-properties.org/density-of-materials/
 
-    mu_air : float, default=1.541e-1
-        If <rho_air> is None, value to be used for the linear attenuation
-        coefficient of air.  Otherwise, value to be used for the mass
-        attenuation coefficient of air.  The default is the mass attenuation
-        coefficient (cm^2 / g) for X-rays of 100 keV, as given at:
-
-        https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-    rho_air : float, default=1.27e-3
-        Value to be used for the density of air.  If None, <mu_air>
-        is taken to represent a linear atteunuation coefficient.  Otherwise,
-        <mu_air> is taken to represent a mass attenuation coefficient.
-        The default is the density (g / cm^3) as given at:
-
-        https://material-properties.org/density-of-materials/
-
-    Note: The attenuation coefficients <mu>, <mu_water>, <mu_air> and,
-    if they are not set to None, the densities <rho>, <rho_water>, <rho_air>
+    Note: The attenuation coefficients <mu>, <mu_water> and,
+    if they are not set to None, the densities <rho>, <rho_water>,
     should be in coherent units.
     """
     if rho_water is not None:
         mu_water *= rho_water
-    if rho_air is not None:
-        mu_air *= rho_air
 
-    mu = (hu * ((mu_water - mu_air) / 1000)) + mu_water
+    mu = (hu * (mu_water / 1000)) + mu_water
     if rho is None:
         return mu
     return mu / rho

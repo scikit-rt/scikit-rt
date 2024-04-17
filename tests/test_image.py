@@ -1798,3 +1798,28 @@ def test_flattened():
         origin2 = list(im1.get_origin())
         origin2[ax] = im1.get_extents()[ax][0] + 0.5 * im1.get_length(ax)
         assert im2.get_origin() == origin2
+
+def test_mu_to_hu_and_hu_to_mu():
+    """Test conversion between attenuation values and Hounsfield units."""
+
+    # Define values for mass attenuation coefficients (cm^2 / g),
+    # densities (g / cm^3), and linear attenuation coefficients (cm^-1).
+    mu_over_rho_water = 1.707e-1
+    rho_water = 997e-3
+    mu_water = mu_over_rho_water * rho_water
+
+    # Create test image, representing a background with absoprtion zero,
+    # and a cube with an absorption coefficient equal to that of water.
+    sim = SyntheticImage((20, 20, 20), intensity=0)
+    sim.add_cube(
+            side_length=6, name="cube", centre=(10, 10, 10), intensity=mu_water)
+    im = Image(sim)
+
+    # Chech conversion from linear attenuation coefficients to Hounsfield units.
+    im.mu_to_hu(mu_water=mu_water, rho_water=None)
+    assert np.all((sim.data == 0) == (im.data == -1000))
+    assert np.all((sim.data == mu_water) == (im.data == 0))
+
+    # Chech conversion from Hounsfield units to linear attenuation coefficients.
+    im.hu_to_mu(mu_water=mu_water, rho_water=None)
+    assert np.all(sim.data == im.data)

@@ -77,3 +77,35 @@ def test_group():
     # Check that structure sets for grouped and ungrouped volumes
     # have same extent.
     assert ss.get_extent() == ss2.get_extent()
+
+def test_mu_to_hu_and_hu_to_mu():
+    """Test conversion between attenuation values and Hounsfield units."""
+
+    # Define values for mass attenuation coefficients (cm^2 / g),
+    # densities (g / cm^3), and linear attenuation coefficients (cm^-1).
+    mu_over_rho_water = 1.707e-1
+    rho_water = 997e-3
+    mu_water = mu_over_rho_water * rho_water
+
+    # Create test image, representing a background with absoprtion zero,
+    # and a cube with an absorption coefficient equal to that of water.
+    sim1 = SyntheticImage((20, 20, 20), intensity=0)
+    sim1.add_cube(
+            side_length=6, name="cube", centre=(10, 10, 10), intensity=mu_water)
+    sim2 = sim1.clone()
+    assert 1 == len(sim2.shapes)
+    assert sim2.bg_intensity == 0
+    assert sim2.shapes[0].intensity == mu_water
+
+    # Chech conversion from linear attenuation coefficients to Hounsfield units.
+    sim2.mu_to_hu(mu_water=mu_water, rho_water=None)
+    assert sim2.bg_intensity == -1000
+    assert sim2.shapes[0].intensity == 0
+    assert np.all((sim1.data == 0) == (sim2.data == -1000))
+    assert np.all((sim1.data == mu_water) == (sim2.data == 0))
+
+    # Chech conversion from Hounsfield units to linear attenuation coefficients.
+    sim2.hu_to_mu(mu_water=mu_water, rho_water=None)
+    assert sim2.bg_intensity == 0
+    assert sim2.shapes[0].intensity == mu_water
+    assert np.all(sim1.data == sim2.data)

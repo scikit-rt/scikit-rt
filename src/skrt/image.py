@@ -4747,7 +4747,7 @@ class Image(skrt.core.Archive):
             that are close to the linear attenuation coefficient
             relative to water:
 
-            HU = 1000 * (mu - mu_water) / (mu_water - mu_air)
+            HU = 1000 * (mu - mu_water) / (mu_water)
             => mu / mu_water = approximately (1 + HU / 1000)
 
         circle : bool, default=False
@@ -5410,8 +5410,7 @@ class Image(skrt.core.Archive):
         metric = "correlation_quality"
         return self.get_quality(image, metrics=[metric])[metric]
 
-    def mu_to_hu(self, mu_water=1.707e-1, rho_water=997e-3,
-                 mu_air=1.541e-1, rho_air=1.27e-3):
+    def mu_to_hu(self, mu_water=1.707e-1, rho_water=997e-3):
         """
         Assume that image greyscale values are linear attenuation
         coefficients, and convert to Hounsfield units.
@@ -5435,30 +5434,12 @@ class Image(skrt.core.Archive):
 
             https://material-properties.org/density-of-materials/
 
-        mu_air : float, default=1.541e-1
-            If <rho_air> is None, value to be used for the linear attenuation
-            coefficient of air.  Otherwise, value to be used for the mass
-            attenuation coefficient of air.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
-
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_air : float, default=1.27e-3
-            Value to be used for the density of air.  If None, <mu_air>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_air> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water>, <mu_air> and, if they are
-        not set to None, the densities <rho_water>, <rho_air>
-        should be in coherent units.
+        Note: The attenuation coefficients <mu_water> and, if they are
+        not set to None, the densities <rho_water> should be in coherent units.
         """
         self.load()
         self.data = skrt.core.mu_to_hu(
-                self.data, None, mu_water, rho_water, mu_air, rho_air)
+                self.data, None, mu_water, rho_water)
 
         # Remove any prior standardised data.
         self._sdata = None
@@ -5467,8 +5448,7 @@ class Image(skrt.core.Archive):
         self._max = None
         self._min = None
 
-    def hu_to_mu(self, mu_water=1.707e-1, rho_water=997e-3,
-                 mu_air=1.541e-1, rho_air=1.27e-3):
+    def hu_to_mu(self, mu_water=1.707e-1, rho_water=997e-3):
         """
         Assume that image greyscale values are Hounsfield units,
         and convert to linear attenuation coefficients.
@@ -5492,30 +5472,12 @@ class Image(skrt.core.Archive):
 
             https://material-properties.org/density-of-materials/
 
-        mu_air : float, default=1.541e-1
-            If <rho_air> is None, value to be used for the linear attenuation
-            coefficient of air.  Otherwise, value to be used for the mass
-            attenuation coefficient of air.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
-
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_air : float, default=1.27e-3
-            Value to be used for the density of air.  If None, <mu_air>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_air> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water>, <mu_air> and, if they are
-        not set to None, the densities <rho_water>, <rho_air>
-        should be in coherent units.
+        Note: The attenuation coefficients <mu_water> and, if they are
+        not set to None, the densities <rho_water> should be in coherent units.
         """
         self.load()
         self.data = skrt.core.hu_to_mu(
-                self.data, None, mu_water, rho_water, mu_air, rho_air)
+                self.data, None, mu_water, rho_water)
 
         # Remove any prior standardised data.
         self._sdata = None

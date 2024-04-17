@@ -645,11 +645,8 @@ def test_mu_to_hu_and_hu_to_mu():
     # Define values for mass attenuation coefficients (cm^2 / g),
     # densities (g / cm^3), and linear attenuation coefficients (cm^-1).
     mu_over_rho_water = 1.707e-1
-    mu_over_rho_air = 1.541e-1
     rho_water = 997e-3
-    rho_air = 1.27e-3
     mu_water = mu_over_rho_water * rho_water
-    mu_air = mu_over_rho_air * rho_air
 
     # Set precision for tests.
     small_number = 1e-9
@@ -657,8 +654,8 @@ def test_mu_to_hu_and_hu_to_mu():
     # Define hu values expected for given mu values.
     tests = [
             (0, mu_water),
-            (-1000, mu_air),
-            (np.array([0, -1000]), np.array([mu_water, mu_air])),
+            (-1000, 0),
+            (np.array([0, -1000]), np.array([mu_water, 0])),
             ]
 
     # Perform conversions, and check results.
@@ -668,13 +665,11 @@ def test_mu_to_hu_and_hu_to_mu():
             assert hu == approx(
                     skrt.core.mu_to_hu(
                         mu=mu, rho=rho,
-                        mu_water=mu_over_rho_water, rho_water=rho_water,
-                        mu_air=mu_over_rho_air, rho_air=rho_air),
+                        mu_water=mu_over_rho_water, rho_water=rho_water),
                     abs=small_number)
             # Convert from hu to mu.
             assert mu == approx(
                     skrt.core.hu_to_mu(
                         hu=hu, rho=rho,
-                        mu_water=mu_over_rho_water, rho_water=rho_water,
-                        mu_air=mu_over_rho_air, rho_air=rho_air),
+                        mu_water=mu_over_rho_water, rho_water=rho_water),
                     abs=small_number)

@@ -526,8 +526,7 @@ class SyntheticImage(Image):
 
         return None
 
-    def mu_to_hu(self, mu_water=1.707e-1, rho_water=997e-3,
-                 mu_air=1.541e-1, rho_air=1.27e-3):
+    def mu_to_hu(self, mu_water=1.707e-1, rho_water=997e-3):
         """
         Assume that image greyscale values are linear attenuation
         coefficients, and convert to Hounsfield units.
@@ -551,46 +550,27 @@ class SyntheticImage(Image):
 
             https://material-properties.org/density-of-materials/
 
-        mu_air : float, default=1.541e-1
-            If <rho_air> is None, value to be used for the linear attenuation
-            coefficient of air.  Otherwise, value to be used for the mass
-            attenuation coefficient of air.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
-
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_air : float, default=1.27e-3
-            Value to be used for the density of air.  If None, <mu_air>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_air> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water>, <mu_air> and, if they are
-        not set to None, the densities <rho_water>, <rho_air>
-        should be in coherent units.
+        Note: The attenuation coefficients <mu_water> and, if they are
+        not set to None, the densities <rho_water> should be in coherent units.
         """
         # Convert background intensity.
         self.bg_intensity = mu_to_hu(
-                self.bg_intensity, None, mu_water, rho_water, mu_air, rho_air)
+                self.bg_intensity, None, mu_water, rho_water)
 
         # Convert standard deviation of Gaussian noise.
         if self.noise_std is not None:
             self.noise_std = mu_to_hu(
-                    self.noise_std, None, mu_water, rho_water, mu_air, rho_air)
+                    self.noise_std, None, mu_water, rho_water)
 
         # Convert shape intensities.
         for shape in self.shapes:
             shape.intensity = mu_to_hu(
-                    shape.intensity, None, mu_water, rho_water, mu_air, rho_air)
+                    shape.intensity, None, mu_water, rho_water)
 
         # Update image data.
         self.update()
 
-    def hu_to_mu(self, mu_water=1.707e-1, rho_water=997e-3,
-                 mu_air=1.541e-1, rho_air=1.27e-3):
+    def hu_to_mu(self, mu_water=1.707e-1, rho_water=997e-3):
         """
         Assume that image greyscale values are Hounsfield units,
         and convert to linear attenuation coefficients.
@@ -614,40 +594,22 @@ class SyntheticImage(Image):
 
             https://material-properties.org/density-of-materials/
 
-        mu_air : float, default=1.541e-1
-            If <rho_air> is None, value to be used for the linear attenuation
-            coefficient of air.  Otherwise, value to be used for the mass
-            attenuation coefficient of air.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
-
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_air : float, default=1.27e-3
-            Value to be used for the density of air.  If None, <mu_air>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_air> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water>, <mu_air> and, if they are
-        not set to None, the densities <rho_water>, <rho_air>
-        should be in coherent units.
+        Note: The attenuation coefficients <mu_water> and, if they are
+        not set to None, the densities <rho_water> should be in coherent units.
         """
         # Convert background intensity.
         self.bg_intensity = hu_to_mu(
-                self.bg_intensity, None, mu_water, rho_water, mu_air, rho_air)
+                self.bg_intensity, None, mu_water, rho_water)
 
         # Convert standard deviation of Gaussian noise.
         if self.noise_std is not None:
             self.noise_std = hu_to_mu(
-                    self.noise_std, None, mu_water, rho_water, mu_air, rho_air)
+                    self.noise_std, None, mu_water, rho_water)
 
         # Convert shape intensities.
         for shape in self.shapes:
             shape.intensity = hu_to_mu(
-                    shape.intensity, None, mu_water, rho_water, mu_air, rho_air)
+                    shape.intensity, None, mu_water, rho_water)
 
         # Update image data.
         self.update()
