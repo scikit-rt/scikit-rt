@@ -642,11 +642,8 @@ def test_get_basenames():
 def test_mu_to_hu_and_hu_to_mu():
     """Test conversion between attenuation values and Hounsfield units."""
 
-    # Define values for mass attenuation coefficients (cm^2 / g),
-    # densities (g / cm^3), and linear attenuation coefficients (cm^-1).
-    mu_over_rho_water = 1.707e-1
-    rho_water = 997e-3
-    mu_water = mu_over_rho_water * rho_water
+    # Define value to be used for linear attenuation coefficient of water.
+    mu_water = skrt.core.Defaults().mu_water
 
     # Set precision for tests.
     small_number = 1e-9
@@ -660,16 +657,11 @@ def test_mu_to_hu_and_hu_to_mu():
 
     # Perform conversions, and check results.
     for hu, mu in tests:
-        for rho in [1, None]:
+        for mu0 in [None, mu_water]:
             # Convert from mu to hu.
             assert hu == approx(
-                    skrt.core.mu_to_hu(
-                        mu=mu, rho=rho,
-                        mu_water=mu_over_rho_water, rho_water=rho_water),
-                    abs=small_number)
+                    skrt.core.mu_to_hu(mu=mu, mu_water=mu0), abs=small_number)
             # Convert from hu to mu.
             assert mu == approx(
                     skrt.core.hu_to_mu(
-                        hu=hu, rho=rho,
-                        mu_water=mu_over_rho_water, rho_water=rho_water),
-                    abs=small_number)
+                        hu=hu, mu_water=mu0), abs=small_number)
