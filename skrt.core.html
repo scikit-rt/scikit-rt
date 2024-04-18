@@ -407,7 +407,7 @@ but add to them, or modify values, from opts dictionary.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="skrt.core.Defaults.instance">
-<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">json_exts:</span> <span class="pre">['.json']</span> <span class="pre">json_names_key:</span> <span class="pre">roi_names</span> <span class="pre">json_names_to_exclude:</span> <span class="pre">background</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">nifti_exts:</span> <span class="pre">['.nii',</span> <span class="pre">'.nii.gz']</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">stations:</span> <span class="pre">{}</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">by_slice:</span> <span class="pre">union</span> <span class="pre">compress_user:</span> <span class="pre">False</span> <span class="pre">foreground_name:</span> <span class="pre">foreground</span> <span class="pre">foreground_threshold:</span> <span class="pre">-150</span> <span class="pre">json_exts:</span> <span class="pre">['.json']</span> <span class="pre">json_names_key:</span> <span class="pre">roi_names</span> <span class="pre">json_names_to_exclude:</span> <span class="pre">background</span> <span class="pre">len_date:</span> <span class="pre">8</span> <span class="pre">len_time:</span> <span class="pre">6</span> <span class="pre">log_level:</span> <span class="pre">WARNING</span> <span class="pre">matlab_app:</span> <span class="pre">True</span> <span class="pre">matlab_runtime:</span> <span class="pre">None</span> <span class="pre">mu_water:</span> <span class="pre">0.01701879</span> <span class="pre">nifti_exts:</span> <span class="pre">['.nii',</span> <span class="pre">'.nii.gz']</span> <span class="pre">no_ui:</span> <span class="pre">False</span> <span class="pre">print_depth:</span> <span class="pre">0</span> <span class="pre">registration_engine:</span> <span class="pre">elastix</span> <span class="pre">shapely_log_level:</span> <span class="pre">40</span> <span class="pre">slice_stats:</span> <span class="pre">['mean']</span> <span class="pre">stations:</span> <span class="pre">{}</span> <span class="pre">unsorted_dicom:</span> <span class="pre">False</span></em><a class="headerlink" href="#skrt.core.Defaults.instance" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1181,36 +1181,21 @@ JSON file.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.hu_to_mu">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">hu_to_mu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.hu_to_mu" title="Link to this definition"></a></dt>
-<dd><p>Convert value(s) in Hounsfield units to linear attenuation coefficient(s)
-or mass attenuation coefficient(s).</p>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">hu_to_mu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.hu_to_mu" title="Link to this definition"></a></dt>
+<dd><p>Convert value(s) in Hounsfield units to linear attenuation coefficient(s).</p>
 <p><strong>Parameters:</strong></p>
-<dl>
+<dl class="simple">
 <dt>hu<span class="classifier">float/numpy.ndarray</span></dt><dd><p>Radiodensity, or array of radiodensities, in Hounsfield Units,
-to be converted to linear attenuation coefficient(s) or
-mass attenuation coefficient(s).</p>
+to be converted to linear attenuation coefficient(s).</p>
 </dd>
-<dt>rho<span class="classifier">float, default=None</span></dt><dd><p>Value to be used for density of material for which &lt;hu&gt; is given.
-If None, the linear attenuation coefficient(s) corresponding to &lt;hu&gt;
-will be returned.  Otherwise, the mass attenuation coefficient(s)
-corresponding to &lt;hu&gt; will be returned.</p>
-</dd>
-<dt>mu_water<span class="classifier">float, default=1.707e-1</span></dt><dd><p>If &lt;rho_water&gt; is None, value to be used for the linear attenuation
-coefficient of water.  Otherwise, value to be used for the mass
-attenuation coefficient of water.  The default is the mass attenuation
-coefficient (cm^2 / g) for X-rays of 100 keV, as given at:</p>
-<p><a class="reference external" href="https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/">https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/</a></p>
-</dd>
-<dt>rho_water<span class="classifier">float, default=997e-3</span></dt><dd><p>Value to be used for the density of water.  If None, &lt;mu_water&gt;
-is taken to represent a linear atteunuation coefficient.  Otherwise,
-&lt;mu_water&gt; is taken to represent a mass attenuation coefficient.
-The default is the density (g / cm^3) as given at:</p>
-<p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
+<dt>mu_water<span class="classifier">float, default=None</span></dt><dd><p>Value to be used for the linear attenuation coefficient of water.
+If None, set to the value of skrt.core.Defaults().mu_water</p>
 </dd>
 </dl>
-<p>Note: The attenuation coefficients &lt;mu&gt;, &lt;mu_water&gt; and,
-if they are not set to None, the densities &lt;rho&gt;, &lt;rho_water&gt;,
-should be in coherent units.</p>
+<p>Note: The linar attenuation coefficient(s) returned will be in the
+same units as &lt;mu_water&gt;.  For consistency with the units used for
+image voxel dimensions, it’s recommended that &lt;mu_water&gt; be specified
+in units of mm^-1.  This is the case if the default value is used.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1292,39 +1277,21 @@ may contain no dots, or may contain multiple dots.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.core.mu_to_hu">
-<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">mu_to_hu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1707</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.997</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.mu_to_hu" title="Link to this definition"></a></dt>
-<dd><p>Convert linear attenuation coefficient(s) or mass attenuation coefficient(s)
-to Hounsfield units.</p>
+<span class="sig-prename descclassname"><span class="pre">skrt.core.</span></span><span class="sig-name descname"><span class="pre">mu_to_hu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.core.mu_to_hu" title="Link to this definition"></a></dt>
+<dd><p>Convert linear attenuation coefficient(s) to Hounsfield units.</p>
 <p><strong>Parameters:</strong></p>
-<dl>
-<dt>mu<span class="classifier">float/numpy.ndarray</span></dt><dd><p>Attenuation value(s) to be converted to Hounsfield units.  If &lt;rho&gt;
-is None, this should be a linear attenuation coefficient, or an array
-of linear attenuation coefficients.  Otherwise, this should be
-a mass attenuation coefficient or an array of mass attenuation
-coefficients.</p>
+<dl class="simple">
+<dt>mu<span class="classifier">float/numpy.ndarray</span></dt><dd><p>Attenuation value(s) to be converted to Hounsfield units.</p>
 </dd>
-<dt>rho<span class="classifier">float, default=None</span></dt><dd><p>Value to be used for density of material for which &lt;mu&gt; is given.
-If None, &lt;mu&gt; is taken to represent a linear attenuation coefficient,
-or an array of linear attenuation coefficients.  Otherwise,
-&lt;mu&gt; is taken to represent a mass attenuation coefficient, or
-an array of mass attenuation coefficients.</p>
-</dd>
-<dt>mu_water<span class="classifier">float, default=1.707e-1</span></dt><dd><p>If &lt;rho_water&gt; is None, value to be used for the linear attenuation
-coefficient of water.  Otherwise, value to be used for the mass
-attenuation coefficient of water.  The default is the mass attenuation
-coefficient (cm^2 / g) for X-rays of 100 keV, as given at:</p>
-<p><a class="reference external" href="https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/">https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/</a></p>
-</dd>
-<dt>rho_water<span class="classifier">float, default=997e-3</span></dt><dd><p>Value to be used for the density of water.  If None, &lt;mu_water&gt;
-is taken to represent a linear atteunuation coefficient.  Otherwise,
-&lt;mu_water&gt; is taken to represent a mass attenuation coefficient.
-The default is the density (g / cm^3) as given at:</p>
-<p><a class="reference external" href="https://material-properties.org/density-of-materials/">https://material-properties.org/density-of-materials/</a></p>
+<dt>mu_water<span class="classifier">float, default=None</span></dt><dd><p>Value to be used for the linear attenuation coefficient of water.
+If None, set to the value of skrt.core.Defaults().mu_water</p>
 </dd>
 </dl>
-<p>Note: The attenuation coefficients &lt;mu&gt;, &lt;mu_water&gt; and,
-if they are not set to None, the densities &lt;rho&gt;, &lt;rho_water&gt;
-should be in coherent units.</p>
+<p>Note: The linar attenuation coefficients &lt;mu&gt; and &lt;mu_water&gt; should
+have the same units.  For consistency with the units used for
+image voxel dimensions, it’s recommended that linear attenuation
+coefficients be specified in units of mm^-1.  This is the case for
+&lt;mu_water&gt; if the default value is used.</p>
 </dd></dl>
 
 <dl class="py function">
