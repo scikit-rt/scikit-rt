@@ -3197,7 +3197,7 @@ class SingleViewer:
         if outname is None:
             print("Please provide a filename")
             return
-        self.image.fig.savefig(outname)
+        self.image.fig.savefig(outname, bbox_inches="tight", pad_inches=0.03)
 
     def save_roi_info_table(self, _=None):
         '''Save ROI geometric info table to a file.'''
