@@ -128,6 +128,14 @@ Defaults({"matlab_app": True})
 # If None, MATLAB runtime is assumed not to be installed.
 Defaults({"matlab_runtime": None})
 
+# Set default linear attenuation coefficient for water to be the the product of
+# the value (cm^2 / g) for water of the mass attenuation coefficient
+# for X-rays of 100 keV, as given at:
+#     https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
+# and the density (g / cm^3) of water, as given at:
+#     the https://material-properties.org/density-of-materials/
+# with the result converted to mm^-1, for consistency with voxel units.
+Defaults({"mu_water": 1.707e-1 * 997e-3 / 10})
 
 class Data:
     """
@@ -2749,97 +2757,51 @@ def get_basenames(paths=None):
 
     return sorted(basenames)
 
-def mu_to_hu(mu, rho=None, mu_water=1.707e-1, rho_water=997e-3):
+def mu_to_hu(mu, mu_water=None):
     """
-    Convert linear attenuation coefficient(s) or mass attenuation coefficient(s)
-    to Hounsfield units.
+    Convert linear attenuation coefficient(s) to Hounsfield units.
 
     **Parameters:**
 
     mu : float/numpy.ndarray
-        Attenuation value(s) to be converted to Hounsfield units.  If <rho>
-        is None, this should be a linear attenuation coefficient, or an array
-        of linear attenuation coefficients.  Otherwise, this should be
-        a mass attenuation coefficient or an array of mass attenuation
-        coefficients.
+        Attenuation value(s) to be converted to Hounsfield units.
 
-    rho : float, default=None
-        Value to be used for density of material for which <mu> is given.
-        If None, <mu> is taken to represent a linear attenuation coefficient,
-        or an array of linear attenuation coefficients.  Otherwise,
-        <mu> is taken to represent a mass attenuation coefficient, or
-        an array of mass attenuation coefficients.
+    mu_water : float, default=None
+        Value to be used for the linear attenuation coefficient of water.
+        If None, set to the value of skrt.core.Defaults().mu_water
 
-    mu_water : float, default=1.707e-1
-        If <rho_water> is None, value to be used for the linear attenuation
-        coefficient of water.  Otherwise, value to be used for the mass
-        attenuation coefficient of water.  The default is the mass attenuation
-        coefficient (cm^2 / g) for X-rays of 100 keV, as given at:
-
-        https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-    rho_water : float, default=997e-3
-        Value to be used for the density of water.  If None, <mu_water>
-        is taken to represent a linear atteunuation coefficient.  Otherwise,
-        <mu_water> is taken to represent a mass attenuation coefficient.
-        The default is the density (g / cm^3) as given at:
-
-        https://material-properties.org/density-of-materials/
-
-    Note: The attenuation coefficients <mu>, <mu_water> and,
-    if they are not set to None, the densities <rho>, <rho_water>
-    should be in coherent units.
+    Note: The linar attenuation coefficients <mu> and <mu_water> should
+    have the same units.  For consistency with the units used for
+    image voxel dimensions, it's recommended that linear attenuation
+    coefficients be specified in units of mm^-1.  This is the case for
+    <mu_water> if the default value is used.
     """
-    if rho is not None:
-        mu *= rho
-    if rho_water is not None:
-        mu_water *= rho_water
+    if mu_water is None:
+        mu_water = Defaults().mu_water
 
     return (mu - mu_water) * (1000 / mu_water)
 
 
-def hu_to_mu(hu, rho=None, mu_water=1.707e-1, rho_water=997e-3):
+def hu_to_mu(hu, mu_water=None):
     """
-    Convert value(s) in Hounsfield units to linear attenuation coefficient(s)
-    or mass attenuation coefficient(s).
+    Convert value(s) in Hounsfield units to linear attenuation coefficient(s).
 
     **Parameters:**
 
     hu : float/numpy.ndarray
         Radiodensity, or array of radiodensities, in Hounsfield Units,
-        to be converted to linear attenuation coefficient(s) or
-        mass attenuation coefficient(s).
+        to be converted to linear attenuation coefficient(s).
 
-    rho : float, default=None
-        Value to be used for density of material for which <hu> is given.
-        If None, the linear attenuation coefficient(s) corresponding to <hu>
-        will be returned.  Otherwise, the mass attenuation coefficient(s)
-        corresponding to <hu> will be returned.
+    mu_water : float, default=None
+        Value to be used for the linear attenuation coefficient of water.
+        If None, set to the value of skrt.core.Defaults().mu_water
 
-    mu_water : float, default=1.707e-1
-        If <rho_water> is None, value to be used for the linear attenuation
-        coefficient of water.  Otherwise, value to be used for the mass
-        attenuation coefficient of water.  The default is the mass attenuation
-        coefficient (cm^2 / g) for X-rays of 100 keV, as given at:
-
-        https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-    rho_water : float, default=997e-3
-        Value to be used for the density of water.  If None, <mu_water>
-        is taken to represent a linear atteunuation coefficient.  Otherwise,
-        <mu_water> is taken to represent a mass attenuation coefficient.
-        The default is the density (g / cm^3) as given at:
-
-        https://material-properties.org/density-of-materials/
-
-    Note: The attenuation coefficients <mu>, <mu_water> and,
-    if they are not set to None, the densities <rho>, <rho_water>,
-    should be in coherent units.
+    Note: The linar attenuation coefficient(s) returned will be in the
+    same units as <mu_water>.  For consistency with the units used for
+    image voxel dimensions, it's recommended that <mu_water> be specified
+    in units of mm^-1.  This is the case if the default value is used.
     """
-    if rho_water is not None:
-        mu_water *= rho_water
+    if mu_water is None:
+        mu_water = Defaults().mu_water
 
-    mu = (hu * (mu_water / 1000)) + mu_water
-    if rho is None:
-        return mu
-    return mu / rho
+    return (hu * (mu_water / 1000)) + mu_water

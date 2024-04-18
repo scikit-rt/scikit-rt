@@ -6,7 +6,7 @@ import shutil
 
 import numpy as np
 
-from skrt.core import hu_to_mu, is_list, mu_to_hu, to_list
+from skrt.core import Defaults, hu_to_mu, is_list, mu_to_hu, to_list
 from skrt.image import Image, _axes
 from skrt.patient import Patient
 from skrt.structures import StructureSet, ROI
@@ -526,90 +526,62 @@ class SyntheticImage(Image):
 
         return None
 
-    def mu_to_hu(self, mu_water=1.707e-1, rho_water=997e-3):
+    def mu_to_hu(self, mu_water=None):
         """
         Assume that image greyscale values are linear attenuation
         coefficients, and convert to Hounsfield units.
 
-        **Parameters:**
+        **Parameter:**
 
-        mu_water : float, default=1.707e-1
-            If <rho_water> is None, value to be used for the linear attenuation
-            coefficient of water.  Otherwise, value to be used for the mass
-            attenuation coefficient of water.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
+        mu_water : float, default=None
+            Value to be used for the linear attenuation coefficient of water.
+            If None, set to the value of skrt.core.Defaults().mu_water.
 
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_water : float, default=997e-3
-            Value to be used for the density of water.  If None, <mu_water>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_water> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water> and, if they are
-        not set to None, the densities <rho_water> should be in coherent units.
+        Note: Image linear attenuation coefficients and <mu_water> should
+        have the same units.  For consistency with the units used for
+        image voxel dimensions, it's recommended that linear attenuation
+        coefficients be specified in units of mm^-1.
         """
         # Convert background intensity.
-        self.bg_intensity = mu_to_hu(
-                self.bg_intensity, None, mu_water, rho_water)
+        self.bg_intensity = mu_to_hu(self.bg_intensity, mu_water)
 
         # Convert standard deviation of Gaussian noise.
         if self.noise_std is not None:
-            self.noise_std = mu_to_hu(
-                    self.noise_std, None, mu_water, rho_water)
+            self.noise_std = mu_to_hu(self.noise_std, mu_water)
 
         # Convert shape intensities.
         for shape in self.shapes:
-            shape.intensity = mu_to_hu(
-                    shape.intensity, None, mu_water, rho_water)
+            shape.intensity = mu_to_hu(shape.intensity, mu_water)
 
         # Update image data.
         self.update()
 
-    def hu_to_mu(self, mu_water=1.707e-1, rho_water=997e-3):
+    def hu_to_mu(self, mu_water=None):
         """
         Assume that image greyscale values are Hounsfield units,
         and convert to linear attenuation coefficients.
 
-        **Parameters:**
+        **Parameter:**
 
-        mu_water : float, default=1.707e-1
-            If <rho_water> is None, value to be used for the linear attenuation
-            coefficient of water.  Otherwise, value to be used for the mass
-            attenuation coefficient of water.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
+        mu_water : float, default=None
+            Value to be used for the linear attenuation coefficient of water.
+            If None, set to the value of skrt.core.Defaults().mu_water.
 
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_water : float, default=997e-3
-            Value to be used for the density of water.  If None, <mu_water>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_water> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water> and, if they are
-        not set to None, the densities <rho_water> should be in coherent units.
+        Note: Image linear attenuation coefficients will be returned
+        in the same units as <mu_water>.  For consistency with the units
+        used for image voxel dimensions, it's recommended that <mu_water>
+        be specified in units of mm^-1.
         """
         # Convert background intensity.
-        self.bg_intensity = hu_to_mu(
-                self.bg_intensity, None, mu_water, rho_water)
+        self.bg_intensity = hu_to_mu(self.bg_intensity, mu_water)
 
         # Convert standard deviation of Gaussian noise.
         if self.noise_std is not None:
-            self.noise_std = hu_to_mu(
-                    self.noise_std, None, mu_water, rho_water)
+            self.noise_std = hu_to_mu(self.noise_std, mu_water)
 
         # Convert shape intensities.
         for shape in self.shapes:
-            shape.intensity = hu_to_mu(
-                    shape.intensity, None, mu_water, rho_water)
+            shape.intensity = hu_to_mu(shape.intensity, mu_water)
 
         # Update image data.
         self.update()

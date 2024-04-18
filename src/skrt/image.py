@@ -5410,36 +5410,24 @@ class Image(skrt.core.Archive):
         metric = "correlation_quality"
         return self.get_quality(image, metrics=[metric])[metric]
 
-    def mu_to_hu(self, mu_water=1.707e-1, rho_water=997e-3):
+    def mu_to_hu(self, mu_water=None):
         """
         Assume that image greyscale values are linear attenuation
         coefficients, and convert to Hounsfield units.
 
-        **Parameters:**
+        **Parameter:**
 
-        mu_water : float, default=1.707e-1
-            If <rho_water> is None, value to be used for the linear attenuation
-            coefficient of water.  Otherwise, value to be used for the mass
-            attenuation coefficient of water.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
+        mu_water : float, default=None
+            Value to be used for the linear attenuation coefficient of water.
+            If None, set to the value of skrt.core.Defaults().mu_water.
 
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_water : float, default=997e-3
-            Value to be used for the density of water.  If None, <mu_water>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_water> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water> and, if they are
-        not set to None, the densities <rho_water> should be in coherent units.
+        Note: Image linear attenuation coefficients and <mu_water> should
+        have the same units.  For consistency with the units used for
+        image voxel dimensions, it's recommended that linear attenuation
+        coefficients be specified in units of mm^-1.
         """
         self.load()
-        self.data = skrt.core.mu_to_hu(
-                self.data, None, mu_water, rho_water)
+        self.data = skrt.core.mu_to_hu(self.data, mu_water)
 
         # Remove any prior standardised data.
         self._sdata = None
@@ -5448,36 +5436,24 @@ class Image(skrt.core.Archive):
         self._max = None
         self._min = None
 
-    def hu_to_mu(self, mu_water=1.707e-1, rho_water=997e-3):
+    def hu_to_mu(self, mu_water=None):
         """
         Assume that image greyscale values are Hounsfield units,
         and convert to linear attenuation coefficients.
 
         **Parameters:**
 
-        mu_water : float, default=1.707e-1
-            If <rho_water> is None, value to be used for the linear attenuation
-            coefficient of water.  Otherwise, value to be used for the mass
-            attenuation coefficient of water.  The default is the mass
-            attenuation coefficient (cm^2 / g) for X-rays of 100 keV,
-            as given at:
+        mu_water : float, default=None
+            Value to be used for the linear attenuation coefficient of water.
+            If None, set to the value of skrt.core.Defaults().mu_water.
 
-            https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients/
-
-        rho_water : float, default=997e-3
-            Value to be used for the density of water.  If None, <mu_water>
-            is taken to represent a linear atteunuation coefficient.  Otherwise,
-            <mu_water> is taken to represent a mass attenuation coefficient.
-            The default is the density (g / cm^3) as given at:
-
-            https://material-properties.org/density-of-materials/
-
-        Note: The attenuation coefficients <mu_water> and, if they are
-        not set to None, the densities <rho_water> should be in coherent units.
+        Note: Image linear attenuation coefficients will be returned
+        in the same units as <mu_water>.  For consistency with the units
+        used for image voxel dimensions, it's recommended that <mu_water>
+        be specified in units of mm^-1.
         """
         self.load()
-        self.data = skrt.core.hu_to_mu(
-                self.data, None, mu_water, rho_water)
+        self.data = skrt.core.hu_to_mu(self.data, mu_water)
 
         # Remove any prior standardised data.
         self._sdata = None
