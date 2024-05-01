@@ -2592,13 +2592,19 @@ def filtered_dict(items=None, filters=None):
                 if candidate in items and isinstance(items[candidate], dict):
                     if selection == candidate:
                         for key, val in items[candidate].items():
-                            items[key] = val
+                            if key in items:
+                                items[key].update(val)
+                            else:
+                                items[key] = val
                     del items[candidate]
     else:
         for selection in filters:
             if selection in items and isinstance(items[selection], dict):
                 for key, val in items[selection].items():
-                    items[key] = val
+                    if key in items:
+                        items[key].update(val)
+                    else:
+                        items[key] = val
                 del items[selection]
 
     return items
