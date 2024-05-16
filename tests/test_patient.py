@@ -250,10 +250,12 @@ def test_unsorted_images():
 
     # Create set of (duplicate) images and write to patient directory.
     im = sim.get_image()
+    patient_name = "anon"
     study_date = time.strftime("%Y%m%d")
     study_time = time.strftime("%H%M%S")
     study_instance_uid = generate_uid()
     header_extras = {
+            "Patient's Name": patient_name,
             "StudyDate": study_date,
             "StudyInstanceUID": study_instance_uid,
             "StudyTime": study_time
@@ -284,11 +286,16 @@ def test_unsorted_images():
         assert key == modality.lower()
         assert len(images) == len(series_numbers)
         for image in images:
-            series_number = image.get_dicom_dataset().SeriesNumber
+            dset = image.get_dicom_dataset()
+            series_number = dset.SeriesNumber
             assert series_number in series_numbers
             series_numbers2.append(series_number)
             image.load()
             image.data.shape == im.data.shape
+            assert patient_name == dset.PatientName
+            assert ([patient_name] ==
+                    [element.value for element in dset
+                     if "Patient's Name" == element.name])
     assert len(series_numbers) == len(series_numbers2)
 
 def test_pathlib_path():

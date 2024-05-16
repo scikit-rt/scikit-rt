@@ -718,7 +718,8 @@ class DicomWriter:
         """
 
         for attribute, value in self.header_extras.items():
-            setattr(self.dset, attribute.replace(" ", ""), value)
+            setattr(self.dset, attribute.replace(" ", "").replace("'s", ""),
+                    value)
 
     def write(self):
         """
