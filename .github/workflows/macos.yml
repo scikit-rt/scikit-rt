@@ -6,7 +6,8 @@ on: [push, pull_request]
 
 jobs:
   macos_test:
-    runs-on: "macos-latest"
+    runs-on: "macos-13"
+    # runs-on: "macos-latest"
 
     steps:
       - name: Checkout source
