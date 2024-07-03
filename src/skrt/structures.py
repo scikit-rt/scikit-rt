@@ -8452,7 +8452,8 @@ class StructureSet(skrt.core.Archive):
                 at least half of the ROIs exist).
                 - "overlap" : use overlap of ROIs.
                 - "sum" : use sum of ROIs.
-                - "staple" : use the STAPLE algorithm to calculate consensus.
+                - "staple" : use the SimpleITK.STAPLE() function to calculate
+                consensus.
 
         html : bool, default=False
             If True, the table will be converted to HTML text color-coded based
@@ -9490,9 +9491,16 @@ class StructureSet(skrt.core.Archive):
         return consensus_func(self, color=color, **kwargs)
 
     def get_staple(self, force=False, exclude=None, **kwargs):
-        """Get ROI object representing the STAPLE combination of ROIs in this
+        """
+        Get ROI object representing the STAPLE combination of ROIs in this
         structure set. If <exclude> is set to a string, the ROI with that name
         will be excluded from the calculation.
+
+        The SimpleITK,STAPLE() function used to create the STAPLE ROI
+        sometimes seems to get stuck when dealing with non-overlapping
+        ROIs.  To try to avoid this, when two or more ROIs are passed as
+        input, only ROIs overlapping with at least one other ROI are considered.
+        If this excludes all ROIs, a null ROI is returned.
 
         **Parameters:**
 
@@ -10370,7 +10378,15 @@ def create_dummy_image(
 
 
 def create_staple(rois, **kwargs):
-    """Create STAPLE ROI from list of ROIs."""
+    """
+    Create STAPLE ROI from list of ROIs.
+
+    The SimpleITK,STAPLE() function used to create the STAPLE ROI
+    sometimes seems to get stuck when dealing with non-overlapping
+    ROIs.  To try to avoid this, when two or more ROIs are passed as
+    input, only ROIs overlapping with at least one other ROI are considered.
+    If this excludes all ROIs, a null ROI is returned.
+    """
 
     # Try import SimpleITK
     try:
@@ -10381,9 +10397,35 @@ def create_staple(rois, **kwargs):
             "Try installing via: pip install simpleitk"
         )
 
+    n_roi = len(rois)
+    if 1 == n_roi:
+        # Accept single ROI,
+        staple_rois = rois
+    else:
+        # Exclude from STAPLE calculation any ROI not overlappint
+        # with at least one other ROI.
+        overlap_indices = []
+        for idx1 in range(n_roi - 1):
+            for idx2 in range(idx1 + 1, n_roi):
+                if idx1 in overlap_indices and idx2 in overlap_indices:
+                    continue
+                roi_overlap = create_roi_overlap([rois[idx1], rois[idx2]])
+                if roi_overlap.get_mask().max():
+                    for idx in [idx1, idx2]:
+                        if idx not in overlap_indices:
+                            overlap_indices.append(idx)
+                if n_roi == len(overlap_indices):
+                    break
+            if n_roi == len(overlap_indices):
+                break
+        staple_rois = [rois[idx] for idx in sorted(overlap_indices)]
+
+    if not staple_rois:
+        return create_roi_overlap(rois)
+
     # Get STAPLE mask
     roi_arrays = []
-    for roi in rois:
+    for roi in staple_rois:
         roi_arrays.append(
             sitk.GetImageFromArray(roi.get_mask(standardise=True).astype(int))
         )
