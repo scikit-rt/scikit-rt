@@ -3340,7 +3340,8 @@ comparison type. Options are:</p>
 <p>at least half of the ROIs exist).
 - “overlap” : use overlap of ROIs.
 - “sum” : use sum of ROIs.
-- “staple” : use the STAPLE algorithm to calculate consensus.</p>
+- “staple” : use the SimpleITK.STAPLE() function to calculate
+consensus.</p>
 </div></blockquote>
 </dd>
 <dt>html<span class="classifier">bool, default=False</span></dt><dd><p>If True, the table will be converted to HTML text color-coded based
@@ -3652,6 +3653,11 @@ otherwise, return None.</p>
 <dd><p>Get ROI object representing the STAPLE combination of ROIs in this
 structure set. If &lt;exclude&gt; is set to a string, the ROI with that name
 will be excluded from the calculation.</p>
+<p>The SimpleITK,STAPLE() function used to create the STAPLE ROI
+sometimes seems to get stuck when dealing with non-overlapping
+ROIs.  To try to avoid this, when two or more ROIs are passed as
+input, only ROIs overlapping with at least one other ROI are considered.
+If this excludes all ROIs, a null ROI is returned.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>force<span class="classifier">bool, default=False</span></dt><dd><p>If False and STAPLE ROI has already been created, the
@@ -4221,6 +4227,11 @@ direction.</p>
 <dt class="sig sig-object py" id="skrt.structures.create_staple">
 <span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">create_staple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rois</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.create_staple" title="Link to this definition"></a></dt>
 <dd><p>Create STAPLE ROI from list of ROIs.</p>
+<p>The SimpleITK,STAPLE() function used to create the STAPLE ROI
+sometimes seems to get stuck when dealing with non-overlapping
+ROIs.  To try to avoid this, when two or more ROIs are passed as
+input, only ROIs overlapping with at least one other ROI are considered.
+If this excludes all ROIs, a null ROI is returned.</p>
 </dd></dl>
 
 <dl class="py function">
