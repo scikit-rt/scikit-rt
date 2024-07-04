@@ -145,19 +145,25 @@ comparing results for each set of parameters with reference segmentations.</p></
 </ul>
 <p>The following are utility functions used by SingleAtlasSegmentation()
 and MultiAtlasSegmentation():</p>
-<p>ensure_dict() : Try to return a dictionary based on given input.
-ensure_image() : Try to return an Image based on given input.
-ensure_structure_set() : Try to return a StructureSet based on given input.
-get_atlases()
-get_contour_propagation_strategies()
-get_fixed_and_moving()
-get_option()
-get_options()
-get_segmentation_steps()
-get_steps()
-get_strategy()
-get_structure_set_index()
-select_atlases()</p>
+<ul class="simple">
+<li><p>ensure_dict() : Try to return a dictionary based on given input.</p></li>
+<li><p>ensure_image() : Try to return an Image based on given input.</p></li>
+<li><p>ensure_structure_set() : Try to return a StructureSet based on given input.</p></li>
+<li><p>get_atlases() : Obtain dictionary of atlas tuples
+(structure set and associated image).</p></li>
+<li><p>get_contour_propagation_strategies() : Return list of contour
+propagation strategies for registration engine.</p></li>
+<li><p>get_fixed_and_moving() : Order target and atlas images as fixed and moving,
+depending on strategy.</p></li>
+<li><p>get_option() : Apply logic for selecting an allowed option.</p></li>
+<li><p>get_options() : Apply logic for selecting a list of allowed options.</p></li>
+<li><p>get_segmentation_steps() : Return list of segmentation steps.</p></li>
+<li><p>get_steps() : Get list of segmentation steps to run.</p></li>
+<li><p>get_strategy() : Apply logic for selecting an allowed strategy
+for contour propagation.</p></li>
+<li><p>get_structure_set_index()</p></li>
+<li><p>select_atlases() : Select atlases to register against target.</p></li>
+</ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="skrt.segmentation.MultiAtlasSegmentation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">MultiAtlasSegmentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'segmentation_workdir'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_strategies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_reg_setup_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pull'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_slice_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_by_slice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'majority'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_consensus_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'majority'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.MultiAtlasSegmentation" title="Link to this definition"></a></dt>
@@ -437,6 +443,10 @@ include any other keys of skrt.registration.engines.</p>
 <dt class="sig sig-object py" id="skrt.segmentation.get_fixed_and_moving">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_fixed_and_moving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_fixed_and_moving" title="Link to this definition"></a></dt>
 <dd><p>Order target and atlas images as fixed and moving, depending on strategy.</p>
+<p>For “push” strategy (ROI masks pulled from moving image), the
+target image is fixed and the atlas image is moving.</p>
+<p>For “pull” strategy (ROI contours pushed to moving image), the
+atlas image is fixed and the target image is moving.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>im1: skrt.image.Image</dt><dd><p>Target image.</p>
@@ -451,19 +461,19 @@ include any other keys of skrt.registration.engines.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_option">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_option</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_option" title="Link to this definition"></a></dt>
-<dd><p>Apply logic for selection allowed option.</p>
+<dd><p>Apply logic for selecting an allowed option.</p>
 <p><strong>Parameters:</strong></p>
 <dl>
 <dt>opt: int/bool/other/None, default=None</dt><dd><p>Specification of option:
 - if an element of &lt;allowed_opts&gt;, &lt;opt&gt; is returned;
 - if an integer, element &lt;opt&gt; of &lt;allowed_opts&gt; is returned;
 - if False, an empty string is returned;
-- if neither &lt;opt&gt; not &lt;fallback_opt&gt; is an element of &lt;allowed_opts&gt;,</p>
+- if neither &lt;opt&gt; nor &lt;fallback_opt&gt; is an element of &lt;allowed_opts&gt;,</p>
 <blockquote>
-<div><p>an integer, or False, element -1 or &lt;allowed_opts&gt; is returned.</p>
+<div><p>an integer, or False, then element -1 of &lt;allowed_opts&gt; is returned.</p>
 </div></blockquote>
 </dd>
-<dt>fallback_opt: int/bool/other/None, default=None</dt><dd><p>Alternative specification of option.  Considered in the same was as
+<dt>fallback_opt: int/bool/other/None, default=None</dt><dd><p>Alternative specification of option.  Considered in the same way as
 &lt;opt&gt;, if the latter isn’t an element of &lt;allowed_opts&gt;, an integer,
 or False.</p>
 </dd>
@@ -475,7 +485,33 @@ or False.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_options">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_opts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_options" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Apply logic for selecting a list of allowed options.</p>
+<p><strong>Parameters:</strong></p>
+<dl>
+<dt>opts: int/bool/other/None/list, default=None</dt><dd><p>Specification of options:
+- if an element of &lt;allowed_opts&gt;, [&lt;opt&gt;] is returned;
+- if an integer, a list containing element &lt;opt&gt; of &lt;allowed_opts&gt;</p>
+<blockquote>
+<div><p>is returned;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>if False, an empty list is returned;</p></li>
+<li><p>if True, &lt;allowed_opts&gt; is returned;</p></li>
+<li><p>if a non-empty list, a list containing the values obtained by
+calling get_options for each input element is returned;</p></li>
+<li><p>if &lt;opts&gt; isn’t an element of &lt;allowed_opts&gt;, an integer, False,
+True, or a non-empty list, and &lt;fallback_opts&gt; is None, then 
+a list containing element -1 of &lt;allowed_opts&gt; is returned.</p></li>
+</ul>
+</dd>
+<dt>fallback_opts: int/bool/other/None/list, default=None</dt><dd><p>Alternative specification of options.  Considered in the same way as
+&lt;opts&gt;, if the latter isn’t an element of &lt;allowed_opts&gt;, an integer,
+False, True, or a non-empty list.</p>
+</dd>
+<dt>allowed_opts: list, default=None</dt><dd><p>List of allowed options.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_segmentation_steps">
@@ -500,12 +536,48 @@ or False.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_strategy">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_strategy" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Apply logic for selecting an allowed strategy for contour propagation.</p>
+<p><strong>Parameters</strong>:</p>
+<dl>
+<dt>strategy<span class="classifier">str/other, default=None</span></dt><dd><p>First choice strategy for contour propagation.  If a string
+identifying a strategy supported by the registration engine used,
+&lt;strategy&gt; is returned.  If any other string, an exception is raised.
+If not a string, &lt;fallback_strategy&gt; is considered.</p>
+</dd>
+<dt>fallback_strategy<span class="classifier">str, default=None</span></dt><dd><p>Fallback strategy for contour propagation, considered if
+&lt;strategy&gt; isn’t a string.  In this case:
+- if a string identifying a strategy supported by the</p>
+<blockquote>
+<div><p>registration engine used, &lt;fallback_strategy&gt; is returned;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>if an integer, element &lt;fallback_strategy&gt; of the list
+of strategies returned by
+skrt.segmentation.get_contour_propagation_strategies()
+is returned;</p></li>
+<li><p>otherwise, element -1 of the list of strategies returned by
+skrt.segmentation.get_contour_propagation_strategies()
+is returned.</p></li>
+</ul>
+</dd>
+<dt>engine: str, default=None</dt><dd><p>String identifying registration engine, corresponding to
+a key of the dictionary skrt.registration.engines.</p>
+</dd>
+<dt>engine_dir: pathlib.Path/str, default=None</dt><dd><p>Path to directory containing registration-engine software.
+It’s assumed that the registration engine is a key of
+the dictionary skrt.registration.engines, that the directory
+path includes this key, and that directory path doesn’t
+include any other keys of skrt.registration.engines.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.get_structure_set_index">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_structure_set_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ss_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_structure_set_index" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Get positive index identifying structure set associated with an image.</p>
+<p><strong>Parameters</strong></p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.segmentation.select_atlases">
