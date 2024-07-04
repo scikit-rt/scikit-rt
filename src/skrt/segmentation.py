@@ -30,19 +30,23 @@ The following classes are defined:
 The following are utility functions used by SingleAtlasSegmentation()
 and MultiAtlasSegmentation():
 
-ensure_dict() : Try to return a dictionary based on given input.
-ensure_image() : Try to return an Image based on given input.
-ensure_structure_set() : Try to return a StructureSet based on given input.
-get_atlases()
-get_contour_propagation_strategies()
-get_fixed_and_moving()
-get_option()
-get_options()
-get_segmentation_steps()
-get_steps()
-get_strategy()
-get_structure_set_index()
-select_atlases()
+- ensure_dict() : Try to return a dictionary based on given input.
+- ensure_image() : Try to return an Image based on given input.
+- ensure_structure_set() : Try to return a StructureSet based on given input.
+- get_atlases() : Obtain dictionary of atlas tuples
+  (structure set and associated image).
+- get_contour_propagation_strategies() : Return list of contour
+  propagation strategies for registration engine.
+- get_fixed_and_moving() : Order target and atlas images as fixed and moving,
+  depending on strategy.
+- get_option() : Apply logic for selecting an allowed option.
+- get_options() : Apply logic for selecting a list of allowed options.
+- get_segmentation_steps() : Return list of segmentation steps.
+- get_steps() : Get list of segmentation steps to run.
+- get_strategy() : Apply logic for selecting an allowed strategy
+  for contour propagation.
+- get_structure_set_index()
+- select_atlases() : Select atlases to register against target.
 """
 
 from collections.abc import Iterable
@@ -1566,6 +1570,12 @@ def get_fixed_and_moving(im1, im2, strategy):
     """
     Order target and atlas images as fixed and moving, depending on strategy.
 
+    For "push" strategy (ROI masks pulled from moving image), the
+    target image is fixed and the atlas image is moving.
+
+    For "pull" strategy (ROI contours pushed to moving image), the
+    atlas image is fixed and the target image is moving.
+
     **Parameters:**
 
     im1: skrt.image.Image
@@ -1582,7 +1592,7 @@ def get_fixed_and_moving(im1, im2, strategy):
 
 def get_option(opt=None, fallback_opt=None, allowed_opts=None):
     """
-    Apply logic for selection allowed option.
+    Apply logic for selecting an allowed option.
 
     **Parameters:**
 
@@ -1591,18 +1601,17 @@ def get_option(opt=None, fallback_opt=None, allowed_opts=None):
         - if an element of <allowed_opts>, <opt> is returned;
         - if an integer, element <opt> of <allowed_opts> is returned;
         - if False, an empty string is returned;
-        - if neither <opt> not <fallback_opt> is an element of <allowed_opts>,
-          an integer, or False, element -1 or <allowed_opts> is returned.
+        - if neither <opt> nor <fallback_opt> is an element of <allowed_opts>,
+          an integer, or False, then element -1 of <allowed_opts> is returned.
 
     fallback_opt: int/bool/other/None, default=None
-        Alternative specification of option.  Considered in the same was as
+        Alternative specification of option.  Considered in the same way as
         <opt>, if the latter isn't an element of <allowed_opts>, an integer,
         or False.
 
     allowed_opts: list, default=None
         List of allowed options.
     """
-
     if not is_list(allowed_opts) or 0 == len(allowed_opts):
         raise RuntimeError("No allowed options specified")
 
@@ -1618,6 +1627,32 @@ def get_option(opt=None, fallback_opt=None, allowed_opts=None):
 
 
 def get_options(opts=None, fallback_opts=None, allowed_opts=None):
+    """
+    Apply logic for selecting a list of allowed options.
+
+    **Parameters:**
+
+    opts: int/bool/other/None/list, default=None
+        Specification of options:
+        - if an element of <allowed_opts>, [<opt>] is returned;
+        - if an integer, a list containing element <opt> of <allowed_opts>
+          is returned;
+        - if False, an empty list is returned;
+        - if True, <allowed_opts> is returned;
+        - if a non-empty list, a list containing the values obtained by
+          calling get_options for each input element is returned;
+        - if <opts> isn't an element of <allowed_opts>, an integer, False,
+          True, or a non-empty list, and <fallback_opts> is None, then 
+          a list containing element -1 of <allowed_opts> is returned.
+
+    fallback_opts: int/bool/other/None/list, default=None
+        Alternative specification of options.  Considered in the same way as
+        <opts>, if the latter isn't an element of <allowed_opts>, an integer,
+        False, True, or a non-empty list.
+
+    allowed_opts: list, default=None
+        List of allowed options.
+    """
     if not is_list(allowed_opts) or not allowed_opts:
         raise RuntimeError("No allowed options specified")
 
@@ -1661,7 +1696,6 @@ def get_steps(step):
         - if a string or integer, the corresponding step is to be run;
         - if a list, all listed steps are to be run.
     """
-
     # Obtain list of all segmentation steps.
     all_steps = get_segmentation_steps()
 
@@ -1696,6 +1730,41 @@ def get_steps(step):
 def get_strategy(
     strategy=None, fallback_strategy=None, engine=None, engine_dir=None
 ):
+    """
+    Apply logic for selecting an allowed strategy for contour propagation.
+
+    **Parameters**:
+
+    strategy : str/other, default=None
+        First choice strategy for contour propagation.  If a string
+        identifying a strategy supported by the registration engine used,
+        <strategy> is returned.  If any other string, an exception is raised.
+        If not a string, <fallback_strategy> is considered.
+
+    fallback_strategy : str, default=None
+        Fallback strategy for contour propagation, considered if
+        <strategy> isn't a string.  In this case:
+        - if a string identifying a strategy supported by the
+          registration engine used, <fallback_strategy> is returned;
+        - if an integer, element <fallback_strategy> of the list
+          of strategies returned by
+          skrt.segmentation.get_contour_propagation_strategies()
+          is returned;
+        - otherwise, element -1 of the list of strategies returned by
+          skrt.segmentation.get_contour_propagation_strategies()
+          is returned.
+
+    engine: str, default=None
+        String identifying registration engine, corresponding to
+        a key of the dictionary skrt.registration.engines.
+
+    engine_dir: pathlib.Path/str, default=None
+        Path to directory containing registration-engine software.
+        It's assumed that the registration engine is a key of
+        the dictionary skrt.registration.engines, that the directory
+        path includes this key, and that directory path doesn't
+        include any other keys of skrt.registration.engines.
+    """
     allowed_strategies = get_contour_propagation_strategies(engine, engine_dir)
     if isinstance(strategy, str) and strategy not in allowed_strategies:
         word = "strategy" if 1 == len(allowed_strategies) else "strategies"
@@ -1704,10 +1773,18 @@ def get_strategy(
             f"Implemented {word} for '{engine}' ('{engine_dir}'): "
             f"{allowed_strategies}"
         )
+    if (not isinstance(fallback_strategy, str)
+        and not isinstance(fallback_strategy, int)):
+        fallback_strategy = None
     return get_option(strategy, fallback_strategy, allowed_strategies)
 
 
 def get_structure_set_index(ss_index, im):
+    """
+    Get positive index identifying structure set associated with an image.
+
+    **Parameters**
+    """
     if (
         ss_index < 0
         and isinstance(im, Image)
