@@ -1798,7 +1798,7 @@ def get_structure_set_index(ss_index, im):
         set is to be returned.
     """
     index = None
-    if isinstance(ss_index, int):
+    if isinstance(im, Image) and isinstance(ss_index, int):
         if ss_index < 0:
             index = len(im.structure_sets) + ss_index
             if index < 0:
