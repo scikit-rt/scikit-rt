@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>skrt.segmentation module &mdash; Scikit-rt 0.7.4 documentation</title>
@@ -161,7 +161,8 @@ depending on strategy.</p></li>
 <li><p>get_steps() : Get list of segmentation steps to run.</p></li>
 <li><p>get_strategy() : Apply logic for selecting an allowed strategy
 for contour propagation.</p></li>
-<li><p>get_structure_set_index()</p></li>
+<li><p>get_structure_set_index() : Get positive index identifying structure set
+associated with an image.</p></li>
 <li><p>select_atlases() : Select atlases to register against target.</p></li>
 </ul>
 <dl class="py class">
@@ -576,7 +577,17 @@ include any other keys of skrt.registration.engines.</p>
 <dt class="sig sig-object py" id="skrt.segmentation.get_structure_set_index">
 <span class="sig-prename descclassname"><span class="pre">skrt.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_structure_set_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ss_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.segmentation.get_structure_set_index" title="Link to this definition"></a></dt>
 <dd><p>Get positive index identifying structure set associated with an image.</p>
+<p>If a structure set corresponding to the input index isn’t found,
+None is returned.</p>
 <p><strong>Parameters</strong></p>
+<dl class="simple">
+<dt>ss_index<span class="classifier">int</span></dt><dd><p>Positive or negative index identifying structure set in the list
+of structure sets associated with an image.</p>
+</dd>
+<dt>im<span class="classifier">skrt.image.Image</span></dt><dd><p>Image for which positive index identifying associated structure
+set is to be returned.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
