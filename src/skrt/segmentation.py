@@ -45,7 +45,8 @@ and MultiAtlasSegmentation():
 - get_steps() : Get list of segmentation steps to run.
 - get_strategy() : Apply logic for selecting an allowed strategy
   for contour propagation.
-- get_structure_set_index()
+- get_structure_set_index() : Get positive index identifying structure set
+  associated with an image.
 - select_atlases() : Select atlases to register against target.
 """
 
@@ -1783,15 +1784,26 @@ def get_structure_set_index(ss_index, im):
     """
     Get positive index identifying structure set associated with an image.
 
+    If a structure set corresponding to the input index isn't found,
+    None is returned.
+
     **Parameters**
+
+    ss_index : int
+        Positive or negative index identifying structure set in the list
+        of structure sets associated with an image.  
+
+    im : skrt.image.Image
+        Image for which positive index identifying associated structure
+        set is to be returned.
     """
-    if (
-        ss_index < 0
-        and isinstance(im, Image)
-        and len(im.structure_sets) <= abs(ss_index)
-    ):
-        return len(im.structure_sets) + ss_index
-    return ss_index
+    index = None
+    if isinstance(ss_index, int):
+        if ss_index < 0:
+            index = len(im.structure_sets) + ss_index
+            if index < 0:
+                index = None
+    return index
 
 
 def select_atlases(
