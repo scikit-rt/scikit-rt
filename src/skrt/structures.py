@@ -8392,7 +8392,7 @@ class StructureSet(skrt.core.Archive):
                     roi, grey=(roi in greyed_out), color=color
                 )
                 if name_as_index:
-                    df_row.rename({df_row.index[0]: col_str}, inplace=True)
+                    df_row = df_row.rename({df_row.index[0]: col_str})
                 else:
                     df_row.iloc[0, 0] = col_str
 
@@ -10555,7 +10555,7 @@ def compare_roi_pairs(
             roi2, colored=colored, grey=grey, roi_kwargs=roi_kwargs
         )
         if name_as_index:
-            df_row.rename({df_row.index[0]: comp_name}, inplace=True)
+            df_row = df_row.rename({df_row.index[0]: comp_name})
         else:
             df_row.iloc[0, 0] = comp_name
 
