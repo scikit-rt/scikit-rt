@@ -60,6 +60,8 @@ im_nii = Image(nii_file)
 
 # Create a test dicom file
 dcm_file = "tmp/tmp_dcm"
+if os.path.exists(dcm_file):
+    shutil.rmtree(dcm_file)
 im.write(dcm_file, header_extras={'RescaleSlope': 1})
 im_dcm = Image(dcm_file)
 
@@ -200,17 +202,16 @@ def test_dcm_to_nifti():
     assert np.all(naffine == im_dcm2nii.affine)
     assert np.all(ndata == im_dcm2nii.data)
 
-    # Check standardised data is the same
-    im_dcm.standardise_data()
-    im_dcm2nii.standardise_data()
+    # Check standardised data are the same
     assert np.all(im_dcm._saffine == im_dcm2nii._saffine)
     assert np.all(im_dcm._sdata == im_dcm2nii._sdata)
 
 def test_dcm_to_dcm():
-    """Check that a dicom file is correctly written to dicom."""
-
+    """
+    Check that an image created from a dicom source
+    is correctly written to dicom.
+    """
     # Write to dicom
-    dcm = "tmp/tmp_dcm2"
     series_description = 'Image series'
     study_description = 'Image study'
     # Test that tag can be with or without spaces
@@ -218,14 +219,21 @@ def test_dcm_to_dcm():
             'RescaleSlope' : 1,
             'SeriesDescription' : series_description,
             'Study Description' : study_description}
-    im_dcm.write(dcm, header_extras=header_extras)
-    im_dcm2 = Image(dcm)
-    assert im_dcm2.get_dicom_dataset().SeriesDescription == series_description
-    assert im_dcm2.get_dicom_dataset().StudyDescription == study_description
 
-    assert im_dcm.data.shape == im_dcm2.data.shape
-    assert np.all(im_dcm.affine == im_dcm2.affine)
-    assert np.all(im_dcm.data == im_dcm2.data)
+    images = [Image(im_dcm.source), Image(f"{im_dcm.source}/*.dcm")]
+    assert np.all(images[0].data == im_dcm.data)
+    for idx, image in enumerate(images):
+        dcm = f"tmp/tmp_dcm{2 + idx}"
+        if os.path.exists(dcm):
+            shutil.rmtree(dcm)
+        image.write(dcm, header_extras=header_extras)
+        im1 = Image(dcm)
+        assert im1.get_dicom_dataset().SeriesDescription == series_description
+        assert im1.get_dicom_dataset().StudyDescription == study_description
+
+        assert im_dcm.data.shape == im1.data.shape
+        assert np.all(im_dcm.affine == im1.affine)
+        assert np.all(im_dcm.data == im1.data)
 
 def test_nifti_to_dcm():
     """Check that a nifti file can be written to dicom using a fresh header."""

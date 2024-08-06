@@ -337,7 +337,10 @@ class DicomWriter:
             # See if the source points to a DICOM file.
             else:
                 dcm_path = None
-                source = Path(fullpath(str(self.header_source)))
+                if isinstance(self.header_source, list):
+                    source = Path(fullpath(str(self.header_source[0])))
+                else:
+                    source = Path(fullpath(str(self.header_source)))
                 if source.is_file():
                     dcm_path = source
                 elif source.is_dir():
