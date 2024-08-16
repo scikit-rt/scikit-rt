@@ -6236,7 +6236,7 @@ def get_dicom_paths(path):
             return paths
 
         # Assign TransferSyntaxUID if missing
-        if not hasattr(ds, "TransferSyntaxUID"):
+        if not hasattr(ds.file_meta, "TransferSyntaxUID"):
             ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
         # Check whether there are multiple files for this image
@@ -6466,7 +6466,7 @@ def load_dicom_single_file(path):
     ds = pydicom.dcmread(path, force=True)
 
     # Fill empty TransferSyntaxUID
-    if not hasattr(ds, "TransferSyntaxUID"):
+    if not hasattr(ds.file_meta, "TransferSyntaxUID"):
         ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
     # Get data and transpose such that it's a 3D array with slice in last
@@ -6566,6 +6566,8 @@ def get_dicom_voxel_size(ds):
             slice_thickness = abs(
                 ds.GridFrameOffsetVector[1] - ds.GridFrameOffsetVector[0]
             )
+    if not slice_thickness:
+        slice_thickness = 1
 
     return pixel_size[0], pixel_size[1], slice_thickness
 
