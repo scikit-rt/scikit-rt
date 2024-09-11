@@ -2270,6 +2270,8 @@ class ROI(skrt.core.Archive):
             nonzero = np.argwhere(self.get_mask(standardise=True))
         else:
             nonzero = np.argwhere(self.get_slice(view, sl=sl, idx=idx, pos=pos))
+        if nonzero.size <= i_ax:
+            return [None, None]
         vals = nonzero[:, i_ax]
         if not len(vals):
             return [None, None]
