@@ -1172,7 +1172,7 @@ class ROI(skrt.core.Archive):
                 # Loop over each contour on the z slice
                 iz = int(self.pos_to_idx(z, "z"))
                 # Ignore slices outside mask range
-                if iz >= self.mask.data.shape[2]:
+                if iz < 0 or iz >= self.mask.data.shape[2]:
                     continue
 
                 pos_to_idx_vec = np.vectorize(self.pos_to_idx)
