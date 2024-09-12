@@ -1678,7 +1678,7 @@ class ROI(skrt.core.Archive):
             # Compute centroid from 2D or 3D binary mask
             non_zero = np.argwhere(data)
             if not len(non_zero):
-                if data.ndim == 2:
+                if getattr(data, "ndim", 0) == 2:
                     return None, None
                 else:
                     return None, None, None
