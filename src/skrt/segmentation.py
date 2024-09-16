@@ -1196,6 +1196,8 @@ class SingleAtlasSegmentation(Data):
                     self.steps[0],
                     self.most_points1,
                 )
+                if "push" == strategy and self.initial_alignment is not None:
+                    reg.get_transformed_image(0)
 
         if self.steps[1] in steps and (
             not self.registrations[strategy][self.steps[1]]
@@ -1286,6 +1288,8 @@ class SingleAtlasSegmentation(Data):
                         self.steps[1],
                         self.most_points2,
                     )
+                    if "push" == strategy:
+                        reg.get_transformed_image(0)
 
             for reg_step in list(self.segmentations[strategy][self.steps[1]]):
                 if self.segmentations[strategy][self.steps[1]][reg_step]:
