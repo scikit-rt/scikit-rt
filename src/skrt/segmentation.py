@@ -389,13 +389,14 @@ class MultiAtlasSegmentation(Data):
         if reg_step not in self.consensuses[strategy][step]:
             self.consensuses[strategy][step][reg_step] = {}
 
-        all_rois = {roi_name: [] for roi_name in self.roi_names}
+        all_rois = {}
         for atlas_id in atlas_ids:
             sas = self.get_sas(atlas_id)
             ss = sas.get_segmentation(strategy, step, reg_step)
             for roi in ss.get_rois():
-                if roi.name in all_rois:
-                    all_rois[roi.name].append(roi)
+                if not roi.name in all_rois:
+                    all_rois[roi.name] = []
+                all_rois[roi.name].append(roi)
 
         atlas_ids = set(atlas_ids)
         for consensus_type in consensus_types:
@@ -1151,7 +1152,11 @@ class SingleAtlasSegmentation(Data):
                 else:
                     self.ss1_filtered = None
 
-                self.ss2_filtered = im2.structure_sets[0]
+                if im2.structure_sets:
+                    self.ss2_filtered = im2.structure_sets[0]
+                else:
+                    self.ss2_filtered = None
+
                 if not self.roi_names:
                     self.roi_names = {
                         roi_name: roi_name
@@ -1186,7 +1191,7 @@ class SingleAtlasSegmentation(Data):
                     else reg.moving_source
                 )
                 self.segment_structure_set(
-                    im2.get_structure_sets()[0],
+                    self.ss2_filtered,
                     strategy,
                     self.steps[0],
                     self.most_points1,
@@ -1196,14 +1201,22 @@ class SingleAtlasSegmentation(Data):
             not self.registrations[strategy][self.steps[1]]
             or not self.segmentations[strategy][self.steps[1]]
         ):
-            if not self.registrations[strategy][self.steps[1]]:
-                for roi_name in self.roi_names:
+            ss1 = self.get_segmentation(strategy, 0, -1)
+            if not ss1.get_roi_names():
+                for reg_step in self.get_reg_steps(self.steps[1]):
+                    self.segmentations[strategy][self.steps[1]][reg_step] = (
+                            StructureSet(
+                                name=f"{strategy}_{self.steps[1]}_{reg_step}"
+                                )
+                            )
+            elif not self.registrations[strategy][self.steps[1]]:
+                for roi_name in ss1.get_roi_names():
                     im1, im2 = match_images(
                         im1=self.im1,
                         im2=self.im2,
                         ss1_index=self.ss1_index,
                         ss2_index=self.ss2_index,
-                        ss1=self.get_segmentation(strategy, 0, -1),
+                        ss1=ss1,
                         ss2=self.ss2,
                         ss1_name=self.ss1_name,
                         ss2_name=self.ss2_name,
@@ -1260,7 +1273,7 @@ class SingleAtlasSegmentation(Data):
                 for reg_step in self.pfiles2:
                     self.segmentations[strategy][self.steps[1]][reg_step] = {}
 
-                for roi_name in self.roi_names:
+                for roi_name in ss1.get_roi_names():
                     reg = self.registrations[strategy][self.steps[1]][roi_name]
                     im2 = (
                         reg.fixed_source
@@ -1318,6 +1331,9 @@ class SingleAtlasSegmentation(Data):
             if strategy == "pull" and most_points:
                 self.segmentations[strategy][step][reg_step][
                     roi.name
+                ].set_image(self.im1)
+                self.segmentations[strategy][step][reg_step][
+                    roi.name
                 ].reset_contours(most_points=True)
 
     def segment_structure_set(self, ss, strategy, step, most_points=True):
@@ -1339,6 +1355,11 @@ class SingleAtlasSegmentation(Data):
                 outfile=outfile,
             )
             self.segmentations[strategy][step][reg_step] = StructureSet(outfile)
+            self.segmentations[strategy][step][reg_step].rois = [
+                    roi for roi in
+                    self.segmentations[strategy][step][reg_step].get_rois()
+                    if not roi.is_empty()
+                    ]
 
             if strategy == "pull" and most_points:
                 self.segmentations[strategy][step][reg_step].reset_contours(
