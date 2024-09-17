@@ -53,20 +53,24 @@ and MultiAtlasSegmentation():
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
-from inspect import signature
+from inspect import getfullargspec, signature
 from itertools import combinations
 from pathlib import Path
 import random
-from shutil import rmtree
+from shutil import copy2, rmtree
 
 import pandas as pd
+from tomli_w import dump
 
 from skrt.core import (
     Data,
     Defaults,
+    fullpath,
     get_dict_permutations,
     get_logger,
     is_list,
+    load_toml,
+    make_dir,
     tic,
     toc,
 )
@@ -124,7 +128,7 @@ class MultiAtlasSegmentation(Data):
         self.ss1 = ensure_structure_set(ss1)
         self.ss2 = ensure_dict(ss2, ensure_structure_set)
         for idx in self.im2:
-            if idx is not self.ss2:
+            if idx not in self.ss2:
                 self.ss2[idx] = None
 
         # Set up event logging.
@@ -796,6 +800,7 @@ class SingleAtlasSegmentation(Data):
         metrics=None,
         default_slice_stats=None,
         default_by_slice=None,
+        write_archive=True,
     ):
         # Perform base-class initialisation.
         super().__init__()
@@ -818,10 +823,65 @@ class SingleAtlasSegmentation(Data):
             name=type(self).__name__, log_level=self.log_level
         )
 
-        # Set workdir; optionally delete pre-existing workdir.
-        self.workdir = Path(workdir)
-        if overwrite and self.workdir.exists():
-            rmtree(self.workdir)
+        # Set workdir; optionally deleting pre-existing workdir.
+        self.workdir = make_dir(workdir, overwrite)
+
+        # Create data archive,
+        # from which SingleAtlasSegmentation object can be recreated.
+        if write_archive:
+            # Define path to archive.
+            archive = make_dir(self.workdir / "archive")
+
+            # Create dictionary of keyword arguments
+            # that can be passed to SingleAtlasSegmentation constructor.
+            f_locals = locals()
+            kwargs = {arg:
+                      (f_locals[arg] if f_locals[arg] is not None else "None")
+                      for arg in getfullargspec(SingleAtlasSegmentation).args
+                      if arg not in ["self"]}
+            kwargs["auto"] = False
+            kwargs["overwrite"] = False
+            kwargs["workdir"] = fullpath(kwargs["workdir"])
+            kwargs["write_archive"] = False
+
+            # Write images to archive.
+            for im_name in ["im1", "im2"]:
+                im = getattr(self, im_name)
+                if im is not None:
+                    im.load()
+                    kwargs[im_name] = fullpath(archive / im_name)
+                    make_dir(kwargs[im_name])
+                    if "dicom" == im.source_type:
+                        im.copy_dicom(kwargs[im_name])
+                    else:
+                        kwargs[im_name] = fullpath(
+                                archive / im_name / f"{im_name}.nii.gz")
+                        im.write(kwargs[im_name])
+
+            # Write structure sets to archive.
+            for ss_name in ["ss1", "ss2"]:
+                ss = getattr(self, ss_name)
+                if ss is None:
+                    im = getattr(self, f"im{ss_name[-1]}")
+                    if im is not None:
+                        ss_index = getattr(self, f"{ss_name}_index")
+                        try:
+                            ss = im.structure_sets[ss_index]
+                        except (IndexError, TypeError):
+                            ss = None
+
+                if ss is not None:
+                    ss.load()
+                    kwargs[ss_name] = fullpath(archive / ss_name)
+                    make_dir(kwargs[ss_name])
+                    if ss.path.endswith(".dcm"):
+                        copy2(ss.path, kwargs[ss_name])
+                    else:
+                        ss.write(outdir=kwargs[ss_name], ext=".nii.gz")
+
+            # Write keyword arguments to archive.
+            with open(archive / "segmentation.toml", "wb") as file:
+                dump(kwargs, file)
 
         # Set registration engine name, software directory, and class.
         self.engine = engine
@@ -1710,6 +1770,11 @@ def get_segmentation_steps():
     return ["global", "local"]
 
 
+def get_segmentation_strategies():
+    """Return list of segmentation strategies."""
+    return ["pull", "push"]
+
+
 def get_steps(step):
     """
     Get list of segmentation steps to run, up to and including <step>.
@@ -1829,6 +1894,75 @@ def get_structure_set_index(ss_index, im):
             if index < 0:
                 index = None
     return index
+
+
+def load_mas(workdir="segmentation_workdir"):
+    workdir = fullpath(workdir, pathlib=True)
+    subdirs = [subdir for subdir in workdir.glob("*")
+               if ((not subdir.name.startswith(".")) and (subdir.is_dir()))]
+
+    kwargs = {}
+    sass = {subdir.name: load_sas(subdir) for subdir in subdirs}
+    if sass:
+        sas = sass[subdirs[0].name]
+        toml_path = Path(sas.workdir) /"archive" / "segmentation.toml"
+        if toml_path.exists():
+            kwargs = load_toml(toml_path)
+            kwargs = {key: (None if ("None" == value) else (value))
+                      for key, value in kwargs.items()}
+
+    kwargs["im2"] = {}
+    kwargs["ss2"] = {}
+    kwargs["workdir"] = str(workdir)
+
+    for idx, sas in sass.items():
+        kwargs["im2"][idx] = sas.im2
+        kwargs["ss2"][idx] = sas.ss2
+
+    mas = MultiAtlasSegmentation(**kwargs)
+    mas.sass = sass
+    return mas
+
+
+def load_sas(sas_path="segmentation_workdir"):
+
+    sas_path = fullpath(sas_path, pathlib=True)
+    toml_path = (sas_path if not sas_path.is_dir()
+                 else sas_path / "archive" / "segmentation.toml")
+    kwargs = load_toml(toml_path) if toml_path.exists() else {}
+    kwargs = {key: (None if ("None" == value) else (value))
+              for key, value in kwargs.items()}
+    sas = SingleAtlasSegmentation(**kwargs)
+
+    for istep, step in enumerate(get_segmentation_steps()):
+        for strategy in get_segmentation_strategies():
+            step_path = sas.workdir / f"{strategy}{istep + 1}"
+            if not step_path.is_dir():
+                continue
+            if "global" == step:
+                sas.registrations[strategy][step] = Registration(step_path)
+                for reg_step in sas.registrations[strategy][step].steps:
+                    sas.segmentations[strategy][step][reg_step] = (
+                        StructureSet(step_path / reg_step / "segmentation"))
+            elif "local" == step:
+                rois = {}
+                for roi_path in step_path.glob("*"):
+                    if not roi_path.is_dir():
+                        continue
+                    sas.registrations[strategy][step][roi_path.name] = (
+                            Registration(roi_path))
+                    for reg_step in sas.registrations[
+                            strategy][step][roi_path.name].steps:
+                        if reg_step not in rois:
+                            rois[reg_step] = []
+                        rois[reg_step].extend(StructureSet(
+                            roi_path / reg_step / "segmentation").get_rois())
+
+                for reg_step in rois:
+                    sas.segmentations[strategy][step][reg_step] = (
+                            StructureSet(rois[reg_step]))
+
+    return sas
 
 
 def select_atlases(
