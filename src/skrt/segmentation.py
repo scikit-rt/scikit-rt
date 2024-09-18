@@ -47,6 +47,8 @@ and MultiAtlasSegmentation():
   for contour propagation.
 - get_structure_set_index() : Get positive index identifying structure set
   associated with an image.
+- load_mas() : Load MultiAtlasSegmentation instance from work directory.
+- load_sas() : Load SingleAtlasSegmentation instance from work directory.
 - select_atlases() : Select atlases to register against target.
 """
 
@@ -830,7 +832,8 @@ class SingleAtlasSegmentation(Data):
         # from which SingleAtlasSegmentation object can be recreated.
         if write_archive:
             # Define path to archive.
-            archive = make_dir(self.workdir / "archive")
+            archive = Path(workdir) / "archive"
+            make_dir(archive)
 
             # Create dictionary of keyword arguments
             # that can be passed to SingleAtlasSegmentation constructor.
@@ -841,7 +844,7 @@ class SingleAtlasSegmentation(Data):
                       if arg not in ["self"]}
             kwargs["auto"] = False
             kwargs["overwrite"] = False
-            kwargs["workdir"] = fullpath(kwargs["workdir"])
+            kwargs["workdir"] = str(kwargs["workdir"])
             kwargs["write_archive"] = False
 
             # Write images to archive.
@@ -849,12 +852,12 @@ class SingleAtlasSegmentation(Data):
                 im = getattr(self, im_name)
                 if im is not None:
                     im.load()
-                    kwargs[im_name] = fullpath(archive / im_name)
+                    kwargs[im_name] = str(archive / im_name)
                     make_dir(kwargs[im_name])
                     if "dicom" == im.source_type:
                         im.copy_dicom(kwargs[im_name])
                     else:
-                        kwargs[im_name] = fullpath(
+                        kwargs[im_name] = str(
                                 archive / im_name / f"{im_name}.nii.gz")
                         im.write(kwargs[im_name])
 
@@ -872,7 +875,7 @@ class SingleAtlasSegmentation(Data):
 
                 if ss is not None:
                     ss.load()
-                    kwargs[ss_name] = fullpath(archive / ss_name)
+                    kwargs[ss_name] = str(archive / ss_name)
                     make_dir(kwargs[ss_name])
                     if ss.path.endswith(".dcm"):
                         copy2(ss.path, kwargs[ss_name])
@@ -1877,7 +1880,7 @@ def get_structure_set_index(ss_index, im):
     If a structure set corresponding to the input index isn't found,
     None is returned.
 
-    **Parameters**
+    **Parameters:**
 
     ss_index : int
         Positive or negative index identifying structure set in the list
@@ -1897,10 +1900,27 @@ def get_structure_set_index(ss_index, im):
 
 
 def load_mas(workdir="segmentation_workdir"):
+    """
+    Load MultiAtlasSegmentation instance from work directory.
+
+    **Parameter:**
+
+    workdir: str/pathlib.Path
+        Path to work directory for running multi-atlas segmentation.
+        If the work directory was used by a previous MultiAtlasSegmentation
+        instance, the data relating to this previous instance will be loaded.
+        Otherwise, a MultiAtlasSegmentation instance will be loaded with
+        default parameter settings.
+    """
+    # Search for work directories associated with
+    # SingleAtlasSegmentation instances.
     workdir = fullpath(workdir, pathlib=True)
     subdirs = [subdir for subdir in workdir.glob("*")
                if ((not subdir.name.startswith(".")) and (subdir.is_dir()))]
 
+    # Load SingleAtlasSegmentation instances from work directories,
+    # and set parameters to be used for creating
+    # MultiAtlasSegmentation instance.
     kwargs = {}
     sass = {subdir.name: load_sas(subdir) for subdir in subdirs}
     if sass:
@@ -1919,21 +1939,45 @@ def load_mas(workdir="segmentation_workdir"):
         kwargs["im2"][idx] = sas.im2
         kwargs["ss2"][idx] = sas.ss2
 
+    # Create MultiAtlasSegmentation instance,
+    # and associate with it the SingleAtlasSegmentation instances
+    # loaded from work directories.
     mas = MultiAtlasSegmentation(**kwargs)
     mas.sass = sass
     return mas
 
 
-def load_sas(sas_path="segmentation_workdir"):
+def load_sas(workdir="segmentation_workdir"):
+    """
+    Load SingleAtlasSegmentation instance from work directory.
 
-    sas_path = fullpath(sas_path, pathlib=True)
-    toml_path = (sas_path if not sas_path.is_dir()
-                 else sas_path / "archive" / "segmentation.toml")
+    **Parameter:**
+
+    workdir: str/pathlib.Path
+        Path to work directory for running single-atlas segmentation.
+        If the work directory was used by a previous SingleAtlasSegmentation
+        instance, the data relating to this previous instance will be loaded.
+        Otherwise, a SingleAtlasSegmentation instance will be loaded with
+        default parameter settings.
+    """
+    # Load parameter settings from achive for any previous instance.
+    archive = Path(workdir) / "archive"
+    toml_path = archive / "segmentation.toml"
     kwargs = load_toml(toml_path) if toml_path.exists() else {}
     kwargs = {key: (None if ("None" == value) else (value))
               for key, value in kwargs.items()}
+
+    # Allow for work directory to have been relocated from original.
+    if str(workdir) != kwargs.get("workdir", workdir):
+        kwargs["workdir"] = workdir
+        for key in ["im1", "im2", "ss1", "ss2"]:
+            if key in kwargs:
+                kwargs[key] = str(archive / Path(kwargs[key]).name)
+
+    # Create SingleAtlasSegmentation instance.
     sas = SingleAtlasSegmentation(**kwargs)
 
+    # Load any pre-existing registration and segmentation results.
     for istep, step in enumerate(get_segmentation_steps()):
         for strategy in get_segmentation_strategies():
             step_path = sas.workdir / f"{strategy}{istep + 1}"
