@@ -8,12 +8,17 @@ from skrt.segmentation import (
         ensure_dict,
         ensure_image,
         ensure_structure_set,
+        get_atlases,
         get_contour_propagation_strategies,
         get_fixed_and_moving,
         get_option,
+        get_options,
         get_segmentation_steps,
         get_steps,
+        get_strategy,
         get_structure_set_index,
+        load_mas,
+        load_sas,
         MultiAtlasSegmentation,
         SingleAtlasSegmentation,
         SasTuner,
@@ -174,3 +179,13 @@ def test_get_steps():
             assert len(steps) == n_step
             for idx2 in range(n_step):
                 assert seg_steps[idx2] in steps
+
+def test_load_mas():
+    """Test loading of MultiAtlasSegmentation instance from work directory."""
+    mas = load_mas()
+    assert isinstance(mas, MultiAtlasSegmentation)
+
+def test_load_sas():
+    """Test loading of SingleAtlasSegmentation instance from work directory."""
+    sas = load_sas()
+    assert isinstance(sas, SingleAtlasSegmentation)
