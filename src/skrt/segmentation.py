@@ -91,7 +91,12 @@ from skrt.structures import (
     get_comparison_metrics,
     get_consensus_types,
 )
-from skrt.registration import Registration, engines, get_engine_cls
+from skrt.registration import (
+        Registration,
+        engines,
+        get_engine_cls,
+        get_engine_name
+        )
 
 
 class MultiAtlasSegmentation(Data):
@@ -887,7 +892,7 @@ class SingleAtlasSegmentation(Data):
                 dump(kwargs, file)
 
         # Set registration engine name, software directory, and class.
-        self.engine = engine
+        self.engine = get_engine_name(engine, engine_dir)
         self.engine_dir = engine_dir
         self.engine_cls = get_engine_cls(self.engine, self.engine_dir)
 
