@@ -10740,11 +10740,20 @@ def get_roi_slice(roi, z_fraction=1, suffix=None):
         )
 
     # Determine the index of the image slice at which to take ROI slice.
+    if roi.source_type == "contour":
+        half_dz = 0.5 * roi.get_slice_thickness_contours()
+    else:
+        roi.create_mask()
+        half_dz = 0.5 * roi.mask.get_voxel_size()[2]
     pos1, pos2 = roi.get_extent()
+    pos1 += half_dz
+    pos2 -= half_dz
     pos = pos1 + z_fraction * (pos2 - pos1)
     idx = roi.pos_to_idx(pos, "z")
 
     # Obtain contours for required slice.
+    all_contours = roi.get_contours(idx_as_key=True)
+    idx = max(min(all_contours.keys()), min(max(all_contours.keys()), idx))
     contours = roi.get_contours(idx_as_key=True)[idx]
 
     # Define name suffix.
