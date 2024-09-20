@@ -791,6 +791,8 @@ class SingleAtlasSegmentation(Data):
         bands1=None,
         pfiles1=None,
         most_points1=True,
+        roi_z_fraction=None,
+        default_roi_z_fraction=None,
         roi_crop_margins=None,
         default_roi_crop_margins=10,
         roi_crop_about_centre=None,
@@ -927,6 +929,8 @@ class SingleAtlasSegmentation(Data):
         self.most_points1 = most_points1
 
         # Set parameters for step-2 registration.
+        self.roi_z_fraction = roi_z_fraction or {}
+        self.default_roi_z_fraction = default_roi_z_fraction
         self.roi_crop_margins = roi_crop_margins or {}
         self.default_roi_crop_margins = default_roi_crop_margins
         self.roi_crop_about_centre = roi_crop_about_centre or {}
@@ -1281,6 +1285,8 @@ class SingleAtlasSegmentation(Data):
                             )
             elif not self.registrations[strategy][self.steps[1]]:
                 for roi_name in ss1.get_roi_names():
+                    roi_alignment = (roi_name, self.roi_z_fraction.get(
+                        roi_name, self.default_roi_z_fraction))
                     im1, im2 = match_images(
                         im1=self.im1,
                         im2=self.im2,
@@ -1303,7 +1309,8 @@ class SingleAtlasSegmentation(Data):
                             )
                         ),
                         alignment=(
-                            roi_name if self.crop_to_match_size2 else False
+                            roi_alignment
+                            if self.crop_to_match_size2 else False
                         ),
                         voxel_size=self.voxel_size2,
                         bands=self.roi_bands.get(
@@ -1322,7 +1329,7 @@ class SingleAtlasSegmentation(Data):
                         pfiles=self.roi_pfiles.get(
                             roi_name, self.pfiles2_non_null
                         ),
-                        initial_alignment=roi_name,
+                        initial_alignment=roi_alignment,
                         initial_transform_name=(self.initial_transform_name),
                         capture_output=self.capture_output,
                         log_level=self.log_level,
@@ -1989,7 +1996,8 @@ def load_sas(workdir="segmentation_workdir"):
             if not step_path.is_dir():
                 continue
             if "global" == step:
-                sas.registrations[strategy][step] = Registration(step_path)
+                sas.registrations[strategy][step] = Registration(
+                        step_path, engine_dir=sas.engine_dir)
                 for reg_step in sas.registrations[strategy][step].steps:
                     sas.segmentations[strategy][step][reg_step] = (
                         StructureSet(step_path / reg_step / "segmentation"))
@@ -1999,7 +2007,7 @@ def load_sas(workdir="segmentation_workdir"):
                     if not roi_path.is_dir():
                         continue
                     sas.registrations[strategy][step][roi_path.name] = (
-                            Registration(roi_path))
+                            Registration(roi_path, engine_dir=sas.engine_dir))
                     for reg_step in sas.registrations[
                             strategy][step][roi_path.name].steps:
                         if reg_step not in rois:
