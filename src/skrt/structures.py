@@ -506,7 +506,7 @@ class ROI(skrt.core.Archive):
                 self.source.get_data() > self.mask_threshold,
                 affine=self.source.get_affine(),
                 dtype=bool,
-                nifti_array=("nifti" in self.source.source_type)
+                nifti_array=self.source.from_nifti()
             )
             self.source_type = "mask"
             self.loaded = True
@@ -7509,7 +7509,7 @@ class StructureSet(skrt.core.Archive):
             # so that affine matrix will be correctly defined for mask creation.
             im = skrt.image.Image(sources, affine=affine,
                                   voxel_size=voxel_size, origin=origin)
-            if "nifti" in im.source_type:
+            if im.from_nifti():
                 im = im.astype("dcm")
             i_name = 0
             for i in range(1, n + 1):
@@ -7539,7 +7539,7 @@ class StructureSet(skrt.core.Archive):
 
             # For NIfTI source, revert to NIfTI convention for data array
             # of mask, so that it can be written correctly to file.
-            if "nifti" in im.source_type:
+            if im.from_nifti():
                 for idx in range(len(self.rois)):
                     self.rois[idx].mask = self.rois[idx].mask.astype("nii")
 

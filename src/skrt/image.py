@@ -321,7 +321,8 @@ class Image(skrt.core.Archive):
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         result = self.__class__(
-            path=(self.get_data() + other.get_data()), affine=self.get_affine()
+            path=(self.get_data() + other.get_data()), affine=self.get_affine(),
+            nifti_array = self.from_nifti(),
         )
         return result
 
@@ -351,7 +352,8 @@ class Image(skrt.core.Archive):
                 f"{type(self)} can only be multiplied by a scalar"
             )
         result = self.__class__(
-            path=(other * self.get_data()), affine=self.get_affine()
+            path=(other * self.get_data()), affine=self.get_affine(),
+            nifti_array=self.from_nifti(),
         )
         return result
 
@@ -389,7 +391,8 @@ class Image(skrt.core.Archive):
         if not isinstance(other, numbers.Number):
             raise RuntimeError(f"{type(self)} can only be divided by a scalar")
         result = self.__class__(
-            path=(self.get_data() / other), affine=self.get_affine()
+            path=(self.get_data() / other), affine=self.get_affine(),
+            nifti_array=self.from_nifti()
         )
         return result
 
@@ -413,7 +416,8 @@ class Image(skrt.core.Archive):
         taking the negative of each element of the data array of self.
         """
         result = self.__class__(
-            path=(-self.get_data()), affine=self.get_affine()
+            path=(-self.get_data()), affine=self.get_affine(),
+            nifti_array=self.from_nifti()
         )
         return result
 
@@ -426,7 +430,8 @@ class Image(skrt.core.Archive):
         same as the data array of self.
         """
         result = self.__class__(
-            path=(self.get_data()), affine=self.get_affine()
+            path=(self.get_data()), affine=self.get_affine(),
+            nifti_array=self.from_nifti()
         )
         return result
 
@@ -440,9 +445,11 @@ class Image(skrt.core.Archive):
         array of other.
         """
         if not self.has_same_geometry(other):
-            raise RuntimeError("Objects for addition must have same geometry")
+            raise RuntimeError(
+                    "Objects for subtraction must have same geometry")
         result = self.__class__(
-            path=(self.get_data() - other.get_data()), affine=self.get_affine()
+            path=(self.get_data() - other.get_data()), affine=self.get_affine(),
+            nifti_array=self.from_nifti()
         )
         return result
 
@@ -591,6 +598,11 @@ class Image(skrt.core.Archive):
                 im.assign_structure_set(ss)
 
         return im
+
+    def from_nifti(self):
+        """Return whether created from a nifti source"""
+        return (True if isinstance(self.source_type, str)
+                and "nifti" in self.source_type else False)
 
     def get_data(self, standardise=False, force_standardise=True):
         """Return 3D image array.
