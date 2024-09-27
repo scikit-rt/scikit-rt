@@ -506,6 +506,7 @@ class ROI(skrt.core.Archive):
                 self.source.get_data() > self.mask_threshold,
                 affine=self.source.get_affine(),
                 dtype=bool,
+                nifti_array=("nifti" in self.source.source_type)
             )
             self.source_type = "mask"
             self.loaded = True
