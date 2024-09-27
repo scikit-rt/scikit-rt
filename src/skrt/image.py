@@ -493,7 +493,6 @@ class Image(skrt.core.Archive):
         if nii_type or dcm_type:
             # Ensure that image is loaded, and create clone.
             self.load()
-            im = self.clone()
 
             # Modify image data if source_type isn't the requested type.
             if (nii_type and "nifti" not in self.source_type) or (
@@ -509,7 +508,7 @@ class Image(skrt.core.Archive):
                         * self.get_voxel_size()[1]
                     )
                     data = self.get_data().transpose(1, 0, 2)[:, ::-1, :]
-                    im.source_type = "nifti array"
+                    nifti_array = True
                 # Convert to pydicom/DICOM representation.
                 else:
                     affine[0, :] = -affine[0, :]
@@ -519,16 +518,13 @@ class Image(skrt.core.Archive):
                         * self.get_voxel_size()[1]
                     )
                     data = self.get_data().transpose(1, 0, 2)[::-1, :, :]
-                    im.source_type = "array"
+                    nifti_array = False
+
                 # Reset parameters and geometry based on
                 # updated data and affine.
-                im.source = data
-                im.data = data
-                im.affine = affine
-                im.dicom_dataset = None
-                im.voxel_size = None
-                im.origin = None
-                im.set_geometry()
+                im = Image(data, affine=affine, nifti_array=nifti_array)
+            else:
+                im = self.clone()
 
         else:
             # Deal with case where requested type is unrecognised.
