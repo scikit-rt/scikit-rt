@@ -538,7 +538,9 @@ class ROI(skrt.core.Archive):
                         )
                 rois.append(self.name)
 
-            elif os.path.isdir(self.source) or not self.source.endswith(".nii"):
+            elif os.path.isdir(self.source) or (
+                    not any(self.source.endswith(nifti_ext)
+                            for nifti_ext in skrt.core.Defaults().nifti_exts)):
                 # Try loading from dicom structure set
                 rois, ds = load_rois_dicom(self.source, names=self.name)
                 if len(rois):
