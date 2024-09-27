@@ -616,6 +616,9 @@ class ROI(skrt.core.Archive):
             self.empty = True
 
         self.loaded = True
+        if (self.source_type == "mask" and self.image is not None
+            and not self.image.has_same_geometry(self.mask)):
+            self.set_image(self.image)
 
     def _load_from_file(self, filename):
         """Attempt to load ROI from a dicom or nifti file."""
@@ -1188,7 +1191,7 @@ class ROI(skrt.core.Archive):
                     points_idx = np.zeros((points.shape[0], 2))
                     for i in range(2):
                         points_idx[:, i] = pos_to_idx_vec(
-                            points[:, i], i, return_int=False
+                            points[:, i], i, return_int=False,
                         )
 
                     # Create polygon in index space
@@ -1246,6 +1249,12 @@ class ROI(skrt.core.Archive):
             if not self.mask.data.dtype == bool:
                 self.mask.data = self.mask.data.astype(bool)
             self.loaded_mask = True
+
+            if (isinstance(self.image, skrt.image.Image)
+                and self.image.from_nifti()):
+                self.mask = self.mask.astype("nii")
+                self.mask.data = self.mask.data[::-1, :, :]
+                self.mask.standardise_data()
 
             # Set own geometric properties from mask
             self.voxel_size = self.mask.get_voxel_size()
@@ -1338,7 +1347,7 @@ class ROI(skrt.core.Archive):
         if self.contours_only:
             # Use self.image's conversion function
             if self.image is not None:
-                return self.image.idx_to_pos(idx, ax)
+                return self.image.idx_to_pos(idx, ax, standardise)
 
             # Otherwise count number of z slices in contours dict
             # If index does not correspond to a slice, return None
@@ -1359,23 +1368,23 @@ class ROI(skrt.core.Archive):
 
         # Otherwise, try to use mask or image's conversion
         elif self.mask is not None:
-            return self.mask.idx_to_pos(idx, ax)
+            return self.mask.idx_to_pos(idx, ax, standardise)
         elif self.image is not None:
-            return self.image.idx_to_pos(idx, ax)
+            return self.image.idx_to_pos(idx, ax, standardise)
 
         # Else, try to calculate from own geometric properties
         else:
             i_ax = skrt.image._axes.index(ax) if ax in skrt.image._axes else ax
             return self.origin[i_ax] + idx * self.voxel_size[i_ax]
 
-    def pos_to_idx(self, pos, ax, return_int=True, **kwargs):
+    def pos_to_idx(self, pos, ax, return_int=True, standardise=True):
         """Convert a position in mm to an array index along a given axis."""
 
         self.load()
         if self.contours_only:
             # Use self.image's conversion function
             if self.image is not None:
-                return self.image.pos_to_idx(pos, ax, return_int)
+                return self.image.pos_to_idx(pos, ax, return_int, standardise)
 
             # Otherwise count number of z slices in contours dict
             # If position does not correspond to a slie, return None
@@ -1400,9 +1409,9 @@ class ROI(skrt.core.Archive):
 
         # Otherwise, try to use mask or image's conversion
         elif self.mask is not None:
-            return self.mask.pos_to_idx(pos, ax, return_int)
+            return self.mask.pos_to_idx(pos, ax, return_int, standardise)
         elif self.image is not None:
-            return self.image.pos_to_idx(pos, ax, return_int)
+            return self.image.pos_to_idx(pos, ax, return_int, standardise)
 
         # Else, try to calculate from own geomtric properties
         else:
@@ -1452,12 +1461,13 @@ class ROI(skrt.core.Archive):
     def pos_to_slice(self, pos, ax, return_int=True, standardise=True):
         """Convert a position in mm to a slice number along a given axis."""
 
-        return skrt.image.Image.pos_to_slice(self, pos, ax, return_int)
+        return skrt.image.Image.pos_to_slice(
+                self, pos, ax, return_int, standardise)
 
     def slice_to_pos(self, sl, ax, standardise=True):
         """Convert a slice number to a position in mm along a given axis."""
 
-        return skrt.image.Image.slice_to_pos(self, sl, ax)
+        return skrt.image.Image.slice_to_pos(self, sl, ax, standardise)
 
     def get_idx(self, view, sl=None, idx=None, pos=None):
         """Get an array index from either a slice number, index, or
