@@ -11425,7 +11425,7 @@ def create_structure_sets_from_nifti(
     # and create structure sets from these, with default names for ROIs.
     roi_paths = []
     for test_path in other_paths:
-        array = nibabel.load(test_path).get_fdata().astype(int)
+        array = nibabel.load(test_path, mmap=False).get_fdata().astype(int)
         if 0 == array.min():
             if array.max() > 1:
                 sset = StructureSet(

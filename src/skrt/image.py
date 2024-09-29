@@ -6176,7 +6176,7 @@ def load_nifti(path):
     """Load an image from a nifti file."""
 
     try:
-        nii = nibabel.load(path)
+        nii = nibabel.load(path, mmap=False)
         data = nii.get_fdata()
         affine = nii.affine
         if data.ndim > 3:
