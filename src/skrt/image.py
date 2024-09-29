@@ -601,8 +601,20 @@ class Image(skrt.core.Archive):
 
     def from_nifti(self):
         """Return whether created from a nifti source"""
+        self.load()
         return (True if isinstance(self.source_type, str)
                 and "nifti" in self.source_type else False)
+
+    def get_itype(self):
+        """
+        Return identifier of image representation.
+
+        The identifier will be "dicom" for an image with
+        pydicom/DICOM representation, and "nifti" for an image with
+        nibabel/NIfTI representation.
+        """
+        self.load()
+        return ("nifti" if self.from_nifti() else "dicom")
 
     def get_data(self, standardise=False, force_standardise=True):
         """Return 3D image array.
@@ -1267,24 +1279,32 @@ class Image(skrt.core.Archive):
         if list(voxel_size) == list(self.voxel_size):
             return
 
-        # Define scale factors to obtain requested voxel size
-        scale = [self.voxel_size[i] / voxel_size[i] for i in range(3)]
+        # Ensure DICOM representation for interpolation.
+        im = self.astype("dicom") if self.from_nifti() else self
 
-        self.data = scipy.ndimage.zoom(
-            self.data, scale, order=order, mode="nearest"
+        # Define scale factors to obtain requested voxel size
+        scale = [im.voxel_size[i] / voxel_size[i] for i in range(3)]
+
+        print("Hello", scale, im.data.shape)
+        im.data = scipy.ndimage.zoom(
+            im.data, scale, order=order, mode="nearest"
         )
 
         # Reset properties
-        self.origin = [
-            self.origin[i] - self.voxel_size[i] / 2 + voxel_size[i] / 2
+        im.origin = [
+            im.origin[i] - im.voxel_size[i] / 2 + voxel_size[i] / 2
             for i in range(3)
         ]
 
-        ny, nx, nz = self.data.shape
-        self.n_voxels = [ny, nx, nz]
-        self.voxel_size = voxel_size
-        self.affine = None
-        self.set_geometry()
+        ny, nx, nz = im.data.shape
+        im.n_voxels = [ny, nx, nz]
+        im.voxel_size = voxel_size
+        im.affine = None
+        im.set_geometry()
+
+        # Revert to original representation.
+        if self.from_nifti():
+            self.__dict__.update(im.astype("nifti").__dict__)
 
     def get_coordinate_arrays(self, image_size, origin, voxel_size):
         """
@@ -2007,7 +2027,7 @@ class Image(skrt.core.Archive):
 
                 # Revert to original representation.
                 if "nifti" in self.source_type:
-                    self = im.astype("nifti")
+                    self.__dict__.update(im.astype("nifti").__dict__)
 
             # print(f"interpolation end time: {time.strftime('%c')}")
 
@@ -2039,8 +2059,8 @@ class Image(skrt.core.Archive):
             image.load()
             self.resize(
                 image.get_n_voxels(),
-                image.get_origin(),
-                image.get_voxel_size(),
+                image.get_origin(standardise=True),
+                image.get_voxel_size(standardise=True),
                 fill_value,
                 method=method,
             )
@@ -4351,13 +4371,16 @@ class Image(skrt.core.Archive):
 
         self.load()
 
+        # Ensure DICOM representation transform.
+        im = self.astype("dicom") if self.from_nifti() else self
+
         # Decide whether to perform resampling.
         # The scipy.ndimage function affine_transform() assumes
         # that voxel sizes are the same # in all directions, so resampling
         # is necessary if the transformation # affects a projection in which
         # voxels are non-square.  In other cases resampling is optional.
         small_number = 0.1
-        voxel_size = tuple(self.voxel_size)
+        voxel_size = tuple(im.voxel_size)
         voxel_size_min = min(voxel_size)
         voxel_size_max = max(voxel_size)
         if isinstance(resample, int) or isinstance(resample, float):
@@ -4386,19 +4409,19 @@ class Image(skrt.core.Archive):
                 resample_size = voxel_size_max
             else:
                 resample_size = resample
-            self.resample(voxel_size=resample_size, order=order)
+            im.resample(voxel_size=resample_size, order=order)
 
         # Obtain rotation in radians
         pitch, yaw, roll = [math.radians(x) for x in rotation]
 
         # Obtain translation in pixel units
-        idx, idy, idz = [translation[i] / self.voxel_size[i] for i in range(3)]
+        idx, idy, idz = [translation[i] / im.voxel_size[i] for i in range(3)]
 
         # Obtain centre coordinates in pixel units
         xc, yc, zc = centre
-        ixc = self.pos_to_idx(xc, "x", False)
-        iyc = self.pos_to_idx(yc, "y", False)
-        izc = self.pos_to_idx(zc, "z", False)
+        ixc = im.pos_to_idx(xc, "x", False)
+        iyc = im.pos_to_idx(yc, "y", False)
+        izc = im.pos_to_idx(zc, "z", False)
 
         # Overall transformation matrix composed from
         # individual transformations, following suggestion at:
@@ -4434,20 +4457,24 @@ class Image(skrt.core.Archive):
 
         # Set fill value
         if fill_value is None:
-            fill_value = self.data.min()
+            fill_value = im.data.min()
 
         # Apply transform
-        self.data = scipy.ndimage.affine_transform(
-            self.data, matrix, order=order, cval=fill_value
+        im.data = scipy.ndimage.affine_transform(
+            im.data, matrix, order=order, cval=fill_value
         )
 
         # Revert to original voxel size
         if image_resample and restore:
-            self.resample(voxel_size=voxel_size, order=order)
+            im.resample(voxel_size=voxel_size, order=order)
 
         # Remove any prior standardised data
-        self._sdata = None
-        self._saffine = None
+        im._sdata = None
+        im._saffine = None
+
+        # Revert to original representation.
+        if self.from_nifti():
+            self.__dict__.update(im.astype("nifti").__dict__)
 
         return None
 
@@ -7820,6 +7847,12 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     if isinstance(voxel_size, numbers.Number):
         voxel_size = 3 * [voxel_size]
 
+    # Ensure that images used in calclation have pydicom/dicom representation.
+    im1_itype = im1.get_itype()
+    im2_itype = im2.get_itype()
+    im1 = im1 if "dicom" == im1_itype else im1.astype("dicom")
+    im2 = im2 if "dicom" == im2_itype else im2.astype("dicom")
+
     # Set target voxel size to be the same for both images.
     if skrt.core.is_list(voxel_size):
         if im1.get_voxel_size() != list(voxel_size):
@@ -7846,6 +7879,10 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
     # in the resample() method.
     im1.resample(vs1, order)
     im2.resample(vs2, order)
+
+    # Ensure that returned images have same representation as originals.
+    im1 = im1 if "dicom" == im1_itype else im1.astype("nii")
+    im2 = im2 if "dicom" == im2_itype else im2.astype("nii")
 
     return (im1, im2)
 
