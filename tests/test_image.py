@@ -333,6 +333,21 @@ def test_resampling_3d():
                 assert im1.image_extent[i][1] == pytest.approx(
                         im0.image_extent[i][1], im0.voxel_size[i])
 
+def test_from_nifti():
+    """Test detection of whether image has NIfTI source"""
+    im_array = np.random.rand(10, 10, 10)
+    for nifti_array in [True, False]:
+        im = Image(im_array, nifti_array=nifti_array)
+        assert im.from_nifti() == nifti_array
+
+def test_get_itype():
+    """Test determination of identifier of image representation"""
+    im_array = np.random.rand(10, 10, 10)
+    for nifti_array in [True, False]:
+        im = Image(im_array, nifti_array=nifti_array)
+        itype = im.get_itype()
+        assert "nifti" == itype if nifti_array else "dicom"
+
 def test_resize_and_match_size():
     """Test image resizing and matching to reference."""
 
@@ -355,67 +370,73 @@ def test_resize_and_match_size():
     im2.set_geometry()
 
     # Resize im1
-    for image0, image2, image_size, origin, voxel_size, resize_centre in [
-            (im1, im2, shape_2, origin_2, voxel_size_2, resize_centre_1),
-            (im2, im1, shape_1, origin_1, voxel_size_1, resize_centre_2)]:
-        image_size = list(image_size)
-        origin = list(origin)
-        voxel_size = list(voxel_size)
-        for i in range(4):
-            # Include check that None values are handled.
-            if i < 3:
-                image_size[i] = None
-                origin[i] = None
-                voxel_size[i] = None
-            image1 = Image(image0)
-            image1.resize(image_size, origin, voxel_size)
-            for i in range(3):
-                if image_size[i] is None:
-                    image3 = image1
-                else:
-                    image3 = image2
-                assert image1.voxel_size[i] == image3.voxel_size[i]
-                assert image1.n_voxels[i] == image3.n_voxels[i]
-                assert image1.image_extent[i] == image3.image_extent[i]
-                assert image1.origin[i] == image3.origin[i]
+    for itype in ["dcm", "nii"]:
+        for image0, image2, image_size, origin, voxel_size, resize_centre in [
+                (im1.astype(itype), im2.astype(itype),
+                 shape_2, origin_2, voxel_size_2, resize_centre_1),
+                (im2.astype(itype), im1.astype(itype),
+                 shape_1, origin_1, voxel_size_1, resize_centre_2)]:
+            image_size = list(image_size)
+            origin = list(origin)
+            voxel_size = list(voxel_size)
+            for i in range(4):
+                # Include check that None values are handled.
+                if i < 3:
+                    image_size[i] = None
+                    origin[i] = None
+                    voxel_size[i] = None
+                image1 = Image(image0)
+                image1.resize(image_size, origin, voxel_size)
+                for i in range(3):
+                    if image_size[i] is None:
+                        image3 = image1
+                    else:
+                        image3 = image2
+                    assert image1.voxel_size[i] == image3.voxel_size[i]
+                    assert image1.n_voxels[i] == image3.n_voxels[i]
+                    assert image1.image_extent[i] == image3.image_extent[i]
+                    assert image1.origin[i] == image3.origin[i]
 
-            # Check case where centre position is fixed.
-            image1 = Image(image0)
-            image1.resize(image_size, origin, voxel_size, keep_centre=True)
-            for i in range(3):
-                if image_size[i] is None:
-                    image3 = image1
-                else:
-                    image3 = image2
-                assert image1.voxel_size[i] == image3.voxel_size[i]
-                assert image1.n_voxels[i] == image3.n_voxels[i]
-                assert image1.get_length(i) == image3.get_length(i)
-                assert image1.get_centre()[i] == image0.get_centre()[i]
+                # Check case where centre position is fixed.
+                image1 = Image(image0)
+                image1.resize(image_size, origin, voxel_size, keep_centre=True)
+                for i in range(3):
+                    if image_size[i] is None:
+                        image3 = image1
+                    else:
+                        image3 = image2
+                    assert image1.voxel_size[i] == image3.voxel_size[i]
+                    assert image1.n_voxels[i] == image3.n_voxels[i]
+                    assert image1.get_length(i) == image3.get_length(i)
+                    assert image1.get_centre()[i] == image0.get_centre()[i]
 
-            # Check case where centre position is chosen.
-            image1 = Image(image0)
-            image1.resize(image_size, origin, voxel_size, centre=resize_centre)
-            for i in range(3):
-                if image_size[i] is None:
-                    image3 = image1
-                else:
-                    image3 = image2
-                assert image1.voxel_size[i] == image3.voxel_size[i]
-                assert image1.n_voxels[i] == image3.n_voxels[i]
-                assert image1.get_length(i) == image3.get_length(i)
-                assert image1.get_centre()[i] == resize_centre[i]
+                # Check case where centre position is chosen.
+                image1 = Image(image0)
+                image1.resize(
+                        image_size, origin, voxel_size, centre=resize_centre)
+                for i in range(3):
+                    if image_size[i] is None:
+                        image3 = image1
+                    else:
+                        image3 = image2
+                    assert image1.voxel_size[i] == image3.voxel_size[i]
+                    assert image1.n_voxels[i] == image3.n_voxels[i]
+                    assert image1.get_length(i) == image3.get_length(i)
+                    assert image1.get_centre()[i] == resize_centre[i]
 
     # Resize im1 to im2
-    for image0, image2 in [(im1, im2), (im2, im1)]:
-        image1 = Image(image0)
-        image1.match_size(image2)
-        assert image1.voxel_size == image2.voxel_size
-        assert image1.data.shape == image2.data.shape
-        assert image1.image_extent == image2.image_extent
-        assert image1.origin == image2.origin
-        image_diff = np.absolute(image1.data - image2.data)
-        assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
-                0.5 * image_diff.size, rel=0.02)
+    for itype in ["dcm", "nii"]:
+        for image0, image2 in [(im1.astype(itype), im2.astype(itype)),
+                               (im2.astype(itype), im1.astype(itype))]:
+            image1 = Image(image0)
+            image1.match_size(image2)
+            assert image1.voxel_size == image2.voxel_size
+            assert image1.data.shape == image2.data.shape
+            assert image1.image_extent == image2.image_extent
+            assert image1.origin == image2.origin
+            image_diff = np.absolute(image1.data - image2.data)
+            assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
+                    0.5 * image_diff.size, rel=0.02)
 
 def test_match_images():
     """Minimal test of image matching."""
@@ -423,20 +444,21 @@ def test_match_images():
     shape1 = [40, 40, 20]
     shape2 = [10, 10, 55]
 
-    # Create test images.
-    im1 = SyntheticImage(shape1).get_image()
-    im2 = SyntheticImage(shape2).get_image()
+    for itype in ["dcm", "nii"]:
+        # Create test images.
+        im1 = SyntheticImage(shape1).get_image().astype(itype)
+        im2 = SyntheticImage(shape2).get_image().astype(itype)
 
-    # Check that image sizes are unchanged for alignment set to False.
-    im1a, im2a = match_images(im1, im2, alignment=False)
-    assert im1a.get_size() == im1.get_size()
-    assert im2a.get_size() == im2.get_size()
+        # Check that image sizes are unchanged for alignment set to False.
+        im1a, im2a = match_images(im1, im2, alignment=False)
+        assert im1a.get_size() == im1.get_size()
+        assert im2a.get_size() == im2.get_size()
 
-    # Check that image sizes are mached for alignment not set to False
-    alignments = [None, "_centre_", "_top_", "_bottom_"]
-    for alignment in alignments:
-        im1a, im2a = match_images(im1, im2, alignment=alignment)
-        assert im1a.get_size() == im2a.get_size()
+        # Check that image sizes are mached for alignment not set to False
+        alignments = [None, "_centre_", "_top_", "_bottom_"]
+        for alignment in alignments:
+            im1a, im2a = match_images(im1, im2, alignment=alignment)
+            assert im1a.get_size() == im2a.get_size()
 
 def test_match_image_voxel_sizes():
     """Test resampling images to match voxel sizes."""
@@ -448,20 +470,21 @@ def test_match_image_voxel_sizes():
     shape1 = [40, 40, 20]
     shape2 = [10, 10, 55]
 
-    # Create test images.
-    im1 = SyntheticImage(shape1, voxel_size=vs1).get_image()
-    im2 = SyntheticImage(shape2, voxel_size=vs2).get_image()
+    for itype in ["dcm", "nii"]:
+        # Create test images.
+        im1 = SyntheticImage(shape1, voxel_size=vs1).get_image().astype(itype)
+        im2 = SyntheticImage(shape2, voxel_size=vs2).get_image().astype(itype)
 
-    # Test different options for matching voxel sizes.
-    for vs_in, vs_out in (
-            ("dz_max", vs1), ("dz_min", vs2), (vs3, vs3), (vs3[0], vs3)):
-        im1a, im2a = match_image_voxel_sizes(im1.clone(), im2.clone(), vs_in)
-        # Check that voxel sizes are as expected.
-        assert im1a.get_voxel_size() == vs_out
-        assert im2a.get_voxel_size() == vs_out
-        # Check that image centres have stayed approximately the same.
-        assert im1a.get_centre() == pytest.approx(im1.get_centre(), 0.5)
-        assert im2a.get_centre() == pytest.approx(im2.get_centre(), 0.5)
+        # Test different options for matching voxel sizes.
+        for vs_in, vs_out in (
+                ("dz_max", vs1), ("dz_min", vs2), (vs3, vs3), (vs3[0], vs3)):
+            im1a, im2a = match_image_voxel_sizes(im1.clone(), im2.clone(), vs_in)
+            # Check that voxel sizes are as expected.
+            assert im1a.get_voxel_size(standardise=True) == vs_out
+            assert im2a.get_voxel_size(standardise=True) == vs_out
+            # Check that image centres have stayed approximately the same.
+            assert im1a.get_centre() == pytest.approx(im1.get_centre(), 0.5)
+            assert im2a.get_centre() == pytest.approx(im2.get_centre(), 0.5)
 
 def test_clone():
     """Test cloning an image."""

@@ -2406,3 +2406,57 @@ def test_sset_set_name():
     # Set name then check result for returned StructureSet.
     assert "" == sset.renamed().name
     assert "new_name" == sset.renamed("new_name").name
+
+def test_roi_from_mask_and_different_sized_image():
+    """Test setting of image at instantiation of ROI from mask."""
+    sim0 = get_synthetic_image_with_structure_set()
+    sset = sim0.get_structure_set()
+    # Test differently scaled images,
+    # and different combinations of representation for ROI mask and image.
+    scales = [1.0, 0.8, 1.2]
+    itypes = ["dcm", "nii"]
+    for roi in sset.get_rois():
+        for itype1 in itypes:
+            for itype2 in itypes:
+                for scale in scales:
+                    sim = sim0.astype(itype1)
+                    if (scale - 1.0) > 1e-6:
+                        sim.transform(scale=scale)
+                    roi_new = ROI(roi.mask.astype(itype2), image=sim)
+                    roi_new.create_mask()
+                    # Check that origin image, image associated with ROI,
+                    # and ROI mask have save geometry after standardisation.
+                    assert sim.has_same_geometry(
+                        roi_new.image, standardise=True)
+                    assert roi_new.mask.has_same_geometry(
+                            roi_new.image, standardise=True)
+
+def test_roi_mask_astype():
+    """Test effect of converting ROI masks between NIfTI and DICOM."""
+    sim = get_synthetic_image_with_structure_set()
+    sset = sim.get_structure_set()
+    for roi1 in sset.get_rois():
+        assert "mask" == roi1.source_type
+        # Remove contours,
+        # so that they will be recreated for each ROI clone in comparisons.
+        roi1.contours = {}
+        roi2 = roi1.clone()
+        roi3 = roi1.clone()
+        roi2.mask = roi2.mask.astype("nii")
+        roi3.mask = roi2.mask.astype("dcm")
+
+        # Check that ROI masks are from, or not from, NIfTI-format arrays.
+        assert not roi1.mask.from_nifti()
+        assert roi2.mask.from_nifti()
+        assert not roi3.mask.from_nifti()
+
+        # Check that masks of different ROI clones have same geometry
+        # when masks are of the same type, and after standarisation.
+        assert not roi1.mask.has_same_geometry(roi2.mask, standardise=False)
+        assert roi1.mask.has_same_geometry(roi2.mask, standardise=True)
+        assert roi1.mask.has_same_geometry(roi3.mask, standardise=False)
+        assert roi1.mask.has_same_geometry(roi3.mask, standardise=True)
+
+        # Check that ROI clones represent the same ROI.
+        compare_rois(roi1, roi2)
+        compare_rois(roi1, roi3)
