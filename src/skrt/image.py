@@ -605,7 +605,7 @@ class Image(skrt.core.Archive):
         return (True if isinstance(self.source_type, str)
                 and "nifti" in self.source_type else False)
 
-    def get_itype(self):
+    def get_type(self):
         """
         Return identifier of image representation.
 
@@ -615,6 +615,34 @@ class Image(skrt.core.Archive):
         """
         self.load()
         return ("nifti" if self.from_nifti() else "dicom")
+
+    def is_same_type(self, other):
+        """
+        Return whether image representation is the same as that of other.
+
+        **Parameter:**
+
+        other: skrt.image.Image
+            Image with which to compare representation ("dicom" or "nifti").
+        """
+        return True if self.get_type() == other.get_type() else False
+
+    def match_type(self, other, clone_always=False):
+        """
+        Match image representation to that of other.
+
+        **Parameter:**
+
+        other: skrt.image.Image
+            Image with which to match representation ("dicom" or "nifti").
+
+        clone_always: bool, default=False
+            Define whether returned image should always be cloned from
+            the original, or if the original should be returned if
+            it already has the same representation as other.
+        """
+        return (self if self.is_same_type(other) and not clone_always
+                else self.astype(other.get_type()))
 
     def get_data(self, standardise=False, force_standardise=True):
         """Return 3D image array.
@@ -1266,26 +1294,25 @@ class Image(skrt.core.Archive):
         if not (isinstance(voxel_size, list) or isinstance(voxel_size, tuple)):
             voxel_size = 3 * [voxel_size]
 
+        # Ensure DICOM representation for interpolation.
+        im = self.astype("dicom") if self.from_nifti() else self
+
         # Fill in None values with own voxel size
         voxel_size2 = []
         for i, v in enumerate(voxel_size):
             if v is not None:
                 voxel_size2.append(v)
             else:
-                voxel_size2.append(self.voxel_size[i])
+                voxel_size2.append(im.voxel_size[i])
         voxel_size = voxel_size2
 
         # Exit if no change to voxel size.
-        if list(voxel_size) == list(self.voxel_size):
+        if list(voxel_size) == list(im.voxel_size):
             return
-
-        # Ensure DICOM representation for interpolation.
-        im = self.astype("dicom") if self.from_nifti() else self
 
         # Define scale factors to obtain requested voxel size
         scale = [im.voxel_size[i] / voxel_size[i] for i in range(3)]
 
-        print("Hello", scale, im.data.shape)
         im.data = scipy.ndimage.zoom(
             im.data, scale, order=order, mode="nearest"
         )
@@ -4721,20 +4748,16 @@ class Image(skrt.core.Archive):
             For further details, see documentation of
             skrt.image.get_alignment_translation().
         """
+        image = image if not image.from_nifti() else image.astype("dcm")
         # Calculate any translation to be applied prior to cropping.
-        translation = self.get_alignment_translation(image, alignment)
+        translation = image.get_alignment_translation(self, alignment)
 
         # Apply translation to image origin.
         if translation is not None:
-            translation = np.array(translation)
-            self.translate_origin(translation)
+            image.translate_origin(translation)
 
         # Perform cropping.
         self.crop(*image.get_extents())
-
-        # Apply reverse translation to origin of cropped image.
-        if translation is not None:
-            self.translate_origin(-translation)
 
     def map_hu(self, mapping="kv_to_mv"):
         """
@@ -7211,6 +7234,7 @@ def get_mask_bbox(mask):
 #            + "skrt.image.get_mask_bbox()"
 #        )
 
+    mask = mask if not mask.from_nifti else mask.astype("dcm")
     #jmin, jmax, imin, imax, kmin, kmax = mahotas.bbox(mask.get_data())
     jmin, imin, kmin, jmax, imax, kmax = skimage.measure.regionprops(
             mask.get_data().astype(np.uint8))[0].bbox
@@ -7269,7 +7293,7 @@ def get_translation_to_align(
     logger = skrt.core.get_logger(identifier="funcName")
 
     # Initialise dictionaries of alignments.
-    alignments = alignments or {}
+    alignments = get_alignment_strategy(alignments) or {}
     checked_alignments = {}
 
     # Ensure that the default_alignment is valid.
@@ -7298,6 +7322,7 @@ def get_translation_to_align(
 
     # Determine image bounding boxes.
     xyz_lims = {}
+    im2 = im2.match_type(im1)
     for image in [im1, im2]:
         if threshold is not None:
             # Obtain bounding box for foreground mask.
@@ -7310,8 +7335,10 @@ def get_translation_to_align(
 
     # Determine translation along each axis, for type of alignment specified.
     translation = []
+    all_alignments = []
     for idx, axis in enumerate(_axes):
         alignment = checked_alignments.get(axis, default_alignment)
+        all_alignments.append(alignment)
 
         # Lower alignment.
         if 1 == alignment:
@@ -7474,18 +7501,7 @@ def get_alignment_translation(im1, im2, alignment=None):
 
     # Define translation for image-based alignment.
     if isinstance(alignments, dict):
-        # Always use standardised data.
-        return get_translation_to_align(
-            Image(
-                im1.get_standardised_data(),
-                affine=im1.get_standardised_affine(),
-            ),
-            Image(
-                im2.get_standardised_data(),
-                affine=im2.get_standardised_affine(),
-            ),
-            alignments,
-        )
+        return get_translation_to_align(im1, im2, alignments)
 
     # Return None for null alignment.
     if not alignments:
@@ -7848,8 +7864,8 @@ def match_image_voxel_sizes(im1, im2, voxel_size=None, order=1):
         voxel_size = 3 * [voxel_size]
 
     # Ensure that images used in calclation have pydicom/dicom representation.
-    im1_itype = im1.get_itype()
-    im2_itype = im2.get_itype()
+    im1_itype = im1.get_type()
+    im2_itype = im2.get_type()
     im1 = im1 if "dicom" == im1_itype else im1.astype("dicom")
     im2 = im2 if "dicom" == im2_itype else im2.astype("dicom")
 
