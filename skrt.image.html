@@ -1038,15 +1038,6 @@ obtained.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="skrt.image.Image.get_itype">
-<span class="sig-name descname"><span class="pre">get_itype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_itype" title="Link to this definition"></a></dt>
-<dd><p>Return identifier of image representation.</p>
-<p>The identifier will be “dicom” for an image with
-pydicom/DICOM representation, and “nifti” for an image with
-nibabel/NIfTI representation.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_length">
 <span class="sig-name descname"><span class="pre">get_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_length" title="Link to this definition"></a></dt>
 <dd><p>Get total length of image.</p>
@@ -1572,6 +1563,15 @@ skrt.image.get_translation_to_align_image_rois().</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.get_type">
+<span class="sig-name descname"><span class="pre">get_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_type" title="Link to this definition"></a></dt>
+<dd><p>Return identifier of image representation.</p>
+<p>The identifier will be “dicom” for an image with
+pydicom/DICOM representation, and “nifti” for an image with
+nibabel/NIfTI representation.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.get_volume">
 <span class="sig-name descname"><span class="pre">get_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.get_volume" title="Link to this definition"></a></dt>
 <dd><p>Get image volume in specified units.</p>
@@ -1673,6 +1673,17 @@ be specified in units of mm^-1.</p>
 <dt class="sig sig-object py" id="skrt.image.Image.idx_to_slice">
 <span class="sig-name descname"><span class="pre">idx_to_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.idx_to_slice" title="Link to this definition"></a></dt>
 <dd><p>Convert an array index to a slice number along a given axis.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.is_same_type">
+<span class="sig-name descname"><span class="pre">is_same_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.is_same_type" title="Link to this definition"></a></dt>
+<dd><p>Return whether image representation is the same as that of other.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>other: skrt.image.Image</dt><dd><p>Image with which to compare representation (“dicom” or “nifti”).</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1783,6 +1794,21 @@ the minimum intensity value of the original image is used.</p>
 </dd>
 <dt>method: str, default=’linear’</dt><dd><p>Interpolation method to use.  Valid values are ‘linear’ and
 ‘nearest’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.match_type">
+<span class="sig-name descname"><span class="pre">match_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clone_always</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.match_type" title="Link to this definition"></a></dt>
+<dd><p>Match image representation to that of other.</p>
+<p><strong>Parameter:</strong></p>
+<dl class="simple">
+<dt>other: skrt.image.Image</dt><dd><p>Image with which to match representation (“dicom” or “nifti”).</p>
+</dd>
+<dt>clone_always: bool, default=False</dt><dd><p>Define whether returned image should always be cloned from
+the original, or if the original should be returned if
+it already has the same representation as other.</p>
 </dd>
 </dl>
 </dd></dl>
