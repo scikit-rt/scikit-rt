@@ -1528,15 +1528,21 @@ def test_pathlib_path():
 
 def test_get_size():
     # Test calculation of image size.
-    for idx in range(3):
-        assert (im.get_n_voxels()[idx] * im.get_voxel_size()[idx]
-                == im.get_size()[idx])
+    for itype in itypes:
+        im1 = im.astype(itype)
+        for idx in range(3):
+            assert (im1.get_n_voxels()[idx]
+                    * im1.get_voxel_size(standardise=True)[idx]
+                    == im1.get_size()[idx])
 
 def test_get_volume():
     # Test calculation of image volume.
-    assert np.prod(shape) == im.get_volume("voxels")
-    assert np.prod(shape) * np.prod(voxel_size) == im.get_volume("mm")
-    assert (np.prod(shape) * np.prod(voxel_size) / 1000) == im.get_volume("ml")
+    for itype in itypes:
+        im1 = im.astype(itype)
+        assert np.prod(shape) == im1.get_volume("voxels")
+        assert np.prod(shape) * np.prod(im1.voxel_size) == im1.get_volume("mm")
+        assert ((np.prod(shape) * np.prod(im1.voxel_size) / 1000)
+                == im1.get_volume("ml"))
 
 def test_get_centroid():
     """Test calculation of centroid of above-threshold voxels."""
@@ -1553,14 +1559,17 @@ def test_get_centroid():
     sl_centre = [idx_centre[0] + 1, idx_centre[1] + 1, shape[2] - idx_centre[2]]
     pos_centre = [origin[idx] + idx_centre[idx] for idx in range(3)]
     sim = SyntheticImage(shape, origin=origin)
-    sim.add_sphere(radius=10, name="sphere", centre=pos_centre, intensity=50)
+    sim.add_sphere(
+            radius=10, name="sphere", centre=pos_centre, intensity=50)
 
-    # Check centroid for each view and coordinate system.
-    fraction = 0.9
-    for idx, view in enumerate(["y-z", "x-z", "x-y"]):
-        assert sim.get_centroid_idx(view, fraction) ==  idx_centre[idx]
-        assert sim.get_centroid_slice(view, fraction) ==  sl_centre[idx]
-        assert sim.get_centroid_pos(view, fraction) ==  pos_centre[idx]
+    for itype in itypes:
+        im = sim.get_image().astype(itype)
+        # Check centroid for each view and coordinate system.
+        fraction = 0.9
+        for idx, view in enumerate(["y-z", "x-z", "x-y"]):
+            assert im.get_centroid_idx(view, fraction) ==  idx_centre[idx]
+            assert im.get_centroid_slice(view, fraction) ==  sl_centre[idx]
+            assert im.get_centroid_pos(view, fraction) ==  pos_centre[idx]
 
 def test_get_translation_to_align_image_rois():
     """Test calculation of translation to align image ROIs."""
