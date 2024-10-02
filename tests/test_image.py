@@ -434,9 +434,18 @@ def test_get_type():
         itype = im.get_type()
         assert "nifti" == itype if nifti_array else "dicom"
 
+def test_is_type():
+    """Test determination of whether images has a specified representation."""
+    im = Image(np.random.rand(10, 10, 10))
+    for key1, values1 in Defaults().image_types.items():
+        for value1 in values1:
+            for key2 in Defaults().image_types.keys():
+
+                assert im.astype(key2).is_type(value1) == (key1 == key2)
+
 def test_is_same_type():
     """Test determination of whether images have same representation."""
-    im_array = np.random.rand(10, 10, 10)
+    im = Image(np.random.rand(10, 10, 10))
     for itype1 in itypes:
         im1 = im.astype(itype1)
         for itype2 in itypes:
@@ -530,18 +539,24 @@ def test_resize_and_match_size():
                     assert image1.get_centre()[i] == resize_centre[i]
 
     # Resize im1 to im2
-    for itype in itypes:
-        for image0, image2 in [(im1.astype(itype), im2.astype(itype)),
-                               (im2.astype(itype), im1.astype(itype))]:
-            image1 = Image(image0)
-            image1.match_size(image2)
-            assert image1.voxel_size == image2.voxel_size
-            assert image1.data.shape == image2.data.shape
-            assert image1.image_extent == image2.image_extent
-            assert image1.origin == image2.origin
-            image_diff = np.absolute(image1.data - image2.data)
-            assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
-                    0.5 * image_diff.size, rel=0.02)
+    for itype1 in itypes:
+        for itype2 in itypes:
+            for image0, image2 in [(im1.astype(itype1), im2.astype(itype2)),
+                                   (im2.astype(itype2), im1.astype(itype1))]:
+                image1 = Image(image0)
+                image1.match_size(image2)
+                assert (image1.get_voxel_size(standardise=True)
+                        == image2.get_voxel_size(standardise=True))
+                assert (image1.get_data(standardise=True).shape
+                        == image2.get_data(standardise=True).shape)
+                assert image1.get_extents() == image2.get_extents()
+                assert (image1.get_origin(standardise=True)
+                        == image2.get_origin(standardise=True))
+                image_diff = np.absolute(
+                        image1.get_data(standardise=True)
+                        - image2.get_data(standardise=True))
+                assert np.count_nonzero(image_diff > 0.5) == pytest.approx(
+                        0.5 * image_diff.size, rel=0.02)
 
 def test_match_images():
     """Minimal test of image matching."""
@@ -1002,19 +1017,23 @@ def test_get_foreground_roi():
         elif "sphere" == name:
             sim.add_sphere(length, centre, intensity, name=name)
 
-    # Should detect sphere as foreground in first loop and cube in second.
-    for name, values in shapes.items():
-        length, centre, intensity, volume = values
-        threshold = intensity - 5
-        roi = sim.get_foreground_roi(threshold=threshold, name=name)
-        assert isinstance(roi, ROI)
-        assert roi.name == name
-        assert roi.get_volume() == pytest.approx(volume, rel=0.005)
-        assert tuple(roi.get_centre()) == centre
+    for itype in itypes:
+        im = sim.get_image().astype(itype)
+        # Should detect sphere as foreground in first loop and cube in second.
+        for name, values in shapes.items():
+            length, centre, intensity, volume = values
+            threshold = intensity - 5
+            roi = im.get_foreground_roi(threshold=threshold, name=name)
+            assert isinstance(roi, ROI)
+            assert roi.name == name
+            assert roi.get_volume() == pytest.approx(volume, rel=0.005)
+            assert tuple(roi.get_centre()) == centre
+            assert im.is_type(itype)
 
-    # For case where no name is specified, check that default is assigned.
-    roi = sim.get_foreground_roi(threshold=threshold)
-    assert roi.name == Defaults().foreground_name
+        # For case where no name is specified, check that default is assigned.
+        roi = im.get_foreground_roi(threshold=threshold)
+        assert roi.name == Defaults().foreground_name
+        assert im.is_type(itype)
 
 def test_mask_bbox():
     """Test calculation of mask bounding box."""
@@ -1025,15 +1044,17 @@ def test_mask_bbox():
     radius = 10
     sim.add_sphere(radius=radius, name="sphere", centre=centre, intensity=50)
 
-    # Create foreground mask, and obtain it's bounding box.
-    mask = sim.get_foreground_mask(threshold=45)
-    bbox = get_mask_bbox(mask)
+    for itype in itypes:
+        # Create foreground mask, and obtain it's bounding box.
+        mask = sim.astype(itype).get_foreground_mask(threshold=45)
+        assert mask.is_type(itype)
+        bbox = get_mask_bbox(mask)
 
-    # Test that the bounding box is consistent with the sphere dimensions,
-    # allowing tolreance of +/-1.
-    for idx1 in range(3):
-        for idx2 in range(2):
-            assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
+        # Test that the bounding box is consistent with the sphere dimensions,
+        # allowing tolreance of +/-1.
+        for idx1 in range(3):
+            for idx2 in range(2):
+                assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
 
 def test_foreground_bbox():
     """Test calculation of foreground bounding box."""
@@ -1044,14 +1065,15 @@ def test_foreground_bbox():
     radius = 10
     sim.add_sphere(radius=radius, name="sphere", centre=centre, intensity=50)
 
-    # Obtain bounding box of foreground.
-    bbox = sim.get_foreground_bbox(threshold=45)
+    for itype in itypes:
+        # Obtain bounding box of foreground.
+        bbox = sim.astype(itype).get_foreground_bbox(threshold=45)
 
-    # Test that the bounding box is consistent with the sphere dimensions,
-    # allowing tolreance of +/-1.
-    for idx1 in range(3):
-        for idx2 in range(2):
-            assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
+        # Test that the bounding box is consistent with the sphere dimensions,
+        # allowing tolreance of +/-1.
+        for idx1 in range(3):
+            for idx2 in range(2):
+                assert abs(abs(bbox[idx1][idx2] - centre[idx1]) - radius) <= 1
 
 def test_foreground_bbox_centre_and_widths():
     """Test calculation of centre and widths for foreground bounding box."""
@@ -1062,15 +1084,17 @@ def test_foreground_bbox_centre_and_widths():
     radius = 10
     sim.add_sphere(radius=radius, name="sphere", centre=centre, intensity=50)
 
-    # Calculate centre and widths of foreground bounding box.
-    bb_centre, bb_widths = sim.get_foreground_bbox_centre_and_widths(
-            threshold=45)
+    for itype in itypes:
+        # Calculate centre and widths of foreground bounding box.
+        bb_centre, bb_widths = (
+                sim.astype(itype).get_foreground_bbox_centre_and_widths(
+                    threshold=45))
 
-    # Test that the centre and widths of the bounding box are consistent
-    # with the sphere dimensions, allowing tolreance of +/-1.
-    for idx in range(3):
-        assert abs(bb_centre[idx] - centre[idx]) <= 1
-        assert abs(bb_widths[idx] - 2 * radius) <= 1
+        # Test that the centre and widths of the bounding box are consistent
+        # with the sphere dimensions, allowing tolreance of +/-1.
+        for idx in range(3):
+            assert abs(bb_centre[idx] - centre[idx]) <= 1
+            assert abs(bb_widths[idx] - 2 * radius) <= 1
 
 def test_create_intensity_mask():
     """
@@ -1087,36 +1111,39 @@ def test_create_intensity_mask():
     # Create expected masks given different minimum and maximum intensities.
     nx, ny, nz = sim.get_n_voxels()
     ones = np.ones((ny, nx, nz), dtype=bool)
-    masks = [
-            ((None, None), ones),
-            ((50.59, 50.61), ones * (sim.get_data() == 50.6)),
-            ((60, None), ones * (sim.get_data() == 60.4)),
-            ((None, 55),  1 - ones * (sim.get_data() == 60.4)),
-            ]
+    for itype in itypes:
+        sim = sim.astype(itype)
+        assert sim.is_type(itype)
+        masks = [
+                ((None, None), ones),
+                ((50.59, 50.61), ones * (sim.get_data() == 50.6)),
+                ((60, None), ones * (sim.get_data() == 60.4)),
+                ((None, 55),  1 - ones * (sim.get_data() == 60.4)),
+                ]
 
-    # Check intensitiy masks against expected masks.
-    for intensities, mask2 in masks:
-        vmin, vmax = intensities
-        mask1 = sim.get_intensity_mask(vmin, vmax).get_data()
-        mask1[mask1 > 0] = 1
+        # Check intensitiy masks against expected masks.
+        for intensities, mask2 in masks:
+            vmin, vmax = intensities
+            mask1 = sim.get_intensity_mask(vmin, vmax).get_data()
+            mask1[mask1 > 0] = 1
 
-        assert mask1.shape == mask2.shape
-        # If there are no constraints on vmin and vmax,
-        # all elements of the intensity mask should be True
-        # (minimum and maximum both 1).
-        # Otherwise, the minimum should be 0 and the maximum should be 1.
-        if vmin is None and vmax is None:
-            assert mask1.min() == 1
-        else:
-            assert mask1.min() == 0
-        assert mask1.max() == 1
-        assert mask1.min() == mask2.min()
-        assert mask1.max() == mask2.max()
-        assert mask1.sum() == mask2.sum()
+            assert mask1.shape == mask2.shape
+            # If there are no constraints on vmin and vmax,
+            # all elements of the intensity mask should be True
+            # (minimum and maximum both 1).
+            # Otherwise, the minimum should be 0 and the maximum should be 1.
+            if vmin is None and vmax is None:
+                assert mask1.min() == 1
+            else:
+                assert mask1.min() == 0
+            assert mask1.max() == 1
+            assert mask1.min() == mask2.min()
+            assert mask1.max() == mask2.max()
+            assert mask1.sum() == mask2.sum()
 
-        # Check that intensity mask is voxel for voxel identical
-        # to the created mask.
-        assert np.all(mask1 == mask2)
+            # Check that intensity mask is voxel for voxel identical
+            # to the created mask.
+            assert np.all(mask1 == mask2)
 
 def test_translation_to_align():
     """Test calculation of translation to align pair of images."""

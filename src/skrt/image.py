@@ -67,6 +67,10 @@ _default_bolus_names = [
     "0.5CM BOLUS",
 ]
 
+skrt.core.Defaults({"image_types":
+                    {"nifti": ["nii", "nifti"],
+                     "dicom": ["dcm", "dicom"]}})
+
 # Set Matplotlib runtime configuration.
 # For details of Matplotlib configuration, see:
 # https://matplotlib.org/stable/tutorials/introductory/customizing.html
@@ -494,8 +498,8 @@ class Image(skrt.core.Archive):
         """
 
         # Check if the requested type is recognised.
-        nii_type = itype in ["nii", "nifti"]
-        dcm_type = itype in ["dcm", "dicom"]
+        nii_type = itype in skrt.core.Defaults().image_types["nifti"]
+        dcm_type = itype in skrt.core.Defaults().image_types["dicom"]
 
         if nii_type or dcm_type:
             # Ensure that image is loaded, and create clone.
@@ -615,6 +619,16 @@ class Image(skrt.core.Archive):
         """
         self.load()
         return ("nifti" if self.from_nifti() else "dicom")
+
+    def is_type(self, itype):
+        """
+        Return whether image representation is a specified type.
+
+        **Parameter:**
+        itype : str
+            Identifier of the representation type to check.
+        """
+        return itype in skrt.core.Defaults().image_types[self.get_type()]
 
     def is_same_type(self, other):
         """
@@ -1548,6 +1562,8 @@ class Image(skrt.core.Archive):
 
         if "name" not in kwargs:
             kwargs["name"] = skrt.core.Defaults().foreground_name
+        if "nifti_array" not in kwargs:
+            kwargs["nifti_array"] = self.from_nifti()
         return ROI(
             self.get_foreground_mask(threshold, convex_hull, fill_holes, dxy),
             **kwargs,
