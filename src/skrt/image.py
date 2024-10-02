@@ -5342,7 +5342,8 @@ class Image(skrt.core.Archive):
         # Create 2d histogram of voxel-by-voxel grey-level values,
         # comparing images.
         hist2d, xedges, yedges = np.histogram2d(
-            self.get_data().ravel(), image.get_data().ravel(), bins, xyrange
+            self.get_data(standardise=True).ravel(),
+            image.get_data(standardise=True).ravel(), bins, xyrange
         )
 
         # Convert numbers of entries to joint probabilities.
@@ -5422,8 +5423,8 @@ class Image(skrt.core.Archive):
         if metrics:
             # Recale intensity values, so that the minimum is 0.
             v_min = min(self.get_min(), image.get_min())
-            data1 = self.get_data() - v_min
-            data2 = image.get_data() - v_min
+            data1 = self.get_data(standardise=True) - v_min
+            data2 = image.get_data(standardise=True) - v_min
 
             # If intensity values have non-zero sum, normalise to 1.
             if data1.sum():

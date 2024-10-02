@@ -1694,129 +1694,147 @@ def test_get_mutual_information():
 
     small_number = 1.e-6
 
-    # Check mutual information for some simple cases.
-    im1 = Image(np.array([[1, 1],[1, 1]]))
-    im2 = Image(np.array([[1, 2],[3, 4]]))
-    # Intensities of image 1 give no information on intensities of image 2:
-    # MI = [(1) * log((1)/(1))] = 0; NMI = 1; IQR = 0; RD = 1..
-    variants = [("mi", 0), ("nmi", 1), ("iqr", 0), ("rajski", 1)]
-    for variant, value in variants:
-        for base in [None, 2, 10]:
-            assert (im1.get_mutual_information(im2, base=base, variant=variant)
-                    == value)
+    for itype1 in itypes:
+        for itype2 in itypes:
+            # Check mutual information for some simple cases.
+            im1 = Image(np.array([[1, 1],[1, 1]])).astype(itype1)
+            im2 = Image(np.array([[1, 2],[3, 4]])).astype(itype2)
+            # Intensities of image 1 give no information
+            # on intensities of image 2:
+            # MI = [(1) * log((1)/(1))] = 0; NMI = 1; IQR = 0; RD = 1..
+            variants = [("mi", 0), ("nmi", 1), ("iqr", 0), ("rajski", 1)]
+            for variant, value in variants:
+                for base in [None, 2, 10]:
+                    assert (im1.get_mutual_information(
+                        im2, base=base, variant=variant) == value)
 
-    im1 = Image(np.array([[1, 2],[3, 4]]))
-    im2 = Image(np.array([[5, 6],[7, 8]]))
-    # Intensities of image 1 linearly related to intensities of image 2:
-    # MI = 4 * [(1/4) * log((1/4)/(1/16))] = log(4); NMI = 2; IQR = 1; RD = 0.
-    variants = [("mi", None), ("nmi", 2), ("iqr", 1), ("rajski", 0)]
-    for variant, value in variants:
-        for base in [None, 2, 10]:
-            test_value = value if value is not None else pytest.approx(
-                    math.log(4, (base or math.e)), small_number)
-            assert (im1.get_mutual_information(im2, base=base, variant=variant)
-                    == test_value)
+            im1 = Image(np.array([[1, 2],[3, 4]])).astype(itype1)
+            im2 = Image(np.array([[5, 6],[7, 8]])).astype(itype2)
+            # Intensities of image 1 linearly related to intensities of image 2:
+            # MI = 4 * [(1/4) * log((1/4)/(1/16))]
+            # = log(4); NMI = 2; IQR = 1; RD = 0.
+            variants = [("mi", None), ("nmi", 2), ("iqr", 1), ("rajski", 0)]
+            for variant, value in variants:
+                for base in [None, 2, 10]:
+                    test_value = value if value is not None else pytest.approx(
+                            math.log(4, (base or math.e)), small_number)
+                    assert (im1.get_mutual_information(
+                        im2, base=base, variant=variant) == test_value)
 
 def test_rescale_images():
     """Test rescaling of image greyscale values."""
     
-    # Create test image, and obtain greyscale characteristics.
-    im = create_test_image(shape, voxel_size, origin)
-    im.data = im.data - (0.5 * im.get_max())
-    u_min = im.get_min(force=True)
-    u_max = im.get_max(force=True)
-    du = u_max - u_min
-    u_sum = im.data.sum()
+    for itype in itypes:
+        # Create test image, and obtain greyscale characteristics.
+        im = create_test_image(shape, voxel_size, origin).astype(itype)
+        im.data = im.data - (0.5 * im.get_max())
+        u_min = im.get_min(force=True)
+        u_max = im.get_max(force=True)
+        du = u_max - u_min
+        u_sum = im.data.sum()
 
-    # Rescale image.
-    v_min = 0.
-    v_max = 100.
-    constant = 50.
-    dv = v_max - v_min
-    im2 = rescale_images(im, v_min, v_max, constant, clone=False)[0]
+        # Rescale image.
+        v_min = 0.
+        v_max = 100.
+        constant = 50.
+        dv = v_max - v_min
+        im2 = rescale_images(im, v_min, v_max, constant, clone=False)[0]
 
-    # Check greyscale characteristics of rescaled image.
-    assert im2 is im
-    assert im2.get_min(force=True) == v_min
-    assert im2.get_max(force=True) == v_max
-    assert ((u_min + ((im2.data - v_min) * (du / dv))).sum()
-            == pytest.approx(u_sum, rel=0.001))
-
-    # Check greyscale value after rescaling,
-    # when initial greyscale values are all the same.
-    v_fill = 10
-    im.data.fill(v_fill)
-    im2 = rescale_images((im,), v_min, v_max, constant, clone=True)[0]
-    assert im2 is not im
-    assert np.all(im2.data == constant)
-    assert np.all(im2.data != im.data)
-
-    # Check that original image is returned
-    # when lower or upper bound for rescaling is None,
-    for v_min2, v_max2 in [(None, v_max), (v_min, None)]:
-        im2 = rescale_images([im], v_min2, v_max2, constant, clone=True)[0]
+        # Check greyscale characteristics of rescaled image.
         assert im2 is im
-        assert np.all(im2.data == v_fill)
+        assert im2.get_min(force=True) == v_min
+        assert im2.get_max(force=True) == v_max
+        assert ((u_min + ((im2.data - v_min) * (du / dv))).sum()
+                == pytest.approx(u_sum, rel=0.001))
+
+        # Check greyscale value after rescaling,
+        # when initial greyscale values are all the same.
+        v_fill = 10
+        im.data.fill(v_fill)
+        im2 = rescale_images((im,), v_min, v_max, constant, clone=True)[0]
+        assert im2 is not im
+        assert np.all(im2.data == constant)
+        assert np.all(im2.data != im.data)
+
+        # Check that original image is returned
+        # when lower or upper bound for rescaling is None,
+        for v_min2, v_max2 in [(None, v_max), (v_min, None)]:
+            im2 = rescale_images([im], v_min2, v_max2, constant, clone=True)[0]
+            assert im2 is im
+            assert np.all(im2.data == v_fill)
 
 def test_get_relative_structural_content():
     """Test calculation of relative structural content."""
-    # For image compared with itself,
-    # check that relative structural content is 1.
-    im1 = create_test_image(shape, voxel_size, origin)
-    assert im1.get_relative_structural_content(im1) == 1
+    for itype1 in itypes:
+        # For image compared with itself,
+        # check that relative structural content is 1.
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype1)
+        assert im1.get_relative_structural_content(im1) == 1
 
-    # For image of zeros, compared with another image,
-    # check that relative structural content is 0.
-    im2 = create_test_image(shape, voxel_size, origin, "zeros")
-    assert im2.get_relative_structural_content(im1) == 0
+        for itype2 in itypes:
+            # For image of zeros, compared with another image,
+            # check that relative structural content is 0.
+            im2 = create_test_image(
+                    shape, voxel_size, origin, "zeros").astype(itype2)
+            assert im2.get_relative_structural_content(im1) == 0
 
 def test_get_fidelity():
     """Test calculation of fidelity."""
-    # For image compared with itself, check that fidelity is 1.
-    im1 = create_test_image(shape, voxel_size, origin)
-    assert im1.get_fidelity(im1) == 1
+    for itype1 in itypes:
+        # For image compared with itself, check that fidelity is 1.
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype1)
+        assert im1.get_fidelity(im1) == 1
 
-    # For image of zeros, compared with another image,
-    # check that fidelity is 0.
-    im2 = create_test_image(shape, voxel_size, origin, "zeros")
-    assert im2.get_fidelity(im1) == 0
+        for itype2 in itypes:
+            # For image of zeros, compared with another image,
+            # check that fidelity is 0.
+            im2 = create_test_image(
+                    shape, voxel_size, origin, "zeros").astype(itype2)
+            assert im2.get_fidelity(im1) == 0
 
 def test_get_correlation_quality():
     """Test calculation of correlation quality."""
-    # For image compared with itself, check that correlation_quality is 1.
-    im1 = create_test_image(shape, voxel_size, origin)
-    assert im1.get_correlation_quality(im1) == 1
+    for itype1 in itypes:
+        # For image compared with itself, check that correlation_quality is 1.
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype1)
+        assert im1.get_correlation_quality(im1) == 1
 
-    # For image of zeros, compared with another image,
-    # check that correlation quality is 0.
-    im2 = create_test_image(shape, voxel_size, origin, "zeros")
-    assert im2.get_correlation_quality(im1) == 0
+        for itype2 in itypes:
+            # For image of zeros, compared with another image,
+            # check that correlation quality is 0.
+            im2 = create_test_image(
+                    shape, voxel_size, origin, "zeros").astype(itype2)
+            assert im2.get_correlation_quality(im1) == 0
 
 def test_get_quality():
     """Test quality of image with respect to another image."""
-    # Create test images, and perform comparison.
-    im1 = create_test_image(shape, voxel_size, origin)
-    im2 = create_test_image(shape, voxel_size, origin)
-
+    # Define comparison metrics to be evaluated, and expected values.
     metrics = {
             "relative_structural_content" : 1,
             "fidelity" : 0.5,
             "correlation_quality" : 0.75
             }
 
-    # Check that only None values returned for null or invalid metrics.
-    for metric in [[], "", "unknown_metric"]:
-        scores = im1.get_quality(im2, metric)
-        assert isinstance(scores, dict)
-        assert len(scores) == len(metrics)
-        assert all([score is None for score in scores.values()])
+    # Create test images, and perform comparison.
+    for itype1 in itypes:
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype1)
+        for itype2 in itypes:
+            im2 = create_test_image(shape, voxel_size, origin).astype(itype2)
 
-    # Check that scores are as expected for images with random intensity values.
-    scores = im1.get_quality(im2, list(metrics))
-    assert isinstance(scores, dict)
-    assert len(scores) == len(metrics)
-    for metric, score in metrics.items():
-        assert scores[metric] == pytest.approx(score, abs=0.02)
+            # Check that only None values returned for null or invalid metrics.
+            for metric in [[], "", "unknown_metric"]:
+                scores = im1.get_quality(im2, metric)
+                assert isinstance(scores, dict)
+                assert len(scores) == len(metrics)
+                assert all([score is None for score in scores.values()])
+
+            # Check that scores are as expected
+            # for images with random intensity values.
+            scores = im1.get_quality(im2, list(metrics))
+            assert isinstance(scores, dict)
+            assert len(scores) == len(metrics)
+            for metric, score in metrics.items():
+                assert scores[metric] == pytest.approx(score, abs=0.02)
 
 def test_get_image_comparison_metrics():
     """Check that get_image_comparison_metrics() returns a list of strings."""
@@ -1828,21 +1846,24 @@ def test_get_image_comparison_metrics():
 def test_get_comparison():
     """Test evaluation of image-comparison metrics."""
     # Create test images, and perform comparison.
-    im1 = create_test_image(shape, voxel_size, origin)
-    im2 = create_test_image(shape, voxel_size, origin)
     metrics = get_image_comparison_metrics()
-    comparison = im1.get_comparison(im2, metrics=metrics)
+    for itype1 in itypes:
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype1)
+        for itype2 in itypes:
+            im2 = create_test_image(shape, voxel_size, origin).astype(itype2)
+            comparison = im1.get_comparison(im2, metrics=metrics)
 
-    # Check that resulting DataFrame is as expected.
-    assert isinstance(comparison, pd.DataFrame)
-    assert comparison.shape[0] == 1
-    assert comparison.shape[1] == len(metrics)
-    assert list(comparison.columns) == metrics
+            # Check that resulting DataFrame is as expected.
+            assert isinstance(comparison, pd.DataFrame)
+            assert comparison.shape[0] == 1
+            assert comparison.shape[1] == len(metrics)
+            assert list(comparison.columns) == metrics
 
-    # Check that exception is raised for unknown metric.
-    with pytest.raises(RuntimeError) as error_info:
-        comparison = im1.get_comparison(im2, metrics=["unknown_metric"])
-    assert "Metric unknown_metric not recognised" in str(error_info.value)
+            # Check that exception is raised for unknown metric.
+            with pytest.raises(RuntimeError) as error_info:
+                comparison = im1.get_comparison(im2, metrics=["unknown_metric"])
+            assert ("Metric unknown_metric not recognised"
+                    in str(error_info.value))
 
 def test_null_sinogram():
     sinogram_null = Sinogram()
