@@ -322,6 +322,8 @@ class Image(skrt.core.Archive):
         that has the same affine matrix as self, and has a data array
         obtained by summing the data arrays of self and other.
         """
+        if not other.is_same_type(self):
+            other = other.astype(self.get_type())
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         result = self.__class__(
@@ -338,6 +340,8 @@ class Image(skrt.core.Archive):
         that has the same affine matrix as self, and has a data array
         obtained by summing the data arrays of self and other.
         """
+        if not other.is_same_type(self):
+            other = other.astype(self.get_type())
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         return self + other
@@ -448,6 +452,8 @@ class Image(skrt.core.Archive):
         obtained by subtracting the data array of other from the data
         array of other.
         """
+        if not other.is_same_type(self):
+            other = other.astype(self.get_type())
         if not self.has_same_geometry(other):
             raise RuntimeError(
                     "Objects for subtraction must have same geometry")
@@ -466,6 +472,8 @@ class Image(skrt.core.Archive):
         obtained by subtracting the data array of other from the data
         array of self.
         """
+        if not other.is_same_type(self):
+            other = other.astype(self.get_type())
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         return self - other

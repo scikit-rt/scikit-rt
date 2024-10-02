@@ -1336,46 +1336,48 @@ def test_get_voxel_size():
 
 def test_apply_banding():
     # Test banding.
-    im1 = Image(im)
-    bands = {300: 100, 700: 500, 1e10: 900}
-    im1.apply_banding(bands)
-    values = sorted(list(bands.keys()))
-    for i in range(len(values)):
-        if i:
-            v1 = values[i - 1]
-        else:
-            v1 = -1e10
-        v2 = values[i]
-        v_band = bands[v2]
-        assert (((im.get_data() > v1) & (im.get_data() <= v2)).sum()
-                == (im1.get_data() == v_band).sum())
+    for itype in itypes:
+        im1 = im.astype(itype)
+        bands = {300: 100, 700: 500, 1e10: 900}
+        im1.apply_banding(bands)
+        values = sorted(list(bands.keys()))
+        for i in range(len(values)):
+            if i:
+                v1 = values[i - 1]
+            else:
+                v1 = -1e10
+            v2 = values[i]
+            v_band = bands[v2]
+            assert (((im.get_data() > v1) & (im.get_data() <= v2)).sum()
+                    == (im1.get_data() == v_band).sum())
 
 def test_apply_selective_banding():
     # Test selective banding.
+    
+    for itype in itypes:
+        # Define test image.
+        im1 = im.astype(itype)
+        image_data = im1.get_data()
+        print(image_data.min(), image_data.max())
 
-    # Define test image.
-    im1 = Image(im)
-    image_data = im1.get_data()
-    print(image_data.min(), image_data.max())
+        # Define banding, and apply to image copy.
+        unbanded = [(600, 800)]
+        bands = {100: (None, 300), 500: (300, 600), 900: (800, None)}
+        im2 = im1.clone()
+        im2.apply_selective_banding(bands)
+        banded_data = im2.get_data()
 
-    # Define banding, and apply to image copy.
-    unbanded = [(600, 800)]
-    bands = {100: (None, 300), 500: (300, 600), 900: (800, None)}
-    im2 = im1.clone()
-    im2.apply_selective_banding(bands)
-    banded_data = im2.get_data()
+        # Check that band values are correctly assigned.
+        for v_band, values in sorted(bands.items()):
+            v1 = values[0] if values[0] is not None else image_data.min() - 1
+            v2 = values[1] if values[1] is not None else image_data.max() + 1
+            assert np.all(banded_data[(image_data > v1) & (image_data <= v2)]
+                    == v_band)
 
-    # Check that band values are correctly assigned.
-    for v_band, values in sorted(bands.items()):
-        v1 = values[0] if values[0] is not None else image_data.min() - 1
-        v2 = values[1] if values[1] is not None else image_data.max() + 1
-        assert np.all(banded_data[(image_data > v1) & (image_data <= v2)]
-                == v_band)
-
-    # Check that values in unbanded range(s) are unchanged.
-    for v1, v2 in unbanded:
-        assert np.all(banded_data[(image_data > v1) & (image_data <= v2)]
-                == image_data[(image_data > v1) & (image_data <= v2)])
+        # Check that values in unbanded range(s) are unchanged.
+        for v1, v2 in unbanded:
+            assert np.all(banded_data[(image_data > v1) & (image_data <= v2)]
+                    == image_data[(image_data > v1) & (image_data <= v2)])
 
 def test_addition():
     # Define test image.
@@ -1385,21 +1387,27 @@ def test_addition():
     im1 = create_test_image(shape, voxel_size, origin)
 
     # Test addition.
-    im2 = im1 + im1
-    
-    assert im2.get_n_voxels() == im1.get_n_voxels()
-    assert im2.get_voxel_size() == im1.get_voxel_size()
-    assert im2.get_origin() == im1.get_origin()
-    assert np.all(im2.get_data() == 2 * im1.get_data())
+    for itype1 in itypes:
+        for itype2 in itypes:
+            im1a = im1.astype(itype1)
+            im1b = im1.astype(itype2)
+            im2 = im1a + im1b
+            
+            assert im2.is_type(itype1)
+            assert im2.get_n_voxels() == im1a.get_n_voxels()
+            assert im2.get_voxel_size() == im1a.get_voxel_size()
+            assert im2.get_origin() == im1a.get_origin()
+            assert np.all(im2.get_data() == 2 * im1a.get_data())
 
-    # Test in-place addition.
-    im3 = im1.clone()
-    im3 += im1
-    
-    assert im3.get_n_voxels() == im1.get_n_voxels()
-    assert im3.get_voxel_size() == im1.get_voxel_size()
-    assert im3.get_origin() == im1.get_origin()
-    assert np.all(im3.get_data() == 2 * im1.get_data())
+            # Test in-place addition.
+            im3 = im1a
+            im3 += im1b
+            
+            assert im3.is_type(itype1)
+            assert im3.get_n_voxels() == im1a.get_n_voxels()
+            assert im3.get_voxel_size() == im1a.get_voxel_size()
+            assert im3.get_origin() == im1a.get_origin()
+            assert np.all(im3.get_data() == 2 * im1a.get_data())
 
 def test_subtraction():
     # Define test image.
@@ -1408,94 +1416,110 @@ def test_subtraction():
     origin = (-62., -62., -10.)
     im1 = create_test_image(shape, voxel_size, origin)
 
-    # Test subtraction.
-    im2 = im1 - im1
-    
-    assert im2.get_n_voxels() == im1.get_n_voxels()
-    assert im2.get_voxel_size() == im1.get_voxel_size()
-    assert im2.get_origin() == im1.get_origin()
-    assert np.all(im2.get_data() == np.zeros(shape))
+    for itype1 in itypes:
+        for itype2 in itypes:
+            # Test subtraction.
+            im1a = im1.astype(itype1)
+            im1b = im1.astype(itype2)
+            im2 = im1a - im1b
+            
+            assert im2.is_type(itype1)
+            assert im2.get_n_voxels() == im1a.get_n_voxels()
+            assert im2.get_voxel_size() == im1a.get_voxel_size()
+            assert im2.get_origin() == im1a.get_origin()
+            assert np.all(im2.get_data() == np.zeros(shape))
 
-    # Test in-place subtraction.
-    im3 = im1.clone()
-    im3 -= im1
-    
-    assert im3.get_n_voxels() == im1.get_n_voxels()
-    assert im3.get_voxel_size() == im1.get_voxel_size()
-    assert im3.get_origin() == im1.get_origin()
-    assert np.all(im3.get_data() == np.zeros(shape))
+            # Test in-place subtraction.
+            im3 = im1a
+            im3 -= im1b
+            
+            assert im3.is_type(itype1)
+            assert im3.get_n_voxels() == im1a.get_n_voxels()
+            assert im3.get_voxel_size() == im1a.get_voxel_size()
+            assert im3.get_origin() == im1a.get_origin()
+            assert np.all(im3.get_data() == np.zeros(shape))
 
 def test_unary_opeartions():
-    # Define test image.
+    # Define geometry of test image.
     shape = (50, 50, 10)
     voxel_size = (1, 1, 3)
     origin = (-62., -62., -10.)
-    im1 = create_test_image(shape, voxel_size, origin)
 
-    # Test unary positive.
-    im2 = +im1
-    
-    assert im2.get_n_voxels() == im1.get_n_voxels()
-    assert im2.get_voxel_size() == im1.get_voxel_size()
-    assert im2.get_origin() == im1.get_origin()
-    assert np.all(im2.get_data() == im1.get_data())
+    for itype in itypes:
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype)
 
-    # Test unary negative.
-    im3 = -im1
-    
-    assert im3.get_n_voxels() == im1.get_n_voxels()
-    assert im3.get_voxel_size() == im1.get_voxel_size()
-    assert im3.get_origin() == im1.get_origin()
-    assert np.all(im3.get_data() == -im1.get_data())
+        # Test unary positive.
+        im2 = +im1
+        
+        assert im2.is_type(itype)
+        assert im2.get_n_voxels() == im1.get_n_voxels()
+        assert im2.get_voxel_size() == im1.get_voxel_size()
+        assert im2.get_origin() == im1.get_origin()
+        assert np.all(im2.get_data() == im1.get_data())
+
+        # Test unary negative.
+        im3 = -im1
+        
+        assert im3.is_type(itype)
+        assert im3.get_n_voxels() == im1.get_n_voxels()
+        assert im3.get_voxel_size() == im1.get_voxel_size()
+        assert im3.get_origin() == im1.get_origin()
+        assert np.all(im3.get_data() == -im1.get_data())
 
 def test_multiplication_by_scalar():
-    # Define test image.
+    # Define geometry of test image.
     shape = (50, 50, 10)
     voxel_size = (1, 1, 3)
     origin = (-62., -62., -10.)
-    im1 = create_test_image(shape, voxel_size, origin)
 
-    # Test multiplication by scalar.
-    scalar = 5.2
-    for i in [0, 1, 2]:
-        # Test left multiplication.
-        if 0 == i:
-            im2 =  scalar * im1
-        # Test right multiplication.
-        elif 1 == i:
-            im2 =  im1 * scalar
-        # Test in-place multiplication.
-        elif 2 == i:
-            im2 = im1.clone()
-            im2 *= scalar
-        
-        assert im2.get_n_voxels() == im1.get_n_voxels()
-        assert im2.get_voxel_size() == im1.get_voxel_size()
-        assert im2.get_origin() == im1.get_origin()
-        assert np.all(im2.get_data() == scalar * im1.get_data())
+    for itype in itypes:
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype)
+
+        # Test multiplication by scalar.
+        scalar = 5.2
+        for i in [0, 1, 2]:
+            # Test left multiplication.
+            if 0 == i:
+                im2 =  scalar * im1
+            # Test right multiplication.
+            elif 1 == i:
+                im2 =  im1 * scalar
+            # Test in-place multiplication.
+            elif 2 == i:
+                im2 = im1.clone()
+                im2 *= scalar
+
+            assert im2.is_type(itype)
+            assert im2.get_n_voxels() == im1.get_n_voxels()
+            assert im2.get_voxel_size() == im1.get_voxel_size()
+            assert im2.get_origin() == im1.get_origin()
+            assert np.all(im2.get_data() == scalar * im1.get_data())
 
 def test_division_by_scalar():
-    # Define test image.
+    # Define geometry of test image.
     shape = (50, 50, 10)
     voxel_size = (1, 1, 3)
     origin = (-62., -62., -10.)
-    im1 = create_test_image(shape, voxel_size, origin)
 
-    # Test division by scalar.
-    scalar = 5.2
-    for i in [0, 1]:
-        # Test standard division.
-        if 0 == i:
-            im2 =  im1 / scalar
-        # Test in-place division.
-        elif 1 == i:
-            im2 = im1.clone()
-            im2 /= scalar
-        
-        assert im2.get_n_voxels() == im1.get_n_voxels()
-        assert im2.get_voxel_size() == im1.get_voxel_size()
-        assert im2.get_origin() == im1.get_origin()
-        assert np.all(im2.get_data() == im1.get_data() / scalar) 
+    for itype in itypes:
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype)
+
+        # Test division by scalar.
+        scalar = 5.2
+        for i in [0, 1]:
+            # Test standard division.
+            if 0 == i:
+                im2 =  im1 / scalar
+            # Test in-place division.
+            elif 1 == i:
+                im2 = im1.clone()
+                im2 /= scalar
+            
+            assert im2.is_type(itype)
+            assert im2.get_n_voxels() == im1.get_n_voxels()
+            assert im2.get_voxel_size() == im1.get_voxel_size()
+            assert im2.get_origin() == im1.get_origin()
+            assert np.all(im2.get_data() == im1.get_data() / scalar) 
 
 def test_pathlib_path():
     # Test passing of pathlib.Path.
