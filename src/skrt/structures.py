@@ -1164,13 +1164,21 @@ class ROI(skrt.core.Archive):
         # Create mask from input x-y contours
         if self.input_contours:
             # Initialise self.mask as image
+            if isinstance(self.image, skrt.image.Image):
+                affine = self.image.get_affine(standardise=True)
+                voxel_size = self.image.get_voxel_size(standardise=True)
+                origin = self.image.get_origin(standardise=True)
+            else:
+                affine = self.affine
+                voxel_size = self.voxel_size
+                origin = self.origin
             self.mask = skrt.image.Image(
                 np.zeros(
                     (self.shape[1], self.shape[0], self.shape[2]), dtype=bool
                 ),
-                affine=self.affine,
-                voxel_size=self.voxel_size,
-                origin=self.origin,
+                affine=affine,
+                voxel_size=voxel_size,
+                origin=origin,
             )
 
             # Create mask on each z layer
@@ -1253,7 +1261,6 @@ class ROI(skrt.core.Archive):
             if (isinstance(self.image, skrt.image.Image)
                 and self.image.from_nifti()):
                 self.mask = self.mask.astype("nii")
-                self.mask.data = self.mask.data[::-1, :, :]
                 self.mask.standardise_data()
 
             # Set own geometric properties from mask

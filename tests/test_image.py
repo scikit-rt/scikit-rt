@@ -1585,24 +1585,34 @@ def test_get_translation_to_align_image_rois():
         sim = SyntheticImage(shapes[idx], origin=origins[idx])
         sim.add_sphere(radius=radii[idx], name="sphere",
                 centre=centres[idx], intensity=intensity)
-        ss = sim.get_structure_set()
+        sim.update()
         ims.append(Image(sim))
-        ss.set_image(ims[idx])
 
     # Initialise random-number seed.
     np.random.seed(1)
 
-    # Check that translations for aligning sphere centres are as expected.
-    for z1, z2 in [(None, None), np.random.uniform(0, 1, 2)]:
-        dz1 = 0.5 if z1 is None else z1 - 0.5
-        dz2 = 0.5 if z2 is None else z2 - 0.5
-        t1 = [centres[1][idx] - centres[0][idx] for idx in range(3)]
-        t2 = ims[0].get_translation_to_align_image_rois(ims[1],
-                "sphere", "sphere", z1, z2)
-        assert t1[0] == t2[0]
-        assert t1[1] == t2[1]
-        assert ((t1[2] + (dz2 * radii[1] - dz1 * radii[0]))
-                == pytest.approx(t2[2], 1e6))
+    for itype0 in itypes:
+        sset0 = ims[0].get_structure_sets()[0].clone()
+        im0 = ims[0].astype(itype0)
+        im0.clear_structure_sets()
+        sset0.set_image(im0)
+        for itype1 in itypes:
+            sset1 = ims[1].get_structure_sets()[0].clone()
+            im1 = ims[1].astype(itype1)
+            im1.clear_structure_sets()
+            sset1.set_image(im1)
+            # Check that translations for aligning sphere centres
+            # are as expected.
+            for z1, z2 in [(None, None), np.random.uniform(0, 1, 2)]:
+                dz1 = 0.5 if z1 is None else z1 - 0.5
+                dz2 = 0.5 if z2 is None else z2 - 0.5
+                t1 = [centres[1][idx] - centres[0][idx] for idx in range(3)]
+                t2 = im0.get_translation_to_align_image_rois(im1,
+                        "sphere", "sphere", z1, z2)
+                assert t1[0] == t2[0]
+                assert t1[1] == t2[1]
+                assert ((t1[2] + (dz2 * radii[1] - dz1 * radii[0]))
+                        == pytest.approx(t2[2], 1e6))
 
 def test_dcm_single_file():
     """
