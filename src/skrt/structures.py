@@ -5681,7 +5681,8 @@ class ROI(skrt.core.Archive):
         if image_ready or (include_image and self.image):
             roi = self
         else:
-            roi = self.clone(copy_data=False)
+            #roi = self.clone(copy_data=False)
+            roi = self.clone()
             im = roi.get_dummy_image(voxel_size=voxel_size, buffer=buffer)
             im.title = roi.name
             roi.set_image(im)
@@ -5881,7 +5882,7 @@ class ROI(skrt.core.Archive):
         # Assign image
         self.set_image(im)
 
-    def set_image(self, im):
+    def set_image(self, im, method=None):
         """Set self.image to a given image and adjust geometric properties
         accordingly. Note that self.mask will be removed if the current mask's
         shape doesn't match the image.
@@ -5899,13 +5900,23 @@ class ROI(skrt.core.Archive):
         if not self.voxel_size:
             self.voxel_size = im.get_voxel_size()
 
+        # Check method for resizing mask to match new image.
+        if method is None:
+            method = self.default_geom_method
+
+        if self.mask and "mask" == method:
+            if not self.mask.has_same_geometry(im, standardise=True):
+                self.mask.match_size(im, method="nearest")
+
         # If the z-distance between contours is greater than the voxel
         # z-dimension for the new image, first ensure that the ROI
         # mask is created with the inter-contour z-distance, then resize
         # to the image voxel size.
-        if self.get_slice_thickness_contours() > self.image.get_voxel_size()[2]:
+        if (self.get_slice_thickness_contours()
+            > self.image.get_voxel_size(standardise=True)[2]):
             if not (self.mask
-                    and (self.image.voxel_size == self.mask.voxel_size)):
+                    and (self.image.get_voxel_size(standardise=True)
+                         == self.mask.get_voxel_size(standardise=True))):
                 # Note that the following call to self.create_mask()
                 # triggers a call to self.set_image_to_dummy(),
                 # which calls self.set_image().
@@ -5927,20 +5938,21 @@ class ROI(skrt.core.Archive):
             if hasattr(self.mask, "data"):
                 if not self.mask.data.dtype == bool:
                     self.mask.data = self.mask.data.astype(bool)
+                    self.mask.standardise_data()
 
-            # Delete contours if the z-distance between them is greater than
-            # the voxel z-dimension.  New contours will be created at
-            # the next call to access contour data.
-            if (self.mask.voxel_size[2] < self.get_slice_thickness_contours()):
-                self.contours = {}
-
+        # Delete contours if the z-distance between them is greater than
+        # the voxel z-dimension.  New contours will be created at
+        # the next call to access contour data.
+        if self.mask and (self.mask.get_voxel_size(standardise=True)[2]
+            < self.get_slice_thickness_contours()):
+            self.contours = {}
 
         # If a mask has been loaded, but doesn't match the image geometry,
         # delete the mask data.  (This should mean that the z-distance
         # between contours is less that the voxel z-dimension for the
         # new image.)  A new mask will be created at the next call
         # to access the mask data.
-        if self.mask and not im.has_same_geometry(self.mask):
+        if self.mask and not im.has_same_geometry(self.mask, standardise=True):
             if getattr(self, "input_contours", None) is None:
                 self.input_contours = self.get_contours("x-y")
             self.mask = None

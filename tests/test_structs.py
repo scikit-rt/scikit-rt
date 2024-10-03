@@ -873,7 +873,7 @@ def test_get_bbox_centre_and_widths():
 sim2 = SyntheticImage((50, 50, 10))
 sim2.add_sphere(radius=5, centre=(25, 25, 5), name="sphere1")
 sim2.add_sphere(radius=5, centre=(26, 26, 5), name="sphere2")
-ss2 = sim.get_structure_set()
+ss2 = sim2.get_structure_set()
 
 def test_get_staple():
     """Test STAPLE function (only runs if SimpleITK is installed)"""

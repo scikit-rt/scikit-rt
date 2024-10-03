@@ -327,7 +327,8 @@ class Image(skrt.core.Archive):
         if not self.has_same_geometry(other):
             raise RuntimeError("Objects for addition must have same geometry")
         result = self.__class__(
-            path=(self.get_data() + other.get_data()), affine=self.get_affine(),
+            path=(self.get_data() + other.get_data()),
+            affine=self.get_affine().copy(),
             nifti_array = self.from_nifti(),
         )
         return result
@@ -360,7 +361,8 @@ class Image(skrt.core.Archive):
                 f"{type(self)} can only be multiplied by a scalar"
             )
         result = self.__class__(
-            path=(other * self.get_data()), affine=self.get_affine(),
+            path=(other * self.get_data()),
+            affine=self.get_affine().copy(),
             nifti_array=self.from_nifti(),
         )
         return result
@@ -399,7 +401,8 @@ class Image(skrt.core.Archive):
         if not isinstance(other, numbers.Number):
             raise RuntimeError(f"{type(self)} can only be divided by a scalar")
         result = self.__class__(
-            path=(self.get_data() / other), affine=self.get_affine(),
+            path=(self.get_data() / other),
+            affine=self.get_affine().copy(),
             nifti_array=self.from_nifti()
         )
         return result
@@ -424,7 +427,8 @@ class Image(skrt.core.Archive):
         taking the negative of each element of the data array of self.
         """
         result = self.__class__(
-            path=(-self.get_data()), affine=self.get_affine(),
+            path=(-self.get_data()),
+            affine=self.get_affine().copy(),
             nifti_array=self.from_nifti()
         )
         return result
@@ -438,7 +442,8 @@ class Image(skrt.core.Archive):
         same as the data array of self.
         """
         result = self.__class__(
-            path=(self.get_data()), affine=self.get_affine(),
+            path=(self.get_data()),
+            affine=self.get_affine().copy(),
             nifti_array=self.from_nifti()
         )
         return result
@@ -458,7 +463,8 @@ class Image(skrt.core.Archive):
             raise RuntimeError(
                     "Objects for subtraction must have same geometry")
         result = self.__class__(
-            path=(self.get_data() - other.get_data()), affine=self.get_affine(),
+            path=(self.get_data() - other.get_data()),
+            affine=self.get_affine().copy(),
             nifti_array=self.from_nifti()
         )
         return result
@@ -517,26 +523,27 @@ class Image(skrt.core.Archive):
             if (nii_type and "nifti" not in self.source_type) or (
                 dcm_type and "nifti" in self.source_type
             ):
-                affine = self.affine.copy()
+                im0 = self.clone()
+                affine = im0.affine
                 # Convert to nibabel/NIfTI representation.
                 if nii_type:
                     affine[0, :] = -affine[0, :]
                     affine[1, 3] = -(
                         affine[1, 3]
-                        + (self.get_data().shape[0] - 1)
-                        * self.get_voxel_size()[1]
+                        + (im0.get_data().shape[0] - 1)
+                        * im0.get_voxel_size()[1]
                     )
-                    data = self.get_data().transpose(1, 0, 2)[:, ::-1, :]
+                    data = im0.get_data().transpose(1, 0, 2)[:, ::-1, :]
                     nifti_array = True
                 # Convert to pydicom/DICOM representation.
                 else:
                     affine[0, :] = -affine[0, :]
                     affine[1, 3] = -(
                         affine[1, 3]
-                        + (self.get_data().shape[1] - 1)
-                        * self.get_voxel_size()[1]
+                        + (im0.get_data().shape[1] - 1)
+                        * im0.get_voxel_size()[1]
                     )
-                    data = self.get_data().transpose(1, 0, 2)[::-1, :, :]
+                    data = im0.get_data().transpose(1, 0, 2)[::-1, :, :]
                     nifti_array = False
 
                 # Reset parameters and geometry based on
@@ -1237,16 +1244,15 @@ class Image(skrt.core.Archive):
 
         # Adjust nifti
         elif "nifti" in self.source_type:
-            # Load and cache canonical data array
-            if self._data_canonical is None:
-                init_dtype = self.get_data().dtype
-                nii = nibabel.as_closest_canonical(
-                    nibabel.Nifti1Image(
-                        self.data.astype(np.float32), self.affine
-                    )
+            # Load canonical data array
+            init_dtype = self.get_data().dtype
+            nii = nibabel.as_closest_canonical(
+                nibabel.Nifti1Image(
+                    self.data.astype(np.float32), self.affine
                 )
-                self._data_canonical = nii.get_fdata().astype(init_dtype)
-                self._affine_canonical = nii.affine
+            )
+            self._data_canonical = nii.get_fdata().astype(init_dtype)
+            self._affine_canonical = nii.affine
 
             data = self._data_canonical.copy()
             transpose = pad_transpose([1, 0, 2], data.ndim)
@@ -4545,14 +4551,36 @@ class Image(skrt.core.Archive):
         self.affine = None
         self.set_geometry()
 
-    def has_same_data(self, im, max_diff=0.005):
-        """Check whether this Image has the same data as
+    def has_same_data(
+            self, im, max_diff=0.005, standardise=False, force_standardise=True
+            ):
+        """
+        Check whether this Image has the same data as
         another Image <im> (i.e. same array shape and same data values),
-        with tolerance <max_diff> on agreement of data values."""
+        with tolerance <max_diff> on agreement of data values.
 
-        same = self.get_data().shape == im.get_data().shape
+        **Parameters:**
+        im : skrt.image.Image
+            Image with which to compare data.
+
+        max_diff : float, default=0.005
+            Maximum difference accepted between data values.
+
+        standardise : bool, default=False
+            If False, data are compared for the images as loaded;
+            otherwise, data are compared for the images in standard
+            dicom-style orientation, such that [column, row, slice] corresponds
+            to the [x, y, z] axes.
+
+        force_standardise : bool, default=True
+            If True, the standardised image will be recomputed from self.data
+            even if it has previously been computed.
+        """
+        data = self.get_data(standardise, force_standardise)
+        im_data = im.get_data(standardise, force_standardise)
+        same = data.shape == im_data.shape
         if same:
-            same *= np.all(abs(self.get_data() - im.get_data()) < max_diff)
+            same *= np.all(abs(data - im_data) < max_diff)
 
         return same
 
