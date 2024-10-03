@@ -1046,7 +1046,7 @@ def test_mask_bbox():
 
     for itype in itypes:
         # Create foreground mask, and obtain it's bounding box.
-        mask = sim.astype(itype).get_foreground_mask(threshold=45)
+        mask = sim.get_image().astype(itype).get_foreground_mask(threshold=45)
         assert mask.is_type(itype)
         bbox = get_mask_bbox(mask)
 
@@ -1067,7 +1067,7 @@ def test_foreground_bbox():
 
     for itype in itypes:
         # Obtain bounding box of foreground.
-        bbox = sim.astype(itype).get_foreground_bbox(threshold=45)
+        bbox = sim.get_image().astype(itype).get_foreground_bbox(threshold=45)
 
         # Test that the bounding box is consistent with the sphere dimensions,
         # allowing tolreance of +/-1.
@@ -1086,9 +1086,8 @@ def test_foreground_bbox_centre_and_widths():
 
     for itype in itypes:
         # Calculate centre and widths of foreground bounding box.
-        bb_centre, bb_widths = (
-                sim.astype(itype).get_foreground_bbox_centre_and_widths(
-                    threshold=45))
+        bb_centre, bb_widths = (sim.get_image().astype(
+            itype).get_foreground_bbox_centre_and_widths(threshold=45))
 
         # Test that the centre and widths of the bounding box are consistent
         # with the sphere dimensions, allowing tolreance of +/-1.
@@ -1112,19 +1111,19 @@ def test_create_intensity_mask():
     nx, ny, nz = sim.get_n_voxels()
     ones = np.ones((ny, nx, nz), dtype=bool)
     for itype in itypes:
-        sim = sim.astype(itype)
-        assert sim.is_type(itype)
+        im = sim.get_image().astype(itype)
+        assert im.is_type(itype)
         masks = [
                 ((None, None), ones),
-                ((50.59, 50.61), ones * (sim.get_data() == 50.6)),
-                ((60, None), ones * (sim.get_data() == 60.4)),
-                ((None, 55),  1 - ones * (sim.get_data() == 60.4)),
+                ((50.59, 50.61), ones * (im.get_data() == 50.6)),
+                ((60, None), ones * (im.get_data() == 60.4)),
+                ((None, 55),  1 - ones * (im.get_data() == 60.4)),
                 ]
 
         # Check intensitiy masks against expected masks.
         for intensities, mask2 in masks:
             vmin, vmax = intensities
-            mask1 = sim.get_intensity_mask(vmin, vmax).get_data()
+            mask1 = im.get_intensity_mask(vmin, vmax).get_data()
             mask1[mask1 > 0] = 1
 
             assert mask1.shape == mask2.shape
@@ -1790,7 +1789,7 @@ def test_get_fidelity():
             # check that fidelity is 0.
             im2 = create_test_image(
                     shape, voxel_size, origin, "zeros").astype(itype2)
-            assert im2.get_fidelity(im1) == 0
+            assert abs(im2.get_fidelity(im1)) == pytest.approx(0, abs=1.e-6)
 
 def test_get_correlation_quality():
     """Test calculation of correlation quality."""
@@ -1887,18 +1886,21 @@ def test_get_sinogram():
     dtheta = 180 / ntheta
     theta = np.linspace(0., 180., ntheta, endpoint=False)
     #theta = np.arange(dtheta / 2, 180 + dtheta / 2, dtheta)
-    sinogram = sim.get_sinogram(force=True, theta=theta)
+    for itype in itypes:
+        sinogram = sim.get_image().astype(itype).get_sinogram(
+                force=True, theta=theta)
 
-    # Check sinogram characteristics.
-    assert isinstance(sinogram, Sinogram)
-    assert all(nxyz == sinogram.get_n_voxels()[idx] for idx in [0, 2])
-    assert 0 == sinogram.get_min()
-    assert intensity < sinogram.get_max()
-    assert sinogram.get_voxel_size() == [dtheta, 1, 1]
-    assert sinogram.get_extents()[0] == (0, 180)
-    assert sinogram.get_extents()[1][1] > nxyz / 2
-    assert sinogram.get_length(1) >= sim.get_length(1)
-    assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
+        # Check sinogram characteristics.
+        assert isinstance(sinogram, Sinogram)
+        assert sinogram.is_type(itype)
+        assert all(nxyz == sinogram.get_n_voxels()[idx] for idx in [0, 2])
+        assert 0 == sinogram.get_min()
+        assert intensity < sinogram.get_max()
+        assert sinogram.get_voxel_size(standardise=True) == [dtheta, 1, 1]
+        assert sinogram.get_extents()[0] == (0, 180)
+        assert sinogram.get_extents()[1][1] > nxyz / 2
+        assert sinogram.get_length(1) >= sim.get_length(1)
+        assert sinogram.get_extents()[2] == (-nxyz / 2, nxyz / 2)
 
 def test_sinogram_filtering():
     """Test sinogram filtering."""
@@ -1917,26 +1919,27 @@ def test_sinogram_filtering():
     dtheta = 180 / ntheta
     theta = np.linspace(0., 180., ntheta, endpoint=False)
     #theta = np.arange(dtheta / 2, 180 + dtheta / 2, dtheta)
-    sinogram = sim.get_sinogram(force=True, theta=theta)
+    for itype in itypes:
+        sinogram = sim.get_sinogram(force=True, theta=theta).astype(itype)
 
-    # Check that exception is raised for unknown filter.
-    with pytest.raises(ValueError) as error_info:
-        filter_name = "unknown_filter"
-        sinogram.filtered(filter_name)
-    assert f"Unknown filter: {filter_name}" == str(error_info.value)
+        # Check that exception is raised for unknown filter.
+        with pytest.raises(ValueError) as error_info:
+            filter_name = "unknown_filter"
+            sinogram.filtered(filter_name)
+        assert f"Unknown filter: {filter_name}" == str(error_info.value)
 
-    # Check filtering results.
-    for filter_name in [None, "ramp"]:
-        filtered_sinograms = [sinogram.filtered(filter_name),
-                              sinogram.clone().filtered(filter_name)]
-        for filtered_sinogram in filtered_sinograms:
-            assert filtered_sinogram.has_same_geometry(sinogram)
-            if filter_name is None:
-                assert filtered_sinogram.has_same_data(sinogram)
-            else:
-                assert not filtered_sinogram.has_same_data(sinogram)
+        # Check filtering results.
+        for filter_name in [None, "ramp"]:
+            filtered_sinograms = [sinogram.filtered(filter_name),
+                                  sinogram.clone().filtered(filter_name)]
+            for filtered_sinogram in filtered_sinograms:
+                assert filtered_sinogram.has_same_geometry(sinogram)
+                if filter_name is None:
+                    assert filtered_sinogram.has_same_data(sinogram)
+                else:
+                    assert not filtered_sinogram.has_same_data(sinogram)
 
-        assert filtered_sinograms[0].has_same_data(filtered_sinograms[1])
+            assert filtered_sinograms[0].has_same_data(filtered_sinograms[1])
 
 def test_sinogram_backprojection():
     """Test sinogram backprojection."""
@@ -1955,50 +1958,77 @@ def test_sinogram_backprojection():
     # Check backprojection results.
     vmin = sim.get_min()
     vmax = sim.get_max()
-    for circle in [True, False]:
-        sinogram = sim.get_sinogram(force=True, circle=circle, theta=theta)
-        image = sinogram.filtered("ramp").backprojected(
-                circle=circle, vmin=vmin, vmax=vmax)
-        # Check that image have same geometry.
-        assert image.has_same_geometry(sim)
-        # Check that minimum and maximum intensities are the same.
-        assert vmin == image.get_min()
-        assert vmax == image.get_max()
-        # Check that numbers of foregrond voxels are the same.
-        assert ((sim.get_data() > 0).sum()
-                == (image.get_data() > 0).sum())
+    for itype in itypes:
+        for circle in [True, False]:
+            im0 = sim.get_image().astype(itype)
+            sinogram = im0.get_sinogram(force=True, circle=circle, theta=theta)
+            image = sinogram.filtered("ramp").backprojected(
+                    circle=circle, vmin=vmin, vmax=vmax)
+            # Check that images have same representation and geometry.
+            assert image.is_same_type(im0)
+            assert image.has_same_geometry(im0)
+            # Check that minimum and maximum intensities are the same.
+            assert vmin == image.get_min()
+            assert vmax == image.get_max()
+            # Check that numbers of foreground voxels are the same.
+            assert ((im0.get_data() > 0).sum()
+                    == (image.get_data() > 0).sum())
 
-        # Check that centroids of maximum-intensity regions are
-        # the same or similar.
-        # (For test image, backprojection gives more smearing along y-axis.)
-        for view in ["x-y", "y-z", "z-x"]:
-            diff = 1 if "z-x" == view else 0
-            assert sim.get_centroid_pos(view) == pytest.approx(
-                    image.get_centroid_pos(view), abs=diff)
+            # Check that centroids of maximum-intensity regions are
+            # the same or similar.
+            # (For test image, backprojection gives more smearing along y-axis.)
+            for view in ["x-y", "y-z", "z-x"]:
+                diff = 1 if "z-x" == view else 0
+                assert im0.get_centroid_pos(view) == pytest.approx(
+                        image.get_centroid_pos(view), abs=diff)
+
+def test_add_sinogram_noise():
+    """Test adding noise to image at level of sinogram."""
+    # Create test image featuring a cube.
+    nxyz = 10
+    xyz0 = 0.5 - nxyz / 2
+    origin = (xyz0, xyz0, xyz0)
+    sim = SyntheticImage(shape=(nxyz, nxyz, nxyz), intensity=0, origin=origin)
+    side_length=2
+    centre = (0, 0, 0)
+    intensity = 1000
+    sim.add_cube(side_length, centre, intensity, name="cube1")
+
+    # Perform minimal checks that adding sinogram noise modifies image data.
+    for itype in itypes:
+        im1 = sim.get_image().astype(itype)
+        im2 = im1.clone()
+        im2.add_sinogram_noise()
+
+        assert im2.is_same_type(im1)
+        assert im2.has_same_geometry(im1)
+        assert not im2.has_same_data(im1)
 
 def test_flattened():
     """Test creation of flattened image."""
-    # Create inital image.
-    im1 = create_test_image(shape, voxel_size, origin)
+    for itype in itypes:
+        # Create inital image.
+        im1 = create_test_image(shape, voxel_size, origin).astype(itype)
 
-    # Check characteristics of flattened image for each view.
-    for view, ax in _slice_axes.items():
-        im2 = im1.flattened(view)
+        # Check characteristics of flattened image for each view.
+        for view, ax in _slice_axes.items():
+            im2 = im1.flattened(view)
 
-        assert im2.get_data().sum() == im1.get_data().sum()
-        assert im2.get_extents() == im1.get_extents()
+            assert im2.is_same_type(im1)
+            assert im2.get_data().sum() == im1.get_data().sum()
+            assert im2.get_extents() == im1.get_extents()
 
-        n_voxels2 = list(im1.get_n_voxels())
-        n_voxels2[ax] = 1
-        assert im2.get_n_voxels() == n_voxels2
+            n_voxels2 = list(im1.get_n_voxels())
+            n_voxels2[ax] = 1
+            assert im2.get_n_voxels() == n_voxels2
 
-        voxel_size2 = list(im1.get_voxel_size())
-        voxel_size2[ax] = im1.get_length(ax)
-        assert im2.get_voxel_size() == voxel_size2
+            voxel_size2 = list(im1.get_voxel_size(standardise=True))
+            voxel_size2[ax] = im1.get_length(ax)
+            assert im2.get_voxel_size(standardise=True) == voxel_size2
 
-        origin2 = list(im1.get_origin())
-        origin2[ax] = im1.get_extents()[ax][0] + 0.5 * im1.get_length(ax)
-        assert im2.get_origin() == origin2
+            origin2 = list(im1.get_origin(standardise=True))
+            origin2[ax] = im1.get_extents()[ax][0] + 0.5 * im1.get_length(ax)
+            assert im2.get_origin(standardise=True) == origin2
 
 def test_mu_to_hu_and_hu_to_mu():
     """Test conversion between attenuation values and Hounsfield units."""

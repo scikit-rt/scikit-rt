@@ -541,7 +541,8 @@ class Image(skrt.core.Archive):
 
                 # Reset parameters and geometry based on
                 # updated data and affine.
-                im = Image(data, affine=affine, nifti_array=nifti_array)
+                im = self.__class__(
+                        data, affine=affine, nifti_array=nifti_array)
             else:
                 im = self.clone()
 
@@ -2626,18 +2627,20 @@ class Image(skrt.core.Archive):
         """
         # Calculate voxel size and origin for flattened image.
         ax = _slice_axes[view]
-        voxel_size = list(self.get_voxel_size())
+        voxel_size = list(self.get_voxel_size(standardise=True))
         voxel_size[ax] = self.get_length(ax)
-        origin = list(self.get_origin())
+        origin = list(self.get_origin(standardise=True))
         origin[ax] = self.get_extents()[ax][0] + 0.5 * voxel_size[ax]
 
         # Combine image data along numpy axis.
         np_axis = ax if ax > 1 else 1 - ax
-        data = self.get_standardised_data(force=True)
+        data = self.get_data(standardise=True)
         data = getattr(np, str(combine), np.sum)(data, axis=np_axis)
         data = np.expand_dims(data, axis=np_axis)
 
-        return Image(data, voxel_size=voxel_size, origin=origin)
+
+        return Image(data, voxel_size=voxel_size, origin=origin).match_type(
+                self)
 
     def get_slice(
         self,
@@ -4853,7 +4856,7 @@ class Image(skrt.core.Archive):
             if verbose:
                 print("Creating sinogram for each image slice:")
 
-            img_shape = np.array(self.get_data().shape)
+            img_shape = np.array(self.get_data(standardise=True).shape)
 
             if circle:
                 radius = img_shape[:2].min() // 2
@@ -4867,7 +4870,7 @@ class Image(skrt.core.Archive):
             for iz in range(img_shape[2]):
                 if verbose:
                     print(f"    ...slice {iz + 1:3d} of {img_shape[2]:3d}")
-                im_slice = (self.get_data()[:, :, iz]) * ifactor
+                im_slice = (self.get_data(standardise=True)[:, :, iz]) * ifactor
                 if circle:
                     im_slice[outside_circle] = 0
                 sinogram_slice = skimage.transform.radon(
@@ -4876,7 +4879,7 @@ class Image(skrt.core.Archive):
                 #sinogram_stack.append(sinogram_slice)
 
             # Create sinogram.
-            dx, dy, dz = self.get_voxel_size()
+            dx, dy, dz = self.get_voxel_size(standardise=True)
             self.sinogram = Sinogram(np.stack(sinogram_stack, axis=-1) * dx)
             if rescale is not None:
                 self.sinogram.rescale(*rescale, 0.5 * sum(rescale))
@@ -4891,6 +4894,7 @@ class Image(skrt.core.Archive):
             self.sinogram.origin = [0.5 * dtheta, y0, z0]
             self.sinogram.affine = None
             self.sinogram.set_geometry()
+            self.sinogram = self.sinogram.match_type(self)
 
         return self.sinogram
 
@@ -4919,21 +4923,25 @@ class Image(skrt.core.Archive):
         """
         self.load()
 
+        # Perform calculations for DICOM image representation.
+        im = self if self.is_type("dcm") else self.astype("dcm")
+
         self.get_sinogram(verbose=verbose)
 
         if verbose:
             print("Adding sinogram-level fluctuations for each image slice:")
 
         # Value to subtract to have only positive intensities.
-        vmin = min(self.get_data().min(), 0)
+        vmin = min(im.get_data().min(), 0)
 
-        nz = self.get_n_voxels()[2]
+        nz = im.get_n_voxels()[2]
 
         # Loop over slices
         for iz in range(nz):
             if verbose:
                 print(f"    ...slice {iz + 1:3d} of {nz:3d}")
-            sinogram_slice = self.get_sinogram().get_data()[:, :, iz] - vmin
+            sinogram_slice = self.get_sinogram().get_data(standardise=True)[
+                    :, :, iz] - vmin
             for idx, value in np.ndenumerate(sinogram_slice):
                 if sinogram_slice[idx] > 0:
                     # Sample notional photon flux from a poisson distribution
@@ -4945,12 +4953,14 @@ class Image(skrt.core.Archive):
                         sinogram_slice[idx] = -eta * np.log(flux / phi0)
 
             # Apply inverse Radon transform through filtered back propagation
-            self.data[:, :, iz] = (
+            im.data[:, :, iz] = (
                 skimage.transform.iradon(
                     sinogram_slice, circle=False, filter_name="hann"
                 )
                 + vmin
                 )[::-1, :]
+
+        self.data = im.data
 
     def assign_intensity_to_rois(self, rois=None, intensity=0):
         """
@@ -6028,7 +6038,7 @@ class Sinogram(Image):
             "ramp", "shepp-logan", "cosine", "hamming", "hann".  If None,
             no filter is applied.
         """
-        self = self.filtered(filter_name)
+        self.__dict__.update(self.filtered(filter_name).__dict__)
 
     def backprojected(self, interpolation="linear", circle=True, delta_r=2,
                       vmin=None, vmax=None, vfill=None, verbose=False):
@@ -6085,12 +6095,15 @@ class Sinogram(Image):
         verbose : bool, default=False
             If True, print information on progress in image reconstruction.
         """
+        # Perform calculations for DICOM image representation.
+        im = self if self.is_type("dcm") else self.astype("dcm")
+
         # Obtain sinogram dimensions and voxel size.
-        nx, ny, nz = self.get_n_voxels()
-        dx, dy, dz = self.get_voxel_size()
+        nx, ny, nz = im.get_n_voxels()
+        dx, dy, dz = im.get_voxel_size()
 
         # Obtain angular range of sinogram.
-        theta_min, theta_max = self.get_extents()[0]
+        theta_min, theta_max = im.get_extents()[0]
         theta = np.linspace(theta_min, theta_max, nx, endpoint=False)
 
         # Define number of rows and columns for reconstructed image.
@@ -6105,7 +6118,7 @@ class Sinogram(Image):
         # Define data to be used for image reconstruction,
         # padding sinogram slices as needed if reconstruction
         # is to be based on the inscribed circle.
-        data1 = self.get_data()[::-1, ::-1, :] / dy
+        data1 = im.get_data()[::-1, ::-1, :] / dy
         if circle and nx != ny:
             data1 = np.stack([
                 _sinogram_circle_to_square(data1[:, :, iz].squeeze())
@@ -6152,9 +6165,9 @@ class Sinogram(Image):
 
         # Return image object representing backprojection.
         y0 = 0.5 * dy * (1 - nxy)
-        z0 = self.get_origin()[2]
+        z0 = im.get_origin()[2]
         return Image(data2, voxel_size=(dy, dy, dz),
-                     origin=(y0, y0, z0))
+                     origin=(y0, y0, z0)).match_type(self)
 
     def filtered(self, filter_name=None):
         """
@@ -6185,6 +6198,9 @@ class Sinogram(Image):
         if filter_name is None:
             return self.clone()
 
+        # Perform calculations for DICOM image representation.
+        im = self if self.is_type("dcm") else self.astype("dcm")
+
         # Rais error if filter name not recognised.
         filter_types = ('ramp', 'shepp-logan', 'cosine', 'hamming', 'hann')
         if filter_name not in filter_types:
@@ -6193,11 +6209,11 @@ class Sinogram(Image):
         # Following approach used in scikit-image, resize the
         # sinogram rows to the next power of two, and at least 64.
         # This should speed up the Fourier analysis, and lessens artifacts.
-        dx, dy, dz = self.get_voxel_size()
-        nx, ny, nz = self.get_n_voxels()
+        dx, dy, dz = im.get_voxel_size()
+        nx, ny, nz = im.get_n_voxels()
         ny_resize = max(64, int(2 ** np.ceil(np.log2(2 * ny))))
         pad_widths = ((0, ny_resize - ny), (0, 0), (0, 0))
-        data1 = np.pad(np.copy(self.data) / dy, pad_widths, mode='constant',
+        data1 = np.pad(np.copy(im.data) / dy, pad_widths, mode='constant',
                        constant_values=0)
 
         # Retrieve filter.
@@ -6217,7 +6233,7 @@ class Sinogram(Image):
             data2[:,:,iz] = np.real(scipy.fft.ifft(data_fft, axis=0)[:ny, :])
             ##for ix in range(nx):
             ##    data2[:, ix, iz] = np.convolve(data1[:, ix, iz], f)[:ny]
-        return Sinogram(data2 * dy, affine=self.get_affine())
+        return Sinogram(data2 * dy, affine=im.get_affine()).match_type(self)
 
 
 def load_nifti(path):

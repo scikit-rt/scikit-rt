@@ -2419,14 +2419,14 @@ def test_roi_from_mask_and_different_sized_image():
         for itype1 in itypes:
             for itype2 in itypes:
                 for scale in scales:
-                    sim = sim0.astype(itype1)
+                    im = sim0.get_image().astype(itype1)
                     if (scale - 1.0) > 1e-6:
-                        sim.transform(scale=scale)
-                    roi_new = ROI(roi.mask.astype(itype2), image=sim)
+                        im.transform(scale=scale)
+                    roi_new = ROI(roi.mask.astype(itype2), image=im)
                     roi_new.create_mask()
                     # Check that origin image, image associated with ROI,
                     # and ROI mask have save geometry after standardisation.
-                    assert sim.has_same_geometry(
+                    assert im.has_same_geometry(
                         roi_new.image, standardise=True)
                     assert roi_new.mask.has_same_geometry(
                             roi_new.image, standardise=True)
