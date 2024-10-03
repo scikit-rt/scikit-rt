@@ -1614,10 +1614,27 @@ even if it has previously been computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.has_same_data">
-<span class="sig-name descname"><span class="pre">has_same_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.has_same_data" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">has_same_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_standardise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.has_same_data" title="Link to this definition"></a></dt>
 <dd><p>Check whether this Image has the same data as
 another Image &lt;im&gt; (i.e. same array shape and same data values),
 with tolerance &lt;max_diff&gt; on agreement of data values.</p>
+<p><strong>Parameters:</strong>
+im : skrt.image.Image</p>
+<blockquote>
+<div><p>Image with which to compare data.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>max_diff<span class="classifier">float, default=0.005</span></dt><dd><p>Maximum difference accepted between data values.</p>
+</dd>
+<dt>standardise<span class="classifier">bool, default=False</span></dt><dd><p>If False, data are compared for the images as loaded;
+otherwise, data are compared for the images in standard
+dicom-style orientation, such that [column, row, slice] corresponds
+to the [x, y, z] axes.</p>
+</dd>
+<dt>force_standardise<span class="classifier">bool, default=True</span></dt><dd><p>If True, the standardised image will be recomputed from self.data
+even if it has previously been computed.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
