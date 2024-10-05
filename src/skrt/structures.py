@@ -415,14 +415,16 @@ class ROI(skrt.core.Archive):
         **Parameter:**
 
         rois: ROI/StructureSet/list
-            ROI(s) to be added.  This can be a single ROI, a StructureSet,
+            ROI(s) to be subtracted.  This can be a single ROI, a StructureSet,
             or a list of ROI/StructureSet objects.
         """
         self.create_mask()
         others = get_all_rois(rois)
-        other = StructureSet(others).combine_rois(
-            image=self.mask, method="mask"
-        )
+        #other = StructureSet(others).combine_rois(
+        #    image=self.mask, method="mask"
+        #)
+        other = sum(others[1:], others[0])
+        other.set_image(self.mask)
         name = "-".join([self.name] + [roi.name for roi in others])
         return ROI(
             source=(self.get_mask() & ~other.get_mask()),
