@@ -2836,7 +2836,7 @@ class ROI(skrt.core.Archive):
                 geom_named[name] = val
 
         # Adjust number of decimal places
-        if decimal_places is not None:
+        if (decimal_places is not None) and not html:
             for metric, val in geom_named.items():
                 fmt = f"{{val:.{decimal_places}f}}"
                 if geom_named[metric] is not None:
@@ -2893,7 +2893,7 @@ class ROI(skrt.core.Archive):
             df.columns = pd.MultiIndex.from_tuples(headers)
 
         if html:
-            return df_to_html(df)
+            return df_to_html(df, decimal_places)
         return df
 
     def get_centroid_distance(
@@ -5052,18 +5052,30 @@ class ROI(skrt.core.Archive):
         signed_distances = None
         signed_distances_flat = None
 
-        # If no index given, use central slice
+        # If no index given, use central slice.
         if sl is None and idx is None and pos is None:
-            idx = roi0.get_mid_idx(view)
+            idx0 = roi0.get_mid_idx(view)
+
+        # Determine index, taking into account possible ROI resizing. 
+        else:
+            if roi0 is self:
+                idx0 = self.get_idx(view, sl, idx, pos)
+            else:
+                ax = skrt.image._slice_axes[view]
+                if idx is None and sl is None:
+                    idx0 = roi0.pos_to_idx(pos, ax)
+                else:
+                    idx_self = self.get_idx(view, sl, idx, pos)
+                    idx0 = roi0.pos_to_idx(self.idx_to_pos(idx_self, ax), ax)
+
+        ax = skrt.image._slice_axes[view]
 
         # Compute metrics
         comp = {}
         slice_kwargs = {
             "single_slice": True,
             "view": view,
-            "sl": sl,
-            "idx": idx,
-            "pos": pos,
+            "idx": idx0,
         }
 
         for m in metrics:
@@ -7774,12 +7786,13 @@ class StructureSet(skrt.core.Archive):
         # Make image
         im = self.get_dummy_image(**kwargs)
 
-        # Clear mask and contours
-        for roi in self.rois:
-            roi.input_contours = roi.get_contours("x-y")
-            roi.contours = {"x-y": roi.input_contours}
-            roi.loaded_mask = False
-            roi.mask = None
+        ## **Following not needed after changes to skrt.ROI.set_image()**
+        ## Clear mask and contours
+        #for roi in self.rois:
+        #    roi.input_contours = roi.get_contours("x-y")
+        #    roi.contours = {"x-y": roi.input_contours}
+        #    roi.loaded_mask = False
+        #    roi.mask = None
 
         # Assign image
         self.set_image(im)
@@ -8412,6 +8425,7 @@ class StructureSet(skrt.core.Archive):
 
         if html:
             name_as_index = False
+            decimal_places = kwargs.pop("decimal_places", None)
         if greyed_out is None:
             greyed_out = []
 
@@ -8448,7 +8462,7 @@ class StructureSet(skrt.core.Archive):
 
         # Convert to HTML if needed
         if html:
-            return df_to_html(df)
+            return df_to_html(df, decimal_places)
         return df
 
     def get_comparison(
@@ -10506,12 +10520,22 @@ def create_roi_overlap(rois, **kwargs):
     return ROI(mask, **kwargs)
 
 
-def df_to_html(df):
+def df_to_html(df, decimal_places=None):
     """Convert a pandas DataFrame to html."""
 
     # Convert dataframe to HTML
-    html = df.fillna("—").to_html(index=False)
-    html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
+    if df is None:
+        html = ""
+    else:
+        #html = df.fillna("—").to_html(index=False)
+        html_kwargs = {"index": False, "na_rep": "-"}
+        if decimal_places is None:
+            html = df.to_html(**html_kwargs)
+        else:
+            html = df.to_html(
+                    float_format=(lambda x: f"{x:.{decimal_places}f}"),
+                    **html_kwargs)
+        html = html.replace("^3", "<sup>3</sup>").replace("^2", "<sup>2</sup>")
 
     # Add header with style details
     header = """
@@ -10575,6 +10599,7 @@ def compare_roi_pairs(
 ):
     if html:
         name_as_index = False
+        decimal_places = kwargs.pop("decimal_places", None)
     if greyed_out is None:
         greyed_out = []
     dfs = []
@@ -10606,7 +10631,7 @@ def compare_roi_pairs(
     ignore_index = False if name_as_index else True
     df = pd.concat(dfs, ignore_index=ignore_index) if dfs else None
     if html:
-        return df_to_html(df)
+        return df_to_html(df, decimal_places)
     return df
 
 
