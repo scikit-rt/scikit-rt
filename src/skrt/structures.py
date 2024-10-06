@@ -619,8 +619,11 @@ class ROI(skrt.core.Archive):
 
         self.loaded = True
         if (self.source_type == "mask" and self.image is not None
-            and not self.image.has_same_geometry(self.mask)):
+            and not self.image.has_same_geometry(self.mask, standardise=True)):
             self.set_image(self.image)
+
+        if self.mask and not self.mask.is_type("dcm"):
+            self.mask = self.mask.astype("dcm")
 
     def _load_from_file(self, filename):
         """Attempt to load ROI from a dicom or nifti file."""
@@ -5892,9 +5895,9 @@ class ROI(skrt.core.Archive):
 
         self.load()
         self.image = im
-        self.contours_only = False
         if im is None:
             return
+        self.contours_only = False
 
         # Ensure that ROI voxel size is set.
         # It will be needed to define slice thickness
@@ -5966,6 +5969,9 @@ class ROI(skrt.core.Archive):
         self.voxel_size = im.get_voxel_size()
         self.origin = im.get_origin()
         self.affine = im.get_affine()
+
+        if self.mask and not self.mask.is_type("dcm"):
+            self.mask = self.mask.astype("dcm")
 
     def get_image(self):
         """Return Image object associated with this ROI."""
@@ -7778,7 +7784,7 @@ class StructureSet(skrt.core.Archive):
         # Assign image
         self.set_image(im)
 
-    def set_image(self, image, add_to_image=True):
+    def set_image(self, image, add_to_image=True, method=None):
         """Set image for self and all ROIs.
         If add_to_image is True, image.add_structure_set(self)
         will also be called."""
@@ -7790,7 +7796,7 @@ class StructureSet(skrt.core.Archive):
         # Assign to self and all ROIs
         self.image = image
         for roi in self.rois:
-            roi.set_image(image)
+            roi.set_image(image, method=method)
 
         # Assign self to the image
         if image is not None and add_to_image:
