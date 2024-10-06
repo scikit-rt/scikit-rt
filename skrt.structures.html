@@ -2881,7 +2881,7 @@ to the splitting axis.</p>
 ROIs are left unaltered.</p>
 <p><strong>Parameter:</strong></p>
 <dl class="simple">
-<dt>rois: ROI/StructureSet/list</dt><dd><p>ROI(s) to be added.  This can be a single ROI, a StructureSet,
+<dt>rois: ROI/StructureSet/list</dt><dd><p>ROI(s) to be subtracted.  This can be a single ROI, a StructureSet,
 or a list of ROI/StructureSet objects.</p>
 </dd>
 </dl>
@@ -3950,7 +3950,7 @@ self.alpha_beta_ratios to the value of alpha_beta_ratios.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.structures.StructureSet.set_image">
-<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_to_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.set_image" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_to_image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.StructureSet.set_image" title="Link to this definition"></a></dt>
 <dd><p>Set image for self and all ROIs.
 If add_to_image is True, image.add_structure_set(self)
 will also be called.</p>
@@ -4294,7 +4294,7 @@ of skrt.core.Defaults().json_exts.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.structures.df_to_html">
-<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">df_to_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.df_to_html" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.structures.</span></span><span class="sig-name descname"><span class="pre">df_to_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimal_places</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.structures.df_to_html" title="Link to this definition"></a></dt>
 <dd><p>Convert a pandas DataFrame to html.</p>
 </dd></dl>
 
