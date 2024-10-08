@@ -1817,7 +1817,12 @@ def make_dir(path=".", overwrite=True, require_empty=False):
     if dirpath.exists():
         # Directory exists, and should be overwritten.
         if overwrite:
-            shutil.rmtree(dirpath)
+            try:
+                shutil.rmtree(dirpath)
+            # Avoid raising exception if directory was deleted
+            # (by another process) after check that it exists.
+            except FileNotFoundError:
+                pass
         # Directory exists, and isn't empty.
         elif require_empty and any(dirpath.iterdir()):
             dirpath = None
