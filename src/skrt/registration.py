@@ -2966,6 +2966,7 @@ class RegistrationEngine:
                 "Class attribute 'transform_log' "
                 f"not implemented for class {type(self)}"
             )
+        return self.transform_log
 
     def is_available(self, path=None, force=False, defaults=None):
         """
