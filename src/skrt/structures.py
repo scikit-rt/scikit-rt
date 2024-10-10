@@ -1256,6 +1256,14 @@ class ROI(skrt.core.Archive):
                     except IndexError:
                         pass
 
+        # If mask is undefined, but ROI has associated image,
+        # create an empty mask that has the same shape as the image.
+        if self.mask is None and issubclass(type(self.image), skrt.image.Image):
+            self.mask = skrt.image.Image(
+                    np.zeros(self.image.get_data(standardise=True).shape,
+                             dtype=bool),
+                    affine=self.image.get_affine(standardise=True))
+
         #if hasattr(self.mask, "data"):
         if issubclass(type(self.mask), skrt.image.Image):
             # Convert to boolean mask
@@ -1263,10 +1271,10 @@ class ROI(skrt.core.Archive):
                 self.mask.data = self.mask.data.astype(bool)
             self.loaded_mask = True
 
-            if (isinstance(self.image, skrt.image.Image)
-                and self.image.from_nifti()):
-                self.mask = self.mask.astype("nii")
-                self.mask.standardise_data()
+            #if (issubclass(type(self.image), skrt.image.Image)
+            #    and self.image.from_nifti()):
+            #    self.mask = self.mask.astype("nii")
+            #    self.mask.standardise_data()
 
             # Set own geometric properties from mask
             self.voxel_size = self.mask.get_voxel_size()
