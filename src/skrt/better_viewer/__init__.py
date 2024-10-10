@@ -415,7 +415,7 @@ class BetterViewer:
         intensity_limits : tuple, default=None
             Full range to use for the intensity slider. Can also set to 'auto'
             to detect min and max intensity in the image. Defaults to
-            (-2000, 2000) for Image objects and to 'auto' otherwise (for
+            (-1000, 1000) for Image objects and to 'auto' otherwise (for
             example, for Dose objects).
 
         intensity_step : float, default=None
@@ -1761,7 +1761,6 @@ class BetterViewer:
                     xlim=self.custom_ax_lims[self.viewers[0].view][0],
                     ylim=self.custom_ax_lims[self.viewers[0].view][1],
                     scale_in_mm=self.scale_in_mm,
-                    intensity=self.intensity,
                 )
 
         if self.suptitle is not None:
@@ -1949,7 +1948,7 @@ class SingleViewer:
                 self.intensity_limits = self.intensity
             else:
                 if type(self.image) == Image:
-                    self.intensity_limits = [-2000, 2000]
+                    self.intensity_limits = [-1000, 1000]
                 else:
                     self.intensity_limits = 'auto'
 
@@ -3132,7 +3131,6 @@ class SingleViewer:
             centre_on_roi=self.init_roi,
             shift=self.shift,
             scale_in_mm=self.scale_in_mm,
-            intensity=self.intensity,
             consensus_type=consensus_type,
             exclude_from_consensus=exclude_from_consensus,
             mask=self.mask,
