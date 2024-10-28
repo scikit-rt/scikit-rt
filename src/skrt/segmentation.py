@@ -201,7 +201,7 @@ class MultiAtlasSegmentation(Data):
         # Set maximum number of processes when multiprocessing.
         self.max_workers = max_workers
 
-        # Store parameters to be passes to instances of SingleAtlasSegmentation.
+        # Store parameters to be passed to instances of SingleAtlasSegmentation.
         self.sas_kwargs = kwargs
 
         # Define dictionaries for storing results.
@@ -810,6 +810,9 @@ class SingleAtlasSegmentation(Data):
         default_slice_stats=None,
         default_by_slice=None,
         write_archive=True,
+        im1_margins=None,
+        im2_margins=None,
+        margins_units="mm",
     ):
         # Perform base-class initialisation.
         super().__init__()
@@ -912,6 +915,13 @@ class SingleAtlasSegmentation(Data):
         )
         self.default_strategy = default_strategy or self.auto_strategies[-1]
         self.roi_names = roi_names
+
+        # Define margins to be added around images before any step-1 cropping.
+        # This can be useful, for example, when matching image sizes,
+        # to avoid cropping ROIs close to an image edge.
+        self.im1_margins = im1_margins
+        self.im2_margins = im2_margins
+        self.margins_units = margins_units
 
         # Set parameters for step-1 registration.
         self.initial_alignment = initial_alignment
@@ -1197,6 +1207,8 @@ class SingleAtlasSegmentation(Data):
 
         if self.steps[0] in steps:
             if not self.registrations[strategy][self.steps[0]]:
+                self.logger.info("Initialising: %s - %s",
+                                 strategy, self.steps[0])
                 im1, im2 = match_images(
                     im1=self.im1,
                     im2=self.im2,
@@ -1217,6 +1229,9 @@ class SingleAtlasSegmentation(Data):
                     ),
                     voxel_size=self.voxel_size1,
                     bands=self.bands1,
+                    im1_margins=self.im1_margins,
+                    im2_margins=self.im2_margins,
+                    margins_units=self.margins_units,
                 )
 
                 if im1.structure_sets:
@@ -1256,6 +1271,8 @@ class SingleAtlasSegmentation(Data):
                 not reg_setup_only
                 and not self.segmentations[strategy][self.steps[0]]
             ):
+                self.logger.info("Segmenting: %s - %s",
+                                 strategy, self.steps[0])
                 reg = self.registrations[strategy][self.steps[0]]
                 im2 = (
                     reg.fixed_source
@@ -1285,6 +1302,9 @@ class SingleAtlasSegmentation(Data):
                             )
             elif not self.registrations[strategy][self.steps[1]]:
                 for roi_name in ss1.get_roi_names():
+                    self.logger.info("Initialising: %s - %s - %s",
+                                     strategy, self.steps[1], roi_name)
+
                     roi_alignment = (roi_name, self.roi_z_fraction.get(
                         roi_name, self.default_roi_z_fraction))
                     im1, im2 = match_images(
@@ -1293,7 +1313,7 @@ class SingleAtlasSegmentation(Data):
                         ss1_index=self.ss1_index,
                         ss2_index=self.ss2_index,
                         ss1=ss1,
-                        ss2=self.ss2,
+                        ss2=self.ss2_filtered,
                         ss1_name=self.ss1_name,
                         ss2_name=self.ss2_name,
                         roi_names={roi_name: self.roi_names[roi_name]},
@@ -1316,7 +1336,14 @@ class SingleAtlasSegmentation(Data):
                         bands=self.roi_bands.get(
                             roi_name, self.default_roi_bands
                         ),
+                        im1_margins=self.im1_margins,
+                        im2_margins=self.im2_margins,
+                        margins_units=self.margins_units,
                     )
+
+                    if (im1.structure_sets[-1][roi_name].is_empty()
+                        or im2.structure_sets[-1][roi_name].is_empty()):
+                        continue
 
                     fixed, moving = get_fixed_and_moving(im1, im2, strategy)
 
@@ -1343,6 +1370,8 @@ class SingleAtlasSegmentation(Data):
                 not reg_setup_only
                 and not self.segmentations[strategy][self.steps[1]]
             ):
+                self.logger.info("Segmenting: %s - %s - %s",
+                                 strategy, self.steps[1], roi_name)
                 if self.initial_alignment:
                     self.segmentations[strategy][self.steps[1]][
                         self.initial_transform_name
@@ -1350,7 +1379,7 @@ class SingleAtlasSegmentation(Data):
                 for reg_step in self.pfiles2:
                     self.segmentations[strategy][self.steps[1]][reg_step] = {}
 
-                for roi_name in ss1.get_roi_names():
+                for roi_name in self.registrations[strategy][self.steps[1]]:
                     reg = self.registrations[strategy][self.steps[1]][roi_name]
                     im2 = (
                         reg.fixed_source
@@ -2012,8 +2041,10 @@ def load_sas(workdir="segmentation_workdir"):
                             strategy][step][roi_path.name].steps:
                         if reg_step not in rois:
                             rois[reg_step] = []
-                        rois[reg_step].extend(StructureSet(
-                            roi_path / reg_step / "segmentation").get_rois())
+                        sset_path = roi_path / reg_step / "segmentation"
+                        if sset_path.exists():
+                            rois[reg_step].extend(
+                                    StructureSet(sset_path).get_rois())
 
                 for reg_step in rois:
                     sas.segmentations[strategy][step][reg_step] = (
