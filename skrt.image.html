@@ -221,6 +221,55 @@ affect the image associated with the Dose object.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.add_margins">
+<span class="sig-name descname"><span class="pre">add_margins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_margins" title="Link to this definition"></a></dt>
+<dd><p>Add margins around image.</p>
+<p>By default, voxels in the added margins are assigned an intensity
+value equal to the minimum intensity value within the initial image.
+Intensity values in the margins can be modified by specifying any
+of the parameters accepted by numpy.pad to define values when padding
+arrays:</p>
+<p><a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.pad.html">https://numpy.org/doc/2.0/reference/generated/numpy.pad.html</a></p>
+<p><strong>Parameters:</strong>
+margins : float/tuple</p>
+<blockquote>
+<div><p>Float or tuple specifying the margins to be added around the
+image.  Margins may be in millimetres or in numbers of voxels,
+as defined by &lt;units&gt;.
+- If margins are specified by a float or by a single-element</p>
+<blockquote>
+<div><p>tuple, the amount indicated is added as a margin on all
+image sides.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>If margins are specified by a two-element tuple, the amounts
+indicated by the first and second elements are added respectively
+as the image’s lower margin and upper margin along each axis.</p></li>
+<li><p>If margins are specified by a three-element tuple, these
+elements are applied in order along the (x, y, z) image axes.
+If an element is a float or a single-element tuple, the amount
+indicated is added as a margin to both the lower and upper
+sides along the axis.  If an element is a two-element tuple,
+the amounts indicated by the first and second elements are added
+respectively as the image’s lower margin and upper margin along
+the axis.</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>units: str, default=”mm”</dt><dd><dl class="simple">
+<dt>Units in which margins are specified.  Can be either of:</dt><dd><ul class="simple">
+<li><p>“mm”: margins in millimetres.</p></li>
+<li><p>“voxels”: margins in numbers of voxels.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs:</dt><dd><p>Keyword arguments passed to numpy.pad().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.add_plan">
 <span class="sig-name descname"><span class="pre">add_plan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.add_plan" title="Link to this definition"></a></dt>
 <dd><p>Add a Plan object to be associated with this image. This does not
@@ -261,6 +310,55 @@ not affect the image associated with the structure set.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>structure_set<span class="classifier">skrt.structures.StructureSet</span></dt><dd><p>A StructureSet object to assign to this image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="skrt.image.Image.added_margins">
+<span class="sig-name descname"><span class="pre">added_margins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.added_margins" title="Link to this definition"></a></dt>
+<dd><p>Return image clone with margins added.</p>
+<p>By default, voxels in the added margins are assigned an intensity
+value equal to the minimum intensity value within the initial image.
+Intensity values in the margins can be modified by specifying any
+of the parameters accepted by numpy.pad to define values when padding
+arrays:</p>
+<p><a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.pad.html">https://numpy.org/doc/2.0/reference/generated/numpy.pad.html</a></p>
+<p><strong>Parameters:</strong>
+margins : float/tuple</p>
+<blockquote>
+<div><p>Float or tuple specifying the margins to be added around the
+image.  Margins may be in millimetres or in numbers of voxels,
+as defined by &lt;units&gt;.
+- If margins are specified by a float or by a single-element</p>
+<blockquote>
+<div><p>tuple, the amount indicated is added as a margin on all
+image sides.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>If margins are specified by a two-element tuple, the amounts
+indicated by the first and second elements are added respectively
+as the image’s lower margin and upper margin along each axis.</p></li>
+<li><p>If margins are specified by a three-element tuple, these
+elements are applied in order along the (x, y, z) image axes.
+If an element is a float or a single-element tuple, the amount
+indicated is added as a margin to both the lower and upper
+sides along the axis.  If an element is a two-element tuple,
+the amounts indicated by the first and second elements are added
+respectively as the image’s lower margin and upper margin along
+the axis.</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>units: str, default=”mm”</dt><dd><dl class="simple">
+<dt>Units in which margins are specified.  Can be either of:</dt><dd><ul class="simple">
+<li><p>“mm”: margins in millimetres.</p></li>
+<li><p>“voxels”: margins in numbers of voxels.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs:</dt><dd><p>Keyword arguments passed to numpy.pad().</p>
 </dd>
 </dl>
 </dd></dl>
@@ -395,7 +493,8 @@ representation.  For any other value, None is returned.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="skrt.image.Image.clone_with_structure_set">
 <span class="sig-name descname"><span class="pre">clone_with_structure_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_structure_set_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_set_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.Image.clone_with_structure_set" title="Link to this definition"></a></dt>
-<dd><p>Clone current image, and associate to clone a filtered structure set.</p>
+<dd><p>Clone current image, optionally add margins,
+and associate to clone a filtered structure set.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">
 <dt>structure_set<span class="classifier">skrt.structures.StructureSet, default=None</span></dt><dd><p>Structure set to be filtered and associated to image clone.
@@ -981,7 +1080,7 @@ obtained.</p>
 </dd>
 <dt>dxy<span class="classifier">int, default=0</span></dt><dd><p>Margin, in pixel units, to be added to each slice foreground mask.</p>
 </dd>
-<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to ROI constructor.</p>
+<dt><a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs</dt><dd><p>Keyword arguments passed to ROI constructor.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3650,7 +3749,7 @@ specified dimension in mm along all axes.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="skrt.image.match_images">
-<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">match_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2_crop_focus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2_crop_margins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2_crop_about_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.match_images" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">match_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss1_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss2_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2_crop_focus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2_crop_margins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2_crop_about_centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im1_margins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2_margins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margins_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mm'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.match_images" title="Link to this definition"></a></dt>
 <dd><p>Process pair of images, so that they match in one or more respects.</p>
 <p>Matching can be with respect to image size, voxel size,
 grey-level banding, and/or ROI naming in associated structure sets.
@@ -3703,20 +3802,34 @@ if False, im2 is cropped to the ROI extents plus margins.
 Ignored for the case where im2_crop_focus isn’t the name of an ROI.</p>
 </dd>
 <dt>alignment<span class="classifier">tuple/dict/str, default=None</span></dt><dd><p>Strategy to be used for aligning images prior to cropping
-so that they have the same size.  For strategy details, see
-documentation of skrt.image.get_alignment_translation().
-After alignment, im1 is cropped to the size of im2, then im2
-is cropped to the size of im1.  To omit cropping to the same
-size, set alginment to False.</p>
+so that, with any margins included, they have the same size.
+For strategy details, see documentation of
+skrt.image.get_alignment_translation().  After alignment, im1
+is cropped to the size of im2 plus its margins, then im2 is cropped
+to the size of im1 plus its margins.  Margins are used only to
+determine crop regions; they aren’t added to the images returned.  To
+omit cropping, set alginment to False.</p>
 </dd>
 <dt>voxel_size<span class="classifier">tuple/str/float, default=None</span></dt><dd><p>Specification of voxel size for image resampling.
 For possible values, see documentation for function
 skrt.image.match_image_voxel_size().</p>
 </dd>
-<dt>bands - dict, default=None</dt><dd><p>Dictionary of value bandings to be applied to image data.
+<dt>bands<span class="classifier">dict, default=None</span></dt><dd><p>Dictionary of value bandings to be applied to image data.
 Keys specify band limits, and values indicte the values
 to be assigned.  For more information, see documentation of
 method skrt.image.Image.apply_banding().</p>
+</dd>
+<dt>im1_margins<span class="classifier">float/tuple, default=None</span></dt><dd><p>Margins to be added around im1 to before cropping im2 to match.  For
+information about specifying margins, see documentation of method
+skrt.image.added_margins().  Disregarded if None.</p>
+</dd>
+<dt>im2_margins<span class="classifier">float/tuple, default=None</span></dt><dd><p>Margins to be added around im2 before cropping im1 to match.  For
+information about specifying margins, see documentation of method
+skrt.image.added_margins().  Disregarded if None.</p>
+</dd>
+<dt>margins_units<span class="classifier">str, default=”mm”</span></dt><dd><p>Units in which margins of im1 and im2 are specified.  Can be either of:
+- “mm”: margins in millimetres.
+- “voxels”: margins in numbers of voxels.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3768,6 +3881,21 @@ For possible values, see documentation for function
 skrt.image.match_image_voxel_size().</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="skrt.image.null_margins">
+<span class="sig-prename descclassname"><span class="pre">skrt.image.</span></span><span class="sig-name descname"><span class="pre">null_margins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#skrt.image.null_margins" title="Link to this definition"></a></dt>
+<dd><p>Return whether specified margins are equivalent to no margins.</p>
+<p>This function is used, for example, to determine whether action is
+needed in skrt.image.Image.add_margins().</p>
+<p><strong>Parameter:</strong>
+margins : float/tuple</p>
+<blockquote>
+<div><p>Float or tuple specifying margins to be added around an image.
+Ways in which margins can be specified are list in the documenation
+for skrt.image.Image.add_margins().</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py function">
