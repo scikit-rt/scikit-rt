@@ -567,7 +567,8 @@ class Image(skrt.core.Archive):
         structure_set_name=None,
     ):
         """
-        Clone current image, and associate to clone a filtered structure set.
+        Clone current image, optionally add margins,
+        and associate to clone a filtered structure set.
 
         **Parameters:**
 
@@ -4803,7 +4804,10 @@ class Image(skrt.core.Archive):
             For further details, see documentation of
             skrt.image.get_alignment_translation().
         """
-        image = image if not image.from_nifti() else image.astype("dcm")
+        # Obtain clone of reference image that has the orientation needed
+        # for alignment calculations, and avoid modifying original.
+        image = image.astype("dcm")
+
         # Calculate any translation to be applied prior to cropping.
         translation = image.get_alignment_translation(self, alignment)
 
@@ -4813,6 +4817,163 @@ class Image(skrt.core.Archive):
 
         # Perform cropping.
         self.crop(*image.get_extents())
+
+    def add_margins(self, margins, units="mm", **kwargs):
+        """
+        Add margins around image.
+
+        By default, voxels in the added margins are assigned an intensity
+        value equal to the minimum intensity value within the initial image.
+        Intensity values in the margins can be modified by specifying any
+        of the parameters accepted by numpy.pad to define values when padding
+        arrays:
+
+        https://numpy.org/doc/2.0/reference/generated/numpy.pad.html
+
+        **Parameters:**
+        margins : float/tuple
+            Float or tuple specifying the margins to be added around the
+            image.  Margins may be in millimetres or in numbers of voxels,
+            as defined by <units>.
+            - If margins are specified by a float or by a single-element
+              tuple, the amount indicated is added as a margin on all
+              image sides.
+            - If margins are specified by a two-element tuple, the amounts
+              indicated by the first and second elements are added respectively
+              as the image's lower margin and upper margin along each axis.
+            - If margins are specified by a three-element tuple, these
+              elements are applied in order along the (x, y, z) image axes.
+              If an element is a float or a single-element tuple, the amount
+              indicated is added as a margin to both the lower and upper
+              sides along the axis.  If an element is a two-element tuple,
+              the amounts indicated by the first and second elements are added
+              respectively as the image's lower margin and upper margin along
+              the axis.
+
+        units: str, default="mm"
+            Units in which margins are specified.  Can be either of:
+                - "mm": margins in millimetres.
+                - "voxels": margins in numbers of voxels.
+
+        **kwargs:
+            Keyword arguments passed to numpy.pad().
+        """
+        # Return if no margins are to be added.
+        if null_margins(margins):
+            return None
+
+        # Sizes along (x, y, z) axes by which to divide margins,
+        # to obtain margins in terms of voxel numbers.
+        sizes = (1, 1, 1) if "voxels" == units else tuple(self.get_voxel_size())
+
+        pad_width = []
+        # Handle case where margins specified by a single number.
+        if isinstance(margins, numbers.Number):
+            pad_width = ([margins] if "voxels" == units
+                         else list(2 * (math.ceil(margins / sizes[idx]),)
+                                    for idx in range(3))
+                         )
+
+        # Handle case where margins specified by a single-element tuple or list.
+        elif skrt.core.is_list(margins) and (1 == len(margins)):
+            pad_width = (margins if "voxels" == units
+                         else list(2 * (math.ceil(margins[0] / sizes[idx]),)
+                                    for idx in range(3))
+                         )
+
+        # Handle case where margins specified by a two-element tuple or list.
+        elif skrt.core.is_list(margins) and (2 == len(margins)):
+            pad_width = (margins if "voxels" == units
+                         else list(
+                             (math.ceil(margins[0] / sizes[idx]),
+                              math.ceil(margins[1] / sizes[idx]))
+                             for idx in range(3))
+                         )
+
+        # Handle case where margins specified by a three-element tuple or list.
+        elif skrt.core.is_list(margins) and (3 == len(margins)):
+            for idx, item in enumerate(margins):
+                if isinstance(item, numbers.Number):
+                    pad_width.append(2 * (math.ceil(item / sizes[idx]),))
+                elif skrt.core.is_list(item):
+                    if (1 == len(item)):
+                        pad_width.append(2 * (math.ceil(item[0] / sizes[idx]),))
+                    elif (2 == len(item)):
+                        pad_width.append((math.ceil(item[0] / sizes[idx]),
+                                          math.ceil(item[1] / sizes[idx])))
+
+        im = self if self.is_type("dcm") else self.astype("dcm")
+        np_pad_width = ([pad_width[idx] for idx in [1, 0, 2]]
+                        if 3 == len(pad_width) else pad_width)
+        kwargs = kwargs or {"mode": "constant", "constant_values": im.get_min()}
+        self.data = np.pad(im.get_data(), np_pad_width, **kwargs)
+
+        # Reset properties
+        im.origin = [
+            im.origin[idx] - im.voxel_size[idx] * pad_width[idx][0]
+            for idx in range(3)
+        ]
+
+        ny, nx, nz = im.data.shape
+        im.n_voxels = [nx, ny, nz]
+        im.affine = None
+        im.set_geometry()
+        im.standardise_data()
+
+        if not self is im:
+            im = im.astype("nii")
+            self.origin = im.origin
+            self.n_voxels = im.n_voxels
+            self.affine = None
+            self.data = im.data
+            self.set_geometry()
+            self.standardise_data()
+
+    def added_margins(self, margins, units="mm", **kwargs):
+        """
+        Return image clone with margins added.
+
+        By default, voxels in the added margins are assigned an intensity
+        value equal to the minimum intensity value within the initial image.
+        Intensity values in the margins can be modified by specifying any
+        of the parameters accepted by numpy.pad to define values when padding
+        arrays:
+
+        https://numpy.org/doc/2.0/reference/generated/numpy.pad.html
+
+        **Parameters:**
+        margins : float/tuple
+            Float or tuple specifying the margins to be added around the
+            image.  Margins may be in millimetres or in numbers of voxels,
+            as defined by <units>.
+            - If margins are specified by a float or by a single-element
+              tuple, the amount indicated is added as a margin on all
+              image sides.
+            - If margins are specified by a two-element tuple, the amounts
+              indicated by the first and second elements are added respectively
+              as the image's lower margin and upper margin along each axis.
+            - If margins are specified by a three-element tuple, these
+              elements are applied in order along the (x, y, z) image axes.
+              If an element is a float or a single-element tuple, the amount
+              indicated is added as a margin to both the lower and upper
+              sides along the axis.  If an element is a two-element tuple,
+              the amounts indicated by the first and second elements are added
+              respectively as the image's lower margin and upper margin along
+              the axis.
+
+        units: str, default="mm"
+            Units in which margins are specified.  Can be either of:
+                - "mm": margins in millimetres.
+                - "voxels": margins in numbers of voxels.
+
+        **kwargs:
+            Keyword arguments passed to numpy.pad().
+        """
+        if margins is None:
+            return self.clone()
+        im = self.astype("dcm")
+        im.add_margins(margins, units, **kwargs)
+        return im.match_type(self)
 
     def map_hu(self, mapping="kv_to_mv"):
         """
@@ -7670,6 +7831,9 @@ def match_images(
     alignment=None,
     voxel_size=None,
     bands=None,
+    im1_margins=None,
+    im2_margins=None,
+    margins_units="mm",
 ):
     """
     Process pair of images, so that they match in one or more respects.
@@ -7736,22 +7900,39 @@ def match_images(
 
     alignment : tuple/dict/str, default=None
         Strategy to be used for aligning images prior to cropping
-        so that they have the same size.  For strategy details, see
-        documentation of skrt.image.get_alignment_translation().
-        After alignment, im1 is cropped to the size of im2, then im2
-        is cropped to the size of im1.  To omit cropping to the same
-        size, set alginment to False.
+        so that, with any margins included, they have the same size.
+        For strategy details, see documentation of
+        skrt.image.get_alignment_translation().  After alignment, im1
+        is cropped to the size of im2 plus its margins, then im2 is cropped
+        to the size of im1 plus its margins.  Margins are used only to
+        determine crop regions; they aren't added to the images returned.  To
+        omit cropping, set alginment to False.
 
     voxel_size : tuple/str/float, default=None
          Specification of voxel size for image resampling.
          For possible values, see documentation for function
          skrt.image.match_image_voxel_size().
 
-    bands - dict, default=None
+    bands : dict, default=None
         Dictionary of value bandings to be applied to image data.
         Keys specify band limits, and values indicte the values
         to be assigned.  For more information, see documentation of
         method skrt.image.Image.apply_banding().
+
+    im1_margins : float/tuple, default=None
+        Margins to be added around im1 to before cropping im2 to match.  For
+        information about specifying margins, see documentation of method
+        skrt.image.added_margins().  Disregarded if None.
+
+    im2_margins : float/tuple, default=None
+        Margins to be added around im2 before cropping im1 to match.  For
+        information about specifying margins, see documentation of method
+        skrt.image.added_margins().  Disregarded if None.
+
+    margins_units : str, default="mm"
+        Units in which margins of im1 and im2 are specified.  Can be either of:
+        - "mm": margins in millimetres.
+        - "voxels": margins in numbers of voxels.
     """
     im1 = im1.clone_with_structure_set(ss1, roi_names, ss1_index, ss1_name)
     ss1 = im1.structure_sets[0] if im1.structure_sets else None
@@ -7759,31 +7940,47 @@ def match_images(
     ss2 = im2.structure_sets[0] if im2.structure_sets else None
 
     if alignment is not False:
-        im1.crop_to_image(im2, alignment)
-        im2.crop_to_image(im1, alignment)
+        im1.crop_to_image(
+                (im2 if null_margins(im2_margins)
+                 else im2.added_margins(im2_margins, margins_units)),
+                alignment
+                )
+        im2.crop_to_image(
+                (im1 if null_margins(im1_margins)
+                 else im1.added_margins(im1_margins, margins_units)),
+                alignment
+                )
 
     # Resample images to same voxel size.
     match_image_voxel_sizes(im1, im2, voxel_size)
 
     # Crop im2 to region around focus.
     if ss2 is not None and im2_crop_focus in ss2.get_roi_names():
+        im2.clear_structure_sets()
+        ss2.set_image(im2)
         im2.crop_to_roi(
             ss2[im2_crop_focus],
             crop_margins=im2_crop_margins,
             crop_about_centre=im2_crop_about_centre,
         )
+        im2_cropped = True
     elif (
         skrt.core.is_list(im2_crop_focus) or im2_crop_focus is None
     ) and skrt.core.is_list(im2_crop_margins):
         im2.crop_about_point(im2_crop_focus, *im2_crop_margins)
+        im2_cropped = True
+    else:
+        im2_cropped = False
 
     # Crop images to same size.
     if alignment is not False:
-        im1.crop_to_image(im2, alignment)
-        im2.crop_to_image(im1, alignment)
+        if im2_cropped:
+            im1.crop_to_image(im2, alignment)
+            im2.crop_to_image(im1, alignment)
         if (
             im1.get_voxel_size() == im2.get_voxel_size()
             and im1.get_n_voxels() != im2.get_n_voxels()
+            and null_margins(im1_margins) and null_margins(im2_margins)
         ):
             im1.resize(im2.get_n_voxels(), method="nearest")
 
@@ -8186,3 +8383,21 @@ def get_quality_metrics():
         "fidelity",
         "relative_structural_content",
     ]
+
+def null_margins(margins):
+    """
+    Return whether specified margins are equivalent to no margins.
+
+    This function is used, for example, to determine whether action is
+    needed in skrt.image.Image.add_margins().
+
+    **Parameter:**
+    margins : float/tuple
+        Float or tuple specifying margins to be added around an image.
+        Ways in which margins can be specified are list in the documenation
+        for skrt.image.Image.add_margins().
+    """
+    if not skrt.core.is_list(margins):
+        margins = [margins]
+    return not any(element for items in margins for element in
+                   (items if skrt.core.is_list(items) else [items]))

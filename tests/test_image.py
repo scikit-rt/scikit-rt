@@ -19,7 +19,8 @@ from skrt.image import (_axes, _slice_axes, Image, Sinogram,
                         checked_crop_limits, get_alignment_translation,
                         get_geometry, get_image_comparison_metrics,
                         get_mask_bbox, get_translation_to_align,
-                        match_images, match_image_voxel_sizes, rescale_images)
+                        match_images, match_image_voxel_sizes, rescale_images,
+                        null_margins)
 from skrt.simulation import SyntheticImage
 from skrt.structures import ROI
 
@@ -2054,3 +2055,22 @@ def test_mu_to_hu_and_hu_to_mu():
         # to linear attenuation coefficients.
         im.hu_to_mu(mu_water=mu0)
         assert np.all(sim.data == im.data)
+
+def test_null_margins():
+    """Test determination of whether margins are null."""
+    # List selection of margins, and whether these margins are null.
+    items = [
+            (None, True),
+            (0, True),
+            (1, False),
+            ((0,), True),
+            ((1,), False),
+            ((0, 0), True),
+            ((1, 0), False),
+            ((0, 0, 0), True),
+            ((1, 0, 0), False),
+            (((0, 0), 0, (0, 0)), True),
+            (((0, 0), 0, (1, 0)), False),
+            ]
+    for margins, null in items:
+        assert null_margins(margins) == null
