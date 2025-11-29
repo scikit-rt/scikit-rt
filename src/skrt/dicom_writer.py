@@ -18,7 +18,6 @@ from pydicom import uid
 from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
 from pydicom.sequence import Sequence
 from pydicom.uid import generate_uid
-import pydicom._storage_sopclass_uids as sop
 
 from skrt.core import fullpath
 
@@ -374,7 +373,7 @@ class DicomWriter:
 
         media_storage_sop_class_name = storage_classes.get(self.modality)
         media_storage_sop_class_uid = getattr(
-            sop, media_storage_sop_class_name, None
+            uid, media_storage_sop_class_name, None
         )
 
         return media_storage_sop_class_uid
