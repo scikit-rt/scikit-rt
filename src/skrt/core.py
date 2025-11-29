@@ -2220,11 +2220,18 @@ def get_stat(values=None, value_for_none=None, stat="mean", **kwargs):
         return None
 
     if not is_list(values[0]):
+        if isinstance(values[0], np.integer):
+            checked_type = lambda x : int(x)
+        elif isinstance(values[0], np.floating):
+            checked_type = lambda x : float(x)
+        else:
+            checked_type = lambda x : x
         if value_for_none is None:
-            values = [value for value in values if value is not None]
+            values = [checked_type(value) for value in values
+                      if value is not None]
         else:
             values = [
-                (value if value is not None else value_for_none)
+                (checked_type(value) if value is not None else value_for_none)
                 for value in values
             ]
         try:
