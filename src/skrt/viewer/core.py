@@ -2389,7 +2389,7 @@ def load_dicom(path, rescale=True):
     if os.path.isfile(path):
 
         try:
-            ds = pydicom.read_file(path)
+            ds = pydicom.dcmread(path)
             if ds.get("ImagesInAcquisition", None) == 1:
                 data, affine = load_dicom_single_file(ds, rescale=rescale)
 
@@ -2480,7 +2480,7 @@ def load_dicom_multiple_files(paths, series_num=None, rescale=True,
     data_slices = {}
     for path in sorted(paths):
         try:
-            ds = pydicom.read_file(path)
+            ds = pydicom.dcmread(path)
 
             # Set series num and orientation to match first file loaded
             if series_num is None:
@@ -4409,7 +4409,7 @@ def load_structs(path):
     """Load structures from a DICOM file."""
 
     try:
-        ds = pydicom.read_file(path)
+        ds = pydicom.dcmread(path)
     except pydicom.errors.InvalidDicomError:
         raise TypeError("Not a valid DICOM file!")
 
