@@ -11,8 +11,7 @@ import pandas as pd
 import shutil
 import pydicom
 
-from pydicom._storage_sopclass_uids import\
-        PositronEmissionTomographyImageStorage
+from pydicom.uid import PositronEmissionTomographyImageStorage
 
 from skrt.core import Defaults, File, fullpath
 from skrt.image import (_axes, _slice_axes, Image, Sinogram,
