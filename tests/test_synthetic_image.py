@@ -31,12 +31,12 @@ def test_cuboid():
     sim = SyntheticImage((10, 10, 10), intensity=0)
     length = (2, 4, 6)
     sim.add_cube(length, intensity=1)
-    assert sim.get_data().sum() == np.product(length)
+    assert sim.get_data().sum() == np.prod(length)
 
 def test_background_intensity():
     i = 5
     sim = SyntheticImage((10, 10, 10), intensity=i)
-    assert sim.get_data().sum() == np.product(sim.shape) * i
+    assert sim.get_data().sum() == np.prod(sim.shape) * i
 
 def test_noise():
     std = 10
