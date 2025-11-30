@@ -13,7 +13,7 @@ import pydicom
 
 from pydicom.uid import PositronEmissionTomographyImageStorage
 
-from skrt.core import Defaults, File, fullpath
+from skrt.core import Defaults, File, fullpath, is_uint
 from skrt.image import (_axes, _slice_axes, Image, Sinogram,
                         checked_crop_limits, get_alignment_translation,
                         get_geometry, get_image_comparison_metrics,
@@ -1367,8 +1367,11 @@ def test_apply_selective_banding():
         banded_data = im2.get_data()
 
         # Check that band values are correctly assigned.
+        image_min = image_data.min()
+        v_min = (image_min if (is_uint(image_min) and image_min < 1)
+                 else image_min - 1)
         for v_band, values in sorted(bands.items()):
-            v1 = values[0] if values[0] is not None else image_data.min() - 1
+            v1 = values[0] if values[0] is not None else v_min
             v2 = values[1] if values[1] is not None else image_data.max() + 1
             assert np.all(banded_data[(image_data > v1) & (image_data <= v2)]
                     == v_band)

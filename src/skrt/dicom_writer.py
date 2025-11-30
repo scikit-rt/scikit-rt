@@ -261,8 +261,8 @@ class DicomWriter:
         filename = None
         preamble = b"\x00" * 128
         dset = FileDataset(filename, {}, file_meta=file_meta, preamble=preamble)
-        dset.is_little_endian = transfer_syntax_uid.is_little_endian
-        dset.is_implicit_VR = transfer_syntax_uid.is_implicit_VR
+        #dset.is_little_endian = transfer_syntax_uid.is_little_endian
+        #dset.is_implicit_VR = transfer_syntax_uid.is_implicit_VR
 
         dset.AccessionNumber = None
         dset.ContentDate = self.date
@@ -731,6 +731,14 @@ class DicomWriter:
         # Prepare output directory for writing.
         self.initialise_outdir()
 
+        # Define write options.
+        transfer_syntax_uid = self.dset.file_meta.TransferSyntaxUID
+        kwargs = {
+                "enforce_file_format": True,
+                "little_endian": transfer_syntax_uid.is_little_endian,
+                "implicit_vr": transfer_syntax_uid.is_implicit_VR,
+                }
+
         # Write image as single slice per file.
         # Write dose as single file for all slices.
         if self.source_type == "Dose":
@@ -740,7 +748,7 @@ class DicomWriter:
                 outpath = self.get_path_with_timestamp()
             else:
                 outpath = str(self.outdir / self.outname)
-            self.dset.save_as(outpath, write_like_original=False)
+            self.dset.save_as(outpath, **kwargs)
 
         elif self.source_type == "Image":
             # Write file per slice.
@@ -748,7 +756,7 @@ class DicomWriter:
                 self.set_image_slice(i)
                 outname = f"{self.dset.InstanceNumber}.dcm"
                 outpath = self.outdir / outname
-                self.dset.save_as(outpath, write_like_original=False)
+                self.dset.save_as(outpath, **kwargs)
 
         elif self.source_type == "StructureSet":
             self.set_structure_set()
@@ -756,6 +764,6 @@ class DicomWriter:
                 outpath = self.get_path_with_timestamp()
             else:
                 outpath = str(self.outdir / self.outname)
-            self.dset.save_as(outpath, write_like_original=False)
+            self.dset.save_as(outpath, **kwargs)
 
         return self.dset

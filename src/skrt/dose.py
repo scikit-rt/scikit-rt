@@ -527,7 +527,8 @@ class Dose(ImageOverlay):
         if n_colour is None:
             colours = [roi.color for roi in all_rois]
         else:
-            colours = matplotlib.cm.get_cmap(cmap)(np.linspace(0, 1, n_colour))
+            colours = matplotlib.colormaps.get_cmap(
+                    cmap)(np.linspace(0, 1, n_colour))
         axes.set_prop_cycle(color=colours)
 
         # Plot the dose-volume histograms, and extract information for legend.

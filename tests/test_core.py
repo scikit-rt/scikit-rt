@@ -665,3 +665,21 @@ def test_mu_to_hu_and_hu_to_mu():
             assert mu == approx(
                     skrt.core.hu_to_mu(
                         hu=hu, mu_water=mu0), abs=small_number)
+
+def test_isuint():
+    """Test check for numpy unsigned integer."""
+
+    # Test that numpy arrays and elements that are correctly recognised.
+    dtypes = {
+            **{dtype: True
+               for dtype in [np.uint8, np.uint16, np.uint32, np.uint64]},
+            **{dtype: False
+               for dtype in [np.int8, np.int16, np.int32, np.int64,
+                             np.float16, np.float32, np.float64]}
+               }
+    for dtype, uint in dtypes.items():
+        assert skrt.core.is_uint(np.array([1], dtype=dtype)) is uint
+
+    # Test that items are recognised as not being numpy unsigned integers.
+    for item in [1, -1, 100., -100., True, False, None, "test", [1, 2, 3]]:
+        assert not skrt.core.is_uint(item)

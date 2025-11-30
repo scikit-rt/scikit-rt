@@ -3461,7 +3461,7 @@ class Image(skrt.core.Archive):
         # Ensure colour map is defined, and set mask colour
         cmap = mpl_kwargs.get("cmap", self._default_cmap)
         if isinstance(cmap, str):
-            cmap = copy.copy(matplotlib.cm.get_cmap(cmap))
+            cmap = copy.copy(matplotlib.colormaps.get_cmap(cmap))
         cmap.set_bad(color=mask_color)
         mpl_kwargs["cmap"] = cmap
 
@@ -5291,8 +5291,13 @@ class Image(skrt.core.Archive):
         banded_data = image_data.copy()
 
         # Apply banding.
+        image_min = image_data.min()
+        v_min = (image_min if (skrt.core.is_uint(image_min)
+                               and image_min < 1)
+                 else image_min - 1)
         for v_band, values in sorted(bands.items()):
-            v1 = values[0] if values[0] is not None else image_data.min() - 1
+            print("Hello", image_data.min(), type(image_data.min()), values)
+            v1 = values[0] if values[0] is not None else v_min
             v2 = values[1] if values[1] is not None else image_data.max() + 1
             banded_data[(image_data > v1) & (image_data <= v2)] = v_band
 
@@ -5852,7 +5857,7 @@ class ImageComparison(Image):
         self.set_ax(view, ax=ax, gs=self.gs, figsize=figsize, zoom=zoom)
         self.mpl_kwargs = self.ims[0].get_mpl_kwargs(view, mpl_kwargs)
         self.cmap = copy.copy(
-            matplotlib.cm.get_cmap(self.mpl_kwargs.pop("cmap"))
+            matplotlib.colormaps.get_cmap(self.mpl_kwargs.pop("cmap"))
         )
 
         # Make plot

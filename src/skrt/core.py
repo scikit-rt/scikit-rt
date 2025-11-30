@@ -1314,6 +1314,9 @@ def to_list(val, n_item=3, keep_none_single=True):
         return list(val)
     return [val] * n_item
 
+def is_uint(item: Any) -> bool:
+    """Check whether an item is a numpy unsigned integer."""
+    return np.issubdtype(getattr(item, "dtype", None), np.unsignedinteger)
 
 def generate_timestamp() -> str:
     """Make timestamp from the current time."""

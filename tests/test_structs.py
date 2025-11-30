@@ -581,7 +581,7 @@ def test_roi_from_polygons():
 
     df = StructureSet(new_roi).get_comparison(StructureSet(cube))
     # Dice score may not be exactly 1 because of rounding errors
-    assert df['dice'][0] == pytest.approx(1.0, abs=1.e-3)
+    assert df['dice'].iloc[0] == pytest.approx(1.0, abs=1.e-3)
 
 def test_null_roi():
     roi = ROI()
@@ -1957,6 +1957,12 @@ def test_flattened():
         assert roi2.get_voxel_size() == voxel_size
         assert roi2.name == f"{roi1.name}_flattened"
 
+# Filter warnings from shapely/constructive.py:1353.
+# See: https://github.com/libgeos/geos/issues/1235
+@pytest.mark.filterwarnings(
+"ignore:divide by zero encountered in oriented_envelope:RuntimeWarning:shapely",
+"ignore:invalid value encountered in oriented_envelope:RuntimeWarning:shapely",
+)
 def test_enclosing_roi():
     """Test creation of ROI that encloses another."""
     # Create ROIs representing cuboid and cylinder from polygons.
