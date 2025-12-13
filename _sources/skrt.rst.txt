@@ -33,5 +33,5 @@ Module contents
 
 .. automodule:: skrt
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

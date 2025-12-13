@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Patients and studies &mdash; Scikit-rt 0.8.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -166,7 +166,7 @@ is taken as the patient’s identifier.</p>
 <section id="patient-class">
 <h2>Patient class<a class="headerlink" href="#patient-class" title="Link to this heading"></a></h2>
 <p>A <code class="docutils literal notranslate"><span class="pre">Patient</span></code> object is created by providing the path to the top-level patient directory, and indicating if the data are unsorted DICOM data:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">skrt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient1&#39;</span><span class="p">)</span> <span class="c1"># load sorted data</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient2&#39;</span><span class="p">,</span> <span class="n">unsorted_dicom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># load unsorted DICOM data</span>
 </pre></div>
@@ -188,7 +188,7 @@ example, association of a structure set with an image) based
 on file organisation.  When loading unsorted DICOM files, object linking
 is based on unique identifiers and references that the files contain.</p>
 <p>Unsorted DICOM files can be copied as sorted files:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Patient</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">skrt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span>
 <span class="c1"># Load unsorted DICOM files.</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="s1">&#39;mypatient2&#39;</span><span class="p">,</span> <span class="n">unsorted_dicom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># Write sorted DICOM files to sub-directory mypatient2 of directory my_sorted_dicom.</span>

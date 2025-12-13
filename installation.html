@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installation &mdash; Scikit-rt 0.8.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -194,7 +194,7 @@ scikit-rt of the registration software (registration engine):</p>
 <li><p>Before starting scikit-rt, follow the instructions linked for
 the relevant registration package.</p></li>
 <li><p>At run time, use code similar to the following :</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.registration</span> <span class="kn">import</span> <span class="n">set_engine_dir</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">skrt.registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_engine_dir</span>
 
 <span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/elastix/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;elastix&quot;</span><span class="p">)</span>
 <span class="n">set_engine_dir</span><span class="p">(</span><span class="s2">&quot;/path/to/niftyreg/directory&quot;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;niftyreg&quot;</span><span class="p">)</span>
@@ -217,7 +217,7 @@ installation directory of the registration engine to be used via
 the <code class="docutils literal notranslate"><span class="pre">engine_dir</span></code> parameter.  When using <code class="docutils literal notranslate"><span class="pre">matlab-skrt</span></code>, the location
 of the MATLAB executable or of the MATLAB runtime installation must
 still be set:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt.core</span> <span class="kn">import</span> <span class="n">Defaults</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">skrt.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Defaults</span>
 
 <span class="c1"># matlab-skrt option 1: define location of MATLAB executable.</span>
 <span class="n">Defaults</span><span class="p">()</span><span class="o">.</span><span class="n">matlab_app</span> <span class="o">=</span> <span class="s2">&quot;/path/to/directory/containing/MATLAB/executable&quot;</span>

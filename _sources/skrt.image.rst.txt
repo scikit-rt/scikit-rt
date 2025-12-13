@@ -3,5 +3,5 @@ skrt.image module
 
 .. automodule:: skrt.image
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

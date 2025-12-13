@@ -3,5 +3,5 @@ skrt.segmentation module
 
 .. automodule:: skrt.segmentation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

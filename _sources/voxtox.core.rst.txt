@@ -3,5 +3,5 @@ voxtox.core module
 
 .. automodule:: voxtox.core
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

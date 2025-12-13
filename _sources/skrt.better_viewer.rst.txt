@@ -14,5 +14,5 @@ Module contents
 
 .. automodule:: skrt.better_viewer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

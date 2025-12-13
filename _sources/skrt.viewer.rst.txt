@@ -15,5 +15,5 @@ Module contents
 
 .. automodule:: skrt.viewer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

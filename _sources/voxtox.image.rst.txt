@@ -3,5 +3,5 @@ voxtox.image module
 
 .. automodule:: voxtox.image
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

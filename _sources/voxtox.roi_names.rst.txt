@@ -15,5 +15,5 @@ Module contents
 
 .. automodule:: voxtox.roi_names
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

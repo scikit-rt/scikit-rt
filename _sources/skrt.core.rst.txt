@@ -3,5 +3,5 @@ skrt.core module
 
 .. automodule:: skrt.core
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

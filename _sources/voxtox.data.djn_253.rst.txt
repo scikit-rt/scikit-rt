@@ -3,5 +3,5 @@ voxtox.data.djn\_253 module
 
 .. automodule:: voxtox.data.djn_253
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

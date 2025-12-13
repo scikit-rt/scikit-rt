@@ -3,5 +3,5 @@ skrt.dicom\_writer module
 
 .. automodule:: skrt.dicom_writer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

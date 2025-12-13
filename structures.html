@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Regions of interest (ROIs) and structure sets &mdash; Scikit-rt 0.8.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -113,7 +113,7 @@
 <section id="the-roi-class">
 <h2>The ROI class<a class="headerlink" href="#the-roi-class" title="Link to this heading"></a></h2>
 <p>An <code class="docutils literal notranslate"><span class="pre">ROI</span></code> object, which contains a single ROI, can be created via:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">ROI</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">skrt</span><span class="w"> </span><span class="kn">import</span> <span class="n">ROI</span>
 <span class="n">roi</span> <span class="o">=</span> <span class="n">ROI</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -204,7 +204,7 @@
 <section id="loading-a-structure-set">
 <h3>Loading a structure set<a class="headerlink" href="#loading-a-structure-set" title="Link to this heading"></a></h3>
 <p>A structure set is created via</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">StructureSet</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">skrt</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructureSet</span>
 <span class="n">structure_set</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -291,7 +291,7 @@
 <section id="assigning-structuresets-to-an-image">
 <h3>Assigning StructureSets to an Image<a class="headerlink" href="#assigning-structuresets-to-an-image" title="Link to this heading"></a></h3>
 <p>Just as ROIs and structure sets can be associated with an image, the <code class="docutils literal notranslate"><span class="pre">Image</span></code> object can be associated with one or more <code class="docutils literal notranslate"><span class="pre">StructureSet</span></code> objects. This is done via:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skrt</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">StructureSet</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">skrt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">StructureSet</span>
 
 <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="s2">&quot;some_image.nii&quot;</span><span class="p">)</span>
 <span class="n">structure_set</span> <span class="o">=</span> <span class="n">StructureSet</span><span class="p">(</span><span class="s2">&quot;roi_directory&quot;</span><span class="p">)</span>

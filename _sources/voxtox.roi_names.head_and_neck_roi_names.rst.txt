@@ -3,5 +3,5 @@ voxtox.roi\_names.head\_and\_neck\_roi\_names module
 
 .. automodule:: voxtox.roi_names.head_and_neck_roi_names
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

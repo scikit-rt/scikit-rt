@@ -3,5 +3,5 @@ skrt.better\_viewer.options module
 
 .. automodule:: skrt.better_viewer.options
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
