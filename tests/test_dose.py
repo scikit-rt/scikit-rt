@@ -9,6 +9,8 @@ from skrt import Dose, Image, ROI
 from skrt.core import fullpath
 from skrt.simulation import SyntheticImage
 
+from test_viewer import close_after
+
 # Make random arrays to use for an image and a dose map
 im_array = np.random.rand(100, 150, 30)
 dose_array = np.random.rand(100, 150, 30)
@@ -53,11 +55,13 @@ def test_plot_dose_from_image():
     im.plot(dose=0, show=False)
     im.plot(dose=dose, show=False)
 
+@close_after
 def test_view():
     dose = Dose(dose_array)
     bv = dose.view(include_image=False, show=False)
     assert bv.viewers[0].image == dose
 
+@close_after
 def test_view_with_image():
     im = Image(im_array)
     dose = Dose(dose_array)
@@ -68,6 +72,7 @@ def test_view_with_image():
     assert np.all(bv.viewers[0].image.image.get_data() == im.get_data())
     assert bv.viewers[0].ui_dose.value == opacity
 
+@close_after
 def test_view_from_image():
     im = Image(im_array)
     dose = Dose(dose_array)

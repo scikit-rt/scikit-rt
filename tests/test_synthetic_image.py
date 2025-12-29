@@ -4,6 +4,7 @@ import numpy as np
 from skrt.core import Defaults
 from skrt.simulation import SyntheticImage
 
+from test_viewer import close_after
 
 def test_shape():
     shape = (10, 40, 20)
@@ -45,6 +46,7 @@ def test_noise():
     sim.set_noise_std(0)
     assert sim.get_data()[0, 0, 0] == 0
 
+@close_after
 def test_view():
     sim = SyntheticImage((10, 10, 10))
     sim.view(show=False)

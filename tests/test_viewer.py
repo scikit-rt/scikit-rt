@@ -7,7 +7,6 @@ import shutil
 import os
 from skrt.better_viewer import BetterViewer, options
 #  from skrt.viewer import OrthogViewer
-import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
 from skrt.image import Image, ImageComparison
 from skrt.simulation import SyntheticImage
@@ -62,6 +61,7 @@ im2 = Image(data2)
 # E       This probably means that Tcl wasn't installed properly.
 # ===============================================
 def close_after(func):
+    import matplotlib.pyplot as plt
     from time import sleep
     from tkinter import TclError
     def do_then_close(max_try=2, wait=1):
