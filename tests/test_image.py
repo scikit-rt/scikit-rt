@@ -23,6 +23,8 @@ from skrt.image import (_axes, _slice_axes, Image, Sinogram,
 from skrt.simulation import SyntheticImage
 from skrt.structures import ROI
 
+from test_viewer import close_after
+
 # Create fake data
 def create_test_image(shape, voxel_size, origin, data_type='rand', factor=1000):
     if 'rand' == data_type:
@@ -694,6 +696,7 @@ def test_null_image():
     assert(type(im_null).__name__ == "Image")
     null_image_checks(im_null)
 
+@close_after
 def test_plot():
     plot_out = "tmp/plot.pdf"
     im.plot(show=False, save_as=plot_out)
