@@ -17,6 +17,8 @@ from skrt.viewer.viewer import OrthogViewer
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
 
+from test_viewer import close_after
+
 # Make temporary test directory, and quickviewer subdirectory.
 if not os.path.exists('tmp'):
     os.mkdir('tmp')
@@ -66,11 +68,11 @@ ss = sim.get_structure_set()
 ss_path = 'tmp/qv/structs'
 ss.write(outdir=ss_path, ext='.nii.gz')
 
-def close_after(func):
-    def do_then_close():
-        func()
-        plt.close("all")
-    return do_then_close
+#def close_after(func):
+#    def do_then_close():
+#        func()
+#        plt.close("all")
+#    return do_then_close
 
 
 @close_after

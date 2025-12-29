@@ -27,6 +27,7 @@ from skrt.structures import contour_to_polygon, polygon_to_contour, \
         get_metric_method, get_structuring_element, \
         create_structure_sets_from_nifti, match_rois
 
+from test_viewer import close_after
 
 # Make temporary test dir
 if not os.path.exists("tmp"):
@@ -278,15 +279,19 @@ def test_set_image():
     for roi in structs_from_nii.get_rois():
         assert roi.get_mask().shape == sim2.get_data().shape
 
+@close_after
 def test_plot_contour():
     cube.plot(plot_type="contour", show=False)
 
+@close_after
 def test_plot_centroid():
     cube.plot(plot_type="centroid", show=False)
 
+@close_after
 def test_plot_mask():
     cube.plot(plot_type="mask", show=False)
 
+@close_after
 def test_plot_filled():
     cube.plot(plot_type="filled", show=False)
 
@@ -343,6 +348,7 @@ def test_compare_with_other_consensus():
     assert pairs[0][1] == structure_set2.get_sum()
     assert pairs[1][1] == structure_set2.get_sum()
 
+@close_after
 def test_plot_consensus():
     to_exclude = structure_set.get_rois()[-1].name
     for include_image in [True, False]:
@@ -441,6 +447,7 @@ def test_expand_slice_stats():
     expanded_slice_stats = {"left": ["mean"], "right": ["mean", "median"]}
     assert expanded_slice_stats == expand_slice_stats(slice_stats)
 
+@close_after
 def test_plot_comparisons():
     plot_dir = "tmp/struct_plots"
     if os.path.exists(plot_dir):
