@@ -4502,7 +4502,7 @@ class Image(skrt.core.Archive):
             rotation=[yaw, pitch, roll], dimensionality=3
         )
         tf_scale = skimage.transform.SimilarityTransform(
-            scale=1.0 / scale, dimensionality=3
+            scale=(3 * [1.0 / scale]), dimensionality=3
         )
         tf_centre_shift_inv = skimage.transform.SimilarityTransform(
             translation=[iyc, ixc, izc], dimensionality=3
