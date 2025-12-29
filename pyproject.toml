@@ -1,6 +1,57 @@
 [build-system]
-requires = [
-    'setuptools>=42',
-    'wheel'
-    ]
-build-backend = 'setuptools.build_meta'
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scikit-rt"
+version = "0.9.0.dev0"
+dependencies = [
+  "ipywidgets",
+  "jupyterlab",
+  "matplotlib",
+  "nibabel",
+  "pandas",
+  "pydicom",
+  "scikit-image",
+  "scipy",
+  "shapely",
+  "tomli",
+  "tomli_w",
+]
+requires-python = ">=3.10"
+authors = [
+    {name = "H. Pullen, K. Harrison", email = "scikit-rt@hep.phy.cam.ac.uk"}
+]
+description = "Toolkit for analysis of radiotherapy data"
+readme = "README.md"
+license = "GPL-3.0"
+license-files = ["LICENSE"]
+classifiers=[
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/scikit-rt/scikit-rt/"
+Documentation = "https://scikit-rt.github.io/scikit-rt/"
+Repository = "https://github.com/scikit-rt/scikit-rt/"
+Issues = "https://github.com/scikit-rt/scikit-rt/issues/"
+
+[project.optional-dependencies]
+dev = [
+  "autopep8",
+  "black",
+  "pylint",
+  "pygount",
+  "pytest",
+]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
