@@ -2488,7 +2488,7 @@ class DeformationField(PathData):
         default_kwargs = {"cmap": "jet"}
         default_kwargs.update(mpl_kwargs)
         default_kwargs["clim"] = default_kwargs.get("clim", (vmin, vmax))
-        default_dot_colour = matplotlib.colormaps.get_cmap(
+        default_dot_colour = matplotlib.pyplot.get_cmap(
                 default_kwargs["cmap"])(0)
         clb_kwargs = clb_kwargs or None
         clb_label_kwargs = clb_label_kwargs or None

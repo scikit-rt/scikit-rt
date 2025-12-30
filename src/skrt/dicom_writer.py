@@ -9,6 +9,7 @@ DICOM writing is supported for instances of:
 """
 
 import datetime
+from packaging.version import Version
 from pathlib import Path
 import time
 
@@ -21,6 +22,7 @@ from pydicom.uid import generate_uid
 
 from skrt.core import fullpath
 
+PYDICOM_MAJOR_VERSION = Version(pydicom.__version__).major
 
 class DicomWriter:
     """
@@ -261,8 +263,9 @@ class DicomWriter:
         filename = None
         preamble = b"\x00" * 128
         dset = FileDataset(filename, {}, file_meta=file_meta, preamble=preamble)
-        #dset.is_little_endian = transfer_syntax_uid.is_little_endian
-        #dset.is_implicit_VR = transfer_syntax_uid.is_implicit_VR
+        if PYDICOM_MAJOR_VERSION < 3:
+            dset.is_little_endian = transfer_syntax_uid.is_little_endian
+            dset.is_implicit_VR = transfer_syntax_uid.is_implicit_VR
 
         dset.AccessionNumber = None
         dset.ContentDate = self.date
@@ -732,12 +735,17 @@ class DicomWriter:
         self.initialise_outdir()
 
         # Define write options.
-        transfer_syntax_uid = self.dset.file_meta.TransferSyntaxUID
-        kwargs = {
-                "enforce_file_format": True,
-                "little_endian": transfer_syntax_uid.is_little_endian,
-                "implicit_vr": transfer_syntax_uid.is_implicit_VR,
-                }
+        if PYDICOM_MAJOR_VERSION < 3:
+            kwargs = {
+                    "write_like_original": False,
+                    }
+        else:
+            transfer_syntax_uid = self.dset.file_meta.TransferSyntaxUID
+            kwargs = {
+                    "enforce_file_format": True,
+                    "little_endian": transfer_syntax_uid.is_little_endian,
+                    "implicit_vr": transfer_syntax_uid.is_implicit_VR,
+                    }
 
         # Write image as single slice per file.
         # Write dose as single file for all slices.

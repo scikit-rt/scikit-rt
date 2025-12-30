@@ -886,7 +886,7 @@ class Image:
         kwargs = self.get_kwargs(mpl_kwargs)
         if "interpolation" not in kwargs and masked:
             kwargs["interpolation"] = "none"
-        cmap = copy.copy(matplotlib.colormaps.get_cmap(kwargs.pop("cmap")))
+        cmap = copy.copy(matplotlib.pyplot.get_cmap(kwargs.pop("cmap")))
         cmap.set_bad(color=mask_color)
 
         # Plot image
@@ -1168,7 +1168,7 @@ class ImageComparison(Image):
         # Plot settings
         self.set_ax(view, ax, self.gs, figsize, zoom)
         self.plot_kwargs = self.ims[0].get_kwargs(mpl_kwargs)
-        self.cmap = copy.copy(matplotlib.colormaps.get_cmap(
+        self.cmap = copy.copy(matplotlib.pyplot.get_cmap(
             self.plot_kwargs.pop("cmap")))
 
         # Produce comparison plot

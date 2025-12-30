@@ -3461,7 +3461,7 @@ class Image(skrt.core.Archive):
         # Ensure colour map is defined, and set mask colour
         cmap = mpl_kwargs.get("cmap", self._default_cmap)
         if isinstance(cmap, str):
-            cmap = copy.copy(matplotlib.colormaps.get_cmap(cmap))
+            cmap = copy.copy(matplotlib.pyplot.get_cmap(cmap))
         cmap.set_bad(color=mask_color)
         mpl_kwargs["cmap"] = cmap
 
@@ -5857,7 +5857,7 @@ class ImageComparison(Image):
         self.set_ax(view, ax=ax, gs=self.gs, figsize=figsize, zoom=zoom)
         self.mpl_kwargs = self.ims[0].get_mpl_kwargs(view, mpl_kwargs)
         self.cmap = copy.copy(
-            matplotlib.colormaps.get_cmap(self.mpl_kwargs.pop("cmap"))
+            matplotlib.pyplot.get_cmap(self.mpl_kwargs.pop("cmap"))
         )
 
         # Make plot
