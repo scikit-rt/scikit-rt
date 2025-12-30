@@ -7,7 +7,7 @@ ARG SW_DIR="/opt"
 WORKDIR "${SW_DIR}"
 
 # Install specific version of python.
-RUN conda install python=3.10
+RUN conda install python=3.13
 
 # Install scikit-rt.
 RUN git clone https://github.com/scikit-rt/scikit-rt \
