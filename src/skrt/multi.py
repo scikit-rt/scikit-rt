@@ -56,8 +56,8 @@ class PatientIterator:
     def __init__(self, dataset):
         """Initialise counter and dataset."""
         self.idx = -1
-        self.n_path = len(self.dataset.paths)
         self.dataset = dataset
+        self.n_path = len(self.dataset.paths)
 
     def __iter__(self):
         return self
