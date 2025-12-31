@@ -56,11 +56,15 @@ class PatientIterator:
     def __init__(self, dataset):
         """Initialise counter and dataset."""
         self.idx = -1
+        self.n_path = len(self.dataset.paths)
         self.dataset = dataset
+
+    def __iter__(self):
+        return self
 
     def __next__(self):
         """Instantiate and return next Patient."""
         self.idx += 1
-        if self.idx < len(self.dataset.paths):
+        if self.idx < self.n_path:
             return Patient(self.dataset.paths[self.idx], **self.dataset.kwargs)
         raise StopIteration

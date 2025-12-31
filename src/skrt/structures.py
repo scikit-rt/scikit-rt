@@ -10078,11 +10078,15 @@ class StructureSet(skrt.core.Archive):
 class StructureSetIterator:
     def __init__(self, structure_set):
         self.idx = -1
+        self.n_roi = len(structure_set.get_rois())
         self.structure_set = structure_set
+
+    def __iter__(self):
+        return self
 
     def __next__(self):
         self.idx += 1
-        if self.idx < len(self.structure_set.get_rois()):
+        if self.idx < self.n_roi:
             return self.structure_set.get_rois()[self.idx]
         raise StopIteration
 
