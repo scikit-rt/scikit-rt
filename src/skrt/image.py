@@ -5296,7 +5296,6 @@ class Image(skrt.core.Archive):
                                and image_min < 1)
                  else image_min - 1)
         for v_band, values in sorted(bands.items()):
-            print("Hello", image_data.min(), type(image_data.min()), values)
             v1 = values[0] if values[0] is not None else v_min
             v2 = values[1] if values[1] is not None else image_data.max() + 1
             banded_data[(image_data > v1) & (image_data <= v2)] = v_band
