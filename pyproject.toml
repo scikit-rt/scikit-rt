@@ -15,6 +15,7 @@ dependencies = [
   "scikit-image",
   "scipy",
   "shapely",
+  "simpleitk",
   "tomli",
   "tomli_w",
 ]
